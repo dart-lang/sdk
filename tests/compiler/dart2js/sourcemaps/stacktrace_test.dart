@@ -116,7 +116,8 @@ test() {
   '''
 import 'package:expect/expect.dart';
 main() {
-  test(); // This call is no longer on the stack when the error is thrown.
+  // This call is no longer on the stack when the error is thrown.
+  @{:main}test();
 }
 @NoInline()
 test() async {
@@ -131,7 +132,7 @@ main() {
 @NoInline()
 test1() async {
   // This call is no longer on the stack when the error is thrown.
-  await test2();
+  await @{:test1}test2();
 }
 @NoInline()
 test2() async {
@@ -152,13 +153,30 @@ test2() {
   @{2:test2}throw '$EXCEPTION_MARKER';
 }
 ''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  // This call is no longer on the stack when the error is thrown.
+  @{:main}test();
+}
+test() async {
+  var c = @{1:test}new Class();
+}
+class Class {
+  @NoInline()
+  Class() {
+    @{2:Class}throw '$EXCEPTION_MARKER';
+  }
+}
+''',
 ];
 
 class Test {
   final String code;
   final List<StackTraceLine> expectedLines;
+  final List<StackTraceLine> unexpectedLines;
 
-  Test(this.code, this.expectedLines);
+  Test(this.code, this.expectedLines, this.unexpectedLines);
 }
 
 const int _LF = 0x0A;
@@ -168,6 +186,7 @@ const int _LBRACE = 0x7B;
 Test processTestCode(String code) {
   StringBuffer codeBuffer = new StringBuffer();
   Map<int, StackTraceLine> stackTraceMap = <int, StackTraceLine>{};
+  List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
   int index = 0;
   int lineNo = 1;
   int columnNo = 1;
@@ -191,12 +210,17 @@ Test processTestCode(String code) {
         if (index + 1 < code.length && code.codeUnitAt(index + 1) == _LBRACE) {
           int colonIndex = code.indexOf(':', index);
           int endIndex = code.indexOf('}', index);
-          int stackTraceIndex =
-              int.parse(code.substring(index + 2, colonIndex));
           String methodName = code.substring(colonIndex + 1, endIndex);
-          assert(!stackTraceMap.containsKey(stackTraceIndex));
-          stackTraceMap[stackTraceIndex] =
+          String indexText = code.substring(index + 2, colonIndex);
+          StackTraceLine stackTraceLine =
               new StackTraceLine(methodName, INPUT_FILE_NAME, lineNo, columnNo);
+          if (indexText == '') {
+            unexpectedLines.add(stackTraceLine);
+          } else {
+            int stackTraceIndex = int.parse(indexText);
+            assert(!stackTraceMap.containsKey(stackTraceIndex));
+            stackTraceMap[stackTraceIndex] = stackTraceLine;
+          }
           index = endIndex;
         } else {
           codeBuffer.writeCharCode(charCode);
@@ -213,18 +237,43 @@ Test processTestCode(String code) {
   for (int stackTraceIndex in (stackTraceMap.keys.toList()..sort()).reversed) {
     expectedLines.add(stackTraceMap[stackTraceIndex]);
   }
-  return new Test(codeBuffer.toString(), expectedLines);
+  return new Test(codeBuffer.toString(), expectedLines, unexpectedLines);
 }
 
 void main(List<String> arguments) {
+  bool verbose = false;
+  bool printJs = false;
+  List<int> indices;
+  for (String arg in arguments) {
+    if (arg == '-v') {
+      verbose = true;
+    } else if (arg == '--print-js') {
+      printJs = true;
+    } else {
+      int index = int.parse(arg, onError: (_) => null);
+      if (index != null) {
+        indices ??= <int>[];
+        if (index < 0 || index >= TESTS.length) {
+          print('Index $index out of bounds: [0;${TESTS.length - 1}]');
+        } else {
+          indices.add(index);
+        }
+      }
+    }
+  }
+  if (indices == null) {
+    indices = new List<int>.generate(TESTS.length, (i) => i);
+  }
   asyncTest(() async {
-    for (String code in TESTS) {
-      await runTest(processTestCode(code), verbose: arguments.contains('-v'));
+    for (int index in indices) {
+      await runTest(index, processTestCode(TESTS[index]),
+          printJs: printJs, verbose: verbose);
     }
   });
 }
 
-Future runTest(Test test, {bool verbose: false}) async {
+Future runTest(int index, Test test,
+    {bool printJs: false, bool verbose: false}) async {
   Directory tmpDir = await createTempDir();
   String input = '${tmpDir.path}/$INPUT_FILE_NAME';
   new File(input).writeAsStringSync(test.code);
@@ -236,7 +285,7 @@ Future runTest(Test test, {bool verbose: false}) async {
     Flags.useNewSourceInfo,
     input,
   ];
-  print("--------------------------------------------------------------------");
+  print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${arguments.join(' ')}\n${test.code}");
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess,
@@ -245,6 +294,10 @@ Future runTest(Test test, {bool verbose: false}) async {
   SingleMapping sourceMap = new SingleMapping.fromJson(
       JSON.decode(new File('$output.map').readAsStringSync()));
 
+  if (printJs) {
+    print('JavaScript output:');
+    print(new File(output).readAsStringSync());
+  }
   print("Running d8 $output");
   ProcessResult runResult = Process.runSync(d8executable,
       ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js', output]);
@@ -288,6 +341,7 @@ Future runTest(Test test, {bool verbose: false}) async {
   }
 
   int expectedIndex = 0;
+  List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
   for (StackTraceLine line in dartStackTrace) {
     if (expectedIndex < test.expectedLines.length) {
       StackTraceLine expectedLine = test.expectedLines[expectedIndex];
@@ -295,6 +349,13 @@ Future runTest(Test test, {bool verbose: false}) async {
           line.lineNo == expectedLine.lineNo &&
           line.columnNo == expectedLine.columnNo) {
         expectedIndex++;
+      }
+    }
+    for (StackTraceLine unexpectedLine in test.unexpectedLines) {
+      if (line.methodName == unexpectedLine.methodName &&
+          line.lineNo == unexpectedLine.lineNo &&
+          line.columnNo == unexpectedLine.columnNo) {
+        unexpectedLines.add(line);
       }
     }
   }
@@ -310,6 +371,11 @@ Future runTest(Test test, {bool verbose: false}) async {
       "Missing stack trace lines for test:\n${test.code}\n"
       "Actual:\n${dartStackTrace.join('\n')}\n"
       "Expected:\n${test.expectedLines.join('\n')}\n");
+  Expect.isTrue(
+      unexpectedLines.isEmpty,
+      "Unexpected stack trace lines for test:\n${test.code}\n"
+      "Actual:\n${dartStackTrace.join('\n')}\n"
+      "Unexpected:\n${test.unexpectedLines.join('\n')}\n");
 
   print("Deleting '${tmpDir.path}'.");
   tmpDir.deleteSync(recursive: true);
