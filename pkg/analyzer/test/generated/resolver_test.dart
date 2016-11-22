@@ -224,13 +224,6 @@ class C {
  */
 @reflectiveTest
 class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
-  void setUp() {
-    super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    resetWithOptions(options);
-  }
-
   void test_genericMethod_propagatedType_promotion() {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25340
@@ -3581,8 +3574,7 @@ A v = new A();
    */
   void _resolveTypeModeLocal(
       String code, AstNode getNodeToResolve(CompilationUnit unit)) {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit2(code, parseGenericMethods: true);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit2(code);
     var unitElement = new CompilationUnitElementImpl('/test.dart');
 
     // Build API elements.

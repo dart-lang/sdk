@@ -201,7 +201,6 @@ class ComplexParserTest extends ParserTestCase {
   }
 
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    enableGenericMethods = true;
     _validate_assignableExpression_arguments_normal_chain_typeArguments(
         "a<E>(b)<F>(c).d<G>(e).f");
   }
@@ -532,7 +531,6 @@ class C {
   }
 
   void test_topLevelFunction_nestedGenericFunction() {
-    enableGenericMethods = true;
     parseCompilationUnitWithOptions('''
 void f() {
   void g<T>() {
@@ -1683,7 +1681,6 @@ class Foo {
     // Regression test for https://github.com/dart-lang/sdk/issues/25739.
 
     // TODO(jmesserly): ideally we'd be better at parser recovery here.
-    enableGenericMethods = true;
     createParser('f<E>(E extends num p);');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
@@ -1729,7 +1726,6 @@ class Foo {
     // It doesn't try to advance past the invalid token `!` to find the
     // valid `>`. If it did we'd get less cascading errors, at least for this
     // particular example.
-    enableGenericMethods = true;
     createParser('void m<E, hello!>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
@@ -2269,7 +2265,6 @@ class Foo {
   }
 
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
-    enableGenericMethods = true;
     createParser('..<E>()');
     MethodInvocation methodInvocation = parser.parseCascadeSection();
     expectNotNullIfNoErrors(methodInvocation);
@@ -2841,12 +2836,6 @@ class ParserTestCase extends EngineTestCase {
   bool parseAsync = true;
 
   /**
-   * A flag indicating whether generic method support should be enabled for a
-   * specific test.
-   */
-  bool enableGenericMethods = false;
-
-  /**
    * Whether generic method comments should be enabled for the test.
    */
   bool enableGenericMethodComments = false;
@@ -2910,7 +2899,6 @@ class ParserTestCase extends EngineTestCase {
     //
     parser = new Parser(source, listener);
     parser.enableAssertInitializer = enableAssertInitializer;
-    parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
@@ -2996,12 +2984,11 @@ class ParserTestCase extends EngineTestCase {
    * Parse the given [code] as a compilation unit.
    */
   static CompilationUnit parseCompilationUnit2(String code,
-      {AnalysisErrorListener listener, bool parseGenericMethods: false}) {
+      {AnalysisErrorListener listener}) {
     listener ??= AnalysisErrorListener.NULL_LISTENER;
     Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
-    parser.parseGenericMethods = parseGenericMethods;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;
@@ -4427,12 +4414,10 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_typeParameters_block() {
-    enableGenericMethods = true;
     expect(_isFunctionDeclaration("f<E>() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_nameButNoReturn_typeParameters_expression() {
-    enableGenericMethods = true;
     expect(_isFunctionDeclaration("f<E>() => e"), isTrue);
   }
 
@@ -4445,12 +4430,10 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_isFunctionDeclaration_normalReturn_typeParameters_block() {
-    enableGenericMethods = true;
     expect(_isFunctionDeclaration("C f<E>() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_normalReturn_typeParameters_expression() {
-    enableGenericMethods = true;
     expect(_isFunctionDeclaration("C f<E>() => e"), isTrue);
   }
 
@@ -4463,12 +4446,10 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_isFunctionDeclaration_voidReturn_typeParameters_block() {
-    enableGenericMethods = true;
     expect(_isFunctionDeclaration("void f<E>() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_voidReturn_typeParameters_expression() {
-    enableGenericMethods = true;
     expect(_isFunctionDeclaration("void f<E>() => e"), isTrue);
   }
 
@@ -4489,12 +4470,10 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_isFunctionExpression_noParameters_typeParameters_block() {
-    enableGenericMethods = true;
     expect(_isFunctionExpression("<E>() {}"), isTrue);
   }
 
   void test_isFunctionExpression_noParameters_typeParameters_expression() {
-    enableGenericMethods = true;
     expect(_isFunctionExpression("<E>() => e"), isTrue);
   }
 
@@ -4873,7 +4852,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableExpression_expression_args_dot_typeParameters() {
-    enableGenericMethods = true;
     createParser('(x)<F>(y).z');
     Expression expression = parser.parseAssignableExpression(false);
     expectNotNullIfNoErrors(expression);
@@ -4975,7 +4953,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableExpression_identifier_args_dot_typeParameters() {
-    enableGenericMethods = true;
     createParser('x<E>(y).z');
     Expression expression = parser.parseAssignableExpression(false);
     expectNotNullIfNoErrors(expression);
@@ -5328,7 +5305,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_ia_typeArguments() {
-    enableGenericMethods = true;
     createParser('..[i]<E>(b)');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -5372,7 +5348,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_ii_typeArguments() {
-    enableGenericMethods = true;
     createParser('..a<E>(b).c<F>(d)');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -5442,7 +5417,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_p_assign_withCascade_typeArguments() {
-    enableGenericMethods = true;
     createParser('..a = 3..m<E>()');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -5500,7 +5474,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_pa_typeArguments() {
-    enableGenericMethods = true;
     createParser('..a<E>(b)');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -5543,7 +5516,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_paa_typeArguments() {
-    enableGenericMethods = true;
     createParser('..a<E>(b)<F>(c)');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -5584,7 +5556,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_paapaa_typeArguments() {
-    enableGenericMethods = true;
     createParser('..a<E>(b)<F>(c).d<G>(e)<H>(f)');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -5623,7 +5594,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCascadeSection_pap_typeArguments() {
-    enableGenericMethods = true;
     createParser('..a<E>(b).c');
     Expression expression = parser.parseCascadeSection();
     expectNotNullIfNoErrors(expression);
@@ -6124,7 +6094,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassMember_method_generic_noReturnType() {
-    enableGenericMethods = true;
     createParser('m<T>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
@@ -6144,7 +6113,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassMember_method_generic_returnType() {
-    enableGenericMethods = true;
     createParser('T m<T>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
@@ -6164,7 +6132,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassMember_method_generic_void() {
-    enableGenericMethods = true;
     createParser('void m<T>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
@@ -7354,7 +7321,6 @@ void''');
   }
 
   void test_parseCompilationUnitMember_function_generic_noReturnType() {
-    enableGenericMethods = true;
     createParser('f<E>() {}');
     CompilationUnitMember member =
         parser.parseCompilationUnitMember(emptyCommentAndMetadata());
@@ -7368,7 +7334,6 @@ void''');
 
   void
       test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
-    enableGenericMethods = true;
     createParser('f<@a E>() {}');
     CompilationUnitMember member =
         parser.parseCompilationUnitMember(emptyCommentAndMetadata());
@@ -7381,7 +7346,6 @@ void''');
   }
 
   void test_parseCompilationUnitMember_function_generic_returnType() {
-    enableGenericMethods = true;
     createParser('E f<E>() {}');
     CompilationUnitMember member =
         parser.parseCompilationUnitMember(emptyCommentAndMetadata());
@@ -7394,7 +7358,6 @@ void''');
   }
 
   void test_parseCompilationUnitMember_function_generic_void() {
-    enableGenericMethods = true;
     createParser('void f<T>(T t) {}');
     CompilationUnitMember member =
         parser.parseCompilationUnitMember(emptyCommentAndMetadata());
@@ -8418,7 +8381,6 @@ void''');
   }
 
   void test_parseExpression_superMethodInvocation_typeArguments() {
-    enableGenericMethods = true;
     Expression expression = parseExpression('super.m<E>()');
     expect(expression, new isInstanceOf<MethodInvocation>());
     MethodInvocation invocation = expression;
@@ -8501,7 +8463,6 @@ void''');
 
   void
       test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
-    enableGenericMethods = true;
     createParser('super.m<E>()');
     Expression expression = parser.parseExpressionWithoutCascade();
     expectNotNullIfNoErrors(expression);
@@ -9474,7 +9435,6 @@ void''');
   }
 
   void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    enableGenericMethods = true;
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     createParser('f<E>() {}');
@@ -9576,7 +9536,6 @@ void''');
   }
 
   void test_parseFunctionDeclarationStatement_typeParameters() {
-    enableGenericMethods = true;
     createParser('E f<E>(E p) => p * 2;');
     FunctionDeclarationStatement statement =
         parser.parseFunctionDeclarationStatement();
@@ -9613,7 +9572,6 @@ void''');
   }
 
   void test_parseFunctionExpression_typeParameters() {
-    enableGenericMethods = true;
     createParser('<E>(E i) => i++');
     FunctionExpression expression = parser.parseFunctionExpression();
     expectNotNullIfNoErrors(expression);
@@ -10857,7 +10815,6 @@ void''');
   }
 
   void test_parseNormalFormalParameter_function_noType_typeParameters() {
-    enableGenericMethods = true;
     createParser('a<E>())');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
     expectNotNullIfNoErrors(parameter);
@@ -10874,7 +10831,6 @@ void''');
 
   void
       test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
-    enableGenericMethods = true;
     enableNnbd = true;
     createParser('a<E>()?)');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
@@ -10934,7 +10890,6 @@ void''');
   }
 
   void test_parseNormalFormalParameter_function_type_typeParameters() {
-    enableGenericMethods = true;
     createParser('A a<E>())');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
     expectNotNullIfNoErrors(parameter);
@@ -10949,7 +10904,6 @@ void''');
   }
 
   void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
-    enableGenericMethods = true;
     enableNnbd = true;
     createParser('A a<E>()?)');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
@@ -11009,7 +10963,6 @@ void''');
   }
 
   void test_parseNormalFormalParameter_function_void_typeParameters() {
-    enableGenericMethods = true;
     createParser('void a<E>())');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
     expectNotNullIfNoErrors(parameter);
@@ -11024,7 +10977,6 @@ void''');
   }
 
   void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
-    enableGenericMethods = true;
     enableNnbd = true;
     createParser('void a<E>()?)');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
@@ -11239,7 +11191,6 @@ void''');
 
   void
       test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
-    enableGenericMethods = true;
     createParser('a?.m<E>()');
     Expression expression = parser.parsePostfixExpression();
     expectNotNullIfNoErrors(expression);
@@ -11270,7 +11221,6 @@ void''');
   }
 
   void test_parsePostfixExpression_none_methodInvocation_typeArguments() {
-    enableGenericMethods = true;
     createParser('a.m<E>()');
     Expression expression = parser.parsePostfixExpression();
     expectNotNullIfNoErrors(expression);
@@ -11374,7 +11324,6 @@ void''');
   }
 
   void test_parsePrimaryExpression_genericFunctionExpression() {
-    enableGenericMethods = true;
     createParser('<X, Y>(Map<X, Y> m, X x) => m[x]');
     Expression expression = parser.parsePrimaryExpression();
     expectNotNullIfNoErrors(expression);
@@ -11889,7 +11838,6 @@ void''');
 
   @failingTest
   void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
-    enableGenericMethods = true;
     createParser('f<E>(a, b) {};');
     Statement statement = parser.parseStatement2();
     expectNotNullIfNoErrors(statement);
@@ -11911,7 +11859,6 @@ void''');
   }
 
   void test_parseStatement_functionDeclaration_returnType_typeParameters() {
-    enableGenericMethods = true;
     createParser('int f<E>(a, b) {};');
     Statement statement = parser.parseStatement2();
     expectNotNullIfNoErrors(statement);

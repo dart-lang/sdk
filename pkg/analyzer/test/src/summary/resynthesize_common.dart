@@ -1116,8 +1116,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   /**
    * Determine the analysis options that should be used for this test.
    */
-  AnalysisOptionsImpl createOptions() =>
-      new AnalysisOptionsImpl()..enableGenericMethods = true;
+  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl();
 
   ElementImpl getActualElement(Element element, String desc) {
     if (element == null) {
@@ -3231,12 +3230,12 @@ f() {}''');
   }
 
   test_function_type_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('T f<T, U>(U u) => null;');
   }
 
   test_function_type_parameter_with_function_typed_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('void f<T, U>(T x(U u)) {}');
   }
 
@@ -3245,7 +3244,7 @@ f() {}''');
   }
 
   test_generic_gClass_gMethodStatic() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -4072,17 +4071,17 @@ class C {
   }
 
   test_method_type_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('class C { T f<T, U>(U u) => null; }');
   }
 
   test_method_type_parameter_in_generic_class() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
   }
 
   test_method_type_parameter_with_function_typed_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 

@@ -383,8 +383,7 @@ main() {
   }
 
   Set<String> _computeReferencedNames(String code) {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit2(code, parseGenericMethods: true);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit2(code);
     return computeReferencedNames(unit);
   }
 }

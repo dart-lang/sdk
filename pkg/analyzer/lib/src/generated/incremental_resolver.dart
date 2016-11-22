@@ -751,7 +751,6 @@ class PoorMansIncrementalResolver {
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
       parser.parseGenericMethodComments = options.strongMode;
-      parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
       return unit;

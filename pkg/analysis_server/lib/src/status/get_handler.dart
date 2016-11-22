@@ -1408,8 +1408,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
       _writeOption(
-          buffer, 'Enable generic methods', options.enableGenericMethods);
-      _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);

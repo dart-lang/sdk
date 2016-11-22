@@ -2543,9 +2543,7 @@ import 'package:crypto/crypto.dart';
   }
 
   void test_resolveCompilationUnit_existingElementModel() {
-    prepareAnalysisContext(new AnalysisOptionsImpl()
-      ..enableGenericMethods = true
-      ..strongMode = true);
+    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(
         '/test.dart',
         r'''

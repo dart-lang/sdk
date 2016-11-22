@@ -3544,9 +3544,7 @@ class C {
 class ReferencedNamesBuilderTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
-    context.analysisOptions = new AnalysisOptionsImpl()
-      ..enableGenericMethods = true
-      ..strongMode = true;
+    context.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
   }
 
   test_class_constructor() {

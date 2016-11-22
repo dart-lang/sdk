@@ -4020,7 +4020,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.enableAssertInitializer = options.enableAssertInitializer;
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
-    parser.parseGenericMethods = options.enableGenericMethods;
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;

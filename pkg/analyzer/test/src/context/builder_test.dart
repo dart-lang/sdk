@@ -145,7 +145,8 @@ const Map<String, LibraryInfo> libraries = const {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
     defaultOptions.enableAssertMessage = !defaultOptions.enableAssertMessage;
-    defaultOptions.enableGenericMethods = !defaultOptions.enableGenericMethods;
+    defaultOptions.enableLazyAssignmentOperators =
+        !defaultOptions.enableLazyAssignmentOperators;
     defaultOptions.enableStrictCallChecks =
         !defaultOptions.enableStrictCallChecks;
     defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
@@ -497,10 +498,10 @@ b:${pathContext.toUri(packageB)}
 
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableGenericMethods = true;
+    defaultOptions.enableLazyAssignmentOperators = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.enableGenericMethods = true;
+    expected.enableLazyAssignmentOperators = true;
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
@@ -519,11 +520,11 @@ linter:
 
   void test_getAnalysisOptions_default_overrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableGenericMethods = true;
+    defaultOptions.enableLazyAssignmentOperators = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
-    expected.enableGenericMethods = true;
+    expected.enableLazyAssignmentOperators = true;
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
@@ -557,11 +558,9 @@ analyzer:
 
   void test_getAnalysisOptions_includes() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    defaultOptions.enableGenericMethods = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
-    expected.enableGenericMethods = true;
     resourceProvider.newFile(
         resourceProvider.convertPath('/mypkgs/somepkg/lib/here.yaml'),
         '''
@@ -734,8 +733,9 @@ analyzer:
         same(expected.analyzeFunctionBodiesPredicate));
     expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableAssertMessage, expected.enableAssertMessage);
+    expect(actual.enableLazyAssignmentOperators,
+        expected.enableLazyAssignmentOperators);
     expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);
-    expect(actual.enableGenericMethods, expected.enableGenericMethods);
     expect(actual.enableSuperMixins, expected.enableSuperMixins);
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.generateImplicitErrors, expected.generateImplicitErrors);

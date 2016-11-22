@@ -71,9 +71,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
 
   @override
-  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl()
-    ..enableGenericMethods = true
-    ..strongMode = true;
+  AnalysisOptionsImpl createOptions() =>
+      new AnalysisOptionsImpl()..strongMode = true;
 
   @override
   @failingTest

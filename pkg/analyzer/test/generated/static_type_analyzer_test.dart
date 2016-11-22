@@ -127,9 +127,6 @@ main() {
   }
 
   void test_staticMethods_classTypeParameters_genericMethod() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    resetWithOptions(options);
     String code = r'''
 class C<T> {
   static void m<S>(S s) {

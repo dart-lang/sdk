@@ -306,7 +306,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
-        this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableSuperMixins != options.enableSuperMixins ||
         this._options.patchPlatform != options.patchPlatform;
     this._options.analyzeFunctionBodiesPredicate =
@@ -314,7 +313,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableGenericMethods = options.enableGenericMethods;
     this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;

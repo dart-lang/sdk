@@ -578,14 +578,6 @@ class _OptionsProcessor {
         context.analysisOptions = options;
       }
     }
-    if (feature == AnalyzerOptions.enableGenericMethods) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableGenericMethods = true;
-        context.analysisOptions = options;
-      }
-    }
   }
 
   void setLanguageOptions(AnalysisContext context, Object configs) {
@@ -634,8 +626,6 @@ class _OptionsProcessor {
         options.enableInitializingFormalAccess = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
-      } else if (feature == AnalyzerOptions.enableGenericMethods) {
-        options.enableGenericMethods = boolValue;
       }
     }
   }

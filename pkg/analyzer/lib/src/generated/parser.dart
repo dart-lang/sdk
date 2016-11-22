@@ -238,6 +238,7 @@ class Parser {
   /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
+  @deprecated
   bool parseGenericMethods = false;
 
   /**
@@ -1401,7 +1402,7 @@ class Parser {
       // function type alias that was parsed.
       _parseFunctionTypeAlias(commentAndMetadata, getAndAdvance());
       return null;
-    } else if (parseGenericMethods) {
+    } else {
       Token token = _skipTypeParameterList(_peek());
       if (token != null && _tokenMatches(token, TokenType.OPEN_PAREN)) {
         return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
@@ -1490,7 +1491,7 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (parseGenericMethods && _tokenMatches(next, TokenType.LT)) {
+    } else if (_tokenMatches(next, TokenType.LT)) {
       return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type);
     } else if (_tokenMatches(next, TokenType.OPEN_CURLY_BRACKET)) {
@@ -4119,7 +4120,7 @@ class Parser {
         type == TokenType.PERIOD ||
         type == TokenType.QUESTION_PERIOD ||
         type == TokenType.OPEN_PAREN ||
-        (parseGenericMethods && type == TokenType.LT) ||
+        type == TokenType.LT ||
         type == TokenType.INDEX) {
       do {
         if (_isLikelyArgumentList()) {
@@ -5764,9 +5765,6 @@ class Parser {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = skipTypeArgumentList(_currentToken);
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -5825,9 +5823,6 @@ class Parser {
   }
 
   bool _isPeekGenericTypeParametersAndOpenParen() {
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -6617,8 +6612,7 @@ class Parser {
    * See [parseGenericMethodComments].
    */
   TypeParameterList _parseGenericMethodTypeParameters() {
-    if (parseGenericMethods && _matches(TokenType.LT) ||
-        _injectGenericCommentTypeList()) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return parseTypeParameterList();
     }
     return null;

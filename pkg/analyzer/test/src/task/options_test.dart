@@ -54,14 +54,14 @@ analyzer:
     expect(analysisOptions.strongMode, false);
   }
 
-  test_configure_enableGenericMethods() {
-    expect(analysisOptions.enableGenericMethods, false);
+  test_configure_enableLazyAssignmentOperators() {
+    expect(analysisOptions.enableStrictCallChecks, false);
     configureContext('''
 analyzer:
   language:
-    enableGenericMethods: true
+    enableStrictCallChecks: true
 ''');
-    expect(analysisOptions.enableGenericMethods, true);
+    expect(analysisOptions.enableStrictCallChecks, true);
   }
 
   test_configure_enableStrictCallChecks() {

@@ -3374,7 +3374,6 @@ a.A v;'''
   }
 
   void test_typeAnnotationGenericFunctionParameter_localFunction() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
     Source source = addSource(r'''
 class A {
   void method() {
@@ -3390,7 +3389,6 @@ class A {
   }
 
   void test_typeAnnotationGenericFunctionParameter_method() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
     Source source = addSource(r'''
 class A {
   T method<T>(Object t) {
@@ -3404,7 +3402,6 @@ class A {
   }
 
   void test_typeAnnotationGenericFunctionParameter_topLevelFunction() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
     Source source = addSource(r'''
 T function<T>(Object t) {
   return (t is T) ? t : null;

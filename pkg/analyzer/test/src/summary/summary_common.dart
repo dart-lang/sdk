@@ -74,7 +74,6 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
   Scanner scanner =
       new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
   Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-  parser.parseGenericMethods = true;
   CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
   UnlinkedPublicNamespace namespace = new UnlinkedPublicNamespace.fromBuffer(
       public_namespace.computePublicNamespace(unit).toBuffer());
