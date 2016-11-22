@@ -6,6 +6,7 @@ library analyzer.test.src.summary.resynthesize_ast_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -881,6 +882,12 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
     Source source = addTestSource(text);
     LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
     LibraryElementImpl original = context.computeLibraryElement(source);
+    if (!allowErrors) {
+      List<AnalysisError> errors = context.computeErrors(source);
+      if (errors.where((e) => e.message.startsWith('unused')).isNotEmpty) {
+        fail('Analysis errors: $errors');
+      }
+    }
     checkLibraryElements(original, resynthesized);
     return resynthesized;
   }

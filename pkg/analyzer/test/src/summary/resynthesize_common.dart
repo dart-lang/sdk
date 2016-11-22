@@ -4540,47 +4540,51 @@ typedef F();''');
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() {
-    checkLibrary('@foo.bar() class C {}');
+    checkLibrary('@foo.bar() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() {
-    checkLibrary('@String.foo() class C {}');
+    checkLibrary('@String.foo() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() {
-    checkLibrary('@foo.bar class C {}');
+    checkLibrary('@foo.bar class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() {
-    checkLibrary('import "dart:async" as foo; @foo.bar class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.bar class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() {
-    checkLibrary('@foo.bar.baz() class C {}');
+    checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() {
-    checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() {
-    checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() {
-    checkLibrary('@foo.bar() class C {}');
+    checkLibrary('@foo.bar() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() {
-    checkLibrary('import "dart:async" as foo; @foo.bar() class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.bar() class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_simpleIdentifier() {
-    checkLibrary('@foo class C {}');
+    checkLibrary('@foo class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() {
-    checkLibrary('@foo() class C {}');
+    checkLibrary('@foo() class C {}', allowErrors: true);
   }
 
   test_unresolved_export() {
