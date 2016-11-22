@@ -10,7 +10,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -28,14 +27,6 @@ import 'package:yaml/yaml.dart';
 final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'ANALYSIS_OPTIONS_ERRORS', AnalysisError.NO_ERRORS);
-
-/**
- * The descriptor used to associate error processors with analysis contexts in
- * configuration data.
- */
-final ListResultDescriptor<ErrorProcessor> CONFIGURED_ERROR_PROCESSORS =
-    new ListResultDescriptor<ErrorProcessor>(
-        'configured.errors', const <ErrorProcessor>[]);
 
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
@@ -547,7 +538,10 @@ class _OptionsProcessor {
     if (excludes is YamlList) {
       List<String> excludeList = toStringList(excludes);
       if (excludeList != null) {
-        context.setConfigurationData(CONTEXT_EXCLUDES, excludeList);
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.excludePatterns = excludeList;
+        context.analysisOptions = options;
       }
     }
   }
@@ -595,8 +589,10 @@ class _OptionsProcessor {
 
   void setProcessors(AnalysisContext context, Object codes) {
     ErrorConfig config = new ErrorConfig(codes);
-    context.setConfigurationData(
-        CONFIGURED_ERROR_PROCESSORS, config.processors);
+    AnalysisOptionsImpl options =
+        new AnalysisOptionsImpl.from(context.analysisOptions);
+    options.errorProcessors = config.processors;
+    context.analysisOptions = options;
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {

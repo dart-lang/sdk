@@ -14,7 +14,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -427,7 +426,7 @@ const emptyOptionsFile = 'data/empty_options.yaml';
 Driver driver;
 
 List<ErrorProcessor> get processors =>
-    driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+    driver.context.analysisOptions.errorProcessors;
 
 /// Convert a file specification from a relative path to an absolute path.
 /// Handles the case where the file specification is of the form "$uri|$path".

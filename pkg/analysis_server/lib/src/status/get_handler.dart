@@ -46,8 +46,6 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -1450,8 +1448,7 @@ class GetHandler {
             });
           },
           (StringBuffer buffer) {
-            List<Linter> lints =
-                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            List<Linter> lints = context.analysisOptions.lintRules;
             buffer.write('<p><b>Lints</b></p>');
             if (lints.isEmpty) {
               buffer.write('<p>none</p>');
@@ -1464,7 +1461,7 @@ class GetHandler {
             }
 
             List<ErrorProcessor> errorProcessors =
-                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+                context.analysisOptions.errorProcessors;
             int processorCount = errorProcessors?.length ?? 0;
             buffer
                 .write('<p><b>Error Processor count</b>: $processorCount</p>');

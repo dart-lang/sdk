@@ -20,8 +20,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
@@ -1747,8 +1745,8 @@ abstract class ContextManagerTest {
         .toList();
   }
 
-  List<ErrorProcessor> get errorProcessors => callbacks.currentContext
-      .getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+  List<ErrorProcessor> get errorProcessors =>
+      callbacks.currentContext.analysisOptions.errorProcessors;
 
   List<Linter> get lints => getLints(callbacks.currentContext);
 

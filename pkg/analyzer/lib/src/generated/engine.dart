@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
@@ -26,6 +27,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
@@ -357,6 +359,7 @@ abstract class AnalysisContext {
    *
    * See [setConfigurationData].
    */
+  @deprecated
   Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key);
 
   /**
@@ -624,6 +627,7 @@ abstract class AnalysisContext {
    *
    * See [getConfigurationData].
    */
+  @deprecated
   void setConfigurationData(ResultDescriptor key, Object data);
 
   /**
@@ -1151,6 +1155,18 @@ abstract class AnalysisOptions {
   bool get enableTiming;
 
   /**
+   * Return a list of error processors that are to be used when reporting
+   * errors in some analysis context.
+   */
+  List<ErrorProcessor> get errorProcessors;
+
+  /**
+   * Return a list of exclude patterns used to exclude some sources from
+   * analysis.
+   */
+  List<String> get excludePatterns;
+
+  /**
    * A flag indicating whether finer grained dependencies should be used
    * instead of just source level dependencies.
    *
@@ -1197,6 +1213,12 @@ abstract class AnalysisOptions {
    * Return `true` if analysis is to generate lint warnings.
    */
   bool get lint;
+
+  /**
+   * Return a list of the lint rules that are to be run in an analysis context
+   * if [lint] returns `true`.
+   */
+  List<Linter> get lintRules;
 
   /**
    * Return the "platform" bit mask which should be used to apply patch files,
@@ -1317,6 +1339,17 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool enableTiming = false;
 
+  /**
+   * A list of error processors that are to be used when reporting errors in
+   * some analysis context.
+   */
+  List<ErrorProcessor> _errorProcessors;
+
+  /**
+   * A list of exclude patterns used to exclude some sources from analysis.
+   */
+  List<String> _excludePatterns;
+
   @override
   bool generateImplicitErrors = true;
 
@@ -1337,6 +1370,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool lint = false;
+
+  /**
+   * The lint rules that are to be run in an analysis context if [lint] returns
+   * `true`.
+   */
+  List<Linter> _lintRules;
 
   @override
   int patchPlatform = 0;
@@ -1410,6 +1449,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
+    errorProcessors = options.errorProcessors;
+    excludePatterns = options.excludePatterns;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
@@ -1417,6 +1458,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incrementalApi = options.incrementalApi;
     incrementalValidation = options.incrementalValidation;
     lint = options.lint;
+    lintRules = options.lintRules;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
@@ -1482,6 +1524,40 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @deprecated
   void set enableGenericMethods(bool enable) {}
+
+  @override
+  List<ErrorProcessor> get errorProcessors =>
+      _errorProcessors ??= const <ErrorProcessor>[];
+
+  /**
+   * Set the list of error [processors] that are to be used when reporting
+   * errors in some analysis context.
+   */
+  void set errorProcessors(List<ErrorProcessor> processors) {
+    _errorProcessors = processors;
+  }
+
+  @override
+  List<String> get excludePatterns => _excludePatterns ??= const <String>[];
+
+  /**
+   * Set the exclude patterns used to exclude some sources from analysis to
+   * those in the given list of [patterns].
+   */
+  void set excludePatterns(List<String> patterns) {
+    _excludePatterns = patterns;
+  }
+
+  @override
+  List<Linter> get lintRules => _lintRules ??= const <Linter>[];
+
+  /**
+   * Set the lint rules that are to be run in an analysis context if [lint]
+   * returns `true`.
+   */
+  void set lintRules(List<Linter> rules) {
+    _lintRules = rules;
+  }
 
   @override
   List<int> encodeCrossContextOptions() {
