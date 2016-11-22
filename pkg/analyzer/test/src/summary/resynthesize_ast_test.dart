@@ -619,9 +619,25 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   @override
   @failingTest
   void
+      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment();
+  }
+
+  @override
+  @failingTest
+  void
       test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
     super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
   }
 
   @override
@@ -633,9 +649,25 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   @override
   @failingTest
   void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment();
+  }
+
+  @override
+  @failingTest
+  void
       test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
     super
         .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment();
   }
 
   @override
@@ -660,6 +692,13 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   @failingTest
   void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
     super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() {
+    super
+        .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
   LibraryElementImpl _checkSource(
