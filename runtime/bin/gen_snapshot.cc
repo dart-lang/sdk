@@ -1206,7 +1206,9 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
+#if !defined(PRODUCT)
     vm_options.AddArgument("--print_snapshot_sizes");
+#endif
 #if TARGET_ARCH_ARM
     // This is for the iPod Touch 5th Generation (and maybe other older devices)
     vm_options.AddArgument("--no-use_integer_division");
