@@ -352,10 +352,11 @@ io/test_runner_test: Pass, Slow # Slow.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 
 [ $builder_tag == no_ipv6 ]
-io/http_bind_test: Skip
-io/raw_datagram_socket_test: Skip
-io/socket_source_address_test: Skip
-io/socket_bind_test: Skip
-io/http_proxy_advanced_test: Skip
-io/http_ipv6_test: Skip
-io/socket_ipv6_test: Skip
+io/http_bind_test: SkipByDesign
+io/raw_datagram_socket_test: SkipByDesign
+io/socket_source_address_test: SkipByDesign
+io/socket_bind_test: SkipByDesign
+io/http_proxy_advanced_test: SkipByDesign
+io/http_ipv6_test: SkipByDesign
+io/socket_ipv6_test: SkipByDesign
+io/socket_info_ipv6_test: SkipByDesign
