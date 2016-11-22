@@ -426,6 +426,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ElementKind elementKind = element?.kind;
     if (elementKind == null ||
         elementKind == ElementKind.DYNAMIC ||
+        elementKind == ElementKind.ERROR ||
         elementKind == ElementKind.LABEL ||
         elementKind == ElementKind.LOCAL_VARIABLE ||
         elementKind == ElementKind.PREFIX ||

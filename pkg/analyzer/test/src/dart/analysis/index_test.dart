@@ -793,6 +793,16 @@ class A {
       ..isReferencedAt('method); // nq', false);
   }
 
+  test_isReferencedBy_MultiplyDefinedElement() async {
+    provider.newFile(_p('$testProject/a1.dart'), 'class A {}');
+    provider.newFile(_p('$testProject/a2.dart'), 'class A {}');
+    await _indexTestUnit('''
+import 'a1.dart';
+import 'a2.dart';
+A v = null;
+''');
+  }
+
   test_isReferencedBy_ParameterElement() async {
     await _indexTestUnit('''
 foo({var p}) {}
