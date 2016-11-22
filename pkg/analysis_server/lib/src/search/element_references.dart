@@ -10,9 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show SearchResult, newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for `search.findElementReferences` request results.
@@ -52,12 +50,6 @@ class ElementReferencesComputer {
     List<SearchResult> allResults = <SearchResult>[];
     Iterable<Element> refElements = await _getRefElements(element);
     for (Element refElement in refElements) {
-      // add declaration
-      if (_isDeclarationInteresting(refElement)) {
-        SearchResult searchResult = _newDeclarationResult(refElement);
-        allResults.add(searchResult);
-      }
-      // do search
       List<SearchResult> elementResults =
           await _findSingleElementReferences(refElement);
       allResults.addAll(elementResults);
@@ -90,41 +82,8 @@ class ElementReferencesComputer {
     return new Future.value([element]);
   }
 
-  SearchResult _newDeclarationResult(Element refElement) {
-    int nameOffset = refElement.nameOffset;
-    int nameLength = refElement.nameLength;
-    SearchMatch searchMatch = new SearchMatchImpl(
-        refElement.context,
-        refElement.library.source.uri.toString(),
-        refElement.source.uri.toString(),
-        MatchKind.DECLARATION,
-        new SourceRange(nameOffset, nameLength),
-        true,
-        false);
-    return newSearchResult_fromMatch(searchMatch);
-  }
-
   static SearchResult toResult(SearchMatch match) {
     return newSearchResult_fromMatch(match);
-  }
-
-  static bool _isDeclarationInteresting(Element element) {
-    if (element is LabelElement) {
-      return true;
-    }
-    if (element is LocalVariableElement) {
-      return true;
-    }
-    if (element is ParameterElement) {
-      return true;
-    }
-    if (element is PrefixElement) {
-      return true;
-    }
-    if (element is PropertyInducingElement) {
-      return !element.isSynthetic;
-    }
-    return false;
   }
 
   static bool _isMemberElement(Element element) {
