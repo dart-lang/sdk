@@ -486,6 +486,8 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.lessEqual);
     } else if (operator == TokenType.PERCENT) {
       operations.add(UnlinkedExprOperation.modulo);
+    } else if (operator == TokenType.QUESTION_QUESTION) {
+      operations.add(UnlinkedExprOperation.ifNull);
     } else {
       throw new StateError('Unknown operator: $operator');
     }

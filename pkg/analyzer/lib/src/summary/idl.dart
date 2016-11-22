@@ -2333,6 +2333,13 @@ enum UnlinkedExprOperation {
    * that element onto the stack.
    */
   pushLocalFunctionReference,
+
+  /**
+   * Pop the top two values from the stack.  If the first value is non-null,
+   * keep it and discard the second.  Otherwise, keep the second and discard the
+   * first.
+   */
+  ifNull,
 }
 
 /**

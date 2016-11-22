@@ -496,6 +496,9 @@ class _ConstExprBuilder {
                       'Unable to resolve constructor parameter: $name'));
           _push(identifier);
           break;
+        case UnlinkedExprOperation.ifNull:
+          _pushBinary(TokenType.QUESTION_QUESTION);
+          break;
         case UnlinkedExprOperation.assignToRef:
         case UnlinkedExprOperation.assignToProperty:
         case UnlinkedExprOperation.assignToIndex:

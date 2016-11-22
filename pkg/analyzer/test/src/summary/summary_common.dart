@@ -1755,6 +1755,18 @@ var v = (() {
     ]);
   }
 
+  test_constExpr_binary_qq() {
+    UnlinkedVariable variable = serializeVariableText('const v = 1 ?? 2;');
+    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.ifNull
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
   test_constExpr_binary_subtract() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 - 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [

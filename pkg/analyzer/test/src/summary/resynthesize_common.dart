@@ -2302,6 +2302,12 @@ const vIdentical = (1 == 2) ? 11 : 22;
 ''');
   }
 
+  test_const_topLevel_ifNull() {
+    checkLibrary(r'''
+const vIfNull = 1 ?? 2.0;
+''');
+  }
+
   test_const_topLevel_literal() {
     checkLibrary(r'''
 const vNull = null;

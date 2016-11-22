@@ -758,7 +758,14 @@ enum UnlinkedExprOperation : byte {
    * the nth enclosing function element.  Then, push the mth local function of
    * that element onto the stack.
    */
-  pushLocalFunctionReference
+  pushLocalFunctionReference,
+
+  /**
+   * Pop the top two values from the stack.  If the first value is non-null,
+   * keep it and discard the second.  Otherwise, keep the second and discard the
+   * first.
+   */
+  ifNull
 }
 
 /**
