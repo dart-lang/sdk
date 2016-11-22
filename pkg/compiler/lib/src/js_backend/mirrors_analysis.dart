@@ -4,6 +4,7 @@
 
 library dart2js.mirrors_handler;
 
+import '../common.dart';
 import '../common/resolution.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
@@ -189,8 +190,13 @@ class MirrorsHandler {
     lib.forEachLocalMember((Element member) {
       if (member.isInjected) return;
       if (member.isClass) {
-        _enqueueReflectiveElementsInClass(member, recents,
-            enclosingWasIncluded: includeLibrary);
+        ClassElement cls = member;
+        cls.ensureResolved(_resolution);
+        do {
+          _enqueueReflectiveElementsInClass(cls, recents,
+              enclosingWasIncluded: includeLibrary);
+          cls = cls.superclass;
+        } while (cls != null && cls.isUnnamedMixinApplication);
       } else {
         _enqueueReflectiveMember(member, includeLibrary);
       }
