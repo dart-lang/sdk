@@ -80,16 +80,6 @@ async_star_no_cancel2_test: RuntimeError # Need triage
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
 
-# Experimental feature: Syntactic support for generic methods.
-generic_functions_test: CompileTimeError # DartOptions not passed to compiler.
-generic_local_functions_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_test: CompileTimeError # DartOptions not passed to compiler.
-generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_new_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_function_type_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_type_expression_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_generic_function_parameter_test: CompileTimeError # DartOptions not passed to compiler.
-
 # Experimental feature: Use initializing formals in initializers and constructor body.
 initializing_formal_access_test: CompileTimeError # DartOptions not passed to compiler.
 initializing_formal_capture_test: CompileTimeError # DartOptions not passed to compiler.
