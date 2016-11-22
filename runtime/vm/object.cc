@@ -14305,9 +14305,7 @@ const char* Code::Name() const {
     Zone* zone = thread->zone();
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     ASSERT(name != NULL);
-    char* stub_name =
-        OS::SCreate(zone, "%s%s", Symbols::StubPrefix().ToCString(), name);
-    return stub_name;
+    return OS::SCreate(zone, "[Stub] %s", name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     Thread* thread = Thread::Current();
@@ -14315,10 +14313,7 @@ const char* Code::Name() const {
     const Class& cls = Class::Cast(obj);
     String& cls_name = String::Handle(zone, cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    char* stub_name =
-        OS::SCreate(zone, "%s%s", Symbols::AllocationStubFor().ToCString(),
-                    cls_name.ToCString());
-    return stub_name;
+    return OS::SCreate(zone, "[Stub] Allocate %s", cls_name.ToCString());
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.

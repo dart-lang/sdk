@@ -995,7 +995,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
-    exit(255);
+    exit(kErrorExitCode);
   }
   return entries;
 }
@@ -1081,7 +1081,7 @@ static void SetupForUriResolution() {
     Log::PrintErr("%s", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    exit(255);
+    exit(kErrorExitCode);
   }
   // This is a generic dart snapshot which needs builtin library setup.
   Dart_Handle library =
@@ -1101,7 +1101,7 @@ static void SetupForGenericSnapshotCreation() {
     Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    exit(255);
+    exit(kErrorExitCode);
   }
 }
 
@@ -1166,7 +1166,7 @@ int main(int argc, char** argv) {
   // Parse command line arguments.
   if (ParseArguments(argc, argv, &vm_options, &app_script_name) < 0) {
     PrintUsage();
-    return 255;
+    return kErrorExitCode;
   }
 
   Thread::InitOnce();
@@ -1183,6 +1183,7 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
+    vm_options.AddArgument("--print_snapshot_sizes");
 #if TARGET_ARCH_ARM
     // This is for the iPod Touch 5th Generation (and maybe other older devices)
     vm_options.AddArgument("--no-use_integer_division");
@@ -1213,7 +1214,7 @@ int main(int argc, char** argv) {
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);
-    return 255;
+    return kErrorExitCode;
   }
 
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
@@ -1223,7 +1224,7 @@ int main(int argc, char** argv) {
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
-    exit(255);
+    exit(kErrorExitCode);
   }
 
   Dart_Handle result;
@@ -1276,9 +1277,9 @@ int main(int argc, char** argv) {
                                            NULL, isolate_data, &error)
             : Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
     if (isolate == NULL) {
-      fprintf(stderr, "%s", error);
+      Log::PrintErr("%s", error);
       free(error);
-      exit(255);
+      exit(kErrorExitCode);
     }
     Dart_EnterScope();
     result = Dart_SetEnvironmentCallback(EnvironmentCallback);

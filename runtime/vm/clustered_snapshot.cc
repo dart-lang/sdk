@@ -563,7 +563,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Write<uint32_t>(func->ptr()->kind_tag_);
       if (kind == Snapshot::kAppNoJIT) {
         // Omit fields used to support de/reoptimization.
-      } else {
+      } else if (!Snapshot::IncludesCode(kind)) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
         bool is_optimized = Code::IsOptimized(func->ptr()->code_);
         if (is_optimized) {
@@ -571,9 +571,6 @@ class FunctionSerializationCluster : public SerializationCluster {
         } else {
           s->Write<int32_t>(0);
         }
-        s->Write<int8_t>(func->ptr()->deoptimization_counter_);
-        s->Write<uint16_t>(func->ptr()->optimized_instruction_count_);
-        s->Write<uint16_t>(func->ptr()->optimized_call_site_count_);
 #endif
       }
     }
@@ -643,10 +640,14 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         // Omit fields used to support de/reoptimization.
       } else {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        func->ptr()->usage_counter_ = d->Read<int32_t>();
-        func->ptr()->deoptimization_counter_ = d->Read<int8_t>();
-        func->ptr()->optimized_instruction_count_ = d->Read<uint16_t>();
-        func->ptr()->optimized_call_site_count_ = d->Read<uint16_t>();
+        if (Snapshot::IncludesCode(kind)) {
+          func->ptr()->usage_counter_ = 0;
+        } else {
+          func->ptr()->usage_counter_ = d->Read<int32_t>();
+        }
+        func->ptr()->deoptimization_counter_ = 0;
+        func->ptr()->optimized_instruction_count_ = 0;
+        func->ptr()->optimized_call_site_count_ = 0;
 #endif
       }
     }

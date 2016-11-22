@@ -133,7 +133,6 @@ static void ErrorExit(int exit_code, const char* format, ...) {
   va_start(arguments, format);
   Log::VPrintErr(format, arguments);
   va_end(arguments);
-  fflush(stderr);
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
@@ -1598,9 +1597,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the app snapshot.
       if (!VmService::LoadForGenPrecompiled()) {
-        fprintf(stderr, "VM service loading failed: %s\n",
-                VmService::GetErrorMessage());
-        fflush(stderr);
+        Log::PrintErr("VM service loading failed: %s\n",
+                      VmService::GetErrorMessage());
         exit(kErrorExitCode);
       }
     }
@@ -1848,8 +1846,7 @@ void main(int argc, char** argv) {
 
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;
-    fprintf(stderr, "Error determining current directory: %s\n", err.message());
-    fflush(stderr);
+    Log::PrintErr("Error determining current directory: %s\n", err.message());
     Platform::Exit(kErrorExitCode);
   }
 
@@ -1910,8 +1907,7 @@ void main(int argc, char** argv) {
   char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
     EventHandler::Stop();
-    fprintf(stderr, "VM initialization failed: %s\n", error);
-    fflush(stderr);
+    Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);
     Platform::Exit(kErrorExitCode);
   }
