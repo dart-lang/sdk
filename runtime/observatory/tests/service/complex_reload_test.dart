@@ -46,6 +46,10 @@ var tests = [
   // Stop at 'debugger' statement.
   hasStoppedAtBreakpoint,
   (Isolate mainIsolate) async {
+    for (var i = 0; i < Platform.script.pathSegments.length; i++) {
+      print('segment $i: "${Platform.script.pathSegments[i]}"');
+    }
+    print('Directory: $directory');
     // Grab the VM.
     VM vm = mainIsolate.vm;
     await vm.reloadIsolates();
@@ -62,7 +66,10 @@ var tests = [
 
     // Reload to v2.
     var response = await slaveIsolate.reloadSources(
-       rootLibUri: '$directory/complex_reload/v2/main.dart',
+       rootLibUri: '$directory${Platform.pathSeparator}'
+                  'complex_reload${Platform.pathSeparator}'
+                  'v2${Platform.pathSeparator}'
+                  'main.dart',
     );
     expect(response['success'], isTrue);
 
@@ -72,7 +79,10 @@ var tests = [
 
     // Reload to v3.
     response = await slaveIsolate.reloadSources(
-      rootLibUri: '$directory/complex_reload/v3/main.dart',
+      rootLibUri: '$directory${Platform.pathSeparator}'
+                  'complex_reload${Platform.pathSeparator}'
+                  'v3${Platform.pathSeparator}'
+                  'main.dart',
     );
     expect(response['success'], isTrue);
 

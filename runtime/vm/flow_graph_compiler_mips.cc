@@ -808,8 +808,6 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-    __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(T2);
     // Let T1 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (T1) is Smi.
     __ sll(T3, T1, 1);

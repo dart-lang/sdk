@@ -70,6 +70,12 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
    */
   @Id(0)
   List<AnalysisDriverUnitError> get errors;
+
+  /**
+   * The index of the unit.
+   */
+  @Id(1)
+  AnalysisDriverUnitIndex get index;
 }
 
 /**
@@ -105,6 +111,169 @@ abstract class AnalysisDriverUnitError extends base.SummaryClass {
    */
   @Id(2)
   String get uniqueName;
+}
+
+/**
+ * Information about a resolved unit.
+ */
+@TopLevel('ADUI')
+abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
+  factory AnalysisDriverUnitIndex.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverUnitIndex(buffer);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  @Id(4)
+  List<IndexSyntheticElementKind> get elementKinds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  @Id(7)
+  List<int> get elementNameClassMemberIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  @Id(8)
+  List<int> get elementNameParameterIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this index.
+   */
+  @Id(6)
+  List<int> get elementNameUnitMemberIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  @Id(5)
+  List<int> get elementUnits;
+
+  /**
+   * Identifier of the null string in [strings].
+   */
+  @Id(1)
+  int get nullStringId;
+
+  /**
+   * List of unique element strings used in this index.  The list is sorted in
+   * ascending order, so that the client can quickly check the presence of a
+   * string in this index.
+   */
+  @Id(0)
+  List<String> get strings;
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  @Id(2)
+  List<int> get unitLibraryUris;
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  @Id(3)
+  List<int> get unitUnitUris;
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  @Id(13)
+  List<bool> get usedElementIsQualifiedFlags;
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  @Id(10)
+  List<IndexRelationKind> get usedElementKinds;
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  @Id(12)
+  List<int> get usedElementLengths;
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  @Id(11)
+  List<int> get usedElementOffsets;
+
+  /**
+   * Each item of this list is the index into [elementUnits],
+   * [elementNameUnitMemberIds], [elementNameClassMemberIds] and
+   * [elementNameParameterIds].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this index.
+   */
+  @Id(9)
+  List<int> get usedElements;
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  @Id(17)
+  List<bool> get usedNameIsQualifiedFlags;
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  @Id(15)
+  List<IndexRelationKind> get usedNameKinds;
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  @Id(16)
+  List<int> get usedNameOffsets;
+
+  /**
+   * Each item of this list is the index into [strings] for a used name.  The
+   * list is sorted in ascending order, so that the client can quickly find
+   * whether a name is used in this index.
+   */
+  @Id(14)
+  List<int> get usedNames;
+}
+
+/**
+ * Information about an unlinked unit.
+ */
+@TopLevel('ADUU')
+abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
+  factory AnalysisDriverUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverUnlinkedUnit(buffer);
+
+  /**
+   * List of external names referenced by the unit.
+   */
+  @Id(0)
+  List<String> get referencedNames;
+
+  /**
+   * Unlinked information for the unit.
+   */
+  @Id(1)
+  UnlinkedUnit get unit;
 }
 
 /**

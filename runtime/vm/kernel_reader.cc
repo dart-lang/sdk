@@ -103,7 +103,6 @@ Program* KernelReader::ReadPrecompiledProgram() {
 }
 
 Object& KernelReader::ReadProgram() {
-  ASSERT(!bootstrapping_);
   Program* program = ReadPrecompiledProgram();
   if (program == NULL) {
     const dart::String& error = H.DartString("Failed to read .kernell file");
@@ -174,10 +173,6 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
                           TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
-  if (bootstrapping_) {
-    GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
-        .Add(toplevel_class, Heap::kOld);
-  }
 
   ActiveClassScope active_class_scope(&active_class_, NULL, &toplevel_class);
   // Load toplevel fields.
@@ -215,6 +210,8 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
     Class* kernel_klass = kernel_library->classes()[i];
     classes.Add(ReadClass(library, kernel_klass), Heap::kOld);
   }
+
+  classes.Add(toplevel_class, Heap::kOld);
 }
 
 
@@ -350,10 +347,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     ReadProcedure(library, klass, kernel_procedure, kernel_klass);
   }
 
-  if (bootstrapping_ && !klass.is_marked_for_parsing()) {
+  if (!klass.is_marked_for_parsing()) {
     klass.set_is_marked_for_parsing();
-    GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
-        .Add(klass, Heap::kOld);
   }
 
   return klass;
@@ -581,8 +576,8 @@ void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
   }
   for (intptr_t i = 0; i < node->positional_parameters().length(); i++, pos++) {
     VariableDeclaration* kernel_variable = node->positional_parameters()[i];
-    const AbstractType& type =
-        type_translator.TranslateType(kernel_variable->type());
+    const AbstractType& type = type_translator.TranslateTypeWithoutFinalization(
+        kernel_variable->type());
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
     function.SetParameterNameAt(
@@ -590,18 +585,21 @@ void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
   }
   for (intptr_t i = 0; i < node->named_parameters().length(); i++, pos++) {
     VariableDeclaration* named_expression = node->named_parameters()[i];
-    const AbstractType& type =
-        type_translator.TranslateType(named_expression->type());
+    const AbstractType& type = type_translator.TranslateTypeWithoutFinalization(
+        named_expression->type());
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
     function.SetParameterNameAt(
         pos, translation_helper.DartSymbol(named_expression->name()));
   }
 
-  const AbstractType& return_type =
-      type_translator.TranslateType(node->return_type());
-  function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
-                                                     : return_type);
+  // The result type for generative constructors has already been set.
+  if (!function.IsGenerativeConstructor()) {
+    const AbstractType& return_type =
+        type_translator.TranslateTypeWithoutFinalization(node->return_type());
+    function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
+                                                       : return_type);
+  }
 }
 
 
@@ -672,7 +670,7 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
     // we do not risk allocating the class again by calling LookupClass
     // recursively from ReadPreliminaryClass for the same class.
     classes_.Insert(klass, handle);
-    if (!handle->is_type_finalized()) {
+    if (!handle->is_cycle_free()) {
       ReadPreliminaryClass(handle, klass);
     }
   }
@@ -695,6 +693,35 @@ RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
     ASSERT(0 <= kind && kind <= Procedure::kFactory);
     return static_cast<RawFunction::Kind>(lookuptable[kind]);
   }
+}
+
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
+                                            const dart::Field& field) {
+  Thread* thread = Thread::Current();
+  kernel::Field* kernel_field = kernel::Field::Cast(
+      reinterpret_cast<kernel::Node*>(field.kernel_field()));
+
+  dart::String& init_name = dart::String::Handle(zone, field.name());
+  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
+
+  // Create a static initializer.
+  const dart::Class& owner = dart::Class::Handle(zone, field.Owner());
+  const Function& initializer_fun = Function::ZoneHandle(
+      zone,
+      dart::Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
+                          true,   // is_static
+                          false,  // is_const
+                          false,  // is_abstract
+                          false,  // is_external
+                          false,  // is_native
+                          owner, TokenPosition::kNoSource));
+  initializer_fun.set_kernel_function(kernel_field);
+  initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
+  initializer_fun.set_is_debuggable(false);
+  initializer_fun.set_is_reflectable(false);
+  initializer_fun.set_is_inlinable(false);
+  return new (zone) ParsedFunction(thread, initializer_fun);
 }
 
 

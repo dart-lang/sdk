@@ -52,7 +52,7 @@ DEFINE_FLAG(bool,
             conditional_directives,
             true,
             "Enable conditional directives");
-DEFINE_FLAG(bool, generic_method_syntax, false, "Enable generic functions.");
+DEFINE_FLAG(bool, generic_method_syntax, true, "Enable generic functions.");
 DEFINE_FLAG(bool,
             initializing_formal_access,
             false,

@@ -294,25 +294,43 @@ class SwitchCaseScope {
 };
 
 
+// Unlike other scopes, labels from enclosing functions are not visible in
+// nested functions.  The LabelScope class is used to hide outer labels.
+template <typename Builder, typename Block>
+class LabelScope {
+ public:
+  explicit LabelScope(Builder* builder) : builder_(builder) {
+    outer_block_ = builder_->labels();
+    builder_->set_labels(&block_);
+  }
+  ~LabelScope() { builder_->set_labels(outer_block_); }
+
+ private:
+  Builder* builder_;
+  Block block_;
+  Block* outer_block_;
+};
+
 class ReaderHelper {
  public:
-  ReaderHelper() : program_(NULL) {}
-  ~ReaderHelper() {}
+  ReaderHelper() : program_(NULL), labels_(NULL) {}
 
   Program* program() { return program_; }
   void set_program(Program* program) { program_ = program; }
 
   BlockStack<VariableDeclaration>& variables() { return scope_; }
   BlockStack<TypeParameter>& type_parameters() { return type_parameters_; }
-  BlockStack<LabeledStatement>& lables() { return labels_; }
   BlockStack<SwitchCase>& switch_cases() { return switch_cases_; }
+
+  BlockStack<LabeledStatement>* labels() { return labels_; }
+  void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
 
  private:
   Program* program_;
   BlockStack<VariableDeclaration> scope_;
   BlockStack<TypeParameter> type_parameters_;
-  BlockStack<LabeledStatement> labels_;
   BlockStack<SwitchCase> switch_cases_;
+  BlockStack<LabeledStatement>* labels_;
 };
 
 
@@ -430,6 +448,8 @@ class Reader {
 
 class WriterHelper {
  public:
+  WriterHelper() : labels_(NULL) {}
+
   void SetProgram(Program* program) {
     program_ = program;
     for (int i = 0; i < program->libraries().length(); i++) {
@@ -477,8 +497,10 @@ class WriterHelper {
 
   BlockMap<VariableDeclaration>& variables() { return scope_; }
   BlockMap<TypeParameter>& type_parameters() { return type_parameters_; }
-  BlockMap<LabeledStatement>& lables() { return labels_; }
   BlockMap<SwitchCase>& switch_cases() { return switch_cases_; }
+
+  BlockMap<LabeledStatement>* labels() { return labels_; }
+  void set_labels(BlockMap<LabeledStatement>* labels) { labels_ = labels; }
 
  private:
   Program* program_;
@@ -492,8 +514,8 @@ class WriterHelper {
 
   BlockMap<VariableDeclaration> scope_;
   BlockMap<TypeParameter> type_parameters_;
-  BlockMap<LabeledStatement> labels_;
   BlockMap<SwitchCase> switch_cases_;
+  BlockMap<LabeledStatement>* labels_;
 };
 
 
@@ -2253,9 +2275,9 @@ void AssertStatement::WriteTo(Writer* writer) {
 LabeledStatement* LabeledStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   LabeledStatement* stmt = new LabeledStatement();
-  reader->helper()->lables().Push(stmt);
+  reader->helper()->labels()->Push(stmt);
   stmt->body_ = Statement::ReadFrom(reader);
-  reader->helper()->lables().Pop(stmt);
+  reader->helper()->labels()->Pop(stmt);
   return stmt;
 }
 
@@ -2263,16 +2285,16 @@ LabeledStatement* LabeledStatement::ReadFrom(Reader* reader) {
 void LabeledStatement::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kLabeledStatement);
-  writer->helper()->lables().Push(this);
+  writer->helper()->labels()->Push(this);
   body_->WriteTo(writer);
-  writer->helper()->lables().Pop(this);
+  writer->helper()->labels()->Pop(this);
 }
 
 
 BreakStatement* BreakStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   BreakStatement* stmt = new BreakStatement();
-  stmt->target_ = reader->helper()->lables().Lookup(reader->ReadUInt());
+  stmt->target_ = reader->helper()->labels()->Lookup(reader->ReadUInt());
   return stmt;
 }
 
@@ -2280,7 +2302,7 @@ BreakStatement* BreakStatement::ReadFrom(Reader* reader) {
 void BreakStatement::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kBreakStatement);
-  writer->WriteUInt(writer->helper()->lables().Lookup(target_));
+  writer->WriteUInt(writer->helper()->labels()->Lookup(target_));
 }
 
 
@@ -2853,6 +2875,8 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   function->return_type_ = DartType::ReadFrom(reader);
   function->inferred_return_value_ = reader->ReadOptional<InferredValue>();
 
+  LabelScope<ReaderHelper, BlockStack<LabeledStatement> > labels(
+      reader->helper());
   VariableScope<ReaderHelper> vars(reader->helper());
   function->body_ = reader->ReadOptional<Statement>();
   return function;
@@ -2871,6 +2895,8 @@ void FunctionNode::WriteTo(Writer* writer) {
   return_type_->WriteTo(writer);
   writer->WriteOptional<InferredValue>(inferred_return_value_);
 
+  LabelScope<WriterHelper, BlockMap<LabeledStatement> > labels(
+      writer->helper());
   VariableScope<WriterHelper> vars(writer->helper());
   writer->WriteOptional<Statement>(body_);
 }

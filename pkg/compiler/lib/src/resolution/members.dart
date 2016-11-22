@@ -1310,6 +1310,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Node right = node.arguments.head;
     visitExpression(left);
     visitExpression(right);
+    registry.registerConstantLiteral(new NullConstantExpression());
+    registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
     registry.registerSendStructure(node, const IfNullStructure());
     return const NoneResult();
   }

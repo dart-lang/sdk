@@ -13,6 +13,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
@@ -67,7 +69,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 5;
+  static const int DATA_VERSION = 7;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -176,14 +178,14 @@ class AnalysisDriver {
   final _resultController = new StreamController<AnalysisResult>();
 
   /**
-   * Mapping from library URIs to the dependency signature of the library.
-   */
-  final _dependencySignatureMap = <Uri, String>{};
-
-  /**
    * The instance of the status helper.
    */
   final StatusSupport _statusSupport = new StatusSupport();
+
+  /**
+   * The instance of the [Search] helper.
+   */
+  Search _search;
 
   /**
    * Create a new instance of [AnalysisDriver].
@@ -202,9 +204,17 @@ class AnalysisDriver {
       : _sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
-    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
-        _resourceProvider, _sourceFactory, _analysisOptions, _salt);
+    _fsState = new FileSystemState(
+        _logger,
+        _byteStore,
+        _contentOverlay,
+        _resourceProvider,
+        _sourceFactory,
+        _analysisOptions,
+        _salt,
+        _sdkBundle.apiSignature);
     _scheduler._add(this);
+    _search = new Search(this);
   }
 
   /**
@@ -256,6 +266,11 @@ class AnalysisDriver {
    * using [addFile], for example when [getResult] was called for a file.
    */
   Stream<AnalysisResult> get results => _resultController.stream;
+
+  /**
+   * Return the search support for the driver.
+   */
+  Search get search => _search;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.
@@ -472,9 +487,9 @@ class AnalysisDriver {
       }
 
       // Check for the cached result.
-      AnalysisResult result = _getCachedAnalysisResult(file, key);
-      if (result != null) {
-        return result;
+      List<int> bytes = _byteStore.get(key);
+      if (bytes != null) {
+        return _getAnalysisResultFromBytes(file, bytes);
       }
     }
 
@@ -492,16 +507,15 @@ class AnalysisDriver {
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
-        // TODO(scheglov) Add support for parts.
-        CompilationUnit resolvedUnit = withUnit
-            ? analysisContext.resolveCompilationUnit2(
-                file.source, libraryFile.source)
-            : null;
+        CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit2(
+            file.source, libraryFile.source);
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
+        AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
 
         // Store the result into the cache.
+        List<int> bytes;
         {
-          List<int> bytes = new AnalysisDriverResolvedUnitBuilder(
+          bytes = new AnalysisDriverResolvedUnitBuilder(
                   errors: errors
                       .map((error) => new AnalysisDriverUnitErrorBuilder(
                           offset: error.offset,
@@ -509,7 +523,8 @@ class AnalysisDriver {
                           uniqueName: error.errorCode.uniqueName,
                           message: error.message,
                           correction: error.correction))
-                      .toList())
+                      .toList(),
+                  index: index)
               .toBuffer();
           String key = _getResolvedUnitKey(libraryFile, file);
           _byteStore.put(key, bytes);
@@ -517,15 +532,9 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return new AnalysisResult(
-            _sourceFactory,
-            file.path,
-            file.uri,
-            withUnit ? file.content : null,
-            file.contentHash,
-            file.lineInfo,
-            resolvedUnit,
-            errors);
+        return _getAnalysisResultFromBytes(file, bytes,
+            content: withUnit ? file.content : null,
+            resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
         analysisContext.dispose();
       }
@@ -659,26 +668,23 @@ class AnalysisDriver {
   }
 
   /**
-   * If we know the result [key] for the [file], try to load the analysis
-   * result from the cache. Return `null` if not found.
+   * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
+   * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getCachedAnalysisResult(FileState file, String key) {
-    List<int> bytes = _byteStore.get(key);
-    if (bytes != null) {
-      var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-      List<AnalysisError> errors = unit.errors
-          .map((error) => new AnalysisError.forValues(
-              file.source,
-              error.offset,
-              error.length,
-              errorCodeByUniqueName(error.uniqueName),
-              error.message,
-              error.correction))
-          .toList();
-      return new AnalysisResult(_sourceFactory, file.path, file.uri, null,
-          file.contentHash, file.lineInfo, null, errors);
-    }
-    return null;
+  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
+      {String content, CompilationUnit resolvedUnit}) {
+    var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+    List<AnalysisError> errors = unit.errors
+        .map((error) => new AnalysisError.forValues(
+            file.source,
+            error.offset,
+            error.length,
+            errorCodeByUniqueName(error.uniqueName),
+            error.message,
+            error.correction))
+        .toList();
+    return new AnalysisResult(_sourceFactory, file.path, file.uri, content,
+        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
   }
 
   /**
@@ -687,15 +693,11 @@ class AnalysisDriver {
    * not known yet.
    */
   String _getResolvedUnitKey(FileState library, FileState file) {
-    String dependencyHash = _dependencySignatureMap[library.uri];
-    if (dependencyHash != null) {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_salt);
-      signature.addString(dependencyHash);
-      signature.addString(file.contentHash);
-      return '${signature.toHex()}.resolved';
-    }
-    return null;
+    ApiSignature signature = new ApiSignature();
+    signature.addUint32List(_salt);
+    signature.addString(library.transitiveSignature);
+    signature.addString(file.contentHash);
+    return '${signature.toHex()}.resolved';
   }
 
   /**
@@ -799,7 +801,7 @@ class AnalysisDriver {
       }
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found for $path');
-        _dependencySignatureMap.clear();
+        // TODO(scheglov) schedule analysis of only affected files
         _filesToAnalyze.addAll(_explicitFiles);
       }
       return files[0];
@@ -999,8 +1001,13 @@ class AnalysisResult {
    */
   final List<AnalysisError> errors;
 
+  /**
+   * The index of the unit.
+   */
+  final AnalysisDriverUnitIndex index;
+
   AnalysisResult(this.sourceFactory, this.path, this.uri, this.content,
-      this.contentHash, this.lineInfo, this.unit, this.errors);
+      this.contentHash, this.lineInfo, this.unit, this.errors, this.index);
 }
 
 /**
@@ -1139,26 +1146,10 @@ class _LibraryNode {
   final FileState file;
   final Uri uri;
 
-  String _dependencySignature;
-
   _LibraryNode(this.driver, this.file, this.uri);
 
   String get dependencySignature {
-    return _dependencySignature ??=
-        driver._dependencySignatureMap.putIfAbsent(uri, () {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(driver._salt);
-      signature.addString(driver._sdkBundle.apiSignature);
-
-      // Add all unlinked API signatures.
-      file.transitiveFiles
-          .map((file) => file.apiSignature)
-          .forEach(signature.addBytes);
-
-      // Combine into a single hash.
-      signature.addString(uri.toString());
-      return signature.toHex();
-    });
+    return file.transitiveSignature;
   }
 
   @override

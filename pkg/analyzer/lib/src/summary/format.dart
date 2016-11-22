@@ -131,6 +131,7 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
 
 class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
   List<AnalysisDriverUnitErrorBuilder> _errors;
+  AnalysisDriverUnitIndexBuilder _index;
 
   @override
   List<AnalysisDriverUnitErrorBuilder> get errors => _errors ??= <AnalysisDriverUnitErrorBuilder>[];
@@ -142,14 +143,26 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
     this._errors = value;
   }
 
-  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors})
-    : _errors = errors;
+  @override
+  AnalysisDriverUnitIndexBuilder get index => _index;
+
+  /**
+   * The index of the unit.
+   */
+  void set index(AnalysisDriverUnitIndexBuilder value) {
+    this._index = value;
+  }
+
+  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors, AnalysisDriverUnitIndexBuilder index})
+    : _errors = errors,
+      _index = index;
 
   /**
    * Flush [informative] data recursively.
    */
   void flushInformative() {
     _errors?.forEach((b) => b.flushInformative());
+    _index?.flushInformative();
   }
 
   /**
@@ -164,6 +177,8 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._index != null);
+    this._index?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -173,12 +188,19 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_errors;
+    fb.Offset offset_index;
     if (!(_errors == null || _errors.isEmpty)) {
       offset_errors = fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_index != null) {
+      offset_index = _index.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_errors != null) {
       fbBuilder.addOffset(0, offset_errors);
+    }
+    if (offset_index != null) {
+      fbBuilder.addOffset(1, offset_index);
     }
     return fbBuilder.endTable();
   }
@@ -203,11 +225,18 @@ class _AnalysisDriverResolvedUnitImpl extends Object with _AnalysisDriverResolve
   _AnalysisDriverResolvedUnitImpl(this._bc, this._bcOffset);
 
   List<idl.AnalysisDriverUnitError> _errors;
+  idl.AnalysisDriverUnitIndex _index;
 
   @override
   List<idl.AnalysisDriverUnitError> get errors {
     _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(const _AnalysisDriverUnitErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
     return _errors;
+  }
+
+  @override
+  idl.AnalysisDriverUnitIndex get index {
+    _index ??= const _AnalysisDriverUnitIndexReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _index;
   }
 }
 
@@ -216,12 +245,14 @@ abstract class _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverRes
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (errors.isNotEmpty) _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    if (index != null) _result["index"] = index.toJson();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
     "errors": errors,
+    "index": index,
   };
 
   @override
@@ -413,6 +444,871 @@ abstract class _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitEr
     "message": message,
     "offset": offset,
     "uniqueName": uniqueName,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
+  List<idl.IndexSyntheticElementKind> _elementKinds;
+  List<int> _elementNameClassMemberIds;
+  List<int> _elementNameParameterIds;
+  List<int> _elementNameUnitMemberIds;
+  List<int> _elementUnits;
+  int _nullStringId;
+  List<String> _strings;
+  List<int> _unitLibraryUris;
+  List<int> _unitUnitUris;
+  List<bool> _usedElementIsQualifiedFlags;
+  List<idl.IndexRelationKind> _usedElementKinds;
+  List<int> _usedElementLengths;
+  List<int> _usedElementOffsets;
+  List<int> _usedElements;
+  List<bool> _usedNameIsQualifiedFlags;
+  List<idl.IndexRelationKind> _usedNameKinds;
+  List<int> _usedNameOffsets;
+  List<int> _usedNames;
+
+  @override
+  List<idl.IndexSyntheticElementKind> get elementKinds => _elementKinds ??= <idl.IndexSyntheticElementKind>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  void set elementKinds(List<idl.IndexSyntheticElementKind> value) {
+    this._elementKinds = value;
+  }
+
+  @override
+  List<int> get elementNameClassMemberIds => _elementNameClassMemberIds ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  void set elementNameClassMemberIds(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementNameClassMemberIds = value;
+  }
+
+  @override
+  List<int> get elementNameParameterIds => _elementNameParameterIds ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  void set elementNameParameterIds(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementNameParameterIds = value;
+  }
+
+  @override
+  List<int> get elementNameUnitMemberIds => _elementNameUnitMemberIds ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this index.
+   */
+  void set elementNameUnitMemberIds(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementNameUnitMemberIds = value;
+  }
+
+  @override
+  List<int> get elementUnits => _elementUnits ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  void set elementUnits(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementUnits = value;
+  }
+
+  @override
+  int get nullStringId => _nullStringId ??= 0;
+
+  /**
+   * Identifier of the null string in [strings].
+   */
+  void set nullStringId(int value) {
+    assert(value == null || value >= 0);
+    this._nullStringId = value;
+  }
+
+  @override
+  List<String> get strings => _strings ??= <String>[];
+
+  /**
+   * List of unique element strings used in this index.  The list is sorted in
+   * ascending order, so that the client can quickly check the presence of a
+   * string in this index.
+   */
+  void set strings(List<String> value) {
+    this._strings = value;
+  }
+
+  @override
+  List<int> get unitLibraryUris => _unitLibraryUris ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  void set unitLibraryUris(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._unitLibraryUris = value;
+  }
+
+  @override
+  List<int> get unitUnitUris => _unitUnitUris ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  void set unitUnitUris(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._unitUnitUris = value;
+  }
+
+  @override
+  List<bool> get usedElementIsQualifiedFlags => _usedElementIsQualifiedFlags ??= <bool>[];
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  void set usedElementIsQualifiedFlags(List<bool> value) {
+    this._usedElementIsQualifiedFlags = value;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedElementKinds => _usedElementKinds ??= <idl.IndexRelationKind>[];
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  void set usedElementKinds(List<idl.IndexRelationKind> value) {
+    this._usedElementKinds = value;
+  }
+
+  @override
+  List<int> get usedElementLengths => _usedElementLengths ??= <int>[];
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  void set usedElementLengths(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedElementLengths = value;
+  }
+
+  @override
+  List<int> get usedElementOffsets => _usedElementOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  void set usedElementOffsets(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedElementOffsets = value;
+  }
+
+  @override
+  List<int> get usedElements => _usedElements ??= <int>[];
+
+  /**
+   * Each item of this list is the index into [elementUnits],
+   * [elementNameUnitMemberIds], [elementNameClassMemberIds] and
+   * [elementNameParameterIds].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this index.
+   */
+  void set usedElements(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedElements = value;
+  }
+
+  @override
+  List<bool> get usedNameIsQualifiedFlags => _usedNameIsQualifiedFlags ??= <bool>[];
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  void set usedNameIsQualifiedFlags(List<bool> value) {
+    this._usedNameIsQualifiedFlags = value;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedNameKinds => _usedNameKinds ??= <idl.IndexRelationKind>[];
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  void set usedNameKinds(List<idl.IndexRelationKind> value) {
+    this._usedNameKinds = value;
+  }
+
+  @override
+  List<int> get usedNameOffsets => _usedNameOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  void set usedNameOffsets(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedNameOffsets = value;
+  }
+
+  @override
+  List<int> get usedNames => _usedNames ??= <int>[];
+
+  /**
+   * Each item of this list is the index into [strings] for a used name.  The
+   * list is sorted in ascending order, so that the client can quickly find
+   * whether a name is used in this index.
+   */
+  void set usedNames(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedNames = value;
+  }
+
+  AnalysisDriverUnitIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementNameClassMemberIds, List<int> elementNameParameterIds, List<int> elementNameUnitMemberIds, List<int> elementUnits, int nullStringId, List<String> strings, List<int> unitLibraryUris, List<int> unitUnitUris, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<bool> usedNameIsQualifiedFlags, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
+    : _elementKinds = elementKinds,
+      _elementNameClassMemberIds = elementNameClassMemberIds,
+      _elementNameParameterIds = elementNameParameterIds,
+      _elementNameUnitMemberIds = elementNameUnitMemberIds,
+      _elementUnits = elementUnits,
+      _nullStringId = nullStringId,
+      _strings = strings,
+      _unitLibraryUris = unitLibraryUris,
+      _unitUnitUris = unitUnitUris,
+      _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
+      _usedElementKinds = usedElementKinds,
+      _usedElementLengths = usedElementLengths,
+      _usedElementOffsets = usedElementOffsets,
+      _usedElements = usedElements,
+      _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
+      _usedNameKinds = usedNameKinds,
+      _usedNameOffsets = usedNameOffsets,
+      _usedNames = usedNames;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._strings == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._strings.length);
+      for (var x in this._strings) {
+        signature.addString(x);
+      }
+    }
+    signature.addInt(this._nullStringId ?? 0);
+    if (this._unitLibraryUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._unitLibraryUris.length);
+      for (var x in this._unitLibraryUris) {
+        signature.addInt(x);
+      }
+    }
+    if (this._unitUnitUris == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._unitUnitUris.length);
+      for (var x in this._unitUnitUris) {
+        signature.addInt(x);
+      }
+    }
+    if (this._elementKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementKinds.length);
+      for (var x in this._elementKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._elementUnits == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementUnits.length);
+      for (var x in this._elementUnits) {
+        signature.addInt(x);
+      }
+    }
+    if (this._elementNameUnitMemberIds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementNameUnitMemberIds.length);
+      for (var x in this._elementNameUnitMemberIds) {
+        signature.addInt(x);
+      }
+    }
+    if (this._elementNameClassMemberIds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementNameClassMemberIds.length);
+      for (var x in this._elementNameClassMemberIds) {
+        signature.addInt(x);
+      }
+    }
+    if (this._elementNameParameterIds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._elementNameParameterIds.length);
+      for (var x in this._elementNameParameterIds) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElements == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElements.length);
+      for (var x in this._usedElements) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElementKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementKinds.length);
+      for (var x in this._usedElementKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._usedElementOffsets == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementOffsets.length);
+      for (var x in this._usedElementOffsets) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElementLengths == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementLengths.length);
+      for (var x in this._usedElementLengths) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedElementIsQualifiedFlags == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedElementIsQualifiedFlags.length);
+      for (var x in this._usedElementIsQualifiedFlags) {
+        signature.addBool(x);
+      }
+    }
+    if (this._usedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNames.length);
+      for (var x in this._usedNames) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedNameKinds == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNameKinds.length);
+      for (var x in this._usedNameKinds) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._usedNameOffsets == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNameOffsets.length);
+      for (var x in this._usedNameOffsets) {
+        signature.addInt(x);
+      }
+    }
+    if (this._usedNameIsQualifiedFlags == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._usedNameIsQualifiedFlags.length);
+      for (var x in this._usedNameIsQualifiedFlags) {
+        signature.addBool(x);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "ADUI");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_elementKinds;
+    fb.Offset offset_elementNameClassMemberIds;
+    fb.Offset offset_elementNameParameterIds;
+    fb.Offset offset_elementNameUnitMemberIds;
+    fb.Offset offset_elementUnits;
+    fb.Offset offset_strings;
+    fb.Offset offset_unitLibraryUris;
+    fb.Offset offset_unitUnitUris;
+    fb.Offset offset_usedElementIsQualifiedFlags;
+    fb.Offset offset_usedElementKinds;
+    fb.Offset offset_usedElementLengths;
+    fb.Offset offset_usedElementOffsets;
+    fb.Offset offset_usedElements;
+    fb.Offset offset_usedNameIsQualifiedFlags;
+    fb.Offset offset_usedNameKinds;
+    fb.Offset offset_usedNameOffsets;
+    fb.Offset offset_usedNames;
+    if (!(_elementKinds == null || _elementKinds.isEmpty)) {
+      offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
+    }
+    if (!(_elementNameClassMemberIds == null || _elementNameClassMemberIds.isEmpty)) {
+      offset_elementNameClassMemberIds = fbBuilder.writeListUint32(_elementNameClassMemberIds);
+    }
+    if (!(_elementNameParameterIds == null || _elementNameParameterIds.isEmpty)) {
+      offset_elementNameParameterIds = fbBuilder.writeListUint32(_elementNameParameterIds);
+    }
+    if (!(_elementNameUnitMemberIds == null || _elementNameUnitMemberIds.isEmpty)) {
+      offset_elementNameUnitMemberIds = fbBuilder.writeListUint32(_elementNameUnitMemberIds);
+    }
+    if (!(_elementUnits == null || _elementUnits.isEmpty)) {
+      offset_elementUnits = fbBuilder.writeListUint32(_elementUnits);
+    }
+    if (!(_strings == null || _strings.isEmpty)) {
+      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_unitLibraryUris == null || _unitLibraryUris.isEmpty)) {
+      offset_unitLibraryUris = fbBuilder.writeListUint32(_unitLibraryUris);
+    }
+    if (!(_unitUnitUris == null || _unitUnitUris.isEmpty)) {
+      offset_unitUnitUris = fbBuilder.writeListUint32(_unitUnitUris);
+    }
+    if (!(_usedElementIsQualifiedFlags == null || _usedElementIsQualifiedFlags.isEmpty)) {
+      offset_usedElementIsQualifiedFlags = fbBuilder.writeListBool(_usedElementIsQualifiedFlags);
+    }
+    if (!(_usedElementKinds == null || _usedElementKinds.isEmpty)) {
+      offset_usedElementKinds = fbBuilder.writeListUint8(_usedElementKinds.map((b) => b.index).toList());
+    }
+    if (!(_usedElementLengths == null || _usedElementLengths.isEmpty)) {
+      offset_usedElementLengths = fbBuilder.writeListUint32(_usedElementLengths);
+    }
+    if (!(_usedElementOffsets == null || _usedElementOffsets.isEmpty)) {
+      offset_usedElementOffsets = fbBuilder.writeListUint32(_usedElementOffsets);
+    }
+    if (!(_usedElements == null || _usedElements.isEmpty)) {
+      offset_usedElements = fbBuilder.writeListUint32(_usedElements);
+    }
+    if (!(_usedNameIsQualifiedFlags == null || _usedNameIsQualifiedFlags.isEmpty)) {
+      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
+    }
+    if (!(_usedNameKinds == null || _usedNameKinds.isEmpty)) {
+      offset_usedNameKinds = fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
+    }
+    if (!(_usedNameOffsets == null || _usedNameOffsets.isEmpty)) {
+      offset_usedNameOffsets = fbBuilder.writeListUint32(_usedNameOffsets);
+    }
+    if (!(_usedNames == null || _usedNames.isEmpty)) {
+      offset_usedNames = fbBuilder.writeListUint32(_usedNames);
+    }
+    fbBuilder.startTable();
+    if (offset_elementKinds != null) {
+      fbBuilder.addOffset(4, offset_elementKinds);
+    }
+    if (offset_elementNameClassMemberIds != null) {
+      fbBuilder.addOffset(7, offset_elementNameClassMemberIds);
+    }
+    if (offset_elementNameParameterIds != null) {
+      fbBuilder.addOffset(8, offset_elementNameParameterIds);
+    }
+    if (offset_elementNameUnitMemberIds != null) {
+      fbBuilder.addOffset(6, offset_elementNameUnitMemberIds);
+    }
+    if (offset_elementUnits != null) {
+      fbBuilder.addOffset(5, offset_elementUnits);
+    }
+    if (_nullStringId != null && _nullStringId != 0) {
+      fbBuilder.addUint32(1, _nullStringId);
+    }
+    if (offset_strings != null) {
+      fbBuilder.addOffset(0, offset_strings);
+    }
+    if (offset_unitLibraryUris != null) {
+      fbBuilder.addOffset(2, offset_unitLibraryUris);
+    }
+    if (offset_unitUnitUris != null) {
+      fbBuilder.addOffset(3, offset_unitUnitUris);
+    }
+    if (offset_usedElementIsQualifiedFlags != null) {
+      fbBuilder.addOffset(13, offset_usedElementIsQualifiedFlags);
+    }
+    if (offset_usedElementKinds != null) {
+      fbBuilder.addOffset(10, offset_usedElementKinds);
+    }
+    if (offset_usedElementLengths != null) {
+      fbBuilder.addOffset(12, offset_usedElementLengths);
+    }
+    if (offset_usedElementOffsets != null) {
+      fbBuilder.addOffset(11, offset_usedElementOffsets);
+    }
+    if (offset_usedElements != null) {
+      fbBuilder.addOffset(9, offset_usedElements);
+    }
+    if (offset_usedNameIsQualifiedFlags != null) {
+      fbBuilder.addOffset(17, offset_usedNameIsQualifiedFlags);
+    }
+    if (offset_usedNameKinds != null) {
+      fbBuilder.addOffset(15, offset_usedNameKinds);
+    }
+    if (offset_usedNameOffsets != null) {
+      fbBuilder.addOffset(16, offset_usedNameOffsets);
+    }
+    if (offset_usedNames != null) {
+      fbBuilder.addOffset(14, offset_usedNames);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AnalysisDriverUnitIndex readAnalysisDriverUnitIndex(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AnalysisDriverUnitIndexReader().read(rootRef, 0);
+}
+
+class _AnalysisDriverUnitIndexReader extends fb.TableReader<_AnalysisDriverUnitIndexImpl> {
+  const _AnalysisDriverUnitIndexReader();
+
+  @override
+  _AnalysisDriverUnitIndexImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnitIndexImpl(bc, offset);
+}
+
+class _AnalysisDriverUnitIndexImpl extends Object with _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverUnitIndexImpl(this._bc, this._bcOffset);
+
+  List<idl.IndexSyntheticElementKind> _elementKinds;
+  List<int> _elementNameClassMemberIds;
+  List<int> _elementNameParameterIds;
+  List<int> _elementNameUnitMemberIds;
+  List<int> _elementUnits;
+  int _nullStringId;
+  List<String> _strings;
+  List<int> _unitLibraryUris;
+  List<int> _unitUnitUris;
+  List<bool> _usedElementIsQualifiedFlags;
+  List<idl.IndexRelationKind> _usedElementKinds;
+  List<int> _usedElementLengths;
+  List<int> _usedElementOffsets;
+  List<int> _usedElements;
+  List<bool> _usedNameIsQualifiedFlags;
+  List<idl.IndexRelationKind> _usedNameKinds;
+  List<int> _usedNameOffsets;
+  List<int> _usedNames;
+
+  @override
+  List<idl.IndexSyntheticElementKind> get elementKinds {
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bc, _bcOffset, 4, const <idl.IndexSyntheticElementKind>[]);
+    return _elementKinds;
+  }
+
+  @override
+  List<int> get elementNameClassMemberIds {
+    _elementNameClassMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    return _elementNameClassMemberIds;
+  }
+
+  @override
+  List<int> get elementNameParameterIds {
+    _elementNameParameterIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
+    return _elementNameParameterIds;
+  }
+
+  @override
+  List<int> get elementNameUnitMemberIds {
+    _elementNameUnitMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
+    return _elementNameUnitMemberIds;
+  }
+
+  @override
+  List<int> get elementUnits {
+    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    return _elementUnits;
+  }
+
+  @override
+  int get nullStringId {
+    _nullStringId ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _nullStringId;
+  }
+
+  @override
+  List<String> get strings {
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _strings;
+  }
+
+  @override
+  List<int> get unitLibraryUris {
+    _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+    return _unitLibraryUris;
+  }
+
+  @override
+  List<int> get unitUnitUris {
+    _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    return _unitUnitUris;
+  }
+
+  @override
+  List<bool> get usedElementIsQualifiedFlags {
+    _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 13, const <bool>[]);
+    return _usedElementIsQualifiedFlags;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedElementKinds {
+    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
+    return _usedElementKinds;
+  }
+
+  @override
+  List<int> get usedElementLengths {
+    _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 12, const <int>[]);
+    return _usedElementLengths;
+  }
+
+  @override
+  List<int> get usedElementOffsets {
+    _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 11, const <int>[]);
+    return _usedElementOffsets;
+  }
+
+  @override
+  List<int> get usedElements {
+    _usedElements ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
+    return _usedElements;
+  }
+
+  @override
+  List<bool> get usedNameIsQualifiedFlags {
+    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 17, const <bool>[]);
+    return _usedNameIsQualifiedFlags;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedNameKinds {
+    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
+    return _usedNameKinds;
+  }
+
+  @override
+  List<int> get usedNameOffsets {
+    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 16, const <int>[]);
+    return _usedNameOffsets;
+  }
+
+  @override
+  List<int> get usedNames {
+    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 14, const <int>[]);
+    return _usedNames;
+  }
+}
+
+abstract class _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (elementKinds.isNotEmpty) _result["elementKinds"] = elementKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (elementNameClassMemberIds.isNotEmpty) _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
+    if (elementNameParameterIds.isNotEmpty) _result["elementNameParameterIds"] = elementNameParameterIds;
+    if (elementNameUnitMemberIds.isNotEmpty) _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
+    if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
+    if (nullStringId != 0) _result["nullStringId"] = nullStringId;
+    if (strings.isNotEmpty) _result["strings"] = strings;
+    if (unitLibraryUris.isNotEmpty) _result["unitLibraryUris"] = unitLibraryUris;
+    if (unitUnitUris.isNotEmpty) _result["unitUnitUris"] = unitUnitUris;
+    if (usedElementIsQualifiedFlags.isNotEmpty) _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
+    if (usedElementKinds.isNotEmpty) _result["usedElementKinds"] = usedElementKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (usedElementLengths.isNotEmpty) _result["usedElementLengths"] = usedElementLengths;
+    if (usedElementOffsets.isNotEmpty) _result["usedElementOffsets"] = usedElementOffsets;
+    if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
+    if (usedNameIsQualifiedFlags.isNotEmpty) _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
+    if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
+    if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "elementKinds": elementKinds,
+    "elementNameClassMemberIds": elementNameClassMemberIds,
+    "elementNameParameterIds": elementNameParameterIds,
+    "elementNameUnitMemberIds": elementNameUnitMemberIds,
+    "elementUnits": elementUnits,
+    "nullStringId": nullStringId,
+    "strings": strings,
+    "unitLibraryUris": unitLibraryUris,
+    "unitUnitUris": unitUnitUris,
+    "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
+    "usedElementKinds": usedElementKinds,
+    "usedElementLengths": usedElementLengths,
+    "usedElementOffsets": usedElementOffsets,
+    "usedElements": usedElements,
+    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
+    "usedNameKinds": usedNameKinds,
+    "usedNameOffsets": usedNameOffsets,
+    "usedNames": usedNames,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  List<String> _referencedNames;
+  UnlinkedUnitBuilder _unit;
+
+  @override
+  List<String> get referencedNames => _referencedNames ??= <String>[];
+
+  /**
+   * List of external names referenced by the unit.
+   */
+  void set referencedNames(List<String> value) {
+    this._referencedNames = value;
+  }
+
+  @override
+  UnlinkedUnitBuilder get unit => _unit;
+
+  /**
+   * Unlinked information for the unit.
+   */
+  void set unit(UnlinkedUnitBuilder value) {
+    this._unit = value;
+  }
+
+  AnalysisDriverUnlinkedUnitBuilder({List<String> referencedNames, UnlinkedUnitBuilder unit})
+    : _referencedNames = referencedNames,
+      _unit = unit;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _unit?.flushInformative();
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._referencedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._referencedNames.length);
+      for (var x in this._referencedNames) {
+        signature.addString(x);
+      }
+    }
+    signature.addBool(this._unit != null);
+    this._unit?.collectApiSignature(signature);
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "ADUU");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_referencedNames;
+    fb.Offset offset_unit;
+    if (!(_referencedNames == null || _referencedNames.isEmpty)) {
+      offset_referencedNames = fbBuilder.writeList(_referencedNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_unit != null) {
+      offset_unit = _unit.finish(fbBuilder);
+    }
+    fbBuilder.startTable();
+    if (offset_referencedNames != null) {
+      fbBuilder.addOffset(0, offset_referencedNames);
+    }
+    if (offset_unit != null) {
+      fbBuilder.addOffset(1, offset_unit);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AnalysisDriverUnlinkedUnit readAnalysisDriverUnlinkedUnit(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AnalysisDriverUnlinkedUnitReader().read(rootRef, 0);
+}
+
+class _AnalysisDriverUnlinkedUnitReader extends fb.TableReader<_AnalysisDriverUnlinkedUnitImpl> {
+  const _AnalysisDriverUnlinkedUnitReader();
+
+  @override
+  _AnalysisDriverUnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnlinkedUnitImpl(bc, offset);
+}
+
+class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverUnlinkedUnitImpl(this._bc, this._bcOffset);
+
+  List<String> _referencedNames;
+  idl.UnlinkedUnit _unit;
+
+  @override
+  List<String> get referencedNames {
+    _referencedNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _referencedNames;
+  }
+
+  @override
+  idl.UnlinkedUnit get unit {
+    _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _unit;
+  }
+}
+
+abstract class _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (referencedNames.isNotEmpty) _result["referencedNames"] = referencedNames;
+    if (unit != null) _result["unit"] = unit.toJson();
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "referencedNames": referencedNames,
+    "unit": unit,
   };
 
   @override

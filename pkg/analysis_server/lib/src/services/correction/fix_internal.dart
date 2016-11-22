@@ -1216,7 +1216,7 @@ class FixProcessor {
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
           String libName = _computeLibraryName(file);
           SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
-          doSourceChange_addSourceEdit(change, context, source, edit);
+          doSourceChange_addSourceEdit(change, source, edit, isNewFile: true);
           _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
         }
       }
@@ -1435,7 +1435,7 @@ class FixProcessor {
       if (source != null) {
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
-        doSourceChange_addSourceEdit(change, context, source, edit);
+        doSourceChange_addSourceEdit(change, source, edit, isNewFile: true);
         _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
       }
     }

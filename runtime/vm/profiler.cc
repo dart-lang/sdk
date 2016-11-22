@@ -1104,11 +1104,10 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (StubCode::HasBeenInitialized() &&
-      StubCode::InJumpToExceptionHandlerStub(state.pc)) {
-    // The JumpToExceptionHandler stub manually adjusts the stack pointer,
-    // frame pointer, and some isolate state before jumping to a catch entry.
-    // It is not safe to walk the stack when executing this stub.
+  if (StubCode::HasBeenInitialized() && StubCode::InJumpToFrameStub(state.pc)) {
+    // The JumpToFrame stub manually adjusts the stack pointer, frame
+    // pointer, and some isolate state.  It is not safe to walk the
+    // stack when executing this stub.
     AtomicOperations::IncrementInt64By(
         &counters_.bail_out_jump_to_exception_handler, 1);
     return;

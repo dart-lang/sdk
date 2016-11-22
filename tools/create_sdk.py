@@ -54,6 +54,7 @@
 # ......collection/
 # ......convert/
 # ......core/
+# ......front_end/
 # ......html/
 # ......internal/
 # ......io/
@@ -145,7 +146,7 @@ def CopySnapshots(snapshots, sdk_root):
              join(sdk_root, 'bin', 'snapshots', snapshot))
 
 def CopyAnalyzerSources(home, lib_dir):
-  for library in ['analyzer', 'analysis_server']:
+  for library in ['analyzer', 'analysis_server', 'front_end']:
     copytree(join(home, 'pkg', library), join(lib_dir, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore', 'packages'))

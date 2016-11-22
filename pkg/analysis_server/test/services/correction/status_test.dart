@@ -8,6 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -41,7 +42,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange range = rangeElementName(element);
-    SearchMatch match = new SearchMatch(
+    SearchMatch match = new SearchMatchImpl(
         context,
         element.library.source.uri.toString(),
         element.source.uri.toString(),

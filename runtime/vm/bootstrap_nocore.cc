@@ -59,7 +59,7 @@ RawError* BootstrapFromKernel(Thread* thread,
                               const uint8_t* buffer,
                               intptr_t buffer_length) {
   Zone* zone = thread->zone();
-  kernel::KernelReader reader(buffer, buffer_length, true);
+  kernel::KernelReader reader(buffer, buffer_length);
   kernel::Program* program = reader.ReadPrecompiledProgram();
   if (program == NULL) {
     const String& message =

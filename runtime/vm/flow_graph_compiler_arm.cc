@@ -798,9 +798,6 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-    __ ldr(R6,
-           FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R6);
     // Let NOTFP point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (NOTFP) is Smi.
     __ add(NOTFP, FP, Operand(NOTFP, LSL, 1));

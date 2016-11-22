@@ -809,9 +809,6 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-    __ movl(ECX,
-            FieldAddress(EDX, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(ECX);
     // Let EBX point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (EBX) is Smi.
     __ leal(EBX, Address(EBP, EBX, TIMES_2, kParamEndSlotFromFp * kWordSize));

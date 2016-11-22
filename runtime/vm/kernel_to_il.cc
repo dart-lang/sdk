@@ -4154,6 +4154,11 @@ const Type& DartTypeTranslator::ReceiverType(const dart::Class& klass) {
   }
   type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                    klass.token_pos());
+  if (klass.is_type_finalized()) {
+    type ^= ClassFinalizer::FinalizeType(
+        klass, type, ClassFinalizer::kCanonicalizeWellFormed);
+    klass.SetCanonicalType(type);
+  }
   return type;
 }
 

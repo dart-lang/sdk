@@ -710,7 +710,8 @@ class KernelVisitor extends Object
     return new ir.ConditionalExpression(
         visitForValue(node.condition),
         visitWithCurrentContext(node.thenExpression),
-        visitWithCurrentContext(node.elseExpression));
+        visitWithCurrentContext(node.elseExpression),
+        null);
   }
 
   @override
@@ -1312,7 +1313,7 @@ class KernelVisitor extends Object
     Accessor accessor = (receiver == null)
         ? new ThisPropertyAccessor(irName, null, null)
         : PropertyAccessor.make(visitForValue(receiver), irName, null, null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs),
+    return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -1504,7 +1505,7 @@ class KernelVisitor extends Object
 
   Accessor buildNullAwarePropertyAccessor(Node receiver, Name name) {
     return new NullAwarePropertyAccessor(
-        visitForValue(receiver), nameToIrName(name), null, null);
+        visitForValue(receiver), nameToIrName(name), null, null, null);
   }
 
   @override
@@ -1524,7 +1525,8 @@ class KernelVisitor extends Object
             buildIsNull(new ir.VariableGet(receiver)),
             new ir.NullLiteral(),
             buildInvokeSelector(new ir.VariableGet(receiver), selector,
-                buildArguments(arguments))));
+                buildArguments(arguments)),
+            null));
   }
 
   @override
@@ -1538,7 +1540,7 @@ class KernelVisitor extends Object
   ir.Expression visitIfNotNullDynamicPropertySetIfNull(
       Send node, Node receiver, Name name, Node rhs, _) {
     return buildNullAwarePropertyAccessor(receiver, name)
-        .buildNullAwareAssignment(visitForValue(rhs),
+        .buildNullAwareAssignment(visitForValue(rhs), null,
             voidContext: isVoidContext);
   }
 
@@ -1549,8 +1551,12 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.LogicalExpression visitIfNull(Send node, Node left, Node right, _) {
-    return buildLogicalExpression(left, node.selector, right);
+  ir.Expression visitIfNull(Send node, Node left, Node right, _) {
+    var leftValue = new ir.VariableDeclaration.forValue(visitForValue(left));
+    return new ir.Let(
+        leftValue,
+        new ir.ConditionalExpression(buildIsNull(new ir.VariableGet(leftValue)),
+            visitForValue(right), new ir.VariableGet(leftValue), null));
   }
 
   @override
@@ -1837,7 +1843,7 @@ class KernelVisitor extends Object
       SendSet node, LocalElement local, Node rhs, _,
       {bool isSetterValid}) {
     return new VariableAccessor(getLocal(local)).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -1925,7 +1931,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression handleStaticFieldGet(Send node, FieldElement field, _) {
-    return buildStaticGet(field);
+    return associateNode(buildStaticGet(field), node);
   }
 
   @override
@@ -1954,7 +1960,7 @@ class KernelVisitor extends Object
       setter = null;
     }
     return buildStaticAccessor(getter, setter).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -1991,6 +1997,7 @@ class KernelVisitor extends Object
           positionalParameters.add(variable);
         }
       });
+      namedParameters.sort();
       signature.forEachParameter((ParameterElement parameter) {
         if (!parameter.isOptional) return;
         ir.Expression initializer = visitForValue(parameter.initializer);
@@ -2132,7 +2139,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildStaticInvoke(function, arguments, isConst: false);
+    return associateNode(
+        buildStaticInvoke(function, arguments, isConst: false), node);
   }
 
   @override
@@ -2394,7 +2402,7 @@ class KernelVisitor extends Object
       setter = null;
     }
     return buildSuperPropertyAccessor(getter, setter).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -2623,7 +2631,7 @@ class KernelVisitor extends Object
   ir.Expression visitTypeVariableTypeLiteralSetIfNull(
       Send node, TypeVariableElement element, Node rhs, _) {
     return new ReadOnlyAccessor(buildTypeVariable(element))
-        .buildNullAwareAssignment(visitForValue(rhs),
+        .buildNullAwareAssignment(visitForValue(rhs), null,
             voidContext: isVoidContext);
   }
 
@@ -2689,7 +2697,7 @@ class KernelVisitor extends Object
   ir.Expression visitIndexSetIfNull(
       SendSet node, Node receiver, Node index, Node rhs, _) {
     return buildIndexAccessor(receiver, index).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -2697,7 +2705,7 @@ class KernelVisitor extends Object
   ir.Expression visitSuperIndexSetIfNull(SendSet node, MethodElement getter,
       MethodElement setter, Node index, Node rhs, _) {
     return buildSuperIndexAccessor(index, getter, setter)
-        .buildNullAwareAssignment(visitForValue(rhs),
+        .buildNullAwareAssignment(visitForValue(rhs), null,
             voidContext: isVoidContext);
   }
 
@@ -2757,7 +2765,7 @@ class KernelVisitor extends Object
       FieldElement field = currentElement;
       return field.isMalformed
           ? new ir.InvalidExpression()
-          : visitForValue(field.initializer);
+          : associateNode(visitForValue(field.initializer), field.initializer);
     });
   }
 }

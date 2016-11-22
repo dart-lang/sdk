@@ -192,11 +192,11 @@ class Kernel {
           fields: null);
       addWork(cls, () {
         if (cls.supertype != null) {
-          classNode.supertype = interfaceTypeToIr(cls.supertype);
+          classNode.supertype = supertypeToIr(cls.supertype);
         }
         if (cls.isMixinApplication) {
           MixinApplicationElement mixinApplication = cls;
-          classNode.mixedInType = interfaceTypeToIr(mixinApplication.mixinType);
+          classNode.mixedInType = supertypeToIr(mixinApplication.mixinType);
         }
         classNode.parent = libraryToIr(cls.library);
         if (cls.isUnnamedMixinApplication) {
@@ -222,10 +222,10 @@ class Kernel {
           }
         });
         classNode.typeParameters.addAll(typeVariablesToIr(cls.typeVariables));
-        for (ir.InterfaceType interface
-            in typesToIr(cls.interfaces.reverse().toList())) {
-          if (interface != classNode.mixedInType) {
-            classNode.implementedTypes.add(interface);
+        for (ir.Supertype supertype
+            in supertypesToIr(cls.interfaces.reverse().toList())) {
+          if (supertype != classNode.mixedInType) {
+            classNode.implementedTypes.add(supertype);
           }
         }
         addWork(cls, () {
@@ -284,6 +284,15 @@ class Kernel {
     }
   }
 
+  ir.Supertype supertypeToIr(InterfaceType type) {
+    ir.Class cls = classToIr(type.element);
+    if (type.typeArguments.isEmpty) {
+      return cls.asRawSupertype;
+    } else {
+      return new ir.Supertype(cls, typesToIr(type.typeArguments));
+    }
+  }
+
   // TODO(ahe): Remove this method when dart2js support generic type arguments.
   List<ir.TypeParameter> typeParametersNotImplemented() {
     return const <ir.TypeParameter>[];
@@ -295,11 +304,10 @@ class Kernel {
     List<ir.DartType> positionalParameters =
         new List<ir.DartType>.from(typesToIr(type.parameterTypes))
           ..addAll(typesToIr(type.optionalParameterTypes));
-    Map<String, ir.DartType> namedParameters = <String, ir.DartType>{};
-    for (int i = 0; i < type.namedParameters.length; i++) {
-      namedParameters[type.namedParameters[i]] =
-          typeToIr(type.namedParameterTypes[i]);
-    }
+    List<ir.NamedType> namedParameters = new List<ir.NamedType>.generate(
+        type.namedParameters.length,
+        (i) => new ir.NamedType(
+            type.namedParameters[i], typeToIr(type.namedParameterTypes[i])));
     ir.DartType returnType = typeToIr(type.returnType);
 
     return new ir.FunctionType(positionalParameters, returnType,
@@ -316,6 +324,14 @@ class Kernel {
     List<ir.DartType> result = new List<ir.DartType>(types.length);
     for (int i = 0; i < types.length; i++) {
       result[i] = typeToIr(types[i]);
+    }
+    return result;
+  }
+
+  List<ir.Supertype> supertypesToIr(List<DartType> types) {
+    List<ir.Supertype> result = new List<ir.Supertype>(types.length);
+    for (int i = 0; i < types.length; i++) {
+      result[i] = supertypeToIr(types[i]);
     }
     return result;
   }
