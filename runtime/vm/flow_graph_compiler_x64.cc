@@ -800,9 +800,6 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-    __ movq(RCX,
-            FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(RCX);
     // Let RBX point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args]; num_args (RBX) is Smi.
     __ leaq(RBX, Address(RBP, RBX, TIMES_4, kParamEndSlotFromFp * kWordSize));

@@ -791,9 +791,6 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ LoadFieldFromOffset(R7, R4, ArgumentsDescriptor::count_offset());
-    __ LoadFieldFromOffset(R8, R4,
-                           ArgumentsDescriptor::positional_count_offset());
-    __ SmiUntag(R8);
     // Let R7 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
     __ add(R7, FP, Operand(R7, LSL, 2));
