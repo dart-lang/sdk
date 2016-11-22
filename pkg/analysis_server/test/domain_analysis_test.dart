@@ -116,8 +116,8 @@ main() {
           // unit "a" is resolved eventually
           // unit "b" is not resolved
           return server.onAnalysisComplete.then((_) {
-            expect(serverRef.getResolvedCompilationUnits(fileA), hasLength(1));
-            expect(serverRef.getResolvedCompilationUnits(fileB), isEmpty);
+            expect(serverRef.getResolvedCompilationUnit(fileA), isNotNull);
+            expect(serverRef.getResolvedCompilationUnit(fileB), isNull);
           });
         });
 
@@ -148,8 +148,8 @@ main() {
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
           return server.onAnalysisComplete.then((_) {
-            var units = serverRef.getResolvedCompilationUnits(file);
-            expect(units, hasLength(1));
+            var unit = serverRef.getResolvedCompilationUnit(file);
+            expect(unit, isNotNull);
           });
         });
 
@@ -162,7 +162,7 @@ main() {
           // Non-existence of /project_a should not prevent files in /project_b
           // from being analyzed.
           await server.onAnalysisComplete;
-          expect(serverRef.getResolvedCompilationUnits(fileB), hasLength(1));
+          expect(serverRef.getResolvedCompilationUnit(fileB), isNotNull);
         });
 
         test('not absolute', () async {

@@ -403,38 +403,6 @@ main() {
     expect(searchId, isNull);
   }
 
-  test_oneUnit_twoLibraries() async {
-    var pathA = '/project/bin/libA.dart';
-    var pathB = '/project/bin/libB.dart';
-    var codeA = '''
-library lib;
-part 'test.dart';
-main() {
-  fff(1);
-}
-''';
-    var codeB = '''
-library lib;
-part 'test.dart';
-main() {
-  fff(2);
-}
-''';
-    addFile(pathA, codeA);
-    addFile(pathB, codeB);
-    addTestFile('''
-part of lib;
-fff(p) {}
-''');
-    await findElementReferences('fff(p) {}', false);
-    expect(searchElement.kind, ElementKind.FUNCTION);
-    expect(results, hasLength(2));
-    findResult(
-        SearchResultKind.INVOCATION, pathA, codeA.indexOf('fff(1)'), 3, true);
-    findResult(
-        SearchResultKind.INVOCATION, pathB, codeB.indexOf('fff(2)'), 3, true);
-  }
-
   test_oneUnit_zeroLibraries() async {
     addTestFile('''
 part of lib;

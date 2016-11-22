@@ -706,41 +706,36 @@ class AnalysisServer {
   }
 
   /**
-   * Returns [Element]s at the given [offset] of the given [file].
-   *
-   * May be empty if cannot be resolved, but not `null`.
+   * Return the [Element] at the given [offset] of the given [file], or `null`
+   * if there is no node at the [offset] or the node does not have an element.
    */
-  List<Element> getElementsAtOffset(String file, int offset) {
-    List<AstNode> nodes = getNodesAtOffset(file, offset);
-    return getElementsOfNodes(nodes);
+  Element getElementAtOffset(String file, int offset) {
+    AstNode node = getNodeAtOffset(file, offset);
+    return getElementOfNode(node);
   }
 
   /**
-   * Returns [Element]s of the given [nodes].
-   *
-   * May be empty if not resolved, but not `null`.
+   * Return the [Element] of the given [node], or `null` if [node] is `null` or
+   * does not have an element.
    */
-  List<Element> getElementsOfNodes(List<AstNode> nodes) {
-    List<Element> elements = <Element>[];
-    for (AstNode node in nodes) {
-      if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-        node = node.parent;
-      }
-      if (node is LibraryIdentifier) {
-        node = node.parent;
-      }
-      if (node is StringLiteral && node.parent is UriBasedDirective) {
-        continue;
-      }
-      Element element = ElementLocator.locate(node);
-      if (node is SimpleIdentifier && element is PrefixElement) {
-        element = getImportElement(node);
-      }
-      if (element != null) {
-        elements.add(element);
-      }
+  Element getElementOfNode(AstNode node) {
+    if (node == null) {
+      return null;
     }
-    return elements;
+    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is StringLiteral && node.parent is UriBasedDirective) {
+      return null;
+    }
+    Element element = ElementLocator.locate(node);
+    if (node is SimpleIdentifier && element is PrefixElement) {
+      element = getImportElement(node);
+    }
+    return element;
   }
 
   /**
@@ -770,49 +765,35 @@ class AnalysisServer {
   }
 
   /**
-   * Returns resolved [AstNode]s at the given [offset] of the given [file].
-   *
-   * May be empty, but not `null`.
+   * Return the resolved [AstNode]s at the given [offset] of the given [file],
+   * or `null` if there is no node as the [offset].
    */
-  List<AstNode> getNodesAtOffset(String file, int offset) {
-    List<CompilationUnit> units = getResolvedCompilationUnits(file);
-    List<AstNode> nodes = <AstNode>[];
-    for (CompilationUnit unit in units) {
-      AstNode node = new NodeLocator(offset).searchWithin(unit);
-      if (node != null) {
-        nodes.add(node);
-      }
+  AstNode getNodeAtOffset(String file, int offset) {
+    CompilationUnit unit = getResolvedCompilationUnit(file);
+    if (unit != null) {
+      return new NodeLocator(offset).searchWithin(unit);
     }
-    return nodes;
+    return null;
   }
 
   /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
-   *
-   * May be empty, but not `null`.
+   * Return the resolved [CompilationUnit] for the Dart file with the given
+   * [path], or `null` if the file is not a Dart file or cannot be resolved.
    */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
+  CompilationUnit getResolvedCompilationUnit(String path) {
     ContextSourcePair contextSource = getContextSourcePair(path);
-    // prepare AnalysisContext
     AnalysisContext context = contextSource.context;
     if (context == null) {
-      return units;
+      return null;
     }
-    // add a unit for each unit/library combination
-    runWithActiveContext(context, () {
+    return runWithActiveContext(context, () {
       Source unitSource = contextSource.source;
       List<Source> librarySources = context.getLibrariesContaining(unitSource);
       for (Source librarySource in librarySources) {
-        CompilationUnit unit =
-            context.resolveCompilationUnit2(unitSource, librarySource);
-        if (unit != null) {
-          units.add(unit);
-        }
+        return context.resolveCompilationUnit2(unitSource, librarySource);
       }
+      return null;
     });
-    // done
-    return units;
   }
 
 // TODO(brianwilkerson) Add the following method after 'prioritySources' has
