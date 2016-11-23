@@ -558,20 +558,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ LeaveStubFrame();
   // Remove materialization arguments.
   __ add(SP, SP, Operand(R2));
-  // The caller is responsible for emitting the return instruction.
+  __ ret();
 }
 
 
 // R0: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
-  __ LoadImmediate(TMP, kZapCodeReg);
+  __ LoadImmediate(TMP, 0xf1f1f1f1);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  __ LoadImmediate(LR, 0xe1e1e1e1);
   __ ldr(CODE_REG, Address(THR, Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
-  __ ret();
 }
 
 
@@ -579,19 +578,17 @@ void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
 // R1: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
-  __ LoadImmediate(TMP, kZapCodeReg);
+  __ LoadImmediate(TMP, 0xf1f1f1f1);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  __ LoadImmediate(LR, 0xe1e1e1e1);
   __ ldr(CODE_REG, Address(THR, Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
-  __ ret();
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
-  __ ret();
 }
 
 
@@ -1949,26 +1946,6 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ StoreToOffset(R2, THR, Thread::active_stacktrace_offset());
 
   __ ret();  // Jump to the exception handler code.
-}
-
-
-// Deoptimize a frame on the call stack before rewinding.
-// The arguments are stored in the Thread object.
-// No result.
-void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
-  // Push zap value instead of CODE_REG.
-  __ LoadImmediate(TMP, kZapCodeReg);
-  __ Push(TMP);
-
-  // Load the deopt pc into LR.
-  __ LoadFromOffset(LR, THR, Thread::resume_pc_offset());
-  GenerateDeoptimizationSequence(assembler, kEagerDeopt);
-
-  // After we have deoptimized, jump to the correct frame.
-  __ EnterStubFrame();
-  __ CallRuntime(kRewindPostDeoptRuntimeEntry, 0);
-  __ LeaveStubFrame();
-  __ brk(0);
 }
 
 

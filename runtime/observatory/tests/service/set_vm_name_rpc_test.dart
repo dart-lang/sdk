@@ -32,6 +32,4 @@ var tests = [
   },
 ];
 
-main(args) async => runVMTests(args, tests,
-                               extraArgs: [ '--trace-service',
-                                            '--trace-service-verbose' ]);
+main(args) async => runVMTests(args, tests, trace_service: true);

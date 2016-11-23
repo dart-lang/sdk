@@ -485,7 +485,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
-  I->debugger()->SetResumeAction(Debugger::kStepOver);
+  I->debugger()->SetStepOver();
   return Api::Success();
 }
 
@@ -494,7 +494,7 @@ DART_EXPORT Dart_Handle Dart_SetStepInto() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
-  I->debugger()->SetResumeAction(Debugger::kStepInto);
+  I->debugger()->SetSingleStep();
   return Api::Success();
 }
 
@@ -503,7 +503,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
-  I->debugger()->SetResumeAction(Debugger::kStepOut);
+  I->debugger()->SetStepOut();
   return Api::Success();
 }
 

@@ -86,6 +86,5 @@ main(args) => runIsolateTests(args, tests,
                               testeeConcurrent: testMain,
                               pause_on_start: true,
                               pause_on_exit: true,
-                              verbose_vm: true,
-                              extraArgs: [ '--trace-service',
-                                           '--trace-service-verbose' ]);
+                              trace_service: true,
+                              verbose_vm: true);

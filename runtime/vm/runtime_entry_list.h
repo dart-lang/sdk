@@ -40,7 +40,6 @@ namespace dart {
   V(TraceFunctionEntry)                                                        \
   V(TraceFunctionExit)                                                         \
   V(DeoptimizeMaterialize)                                                     \
-  V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
   V(InitStaticField)                                                           \
   V(GrowRegExpStack)                                                           \

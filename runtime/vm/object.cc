@@ -11702,8 +11702,6 @@ const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
       return "runtime-call ";
     case RawPcDescriptors::kOsrEntry:
       return "osr-entry    ";
-    case RawPcDescriptors::kRewind:
-      return "rewind       ";
     case RawPcDescriptors::kOther:
       return "other        ";
     case RawPcDescriptors::kAnyKind:

@@ -2215,14 +2215,6 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 }
 
 
-DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  isolate->debugger()->RewindPostDeopt();
-#else
-  UNREACHABLE();
-#endif  // !DART_PRECOMPILED_RUNTIME
-}
-
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           BigintCompare,
                           2,
