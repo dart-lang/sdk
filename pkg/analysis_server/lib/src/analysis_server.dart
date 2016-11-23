@@ -606,13 +606,11 @@ class AnalysisServer {
    * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path) async {
-    print('[getAnalysisResult] path: $path');
     nd.AnalysisResult result = priorityFileResults[path];
     if (result != null) {
       return result;
     }
     nd.AnalysisDriver driver = getAnalysisDriver(path);
-    print('[getAnalysisResult] driver: ${driver.name}');
     return driver?.getResult(path);
   }
 
