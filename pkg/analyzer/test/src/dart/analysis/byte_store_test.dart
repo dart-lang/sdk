@@ -15,6 +15,35 @@ main() {
 
 @reflectiveTest
 class MemoryCachingByteStoreTest {
+  test_get_notFound_evict() {
+    var store = new _TestByteStore();
+    var cachingStore = new MemoryCachingByteStore(store, 100);
+
+    // Request '1'.  Nothing found.
+    cachingStore.get('1');
+
+    // Add enough data to the store to force an eviction.
+    cachingStore.put('2', _b(40));
+    cachingStore.put('3', _b(40));
+    cachingStore.put('4', _b(40));
+  }
+
+  test_get_notFound_retry() {
+    var mockStore = new _TestByteStore();
+    var baseStore = new MemoryCachingByteStore(mockStore, 1000);
+    var cachingStore = new MemoryCachingByteStore(baseStore, 100);
+
+    // Request '1'.  Nothing found.
+    expect(cachingStore.get('1'), isNull);
+
+    // Add data to the base store, bypassing the caching store.
+    baseStore.put('1', _b(40));
+
+    // Request '1' again.  The previous `null` result should not have been
+    // cached.
+    expect(cachingStore.get('1'), isNotNull);
+  }
+
   test_get_put_evict() {
     var store = new _TestByteStore();
     var cachingStore = new MemoryCachingByteStore(store, 100);

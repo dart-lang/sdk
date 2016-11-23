@@ -63,9 +63,11 @@ class MemoryCachingByteStore implements ByteStore {
     List<int> bytes = _map.remove(key);
     if (bytes == null) {
       bytes = _store.get(key);
-      _map[key] = bytes;
-      _currentSizeBytes += bytes?.length ?? 0;
-      _evict();
+      if (bytes != null) {
+        _map[key] = bytes;
+        _currentSizeBytes += bytes.length;
+        _evict();
+      }
     } else {
       _map[key] = bytes;
     }
@@ -84,6 +86,10 @@ class MemoryCachingByteStore implements ByteStore {
   void _evict() {
     while (_currentSizeBytes > _maxSizeBytes) {
       if (_map.isEmpty) {
+        // Should be impossible, since _currentSizeBytes should always match
+        // _map.  But recover anyway.
+        assert(false);
+        _currentSizeBytes = 0;
         break;
       }
       String key = _map.keys.first;
