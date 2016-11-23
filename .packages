@@ -50,7 +50,7 @@ js:pkg/js/lib
 js_ast:pkg/js_ast/lib
 js_runtime:sdk/lib/_internal/js_runtime/lib
 json_rpc_2:third_party/pkg/json_rpc_2/lib
-kernel:third_party/pkg/kernel/lib
+kernel:pkg/kernel/lib
 linter:third_party/pkg/linter/lib
 logging:third_party/pkg/logging/lib
 lookup_map:pkg/lookup_map/lib

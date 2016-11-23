@@ -177,15 +177,15 @@ generic_creation_test: RuntimeError
 generic_field_mixin2_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
-generic_functions_test: Crash
+generic_functions_test: CompileTimeError
 generic_inheritance_test: RuntimeError
-generic_local_functions_test: Crash
-generic_methods_function_type_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_new_test: Crash
-generic_methods_test: Crash
-generic_methods_type_expression_test: Crash
-generic_sends_test: Pass, Crash
+generic_local_functions_test: CompileTimeError
+generic_methods_function_type_test: CompileTimeError
+generic_methods_generic_function_parameter_test: CompileTimeError
+generic_methods_new_test: CompileTimeError
+generic_methods_test: CompileTimeError
+generic_methods_type_expression_test: CompileTimeError
+generic_sends_test: CompileTimeError
 generic_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError
 getter_setter_in_lib_test: RuntimeError
@@ -284,6 +284,7 @@ multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/none: RuntimeError
+named_parameters_default_eq_test/none: CompileTimeError
 named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError

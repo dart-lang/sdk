@@ -12,7 +12,7 @@ dependencies:
   js_runtime:
     path: ../../sdk/lib/_internal/js_runtime
   kernel:
-    path: ../../third_party/pkg/kernel
+    path: ../../pkg/kernel
   sdk_library_metadata:
     path: ../../sdk/lib/_internal/sdk_library_metadata
   dart2js_info: ^0.3.0

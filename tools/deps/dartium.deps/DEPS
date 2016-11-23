@@ -40,7 +40,6 @@ vars.update({
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
-  "kernel_rev": "@1906e420431656d351a9f4ee9a36b8ca9a4da1db",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_tag": "@0.12.0",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
@@ -111,8 +110,6 @@ deps.update({
       (Var("github_mirror") % "http_parser") + Var("http_parser_rev"),
   "src/dart/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") + Var("http_throttle_rev"),
-  "src/dart/third_party/pkg/kernel":
-      (Var("github_mirror") % "kernel") + Var("kernel_rev"),
   "src/dart/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   "src/dart/third_party/pkg/matcher":

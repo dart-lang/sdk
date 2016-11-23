@@ -238,6 +238,7 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRunti
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01: RuntimeError
+Language/Libraries_and_Scripts/Parts/compilation_t02: Pass Crash
 Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t02: Crash
