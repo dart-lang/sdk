@@ -12,7 +12,6 @@ import 'package:kernel/checks.dart' as checks;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/infer_values.dart' as infer_values;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
-import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 
 import 'batch_util.dart';
@@ -23,10 +22,7 @@ ArgParser parser = new ArgParser()
       allowed: ['text', 'bin'],
       defaultsTo: 'bin',
       help: 'Output format.')
-  ..addOption('out',
-      abbr: 'o',
-      help: 'Output file.',
-      defaultsTo: null)
+  ..addOption('out', abbr: 'o', help: 'Output file.', defaultsTo: null)
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
@@ -76,13 +72,11 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'resolve-mixins':
       program = mix.transformProgram(program);
       break;
-    case 'closures':
-      program = closures.transformProgram(program);
-      break;
     case 'treeshake':
       program = treeshaker.transformProgram(program);
       break;
-    default: throw 'Unknown transformation';
+    default:
+      throw 'Unknown transformation';
   }
 
   program.accept(new checks.CheckParentPointers());
