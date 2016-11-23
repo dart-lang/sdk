@@ -84,6 +84,7 @@ dart/optimized_stacktrace_test: StaticWarning
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
 dart/spawn_shutdown_test: Skip  # VM Shutdown test
+dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: SkipSlow  # Timeout.
