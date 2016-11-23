@@ -136,6 +136,13 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 
 #endif  // !defined(TARGET_OS_WINDOWS))
 
+// Default value for flag --use-corelib-source-files.
+#if defined(TARGET_OS_WINDOWS)
+static const bool kDefaultCorelibSourceFlag = true;
+#else
+static const bool kDefaultCorelibSourceFlag = false;
+#endif  // defined(TARGET_OS_WINDOWS)
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_GLOBALS_H_
