@@ -497,16 +497,8 @@ class AnalysisDriver {
         return null;
       }
 
-      // Prepare the key for the cached result.
-      String key = _getResolvedUnitKey(libraryFile, file);
-      if (key == null) {
-        _logger.run('Compute the dependency hash for $path', () {
-          _createLibraryContext(libraryFile);
-          key = _getResolvedUnitKey(libraryFile, file);
-        });
-      }
-
       // Check for the cached result.
+      String key = _getResolvedUnitKey(libraryFile, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, bytes);
@@ -575,71 +567,62 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the context in which the library represented by the given
-   * [libraryFile] should be analyzed it.
+   * Return the context in which the [library] should be analyzed it.
    *
    * TODO(scheglov) We often don't need [SummaryDataStore], only dependency
    * signature.
    */
-  _LibraryContext _createLibraryContext(FileState libraryFile) {
+  _LibraryContext _createLibraryContext(FileState library) {
     return _logger.run('Create library context', () {
-      Map<String, _LibraryNode> nodes = <String, _LibraryNode>{};
+      Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
       store.addBundle(null, _sdkBundle);
 
-      _LibraryNode createLibraryNodes(FileState libraryFile) {
-        Uri libraryUri = libraryFile.uri;
-
+      void appendLibraryFiles(FileState library) {
         // URIs with the 'dart:' scheme are served from the SDK bundle.
-        if (libraryUri.scheme == 'dart') {
+        if (library.uri.scheme == 'dart') {
           return null;
         }
 
-        String libraryUriStr = libraryUri.toString();
-        _LibraryNode node = nodes[libraryUriStr];
-        if (node == null) {
-          node = new _LibraryNode(this, libraryFile, libraryUri);
-          nodes[libraryUriStr] = node;
+        if (!libraries.containsKey(library.uriStr)) {
+          libraries[library.uriStr] = library;
 
           // Append the defining unit.
           {
-            UnlinkedUnit unlinked = libraryFile.unlinked;
-            _addToStoreUnlinked(store, libraryFile.uri, unlinked);
+            UnlinkedUnit unlinked = library.unlinked;
+            _addToStoreUnlinked(store, library.uri, unlinked);
           }
 
           // Append parts.
-          for (FileState part in libraryFile.partedFiles) {
+          for (FileState part in library.partedFiles) {
             UnlinkedUnit unlinked = part.unlinked;
             _addToStoreUnlinked(store, part.uri, unlinked);
           }
 
-          // Create nodes for referenced libraries.
-          libraryFile.importedFiles.forEach(createLibraryNodes);
-          libraryFile.exportedFiles.forEach(createLibraryNodes);
+          // Append referenced libraries.
+          library.importedFiles.forEach(appendLibraryFiles);
+          library.exportedFiles.forEach(appendLibraryFiles);
         }
-
-        // Done with this node.
-        return node;
       }
 
-      _LibraryNode libraryNode = _logger.run('Compute library nodes', () {
-        return createLibraryNodes(libraryFile);
+      _logger.run('Append library files', () {
+        return appendLibraryFiles(library);
       });
 
       Set<String> libraryUrisToLink = new Set<String>();
       _logger.run('Load linked bundles', () {
-        for (_LibraryNode node in nodes.values) {
-          String key = '${node.dependencySignature}.linked';
+        for (FileState library in libraries.values) {
+          String key = '${library.transitiveSignature}.linked';
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
             PackageBundle linked = new PackageBundle.fromBuffer(bytes);
             _addToStoreLinked(
-                store, node.file.uri.toString(), linked.linkedLibraries.single);
+                store, library.uriStr, linked.linkedLibraries.single);
           } else {
-            libraryUrisToLink.add(node.uri.toString());
+            libraryUrisToLink.add(library.uriStr);
           }
         }
-        int numOfLoaded = nodes.length - libraryUrisToLink.length;
+        int numOfLoaded = libraries.length - libraryUrisToLink.length;
         _logger.writeln('Loaded $numOfLoaded linked bundles.');
       });
 
@@ -656,8 +639,8 @@ class AnalysisDriver {
       });
 
       linkedLibraries.forEach((uri, linkedBuilder) {
-        _LibraryNode node = nodes[uri];
-        String key = '${node.dependencySignature}.linked';
+        FileState library = libraries[uri];
+        String key = '${library.transitiveSignature}.linked';
         List<int> bytes;
         {
           PackageBundleAssembler assembler = new PackageBundleAssembler();
@@ -669,7 +652,7 @@ class AnalysisDriver {
         _byteStore.put(key, bytes);
       });
 
-      return new _LibraryContext(libraryFile, libraryNode, store);
+      return new _LibraryContext(library, store);
     });
   }
 
@@ -1219,29 +1202,6 @@ class _FilesReferencingNameTask {
  */
 class _LibraryContext {
   final FileState file;
-  final _LibraryNode node;
   final SummaryDataStore store;
-  _LibraryContext(this.file, this.node, this.store);
-}
-
-class _LibraryNode {
-  final AnalysisDriver driver;
-  final FileState file;
-  final Uri uri;
-
-  _LibraryNode(this.driver, this.file, this.uri);
-
-  String get dependencySignature {
-    return file.transitiveSignature;
-  }
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  bool operator ==(other) {
-    return other is _LibraryNode && other.uri == uri;
-  }
-
-  @override
-  String toString() => uri.toString();
+  _LibraryContext(this.file, this.store);
 }

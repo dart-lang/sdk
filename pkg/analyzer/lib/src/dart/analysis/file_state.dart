@@ -209,6 +209,11 @@ class FileState {
    */
   UnlinkedUnit get unlinked => _unlinked;
 
+  /**
+   * Return the [uri] string.
+   */
+  String get uriStr => uri.toString();
+
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
