@@ -95,39 +95,11 @@ static intptr_t Create(const RawAddr& addr) {
 }
 
 
-static intptr_t CheckConnect(intptr_t fd) {
-  int val;
-  socklen_t vallen = sizeof(val);
-  LOG_INFO("CheckConnect: calling getsockopt(%ld)\n", fd);
-  intptr_t result = getsockopt(fd, SOL_SOCKET, SO_ERROR, &val, &vallen);
-  if (result != 0) {
-    FATAL1("CheckConnect: getsockopt(%ld) failed\n", fd);
-  } else if (vallen != sizeof(val)) {
-    FATAL1("CheckConnect: getsockopt(%ld) vallen != sizeof(val)!?!?\n", fd);
-  } else if (val != 0) {
-    LOG_ERR("CheckConnect: getsockopt(%ld) val = %d\n", fd, val);
-    return val;
-  }
-  LOG_INFO("CheckConnect: getsockopt(%ld) connected\n", fd);
-  return 0;
-}
-
-
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   LOG_INFO("Connect: calling connect(%ld)\n", fd);
   intptr_t result = NO_RETRY_EXPECTED(
       connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
   if ((result == 0) || (errno == EINPROGRESS)) {
-    LOG_INFO("Connect: connect(%ld) succeeded\n", fd);
-    intptr_t error = 0;
-    // TODO(US-87): When the issue is resolved this check is no longer needed.
-    while ((error = CheckConnect(fd)) != 0) {
-      if (error != EINPROGRESS) {
-        errno = error;
-        FDUtils::SaveErrorAndClose(fd);
-        return -1;
-      }
-    }
     return fd;
   }
   LOG_ERR("Connect: connect(%ld) failed\n", fd);
@@ -489,15 +461,10 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
 
 
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
-// TODO(US-94): Enable.
-#if 0
   int on = enabled ? 1 : 0;
   return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
                                       reinterpret_cast<char*>(&on),
                                       sizeof(on))) == 0;
-#else
-  return true;
-#endif
 }
 
 

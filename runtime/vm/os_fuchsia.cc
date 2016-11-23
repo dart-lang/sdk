@@ -157,7 +157,7 @@ int OS::NumberOfAvailableProcessors() {
 
 
 uintptr_t OS::MaxRSS() {
-  UNIMPLEMENTED();
+  // TODO(US-95): Implement.
   return 0;
 }
 
