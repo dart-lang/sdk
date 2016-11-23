@@ -11,7 +11,9 @@ import 'package:path/path.dart' as pathlib;
 import 'package:test/test.dart';
 import 'package:kernel/checks.dart';
 
-final String inputDirectory = 'testcases/input';
+final String testcaseDirectory = 'pkg/kernel/testcases';
+final String inputDirectory = 'pkg/kernel/testcases/input';
+final String sdkDirectory = 'sdk';
 
 /// A target to be used for testing.
 ///
@@ -25,8 +27,7 @@ abstract class TestTarget extends Target {
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
-  String outputDirectory = 'testcases/$folderName';
-  String sdk = pathlib.dirname(pathlib.dirname(Platform.resolvedExecutable));
+  String outputDirectory = '$testcaseDirectory/$folderName';
   var batch = new DartLoaderBatch();
   Directory directory = new Directory(inputDirectory);
   for (FileSystemEntity file in directory.listSync()) {
@@ -43,7 +44,7 @@ void runBaselineTests(String folderName, TestTarget target) {
             repository,
             new DartOptions(
                 strongMode: target.strongMode,
-                sdk: sdk,
+                sdk: sdkDirectory,
                 declaredVariables: target.extraDeclaredVariables));
         var program = loader.loadProgram(dartPath, target: target);
         runSanityChecks(program);
