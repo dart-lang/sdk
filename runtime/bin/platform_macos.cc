@@ -39,6 +39,20 @@ bool Platform::Initialize() {
     perror("Setting signal handler failed");
     return false;
   }
+  act.sa_flags = SA_SIGINFO;
+  act.sa_sigaction = &segv_handler;
+  if (sigemptyset(&act.sa_mask) != 0) {
+    perror("sigemptyset() failed.");
+    return false;
+  }
+  if (sigaddset(&act.sa_mask, SIGPROF) != 0) {
+    perror("sigaddset() failed");
+    return false;
+  }
+  if (sigaction(SIGSEGV, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
   return true;
 }
 

@@ -3281,4 +3281,10 @@ Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
  */
 DART_EXPORT bool Dart_IsPrecompiledRuntime();
 
+
+/**
+ *  Print a native stack trace. Used for crash handling.
+ */
+DART_EXPORT void Dart_DumpNativeStackTrace(void* context);
+
 #endif /* INCLUDE_DART_API_H_ */ /* NOLINT */

@@ -944,7 +944,36 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 #endif
 
 
+void Profiler::DumpStackTrace(void* context) {
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+  ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
+  mcontext_t mcontext = ucontext->uc_mcontext;
+  uword pc = SignalHandler::GetProgramCounter(mcontext);
+  uword fp = SignalHandler::GetFramePointer(mcontext);
+  uword sp = SignalHandler::GetCStackPointer(mcontext);
+  DumpStackTrace(/* native_stack_trace = */ true, sp, fp, pc);
+#else
+// TODO(fschneider): Add support for more platforms.
+// Do nothing on unsupported platforms.
+#endif
+}
+
+
 void Profiler::DumpStackTrace(bool native_stack_trace) {
+  uintptr_t sp = Thread::GetCurrentStackPointer();
+  uintptr_t fp = 0;
+  uintptr_t pc = GetProgramCounter();
+
+  COPY_FP_REGISTER(fp);
+
+  DumpStackTrace(native_stack_trace, sp, fp, pc);
+}
+
+
+void Profiler::DumpStackTrace(bool native_stack_trace,
+                              uword sp,
+                              uword fp,
+                              uword pc) {
   // Allow only one stack trace to prevent recursively printing stack traces if
   // we hit an assert while printing the stack.
   static uintptr_t started_dump = 0;
@@ -969,12 +998,6 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
   OS::PrintErr("Dumping %s stack trace for thread %" Px "\n",
                native_stack_trace ? "native" : "dart-only",
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
-
-  uintptr_t sp = Thread::GetCurrentStackPointer();
-  uintptr_t fp = 0;
-  uintptr_t pc = GetProgramCounter();
-
-  COPY_FP_REGISTER(fp);
 
   uword stack_lower = 0;
   uword stack_upper = 0;
