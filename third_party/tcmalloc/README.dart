@@ -11,6 +11,8 @@ To roll tcmalloc forward:
 . From that repo, copy src/config.h and src/gperftools/tcmalloc.h, and any other
   generated header files to the include/ directory in this directory.
 
+. Also copy the COPYING file and any other relevant licensing information.
+
 . Make sure that include/config.h defines HAVE_UCONTEXT_H on Linux,
 
 . Update tcmalloc_sources.gypi, and tcmalloc.gyp if necessary. This may require
