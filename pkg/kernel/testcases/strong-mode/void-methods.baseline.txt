@@ -1,0 +1,22 @@
+// dynamic is not a subtype of dart.core::int (void-methods.dart:4:27)
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::List<dynamic> list = <core::int>[1, 2, 3];
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  set first(dynamic x) → void
+    this.{self::Foo::list}.{core::List::[]=}(0, x);
+  operator []=(dynamic x, dynamic y) → dynamic
+    this.{self::Foo::list}.{core::List::[]=}(x, y);
+  method clear() → void
+    this.{self::Foo::list}.{core::List::clear}();
+}
+static method main() → dynamic {
+  new self::Foo::•().{self::Foo::first} = 4;
+  new self::Foo::•().{self::Foo::[]=}(3, 4);
+  new self::Foo::•().{self::Foo::clear}();
+}

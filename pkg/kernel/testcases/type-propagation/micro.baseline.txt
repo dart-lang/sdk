@@ -1,0 +1,81 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method instanceMethod() → dynamic/core::int* {int} {
+    return 123;
+  }
+}
+abstract class ExternalValue extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class Bar extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method externalInstanceMethod() → self::ExternalValue/<missing type>;
+}
+class Box extends core::Object {
+  field dynamic/core::String* {null,string} field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class FinalBox extends core::Object {
+  final field dynamic/core::String* {string} finalField;
+  constructor •(dynamic/core::String* {string} finalField) → void
+    : self::FinalBox::finalField = finalField, super core::Object::•()
+    ;
+}
+class SubFinalBox extends self::FinalBox {
+  constructor •(dynamic/core::String* {string} value) → void
+    : super self::FinalBox::•(value)
+    ;
+}
+class DynamicReceiver1 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method dynamicallyCalled(dynamic/core::String* {string} x) → dynamic/Null {}
+}
+class DynamicReceiver2 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method dynamicallyCalled(dynamic/core::String* {string} x) → dynamic/Null {}
+}
+static method staticMethod() → dynamic/core::String* {string} {
+  return "sdfg";
+}
+external static method externalStatic() → core::bool/core::bool* {other};
+external static method createBar() → self::Bar/self::Bar* {other};
+static method stringArgument(dynamic/core::String* {string} x) → dynamic/Null {}
+static method intArgument(dynamic/core::int* {int} x) → dynamic/Null {}
+static method makeDynamicCall(dynamic/core::Object+ {other} receiver) → void/Null {
+  receiver.dynamicallyCalled("sdfg");
+}
+static method main() → dynamic/Null {
+  dynamic/core::String* {string} x = self::staticMethod();
+  dynamic/core::int* {int} y = new self::Foo::•().instanceMethod();
+  dynamic/core::bool* {other} z = self::externalStatic();
+  dynamic/self::ExternalValue* {other} w = self::createBar().externalInstanceMethod();
+  self::stringArgument("sdfg");
+  self::intArgument(42);
+  dynamic/self::Box! {other} box = new self::Box::•();
+  box.field = "sdfg";
+  dynamic/core::String* {null,string} a = box.field;
+  dynamic/self::FinalBox! {other} finalBox = new self::FinalBox::•("dfg");
+  dynamic/core::String* {string} b = finalBox.finalField;
+  dynamic/self::SubFinalBox! {other} subBox = new self::SubFinalBox::•("dfg");
+  dynamic/core::String* {string} c = subBox.finalField;
+  self::makeDynamicCall(new self::DynamicReceiver1::•());
+  self::makeDynamicCall(new self::DynamicReceiver2::•());
+  dynamic/core::List* {other} list = <dynamic>["string"];
+  dynamic/core::Object+ {*} d = list.[](0);
+}

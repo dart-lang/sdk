@@ -1,0 +1,5 @@
+.packages
+.pub
+packages
+pubspec.lock
+bin/dartk.snapshot

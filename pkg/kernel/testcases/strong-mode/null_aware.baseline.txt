@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int field = null;
+  static field core::int staticField = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::Foo foo = new self::Foo::•();
+  let final self::Foo #t1 = foo in #t1.==(null) ? null : #t1.{self::Foo::field} = 5;
+  self::Foo::staticField = 5;
+  let final self::Foo #t2 = foo in #t2.{self::Foo::field}.==(null) ? #t2.{self::Foo::field} = 5 : null;
+  self::Foo::staticField.==(null) ? self::Foo::staticField = 5 : null;
+  let final self::Foo #t3 = foo in #t3.==(null) ? null : #t3.{self::Foo::field}.==(null) ? #t3.{self::Foo::field} = 5 : null;
+  self::Foo::staticField.==(null) ? self::Foo::staticField = 5 : null;
+  core::int intValue = let final core::int #t4 = foo.{self::Foo::field} in #t4.==(null) ? 6 : #t4;
+  core::num numValue = let final core::int #t5 = foo.{self::Foo::field} in #t5.==(null) ? 4.5 : #t5;
+}

@@ -1,0 +1,81 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method instanceMethod() → dynamic {
+    return 123;
+  }
+}
+abstract class ExternalValue extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class Bar extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method externalInstanceMethod() → self::ExternalValue;
+}
+class Box extends core::Object {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class FinalBox extends core::Object {
+  final field dynamic finalField;
+  constructor •(dynamic finalField) → void
+    : self::FinalBox::finalField = finalField, super core::Object::•()
+    ;
+}
+class SubFinalBox extends self::FinalBox {
+  constructor •(dynamic value) → void
+    : super self::FinalBox::•(value)
+    ;
+}
+class DynamicReceiver1 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method dynamicallyCalled(dynamic x) → dynamic {}
+}
+class DynamicReceiver2 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method dynamicallyCalled(dynamic x) → dynamic {}
+}
+static method staticMethod() → dynamic {
+  return "sdfg";
+}
+external static method externalStatic() → core::bool;
+external static method createBar() → self::Bar;
+static method stringArgument(dynamic x) → dynamic {}
+static method intArgument(dynamic x) → dynamic {}
+static method makeDynamicCall(dynamic receiver) → void {
+  receiver.dynamicallyCalled("sdfg");
+}
+static method main() → dynamic {
+  dynamic x = self::staticMethod();
+  dynamic y = new self::Foo::•().instanceMethod();
+  dynamic z = self::externalStatic();
+  dynamic w = self::createBar().externalInstanceMethod();
+  self::stringArgument("sdfg");
+  self::intArgument(42);
+  dynamic box = new self::Box::•();
+  box.field = "sdfg";
+  dynamic a = box.field;
+  dynamic finalBox = new self::FinalBox::•("dfg");
+  dynamic b = finalBox.finalField;
+  dynamic subBox = new self::SubFinalBox::•("dfg");
+  dynamic c = subBox.finalField;
+  self::makeDynamicCall(new self::DynamicReceiver1::•());
+  self::makeDynamicCall(new self::DynamicReceiver2::•());
+  dynamic list = <dynamic>["string"];
+  dynamic d = list.[](0);
+}

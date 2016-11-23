@@ -1,0 +1,5 @@
+analyzer:
+  language:
+    enableSuperMixins: true
+  exclude:
+    - testcases/**

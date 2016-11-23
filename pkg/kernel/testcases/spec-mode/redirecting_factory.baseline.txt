@@ -1,0 +1,53 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class FooBase<Tf extends core::Object> extends core::Object {
+  abstract get x() → core::int;
+}
+abstract class Foo<T extends core::Object> extends core::Object implements self::FooBase<dynamic> {
+}
+class Bar<Sb extends core::Object, Tb extends core::Object> extends core::Object implements self::Foo<self::Bar::Tb> {
+  field core::int x;
+  constructor •(core::int x) → void
+    : self::Bar::x = x, super core::Object::•() {
+    core::print("Bar<${self::Bar::Sb},${self::Bar::Tb}>");
+  }
+}
+class Builder<X extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    return new self::Bar::•<core::String, self::Builder::X>(4);
+  }
+}
+class SimpleCase<A extends core::Object, B extends core::Object> extends core::Object {
+}
+class SimpleCaseImpl<Ai extends core::Object, Bi extends core::Object> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai, self::SimpleCaseImpl::Bi> {
+}
+class SimpleCaseImpl2<Ai2 extends core::Object, Bi2 extends core::Object> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2> {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Base<M extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Mixin<M extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Mix<M extends core::Object> extends self::Base<self::Mix::M> implements self::Mixin<self::Mix::M> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+}
+static method main() → dynamic {
+  core::print(new self::Bar::•<core::String, core::double>(4).x);
+  new self::SimpleCaseImpl2::•<core::int, core::double>();
+  new self::Mix::•<core::double>();
+}
