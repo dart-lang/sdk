@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
 
@@ -562,10 +562,10 @@ class ElementFactory {
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
           new ConstTopLevelVariableElementImpl.forNode(
-              AstFactory.identifier3(name));
+              AstTestFactory.identifier3(name));
       InstanceCreationExpression initializer =
-          AstFactory.instanceCreationExpression2(
-              Keyword.CONST, AstFactory.typeName(type.element));
+          AstTestFactory.instanceCreationExpression2(
+              Keyword.CONST, AstTestFactory.typeName(type.element));
       if (type is InterfaceType) {
         ConstructorElement element = type.element.unnamedConstructor;
         initializer.staticElement = element;

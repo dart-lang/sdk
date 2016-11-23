@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
@@ -10316,8 +10316,8 @@ void''');
 
   void test_parseMapLiteral_empty() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
-    TypeArgumentList typeArguments = AstFactory.typeArgumentList(
-        [AstFactory.typeName4("String"), AstFactory.typeName4("int")]);
+    TypeArgumentList typeArguments = AstTestFactory.typeArgumentList(
+        [AstTestFactory.typeName4("String"), AstTestFactory.typeName4("int")]);
     createParser('{}');
     MapLiteral literal = parser.parseMapLiteral(token, typeArguments);
     expectNotNullIfNoErrors(literal);

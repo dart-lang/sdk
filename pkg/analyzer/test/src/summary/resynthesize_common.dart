@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:test/test.dart';
@@ -410,7 +410,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         PrefixedIdentifier oTarget = o.target;
         checkElidablePrefix(oTarget.prefix);
         compareConstAsts(
-            r, AstFactory.identifier(oTarget.identifier, o.propertyName), desc);
+            r,
+            AstTestFactory.identifier(oTarget.identifier, o.propertyName),
+            desc);
       } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
         compareConstAsts(r.prefix, o.prefix, desc);
         compareConstAsts(r.identifier, o.identifier, desc);

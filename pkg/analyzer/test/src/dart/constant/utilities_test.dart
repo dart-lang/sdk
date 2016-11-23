@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -56,17 +56,17 @@ class ConstantFinderTest {
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst = AstFactory.annotation(
-        AstFactory.identifier3('x'))..elementAnnotation = elementAnnotation;
+    _node = elementAnnotation.annotationAst = AstTestFactory.annotation(
+        AstTestFactory.identifier3('x'))..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
 
   void test_visitAnnotation_enumConstant() {
     // Analyzer ignores annotations on enum constant declarations.
-    Annotation annotation = AstFactory.annotation2(
-        AstFactory.identifier3('A'), null, AstFactory.argumentList());
+    Annotation annotation = AstTestFactory.annotation2(
+        AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList());
     _node = new EnumConstantDeclaration(
-        null, <Annotation>[annotation], AstFactory.identifier3('C'));
+        null, <Annotation>[annotation], AstTestFactory.identifier3('C'));
     expect(_findConstants(), isEmpty);
   }
 
@@ -81,18 +81,18 @@ class ConstantFinderTest {
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst = AstFactory.annotation2(
-        AstFactory.identifier3('A'), null, AstFactory.argumentList())
+    _node = elementAnnotation.annotationAst = AstTestFactory.annotation2(
+        AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList())
       ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
 
   void test_visitAnnotation_partOf() {
     // Analyzer ignores annotations on "part of" directives.
-    Annotation annotation = AstFactory.annotation2(
-        AstFactory.identifier3('A'), null, AstFactory.argumentList());
-    _node = AstFactory.partOfDirective2(
-        <Annotation>[annotation], AstFactory.libraryIdentifier2(<String>['L']));
+    Annotation annotation = AstTestFactory.annotation2(
+        AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList());
+    _node = AstTestFactory.partOfDirective2(<Annotation>[annotation],
+        AstTestFactory.libraryIdentifier2(<String>['L']));
     expect(_findConstants(), isEmpty);
   }
 
@@ -193,14 +193,14 @@ class ConstantFinderTest {
   ConstructorElement _setupConstructorDeclaration(String name, bool isConst) {
     Keyword constKeyword = isConst ? Keyword.CONST : null;
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
+        AstTestFactory.constructorDeclaration2(
             constKeyword,
             null,
             null,
             name,
-            AstFactory.formalParameterList(),
+            AstTestFactory.formalParameterList(),
             null,
-            AstFactory.blockFunctionBody2());
+            AstTestFactory.blockFunctionBody2());
     ClassElement classElement = ElementFactory.classElement2(name);
     ConstructorElement element =
         ElementFactory.constructorElement(classElement, name, isConst);
@@ -215,8 +215,9 @@ class ConstantFinderTest {
       bool isStatic: false,
       bool hasConstConstructor: false}) {
     VariableDeclaration variableDeclaration = isInitialized
-        ? AstFactory.variableDeclaration2(fieldName, AstFactory.integer(0))
-        : AstFactory.variableDeclaration(fieldName);
+        ? AstTestFactory.variableDeclaration2(
+            fieldName, AstTestFactory.integer(0))
+        : AstTestFactory.variableDeclaration(fieldName);
     VariableElement fieldElement = ElementFactory.fieldElement(
         fieldName,
         isStatic,
@@ -224,10 +225,10 @@ class ConstantFinderTest {
         keyword == Keyword.CONST,
         _typeProvider.intType);
     variableDeclaration.name.staticElement = fieldElement;
-    FieldDeclaration fieldDeclaration = AstFactory.fieldDeclaration2(
+    FieldDeclaration fieldDeclaration = AstTestFactory.fieldDeclaration2(
         isStatic, keyword, <VariableDeclaration>[variableDeclaration]);
-    ClassDeclaration classDeclaration =
-        AstFactory.classDeclaration(null, className, null, null, null, null);
+    ClassDeclaration classDeclaration = AstTestFactory.classDeclaration(
+        null, className, null, null, null, null);
     classDeclaration.members.add(fieldDeclaration);
     _node = classDeclaration;
     ClassElementImpl classElement = ElementFactory.classElement2(className);
@@ -235,14 +236,14 @@ class ConstantFinderTest {
     classDeclaration.name.staticElement = classElement;
     if (hasConstConstructor) {
       ConstructorDeclaration constructorDeclaration =
-          AstFactory.constructorDeclaration2(
+          AstTestFactory.constructorDeclaration2(
               Keyword.CONST,
               null,
-              AstFactory.identifier3(className),
+              AstTestFactory.identifier3(className),
               null,
-              AstFactory.formalParameterList(),
+              AstTestFactory.formalParameterList(),
               null,
-              AstFactory.blockFunctionBody2());
+              AstTestFactory.blockFunctionBody2());
       classDeclaration.members.add(constructorDeclaration);
       ConstructorElement constructorElement =
           ElementFactory.constructorElement(classElement, '', true);
@@ -258,13 +259,13 @@ class ConstantFinderTest {
       String name, bool isConst, bool isInitialized,
       {isFinal: false}) {
     VariableDeclaration variableDeclaration = isInitialized
-        ? AstFactory.variableDeclaration2(name, AstFactory.integer(0))
-        : AstFactory.variableDeclaration(name);
+        ? AstTestFactory.variableDeclaration2(name, AstTestFactory.integer(0))
+        : AstTestFactory.variableDeclaration(name);
     SimpleIdentifier identifier = variableDeclaration.name;
     VariableElement element = ElementFactory.localVariableElement(identifier);
     identifier.staticElement = element;
     Keyword keyword = isConst ? Keyword.CONST : isFinal ? Keyword.FINAL : null;
-    AstFactory.variableDeclarationList2(keyword, [variableDeclaration]);
+    AstTestFactory.variableDeclarationList2(keyword, [variableDeclaration]);
     _node = variableDeclaration;
     return element;
   }
@@ -298,7 +299,7 @@ class ReferenceFinderTest {
 
   void test_visitSuperConstructorInvocation_unresolved() {
     SuperConstructorInvocation superConstructorInvocation =
-        AstFactory.superConstructorInvocation();
+        AstTestFactory.superConstructorInvocation();
     _visitNode(superConstructorInvocation);
     _assertNoArcs();
   }
@@ -323,14 +324,14 @@ class ReferenceFinderTest {
     List<ConstructorInitializer> initializers =
         new List<ConstructorInitializer>();
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration(AstFactory.identifier3(name), null,
-            AstFactory.formalParameterList(), initializers);
+        AstTestFactory.constructorDeclaration(AstTestFactory.identifier3(name),
+            null, AstTestFactory.formalParameterList(), initializers);
     if (isConst) {
       constructorDeclaration.constKeyword = new KeywordToken(Keyword.CONST, 0);
     }
     ClassElementImpl classElement = ElementFactory.classElement2(name);
     SuperConstructorInvocation superConstructorInvocation =
-        AstFactory.superConstructorInvocation();
+        AstTestFactory.superConstructorInvocation();
     ConstructorElementImpl constructorElement =
         ElementFactory.constructorElement(classElement, name, isConst);
     _tail = constructorElement;
@@ -340,14 +341,14 @@ class ReferenceFinderTest {
 
   SimpleIdentifier _makeTailVariable(String name, bool isConst) {
     VariableDeclaration variableDeclaration =
-        AstFactory.variableDeclaration(name);
+        AstTestFactory.variableDeclaration(name);
     ConstLocalVariableElementImpl variableElement =
         ElementFactory.constLocalVariableElement(name);
     _tail = variableElement;
     variableElement.isConst = isConst;
-    AstFactory.variableDeclarationList2(
+    AstTestFactory.variableDeclarationList2(
         isConst ? Keyword.CONST : Keyword.VAR, [variableDeclaration]);
-    SimpleIdentifier identifier = AstFactory.identifier3(name);
+    SimpleIdentifier identifier = AstTestFactory.identifier3(name);
     identifier.staticElement = variableElement;
     return identifier;
   }

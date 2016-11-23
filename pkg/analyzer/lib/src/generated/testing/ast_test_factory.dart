@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.testing.ast_factory;
+library analyzer.src.generated.testing.ast_test_factory;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
- * The class `AstFactory` defines utility methods that can be used to create AST nodes. The
+ * The class `AstTestFactory` defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
  * associated with the nodes by a parser are also created, but the token stream is not constructed.
  * None of the nodes are resolved.
@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * second is places where a shorter name seemed unambiguous and easier to read, such as using
  * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
  */
-class AstFactory {
+class AstTestFactory {
   static AdjacentStrings adjacentStrings(List<StringLiteral> strings) =>
       new AdjacentStrings(strings);
 
@@ -269,7 +269,7 @@ class AstFactory {
           List<CompilationUnitMember> declarations) =>
       new CompilationUnit(
           TokenFactory.tokenFromType(TokenType.EOF),
-          scriptTag == null ? null : AstFactory.scriptTag(scriptTag),
+          scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
           directives == null ? new List<Directive>() : directives,
           declarations == null
               ? new List<CompilationUnitMember>()
@@ -742,7 +742,7 @@ class AstFactory {
   static Label label(SimpleIdentifier label) =>
       new Label(label, TokenFactory.tokenFromType(TokenType.COLON));
 
-  static Label label2(String label) => AstFactory.label(identifier3(label));
+  static Label label2(String label) => AstTestFactory.label(identifier3(label));
 
   static LabeledStatement labeledStatement(
           List<Label> labels, Statement statement) =>
