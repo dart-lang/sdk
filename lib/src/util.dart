@@ -127,6 +127,7 @@ String recursiveDiagnosticString(Measurements measurements, Metric metric) {
     }
     sb.write(')');
   }
+
   helper(metric);
   return sb.toString();
 }

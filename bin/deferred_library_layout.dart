@@ -19,8 +19,10 @@ main(args) async {
     var lib = _libOf(info);
     if (lib == null) return;
     libToHunks.putIfAbsent(lib, () => new Set()).add(unit);
-    hunkMembers.putIfAbsent(unit, () => {})
-      .putIfAbsent(lib, () => []).add(info);
+    hunkMembers
+        .putIfAbsent(unit, () => {})
+        .putIfAbsent(lib, () => [])
+        .add(info);
   }
 
   info.functions.forEach(register);
@@ -31,7 +33,7 @@ main(args) async {
   var dir = Directory.current.path;
   hunkMembers.forEach((unit, map) {
     print('Output unit ${unit.name ?? "main"}:');
-    if (unit.name == null || unit.name == 'main')  {
+    if (unit.name == null || unit.name == 'main') {
       print('  loaded by default');
     } else {
       print('  loaded by importing: ${unit.imports}');

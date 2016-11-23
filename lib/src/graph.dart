@@ -37,6 +37,7 @@ abstract class Graph<N> {
       if (!seen.add(node)) return false;
       return targetsOf(node).any(helper);
     }
+
     return helper(source);
   }
 
@@ -50,6 +51,7 @@ abstract class Graph<N> {
       }
       yield n;
     }
+
     yield* helper(root);
   }
 

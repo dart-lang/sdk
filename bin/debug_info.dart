@@ -250,6 +250,7 @@ void compareGraphs(AllInfo info) {
     inUsesNotInDependencies += targets1.difference(targets2).length;
     inDependenciesNotInUses += targets2.difference(targets1).length;
   }
+
   info.functions.forEach(_sameEdges);
   info.fields.forEach(_sameEdges);
   if (inUsesNotInDependencies == 0 && inDependenciesNotInUses == 0) {

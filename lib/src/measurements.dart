@@ -22,6 +22,7 @@ visitAllMetrics(f) {
       parentsStack.removeLast();
     }
   }
+
   _topLevelMetrics.forEach(helper);
 }
 
