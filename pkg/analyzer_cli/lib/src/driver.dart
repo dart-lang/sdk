@@ -415,6 +415,7 @@ class Driver implements CommandLineStarter {
     } else {
       // The embedder uri resolver has mappings, use it instead of the default
       // Dart SDK uri resolver.
+      embedderSdk.analysisOptions = _context.analysisOptions;
       resolvers.add(new DartUriResolver(embedderSdk));
     }
 
