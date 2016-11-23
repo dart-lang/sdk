@@ -20,6 +20,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            use_corelib_source_files,
+            false,
+            "Attempt to use source files directly when loading in the core "
+            "libraries during the bootstrap process");
 
 struct BootstrapLibProps {
   ObjectStore::BootstrapLibraryId index;
@@ -82,15 +87,20 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  Dart_FileOpenCallback file_open = Dart::file_open_callback();
-  Dart_FileReadCallback file_read = Dart::file_read_callback();
-  Dart_FileCloseCallback file_close = Dart::file_close_callback();
-  if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
-    // Try to open and read the file.
-    void* stream = (*file_open)(source_path, false);
-    if (stream != NULL) {
-      (*file_read)(&utf8_array, &file_length, stream);
-      (*file_close)(stream);
+  // If flag to use the core library files directly is specified then try
+  // to read the file and extract it's contents otherwise just use the
+  // source data that has been backed into the binary.
+  if (FLAG_use_corelib_source_files) {
+    Dart_FileOpenCallback file_open = Dart::file_open_callback();
+    Dart_FileReadCallback file_read = Dart::file_read_callback();
+    Dart_FileCloseCallback file_close = Dart::file_close_callback();
+    if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
+      // Try to open and read the file.
+      void* stream = (*file_open)(source_path, false);
+      if (stream != NULL) {
+        (*file_read)(&utf8_array, &file_length, stream);
+        (*file_close)(stream);
+      }
     }
   }
   if (file_length == -1) {
