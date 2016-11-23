@@ -150,6 +150,11 @@ class AnalysisDriver {
   final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
 
   /**
+   * The list of tasks to compute files referencing a name.
+   */
+  final _referencingNameTasks = <_FilesReferencingNameTask>[];
+
+  /**
    * The set of files were reported as changed through [changeFile] and not
    * checked for actual changes yet.
    */
@@ -284,6 +289,9 @@ class AnalysisDriver {
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_referencingNameTasks.isNotEmpty) {
+      return AnalysisDriverPriority.referencingName;
+    }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
         if (_filesToAnalyze.contains(path)) {
@@ -354,6 +362,18 @@ class AnalysisDriver {
    */
   void dispose() {
     _scheduler._remove(this);
+  }
+
+  /**
+   * Return a [Future] that completes with the list of added files that
+   * reference the given external [name].
+   */
+  Future<List<String>> getFilesReferencingName(String name) {
+    var task = new _FilesReferencingNameTask(this, name);
+    _referencingNameTasks.add(task);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return task.completer.future;
   }
 
   /**
@@ -732,6 +752,16 @@ class AnalysisDriver {
       return;
     }
 
+    // Compute files referencing a name.
+    if (_referencingNameTasks.isNotEmpty) {
+      _FilesReferencingNameTask task = _referencingNameTasks.first;
+      bool isDone = await task.perform();
+      if (isDone) {
+        _referencingNameTasks.remove(task);
+      }
+      return;
+    }
+
     // Analyze a priority file.
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
@@ -823,7 +853,13 @@ class AnalysisDriver {
  * of the list, the earlier the corresponding [AnalysisDriver] should be asked
  * to perform work.
  */
-enum AnalysisDriverPriority { nothing, general, priority, interactive }
+enum AnalysisDriverPriority {
+  nothing,
+  general,
+  priority,
+  referencingName,
+  interactive
+}
 
 /**
  * Instances of this class schedule work in multiple [AnalysisDriver]s so that
@@ -1128,6 +1164,53 @@ class PerformanceLogSection {
     _logger._level--;
     int ms = _timer.elapsedMilliseconds;
     _logger.writeln('--- $_msg in $ms ms.');
+  }
+}
+
+/**
+ * Task that computes the list of files that were added to the driver and
+ * have at least one reference to an identifier [name] defined outside of the
+ * file.
+ */
+class _FilesReferencingNameTask {
+  final AnalysisDriver driver;
+  final String name;
+  final Completer<List<String>> completer = new Completer<List<String>>();
+
+  final List<String> referencingFiles = <String>[];
+  final Set<String> checkedFiles = new Set<String>();
+  final List<String> filesToCheck = <String>[];
+
+  _FilesReferencingNameTask(this.driver, this.name);
+
+  /**
+   * Perform a single chunk of work, and either complete the [completer] and
+   * return `true` to indicate that the task is done, return `false` to
+   * indicate that the task should continue to be run.
+   */
+  Future<bool> perform() async {
+    // Prepare files to check.
+    if (filesToCheck.isEmpty) {
+      Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+      filesToCheck.addAll(newFiles);
+    }
+
+    // If no more files to check, complete and done.
+    if (filesToCheck.isEmpty) {
+      completer.complete(referencingFiles);
+      return true;
+    }
+
+    // Check the next file.
+    String path = filesToCheck.removeLast();
+    FileState file = driver._fsState.getFileForPath(path);
+    if (file.referencedNames.contains(name)) {
+      referencingFiles.add(path);
+    }
+    checkedFiles.add(path);
+
+    // We're not done yet.
+    return false;
   }
 }
 

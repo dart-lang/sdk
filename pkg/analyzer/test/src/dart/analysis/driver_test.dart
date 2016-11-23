@@ -400,6 +400,37 @@ var A2 = B1;
     expect(allResults, [result]);
   }
 
+  test_getFilesReferencingName() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    var c = _p('/test/bin/c.dart');
+    var d = _p('/test/bin/d.dart');
+    var e = _p('/test/bin/e.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "import 'a.dart'; A a;");
+    provider.newFile(c, "import 'a.dart'; var a = new A();");
+    provider.newFile(d, "classs A{} A a;");
+    provider.newFile(e, "import 'a.dart'; main() {}");
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+    driver.addFile(e);
+
+    // 'b.dart' references an external 'A'.
+    // 'c.dart' references an external 'A'.
+    // 'd.dart' references the local 'A'.
+    // 'e.dart' does not reference 'A' at all.
+    List<String> files = await driver.getFilesReferencingName('A');
+    expect(files, unorderedEquals([b, c]));
+
+    // We get the same results second time.
+    List<String> files2 = await driver.getFilesReferencingName('A');
+    expect(files2, unorderedEquals([b, c]));
+  }
+
   test_getResult_constants_defaultParameterValue_localFunction() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
