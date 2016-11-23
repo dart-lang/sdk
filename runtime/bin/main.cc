@@ -806,18 +806,19 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       !run_app_snapshot &&
       TryReadKernel(script_uri, &kernel_file, &kernel_length);
 
-  IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, packages_config);
-  Dart_Isolate isolate =
-      is_kernel ? Dart_CreateIsolateFromKernel(script_uri, main, kernel_file,
-                                               kernel_length, flags,
-                                               isolate_data, error)
-                : Dart_CreateIsolate(script_uri, main, isolate_snapshot_buffer,
-                                     flags, isolate_data, error);
+  void* kernel_program = NULL;
   if (is_kernel) {
+    kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
     free(const_cast<uint8_t*>(kernel_file));
   }
 
+  IsolateData* isolate_data =
+      new IsolateData(script_uri, package_root, packages_config);
+  Dart_Isolate isolate =
+      is_kernel ? Dart_CreateIsolateFromKernel(script_uri, main, kernel_program,
+                                               flags, isolate_data, error)
+                : Dart_CreateIsolate(script_uri, main, isolate_snapshot_buffer,
+                                     flags, isolate_data, error);
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -830,12 +831,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   CHECK_RESULT(result);
 
   if (is_kernel) {
-    // TODO(27590): We should not read the kernel file again!
-    if (!TryReadKernel(script_uri, &kernel_file, &kernel_length)) {
-      FATAL("Failed to read kernel second time");
-    }
-    Dart_Handle result = Dart_LoadKernel(kernel_file, kernel_length);
-    free(const_cast<uint8_t*>(kernel_file));
+    Dart_Handle result = Dart_LoadKernel(kernel_program);
     CHECK_RESULT(result);
   }
   if (is_kernel || (isolate_snapshot_buffer != NULL)) {

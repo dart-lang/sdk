@@ -1240,11 +1240,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
                                   const char* main,
                                   const uint8_t* snapshot_buffer,
                                   intptr_t snapshot_length,
-                                  bool from_kernel,
+                                  kernel::Program* kernel_program,
                                   Dart_IsolateFlags* flags,
                                   void* callback_data,
                                   char** error) {
-  ASSERT(!from_kernel || (snapshot_buffer != NULL));
   CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
 
@@ -1270,10 +1269,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     Dart_EnterScope();
     const Error& error_obj = Error::Handle(
         Z, Dart::InitializeIsolate(snapshot_buffer, snapshot_length,
-                                   from_kernel, callback_data));
+                                   kernel_program, callback_data));
     if (error_obj.IsNull()) {
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
-      if (FLAG_check_function_fingerprints && !from_kernel) {
+      if (FLAG_check_function_fingerprints && kernel_program == NULL) {
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
@@ -1302,20 +1301,19 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             Dart_IsolateFlags* flags,
                                             void* callback_data,
                                             char** error) {
-  return CreateIsolate(script_uri, main, snapshot_buffer, -1, false, flags,
+  return CreateIsolate(script_uri, main, snapshot_buffer, -1, NULL, flags,
                        callback_data, error);
 }
 
 
-DART_EXPORT Dart_Isolate
-Dart_CreateIsolateFromKernel(const char* script_uri,
-                             const char* main,
-                             const uint8_t* kernel_file,
-                             intptr_t kernel_length,
-                             Dart_IsolateFlags* flags,
-                             void* callback_data,
-                             char** error) {
-  return CreateIsolate(script_uri, main, kernel_file, kernel_length, true,
+DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
+                                                      const char* main,
+                                                      void* kernel_program,
+                                                      Dart_IsolateFlags* flags,
+                                                      void* callback_data,
+                                                      char** error) {
+  return CreateIsolate(script_uri, main, NULL, -1,
+                       reinterpret_cast<kernel::Program*>(kernel_program),
                        flags, callback_data, error);
 }
 
@@ -5350,8 +5348,22 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 }
 
 
-DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
+DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
                                         intptr_t buffer_len) {
+  API_TIMELINE_DURATION;
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return NULL;
+#else
+  kernel::Program* program =
+      ReadPrecompiledKernelFromBuffer(buffer, buffer_len);
+  return program;
+#endif
+}
+
+
+DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   StackZone zone(T);
@@ -5371,9 +5383,12 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // TODO(27588): Memory leak!
-  kernel::KernelReader* reader = new kernel::KernelReader(buffer, buffer_len);
-  const Object& tmp = reader->ReadProgram();
+  // NOTE: Now the VM owns the [kernel_program] memory!  Currently we do not
+  // free it because (similar to the token stream) it will be used to repeatedly
+  // run the `kernel::FlowGraphBuilder()`.
+  kernel::KernelReader reader(
+      reinterpret_cast<kernel::Program*>(kernel_program));
+  const Object& tmp = reader.ReadProgram();
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }

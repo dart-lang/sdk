@@ -370,8 +370,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
       if (payload_type == DartUtils::kSnapshotMagicNumber) {
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
         reload_extensions = true;
-      } else if (payload_type == DartUtils::kKernelMagicNumber) {
-        dart_result = Dart_LoadKernel(payload, payload_length);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }

@@ -1296,10 +1296,17 @@ int main(int argc, char** argv) {
     intptr_t kernel_length = 0;
     const bool is_kernel_file =
         TryReadKernel(app_script_name, &kernel, &kernel_length);
+
+    void* kernel_program = NULL;
+    if (is_kernel_file) {
+      kernel_program = Dart_ReadKernelBinary(kernel, kernel_length);
+      free(const_cast<uint8_t*>(kernel));
+    }
+
     Dart_Isolate isolate =
         is_kernel_file
-            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel, kernel_length,
-                                           NULL, isolate_data, &error)
+            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
+                                           isolate_data, &error)
             : Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
     if (isolate == NULL) {
       Log::PrintErr("%s", error);
@@ -1319,8 +1326,7 @@ int main(int argc, char** argv) {
         ParseEntryPointsManifestIfPresent();
 
     if (is_kernel_file) {
-      Dart_Handle library = Dart_LoadKernel(kernel, kernel_length);
-      free(const_cast<uint8_t*>(kernel));
+      Dart_Handle library = Dart_LoadKernel(kernel_program);
       if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
     } else {
       // Set up the library tag handler in such a manner that it will use the

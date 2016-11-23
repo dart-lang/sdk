@@ -890,12 +890,14 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
  *
  * Requires there to be no current isolate.
  *
+ * After this call, the `kernel_program` needs to be supplied to a call to
+ * `Dart_LoadKernel()` which will then take ownership of the memory.
+ *
  * \param script_uri The name of the script this isolate will load.
  *   Provided only for advisory purposes to improve debugging messages.
  * \param main The name of the main entry point this isolate will run.
  *   Provided only for advisory purposes to improve debugging messages.
- * \param kernel A buffer containing the Dart Kernel binary.
- * \param kernel_length The length of the Kernel buffer.
+ * \param kernel_program The `dart::kernel::Program` object.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
@@ -907,8 +909,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
  */
 DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       const char* main,
-                                                      const uint8_t* kernel,
-                                                      intptr_t kernel_length,
+                                                      void* kernel_program,
                                                       Dart_IsolateFlags* flags,
                                                       void* callback_data,
                                                       char** error);
@@ -2863,15 +2864,28 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len);
 
 /**
- * Loads a dart application which was compiled to a Kernel binary.
+ * Loads a dart application via an in-memory kernel program.
  *
- * \param buffer A buffer which contains a Kernel binary.
- * \param buffer_len Length of the passed in buffer.
+ * \param kernel_program The kernel program obtained via
+ *        `Dart_ReadKernelBinary`.
+ *
+ * The VM will take ownership of the `kernel_program` object.
  *
  * \return If no error occurs, the Library object corresponding to the root
  *   script is returned. Otherwise an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
+DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program);
+
+
+/**
+ * Constructs an in-memory kernel program form a binary.
+ *
+ * \param buffer The start of a memory buffer containing the binary format.
+ * \param buffer_len The length of the memory buffer.
+ *
+ * \return kernel_program The `dart::kernel::Program` object.
+ */
+DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
                                         intptr_t buffer_len);
 
 /**

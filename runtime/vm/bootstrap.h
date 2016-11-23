@@ -12,17 +12,19 @@ namespace dart {
 
 // Forward declarations.
 class RawError;
+namespace kernel {
+class Program;
+}
 
 class Bootstrap : public AllStatic {
  public:
-  // Compile the bootstrap libraries, either from sources or a Kernel binary.
-  // If kernel_buffer is NULL, compile from sources or source paths linked into
-  // the VM.  If it is non-NULL it represents a buffer holding a Kernel binary.
+  // Compile the bootstrap libraries, either from sources or a Kernel program.
+  // If program is NULL, compile from sources or source paths linked into
+  // the VM.  If it is non-NULL it represents the Kernel program to use for
+  // bootstrapping.
   // The caller of this function is responsible for managing the kernel
-  // buffer's memory, and is welcome to deallocate it after this function
-  // returns.
-  static RawError* DoBootstrapping(const uint8_t* kernel_buffer,
-                                   intptr_t kernel_buffer_length);
+  // program's memory.
+  static RawError* DoBootstrapping(kernel::Program* program);
 
   static void SetupNativeResolver();
   static bool IsBootstapResolver(Dart_NativeEntryResolver resolver);

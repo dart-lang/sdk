@@ -93,35 +93,34 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
   return reader_->LookupClass(klass).raw();
 }
 
-Program* KernelReader::ReadPrecompiledProgram() {
-  Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
-  if (program == NULL) return NULL;
-  intptr_t source_file_count = program->line_starting_table().size();
+KernelReader::KernelReader(Program* program)
+    : program_(program),
+      thread_(dart::Thread::Current()),
+      zone_(thread_->zone()),
+      isolate_(thread_->isolate()),
+      scripts_(Array::ZoneHandle(zone_)),
+      translation_helper_(this, thread_, zone_, isolate_),
+      type_translator_(&translation_helper_,
+                       &active_class_,
+                       /*finalize=*/false) {
+  intptr_t source_file_count = program_->line_starting_table().size();
   scripts_ = Array::New(source_file_count);
-  program_ = program;
-  return program;
 }
 
 Object& KernelReader::ReadProgram() {
-  Program* program = ReadPrecompiledProgram();
-  if (program == NULL) {
-    const dart::String& error = H.DartString("Failed to read .kernell file");
-    return Object::Handle(Z, ApiError::New(error));
-  }
-
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Procedure* main = program->main_method();
+    Procedure* main = program_->main_method();
     Library* kernel_main_library = Library::Cast(main->parent());
 
-    intptr_t length = program->libraries().length();
+    intptr_t length = program_->libraries().length();
     for (intptr_t i = 0; i < length; i++) {
-      Library* kernel_library = program->libraries()[i];
+      Library* kernel_library = program_->libraries()[i];
       ReadLibrary(kernel_library);
     }
 
     for (intptr_t i = 0; i < length; i++) {
-      dart::Library& library = LookupLibrary(program->libraries()[i]);
+      dart::Library& library = LookupLibrary(program_->libraries()[i]);
       if (!library.Loaded()) library.SetLoaded();
     }
 
