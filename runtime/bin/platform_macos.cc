@@ -28,6 +28,12 @@ char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
+static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
+  Dart_DumpNativeStackTrace(context);
+  abort();
+}
+
+
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal

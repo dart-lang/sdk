@@ -6673,7 +6673,9 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime() {
 
 
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
+#ifndef PRODUCT
   Profiler::DumpStackTrace(context);
+#endif
 }
 
 }  // namespace dart
