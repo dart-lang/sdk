@@ -13,7 +13,7 @@ dependencies:
   shelf: ^0.6.1+2
   yaml: ^2.1.0
   charcode: ^1.1.0
-  quiver: '>=0.21.0 <0.23.0'
+  quiver: '>=0.21.0 <0.25.0'
 
 environment:
   sdk: '>=1.11.0 <2.0.0'
