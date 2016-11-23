@@ -257,7 +257,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
     tasks = [
       dietParser =
-          new DietParserTask(options, idGenerator, backend, reporter, measurer),
+          new DietParserTask(idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
@@ -271,8 +271,8 @@ abstract class Compiler implements LibraryLoaderListener {
           environment,
           reporter,
           measurer),
-      parser = new ParserTask(this, options),
-      patchParser = new PatchParserTask(this, options),
+      parser = new ParserTask(this),
+      patchParser = new PatchParserTask(this),
       resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
@@ -291,7 +291,7 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     _parsingContext =
-        new ParsingContext(reporter, options, parser, patchParser, backend);
+        new ParsingContext(reporter, parser, patchParser, backend);
 
     tasks.addAll(backend.tasks);
   }

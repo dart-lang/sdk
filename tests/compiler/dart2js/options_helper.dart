@@ -18,7 +18,3 @@ class MockDiagnosticOptions implements DiagnosticOptions {
   bool get hidePackageWarnings => true;
   bool showPackageWarningsFor(Uri uri) => false;
 }
-
-class MockParserOptions implements ParserOptions {
-  bool get enableGenericMethodSyntax => true;
-}

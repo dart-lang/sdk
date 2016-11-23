@@ -93,7 +93,7 @@ String doUnparse(String source) {
   Token beginToken = scanner.tokenize();
   NodeListener listener =
       new NodeListener(const ScannerOptions(), diagnosticListener, element);
-  Parser parser = new Parser(listener, new MockParserOptions());
+  Parser parser = new Parser(listener);
   parser.parseUnit(beginToken);
   Node node = listener.popNode();
   Expect.isTrue(listener.nodes.isEmpty);

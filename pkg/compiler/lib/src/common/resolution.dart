@@ -28,7 +28,7 @@ import '../elements/elements.dart'
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
 import '../mirrors_used.dart';
-import '../options.dart' show CompilerOptions, ParserOptions;
+import '../options.dart' show CompilerOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
 import '../parser/parser_task.dart';
 import '../patch_parser.dart';
@@ -212,13 +212,11 @@ abstract class Resolution implements Frontend {
 abstract class ParsingContext {
   factory ParsingContext(
       DiagnosticReporter reporter,
-      ParserOptions parserOptions,
       ParserTask parser,
       PatchParserTask patchParser,
       Backend backend) = _ParsingContext;
 
   DiagnosticReporter get reporter;
-  ParserOptions get parserOptions;
   ParserTask get parser;
   PatchParserTask get patchParser;
 
@@ -236,12 +234,11 @@ abstract class ParsingContext {
 
 class _ParsingContext implements ParsingContext {
   final DiagnosticReporter reporter;
-  final ParserOptions parserOptions;
   final ParserTask parser;
   final PatchParserTask patchParser;
   final Backend backend;
 
-  _ParsingContext(this.reporter, this.parserOptions, this.parser,
+  _ParsingContext(this.reporter, this.parser,
       this.patchParser, this.backend);
 
   @override

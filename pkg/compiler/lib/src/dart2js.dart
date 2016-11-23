@@ -138,6 +138,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   void passThrough(String argument) => options.add(argument);
 
+  void ignoreOption(String argument) {}
+
   if (BUILD_ID != null) {
     passThrough("--build-id=$BUILD_ID");
   }
@@ -332,7 +334,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler(Flags.allowMockCompilation, passThrough),
     new OptionHandler(Flags.fastStartup, passThrough),
-    new OptionHandler(Flags.genericMethodSyntax, passThrough),
+    new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
     new OptionHandler(Flags.initializingFormalAccess, passThrough),
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),

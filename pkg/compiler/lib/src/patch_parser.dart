@@ -133,7 +133,6 @@ import 'elements/modelx.dart'
 import 'id_generator.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'library_loader.dart' show LibraryLoader;
-import 'options.dart' show ParserOptions;
 import 'parser/element_listener.dart' show ElementListener;
 import 'parser/listener.dart' show Listener, ParserError;
 import 'parser/member_listener.dart' show MemberListener;
@@ -146,13 +145,11 @@ import 'tokens/token.dart' show StringToken, Token;
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
-  final ParserOptions parserOptions;
   final Compiler compiler;
   DiagnosticReporter get reporter => compiler.reporter;
 
-  PatchParserTask(Compiler compiler, this.parserOptions)
-      : compiler = compiler,
-        super(compiler.measurer);
+  PatchParserTask(Compiler compiler)
+      : compiler = compiler, super(compiler.measurer);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -184,7 +181,7 @@ class PatchParserTask extends CompilerTask {
       Listener patchListener = new PatchElementListener(
           compiler, compilationUnit, compiler.idGenerator);
       try {
-        new PartialParser(patchListener, parserOptions).parseUnit(tokens);
+        new PartialParser(patchListener).parseUnit(tokens);
       } on ParserError catch (e) {
         // No need to recover from a parser error in platform libraries, user
         // will never see this if the libraries are tested correctly.
@@ -201,7 +198,7 @@ class PatchParserTask extends CompilerTask {
 
     measure(() => reporter.withCurrentElement(cls, () {
           MemberListener listener = new PatchMemberListener(compiler, cls);
-          Parser parser = new PatchClassElementParser(listener, parserOptions);
+          Parser parser = new PatchClassElementParser(listener);
           try {
             Token token = parser.parseTopLevelDeclaration(cls.beginToken);
             assert(identical(token, cls.endToken.next));
@@ -251,8 +248,7 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener, ParserOptions options)
-      : super(listener, options);
+  PatchClassElementParser(Listener listener): super(listener);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
