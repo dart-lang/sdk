@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:kernel/kernel.dart';
 import 'type_parser.dart';
-import 'type_unification_test.dart' show testCases;
+import 'type_unification_test_disabled.dart' show testCases;
 import 'package:test/test.dart';
 
 void checkHashCodeEquality(DartType type1, DartType type2) {

@@ -30,6 +30,7 @@ import 'ast_from_analyzer.dart';
 class DartOptions {
   /// True if user code should be loaded in strong mode.
   bool strongMode;
+
   /// True if the Dart SDK should be loaded in strong mode.
   bool strongModeSdk;
   String sdk;
@@ -132,16 +133,19 @@ class DartLoader implements ReferenceLevelLoader {
       promoteToBodyLevel(node);
       classes.add(node);
     }
+
     void loadProcedure(Element memberElement) {
       var node = getMemberReference(memberElement);
       _buildTopLevelMember(node, memberElement);
       procedures.add(node);
     }
+
     void loadField(Element memberElement) {
       var node = getMemberReference(memberElement);
       _buildTopLevelMember(node, memberElement);
       fields.add(node);
     }
+
     for (var unit in element.units) {
       unit.types.forEach(loadClass);
       unit.enums.forEach(loadClass);
@@ -730,7 +734,6 @@ Future<Packages> createPackages(String packagePath,
 AnalysisOptions createAnalysisOptions(bool strongMode) {
   return new AnalysisOptionsImpl()
     ..strongMode = strongMode
-    ..enableGenericMethods = strongMode
     ..generateImplicitErrors = false
     ..generateSdkErrors = false
     ..preserveComments = false

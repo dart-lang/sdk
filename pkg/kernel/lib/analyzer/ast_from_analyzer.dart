@@ -14,6 +14,7 @@ import 'loader.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Provides reference-level access to libraries, classes, and members.
 ///
