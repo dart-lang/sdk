@@ -108,7 +108,7 @@ static bool trace_loading = false;
 static Dart_Isolate main_isolate = NULL;
 
 
-static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
+static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
 static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
@@ -222,17 +222,18 @@ static void* GetHashmapKeyFromString(char* key) {
 }
 
 
-static bool ExtractPortAndIP(const char* option_value,
-                             int* out_port,
-                             const char** out_ip,
-                             int default_port,
-                             const char* default_ip) {
+static bool ExtractPortAndAddress(const char* option_value,
+                                  int* out_port,
+                                  const char** out_ip,
+                                  int default_port,
+                                  const char* default_ip) {
   // [option_value] has to be one of the following formats:
   //   - ""
   //   - ":8181"
   //   - "=8181"
   //   - ":8181/192.168.0.1"
   //   - "=8181/192.168.0.1"
+  //   - "=8181/::1"
 
   if (*option_value == '\0') {
     *out_ip = default_ip;
@@ -252,16 +253,9 @@ static bool ExtractPortAndIP(const char* option_value,
     return true;
   }
 
-  int _, n;
-  if (sscanf(option_value + 1, "%d/%d.%d.%d.%d%n",  // NOLINT(runtime/printf)
-             &_, &_, &_, &_, &_, &n)) {
-    if (option_value[1 + n] == '\0') {
-      *out_ip = slash + 1;
-      *out_port = port;
-      return true;
-    }
-  }
-  return false;
+  *out_ip = slash + 1;
+  *out_port = port;
+  return true;
 }
 
 
@@ -375,12 +369,12 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
                                          CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
 
-  if (!ExtractPortAndIP(option_value, &vm_service_server_port,
-                        &vm_service_server_ip, DEFAULT_VM_SERVICE_SERVER_PORT,
-                        DEFAULT_VM_SERVICE_SERVER_IP)) {
+  if (!ExtractPortAndAddress(
+          option_value, &vm_service_server_port, &vm_service_server_ip,
+          DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
     Log::PrintErr(
         "unrecognized --enable-vm-service option syntax. "
-        "Use --enable-vm-service[=<port number>[/<IPv4 address>]]\n");
+        "Use --enable-vm-service[=<port number>[/<bind address>]]\n");
     return false;
   }
 
@@ -404,12 +398,12 @@ static bool ProcessObserveOption(const char* option_value,
                                  CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
 
-  if (!ExtractPortAndIP(option_value, &vm_service_server_port,
-                        &vm_service_server_ip, DEFAULT_VM_SERVICE_SERVER_PORT,
-                        DEFAULT_VM_SERVICE_SERVER_IP)) {
+  if (!ExtractPortAndAddress(
+          option_value, &vm_service_server_port, &vm_service_server_ip,
+          DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
     Log::PrintErr(
         "unrecognized --observe option syntax. "
-        "Use --observe[=<port number>[/<IPv4 address>]]\n");
+        "Use --observe[=<port number>[/<bind address>]]\n");
     return false;
   }
 
@@ -1025,7 +1019,7 @@ static void PrintUsage() {
 "\n"
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
-"  (default port number is 8181, default bind address is 127.0.0.1).\n"
+"  (default port number is 8181, default bind address is localhost).\n"
 #if !defined(TARGET_OS_MACOS)
 "\n"
 "--root-certs-file=<path>\n"
