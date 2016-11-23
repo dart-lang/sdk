@@ -262,7 +262,8 @@ Future<CompilerOutcome> batchMain(
   String format = options['format'] ?? defaultFormat();
   String outputFile = options['out'] ?? defaultOutput();
 
-  var customUriMappings = parseCustomUriMappings(options['url-mapping']);
+  List<String> urlMapping = options['url-mapping'] as List<String>;
+  var customUriMappings = parseCustomUriMappings(urlMapping);
   var repository = new Repository();
 
   Program program;

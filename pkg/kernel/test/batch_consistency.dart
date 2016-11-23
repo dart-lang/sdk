@@ -35,10 +35,8 @@ main(List<String> args) async {
 }
 
 Future<bool> areFilesEqual(String first, String second) async {
-  List<List<int>> bytes = await Future.wait([
-    new File(first).readAsBytes(),
-    new File(second).readAsBytes()
-  ]);
+  List<List<int>> bytes = await Future
+      .wait([new File(first).readAsBytes(), new File(second).readAsBytes()]);
   if (bytes[0].length != bytes[1].length) return false;
   for (int i = 0; i < bytes[0].length; ++i) {
     if (bytes[0][i] != bytes[1][i]) return false;
@@ -58,7 +56,9 @@ testBatchModeConsistency(List<String> options, List<String> files) {
       List results = [null, null];
       bool failed = false;
       for (int i = 0; i < 2; ++i) {
-        var args = []..addAll(options)..addAll(['--out', outputFiles[i], file]);
+        var args = <String>[]
+          ..addAll(options)
+          ..addAll(['--out', outputFiles[i], file]);
         var state = (i == 0) ? sharedState : new dartk.BatchModeState();
         try {
           // We run the two executions in a loop to ensure any stack traces

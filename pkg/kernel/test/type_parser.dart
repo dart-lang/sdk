@@ -174,8 +174,7 @@ class DartTypeParser {
     }
   }
 
-  void parseParameterList(
-      List<DartType> positional, List<NamedType> named) {
+  void parseParameterList(List<DartType> positional, List<NamedType> named) {
     int token = scanToken();
     assert(token == Token.LeftParen);
     token = peekToken();
@@ -215,7 +214,7 @@ class DartTypeParser {
       types.add(parseType());
       token = scanToken();
       if (token != Token.Comma && token != close) {
-        return fail('Unterminated list');
+        throw fail('Unterminated list');
       }
     }
     return types;
@@ -243,7 +242,7 @@ class DartTypeParser {
       typeParameters.add(parseAndPushTypeParameter());
       token = scanToken();
       if (token != Token.Comma && token != Token.RightAngle) {
-        return fail('Unterminated type parameter list');
+        throw fail('Unterminated type parameter list');
       }
     }
     return typeParameters;
@@ -275,8 +274,8 @@ class DartTypeParser {
 class LazyTypeEnvironment {
   final Map<String, Class> classes = <String, Class>{};
   final Map<String, TypeParameter> typeParameters = <String, TypeParameter>{};
-  final Library dummyLibrary = new Library(new Uri(path: 'dummy.dart'),
-    name: 'lib');
+  final Library dummyLibrary =
+      new Library(new Uri(path: 'dummy.dart'), name: 'lib');
 
   TreeNode lookup(String name) {
     return name.length == 1

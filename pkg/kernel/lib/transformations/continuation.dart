@@ -153,7 +153,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
   visitYieldStatement(YieldStatement node) {
     var transformedExpression = node.expression.accept(this);
 
-    var statements = [];
+    var statements = <Statement>[];
     if (node.isYieldStar) {
       var markYieldEach = new ExpressionStatement(new PropertySet(
           new VariableGet(iteratorVariable),
@@ -498,9 +498,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
     loopBody.add(
         new IfStatement(cond, new Block(newBody), new BreakStatement(labeled)));
-    labeled.body =
-        new WhileStatement(new BoolLiteral(true), new Block(loopBody))
-        ..parent = labeled;
+    labeled.body = new WhileStatement(
+        new BoolLiteral(true), new Block(loopBody))..parent = labeled;
     statements.add(new Block(<Statement>[]
       ..addAll(temps)
       ..add(labeled)));
@@ -831,24 +830,28 @@ class HelperNodes {
       }
       throw 'Library "$name" not found';
     }
+
     Class findClass(Library library, String name) {
       for (var klass in library.classes) {
         if (klass.name == name) return klass;
       }
       throw 'Class "$name" not found';
     }
+
     Procedure findFactoryConstructor(Class klass, String name) {
       for (var procedure in klass.procedures) {
         if (procedure.isStatic && procedure.name.name == name) return procedure;
       }
       throw 'Factory constructor "$klass.$name" not found';
     }
+
     Constructor findConstructor(Class klass, String name) {
       for (var constructor in klass.constructors) {
         if (constructor.name.name == name) return constructor;
       }
       throw 'Constructor "$klass.$name" not found';
     }
+
     Procedure findProcedure(Library library, String name) {
       for (var procedure in library.procedures) {
         if (procedure.name.name == name ||
