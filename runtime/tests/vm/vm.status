@@ -164,5 +164,5 @@ cc/RegenerateAllocStubs: Skip
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 
-[ $runtime == dartium ]
+[ $compiler == dart2js || $runtime == dartium ]
 dart/hello_fuchsia_test: Fail # Issue 27867

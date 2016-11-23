@@ -81,6 +81,8 @@ double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1
 [ $runtime == ff ]
 double_round3_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
+list_test/none: RuntimeError # Issue 27871
+list_test/01: RuntimeError # Issue 27871
 
 [ $runtime == opera ]
 core_runtime_types_test: Fail
