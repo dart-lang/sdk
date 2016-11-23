@@ -147,6 +147,7 @@ class StackFrame : public ValueObject {
   // fields fp_ and sp_ when they return the respective frame objects.
   friend class FrameSetIterator;
   friend class StackFrameIterator;
+  friend class ProfilerDartStackWalker;
   DISALLOW_COPY_AND_ASSIGN(StackFrame);
 };
 
@@ -286,6 +287,7 @@ class StackFrameIterator : public ValueObject {
   StackFrame* current_frame_;  // Points to the current frame in the iterator.
   Thread* thread_;
 
+  friend class ProfilerDartStackWalker;
   DISALLOW_COPY_AND_ASSIGN(StackFrameIterator);
 };
 
