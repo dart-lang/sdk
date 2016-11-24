@@ -4916,7 +4916,8 @@ void FlowGraphBuilder::VisitBlock(Block* node) {
 
   instructions += EnterScope(node);
   List<Statement>& statements = node->statements();
-  for (intptr_t i = 0; i < statements.length(); ++i) {
+  for (intptr_t i = 0; (i < statements.length()) && instructions.is_open();
+       ++i) {
     instructions += TranslateStatement(statements[i]);
   }
   instructions += ExitScope(node);
@@ -4931,17 +4932,19 @@ void FlowGraphBuilder::VisitReturnStatement(ReturnStatement* node) {
   Fragment instructions = node->expression() == NULL
                               ? NullConstant()
                               : TranslateExpression(node->expression());
-  if (inside_try_finally) {
-    ASSERT(scopes_->finally_return_variable != NULL);
-    instructions += StoreLocal(scopes_->finally_return_variable);
-    instructions += Drop();
-    instructions += TranslateFinallyFinalizers(NULL, -1);
-    if (instructions.is_open()) {
-      instructions += LoadLocal(scopes_->finally_return_variable);
+  if (instructions.is_open()) {
+    if (inside_try_finally) {
+      ASSERT(scopes_->finally_return_variable != NULL);
+      instructions += StoreLocal(scopes_->finally_return_variable);
+      instructions += Drop();
+      instructions += TranslateFinallyFinalizers(NULL, -1);
+      if (instructions.is_open()) {
+        instructions += LoadLocal(scopes_->finally_return_variable);
+        instructions += Return();
+      }
+    } else {
       instructions += Return();
     }
-  } else {
-    instructions += Return();
   }
   fragment_ = instructions;
 }
