@@ -59,8 +59,7 @@ _VisitVariableDeclaration _buildVariableReporter(
       validators.add(_findMethodInvocationsWithVariableAsArgument(
           containerNodes, variable));
 
-      // Read this as: validators.forAll((i) => i.isEmpty).
-      if (!validators.any((i) => i.isNotEmpty)) {
+      if (validators.every((i) => i.isEmpty)) {
         rule.reportLint(variable);
       }
     };
@@ -147,9 +146,9 @@ abstract class LeakDetectorVisitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    ClassDeclaration classDecl = node.getAncestor((a) => a is ClassDeclaration);
+    CompilationUnit unit = node.getAncestor((a) => a is CompilationUnit);
     node.fields.variables.forEach(_buildVariableReporter(
-        classDecl, _fieldPredicateBuilders, rule, predicates));
+        unit, _fieldPredicateBuilders, rule, predicates));
   }
 
   @override

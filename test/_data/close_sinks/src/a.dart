@@ -79,7 +79,7 @@ class D {
 }
 
 void someFunction() {
-  IOSink _sinkF; // LINT
+  IOSink _sinkSomeFunction; // LINT
 }
 
 void someFunctionOK() {

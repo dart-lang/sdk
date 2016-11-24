@@ -189,7 +189,7 @@ defineTests() {
             collectingOut.trim(),
             stringContainsInOrder([
               'IOSink _sinkA; // LINT',
-              'IOSink _sinkF; // LINT',
+              'IOSink _sinkSomeFunction; // LINT',
               '1 file analyzed, 2 issues found, in'
             ]));
       });
@@ -219,7 +219,7 @@ defineTests() {
             stringContainsInOrder([
               'StreamSubscription _subscriptionA; // LINT',
               'StreamSubscription _subscriptionF; // LINT',
-              '1 file analyzed, 2 issues found, in'
+              '1 file analyzed, 3 issues found, in'
             ]));
       });
     });
