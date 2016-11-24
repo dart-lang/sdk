@@ -7351,7 +7351,7 @@ void Field::set_name(const String& value) const {
 
 
 RawObject* Field::RawOwner() const {
-  if (Original()) {
+  if (IsOriginal()) {
     return raw_ptr()->owner_;
   } else {
     const Field& field = Field::Handle(Original());
