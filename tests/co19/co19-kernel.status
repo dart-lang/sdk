@@ -33,7 +33,7 @@ Language/Classes/Setters/name_t12: CompileTimeError
 Language/Classes/Setters/name_t13: CompileTimeError
 Language/Classes/Setters/name_t14: CompileTimeError
 Language/Classes/Setters/name_t15: CompileTimeError
-Language/Classes/definition_t23: Crash
+Language/Classes/definition_t23: CompileTimeError
 Language/Enums/declaration_equivalent_t01: RuntimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError

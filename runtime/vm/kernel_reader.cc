@@ -124,31 +124,23 @@ Object& KernelReader::ReadProgram() {
       if (!library.Loaded()) library.SetLoaded();
     }
 
-    if (!ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      FATAL("Error in class finalization during bootstrapping.");
+    if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+      dart::Library& library = LookupLibrary(kernel_main_library);
+
+      // Sanity check that we can find the main entrypoint.
+      Object& main_obj = Object::Handle(
+          Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
+      ASSERT(!main_obj.IsNull());
+      return library;
     }
-
-    dart::Library& library = LookupLibrary(kernel_main_library);
-
-    // Sanity check that we can find the main entrypoint.
-    Object& main_obj = Object::Handle(
-        Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
-    ASSERT(!main_obj.IsNull());
-    return library;
-  } else {
-    // Everything else is a compile-time error. We don't use the [error] since
-    // it sometimes causes the higher-level error handling to try to read the
-    // script and token position (which we don't have) to produce a nice error
-    // message.
-    Error& error = Error::Handle(Z);
-    error = thread_->sticky_error();
-    thread_->clear_sticky_error();
-
-    // Instead we simply make a non-informative error message.
-    const dart::String& error_message =
-        H.DartString("Failed to read .kernell file => CompileTimeError.");
-    return Object::Handle(Z, LanguageError::New(error_message));
   }
+
+  // Either class finalization failed or we caught a compile error.
+  // In both cases sticky error would be set.
+  Error& error = Error::Handle(Z);
+  error = thread_->sticky_error();
+  thread_->clear_sticky_error();
+  return error;
 }
 
 
