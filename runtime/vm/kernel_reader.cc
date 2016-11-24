@@ -705,7 +705,7 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Create a static initializer.
-  const dart::Class& owner = dart::Class::Handle(zone, field.Owner());
+  const Object& owner = Object::Handle(field.RawOwner());
   const Function& initializer_fun = Function::ZoneHandle(
       zone,
       dart::Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
