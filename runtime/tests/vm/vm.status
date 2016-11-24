@@ -77,6 +77,9 @@ cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 cc/Profiler_GetSourceReport: Skip
 
+[ $mode == release || $mode == product ]
+cc/Profiler_InliningIntervalBoundry: Skip
+
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays
@@ -144,6 +147,7 @@ cc/StackTraceFormat: Fail,OK  # Expects exact type name.
 cc/String_ScrubName: Fail,OK  # Expects exact type name.
 cc/GetFunctionNames: Fail,OK  # Expects exact type name.
 
+[ $arch == simdbc  || $arch == simdbc64 ]
 # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
 # is switched on by default because they attempt to call regexp functions
 # directly instead of going through JSSyntaxRegExp_ExecuteMatch.
