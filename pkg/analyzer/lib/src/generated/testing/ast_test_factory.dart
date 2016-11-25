@@ -973,6 +973,7 @@ class AstTestFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.PART),
           TokenFactory.tokenFromString("of"),
+          null,
           libraryName,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 

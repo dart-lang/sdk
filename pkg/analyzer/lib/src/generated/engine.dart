@@ -1155,6 +1155,11 @@ abstract class AnalysisOptions {
   bool get enableTiming;
 
   /**
+   * Return `true` to enable the use of URIs in part-of directives.
+   */
+  bool get enableUriInPartOf;
+
+  /**
    * Return a list of error processors that are to be used when reporting
    * errors in some analysis context.
    */
@@ -1349,6 +1354,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A list of exclude patterns used to exclude some sources from analysis.
    */
   List<String> _excludePatterns;
+
+  @override
+  bool enableUriInPartOf = false;
 
   @override
   bool generateImplicitErrors = true;

@@ -2853,6 +2853,12 @@ class ParserTestCase extends EngineTestCase {
   bool enableNnbd = false;
 
   /**
+   * A flag indicating whether the parser is to parse part-of directives that
+   * specify a URI rather than a library name.
+   */
+  bool enableUriInPartOf = false;
+
+  /**
    * The error listener to which scanner and parser errors will be reported.
    *
    * This field is typically initialized by invoking [createParser].
@@ -2902,6 +2908,7 @@ class ParserTestCase extends EngineTestCase {
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
+    parser.enableUriInPartOf = enableUriInPartOf;
     parser.currentToken = tokenStream;
   }
 
@@ -11087,7 +11094,7 @@ void''');
     // TODO(brianwilkerson) Implement tests for this method.
   }
 
-  void test_parsePartDirective_part() {
+  void test_parsePartDirective() {
     createParser("part 'lib/lib.dart';");
     PartDirective directive =
         parser.parsePartOrPartOfDirective(emptyCommentAndMetadata());
@@ -11098,15 +11105,27 @@ void''');
     expect(directive.semicolon, isNotNull);
   }
 
-  void test_parsePartDirective_partOf() {
-    createParser('part of l;');
+  void test_parsePartOfDirective_name() {
+    enableUriInPartOf = true;
+    createParser("part of l;");
     PartOfDirective directive =
         parser.parsePartOrPartOfDirective(emptyCommentAndMetadata());
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
     expect(directive.partKeyword, isNotNull);
     expect(directive.ofKeyword, isNotNull);
     expect(directive.libraryName, isNotNull);
+    expect(directive.uri, isNull);
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parsePartOfDirective_uri() {
+    enableUriInPartOf = true;
+    createParser("part of 'lib.dart';");
+    PartOfDirective directive =
+        parser.parsePartOrPartOfDirective(emptyCommentAndMetadata());
+    expect(directive.partKeyword, isNotNull);
+    expect(directive.ofKeyword, isNotNull);
+    expect(directive.libraryName, isNull);
+    expect(directive.uri, isNotNull);
     expect(directive.semicolon, isNotNull);
   }
 

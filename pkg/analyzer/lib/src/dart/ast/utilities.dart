@@ -740,6 +740,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNodeList(node.metadata),
           cloneToken(node.partKeyword),
           cloneToken(node.ofKeyword),
+          cloneNode(node.uri),
           cloneNode(node.libraryName),
           cloneToken(node.semicolon));
 
@@ -3480,6 +3481,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         _cloneNodeList(node.metadata),
         _mapToken(node.partKeyword),
         _mapToken(node.ofKeyword),
+        _cloneNode(node.uri),
         _cloneNode(node.libraryName),
         _mapToken(node.semicolon));
     copy.element = node.element;

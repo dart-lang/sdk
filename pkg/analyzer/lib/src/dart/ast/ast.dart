@@ -8174,7 +8174,13 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   Token ofKeyword;
 
   /**
-   * The name of the library that the containing compilation unit is part of.
+   * The URI of the library that the containing compilation unit is part of.
+   */
+  StringLiteralImpl _uri;
+
+  /**
+   * The name of the library that the containing compilation unit is part of, or
+   * `null` if no name was given (typically because a library URI was provided).
    */
   LibraryIdentifier _libraryName;
 
@@ -8194,9 +8200,11 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
       List<Annotation> metadata,
       this.partKeyword,
       this.ofKeyword,
+      StringLiteralImpl uri,
       LibraryIdentifierImpl libraryName,
       this.semicolon)
       : super(comment, metadata) {
+    _uri = _becomeParentOf(uri);
     _libraryName = _becomeParentOf(libraryName);
   }
 
@@ -8225,6 +8233,14 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 
   @override
+  StringLiteral get uri => _uri;
+
+  @override
+  void set uri(StringLiteral uri) {
+    _uri = _becomeParentOf(uri as AstNodeImpl);
+  }
+
+  @override
   dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
       visitor.visitPartOfDirective(this);
 
@@ -8232,6 +8248,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _libraryName?.accept(visitor);
+    _uri?.accept(visitor);
   }
 }
 

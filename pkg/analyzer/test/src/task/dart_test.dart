@@ -797,6 +797,7 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   LibraryElement libraryElement;
 
   test_perform() {
+    enableUriInPartOf();
     _performBuildTask({
       '/lib.dart': '''
 library lib;
@@ -807,7 +808,7 @@ part 'part2.dart';
 part of lib;
 ''',
       '/part2.dart': '''
-part of lib;
+part of 'lib.dart';
 '''
     });
     expect(outputs, hasLength(3));
@@ -5645,6 +5646,16 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   void enableStrongMode() {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
+    context.analysisOptions = options;
+  }
+
+  /**
+   * Enable the use of URIs in part-of directives in the current analysis
+   * context.
+   */
+  void enableUriInPartOf() {
+    AnalysisOptionsImpl options = context.analysisOptions;
+    options.enableUriInPartOf = true;
     context.analysisOptions = options;
   }
 

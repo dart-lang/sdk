@@ -6338,17 +6338,19 @@ abstract class PartOfDirective extends Directive {
   /**
    * Initialize a newly created part-of directive. Either or both of the
    * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
+   * corresponding attribute. Only one of the [uri] and [libraryName] should be
+   * provided.
    */
   factory PartOfDirective(
           Comment comment,
           List<Annotation> metadata,
           Token partKeyword,
           Token ofKeyword,
+          StringLiteral uri,
           LibraryIdentifier libraryName,
           Token semicolon) =>
-      new PartOfDirectiveImpl(
-          comment, metadata, partKeyword, ofKeyword, libraryName, semicolon);
+      new PartOfDirectiveImpl(comment, metadata, partKeyword, ofKeyword, uri,
+          libraryName, semicolon);
 
   /**
    * Return the name of the library that the containing compilation unit is part
@@ -6391,6 +6393,20 @@ abstract class PartOfDirective extends Directive {
    * Set the semicolon terminating the directive to the given [token].
    */
   void set semicolon(Token token);
+
+  /**
+   * Return the URI of the library that the containing compilation unit is part
+   * of, or `null` if no URI was given (typically because a library name was
+   * provided).
+   */
+  StringLiteral get uri;
+
+  /**
+   * Return the URI of the library that the containing compilation unit is part
+   * of, or `null` if no URI was given (typically because a library name was
+   * provided).
+   */
+  void set uri(StringLiteral uri);
 }
 
 /**

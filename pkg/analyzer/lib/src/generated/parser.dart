@@ -198,6 +198,12 @@ class Parser {
   bool _enableNnbd = false;
 
   /**
+   * A flag indicating whether the parser is to allow URI's in part-of
+   * directives.
+   */
+  bool _enableUriInPartOf = false;
+
+  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -291,6 +297,19 @@ class Parser {
    */
   void set enableNnbd(bool enable) {
     _enableNnbd = enable;
+  }
+
+  /**
+   * Return `true` if the parser is to allow URI's in part-of directives.
+   */
+  bool get enableUriInPartOf => _enableUriInPartOf;
+
+  /**
+   * Set whether the parser is to allow URI's in part-of directives to the given
+   * [enable] flag.
+   */
+  void set enableUriInPartOf(bool enable) {
+    _enableUriInPartOf = enable;
   }
 
   /**
@@ -6891,6 +6910,18 @@ class Parser {
   Directive _parsePartOfDirective(CommentAndMetadata commentAndMetadata) {
     Token partKeyword = getAndAdvance();
     Token ofKeyword = getAndAdvance();
+    if (enableUriInPartOf && _matches(TokenType.STRING)) {
+      StringLiteral libraryUri = _parseUri();
+      Token semicolon = _expect(TokenType.SEMICOLON);
+      return new PartOfDirective(
+          commentAndMetadata.comment,
+          commentAndMetadata.metadata,
+          partKeyword,
+          ofKeyword,
+          libraryUri,
+          null,
+          semicolon);
+    }
     LibraryIdentifier libraryName = _parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
     Token semicolon = _expect(TokenType.SEMICOLON);
@@ -6899,6 +6930,7 @@ class Parser {
         commentAndMetadata.metadata,
         partKeyword,
         ofKeyword,
+        null,
         libraryName,
         semicolon);
   }
