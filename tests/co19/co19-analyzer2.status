@@ -4,16 +4,7 @@
 
 [ $compiler == dart2analyzer ]
 
-# Trailing commas are now allowed by the language - issue #26644
-Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError
-# End issue #26644
-
+Language/Functions/Formal_Parameters/syntax_t05: StaticWarning # Issue 26644
 Language/Classes/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
 Language/Classes/Getters/static_t01: StaticWarning # Please triage this failure.
