@@ -371,7 +371,6 @@ LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # co19-roll r761: Ple
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Issue 23433
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
@@ -1284,9 +1283,6 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # Timesout sporadically
 LayoutTests/fast/css/MarqueeLayoutTest_t01: Pass, RuntimeError # Please triage this failure
 
-[ $compiler == none && $runtime == dartium && $system != windows ]
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
-
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
 
@@ -1296,11 +1292,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTr
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: Skip # Issue 20540.
 
 [ $compiler == none && $runtime == dartium && $checked ]
-LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # Please triage this failure.
-Language/Statements/Return/runtime_type_t04: RuntimeError # Please triage this failure.
-LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Please triage this failure.
-LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # Please triage this failure.
-LibTest/collection/LinkedHashSet/LinkedHashSet.from_A03_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure.
