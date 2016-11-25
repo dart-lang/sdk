@@ -75,11 +75,6 @@ class CheckReferences extends RecursiveVisitor {
   }
 
   visitFunctionNode(FunctionNode node) {
-    for (int i = 1; i < node.namedParameters.length; ++i) {
-      if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
-        throw 'Named parameters are not sorted on function found in $context';
-      }
-    }
     typeParameters.addAll(node.typeParameters);
     node.visitChildren(this);
     typeParameters.removeAll(node.typeParameters);

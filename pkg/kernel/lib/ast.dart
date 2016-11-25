@@ -1106,7 +1106,7 @@ class FunctionNode extends TreeNode {
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
-  List<VariableDeclaration> namedParameters; // Must be sorted.
+  List<VariableDeclaration> namedParameters;
   InferredValue inferredReturnValue; // May be null.
   DartType returnType; // Not null.
   Statement body;
@@ -1139,17 +1139,14 @@ class FunctionNode extends TreeNode {
   }
 
   FunctionType get functionType {
-    Map<String, DartType> named = const <String, DartType>{};
-    if (namedParameters.isNotEmpty) {
-      named = <String, DartType>{};
-      for (var node in namedParameters) {
-        named[node.name] = node.type;
-      }
-    }
     TreeNode parent = this.parent;
+    List<NamedType> named =
+        namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
+    named.sort();
     return new FunctionType(
-        positionalParameters.map(_getTypeOfVariable).toList(), returnType,
-        namedParameters: namedParameters.map(_getNamedTypeOfVariable).toList(),
+        positionalParameters.map(_getTypeOfVariable).toList(growable: false),
+        returnType,
+        namedParameters: named,
         typeParameters: parent is Constructor
             ? parent.enclosingClass.typeParameters
             : typeParameters,
@@ -2973,8 +2970,7 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class VariableDeclaration extends Statement
-    implements Comparable<VariableDeclaration> {
+class VariableDeclaration extends Statement {
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -3047,10 +3043,6 @@ class VariableDeclaration extends Statement
   /// Returns a possibly synthesized name for this variable, consistent with
   /// the names used across all [toString] calls.
   String toString() => debugVariableDeclarationName(this);
-
-  int compareTo(VariableDeclaration other) {
-    return name.compareTo(other.name);
-  }
 }
 
 /// Declaration a local function.

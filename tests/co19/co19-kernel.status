@@ -322,19 +322,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/05: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/03: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/02: Pass
-LibTest/core/Match/operator_subscript_A01_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A02_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: RuntimeError
-LibTest/core/RegExp/firstMatch_A02_t01: RuntimeError
-LibTest/core/RegExp/hasMatch_A01_t02: RuntimeError
-LibTest/core/RegExp/stringMatch_A01_t01: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]

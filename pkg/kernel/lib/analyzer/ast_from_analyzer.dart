@@ -457,9 +457,6 @@ class TypeScope extends ReferenceScope {
           break;
       }
     }
-    if (named.isNotEmpty) {
-      sortAndRemoveDuplicates(named);
-    }
     var returnType = element is ConstructorElement
         ? const ast.VoidType()
         : buildType(element.returnType);
@@ -560,9 +557,6 @@ class ExpressionScope extends TypeScope {
           named.add(declaration);
           break;
       }
-    }
-    if (named.isNotEmpty) {
-      sortAndRemoveDuplicates(named);
     }
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,

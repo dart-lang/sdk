@@ -1997,7 +1997,6 @@ class KernelVisitor extends Object
           positionalParameters.add(variable);
         }
       });
-      namedParameters.sort();
       signature.forEachParameter((ParameterElement parameter) {
         if (!parameter.isOptional) return;
         ir.Expression initializer = visitForValue(parameter.initializer);
