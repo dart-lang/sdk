@@ -379,27 +379,6 @@ var A2 = B1;
     }
   }
 
-  test_getResult() async {
-    String content = 'int f() => 42;';
-    addTestFile(content, priority: true);
-
-    AnalysisResult result = await driver.getResult(testFile);
-    expect(result.path, testFile);
-    expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.content, content);
-    expect(result.contentHash, _md5(content));
-    expect(result.unit, isNotNull);
-    expect(result.errors, hasLength(0));
-
-    var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.name.staticType.toString(), '() → int');
-    expect(f.returnType.type.toString(), 'int');
-
-    // The same result is also received through the stream.
-    await _waitForIdle();
-    expect(allResults, [result]);
-  }
-
   test_getFilesReferencingName() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
@@ -429,6 +408,51 @@ var A2 = B1;
     // We get the same results second time.
     List<String> files2 = await driver.getFilesReferencingName('A');
     expect(files2, unorderedEquals([b, c]));
+  }
+
+  test_getIndex() async {
+    String content = r'''
+foo(int p) {}
+main() {
+  foo(42);
+}
+''';
+    addTestFile(content);
+
+    IndexResult result = await driver.getIndex(testFile);
+
+    CompilationUnitElement unitElement = result.unitElement;
+    expect(unitElement, isNotNull);
+    expect(unitElement.source.fullName, testFile);
+    expect(unitElement.functions.map((c) => c.name),
+        unorderedEquals(['foo', 'main']));
+
+    AnalysisDriverUnitIndex index = result.index;
+    int unitId = index.strings.indexOf('package:test/test.dart');
+    int fooId = index.strings.indexOf('foo');
+    expect(unitId, isNonNegative);
+    expect(fooId, isNonNegative);
+  }
+
+  test_getResult() async {
+    String content = 'int f() => 42;';
+    addTestFile(content, priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.uri.toString(), 'package:test/test.dart');
+    expect(result.content, content);
+    expect(result.contentHash, _md5(content));
+    expect(result.unit, isNotNull);
+    expect(result.errors, hasLength(0));
+
+    var f = result.unit.declarations[0] as FunctionDeclaration;
+    expect(f.name.staticType.toString(), '() → int');
+    expect(f.returnType.type.toString(), 'int');
+
+    // The same result is also received through the stream.
+    await _waitForIdle();
+    expect(allResults, [result]);
   }
 
   test_getResult_constants_defaultParameterValue_localFunction() async {
@@ -467,24 +491,6 @@ main() {
       expect(error.message, "The value of the local variable 'vv' isn't used.");
       expect(error.correction, "Try removing the variable, or using it.");
     }
-  }
-
-  test_getResult_hasIndex() async {
-    String content = r'''
-foo(int p) {}
-main() {
-  foo(42);
-}
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-
-    AnalysisDriverUnitIndex index = result.index;
-    int unitId = index.strings.indexOf('package:test/test.dart');
-    int fooId = index.strings.indexOf('foo');
-    expect(unitId, isNonNegative);
-    expect(fooId, isNonNegative);
   }
 
   test_getResult_inferTypes_finalField() async {
@@ -1118,7 +1124,6 @@ var A = B;
     expect(result.contentHash, _md5(content));
     expect(result.unit, isNull);
     expect(result.errors, hasLength(0));
-    expect(result.index, isNotNull);
   }
 
   test_results_status() async {

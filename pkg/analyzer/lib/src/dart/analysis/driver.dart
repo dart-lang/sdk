@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -24,6 +25,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
+import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -152,6 +155,12 @@ class AnalysisDriver {
    * The list of tasks to compute files referencing a name.
    */
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
+
+  /**
+   * The mapping from the files for which index was requested using
+   * [getIndex] to the [Completer] to report the result.
+   */
+  final _indexRequestedFiles = <String, List<Completer<IndexResult>>>{};
 
   /**
    * The set of files were reported as changed through [changeFile] and not
@@ -291,6 +300,9 @@ class AnalysisDriver {
     if (_referencingNameTasks.isNotEmpty) {
       return AnalysisDriverPriority.referencingName;
     }
+    if (_indexRequestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.getIndex;
+    }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
         if (_filesToAnalyze.contains(path)) {
@@ -373,6 +385,23 @@ class AnalysisDriver {
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return task.completer.future;
+  }
+
+  /**
+   * Return a [Future] that completes with the [IndexResult] for the file with
+   * the given [path].
+   */
+  Future<IndexResult> getIndex(String path) {
+    if (AnalysisEngine.isDartFileName(path)) {
+      var completer = new Completer<IndexResult>();
+      _indexRequestedFiles
+          .putIfAbsent(path, () => <Completer<IndexResult>>[])
+          .add(completer);
+      _statusSupport.transitionToAnalyzing();
+      _scheduler._notify(this);
+      return completer.future;
+    }
+    return new Future.value();
   }
 
   /**
@@ -500,7 +529,7 @@ class AnalysisDriver {
       String key = _getResolvedUnitKey(libraryFile, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
-        return _getAnalysisResultFromBytes(file, bytes);
+        return _getAnalysisResultFromBytes(libraryFile, file, bytes);
       }
     }
 
@@ -543,13 +572,32 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return _getAnalysisResultFromBytes(file, bytes,
+        return _getAnalysisResultFromBytes(libraryFile, file, bytes,
             content: withUnit ? file.content : null,
             resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
         analysisContext.dispose();
       }
     });
+  }
+
+  IndexResult _computeIndexResult(String path) {
+    AnalysisResult analysisResult = _computeAnalysisResult(path,
+        withUnit: false, asIsIfPartWithoutLibrary: true);
+    FileState libraryFile = analysisResult._libraryFile;
+    FileState file = analysisResult._file;
+
+    // Create the AnalysisContext to resynthesize elements in.
+    _LibraryContext libraryContext = _createLibraryContext(libraryFile);
+    AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
+
+    // Resynthesize the CompilationUnitElement in the context.
+    CompilationUnitElement unitElement = analysisContext.computeResult(
+        new LibrarySpecificUnit(libraryFile.source, file.source),
+        COMPILATION_UNIT_ELEMENT);
+
+    // Return as IndexResult.
+    return new IndexResult(unitElement, analysisResult._index);
   }
 
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
@@ -664,7 +712,8 @@ class AnalysisDriver {
    * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
    * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
+  AnalysisResult _getAnalysisResultFromBytes(
+      FileState libraryFile, FileState file, List<int> bytes,
       {String content, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = unit.errors
@@ -676,8 +725,18 @@ class AnalysisDriver {
             error.message,
             error.correction))
         .toList();
-    return new AnalysisResult(_sourceFactory, file.path, file.uri, content,
-        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
+    return new AnalysisResult(
+        libraryFile,
+        file,
+        _sourceFactory,
+        file.path,
+        file.uri,
+        content,
+        file.contentHash,
+        file.lineInfo,
+        resolvedUnit,
+        errors,
+        unit.index);
   }
 
   /**
@@ -722,6 +781,16 @@ class AnalysisDriver {
       // Remove from to be analyzed and produce it now.
       _filesToAnalyze.remove(path);
       _resultController.add(result);
+      return;
+    }
+
+    // Process an index request.
+    if (_indexRequestedFiles.isNotEmpty) {
+      String path = _indexRequestedFiles.keys.first;
+      IndexResult result = _computeIndexResult(path);
+      _indexRequestedFiles.remove(path).forEach((completer) {
+        completer.complete(result);
+      });
       return;
     }
 
@@ -831,6 +900,7 @@ enum AnalysisDriverPriority {
   general,
   priority,
   referencingName,
+  getIndex,
   interactive
 }
 
@@ -968,6 +1038,9 @@ class AnalysisDriverScheduler {
  * any previously returned result, even inside of the same library.
  */
 class AnalysisResult {
+  final FileState _libraryFile;
+  final FileState _file;
+
   /**
    * The [SourceFactory] with which the file was analyzed.
    */
@@ -1013,10 +1086,37 @@ class AnalysisResult {
   /**
    * The index of the unit.
    */
+  final AnalysisDriverUnitIndex _index;
+
+  AnalysisResult(
+      this._libraryFile,
+      this._file,
+      this.sourceFactory,
+      this.path,
+      this.uri,
+      this.content,
+      this.contentHash,
+      this.lineInfo,
+      this.unit,
+      this.errors,
+      this._index);
+}
+
+/**
+ * The result of indexing of a single file.
+ */
+class IndexResult {
+  /**
+   * The element of the file.
+   */
+  final CompilationUnitElement unitElement;
+
+  /**
+   * The index of the file.
+   */
   final AnalysisDriverUnitIndex index;
 
-  AnalysisResult(this.sourceFactory, this.path, this.uri, this.content,
-      this.contentHash, this.lineInfo, this.unit, this.errors, this.index);
+  IndexResult(this.unitElement, this.index);
 }
 
 /**
