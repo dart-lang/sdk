@@ -18,8 +18,6 @@ LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
 [ $compiler != dart2analyzer ]
-LibTest/isolate/ReceivePort/take_A01_t02: Fail # co19 issue 81
-LibTest/async/Stream/take_A01_t02: Fail # co19 issue 81
 # Tests that fail on every runtime, but not on the analyzer.
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
@@ -73,10 +71,4 @@ LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == drt || $runtime == dart_precompiled || $runtime == dart_app) ]
 # Optional trailing commas for argument and parameter lists added to language.
 # https://github.com/dart-lang/co19/issues/68
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: Fail, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: Fail, OK
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: Fail, OK
-Language/Functions/Formal_Parameters/syntax_t04: Fail, OK
 Language/Functions/Formal_Parameters/syntax_t05: Fail, OK
-Language/Functions/Formal_Parameters/syntax_t12: Fail, OK
