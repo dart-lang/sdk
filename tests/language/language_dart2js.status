@@ -80,13 +80,6 @@ async_star_no_cancel2_test: RuntimeError # Need triage
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
 
-# Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: CompileTimeError # DartOptions not passed to compiler.
-initializing_formal_capture_test: CompileTimeError # DartOptions not passed to compiler.
-initializing_formal_final_test: CompileTimeError # DartOptions not passed to compiler.
-initializing_formal_promotion_test: CompileTimeError # DartOptions not passed to compiler.
-initializing_formal_type_test: CompileTimeError # DartOptions not passed to compiler.
-
 library_env_test/has_no_io_support: Pass # Issue 27398
 library_env_test/has_io_support: RuntimeError # Issue 27398
 
