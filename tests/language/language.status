@@ -105,6 +105,7 @@ vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 initializing_formal_access_test: Skip
 initializing_formal_capture_test: Skip
 initializing_formal_final_test: Skip
+initializing_formal_promotion_test: Skip
 initializing_formal_type_test: Skip
 parameter_initializer5_test: Skip
 
