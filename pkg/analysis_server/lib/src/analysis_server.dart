@@ -588,14 +588,21 @@ class AnalysisServer {
   }
 
   /**
-   * Return the analysis driver to which the file with the given [path] is
-   * added if exists, otherwise the first driver, otherwise `null`.
+   * Return an analysis driver to which the file with the given [path] is
+   * added if exists, otherwise a driver in which the file was analyzed if
+   * exists, otherwise the first driver, otherwise `null`.
    */
   nd.AnalysisDriver getAnalysisDriver(String path) {
     Iterable<nd.AnalysisDriver> drivers = driverMap.values;
     if (drivers.isNotEmpty) {
-      return drivers.firstWhere((driver) => driver.knownFiles.contains(path),
-          orElse: () => drivers.first);
+      nd.AnalysisDriver driver = drivers.firstWhere(
+          (driver) => driver.addedFiles.contains(path),
+          orElse: () => null);
+      driver ??= drivers.firstWhere(
+          (driver) => driver.knownFiles.contains(path),
+          orElse: () => null);
+      driver ??= drivers.first;
+      return driver;
     }
     return null;
   }
