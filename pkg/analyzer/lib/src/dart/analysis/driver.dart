@@ -24,7 +24,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -69,7 +68,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 7;
+  static const int DATA_VERSION = 8;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -568,9 +567,6 @@ class AnalysisDriver {
 
   /**
    * Return the context in which the [library] should be analyzed it.
-   *
-   * TODO(scheglov) We often don't need [SummaryDataStore], only dependency
-   * signature.
    */
   _LibraryContext _createLibraryContext(FileState library) {
     return _logger.run('Create library context', () {
@@ -615,9 +611,8 @@ class AnalysisDriver {
           String key = '${library.transitiveSignature}.linked';
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
-            PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-            _addToStoreLinked(
-                store, library.uriStr, linked.linkedLibraries.single);
+            LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
+            _addToStoreLinked(store, library.uriStr, linked);
           } else {
             libraryUrisToLink.add(library.uriStr);
           }
@@ -641,14 +636,9 @@ class AnalysisDriver {
       linkedLibraries.forEach((uri, linkedBuilder) {
         FileState library = libraries[uri];
         String key = '${library.transitiveSignature}.linked';
-        List<int> bytes;
-        {
-          PackageBundleAssembler assembler = new PackageBundleAssembler();
-          assembler.addLinkedLibrary(uri, linkedBuilder);
-          bytes = assembler.assemble().toBuffer();
-        }
-        PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-        _addToStoreLinked(store, uri, linked.linkedLibraries.single);
+        List<int> bytes = linkedBuilder.toBuffer();
+        LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
+        _addToStoreLinked(store, uri, linked);
         _byteStore.put(key, bytes);
       });
 
