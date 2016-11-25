@@ -7594,7 +7594,6 @@ AstNode* Parser::ParseVariableDeclarationList() {
 AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   TRACE_PARSER("ParseFunctionStatement");
   AbstractType& result_type = AbstractType::Handle(Z);
-  const String* variable_name = NULL;
   const String* function_name = NULL;
 
   result_type = Type::DynamicType();
@@ -7616,8 +7615,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       result_type = ParseType(ClassFinalizer::kDoNotResolve);
     }
     function_name_pos = TokenPos();
-    variable_name = ExpectIdentifier("function name expected");
-    function_name = variable_name;
+    function_name = ExpectIdentifier("function name expected");
 
     // Check that the function name has not been referenced
     // before this declaration.
@@ -7689,7 +7687,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   LocalVariable* function_variable = NULL;
   Type& function_type = Type::ZoneHandle(Z);
-  if (variable_name != NULL) {
+  if (!is_literal) {
     // Since the function type depends on the signature of the closure function,
     // it cannot be determined before the formal parameter list of the closure
     // function is parsed. Therefore, we set the function type to a new
@@ -7705,7 +7703,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // Add the function variable to the scope before parsing the function in
     // order to allow self reference from inside the function.
     function_variable = new (Z) LocalVariable(function_name_pos, function_pos,
-                                              *variable_name, function_type);
+                                              *function_name, function_type);
     function_variable->set_is_final();
     ASSERT(current_block_ != NULL);
     ASSERT(current_block_->scope != NULL);
@@ -7773,7 +7771,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   ASSERT(!signature_type.IsMalformed());
   ASSERT(!signature_type.IsMalbounded());
 
-  if (variable_name != NULL) {
+  if (!is_literal) {
     // Patch the function type of the variable now that the signature is known.
     function_type.set_type_class(Class::Handle(Z, signature_type.type_class()));
     function_type.set_arguments(
@@ -7785,8 +7783,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     function_type.ResetIsFinalized();
 
     // The function variable type should have been patched above.
-    ASSERT((function_variable == NULL) ||
-           (function_variable->type().raw() == function_type.raw()));
+    ASSERT(function_variable->type().raw() == function_type.raw());
   }
 
   // The code generator does not compile the closure function when visiting
@@ -7815,14 +7812,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   ASSERT(innermost_function_.raw() == function.raw());
   innermost_function_ = function.parent_function();
 
-  if (function_variable == NULL) {
-    ASSERT(is_literal);
-    return closure;
-  } else {
-    AstNode* initialization =
-        new (Z) StoreLocalNode(function_pos, function_variable, closure);
-    return initialization;
-  }
+  return is_literal ? closure : new (Z) StoreLocalNode(
+                                    function_pos, function_variable, closure);
 }
 
 
@@ -13807,11 +13798,7 @@ AstNode* Parser::ParsePrimary() {
   AstNode* primary = NULL;
   const Token::Kind token = CurrentToken();
   if (IsFunctionLiteral()) {
-    // The name of a literal function is visible from inside the function, but
-    // must not collide with names in the scope declaring the literal.
-    OpenBlock();
     primary = ParseFunctionStatement(true);
-    CloseBlock();
   } else if (IsIdentifier()) {
     TokenPosition qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z, ParsePrefix());
