@@ -44,8 +44,6 @@ Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this fail
 Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure.
 Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure.
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail # Please triage this failure.
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail # Please triage this failure.
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Times out. Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out. Issue 25967
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: Fail # Issue 25732
@@ -71,22 +69,13 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Fail # Issue
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: Fail # Issue 25772
 Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
 Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: Pass
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: Fail # Please triage this failure.
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: Fail # Please triage this failure.
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: Fail # Please triage this failure.
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: Fail # Please triage this failure.
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: RuntimeError # Issue 24607
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction: RuntimeError # Issue 26287
 Language/Expressions/Property_Extraction/Named_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
 Language/Expressions/Property_Extraction/Super_Closurization: RuntimeError # Issue 26287
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: RuntimeError, OK  # Uses Isolate.spawn.
-Language/Functions/Formal_Parameters/syntax_t04: Fail # Please triage this failure.
-Language/Functions/Formal_Parameters/syntax_t04: Fail # Please triage this failure.
-Language/Functions/Formal_Parameters/syntax_t05: Pass
-Language/Functions/Formal_Parameters/syntax_t12: Fail # Please triage this failure.
-Language/Functions/Formal_Parameters/syntax_t12: Fail # Please triage this failure.
+Language/Functions/Formal_Parameters/syntax_t05: RuntimeError # Issue 26644
 Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
 Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 Language/Libraries_and_Scripts/Parts/compilation_t02: Skip # Please triage this failure.
