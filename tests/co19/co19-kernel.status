@@ -233,7 +233,7 @@ Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
