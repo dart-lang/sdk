@@ -498,14 +498,8 @@ for_in3_test: StaticWarning, OK # Test should have warning by design.
 for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does not implement Iterable in for-in.
 
 # Experimental feature: Syntactic support for generic methods.
-generic_functions_test: CompileTimeError # Issue 25868
-generic_local_functions_test: CompileTimeError # Issue 25868
-generic_methods_test: CompileTimeError # Issue 25868
-generic_sends_test: CompileTimeError # Issue 25868
-generic_methods_new_test: CompiletimeError # Issue 25868
-generic_methods_function_type_test: CompiletimeError # Issue 25868
-generic_methods_type_expression_test: CompiletimeError # Issue 25868
-generic_methods_generic_function_parameter_test: CompiletimeError # Issue 25868
+generic_methods_type_expression_test: StaticWarning # Issue 25868
+generic_methods_generic_function_parameter_test: StaticWarning # Issue 25868
 
 # Experimental feature: Use initializing formals in initializers and constructor body.
 initializing_formal_type_test: StaticWarning # Issue 26658

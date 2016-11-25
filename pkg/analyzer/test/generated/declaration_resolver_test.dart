@@ -101,6 +101,33 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     checkMetadata('export');
   }
 
+  void test_metadata_exportDirective_resynthesized() {
+    CompilationUnit unit = resolveSource(r'''
+@a
+export "dart:async";
+
+@b
+export "dart:math";
+
+const a = null;
+const b = null;
+''');
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The ExportElement(s) still have the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives[0].offset, []);
+    unitElement.setAnnotations(unit.directives[1].offset, []);
+    expect(unitElement.library.exports[0].metadata, hasLength(1));
+    expect(unitElement.library.exports[1].metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
+  }
+
   void test_metadata_fieldDeclaration() {
     setupCode('class C { @a int x; }');
     checkMetadata('x');
@@ -161,6 +188,33 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     unit = analysisContext.computeResult(target, RESOLVED_UNIT1);
     unit2 = _cloneResolveUnit(unit);
     checkMetadata('import');
+  }
+
+  void test_metadata_importDirective_resynthesized() {
+    CompilationUnit unit = resolveSource(r'''
+@a
+import "dart:async";
+
+@b
+import "dart:math";
+
+const a = null;
+const b = null;
+''');
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The ImportElement(s) still have the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives[0].offset, []);
+    unitElement.setAnnotations(unit.directives[1].offset, []);
+    expect(unitElement.library.imports[0].metadata, hasLength(1));
+    expect(unitElement.library.imports[1].metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
   }
 
   void test_metadata_libraryDirective() {
@@ -382,9 +436,11 @@ void set zzz(_) {}
 
   void test_invalid_functionDeclaration_getter_inFunction() {
     String code = r'''
-main() {
-  int get zzz => 42;
-}
+var v = (() {
+  main() {
+    int get zzz => 42;
+  }
+});
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement getterElement =
@@ -397,9 +453,11 @@ main() {
 
   void test_invalid_functionDeclaration_setter_inFunction() {
     String code = r'''
-main() {
-  set zzz(x) {}
-}
+var v = (() {
+  main() {
+    set zzz(x) {}
+  }
+});
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement setterElement =

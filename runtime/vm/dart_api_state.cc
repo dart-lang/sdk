@@ -15,9 +15,8 @@
 namespace dart {
 
 BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
-                                         FinalizationQueue* queue) :
-    isolate_(isolate),
-    queue_(queue) {
+                                         FinalizationQueue* queue)
+    : isolate_(isolate), queue_(queue) {
   ASSERT(FLAG_background_finalization);
   PageSpace* old_space = isolate->heap()->old_space();
   MonitorLocker ml(old_space->tasks_lock());
@@ -26,8 +25,7 @@ BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
 
 
 void BackgroundFinalizer::Run() {
-  bool result = Thread::EnterIsolateAsHelper(isolate_,
-                                             Thread::kFinalizerTask);
+  bool result = Thread::EnterIsolateAsHelper(isolate_, Thread::kFinalizerTask);
   ASSERT(result);
 
   {

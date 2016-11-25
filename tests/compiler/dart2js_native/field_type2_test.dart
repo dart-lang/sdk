@@ -5,7 +5,7 @@
 // Test that a closure call on a native field is recognized by the
 // type inferrer.
 
-import 'dart:_js_helper';
+import 'native_testing.dart';
 
 @Native("Node")
 class Node {
@@ -18,9 +18,12 @@ void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
 function Node(parent){ this.parentNode = parent; }
 makeNode = function(p){return new Node(p);};
+
+self.nativeConstructor(Node);
 """;
 
 main() {
+  nativeTesting();
   setup();
   var node = makeNode(null);
   if (node.parentNode != null) {

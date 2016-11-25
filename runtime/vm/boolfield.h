@@ -11,7 +11,7 @@ namespace dart {
 
 // BoolField is a template for encoding and decoding a bit inside an
 // unsigned machine word.
-template<int position>
+template <int position>
 class BoolField {
  public:
   // Returns a uword with the bool value encoded.

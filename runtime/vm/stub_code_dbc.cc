@@ -23,12 +23,27 @@
 namespace dart {
 
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool, use_slow_path, false,
-    "Set to true for debugging & verifying the slow paths.");
+DEFINE_FLAG(bool,
+            use_slow_path,
+            false,
+            "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Compile();
+}
+
+
+// Not executed, but used as a stack marker when calling
+// DRT_OptimizeInvokedFunction.
+void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
+// Not executed, but used as a sentinel in Simulator::JumpToFrame.
+void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+  __ Trap();
 }
 
 

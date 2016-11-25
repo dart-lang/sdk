@@ -42,7 +42,7 @@ String _makeAuthToken() {
 final String serviceAuthToken = _makeAuthToken();
 
 // TODO(johnmccutchan): Enable the auth token and drop the origin check.
-final bool useAuthToken = false;
+final bool useAuthToken = const bool.fromEnvironment('DART_SERVICE_USE_AUTH');
 
 // This is for use by the embedder. It is a map from the isolateId to
 // anything implementing IsolateEmbedderData. When an isolate goes away,

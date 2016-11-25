@@ -22,7 +22,7 @@ BytecodeRegExpMacroAssembler::BytecodeRegExpMacroAssembler(
     : RegExpMacroAssembler(zone),
       buffer_(buffer),
       pc_(0),
-      advance_current_end_(kInvalidPC) { }
+      advance_current_end_(kInvalidPC) {}
 
 
 BytecodeRegExpMacroAssembler::~BytecodeRegExpMacroAssembler() {
@@ -81,7 +81,8 @@ void BytecodeRegExpMacroAssembler::PushRegister(intptr_t register_index) {
 
 
 void BytecodeRegExpMacroAssembler::WriteCurrentPositionToRegister(
-    intptr_t register_index, intptr_t cp_offset) {
+    intptr_t register_index,
+    intptr_t cp_offset) {
   ASSERT(register_index >= 0);
   ASSERT(register_index <= kMaxRegister);
   Emit(BC_SET_REGISTER_TO_CP, register_index);
@@ -204,7 +205,7 @@ void BytecodeRegExpMacroAssembler::AdvanceCurrentPosition(intptr_t by) {
 
 
 void BytecodeRegExpMacroAssembler::CheckGreedyLoop(
-      BlockLabel* on_tos_equals_current_position) {
+    BlockLabel* on_tos_equals_current_position) {
   Emit(BC_CHECK_GREEDY, 0);
   EmitOrLink(on_tos_equals_current_position);
 }
@@ -356,8 +357,8 @@ void BytecodeRegExpMacroAssembler::CheckCharacterNotInRange(
 }
 
 
-void BytecodeRegExpMacroAssembler::CheckBitInTable(
-    const TypedData& table, BlockLabel* on_bit_set) {
+void BytecodeRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
+                                                   BlockLabel* on_bit_set) {
   Emit(BC_CHECK_BIT_IN_TABLE, 0);
   EmitOrLink(on_bit_set);
   for (int i = 0; i < kTableSize; i += kBitsPerByte) {
@@ -449,28 +450,31 @@ void BytecodeRegExpMacroAssembler::Expand() {
   buffer_->Add(0);
   buffer_->Add(0);
   intptr_t x = buffer_->length();
-  for (intptr_t i = 0; i < x; i++) buffer_->Add(0);
+  for (intptr_t i = 0; i < x; i++)
+    buffer_->Add(0);
 }
 
 
 static intptr_t Prepare(const RegExp& regexp,
                         const String& subject,
+                        bool sticky,
                         Zone* zone) {
-  bool is_one_byte = subject.IsOneByteString() ||
-                     subject.IsExternalOneByteString();
+  bool is_one_byte =
+      subject.IsOneByteString() || subject.IsExternalOneByteString();
 
-  if (regexp.bytecode(is_one_byte) == TypedData::null()) {
+  if (regexp.bytecode(is_one_byte, sticky) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
-    NOT_IN_PRODUCT(TimelineDurationScope tds(Thread::Current(),
-                                             Timeline::GetCompilerStream(),
-                                             "CompileIrregexpBytecode");
+#if !defined(PRODUCT)
+    TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                              "CompileIrregexpBytecode");
     if (tds.enabled()) {
       tds.SetNumArguments(1);
       tds.CopyArgument(0, "pattern", pattern.ToCString());
-    });  // !PRODUCT
+    }
+#endif  // !defined(PRODUCT)
 
     const bool multiline = regexp.is_multi_line();
-    RegExpCompileData* compile_data = new(zone) RegExpCompileData();
+    RegExpCompileData* compile_data = new (zone) RegExpCompileData();
     if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
       // Parsing failures are handled in the RegExp factory constructor.
       UNREACHABLE();
@@ -483,13 +487,13 @@ static intptr_t Prepare(const RegExp& regexp,
       regexp.set_is_complex();
     }
 
-    RegExpEngine::CompilationResult result =
-        RegExpEngine::CompileBytecode(compile_data, regexp, is_one_byte, zone);
+    RegExpEngine::CompilationResult result = RegExpEngine::CompileBytecode(
+        compile_data, regexp, is_one_byte, sticky, zone);
     ASSERT(result.bytecode != NULL);
     ASSERT((regexp.num_registers() == -1) ||
            (regexp.num_registers() == result.num_registers));
     regexp.set_num_registers(result.num_registers);
-    regexp.set_bytecode(is_one_byte, *(result.bytecode));
+    regexp.set_bytecode(is_one_byte, sticky, *(result.bytecode));
   }
 
   ASSERT(regexp.num_registers() != -1);
@@ -502,18 +506,19 @@ static intptr_t Prepare(const RegExp& regexp,
 static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
                                                    const String& subject,
                                                    intptr_t index,
+                                                   bool sticky,
                                                    int32_t* output,
                                                    intptr_t output_size,
                                                    Zone* zone) {
-  bool is_one_byte = subject.IsOneByteString() ||
-                     subject.IsExternalOneByteString();
+  bool is_one_byte =
+      subject.IsOneByteString() || subject.IsExternalOneByteString();
 
   ASSERT(regexp.num_bracket_expressions() != Smi::null());
 
   // We must have done EnsureCompiledIrregexp, so we can get the number of
   // registers.
   int number_of_capture_registers =
-     (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
+      (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
   int32_t* raw_output = &output[number_of_capture_registers];
 
   // We do not touch the actual capture result registers until we know there
@@ -524,7 +529,7 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
 
   const TypedData& bytecode =
-      TypedData::Handle(zone, regexp.bytecode(is_one_byte));
+      TypedData::Handle(zone, regexp.bytecode(is_one_byte, sticky));
   ASSERT(!bytecode.IsNull());
   IrregexpInterpreter::IrregexpResult result =
       IrregexpInterpreter::Match(bytecode, subject, raw_output, index, zone);
@@ -548,8 +553,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
 RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
                                                      const String& subject,
                                                      const Smi& start_index,
+                                                     bool sticky,
                                                      Zone* zone) {
-  intptr_t required_registers = Prepare(regexp, subject, zone);
+  intptr_t required_registers = Prepare(regexp, subject, sticky, zone);
   if (required_registers < 0) {
     // Compiling failed with an exception.
     UNREACHABLE();
@@ -558,21 +564,17 @@ RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
   // V8 uses a shared copy on the isolate when smaller than some threshold.
   int32_t* output_registers = zone->Alloc<int32_t>(required_registers);
 
-  IrregexpInterpreter::IrregexpResult result = ExecRaw(regexp,
-                                                       subject,
-                                                       start_index.Value(),
-                                                       output_registers,
-                                                       required_registers,
-                                                       zone);
+  IrregexpInterpreter::IrregexpResult result =
+      ExecRaw(regexp, subject, start_index.Value(), sticky, output_registers,
+              required_registers, zone);
 
   if (result == IrregexpInterpreter::RE_SUCCESS) {
     intptr_t capture_count = Smi::Value(regexp.num_bracket_expressions());
     intptr_t capture_register_count = (capture_count + 1) * 2;
     ASSERT(required_registers >= capture_register_count);
 
-    const TypedData& result =
-        TypedData::Handle(TypedData::New(kTypedDataInt32ArrayCid,
-                                         capture_register_count));
+    const TypedData& result = TypedData::Handle(
+        TypedData::New(kTypedDataInt32ArrayCid, capture_register_count));
     {
 #ifdef DEBUG
       // These indices will be used with substring operations that don't check
@@ -584,8 +586,7 @@ RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
 #endif
 
       NoSafepointScope no_safepoint;
-      memmove(result.DataAddr(0),
-              output_registers,
+      memmove(result.DataAddr(0), output_registers,
               capture_register_count * sizeof(int32_t));
     }
 

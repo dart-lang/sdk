@@ -8,7 +8,6 @@ library compiler.src.js_backend.lookup_map_analysis;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../common.dart';
-import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart'
     show

@@ -18,7 +18,6 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show Message, MessageTemplate;
 import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/options.dart' show ParserOptions;
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/parser/element_listener.dart' show ScannerOptions;
 import 'package:compiler/src/parser/listener.dart';
@@ -182,7 +181,7 @@ Future collectSources(SourceFile start, Set<SourceFile> files) async {
 Set<String> parseDirectives(SourceFile source) {
   var tokens = tokenize(source);
   var listener = new DirectiveListener();
-  new PartialParser(listener, const _ParserOptions()).parseUnit(tokens);
+  new PartialParser(listener).parseUnit(tokens);
   return listener.targets;
 }
 
@@ -191,7 +190,7 @@ parseFull(SourceFile source) {
   var tokens = tokenize(source);
   NodeListener listener = new NodeListener(
       const ScannerOptions(canUseNative: true), new FakeReporter(), null);
-  Parser parser = new Parser(listener, const _ParserOptions());
+  Parser parser = new Parser(listener);
   parser.parseUnit(tokens);
   return listener.popNode();
 }
@@ -333,11 +332,6 @@ class _Loader {
   }
 }
 
-class _ParserOptions implements ParserOptions {
-  const _ParserOptions();
-  bool get enableGenericMethodSyntax => true;
-}
-
 generateKernel(Uri entryUri) async {
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions(
@@ -382,7 +376,7 @@ class MyCompiler extends CompilerImpl {
           fullyEnqueueLibrary(library, enqueuer.resolution);
         });
 
-        backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+        backend.enqueueHelpers(enqueuer.resolution);
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(enqueuer.resolution, mainFunction);

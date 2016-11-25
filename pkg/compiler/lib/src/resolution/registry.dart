@@ -7,7 +7,6 @@ library dart2js.resolution.registry;
 import '../common.dart';
 import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
-import '../common/registry.dart' show Registry;
 import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
@@ -154,7 +153,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
 /// related information in a [TreeElements] mapping and registers calls with
 /// [Backend], [World] and [Enqueuer].
 // TODO(johnniwinther): Split this into an interface and implementation class.
-class ResolutionRegistry extends Registry {
+class ResolutionRegistry {
   final Target target;
   final TreeElementMapping mapping;
   final ResolutionWorldImpactBuilder impactBuilder;
@@ -329,6 +328,13 @@ class ResolutionRegistry extends Registry {
   /// Register the use of a type.
   void registerTypeUse(TypeUse typeUse) {
     impactBuilder.registerTypeUse(typeUse);
+  }
+
+  /// Register checked mode check of [type] if it isn't `dynamic`.
+  void registerCheckedModeCheck(DartType type) {
+    if (!type.isDynamic) {
+      impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    }
   }
 
   void registerSuperUse(SourceSpan span) {

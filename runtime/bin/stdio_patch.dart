@@ -34,7 +34,7 @@
     return null;
   }
 
-  @patch static int _nativeSocketType(_NativeSocket nativeSocket) {
+  static int _nativeSocketType(_NativeSocket nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
       throw new FileSystemException(

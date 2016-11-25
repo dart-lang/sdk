@@ -153,8 +153,7 @@ main(A a) {
 ''');
     await findElementReferences('fff; // declaration', false);
     expect(searchElement.kind, ElementKind.FIELD);
-    expect(results, hasLength(11));
-    assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
+    expect(results, hasLength(10));
     assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
     // m()
@@ -216,8 +215,7 @@ class A {
 ''');
     await findElementReferences('fff); // in constructor', false);
     expect(searchElement.kind, ElementKind.FIELD);
-    expect(results, hasLength(4));
-    assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
+    expect(results, hasLength(3));
     assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
@@ -257,9 +255,6 @@ main() {
   ''');
     await findElementReferences('fff; // in B', false);
     expect(searchElement.kind, ElementKind.FIELD);
-    assertHasResult(SearchResultKind.DECLARATION, 'fff; // in A');
-    assertHasResult(SearchResultKind.DECLARATION, 'fff; // in B');
-    assertHasResult(SearchResultKind.DECLARATION, 'fff; // in C');
     assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff = 30;');
@@ -326,8 +321,7 @@ myLabel:
 ''');
     await findElementReferences('myLabel; // break', false);
     expect(searchElement.kind, ElementKind.LABEL);
-    expect(results, hasLength(3));
-    assertHasResult(SearchResultKind.DECLARATION, 'myLabel:');
+    expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // continue');
     assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // break');
   }
@@ -344,8 +338,7 @@ main() {
 ''');
     await findElementReferences('vvv = 1', false);
     expect(searchElement.kind, ElementKind.LOCAL_VARIABLE);
-    expect(results, hasLength(5));
-    assertHasResult(SearchResultKind.DECLARATION, 'vvv = 1');
+    expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.READ_WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
@@ -403,38 +396,6 @@ main() {
     expect(searchId, isNull);
   }
 
-  test_oneUnit_twoLibraries() async {
-    var pathA = '/project/bin/libA.dart';
-    var pathB = '/project/bin/libB.dart';
-    var codeA = '''
-library lib;
-part 'test.dart';
-main() {
-  fff(1);
-}
-''';
-    var codeB = '''
-library lib;
-part 'test.dart';
-main() {
-  fff(2);
-}
-''';
-    addFile(pathA, codeA);
-    addFile(pathB, codeB);
-    addTestFile('''
-part of lib;
-fff(p) {}
-''');
-    await findElementReferences('fff(p) {}', false);
-    expect(searchElement.kind, ElementKind.FUNCTION);
-    expect(results, hasLength(2));
-    findResult(
-        SearchResultKind.INVOCATION, pathA, codeA.indexOf('fff(1)'), 3, true);
-    findResult(
-        SearchResultKind.INVOCATION, pathB, codeB.indexOf('fff(2)'), 3, true);
-  }
-
   test_oneUnit_zeroLibraries() async {
     addTestFile('''
 part of lib;
@@ -458,8 +419,7 @@ main(ppp) {
 ''');
     await findElementReferences('ppp) {', false);
     expect(searchElement.kind, ElementKind.PARAMETER);
-    expect(results, hasLength(5));
-    assertHasResult(SearchResultKind.DECLARATION, 'ppp) {');
+    expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'ppp);');
     assertHasResult(SearchResultKind.READ_WRITE, 'ppp += 3');
     assertHasResult(SearchResultKind.WRITE, 'ppp = 2');
@@ -626,8 +586,7 @@ main() {
     expect(searchElement.kind, ElementKind.PREFIX);
     expect(searchElement.name, 'ppp');
     expect(searchElement.location.startLine, 1);
-    expect(results, hasLength(3));
-    assertHasResult(SearchResultKind.DECLARATION, 'ppp;');
+    expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Future');
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
   }
@@ -644,8 +603,7 @@ main() {
 ''');
     await findElementReferences('vvv = 1', false);
     expect(searchElement.kind, ElementKind.TOP_LEVEL_VARIABLE);
-    expect(results, hasLength(5));
-    assertHasResult(SearchResultKind.DECLARATION, 'vvv = 1;');
+    expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');

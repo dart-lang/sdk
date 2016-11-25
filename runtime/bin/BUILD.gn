@@ -2,10 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("gypi_contents.gni")
+
 declare_args() {
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.
-  dart_use_fallback_root_certificates = false
+  dart_use_fallback_root_certificates = true
 
   # The BUILD.gn file that we pull from chromium as part of zlib has a
   # dependence on //base, which we don't pull in. In a standalone build of the
@@ -18,12 +20,6 @@ declare_args() {
   dart_use_tcmalloc = false
 }
 
-resources_sources_gypi =
-    exec_script("../../tools/gypi_to_gn.py",
-                [ rebase_path("vmservice/vmservice_sources.gypi") ],
-                "scope",
-                [ "vmservice/vmservice_sources.gypi" ])
-
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
   visibility = [ ":*" ]  # Only targets in this file can see this.
@@ -34,7 +30,7 @@ action("gen_resources_cc") {
 
   # The path below is hard coded for the Mojo and Flutter trees. When moving
   # the Dart runtime to gn, this path might need to be updated.
-  sources = rebase_path(resources_sources_gypi.sources, "", "../bin/vmservice/")
+  sources = rebase_path(resources_sources_gypi, "", "../bin/vmservice/")
   outputs = [
     "$target_gen_dir/resources_gen.cc",
   ]
@@ -86,15 +82,10 @@ template("gen_library_src_path") {
   }
 }
 
-builtin_sources_gypi = exec_script("../../tools/gypi_to_gn.py",
-                                   [ rebase_path("builtin_sources.gypi") ],
-                                   "scope",
-                                   [ "builtin_sources.gypi" ])
-
 gen_library_src_path("generate_builtin_cc_file") {
   name = "_builtin"
   kind = "source"
-  sources = builtin_sources_gypi.sources
+  sources = builtin_sources_gypi
   output = "$target_gen_dir/builtin_gen.cc"
 }
 
@@ -113,15 +104,10 @@ gen_library_src_path("generate_io_cc_file") {
   output = "$target_gen_dir/io_gen.cc"
 }
 
-io_sources_gypi = exec_script("../../tools/gypi_to_gn.py",
-                              [ rebase_path("io_sources.gypi") ],
-                              "scope",
-                              [ "io_sources.gypi" ])
-
 gen_library_src_path("generate_io_patch_cc_file") {
   name = "io"
   kind = "patch"
-  sources = io_sources_gypi.sources
+  sources = io_sources_gypi
   output = "$target_gen_dir/io_patch_gen.cc"
 }
 
@@ -253,12 +239,6 @@ config("libdart_builtin_config") {
   }
 }
 
-builtin_impl_sources_gypi =
-    exec_script("../../tools/gypi_to_gn.py",
-                [ rebase_path("builtin_impl_sources.gypi") ],
-                "scope",
-                [ "builtin_impl_sources.gypi" ])
-
 static_library("libdart_builtin") {
   configs += [
     "..:dart_config",
@@ -293,13 +273,8 @@ static_library("libdart_builtin") {
               "log_linux.cc",
               "log_macos.cc",
               "log_win.cc",
-            ] + builtin_impl_sources_gypi.sources
+            ] + builtin_impl_sources_gypi
 }
-
-io_impl_sources_gypi = exec_script("../../tools/gypi_to_gn.py",
-                                   [ rebase_path("io_impl_sources.gypi") ],
-                                   "scope",
-                                   [ "io_impl_sources.gypi" ])
 
 executable("gen_snapshot") {
   configs += [
@@ -386,7 +361,7 @@ source_set("gen_snapshot_dart_io") {
 
   defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
-  sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
+  sources = io_impl_sources_gypi + builtin_impl_sources_gypi
   sources += [
     "io_natives.cc",
     "io_natives.h",
@@ -444,15 +419,13 @@ template("dart_io") {
       if (is_mac) {
         libs += [ "CoreServices.framework" ]
       }
-    } else if (defined(is_fuchsia) && is_fuchsia) {
-      defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
     } else {
       deps = [
         "//third_party/boringssl",
       ]
     }
 
-    sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
+    sources = io_impl_sources_gypi + builtin_impl_sources_gypi
     sources += [
                  "builtin_natives.cc",
                  "io_natives.cc",
@@ -464,7 +437,7 @@ template("dart_io") {
                  "log.h",
                ] + extra_sources
 
-    if (is_linux || is_win) {
+    if (is_linux || is_win || (defined(is_fuchsia) && is_fuchsia)) {
       if (dart_use_fallback_root_certificates) {
         sources += [ "//third_party/root_certificates/root_certificates.cc" ]
       } else {
@@ -810,30 +783,12 @@ executable("run_vm_tests") {
 
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.
-  vm_tests_list = exec_script("../../tools/gypi_to_gn.py",
-                              [
-                                rebase_path("../vm/vm_sources.gypi"),
-                                "--keep_only=_test.cc",
-                                "--keep_only=_test.h",
-                              ],
-                              "scope",
-                              [ "../vm/vm_sources.gypi" ])
-  vm_tests = rebase_path(vm_tests_list.sources, ".", "../vm")
-
-  builtin_impl_tests_list =
-      exec_script("../../tools/gypi_to_gn.py",
-                  [
-                    rebase_path("builtin_impl_sources.gypi"),
-                    "--keep_only=_test.cc",
-                    "--keep_only=_test.h",
-                  ],
-                  "scope",
-                  [ "builtin_impl_sources.gypi" ])
+  vm_tests = rebase_path(vm_tests_list, ".", "../vm")
 
   sources = [
               "builtin_nolib.cc",
               "run_vm_tests.cc",
-            ] + builtin_impl_tests_list.sources + vm_tests
+            ] + builtin_impl_tests_list + vm_tests
 
   if (!is_win) {
     ldflags = [ "-rdynamic" ]

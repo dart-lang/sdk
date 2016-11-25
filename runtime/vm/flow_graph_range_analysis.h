@@ -26,16 +26,16 @@ class RangeBoundary : public ValueObject {
     kRangeBoundaryInt64,
   };
 
-  RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) { }
+  RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) {}
 
   RangeBoundary(const RangeBoundary& other)
       : ValueObject(),
         kind_(other.kind_),
         value_(other.value_),
-        offset_(other.offset_) { }
+        offset_(other.offset_) {}
 
   explicit RangeBoundary(int64_t val)
-      : kind_(kConstant), value_(val), offset_(0) { }
+      : kind_(kConstant), value_(val), offset_(0) {}
 
   RangeBoundary& operator=(const RangeBoundary& other) {
     kind_ = other.kind_;
@@ -48,9 +48,7 @@ class RangeBoundary : public ValueObject {
   static const int64_t kMax = kMaxInt64;
 
   // Construct a RangeBoundary for a constant value.
-  static RangeBoundary FromConstant(int64_t val) {
-    return RangeBoundary(val);
-  }
+  static RangeBoundary FromConstant(int64_t val) { return RangeBoundary(val); }
 
   // Construct a RangeBoundary for -inf.
   static RangeBoundary NegativeInfinity() {
@@ -66,24 +64,16 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary FromDefinition(Definition* defn, int64_t offs = 0);
 
   // Construct a RangeBoundary for the constant MinSmi value.
-  static RangeBoundary MinSmi() {
-    return FromConstant(Smi::kMinValue);
-  }
+  static RangeBoundary MinSmi() { return FromConstant(Smi::kMinValue); }
 
   // Construct a RangeBoundary for the constant MaxSmi value.
-  static RangeBoundary MaxSmi() {
-    return FromConstant(Smi::kMaxValue);
-  }
+  static RangeBoundary MaxSmi() { return FromConstant(Smi::kMaxValue); }
 
   // Construct a RangeBoundary for the constant kMin value.
-  static RangeBoundary MinConstant() {
-    return FromConstant(kMin);
-  }
+  static RangeBoundary MinConstant() { return FromConstant(kMin); }
 
   // Construct a RangeBoundary for the constant kMax value.
-  static RangeBoundary MaxConstant() {
-    return FromConstant(kMax);
-  }
+  static RangeBoundary MaxConstant() { return FromConstant(kMax); }
 
   // Construct a RangeBoundary for the constant kMin value.
   static RangeBoundary MinConstant(RangeSize size) {
@@ -156,9 +146,7 @@ class RangeBoundary : public ValueObject {
   }
 
   // Returns true if this outside mint range.
-  bool OverflowedMint() const {
-    return IsInfinity();
-  }
+  bool OverflowedMint() const { return IsInfinity(); }
 
   // -/+ infinity are clamped to MinConstant/MaxConstant of the given type.
   RangeBoundary Clamp(RangeSize size) const {
@@ -189,19 +177,17 @@ class RangeBoundary : public ValueObject {
 
   bool IsMinimumOrBelow(RangeSize size) const {
     return IsNegativeInfinity() ||
-        (IsConstant() &&
-         (ConstantValue() <= RangeBoundary::MinConstant(size).ConstantValue()));
+           (IsConstant() && (ConstantValue() <=
+                             RangeBoundary::MinConstant(size).ConstantValue()));
   }
 
   bool IsMaximumOrAbove(RangeSize size) const {
     return IsPositiveInfinity() ||
-        (IsConstant() &&
-         (ConstantValue() >= RangeBoundary::MaxConstant(size).ConstantValue()));
+           (IsConstant() && (ConstantValue() >=
+                             RangeBoundary::MaxConstant(size).ConstantValue()));
   }
 
-  intptr_t kind() const {
-    return kind_;
-  }
+  intptr_t kind() const { return kind_; }
 
   // Kind tests.
   bool IsUnknown() const { return kind_ == kUnknown; }
@@ -212,9 +198,7 @@ class RangeBoundary : public ValueObject {
   bool IsInfinity() const {
     return IsNegativeInfinity() || IsPositiveInfinity();
   }
-  bool IsConstantOrInfinity() const {
-    return IsConstant() || IsInfinity();
-  }
+  bool IsConstantOrInfinity() const { return IsConstant() || IsInfinity(); }
 
   // Returns the value of a kConstant RangeBoundary.
   int64_t ConstantValue() const;
@@ -226,9 +210,7 @@ class RangeBoundary : public ValueObject {
   }
 
   // Offset from symbol.
-  int64_t offset() const {
-    return offset_;
-  }
+  int64_t offset() const { return offset_; }
 
   // Computes the LowerBound of this. Three cases:
   // IsInfinity() -> NegativeInfinity().
@@ -291,17 +273,13 @@ class RangeBoundary : public ValueObject {
     return LowerBound().Clamp(size).ConstantValue();
   }
 
-  int64_t SmiUpperBound() const {
-    return UpperBound(kRangeBoundarySmi);
-  }
+  int64_t SmiUpperBound() const { return UpperBound(kRangeBoundarySmi); }
 
-  int64_t SmiLowerBound() const {
-    return LowerBound(kRangeBoundarySmi);
-  }
+  int64_t SmiLowerBound() const { return LowerBound(kRangeBoundarySmi); }
 
  private:
   RangeBoundary(Kind kind, int64_t value, int64_t offset)
-      : kind_(kind), value_(value), offset_(offset) { }
+      : kind_(kind), value_(value), offset_(offset) {}
 
   Kind kind_;
   int64_t value_;
@@ -311,16 +289,13 @@ class RangeBoundary : public ValueObject {
 
 class Range : public ZoneAllocated {
  public:
-  Range() : min_(), max_() { }
+  Range() : min_(), max_() {}
   Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
   }
 
   Range(const Range& other)
-      : ZoneAllocated(),
-        min_(other.min_),
-        max_(other.max_) {
-  }
+      : ZoneAllocated(), min_(other.min_), max_(other.max_) {}
 
   Range& operator=(const Range& other) {
     min_ = other.min_;
@@ -348,18 +323,13 @@ class Range : public ZoneAllocated {
     if (other == NULL) {
       return min_.IsUnknown();
     }
-    return min_.Equals(other->min_) &&
-        max_.Equals(other->max_);
+    return min_.Equals(other->min_) && max_.Equals(other->max_);
   }
 
   const RangeBoundary& min() const { return min_; }
   const RangeBoundary& max() const { return max_; }
-  void set_min(const RangeBoundary& value) {
-    min_ = value;
-  }
-  void set_max(const RangeBoundary& value) {
-    max_ = value;
-  }
+  void set_min(const RangeBoundary& value) { min_ = value; }
+  void set_max(const RangeBoundary& value) { max_ = value; }
 
   static RangeBoundary ConstantMinSmi(const Range* range) {
     return ConstantMin(range, RangeBoundary::kRangeBoundarySmi);
@@ -411,9 +381,7 @@ class Range : public ZoneAllocated {
 
   bool IsUnsatisfiable() const;
 
-  bool IsFinite() const {
-    return !min_.IsInfinity() && !max_.IsInfinity();
-  }
+  bool IsFinite() const { return !min_.IsInfinity() && !max_.IsInfinity(); }
 
   Range Intersect(const Range* other) const {
     return Range(RangeBoundary::IntersectionMin(min(), other->min()),
@@ -488,7 +456,7 @@ class Range : public ZoneAllocated {
 };
 
 
-class RangeUtils : public AllStatic  {
+class RangeUtils : public AllStatic {
  public:
   static bool Fits(Range* range, RangeBoundary::RangeSize size) {
     return !Range::IsUnknown(range) && range->Fits(size);
@@ -510,7 +478,7 @@ class RangeAnalysis : public ValueObject {
   explicit RangeAnalysis(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
         smi_range_(Range::Full(RangeBoundary::kRangeBoundarySmi)),
-        int64_range_(Range::Full(RangeBoundary::kRangeBoundaryInt64)) { }
+        int64_range_(Range::Full(RangeBoundary::kRangeBoundaryInt64)) {}
 
   // Infer ranges for all values and remove overflow checks from binary smi
   // operations when proven redundant.
@@ -534,11 +502,7 @@ class RangeAnalysis : public ValueObject {
   void AssignRangesRecursively(Definition* defn);
 
  private:
-  enum JoinOperator {
-    NONE,
-    WIDEN,
-    NARROW
-  };
+  enum JoinOperator { NONE, WIDEN, NARROW };
   static char OpPrefix(JoinOperator op);
 
   // Collect all values that were proven to be smi in smi_values_ array and all

@@ -47,7 +47,7 @@ class CommandLineOptions {
   explicit CommandLineOptions(int max_count)
       : count_(0), max_count_(max_count), arguments_(NULL) {
     static const int kWordSize = sizeof(intptr_t);
-    arguments_ = reinterpret_cast<const char **>(malloc(max_count * kWordSize));
+    arguments_ = reinterpret_cast<const char**>(malloc(max_count * kWordSize));
     if (arguments_ == NULL) {
       max_count_ = 0;
     }
@@ -95,8 +95,9 @@ class DartUtils {
   // Returns the integer value of a Dart object. If the object is not
   // an integer value or outside the requested range an API error is
   // propagated.
-  static int64_t GetInt64ValueCheckRange(
-      Dart_Handle value_obj, int64_t lower, int64_t upper);
+  static int64_t GetInt64ValueCheckRange(Dart_Handle value_obj,
+                                         int64_t lower,
+                                         int64_t upper);
   // Returns the intptr_t value of a Dart object. If the object is not
   // an integer value or the value is outside the intptr_t range an
   // API error is propagated.
@@ -125,6 +126,7 @@ class DartUtils {
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
   static const char* RemoveScheme(const char* url);
+  static char* DirName(const char* url);
   static void* MapExecutable(const char* name, intptr_t* file_len);
   static void* OpenFile(const char* name, bool write);
   static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
@@ -177,8 +179,8 @@ class DartUtils {
   // Allocate length bytes for a C string with Dart_ScopeAllocate.
   static char* ScopedCString(intptr_t length) {
     char* result = NULL;
-    result = reinterpret_cast<char*>(
-        Dart_ScopeAllocate(length * sizeof(*result)));
+    result =
+        reinterpret_cast<char*>(Dart_ScopeAllocate(length * sizeof(*result)));
     return result;
   }
 
@@ -256,10 +258,10 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading);
   static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
-                                 Dart_Handle builtin_lib,
-                                 bool is_service_isolate);
+                                        Dart_Handle builtin_lib,
+                                        bool is_service_isolate);
   static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
-                                  Dart_Handle isolate_lib);
+                                         Dart_Handle isolate_lib);
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
 
@@ -276,7 +278,7 @@ class CObject {
   static const int kOSError = 2;
   static const int kFileClosedError = 3;
 
-  explicit CObject(Dart_CObject *cobject) : cobject_(cobject) {}
+  explicit CObject(Dart_CObject* cobject) : cobject_(cobject) {}
   Dart_CObject_Type type() { return cobject_->type; }
   Dart_TypedData_Type byte_array_type() {
     ASSERT(type() == Dart_CObject_kTypedData ||
@@ -309,9 +311,7 @@ class CObject {
     return type() == Dart_CObject_kBool && !cobject_->value.as_bool;
   }
 
-  void* operator new(size_t size) {
-    return Dart_ScopeAllocate(size);
-  }
+  void* operator new(size_t size) { return Dart_ScopeAllocate(size); }
 
   static CObject* Null();
   static CObject* True();
@@ -329,7 +329,9 @@ class CObject {
   static Dart_CObject* NewUint8Array(intptr_t length);
   static Dart_CObject* NewUint32Array(intptr_t length);
   static Dart_CObject* NewExternalUint8Array(
-      intptr_t length, uint8_t* data, void* peer,
+      intptr_t length,
+      uint8_t* data,
+      void* peer,
       Dart_WeakPersistentHandleFinalizer callback);
 
   static Dart_CObject* NewIOBuffer(int64_t length);
@@ -366,7 +368,7 @@ class CObject {
 
 
 #define DECLARE_COBJECT_CONSTRUCTORS(t)                                        \
-  explicit CObject##t(Dart_CObject *cobject) : CObject(cobject) {              \
+  explicit CObject##t(Dart_CObject* cobject) : CObject(cobject) {              \
     ASSERT(type() == Dart_CObject_k##t);                                       \
     cobject_ = cobject;                                                        \
   }                                                                            \
@@ -374,11 +376,11 @@ class CObject {
     ASSERT(cobject != NULL);                                                   \
     ASSERT(cobject->type() == Dart_CObject_k##t);                              \
     cobject_ = cobject->AsApiCObject();                                        \
-  }                                                                            \
+  }
 
 
 #define DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(t)                             \
-  explicit CObject##t##Array(Dart_CObject *cobject) : CObject(cobject) {       \
+  explicit CObject##t##Array(Dart_CObject* cobject) : CObject(cobject) {       \
     ASSERT(type() == Dart_CObject_kTypedData);                                 \
     ASSERT(byte_array_type() == Dart_TypedData_k##t);                          \
     cobject_ = cobject;                                                        \
@@ -388,11 +390,11 @@ class CObject {
     ASSERT(cobject->type() == Dart_CObject_kTypedData);                        \
     ASSERT(cobject->byte_array_type() == Dart_TypedData_k##t);                 \
     cobject_ = cobject->AsApiCObject();                                        \
-  }                                                                            \
+  }
 
 
 #define DECLARE_COBJECT_EXTERNAL_TYPED_DATA_CONSTRUCTORS(t)                    \
-  explicit CObjectExternal##t##Array(Dart_CObject *cobject)                    \
+  explicit CObjectExternal##t##Array(Dart_CObject* cobject)                    \
       : CObject(cobject) {                                                     \
     ASSERT(type() == Dart_CObject_kExternalTypedData);                         \
     ASSERT(byte_array_type() == Dart_TypedData_k##t);                          \
@@ -403,7 +405,7 @@ class CObject {
     ASSERT(cobject->type() == Dart_CObject_kExternalTypedData);                \
     ASSERT(cobject->byte_array_type() == Dart_TypedData_k##t);                 \
     cobject_ = cobject->AsApiCObject();                                        \
-  }                                                                            \
+  }
 
 
 class CObjectBool : public CObject {
@@ -441,7 +443,7 @@ class CObjectInt64 : public CObject {
 
 class CObjectIntptr : public CObject {
  public:
-  explicit CObjectIntptr(Dart_CObject *cobject) : CObject(cobject) {
+  explicit CObjectIntptr(Dart_CObject* cobject) : CObject(cobject) {
     ASSERT(type() == Dart_CObject_kInt32 || type() == Dart_CObject_kInt64);
     cobject_ = cobject;
   }
@@ -452,7 +454,7 @@ class CObjectIntptr : public CObject {
     cobject_ = cobject->AsApiCObject();
   }
 
-  intptr_t Value()  {
+  intptr_t Value() {
     intptr_t result;
     if (type() == Dart_CObject_kInt32) {
       result = cobject_->value.as_int32;
@@ -471,7 +473,7 @@ class CObjectIntptr : public CObject {
 class CObjectBigint : public CObject {
  public:
   // DECLARE_COBJECT_CONSTRUCTORS(Bigint) would miss hex_value_ initialization.
-  explicit CObjectBigint(Dart_CObject *cobject) : CObject(cobject) {
+  explicit CObjectBigint(Dart_CObject* cobject) : CObject(cobject) {
     ASSERT(type() == Dart_CObject_kBigint);
     cobject_ = cobject;
     hex_value_ = NULL;
@@ -491,9 +493,7 @@ class CObjectBigint : public CObject {
     return hex_value_;
   }
 
-  ~CObjectBigint() {
-    free(hex_value_);
-  }
+  ~CObjectBigint() { free(hex_value_); }
 
  private:
   char* hex_value_;
@@ -555,7 +555,7 @@ class CObjectSendPort : public CObject {
 
 class CObjectTypedData : public CObject {
  public:
-  explicit CObjectTypedData(Dart_CObject *cobject) : CObject(cobject) {
+  explicit CObjectTypedData(Dart_CObject* cobject) : CObject(cobject) {
     ASSERT(type() == Dart_CObject_kTypedData);
     cobject_ = cobject;
   }
@@ -611,13 +611,9 @@ class CObjectExternalUint8Array : public CObject {
 
 class ScopedBlockingCall {
  public:
-  ScopedBlockingCall() {
-    Dart_ThreadDisableProfiling();
-  }
+  ScopedBlockingCall() { Dart_ThreadDisableProfiling(); }
 
-  ~ScopedBlockingCall() {
-    Dart_ThreadEnableProfiling();
-  }
+  ~ScopedBlockingCall() { Dart_ThreadEnableProfiling(); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -635,8 +631,8 @@ class ScopedMemBuffer {
  public:
   explicit ScopedMemBuffer(Dart_Handle object) {
     if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Argument is not a List<int>"));
+      Dart_ThrowException(
+          DartUtils::NewDartArgumentError("Argument is not a List<int>"));
     }
 
     uint8_t* bytes = NULL;
@@ -646,10 +642,7 @@ class ScopedMemBuffer {
       is_typed_data = true;
       Dart_TypedData_Type typ;
       ThrowIfError(Dart_TypedDataAcquireData(
-          object,
-          &typ,
-          reinterpret_cast<void**>(&bytes),
-          &bytes_len));
+          object, &typ, reinterpret_cast<void**>(&bytes), &bytes_len));
     } else {
       ASSERT(Dart_IsList(object));
       ThrowIfError(Dart_ListLength(object, &bytes_len));

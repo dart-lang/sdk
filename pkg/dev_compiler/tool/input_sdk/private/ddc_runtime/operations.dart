@@ -706,8 +706,7 @@ final constantLists = JS('', 'new Map()');
 ///
 /// Canonicalize a constant list
 ///
-@JSExportName('constList')
-constList_(elements, elementType) => JS(
+constList(elements, elementType) => JS(
     '',
     '''(() => {
   function lookupNonTerminal(map, key) {
@@ -847,3 +846,9 @@ _canonicalMember(obj, name) {
   }
   return name;
 }
+
+/// Emulates the implicit "loadLibrary" function provided by a deferred library.
+///
+/// Libraries are not actually deferred in DDC, so this just returns a future
+/// that completes immediately.
+Future loadLibrary() => new Future.value();

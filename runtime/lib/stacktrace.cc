@@ -46,8 +46,8 @@ const Stacktrace& GetCurrentStacktrace(int skip_frames) {
   const Array& code_array = Array::Handle(Array::MakeArray(code_list));
   const Array& pc_offset_array =
       Array::Handle(Array::MakeArray(pc_offset_list));
-  const Stacktrace& stacktrace = Stacktrace::Handle(
-      Stacktrace::New(code_array, pc_offset_array));
+  const Stacktrace& stacktrace =
+      Stacktrace::Handle(Stacktrace::New(code_array, pc_offset_array));
   return stacktrace;
 }
 

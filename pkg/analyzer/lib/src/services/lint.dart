@@ -9,15 +9,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
-
-const List<Linter> _noLints = const <Linter>[];
-
-/// The descriptor used to associate lints with analysis contexts in
-/// configuration data.
-final ResultDescriptor<List<Linter>> CONFIGURED_LINTS_KEY =
-    new ResultDescriptorImpl('configured.lints', _noLints);
 
 /// Shared lint registry.
 LintRegistry lintRegistry = new LintRegistry();
@@ -25,11 +16,14 @@ LintRegistry lintRegistry = new LintRegistry();
 /// Return lints associated with this [context], or an empty list if there are
 /// none.
 List<Linter> getLints(AnalysisContext context) =>
-    context.getConfigurationData(CONFIGURED_LINTS_KEY) ?? _noLints;
+    context.analysisOptions.lintRules;
 
 /// Associate these [lints] with the given [context].
 void setLints(AnalysisContext context, List<Linter> lints) {
-  context.setConfigurationData(CONFIGURED_LINTS_KEY, lints);
+  AnalysisOptionsImpl options =
+      new AnalysisOptionsImpl.from(context.analysisOptions);
+  options.lintRules = lints;
+  context.analysisOptions = options;
 }
 
 /// Implementers contribute lint warnings via the provided error [reporter].

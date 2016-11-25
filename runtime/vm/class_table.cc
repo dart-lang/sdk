@@ -18,7 +18,9 @@ namespace dart {
 DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
 ClassTable::ClassTable()
-    : top_(kNumPredefinedCids), capacity_(0), table_(NULL),
+    : top_(kNumPredefinedCids),
+      capacity_(0),
+      table_(NULL),
       old_tables_(new MallocGrowableArray<RawClass**>()) {
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
   NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
@@ -50,7 +52,7 @@ ClassTable::ClassTable()
   }
 #ifndef PRODUCT
   predefined_class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
-        calloc(kNumPredefinedCids, sizeof(ClassHeapStats)));  // NOLINT
+      calloc(kNumPredefinedCids, sizeof(ClassHeapStats)));  // NOLINT
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
     predefined_class_heap_stats_table_[i].Initialize();
   }
@@ -122,8 +124,8 @@ void ClassTable::Register(const Class& cls) {
     // Add the vtable for this predefined class into the static vtable registry
     // if it has not been setup yet.
     cpp_vtable cls_vtable = cls.handle_vtable();
-    AtomicOperations::CompareAndSwapWord(
-        &(Object::builtin_vtables_[index]), 0, cls_vtable);
+    AtomicOperations::CompareAndSwapWord(&(Object::builtin_vtables_[index]), 0,
+                                         cls_vtable);
     ASSERT(Object::builtin_vtables_[index] == cls_vtable);
   } else {
     if (top_ == capacity_) {
@@ -436,10 +438,8 @@ ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
 
 
 ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
-  if (!HasValidClassAt(cid) ||
-      (cid == kFreeListElement) ||
-      (cid == kForwardingCorpse) ||
-      (cid == kSmiCid)) {
+  if (!HasValidClassAt(cid) || (cid == kFreeListElement) ||
+      (cid == kForwardingCorpse) || (cid == kSmiCid)) {
     return NULL;
   }
   Class& cls = Class::Handle(At(cid));
@@ -487,16 +487,15 @@ void ClassTable::UpdatePromoted() {
 
 
 ClassHeapStats** ClassTable::TableAddressFor(intptr_t cid) {
-  return (cid < kNumPredefinedCids)
-      ? &predefined_class_heap_stats_table_
-      : &class_heap_stats_table_;
+  return (cid < kNumPredefinedCids) ? &predefined_class_heap_stats_table_
+                                    : &class_heap_stats_table_;
 }
 
 
 intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
   return (cid < kNumPredefinedCids)
-      ? OFFSET_OF(ClassTable, predefined_class_heap_stats_table_)
-      : OFFSET_OF(ClassTable, class_heap_stats_table_);
+             ? OFFSET_OF(ClassTable, predefined_class_heap_stats_table_)
+             : OFFSET_OF(ClassTable, class_heap_stats_table_);
 }
 
 
@@ -507,9 +506,9 @@ intptr_t ClassTable::ClassOffsetFor(intptr_t cid) {
 
 intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
   const intptr_t class_offset = ClassOffsetFor(cid);
-  const intptr_t count_field_offset = is_new_space
-      ? ClassHeapStats::allocated_since_gc_new_space_offset()
-      : ClassHeapStats::allocated_since_gc_old_space_offset();
+  const intptr_t count_field_offset =
+      is_new_space ? ClassHeapStats::allocated_since_gc_new_space_offset()
+                   : ClassHeapStats::allocated_since_gc_old_space_offset();
   return class_offset + count_field_offset;
 }
 
@@ -521,9 +520,9 @@ intptr_t ClassTable::StateOffsetFor(intptr_t cid) {
 
 intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
   const uword class_offset = ClassOffsetFor(cid);
-  const uword size_field_offset = is_new_space
-      ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
-      : ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  const uword size_field_offset =
+      is_new_space ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
+                   : ClassHeapStats::allocated_size_since_gc_old_space_offset();
   return class_offset + size_field_offset;
 }
 
@@ -540,25 +539,18 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   obj.AddProperty("type", "AllocationProfile");
   if (isolate->last_allocationprofile_accumulator_reset_timestamp() != 0) {
     obj.AddPropertyF(
-        "dateLastAccumulatorReset",
-        "%" Pd64 "",
+        "dateLastAccumulatorReset", "%" Pd64 "",
         isolate->last_allocationprofile_accumulator_reset_timestamp());
   }
   if (isolate->last_allocationprofile_gc_timestamp() != 0) {
-    obj.AddPropertyF(
-        "dateLastServiceGC",
-        "%" Pd64 "",
-        isolate->last_allocationprofile_gc_timestamp());
+    obj.AddPropertyF("dateLastServiceGC", "%" Pd64 "",
+                     isolate->last_allocationprofile_gc_timestamp());
   }
 
   {
     JSONObject heaps(&obj, "heaps");
-    {
-      heap->PrintToJSONObject(Heap::kNew, &heaps);
-    }
-    {
-      heap->PrintToJSONObject(Heap::kOld, &heaps);
-    }
+    { heap->PrintToJSONObject(Heap::kNew, &heaps); }
+    { heap->PrintToJSONObject(Heap::kOld, &heaps); }
   }
   {
     JSONArray arr(&obj, "members");

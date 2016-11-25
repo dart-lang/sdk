@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 @Native("NNative")
 class NNative {
@@ -11,18 +10,8 @@ class NNative {
 
   var f;
 
-  ClickCounter() {
-    f = wrap(g);
-  }
-
   g(val) => "### $val ###";
 }
-
-nativeId(x) native ;
-
-void setup() native """
-nativeId = function(x) { return x; }
-""";
 
 class ClickCounter {
   var status;
@@ -41,6 +30,13 @@ wrap(cb) {
     return cb("!!! $val !!!");
   };
 }
+
+nativeId(x) native ;
+
+void setup() native """
+nativeId = function(x) { return x; }
+""";
+
 
 main() {
   setup();

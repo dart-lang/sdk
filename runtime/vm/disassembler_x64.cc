@@ -40,97 +40,79 @@ struct ByteMnemonic {
 
 
 static const ByteMnemonic two_operands_instr[] = {
-  { 0x00, BYTE_OPER_REG_OP_ORDER, "add" },
-  { 0x01, OPER_REG_OP_ORDER,      "add" },
-  { 0x02, BYTE_REG_OPER_OP_ORDER, "add" },
-  { 0x03, REG_OPER_OP_ORDER,      "add" },
-  { 0x08, BYTE_OPER_REG_OP_ORDER, "or" },
-  { 0x09, OPER_REG_OP_ORDER,      "or" },
-  { 0x0A, BYTE_REG_OPER_OP_ORDER, "or" },
-  { 0x0B, REG_OPER_OP_ORDER,      "or" },
-  { 0x10, BYTE_OPER_REG_OP_ORDER, "adc" },
-  { 0x11, OPER_REG_OP_ORDER,      "adc" },
-  { 0x12, BYTE_REG_OPER_OP_ORDER, "adc" },
-  { 0x13, REG_OPER_OP_ORDER,      "adc" },
-  { 0x18, BYTE_OPER_REG_OP_ORDER, "sbb" },
-  { 0x19, OPER_REG_OP_ORDER,      "sbb" },
-  { 0x1A, BYTE_REG_OPER_OP_ORDER, "sbb" },
-  { 0x1B, REG_OPER_OP_ORDER,      "sbb" },
-  { 0x20, BYTE_OPER_REG_OP_ORDER, "and" },
-  { 0x21, OPER_REG_OP_ORDER,      "and" },
-  { 0x22, BYTE_REG_OPER_OP_ORDER, "and" },
-  { 0x23, REG_OPER_OP_ORDER,      "and" },
-  { 0x28, BYTE_OPER_REG_OP_ORDER, "sub" },
-  { 0x29, OPER_REG_OP_ORDER,      "sub" },
-  { 0x2A, BYTE_REG_OPER_OP_ORDER, "sub" },
-  { 0x2B, REG_OPER_OP_ORDER,      "sub" },
-  { 0x30, BYTE_OPER_REG_OP_ORDER, "xor" },
-  { 0x31, OPER_REG_OP_ORDER,      "xor" },
-  { 0x32, BYTE_REG_OPER_OP_ORDER, "xor" },
-  { 0x33, REG_OPER_OP_ORDER,      "xor" },
-  { 0x38, BYTE_OPER_REG_OP_ORDER, "cmp" },
-  { 0x39, OPER_REG_OP_ORDER,      "cmp" },
-  { 0x3A, BYTE_REG_OPER_OP_ORDER, "cmp" },
-  { 0x3B, REG_OPER_OP_ORDER,      "cmp" },
-  { 0x63, REG_OPER_OP_ORDER,      "movsxd" },
-  { 0x84, BYTE_REG_OPER_OP_ORDER, "test" },
-  { 0x85, REG_OPER_OP_ORDER,      "test" },
-  { 0x86, BYTE_REG_OPER_OP_ORDER, "xchg" },
-  { 0x87, REG_OPER_OP_ORDER,      "xchg" },
-  { 0x88, BYTE_OPER_REG_OP_ORDER, "mov" },
-  { 0x89, OPER_REG_OP_ORDER,      "mov" },
-  { 0x8A, BYTE_REG_OPER_OP_ORDER, "mov" },
-  { 0x8B, REG_OPER_OP_ORDER,      "mov" },
-  { 0x8D, REG_OPER_OP_ORDER,      "lea" },
-  { -1, UNSET_OP_ORDER, "" }
-};
+    {0x00, BYTE_OPER_REG_OP_ORDER, "add"},
+    {0x01, OPER_REG_OP_ORDER, "add"},
+    {0x02, BYTE_REG_OPER_OP_ORDER, "add"},
+    {0x03, REG_OPER_OP_ORDER, "add"},
+    {0x08, BYTE_OPER_REG_OP_ORDER, "or"},
+    {0x09, OPER_REG_OP_ORDER, "or"},
+    {0x0A, BYTE_REG_OPER_OP_ORDER, "or"},
+    {0x0B, REG_OPER_OP_ORDER, "or"},
+    {0x10, BYTE_OPER_REG_OP_ORDER, "adc"},
+    {0x11, OPER_REG_OP_ORDER, "adc"},
+    {0x12, BYTE_REG_OPER_OP_ORDER, "adc"},
+    {0x13, REG_OPER_OP_ORDER, "adc"},
+    {0x18, BYTE_OPER_REG_OP_ORDER, "sbb"},
+    {0x19, OPER_REG_OP_ORDER, "sbb"},
+    {0x1A, BYTE_REG_OPER_OP_ORDER, "sbb"},
+    {0x1B, REG_OPER_OP_ORDER, "sbb"},
+    {0x20, BYTE_OPER_REG_OP_ORDER, "and"},
+    {0x21, OPER_REG_OP_ORDER, "and"},
+    {0x22, BYTE_REG_OPER_OP_ORDER, "and"},
+    {0x23, REG_OPER_OP_ORDER, "and"},
+    {0x28, BYTE_OPER_REG_OP_ORDER, "sub"},
+    {0x29, OPER_REG_OP_ORDER, "sub"},
+    {0x2A, BYTE_REG_OPER_OP_ORDER, "sub"},
+    {0x2B, REG_OPER_OP_ORDER, "sub"},
+    {0x30, BYTE_OPER_REG_OP_ORDER, "xor"},
+    {0x31, OPER_REG_OP_ORDER, "xor"},
+    {0x32, BYTE_REG_OPER_OP_ORDER, "xor"},
+    {0x33, REG_OPER_OP_ORDER, "xor"},
+    {0x38, BYTE_OPER_REG_OP_ORDER, "cmp"},
+    {0x39, OPER_REG_OP_ORDER, "cmp"},
+    {0x3A, BYTE_REG_OPER_OP_ORDER, "cmp"},
+    {0x3B, REG_OPER_OP_ORDER, "cmp"},
+    {0x63, REG_OPER_OP_ORDER, "movsxd"},
+    {0x84, BYTE_REG_OPER_OP_ORDER, "test"},
+    {0x85, REG_OPER_OP_ORDER, "test"},
+    {0x86, BYTE_REG_OPER_OP_ORDER, "xchg"},
+    {0x87, REG_OPER_OP_ORDER, "xchg"},
+    {0x88, BYTE_OPER_REG_OP_ORDER, "mov"},
+    {0x89, OPER_REG_OP_ORDER, "mov"},
+    {0x8A, BYTE_REG_OPER_OP_ORDER, "mov"},
+    {0x8B, REG_OPER_OP_ORDER, "mov"},
+    {0x8D, REG_OPER_OP_ORDER, "lea"},
+    {-1, UNSET_OP_ORDER, ""}};
 
 
 static const ByteMnemonic zero_operands_instr[] = {
-  { 0xC3, UNSET_OP_ORDER, "ret" },
-  { 0xC9, UNSET_OP_ORDER, "leave" },
-  { 0xF4, UNSET_OP_ORDER, "hlt" },
-  { 0xFC, UNSET_OP_ORDER, "cld" },
-  { 0xCC, UNSET_OP_ORDER, "int3" },
-  { 0x60, UNSET_OP_ORDER, "pushad" },
-  { 0x61, UNSET_OP_ORDER, "popad" },
-  { 0x9C, UNSET_OP_ORDER, "pushfd" },
-  { 0x9D, UNSET_OP_ORDER, "popfd" },
-  { 0x9E, UNSET_OP_ORDER, "sahf" },
-  { 0x99, UNSET_OP_ORDER, "cdq" },
-  { 0x9B, UNSET_OP_ORDER, "fwait" },
-  { 0xA4, UNSET_OP_ORDER, "movs" },
-  { 0xA5, UNSET_OP_ORDER, "movs" },
-  { 0xA6, UNSET_OP_ORDER, "cmps" },
-  { 0xA7, UNSET_OP_ORDER, "cmps" },
-  { -1, UNSET_OP_ORDER, "" }
-};
+    {0xC3, UNSET_OP_ORDER, "ret"},   {0xC9, UNSET_OP_ORDER, "leave"},
+    {0xF4, UNSET_OP_ORDER, "hlt"},   {0xFC, UNSET_OP_ORDER, "cld"},
+    {0xCC, UNSET_OP_ORDER, "int3"},  {0x60, UNSET_OP_ORDER, "pushad"},
+    {0x61, UNSET_OP_ORDER, "popad"}, {0x9C, UNSET_OP_ORDER, "pushfd"},
+    {0x9D, UNSET_OP_ORDER, "popfd"}, {0x9E, UNSET_OP_ORDER, "sahf"},
+    {0x99, UNSET_OP_ORDER, "cdq"},   {0x9B, UNSET_OP_ORDER, "fwait"},
+    {0xA4, UNSET_OP_ORDER, "movs"},  {0xA5, UNSET_OP_ORDER, "movs"},
+    {0xA6, UNSET_OP_ORDER, "cmps"},  {0xA7, UNSET_OP_ORDER, "cmps"},
+    {-1, UNSET_OP_ORDER, ""}};
 
 
-static const ByteMnemonic call_jump_instr[] = {
-  { 0xE8, UNSET_OP_ORDER, "call" },
-  { 0xE9, UNSET_OP_ORDER, "jmp" },
-  { -1, UNSET_OP_ORDER, "" }
-};
+static const ByteMnemonic call_jump_instr[] = {{0xE8, UNSET_OP_ORDER, "call"},
+                                               {0xE9, UNSET_OP_ORDER, "jmp"},
+                                               {-1, UNSET_OP_ORDER, ""}};
 
 
 static const ByteMnemonic short_immediate_instr[] = {
-  { 0x05, UNSET_OP_ORDER, "add" },
-  { 0x0D, UNSET_OP_ORDER, "or" },
-  { 0x15, UNSET_OP_ORDER, "adc" },
-  { 0x1D, UNSET_OP_ORDER, "sbb" },
-  { 0x25, UNSET_OP_ORDER, "and" },
-  { 0x2D, UNSET_OP_ORDER, "sub" },
-  { 0x35, UNSET_OP_ORDER, "xor" },
-  { 0x3D, UNSET_OP_ORDER, "cmp" },
-  { -1, UNSET_OP_ORDER, "" }
-};
+    {0x05, UNSET_OP_ORDER, "add"}, {0x0D, UNSET_OP_ORDER, "or"},
+    {0x15, UNSET_OP_ORDER, "adc"}, {0x1D, UNSET_OP_ORDER, "sbb"},
+    {0x25, UNSET_OP_ORDER, "and"}, {0x2D, UNSET_OP_ORDER, "sub"},
+    {0x35, UNSET_OP_ORDER, "xor"}, {0x3D, UNSET_OP_ORDER, "cmp"},
+    {-1, UNSET_OP_ORDER, ""}};
 
 
 static const char* const conditional_code_suffix[] = {
-  "o", "no", "c", "nc", "z", "nz", "na", "a",
-  "s", "ns", "pe", "po", "l", "ge", "le", "g"
-};
+    "o", "no", "c",  "nc", "z", "nz", "na", "a",
+    "s", "ns", "pe", "po", "l", "ge", "le", "g"};
 
 
 enum InstructionType {
@@ -167,9 +149,7 @@ struct InstructionDesc {
 class InstructionTable : public ValueObject {
  public:
   InstructionTable();
-  const InstructionDesc& Get(uint8_t x) const {
-    return instructions_[x];
-  }
+  const InstructionDesc& Get(uint8_t x) const { return instructions_[x]; }
 
  private:
   InstructionDesc instructions_[256];
@@ -249,7 +229,7 @@ void InstructionTable::AddJumpConditionalShort() {
   for (uint8_t b = 0x70; b <= 0x7F; b++) {
     InstructionDesc* id = &instructions_[b];
     ASSERT(NO_INSTR == id->type);  // Information not already entered
-    id->mnem = NULL;  // Computed depending on condition code.
+    id->mnem = NULL;               // Computed depending on condition code.
     id->type = JUMP_CONDITIONAL_SHORT_INSTR;
   }
 }
@@ -259,23 +239,22 @@ static InstructionTable instruction_table;
 
 
 static InstructionDesc cmov_instructions[16] = {
-  {"cmovo", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovno", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovc", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovnc", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovz", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovnz", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovna", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmova", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovs", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovns", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovpe", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovpo", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovl", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovge", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovle", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
-  {"cmovg", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false}
-};
+    {"cmovo", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovno", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovc", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovnc", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovz", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovnz", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovna", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmova", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovs", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovns", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovpe", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovpo", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovl", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovge", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovle", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
+    {"cmovg", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false}};
 
 
 //-------------------------------------------------
@@ -284,9 +263,8 @@ static InstructionDesc cmov_instructions[16] = {
 
 static const int kMaxXmmRegisters = 16;
 static const char* xmm_regs[kMaxXmmRegisters] = {
-  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
-  "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"
-};
+    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
+    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
 
 class DisassemblerX64 : public ValueObject {
  public:
@@ -301,8 +279,7 @@ class DisassemblerX64 : public ValueObject {
     buffer_[buffer_pos_] = '\0';
   }
 
-  virtual ~DisassemblerX64() {
-  }
+  virtual ~DisassemblerX64() {}
 
   int InstructionDecode(uword pc);
 
@@ -339,24 +316,16 @@ class DisassemblerX64 : public ValueObject {
     return DOUBLEWORD_SIZE;
   }
 
-  char operand_size_code() {
-    return "bwlq"[operand_size()];
-  }
+  char operand_size_code() { return "bwlq"[operand_size()]; }
 
   // Disassembler helper functions.
-  void get_modrm(uint8_t data,
-                 int* mod,
-                 int* regop,
-                 int* rm) {
+  void get_modrm(uint8_t data, int* mod, int* regop, int* rm) {
     *mod = (data >> 6) & 3;
     *regop = ((data & 0x38) >> 3) | (rex_r() ? 8 : 0);
     *rm = (data & 7) | (rex_b() ? 8 : 0);
   }
 
-  void get_sib(uint8_t data,
-               int* scale,
-               int* index,
-               int* base) {
+  void get_sib(uint8_t data, int* scale, int* index, int* base) {
     *scale = (data >> 6) & 3;
     *index = ((data >> 3) & 7) | (rex_x() ? 8 : 0);
     *base = (data & 7) | (rex_b() ? 8 : 0);
@@ -378,9 +347,7 @@ class DisassemblerX64 : public ValueObject {
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintAddress(uint8_t* addr);
 
-  int PrintOperands(const char* mnem,
-                    OperandType op_order,
-                    uint8_t* data);
+  int PrintOperands(const char* mnem, OperandType op_order, uint8_t* data);
 
   typedef const char* (DisassemblerX64::*RegisterNameMapping)(int reg) const;
 
@@ -408,13 +375,11 @@ class DisassemblerX64 : public ValueObject {
 
   bool DecodeInstructionType(uint8_t** data);
 
-  void UnimplementedInstruction() {
-    Print("'Unimplemented Instruction'");
-  }
+  void UnimplementedInstruction() { Print("'Unimplemented Instruction'"); }
 
-  char* buffer_;  // Decode instructions into this buffer.
+  char* buffer_;          // Decode instructions into this buffer.
   intptr_t buffer_size_;  // The size of the buffer_.
-  intptr_t buffer_pos_;  // Current character position in the buffer_.
+  intptr_t buffer_pos_;   // Current character position in the buffer_.
 
   // Prefixes parsed
   uint8_t rex_;
@@ -451,8 +416,8 @@ int DisassemblerX64::PrintRightOperandHelper(
     RegisterNameMapping direct_register_name) {
   int mod, regop, rm;
   get_modrm(*modrmp, &mod, &regop, &rm);
-  RegisterNameMapping register_name = (mod == 3) ? direct_register_name :
-      &DisassemblerX64::NameOfCPURegister;
+  RegisterNameMapping register_name =
+      (mod == 3) ? direct_register_name : &DisassemblerX64::NameOfCPURegister;
   switch (mod) {
     case 0:
       if ((rm & 7) == 5) {
@@ -478,9 +443,7 @@ int DisassemblerX64::PrintRightOperandHelper(
           return 6;
         } else if (index != 4 && base != 5) {
           // [base+index*scale]
-          Print("[%s+%s*%d]",
-                NameOfCPURegister(base),
-                NameOfCPURegister(index),
+          Print("[%s+%s*%d]", NameOfCPURegister(base), NameOfCPURegister(index),
                 1 << scale);
           return 2;
         } else {
@@ -504,9 +467,7 @@ int DisassemblerX64::PrintRightOperandHelper(
           Print("[%s", NameOfCPURegister(base));
           PrintDisp(disp, "]");
         } else {
-          Print("[%s+%s*%d",
-                NameOfCPURegister(base),
-                NameOfCPURegister(index),
+          Print("[%s+%s*%d", NameOfCPURegister(base), NameOfCPURegister(index),
                 1 << scale);
           PrintDisp(disp, "]");
         }
@@ -576,8 +537,6 @@ void DisassemblerX64::PrintDisp(int disp, const char* after) {
   }
   if (after != NULL) Print("%s", after);
 }
-
-
 
 
 // Returns number of bytes used by machine instruction, including *data byte.
@@ -652,10 +611,7 @@ int DisassemblerX64::F6F7Instruction(uint8_t* data) {
       default:
         UnimplementedInstruction();
     }
-    Print("%s%c %s",
-          mnem,
-          operand_size_code(),
-          NameOfCPURegister(rm));
+    Print("%s%c %s", mnem, operand_size_code(), NameOfCPURegister(rm));
     return 2;
   } else if (regop == 0) {
     Print("test%c ", operand_size_code());
@@ -720,11 +676,8 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
     imm8 = *(data + 2);
     num_bytes = 3;
   }
-  Print("%s%c %s,",
-        mnem,
-        operand_size_code(),
-        byte_size_operand_ ? NameOfByteCPURegister(rm)
-                           : NameOfCPURegister(rm));
+  Print("%s%c %s,", mnem, operand_size_code(),
+        byte_size_operand_ ? NameOfByteCPURegister(rm) : NameOfCPURegister(rm));
   if (op == 0xD2) {
     Print("cl");
   } else {
@@ -735,8 +688,7 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
 
 
 int DisassemblerX64::PrintRightOperand(uint8_t* modrmp) {
-  return PrintRightOperandHelper(modrmp,
-                                 &DisassemblerX64::NameOfCPURegister);
+  return PrintRightOperandHelper(modrmp, &DisassemblerX64::NameOfCPURegister);
 }
 
 
@@ -747,8 +699,7 @@ int DisassemblerX64::PrintRightByteOperand(uint8_t* modrmp) {
 
 
 int DisassemblerX64::PrintRightXMMOperand(uint8_t* modrmp) {
-  return PrintRightOperandHelper(modrmp,
-                                 &DisassemblerX64::NameOfXMMRegister);
+  return PrintRightOperandHelper(modrmp, &DisassemblerX64::NameOfXMMRegister);
 }
 
 
@@ -761,9 +712,8 @@ int DisassemblerX64::PrintOperands(const char* mnem,
   int mod, regop, rm;
   get_modrm(modrm, &mod, &regop, &rm);
   int advance = 0;
-  const char* register_name =
-      byte_size_operand_ ? NameOfByteCPURegister(regop)
-                         : NameOfCPURegister(regop);
+  const char* register_name = byte_size_operand_ ? NameOfByteCPURegister(regop)
+                                                 : NameOfCPURegister(regop);
   switch (op_order) {
     case REG_OPER_OP_ORDER: {
       Print("%s%c %s,", mnem, operand_size_code(), register_name);
@@ -842,12 +792,12 @@ int DisassemblerX64::SetCC(uint8_t* data) {
 int DisassemblerX64::FPUInstruction(uint8_t* data) {
   uint8_t escape_opcode = *data;
   ASSERT(0xD8 == (escape_opcode & 0xF8));
-  uint8_t modrm_byte = *(data+1);
+  uint8_t modrm_byte = *(data + 1);
 
   if (modrm_byte >= 0xC0) {
     return RegisterFPUInstruction(escape_opcode, modrm_byte);
   } else {
-    return MemoryFPUInstruction(escape_opcode, modrm_byte, data+1);
+    return MemoryFPUInstruction(escape_opcode, modrm_byte, data + 1);
   }
 }
 
@@ -858,38 +808,69 @@ int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
   const char* mnem = "?";
   int regop = (modrm_byte >> 3) & 0x7;  // reg/op field of modrm byte.
   switch (escape_opcode) {
-    case 0xD9: switch (regop) {
-        case 0: mnem = "fld_s"; break;
-        case 3: mnem = "fstp_s"; break;
-        case 7: mnem = "fstcw"; break;
-        default: UnimplementedInstruction();
+    case 0xD9:
+      switch (regop) {
+        case 0:
+          mnem = "fld_s";
+          break;
+        case 3:
+          mnem = "fstp_s";
+          break;
+        case 7:
+          mnem = "fstcw";
+          break;
+        default:
+          UnimplementedInstruction();
       }
       break;
 
-    case 0xDB: switch (regop) {
-        case 0: mnem = "fild_s"; break;
-        case 1: mnem = "fisttp_s"; break;
-        case 2: mnem = "fist_s"; break;
-        case 3: mnem = "fistp_s"; break;
-        default: UnimplementedInstruction();
+    case 0xDB:
+      switch (regop) {
+        case 0:
+          mnem = "fild_s";
+          break;
+        case 1:
+          mnem = "fisttp_s";
+          break;
+        case 2:
+          mnem = "fist_s";
+          break;
+        case 3:
+          mnem = "fistp_s";
+          break;
+        default:
+          UnimplementedInstruction();
       }
       break;
 
-    case 0xDD: switch (regop) {
-        case 0: mnem = "fld_d"; break;
-        case 3: mnem = "fstp_d"; break;
-        default: UnimplementedInstruction();
+    case 0xDD:
+      switch (regop) {
+        case 0:
+          mnem = "fld_d";
+          break;
+        case 3:
+          mnem = "fstp_d";
+          break;
+        default:
+          UnimplementedInstruction();
       }
       break;
 
-    case 0xDF: switch (regop) {
-        case 5: mnem = "fild_d"; break;
-        case 7: mnem = "fistp_d"; break;
-        default: UnimplementedInstruction();
+    case 0xDF:
+      switch (regop) {
+        case 5:
+          mnem = "fild_d";
+          break;
+        case 7:
+          mnem = "fistp_d";
+          break;
+        default:
+          UnimplementedInstruction();
       }
       break;
 
-    default: UnimplementedInstruction();
+    default:
+      UnimplementedInstruction();
   }
   Print("%s ", mnem);
   int count = PrintRightOperand(modrm_start);
@@ -918,24 +899,59 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
           break;
         default:
           switch (modrm_byte) {
-            case 0xE0: mnem = "fchs"; break;
-            case 0xE1: mnem = "fabs"; break;
-            case 0xE3: mnem = "fninit"; break;
-            case 0xE4: mnem = "ftst"; break;
-            case 0xE8: mnem = "fld1"; break;
-            case 0xEB: mnem = "fldpi"; break;
-            case 0xED: mnem = "fldln2"; break;
-            case 0xEE: mnem = "fldz"; break;
-            case 0xF0: mnem = "f2xm1"; break;
-            case 0xF1: mnem = "fyl2x"; break;
-            case 0xF2: mnem = "fptan"; break;
-            case 0xF5: mnem = "fprem1"; break;
-            case 0xF7: mnem = "fincstp"; break;
-            case 0xF8: mnem = "fprem"; break;
-            case 0xFD: mnem = "fscale"; break;
-            case 0xFE: mnem = "fsin"; break;
-            case 0xFF: mnem = "fcos"; break;
-            default: UnimplementedInstruction();
+            case 0xE0:
+              mnem = "fchs";
+              break;
+            case 0xE1:
+              mnem = "fabs";
+              break;
+            case 0xE3:
+              mnem = "fninit";
+              break;
+            case 0xE4:
+              mnem = "ftst";
+              break;
+            case 0xE8:
+              mnem = "fld1";
+              break;
+            case 0xEB:
+              mnem = "fldpi";
+              break;
+            case 0xED:
+              mnem = "fldln2";
+              break;
+            case 0xEE:
+              mnem = "fldz";
+              break;
+            case 0xF0:
+              mnem = "f2xm1";
+              break;
+            case 0xF1:
+              mnem = "fyl2x";
+              break;
+            case 0xF2:
+              mnem = "fptan";
+              break;
+            case 0xF5:
+              mnem = "fprem1";
+              break;
+            case 0xF7:
+              mnem = "fincstp";
+              break;
+            case 0xF8:
+              mnem = "fprem";
+              break;
+            case 0xFD:
+              mnem = "fscale";
+              break;
+            case 0xFE:
+              mnem = "fsin";
+              break;
+            case 0xFF:
+              mnem = "fcos";
+              break;
+            default:
+              UnimplementedInstruction();
           }
       }
       break;
@@ -952,7 +968,7 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
       if ((modrm_byte & 0xF8) == 0xE8) {
         mnem = "fucomi";
         has_register = true;
-      } else if (modrm_byte  == 0xE2) {
+      } else if (modrm_byte == 0xE2) {
         mnem = "fclex";
       } else {
         UnimplementedInstruction();
@@ -962,34 +978,57 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
     case 0xDC:
       has_register = true;
       switch (modrm_byte & 0xF8) {
-        case 0xC0: mnem = "fadd"; break;
-        case 0xE8: mnem = "fsub"; break;
-        case 0xC8: mnem = "fmul"; break;
-        case 0xF8: mnem = "fdiv"; break;
-        default: UnimplementedInstruction();
+        case 0xC0:
+          mnem = "fadd";
+          break;
+        case 0xE8:
+          mnem = "fsub";
+          break;
+        case 0xC8:
+          mnem = "fmul";
+          break;
+        case 0xF8:
+          mnem = "fdiv";
+          break;
+        default:
+          UnimplementedInstruction();
       }
       break;
 
     case 0xDD:
       has_register = true;
       switch (modrm_byte & 0xF8) {
-        case 0xC0: mnem = "ffree"; break;
-        case 0xD8: mnem = "fstp"; break;
-        default: UnimplementedInstruction();
+        case 0xC0:
+          mnem = "ffree";
+          break;
+        case 0xD8:
+          mnem = "fstp";
+          break;
+        default:
+          UnimplementedInstruction();
       }
       break;
 
     case 0xDE:
-      if (modrm_byte  == 0xD9) {
+      if (modrm_byte == 0xD9) {
         mnem = "fcompp";
       } else {
         has_register = true;
         switch (modrm_byte & 0xF8) {
-          case 0xC0: mnem = "faddp"; break;
-          case 0xE8: mnem = "fsubp"; break;
-          case 0xC8: mnem = "fmulp"; break;
-          case 0xF8: mnem = "fdivp"; break;
-          default: UnimplementedInstruction();
+          case 0xC0:
+            mnem = "faddp";
+            break;
+          case 0xE8:
+            mnem = "fsubp";
+            break;
+          case 0xC8:
+            mnem = "fmulp";
+            break;
+          case 0xF8:
+            mnem = "fdivp";
+            break;
+          default:
+            UnimplementedInstruction();
         }
       }
       break;
@@ -1003,7 +1042,8 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
       }
       break;
 
-    default: UnimplementedInstruction();
+    default:
+      UnimplementedInstruction();
   }
 
   if (has_register) {
@@ -1068,16 +1108,12 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
       break;
 
     case REGISTER_INSTR:
-      Print("%s%c %s",
-            idesc.mnem,
-            operand_size_code(),
+      Print("%s%c %s", idesc.mnem, operand_size_code(),
             NameOfCPURegister(base_reg(current & 0x07)));
       (*data)++;
       break;
     case PUSHPOP_INSTR:
-      Print("%s %s",
-            idesc.mnem,
-            NameOfCPURegister(base_reg(current & 0x07)));
+      Print("%s %s", idesc.mnem, NameOfCPURegister(base_reg(current & 0x07)));
       (*data)++;
       break;
     case MOVE_REG_INSTR: {
@@ -1101,8 +1137,7 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
         default:
           UNREACHABLE();
       }
-      Print("mov%c %s,",
-            operand_size_code(),
+      Print("mov%c %s,", operand_size_code(),
             NameOfCPURegister(base_reg(current & 0x07)));
       PrintAddress(addr);
       break;
@@ -1164,7 +1199,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         current += 1;
       } else if (third_byte == 0x0b) {
         get_modrm(*current, &mod, &regop, &rm);
-         // roundsd xmm, xmm/m64, imm8
+        // roundsd xmm, xmm/m64, imm8
         Print("roundsd %s, ", NameOfCPURegister(regop));
         current += PrintRightOperand(current);
         Print(", %d", (*current) & 3);
@@ -1193,17 +1228,13 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         current += PrintRightXMMOperand(current);
         Print(", %s", NameOfXMMRegister(regop));
       } else if (opcode == 0x6E) {
-        Print("mov%c %s,",
-              rex_w() ? 'q' : 'd',
-              NameOfXMMRegister(regop));
+        Print("mov%c %s,", rex_w() ? 'q' : 'd', NameOfXMMRegister(regop));
         current += PrintRightOperand(current);
       } else if (opcode == 0x6F) {
-        Print("movdqa %s,",
-              NameOfXMMRegister(regop));
+        Print("movdqa %s,", NameOfXMMRegister(regop));
         current += PrintRightXMMOperand(current);
       } else if (opcode == 0x7E) {
-        Print("mov%c ",
-              rex_w() ? 'q' : 'd');
+        Print("mov%c ", rex_w() ? 'q' : 'd');
         current += PrintRightOperand(current);
         Print(", %s", NameOfXMMRegister(regop));
       } else if (opcode == 0x7F) {
@@ -1225,9 +1256,9 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "unpckhpd";
         } else if (opcode == 0x54) {
           mnemonic = "andpd";
-        } else  if (opcode == 0x56) {
+        } else if (opcode == 0x56) {
           mnemonic = "orpd";
-        } else  if (opcode == 0x57) {
+        } else if (opcode == 0x57) {
           mnemonic = "xorpd";
         } else if (opcode == 0x2E) {
           mnemonic = "ucomisd";
@@ -1286,15 +1317,13 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       // Convert with truncation scalar double-precision FP to integer.
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
-      Print("cvttsd2si%c %s,",
-          operand_size_code(), NameOfCPURegister(regop));
+      Print("cvttsd2si%c %s,", operand_size_code(), NameOfCPURegister(regop));
       current += PrintRightXMMOperand(current);
     } else if (opcode == 0x2D) {
       // CVTSD2SI: Convert scalar double-precision FP to integer.
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
-      Print("cvtsd2si%c %s,",
-          operand_size_code(), NameOfCPURegister(regop));
+      Print("cvtsd2si%c %s,", operand_size_code(), NameOfCPURegister(regop));
       current += PrintRightXMMOperand(current);
     } else if ((opcode & 0xF8) == 0x58 || opcode == 0x51) {
       // XMM arithmetic. Mnemonic was retrieved at the start of this function.
@@ -1330,8 +1359,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       // Convert with truncation scalar single-precision FP to dword integer.
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
-      Print("cvttss2si%c %s,",
-            operand_size_code(), NameOfCPURegister(regop));
+      Print("cvttss2si%c %s,", operand_size_code(), NameOfCPURegister(regop));
       current += PrintRightXMMOperand(current);
     } else if (opcode == 0x5A) {
       // CVTSS2SD:
@@ -1418,24 +1446,59 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
              opcode == 0x5E || opcode == 0x5F) {
     const char* mnemonic = NULL;
     switch (opcode) {
-      case 0x12: mnemonic = "movhlps"; break;
-      case 0x14: mnemonic = "unpcklps"; break;
-      case 0x15: mnemonic = "unpckhps"; break;
-      case 0x16: mnemonic = "movlhps"; break;
-      case 0x51: mnemonic = "sqrtps"; break;
-      case 0x52: mnemonic = "rsqrtps"; break;
-      case 0x53: mnemonic = "rcpps"; break;
-      case 0x54: mnemonic = "andps"; break;
-      case 0x56: mnemonic = "orps"; break;
-      case 0x57: mnemonic = "xorps"; break;
-      case 0x58: mnemonic = "addps"; break;
-      case 0x59: mnemonic = "mulps"; break;
-      case 0x5A: mnemonic = "cvtsd2ss"; break;
-      case 0x5C: mnemonic = "subps"; break;
-      case 0x5D: mnemonic = "minps"; break;
-      case 0x5E: mnemonic = "divps"; break;
-      case 0x5F: mnemonic = "maxps"; break;
-      default: UNREACHABLE();
+      case 0x12:
+        mnemonic = "movhlps";
+        break;
+      case 0x14:
+        mnemonic = "unpcklps";
+        break;
+      case 0x15:
+        mnemonic = "unpckhps";
+        break;
+      case 0x16:
+        mnemonic = "movlhps";
+        break;
+      case 0x51:
+        mnemonic = "sqrtps";
+        break;
+      case 0x52:
+        mnemonic = "rsqrtps";
+        break;
+      case 0x53:
+        mnemonic = "rcpps";
+        break;
+      case 0x54:
+        mnemonic = "andps";
+        break;
+      case 0x56:
+        mnemonic = "orps";
+        break;
+      case 0x57:
+        mnemonic = "xorps";
+        break;
+      case 0x58:
+        mnemonic = "addps";
+        break;
+      case 0x59:
+        mnemonic = "mulps";
+        break;
+      case 0x5A:
+        mnemonic = "cvtsd2ss";
+        break;
+      case 0x5C:
+        mnemonic = "subps";
+        break;
+      case 0x5D:
+        mnemonic = "minps";
+        break;
+      case 0x5E:
+        mnemonic = "divps";
+        break;
+      case 0x5F:
+        mnemonic = "maxps";
+        break;
+      default:
+        UNREACHABLE();
     }
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
@@ -1562,9 +1625,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         break;
 
       case 0xC8:
-        Print("enter %d, %d",
-              *reinterpret_cast<uint16_t*>(data + 1),
-              data[3]);
+        Print("enter %d, %d", *reinterpret_cast<uint16_t*>(data + 1), data[3]);
         data += 4;
         break;
 
@@ -1572,11 +1633,9 @@ int DisassemblerX64::InstructionDecode(uword pc) {
       case 0x6B: {
         int mod, regop, rm;
         get_modrm(*(data + 1), &mod, &regop, &rm);
-        int32_t imm = *data == 0x6B ? *(data + 2)
-            : *reinterpret_cast<int32_t*>(data + 2);
-        Print("imul%c %s,%s,",
-              operand_size_code(),
-              NameOfCPURegister(regop),
+        int32_t imm =
+            *data == 0x6B ? *(data + 2) : *reinterpret_cast<int32_t*>(data + 2);
+        Print("imul%c %s,%s,", operand_size_code(), NameOfCPURegister(regop),
               NameOfCPURegister(rm));
         PrintImmediateValue(imm);
         data += 2 + (*data == 0x6B ? 1 : 4);
@@ -1600,8 +1659,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           Print("pop ");
           data += PrintRightOperand(data);
         }
-      }
-        break;
+      } break;
 
       case 0xFF: {
         data++;
@@ -1633,8 +1691,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           Print("%s ", mnem);
         }
         data += PrintRightOperand(data);
-      }
-        break;
+      } break;
 
       case 0xC7:  // imm32, fall through
       case 0xC6:  // imm8
@@ -1656,8 +1713,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           PrintImmediateValue(imm);
           data += 4;
         }
-      }
-        break;
+      } break;
 
       case 0x80: {
         data++;
@@ -1667,8 +1723,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         Print(",");
         PrintImmediateValue(imm);
         data++;
-      }
-        break;
+      } break;
 
       case 0x88:  // 8bit, fall through
       case 0x89:  // 32bit
@@ -1686,8 +1741,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           data += PrintRightOperand(data);
           Print(",%s", NameOfCPURegister(regop));
         }
-      }
-        break;
+      } break;
 
       case 0x90:
       case 0x91:
@@ -1704,8 +1758,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
           Print("xchg%c rax, %s", operand_size_code(), NameOfCPURegister(reg));
         }
         data++;
-      }
-        break;
+      } break;
       case 0xB0:
       case 0xB1:
       case 0xB2:
@@ -1764,22 +1817,19 @@ int DisassemblerX64::InstructionDecode(uword pc) {
       case 0xA3:
         switch (operand_size()) {
           case DOUBLEWORD_SIZE: {
-            PrintAddress(
-                reinterpret_cast<uint8_t*>(
-                    *reinterpret_cast<int32_t*>(data + 1)));
+            PrintAddress(reinterpret_cast<uint8_t*>(
+                *reinterpret_cast<int32_t*>(data + 1)));
             if (*data == 0xA1) {  // Opcode 0xA1
               Print("movzxlq rax,(");
-              PrintAddress(
-                  reinterpret_cast<uint8_t*>(
-                      *reinterpret_cast<int32_t*>(data + 1)));
+              PrintAddress(reinterpret_cast<uint8_t*>(
+                  *reinterpret_cast<int32_t*>(data + 1)));
               Print(")");
             } else {  // Opcode 0xA3
               Print("movzxlq (");
-              PrintAddress(
-                  reinterpret_cast<uint8_t*>(
-                      *reinterpret_cast<int32_t*>(data + 1)));
+              PrintAddress(reinterpret_cast<uint8_t*>(
+                  *reinterpret_cast<int32_t*>(data + 1)));
               Print("),rax");
-           }
+            }
             data += 5;
             break;
           }
@@ -1878,10 +1928,14 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 }
 
 
-void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                     char* human_buffer, intptr_t human_size,
-                                     int* out_instr_len, const Code& code,
-                                     Object** object, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer,
+                                     intptr_t hex_size,
+                                     char* human_buffer,
+                                     intptr_t human_size,
+                                     int* out_instr_len,
+                                     const Code& code,
+                                     Object** object,
+                                     uword pc) {
   ASSERT(hex_size > 0);
   ASSERT(human_size > 0);
   DisassemblerX64 decoder(human_buffer, human_size);

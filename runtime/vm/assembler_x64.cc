@@ -24,11 +24,11 @@ DECLARE_FLAG(bool, inline_alloc);
 Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
+      has_single_entry_point_(true),
       comments_(),
       constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
-  MonomorphicCheckedEntry();
 }
 
 
@@ -485,7 +485,6 @@ void Assembler::cmovlessq(Register dst, Register src) {
   EmitUint8(0x4C);
   EmitOperand(dst & 7, operand);
 }
-
 
 
 void Assembler::movss(XmmRegister dst, const Address& src) {
@@ -2792,9 +2791,8 @@ void Assembler::LoadObjectHelper(Register dst,
   if (Thread::CanLoadFromThread(object)) {
     movq(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
-    const intptr_t idx =
-        is_unique ? object_pool_wrapper_.AddObject(object)
-                  : object_pool_wrapper_.FindObject(object);
+    const intptr_t idx = is_unique ? object_pool_wrapper_.AddObject(object)
+                                   : object_pool_wrapper_.FindObject(object);
     const int32_t offset = ObjectPool::element_offset(idx);
     LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
   } else {
@@ -2863,12 +2861,11 @@ void Assembler::CompareObject(Register reg, const Object& object) {
     cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
     const intptr_t idx = object_pool_wrapper_.FindObject(object, kNotPatchable);
-    const int32_t offset =  ObjectPool::element_offset(idx);
-    cmpq(reg, Address(PP, offset-kHeapObjectTag));
+    const int32_t offset = ObjectPool::element_offset(idx);
+    cmpq(reg, Address(PP, offset - kHeapObjectTag));
   } else {
     ASSERT(object.IsSmi());
-    CompareImmediate(
-        reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
+    CompareImmediate(reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
@@ -2932,9 +2929,8 @@ void Assembler::StoreIntoObjectFilter(Register object,
   // Mask out higher, uninteresting bits which were polluted by dest.
   andl(value, Immediate(kObjectAlignment - 1));
   // Compare with the expected bit pattern.
-  cmpl(value, Immediate(
-      (kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
-      kOldObjectAlignmentOffset + kHeapObjectTag));
+  cmpl(value, Immediate((kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
+                        kOldObjectAlignmentOffset + kHeapObjectTag));
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 
@@ -3322,17 +3318,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::NoMonomorphicCheckedEntry() {
-  buffer_.Reset();
-  for (intptr_t i = 0; i < Instructions::kCheckedEntryOffset; i++) {
-    int3();
-  }
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-}
-
-
 // RDI receiver, RBX guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
+  ASSERT(has_single_entry_point_);
+  has_single_entry_point_ = false;
   Label immediate, have_cid, miss;
   Bind(&miss);
   jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
@@ -3379,8 +3368,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 
 
-void Assembler::UpdateAllocationStats(intptr_t cid,
-                                      Heap::Space space) {
+void Assembler::UpdateAllocationStats(intptr_t cid, Heap::Space space) {
   ASSERT(cid > 0);
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
@@ -3514,7 +3502,7 @@ void Assembler::Align(int alignment, intptr_t offset) {
   if (bytes_needed) {
     nop(bytes_needed);
   }
-  ASSERT(((offset + buffer_.GetPosition()) & (alignment-1)) == 0);
+  ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
 }
 
 
@@ -3639,8 +3627,8 @@ void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
   ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
   ASSERT(sizeof(classid_t) == sizeof(uint32_t));
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagPos / kBitsPerByte;
+  const intptr_t class_id_offset =
+      Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   movl(result, FieldAddress(object, class_id_offset));
 }
 
@@ -3674,8 +3662,8 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
   ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
   ASSERT(sizeof(classid_t) == sizeof(uint32_t));
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagPos / kBitsPerByte;
+  const intptr_t class_id_offset =
+      Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -3723,7 +3711,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
     return Address(array, index * index_scale);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
-        Instance::DataOffsetFor(cid);
+                         Instance::DataOffsetFor(cid);
     ASSERT(Utils::IsInt(32, disp));
     return FieldAddress(array, static_cast<int32_t>(disp));
   }
@@ -3736,11 +3724,16 @@ static ScaleFactor ToScaleFactor(intptr_t index_scale) {
   // expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
   switch (index_scale) {
-    case 1: return TIMES_1;
-    case 2: return TIMES_1;
-    case 4: return TIMES_2;
-    case 8: return TIMES_4;
-    case 16: return TIMES_8;
+    case 1:
+      return TIMES_1;
+    case 2:
+      return TIMES_1;
+    case 4:
+      return TIMES_2;
+    case 8:
+      return TIMES_4;
+    case 16:
+      return TIMES_8;
     default:
       UNREACHABLE();
       return TIMES_1;
@@ -3756,18 +3749,15 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   if (is_external) {
     return Address(array, index, ToScaleFactor(index_scale), 0);
   } else {
-    return FieldAddress(array,
-                        index,
-                        ToScaleFactor(index_scale),
+    return FieldAddress(array, index, ToScaleFactor(index_scale),
                         Instance::DataOffsetFor(cid));
   }
 }
 
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-  "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-  "r8", "r9", "r10", "r11", "r12", "r13", "thr", "pp"
-};
+    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
 
 
 const char* Assembler::RegisterName(Register reg) {
@@ -3777,9 +3767,8 @@ const char* Assembler::RegisterName(Register reg) {
 
 
 static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
-  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
-  "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"
-};
+    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
+    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
 
 
 const char* Assembler::FpuRegisterName(FpuRegister reg) {

@@ -34,16 +34,14 @@ void DoubleToCString(double d, char* buffer, int buffer_size) {
   static const int kConversionFlags =
       double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN |
       double_conversion::DoubleToStringConverter::EMIT_TRAILING_DECIMAL_POINT |
-     double_conversion::DoubleToStringConverter::EMIT_TRAILING_ZERO_AFTER_POINT;
+      double_conversion::DoubleToStringConverter::
+          EMIT_TRAILING_ZERO_AFTER_POINT;
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags,
-      kDoubleToStringCommonInfinitySymbol,
-      kDoubleToStringCommonNaNSymbol,
-      kDoubleToStringCommonExponentChar,
-      kDecimalLow,
-      kDecimalHigh,
-      0, 0);  // Last two values are ignored in shortest mode.
+      kConversionFlags, kDoubleToStringCommonInfinitySymbol,
+      kDoubleToStringCommonNaNSymbol, kDoubleToStringCommonExponentChar,
+      kDecimalLow, kDecimalHigh, 0,
+      0);  // Last two values are ignored in shortest mode.
 
   double_conversion::StringBuilder builder(buffer, buffer_size);
   bool status = converter.ToShortest(d, &builder);
@@ -80,11 +78,9 @@ RawString* DoubleToStringAsFixed(double d, int fraction_digits) {
          fraction_digits <= kMaxFractionDigits);
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags,
-      kDoubleToStringCommonInfinitySymbol,
-      kDoubleToStringCommonNaNSymbol,
-      kDoubleToStringCommonExponentChar,
-      0, 0, 0, 0);  // Last four values are ignored in fixed mode.
+      kConversionFlags, kDoubleToStringCommonInfinitySymbol,
+      kDoubleToStringCommonNaNSymbol, kDoubleToStringCommonExponentChar, 0, 0,
+      0, 0);  // Last four values are ignored in fixed mode.
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
@@ -113,11 +109,9 @@ RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
          fraction_digits <= kMaxFractionDigits);
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags,
-      kDoubleToStringCommonInfinitySymbol,
-      kDoubleToStringCommonNaNSymbol,
-      kDoubleToStringCommonExponentChar,
-      0, 0, 0, 0);  // Last four values are ignored in exponential mode.
+      kConversionFlags, kDoubleToStringCommonInfinitySymbol,
+      kDoubleToStringCommonNaNSymbol, kDoubleToStringCommonExponentChar, 0, 0,
+      0, 0);  // Last four values are ignored in exponential mode.
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
@@ -145,18 +139,16 @@ RawString* DoubleToStringAsPrecision(double d, int precision) {
   // plus the \0.
   // Note that padding and exponent are exclusive. We still add them up.
   ASSERT(kBufferSize >= 1 + 1 + 1 + kMaxLeadingPaddingZeroes +
-         kMaxTrailingPaddingZeroes + kMaxPrecisionDigits + 1 + 1 + 3 + 1);
+                            kMaxTrailingPaddingZeroes + kMaxPrecisionDigits +
+                            1 + 1 + 3 + 1);
 
   ASSERT(kMinPrecisionDigits <= precision && precision <= kMaxPrecisionDigits);
 
   const double_conversion::DoubleToStringConverter converter(
-      kConversionFlags,
-      kDoubleToStringCommonInfinitySymbol,
-      kDoubleToStringCommonNaNSymbol,
-      kDoubleToStringCommonExponentChar,
-      0, 0,  // Ignored in precision mode.
-      kMaxLeadingPaddingZeroes,
-      kMaxTrailingPaddingZeroes);
+      kConversionFlags, kDoubleToStringCommonInfinitySymbol,
+      kDoubleToStringCommonNaNSymbol, kDoubleToStringCommonExponentChar, 0,
+      0,  // Ignored in precision mode.
+      kMaxLeadingPaddingZeroes, kMaxTrailingPaddingZeroes);
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
@@ -173,16 +165,12 @@ bool CStringToDouble(const char* str, intptr_t length, double* result) {
   }
 
   double_conversion::StringToDoubleConverter converter(
-    double_conversion::StringToDoubleConverter::NO_FLAGS,
-    0.0,
-    0.0,
-    kDoubleToStringCommonInfinitySymbol,
-    kDoubleToStringCommonNaNSymbol);
+      double_conversion::StringToDoubleConverter::NO_FLAGS, 0.0, 0.0,
+      kDoubleToStringCommonInfinitySymbol, kDoubleToStringCommonNaNSymbol);
 
   int parsed_count = 0;
-  *result = converter.StringToDouble(str,
-                                     static_cast<int>(length),
-                                     &parsed_count);
+  *result =
+      converter.StringToDouble(str, static_cast<int>(length), &parsed_count);
   return (parsed_count == length);
 }
 

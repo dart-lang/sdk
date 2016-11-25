@@ -8,6 +8,7 @@
 library analysis_server.tool.instrumentation.log.log;
 
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
@@ -304,14 +305,21 @@ class InstrumentationLog {
         if (extraLines.isNotEmpty) {
           logContent[i] = merge(line, extraLines);
         }
+        extraLines.clear();
       } else {
         logContent.removeAt(i);
         extraLines.insert(0, line);
       }
     }
     if (extraLines.isNotEmpty) {
-      throw new StateError(
-          '${extraLines.length} non-entry lines before any entry');
+      int count = math.min(extraLines.length, 10);
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeln('${extraLines.length} non-entry lines before any entry');
+      buffer.writeln('First $count lines:');
+      for (int i = 0; i < count; i++) {
+        buffer.writeln(extraLines[i]);
+      }
+      throw new StateError(buffer.toString());
     }
   }
 

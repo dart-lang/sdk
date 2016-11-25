@@ -18,6 +18,8 @@ LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
 [ $compiler != dart2analyzer ]
+LibTest/isolate/ReceivePort/take_A01_t02: Fail # co19 issue 81
+LibTest/async/Stream/take_A01_t02: Fail # co19 issue 81
 # Tests that fail on every runtime, but not on the analyzer.
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525

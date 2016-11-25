@@ -19,11 +19,19 @@ UNIT_TEST_CASE(ThreadPool_Create) {
 
 class TestTask : public ThreadPool::Task {
  public:
-  TestTask(Monitor* sync, bool* done)
-      : sync_(sync), done_(done) {
-  }
+  TestTask(Monitor* sync, bool* done) : sync_(sync), done_(done) {}
 
+  // Before running the task, *done_ should be true. This lets the caller
+  // ASSERT things knowing that the thread is still around. To unblock the
+  // thread, the caller should take the lock, set *done_ to false, and Notify()
+  // the monitor.
   virtual void Run() {
+    {
+      MonitorLocker ml(sync_);
+      while (*done_) {
+        ml.Wait();
+      }
+    }
     MonitorLocker ml(sync_);
     *done_ = true;
     ml.Notify();
@@ -38,10 +46,12 @@ class TestTask : public ThreadPool::Task {
 UNIT_TEST_CASE(ThreadPool_RunOne) {
   ThreadPool thread_pool;
   Monitor sync;
-  bool done = false;
+  bool done = true;
   thread_pool.Run(new TestTask(&sync, &done));
   {
     MonitorLocker ml(&sync);
+    done = false;
+    ml.Notify();
     while (!done) {
       ml.Wait();
     }
@@ -61,11 +71,13 @@ UNIT_TEST_CASE(ThreadPool_RunMany) {
   bool done[kTaskCount];
 
   for (int i = 0; i < kTaskCount; i++) {
-    done[i] = false;
+    done[i] = true;
     thread_pool.Run(new TestTask(&sync[i], &done[i]));
   }
   for (int i = 0; i < kTaskCount; i++) {
     MonitorLocker ml(&sync[i]);
+    done[i] = false;
+    ml.Notify();
     while (!done[i]) {
       ml.Wait();
     }
@@ -80,8 +92,7 @@ class SleepTask : public ThreadPool::Task {
       : sync_(sync),
         started_count_(started_count),
         slept_count_(slept_count),
-        millis_(millis) {
-  }
+        millis_(millis) {}
 
   virtual void Run() {
     {
@@ -157,12 +168,14 @@ UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
 
   // Run a worker.
   Monitor sync;
-  bool done = false;
+  bool done = true;
   thread_pool.Run(new TestTask(&sync, &done));
   EXPECT_EQ(1U, thread_pool.workers_started());
   EXPECT_EQ(0U, thread_pool.workers_stopped());
   {
     MonitorLocker ml(&sync);
+    done = false;
+    ml.Notify();
     while (!done) {
       ml.Wait();
     }
@@ -184,8 +197,7 @@ UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
 class SpawnTask : public ThreadPool::Task {
  public:
   SpawnTask(ThreadPool* pool, Monitor* sync, int todo, int total, int* done)
-      : pool_(pool), sync_(sync), todo_(todo), total_(total), done_(done) {
-  }
+      : pool_(pool), sync_(sync), todo_(todo), total_(total), done_(done) {}
 
   virtual void Run() {
     todo_--;  // Subtract one for current task.
@@ -193,8 +205,8 @@ class SpawnTask : public ThreadPool::Task {
 
     // Spawn 0-2 children.
     if (todo_ > 0) {
-      pool_->Run(new SpawnTask(
-          pool_, sync_, todo_ - child_todo, total_, done_));
+      pool_->Run(
+          new SpawnTask(pool_, sync_, todo_ - child_todo, total_, done_));
     }
     if (todo_ > 1) {
       pool_->Run(new SpawnTask(pool_, sync_, child_todo, total_, done_));

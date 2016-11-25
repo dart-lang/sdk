@@ -30,10 +30,10 @@ const char* Message::PriorityAsString(Priority priority) {
   switch (priority) {
     case kNormalPriority:
       return "Normal";
-    break;
+      break;
     case kOOBPriority:
       return "OOB";
-    break;
+      break;
     default:
       UNIMPLEMENTED();
       return NULL;
@@ -65,9 +65,9 @@ void MessageQueue::Enqueue(Message* msg, bool before_events) {
   } else {
     ASSERT(tail_ != NULL);
     if (!before_events) {
-        // Append at the tail.
-        tail_->next_ = msg;
-        tail_ = msg;
+      // Append at the tail.
+      tail_->next_ = msg;
+      tail_ = msg;
     } else {
       ASSERT(msg->dest_port() == Message::kIllegalPort);
       if (head_->dest_port() != Message::kIllegalPort) {
@@ -106,7 +106,7 @@ Message* MessageQueue::Dequeue() {
     }
 #if defined(DEBUG)
     result->next_ = result;  // Make sure to trigger ASSERT in Enqueue.
-#endif  // DEBUG
+#endif                       // DEBUG
     return result;
   }
   return NULL;
@@ -129,14 +129,12 @@ void MessageQueue::Clear() {
 }
 
 
-MessageQueue::Iterator::Iterator(const MessageQueue* queue)
-    : next_(NULL) {
+MessageQueue::Iterator::Iterator(const MessageQueue* queue) : next_(NULL) {
   Reset(queue);
 }
 
 
-MessageQueue::Iterator::~Iterator() {
-}
+MessageQueue::Iterator::~Iterator() {}
 
 void MessageQueue::Iterator::Reset(const MessageQueue* queue) {
   ASSERT(queue != NULL);
@@ -171,7 +169,7 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
   MessageQueue::Iterator it(this);
   while (it.HasNext()) {
     Message* current = it.Next();
-     ASSERT(current != NULL);
+    ASSERT(current != NULL);
     if (current->Id() == id) {
       return current;
     }
@@ -196,14 +194,13 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
     JSONObject message(&messages);
     message.AddProperty("type", "Message");
     message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
-    message.AddPropertyF("messageObjectId", "messages/%" Px "",
-                         current->Id());
+    message.AddPropertyF("messageObjectId", "messages/%" Px "", current->Id());
     message.AddProperty("size", current->len());
     message.AddProperty("index", depth++);
     message.AddPropertyF("_destinationPort", "%" Pd64 "",
-        static_cast<int64_t>(current->dest_port()));
+                         static_cast<int64_t>(current->dest_port()));
     message.AddProperty("_priority",
-        Message::PriorityAsString(current->priority()));
+                        Message::PriorityAsString(current->priority()));
     // TODO(johnmccutchan): Move port -> handler map out of Dart and into the
     // VM, that way we can lookup the handler without invoking Dart code.
     msg_handler = DartLibraryCalls::LookupHandler(current->dest_port());

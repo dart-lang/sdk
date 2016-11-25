@@ -56,7 +56,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->SetLength(kStackSlotCount);
     EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
 
-    bool expectation0[kStackSlotCount] = { true };
+    bool expectation0[kStackSlotCount] = {true};
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation0[i], stack_bitmap->Get(i));
     }
@@ -73,7 +73,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->SetLength(kStackSlotCount);
     EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
 
-    bool expectation1[kStackSlotCount] = { true, false, true };
+    bool expectation1[kStackSlotCount] = {true, false, true};
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation1[i], stack_bitmap->Get(i));
     }
@@ -91,8 +91,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->SetLength(kStackSlotCount);
     EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
 
-    bool expectation2[kStackSlotCount] =
-        { true, false, true, true, true, true };
+    bool expectation2[kStackSlotCount] = {true, false, true, true, true, true};
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation2[i], stack_bitmap->Get(i));
     }
@@ -112,9 +111,8 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stack_bitmap->SetLength(kStackSlotCount);
     EXPECT_EQ(kStackSlotCount, stack_bitmap->Length());
 
-    bool expectation3[kStackSlotCount] =
-        { true, false, true, true, true, true, false, false,
-          false, false, true };
+    bool expectation3[kStackSlotCount] = {
+        true, false, true, true, true, true, false, false, false, false, true};
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation3[i], stack_bitmap->Get(i));
     }
@@ -220,8 +218,8 @@ TEST_CASE(StackmapGC) {
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
-  Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
 
   // Now compile the two functions 'A.foo' and 'A.moo'
@@ -244,17 +242,16 @@ TEST_CASE(StackmapGC) {
   BitmapBuilder* stack_bitmap = new BitmapBuilder();
   EXPECT(stack_bitmap != NULL);
   stack_bitmap->Set(0, false);  // var i.
-  stack_bitmap->Set(1, true);  // var s1.
+  stack_bitmap->Set(1, true);   // var s1.
   stack_bitmap->Set(2, false);  // var k.
-  stack_bitmap->Set(3, true);  // var s2.
-  stack_bitmap->Set(4, true);  // var s3.
+  stack_bitmap->Set(3, true);   // var s2.
+  stack_bitmap->Set(4, true);   // var s3.
   const Code& code = Code::Handle(function_foo.unoptimized_code());
   // Search for the pc of the call to 'func'.
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
-  PcDescriptors::Iterator iter(descriptors,
-                               RawPcDescriptors::kUnoptStaticCall);
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     stackmap_table_builder->AddEntry(iter.PcOffset(), stack_bitmap, 0);
     ++call_count;
@@ -279,22 +276,22 @@ TEST_CASE(DescriptorList_TokenPositions) {
   DescriptorList* descriptors = new DescriptorList(64);
   ASSERT(descriptors != NULL);
   const intptr_t token_positions[] = {
-    kMinInt32,
-    5,
-    13,
-    13,
-    13,
-    13,
-    31,
-    23,
-    23,
-    23,
-    33,
-    33,
-    5,
-    5,
-    TokenPosition::kMinSourcePos,
-    TokenPosition::kMaxSourcePos,
+      kMinInt32,
+      5,
+      13,
+      13,
+      13,
+      13,
+      31,
+      23,
+      23,
+      23,
+      33,
+      33,
+      5,
+      5,
+      TokenPosition::kMinSourcePos,
+      TokenPosition::kMaxSourcePos,
   };
   const intptr_t num_token_positions =
       sizeof(token_positions) / sizeof(token_positions[0]);
@@ -314,8 +311,8 @@ TEST_CASE(DescriptorList_TokenPositions) {
   intptr_t i = 0;
   while (it.MoveNext()) {
     if (token_positions[i] != it.TokenPos().value()) {
-      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n",
-                i, token_positions[i], it.TokenPos().value());
+      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
+                token_positions[i], it.TokenPos().value());
     }
     EXPECT(token_positions[i] == it.TokenPos().value());
     i++;
@@ -325,22 +322,22 @@ TEST_CASE(DescriptorList_TokenPositions) {
 
 TEST_CASE(CodeSourceMap_TokenPositions) {
   const intptr_t token_positions[] = {
-    kMinInt32,
-    5,
-    13,
-    13,
-    13,
-    13,
-    31,
-    23,
-    23,
-    23,
-    33,
-    33,
-    5,
-    5,
-    TokenPosition::kMinSourcePos,
-    TokenPosition::kMaxSourcePos,
+      kMinInt32,
+      5,
+      13,
+      13,
+      13,
+      13,
+      31,
+      23,
+      23,
+      23,
+      33,
+      33,
+      5,
+      5,
+      TokenPosition::kMinSourcePos,
+      TokenPosition::kMaxSourcePos,
   };
   const intptr_t num_token_positions =
       sizeof(token_positions) / sizeof(token_positions[0]);
@@ -362,8 +359,8 @@ TEST_CASE(CodeSourceMap_TokenPositions) {
   while (it.MoveNext()) {
     EXPECT(it.PcOffset() == i);
     if (token_positions[i] != it.TokenPos().value()) {
-      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n",
-                i, token_positions[i], it.TokenPos().value());
+      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
+                token_positions[i], it.TokenPos().value());
     }
     EXPECT(token_positions[i] == it.TokenPos().value());
     i++;

@@ -22,12 +22,12 @@ class VariableLivenessAnalysis;
 class BlockIterator : public ValueObject {
  public:
   explicit BlockIterator(const GrowableArray<BlockEntryInstr*>& block_order)
-      : block_order_(block_order), current_(0) { }
+      : block_order_(block_order), current_(0) {}
 
   BlockIterator(const BlockIterator& other)
       : ValueObject(),
         block_order_(other.block_order_),
-        current_(other.current_) { }
+        current_(other.current_) {}
 
   void Advance() {
     ASSERT(!Done());
@@ -49,22 +49,17 @@ struct ConstantPoolTrait {
   typedef const Object& Key;
   typedef ConstantInstr* Pair;
 
-  static Key KeyOf(Pair kv) {
-    return kv->value();
-  }
+  static Key KeyOf(Pair kv) { return kv->value(); }
 
-  static Value ValueOf(Pair kv) {
-    return kv;
-  }
+  static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
     if (key.IsSmi()) {
       return Smi::Cast(key).Value();
     }
     if (key.IsDouble()) {
-      return static_cast<intptr_t>(
-          bit_cast<int32_t, float>(
-              static_cast<float>(Double::Cast(key).value())));
+      return static_cast<intptr_t>(bit_cast<int32_t, float>(
+          static_cast<float>(Double::Cast(key).value())));
     }
     if (key.IsMint()) {
       return static_cast<intptr_t>(Mint::Cast(key).value());
@@ -89,12 +84,8 @@ class FlowGraph : public ZoneAllocated {
             intptr_t max_block_id);
 
   // Function properties.
-  const ParsedFunction& parsed_function() const {
-    return parsed_function_;
-  }
-  const Function& function() const {
-    return parsed_function_.function();
-  }
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
+  const Function& function() const { return parsed_function_.function(); }
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
   }
@@ -104,15 +95,9 @@ class FlowGraph : public ZoneAllocated {
   intptr_t num_stack_locals() const {
     return parsed_function_.num_stack_locals();
   }
-  intptr_t num_copied_params() const {
-    return num_copied_params_;
-  }
-  intptr_t num_non_copied_params() const {
-    return num_non_copied_params_;
-  }
-  bool IsIrregexpFunction() const {
-    return function().IsIrregexpFunction();
-  }
+  intptr_t num_copied_params() const { return num_copied_params_; }
+  intptr_t num_non_copied_params() const { return num_non_copied_params_; }
+  bool IsIrregexpFunction() const { return function().IsIrregexpFunction(); }
 
   LocalVariable* CurrentContextVar() const {
     return parsed_function().current_context_var();
@@ -124,9 +109,7 @@ class FlowGraph : public ZoneAllocated {
   }
 
   // Flow graph orders.
-  const GrowableArray<BlockEntryInstr*>& preorder() const {
-    return preorder_;
-  }
+  const GrowableArray<BlockEntryInstr*>& preorder() const { return preorder_; }
   const GrowableArray<BlockEntryInstr*>& postorder() const {
     return postorder_;
   }
@@ -170,17 +153,11 @@ class FlowGraph : public ZoneAllocated {
   void set_max_block_id(intptr_t id) { max_block_id_ = id; }
   intptr_t allocate_block_id() { return ++max_block_id_; }
 
-  GraphEntryInstr* graph_entry() const {
-    return graph_entry_;
-  }
+  GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  ConstantInstr* constant_null() const {
-    return constant_null_;
-  }
+  ConstantInstr* constant_null() const { return constant_null_; }
 
-  ConstantInstr* constant_dead() const {
-    return constant_dead_;
-  }
+  ConstantInstr* constant_dead() const { return constant_dead_; }
 
   ConstantInstr* constant_empty_context() const {
     return constant_empty_context_;
@@ -286,9 +263,7 @@ class FlowGraph : public ZoneAllocated {
     return deferred_prefixes_;
   }
 
-  BitVector* captured_parameters() const {
-    return captured_parameters_;
-  }
+  BitVector* captured_parameters() const { return captured_parameters_; }
 
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) { inlining_id_ = value; }
@@ -310,6 +285,12 @@ class FlowGraph : public ZoneAllocated {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
+  // Replaces uses that are dominated by dom of 'def' with 'other'.
+  // Note: uses that occur at instruction dom itself are not dominated by it.
+  static void RenameDominatedUses(Definition* def,
+                                  Instruction* dom,
+                                  Definition* other);
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -319,28 +300,25 @@ class FlowGraph : public ZoneAllocated {
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
 
-  void CompressPath(
-      intptr_t start_index,
-      intptr_t current_index,
-      GrowableArray<intptr_t>* parent,
-      GrowableArray<intptr_t>* label);
+  void CompressPath(intptr_t start_index,
+                    intptr_t current_index,
+                    GrowableArray<intptr_t>* parent,
+                    GrowableArray<intptr_t>* label);
 
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
               ZoneGrowableArray<Definition*>* inlining_parameters);
-  void RenameRecursive(
-      BlockEntryInstr* block_entry,
-      GrowableArray<Definition*>* env,
-      GrowableArray<PhiInstr*>* live_phis,
-      VariableLivenessAnalysis* variable_liveness);
+  void RenameRecursive(BlockEntryInstr* block_entry,
+                       GrowableArray<Definition*>* env,
+                       GrowableArray<PhiInstr*>* live_phis,
+                       VariableLivenessAnalysis* variable_liveness);
 
   void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
 
-  void InsertPhis(
-      const GrowableArray<BlockEntryInstr*>& preorder,
-      const GrowableArray<BitVector*>& assigned_vars,
-      const GrowableArray<BitVector*>& dom_frontier,
-      GrowableArray<PhiInstr*>* live_phis);
+  void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
+                  const GrowableArray<BitVector*>& assigned_vars,
+                  const GrowableArray<BitVector*>& dom_frontier,
+                  GrowableArray<PhiInstr*>* live_phis);
 
   void RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis);
 
@@ -376,8 +354,10 @@ class FlowGraph : public ZoneAllocated {
   void TryMergeMathUnary(
       GrowableArray<InvokeMathCFunctionInstr*>* merge_candidates);
 
-  void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
-                                       Representation rep, intptr_t cid);
+  void AppendExtractNthOutputForMerged(Definition* instr,
+                                       intptr_t ix,
+                                       Representation rep,
+                                       intptr_t cid);
 
   Thread* thread_;
 
@@ -422,7 +402,7 @@ class LivenessAnalysis : public ValueObject {
 
   void Analyze();
 
-  virtual ~LivenessAnalysis() { }
+  virtual ~LivenessAnalysis() {}
 
   BitVector* GetLiveInSetAt(intptr_t postorder_number) const {
     return live_in_[postorder_number];
@@ -520,13 +500,10 @@ class BlockEffects : public ZoneAllocated {
 
 class DefinitionWorklist : public ValueObject {
  public:
-  DefinitionWorklist(FlowGraph* flow_graph,
-                     intptr_t initial_capacity)
+  DefinitionWorklist(FlowGraph* flow_graph, intptr_t initial_capacity)
       : defs_(initial_capacity),
-        contains_vector_(
-            new BitVector(flow_graph->zone(),
-                          flow_graph->current_ssa_temp_index())) {
-  }
+        contains_vector_(new BitVector(flow_graph->zone(),
+                                       flow_graph->current_ssa_temp_index())) {}
 
   void Add(Definition* defn) {
     if (!Contains(defn)) {
@@ -537,12 +514,10 @@ class DefinitionWorklist : public ValueObject {
 
   bool Contains(Definition* defn) const {
     return (defn->ssa_temp_index() >= 0) &&
-        contains_vector_->Contains(defn->ssa_temp_index());
+           contains_vector_->Contains(defn->ssa_temp_index());
   }
 
-  bool IsEmpty() const {
-    return defs_.is_empty();
-  }
+  bool IsEmpty() const { return defs_.is_empty(); }
 
   Definition* RemoveLast() {
     Definition* defn = defs_.RemoveLast();

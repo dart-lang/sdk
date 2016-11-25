@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/engine.dart'
         InternalAnalysisContext;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/task/dart.dart';
@@ -531,7 +531,7 @@ class DartWorkManagerTest {
   void test_onAnalysisOptionsChanged() {
     when(context.exists(anyObject)).thenReturn(true);
     // set cache values
-    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(PARSED_UNIT, AstTestFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
@@ -575,7 +575,7 @@ class DartWorkManagerTest {
   void test_onSourceFactoryChanged() {
     when(context.exists(anyObject)).thenReturn(true);
     // set cache values
-    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(PARSED_UNIT, AstTestFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
@@ -619,7 +619,7 @@ class DartWorkManagerTest {
         .setValue(VERIFY_ERRORS, <AnalysisError>[error2], []);
     // RESOLVED_UNIT is ready, set errors
     manager.resultsComputed(
-        unitTarget, {RESOLVED_UNIT: AstFactory.compilationUnit()});
+        unitTarget, {RESOLVED_UNIT: AstTestFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
@@ -639,8 +639,8 @@ class DartWorkManagerTest {
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
     // PARSED_UNIT is ready, set errors
-    manager
-        .resultsComputed(source1, {PARSED_UNIT: AstFactory.compilationUnit()});
+    manager.resultsComputed(
+        source1, {PARSED_UNIT: AstTestFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
@@ -724,7 +724,7 @@ class DartWorkManagerTest {
     when(context.getErrors(source1))
         .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
     entry1.setValue(LINE_INFO, lineInfo, []);
-    CompilationUnit unit = AstFactory.compilationUnit();
+    CompilationUnit unit = AstTestFactory.compilationUnit();
     manager.resultsComputed(source1, {PARSED_UNIT: unit});
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.parsedDartUnit, unit);
@@ -738,7 +738,7 @@ class DartWorkManagerTest {
     when(context.getErrors(source2))
         .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
     entry2.setValue(LINE_INFO, lineInfo, []);
-    CompilationUnit unit = AstFactory.compilationUnit();
+    CompilationUnit unit = AstTestFactory.compilationUnit();
     manager.resultsComputed(
         new LibrarySpecificUnit(source1, source2), {RESOLVED_UNIT: unit});
     ChangeNoticeImpl notice = context.getNotice(source2);

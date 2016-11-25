@@ -57,7 +57,7 @@ const char* Platform::LibraryExtension() {
 }
 
 
-bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
 

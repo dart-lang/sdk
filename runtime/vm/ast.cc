@@ -14,18 +14,16 @@
 namespace dart {
 
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
-void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
-  visitor->Visit##BaseName##Node(this);                                        \
-}
+  void BaseName##Node::Visit(AstNodeVisitor* visitor) {                        \
+    visitor->Visit##BaseName##Node(this);                                      \
+  }
 
 FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 #undef DEFINE_VISIT_FUNCTION
 
 
 #define DEFINE_NAME_FUNCTION(BaseName)                                         \
-const char* BaseName##Node::Name() const {                                     \
-  return #BaseName;                                                            \
-}
+  const char* BaseName##Node::Name() const { return #BaseName; }
 
 FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
@@ -46,8 +44,7 @@ const Field* AstNode::MayCloneField(const Field& value) {
 // array.
 class AstNodeCollector : public AstNodeVisitor {
  public:
-  explicit AstNodeCollector(GrowableArray<AstNode*>* nodes)
-    : nodes_(nodes) { }
+  explicit AstNodeCollector(GrowableArray<AstNode*>* nodes) : nodes_(nodes) {}
 
 #define DEFINE_VISITOR_FUNCTION(BaseName)                                      \
   virtual void Visit##BaseName##Node(BaseName##Node* node) {                   \
@@ -55,7 +52,7 @@ class AstNodeCollector : public AstNodeVisitor {
     node->VisitChildren(this);                                                 \
   }
 
-FOR_EACH_NODE(DEFINE_VISITOR_FUNCTION)
+  FOR_EACH_NODE(DEFINE_VISITOR_FUNCTION)
 #undef DEFINE_VISITOR_FUNCTION
 
  private:
@@ -85,8 +82,7 @@ void SequenceNode::Add(AstNode* node) {
 }
 
 
-void PrimaryNode::VisitChildren(AstNodeVisitor* visitor) const {
-}
+void PrimaryNode::VisitChildren(AstNodeVisitor* visitor) const {}
 
 
 void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
@@ -97,10 +93,7 @@ void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
 
 
 LetNode::LetNode(TokenPosition token_pos)
-  : AstNode(token_pos),
-    vars_(1),
-    initializers_(1),
-    nodes_(1) { }
+    : AstNode(token_pos), vars_(1), initializers_(1), nodes_(1) {}
 
 
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
@@ -108,11 +101,10 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   Zone* zone = thread->zone();
   initializers_.Add(node);
   char name[64];
-  OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "",
-      token_pos().ToCString(), vars_.length());
+  OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "", token_pos().ToCString(),
+              vars_.length());
   LocalVariable* temp_var =
-      new LocalVariable(TokenPosition::kNoSource,
-                        token_pos(),
+      new LocalVariable(TokenPosition::kNoSource, token_pos(),
                         String::ZoneHandle(zone, Symbols::New(thread, name)),
                         Object::dynamic_type());
   vars_.Add(temp_var);
@@ -233,10 +225,9 @@ const char* TypeNode::TypeName() const {
 
 
 bool ComparisonNode::IsKindValid() const {
-  return Token::IsRelationalOperator(kind_)
-      || Token::IsEqualityOperator(kind_)
-      || Token::IsTypeTestOperator(kind_)
-      || Token::IsTypeCastOperator(kind_);
+  return Token::IsRelationalOperator(kind_) ||
+         Token::IsEqualityOperator(kind_) || Token::IsTypeTestOperator(kind_) ||
+         Token::IsTypeCastOperator(kind_);
 }
 
 
@@ -256,7 +247,7 @@ bool ComparisonNode::IsPotentiallyConst() const {
     case Token::kEQ_STRICT:
     case Token::kNE_STRICT:
       return this->left()->IsPotentiallyConst() &&
-          this->right()->IsPotentiallyConst();
+             this->right()->IsPotentiallyConst();
     default:
       return false;
   }
@@ -286,14 +277,10 @@ const Instance* ComparisonNode::EvalConstExpr() const {
     case Token::kNE:
       // The comparison is a compile time const if both operands are either a
       // number, string, or boolean value (but not necessarily the same type).
-      if ((left_val->IsNumber() ||
-          left_val->IsString() ||
-          left_val->IsBool() ||
-          left_val->IsNull()) &&
-          (right_val->IsNumber() ||
-          right_val->IsString() ||
-          right_val->IsBool() ||
-          right_val->IsNull())) {
+      if ((left_val->IsNumber() || left_val->IsString() || left_val->IsBool() ||
+           left_val->IsNull()) &&
+          (right_val->IsNumber() || right_val->IsString() ||
+           right_val->IsBool() || right_val->IsNull())) {
         return &Bool::False();
       }
       return NULL;
@@ -307,7 +294,6 @@ const Instance* ComparisonNode::EvalConstExpr() const {
   }
   return NULL;
 }
-
 
 
 bool BinaryOpNode::IsKindValid() const {
@@ -350,7 +336,7 @@ bool BinaryOpNode::IsPotentiallyConst() const {
           this->right()->AsLiteralNode()->literal().IsNull()) {
         return false;
       }
-      // Fall-through intentional.
+    // Fall-through intentional.
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
@@ -364,7 +350,7 @@ bool BinaryOpNode::IsPotentiallyConst() const {
     case Token::kSHR:
     case Token::kIFNULL:
       return this->left()->IsPotentiallyConst() &&
-          this->right()->IsPotentiallyConst();
+             this->right()->IsPotentiallyConst();
     default:
       UNREACHABLE();
       return false;
@@ -390,7 +376,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
       if (left_val->IsString()) {
         return right_val->IsString() ? left_val : NULL;
       }
-      // Fall-through intentional.
+    // Fall-through intentional.
     case Token::kSUB:
     case Token::kMUL:
     case Token::kDIV:
@@ -402,8 +388,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
         } else if (right_val->IsNumber()) {
           return right_val;
         }
-      } else if (left_val->IsNumber() &&
-                 right_val->IsNumber()) {
+      } else if (left_val->IsNumber() && right_val->IsNumber()) {
         return left_val;
       }
       return NULL;
@@ -412,8 +397,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
     case Token::kBIT_AND:
     case Token::kSHL:
     case Token::kSHR:
-      if (left_val->IsInteger() &&
-          right_val->IsInteger()) {
+      if (left_val->IsInteger() && right_val->IsInteger()) {
         return right_val;
       }
       return NULL;
@@ -488,15 +472,14 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
 
 bool ConditionalExprNode::IsPotentiallyConst() const {
   return this->condition()->IsPotentiallyConst() &&
-    this->true_expr()->IsPotentiallyConst() &&
-    this->false_expr()->IsPotentiallyConst();
+         this->true_expr()->IsPotentiallyConst() &&
+         this->false_expr()->IsPotentiallyConst();
 }
 
 
 const Instance* ConditionalExprNode::EvalConstExpr() const {
   const Instance* cond = this->condition()->EvalConstExpr();
-  if ((cond != NULL) &&
-      cond->IsBool() &&
+  if ((cond != NULL) && cond->IsBool() &&
       (this->true_expr()->EvalConstExpr() != NULL) &&
       (this->false_expr()->EvalConstExpr() != NULL)) {
     return cond;
@@ -514,8 +497,7 @@ bool ClosureNode::IsPotentiallyConst() const {
 
 
 const Instance* ClosureNode::EvalConstExpr() const {
-  if (!is_deferred_reference_ &&
-      function().IsImplicitStaticClosureFunction()) {
+  if (!is_deferred_reference_ && function().IsImplicitStaticClosureFunction()) {
     // Return a value that represents an instance. Only the type is relevant.
     return &Instance::Handle();
   }
@@ -528,11 +510,9 @@ AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
     // This is an implicit closure node created because a static getter was not
     // found. Change the getter into a setter. If it does not exist,
     // noSuchMethod will be called.
-    return new StaticSetterNode(token_pos(),
-                                receiver(),
+    return new StaticSetterNode(token_pos(), receiver(),
                                 Class::ZoneHandle(function().Owner()),
-                                String::ZoneHandle(function().name()),
-                                rhs);
+                                String::ZoneHandle(function().name()), rhs);
   }
   return NULL;
 }
@@ -579,30 +559,24 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
     return NULL;
   }
   if (Isolate::Current()->type_checks()) {
-    rhs = new AssignableNode(
-        field().token_pos(),
-        rhs,
-        AbstractType::ZoneHandle(field().type()),
-        String::ZoneHandle(field().name()));
+    rhs = new AssignableNode(field().token_pos(), rhs,
+                             AbstractType::ZoneHandle(field().type()),
+                             String::ZoneHandle(field().name()));
   }
-  return new StoreStaticFieldNode(
-      token_pos(), Field::ZoneHandle(field().Original()), rhs);
+  return new StoreStaticFieldNode(token_pos(),
+                                  Field::ZoneHandle(field().Original()), rhs);
 }
 
 
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  return new InstanceSetterNode(token_pos(),
-                                receiver(),
-                                field_name(),
-                                rhs,
+  return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs,
                                 is_conditional());
 }
 
 
 bool InstanceGetterNode::IsPotentiallyConst() const {
-  return field_name().Equals(Symbols::Length()) &&
-    !is_conditional() &&
-    receiver()->IsPotentiallyConst();
+  return field_name().Equals(Symbols::Length()) && !is_conditional() &&
+         receiver()->IsPotentiallyConst();
 }
 
 
@@ -618,8 +592,8 @@ const Instance* InstanceGetterNode::EvalConstExpr() const {
 
 
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
-  return new StoreIndexedNode(token_pos(), array(), index_expr(),
-                              rhs, super_class());
+  return new StoreIndexedNode(token_pos(), array(), index_expr(), rhs,
+                              super_class());
 }
 
 
@@ -638,16 +612,10 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     if (setter.IsNull() || setter.is_abstract()) {
       // No instance setter found in super class chain,
       // noSuchMethod will be called at runtime.
-      return new StaticSetterNode(token_pos(),
-                                  receiver(),
-                                  cls(),
-                                  field_name_,
+      return new StaticSetterNode(token_pos(), receiver(), cls(), field_name_,
                                   rhs);
     }
-    return new StaticSetterNode(token_pos(),
-                                receiver(),
-                                field_name_,
-                                setter,
+    return new StaticSetterNode(token_pos(), receiver(), field_name_, setter,
                                 rhs);
   }
 
@@ -668,8 +636,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
         if (isolate->type_checks()) {
-          rhs = new AssignableNode(field.token_pos(),
-                                   rhs,
+          rhs = new AssignableNode(field.token_pos(), rhs,
                                    AbstractType::ZoneHandle(zone, field.type()),
                                    field_name_);
         }
@@ -679,15 +646,15 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
 
     // No field found in prefix. Look for a setter function.
     const String& setter_name =
-         String::Handle(zone, Field::LookupSetterSymbol(field_name_));
+        String::Handle(zone, Field::LookupSetterSymbol(field_name_));
     if (!setter_name.IsNull()) {
       obj = prefix.LookupObject(setter_name);
       if (obj.IsFunction()) {
         const Function& setter =
             Function::ZoneHandle(zone, Function::Cast(obj).raw());
         ASSERT(setter.is_static() && setter.IsSetterFunction());
-        return new StaticSetterNode(
-            token_pos(), NULL, field_name_, setter, rhs);
+        return new StaticSetterNode(token_pos(), NULL, field_name_, setter,
+                                    rhs);
       }
     }
 
@@ -703,8 +670,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
         if (isolate->type_checks()) {
-          rhs = new AssignableNode(field.token_pos(),
-                                   rhs,
+          rhs = new AssignableNode(field.token_pos(), rhs,
                                    AbstractType::ZoneHandle(zone, field.type()),
                                    field_name_);
         }
@@ -721,8 +687,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
         const Function& setter =
             Function::ZoneHandle(zone, Function::Cast(obj).raw());
         ASSERT(setter.is_static() && setter.IsSetterFunction());
-        return
-            new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
+        return new StaticSetterNode(token_pos(), NULL, field_name_, setter,
+                                    rhs);
       }
     }
 
@@ -740,8 +706,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   // Access to a lazily initialized static field that has not yet been
   // initialized is compiled to a static implicit getter.
   // A setter may not exist for such a field.
-  const Field& field = Field::ZoneHandle(zone,
-                                         cls().LookupStaticField(field_name_));
+  const Field& field =
+      Field::ZoneHandle(zone, cls().LookupStaticField(field_name_));
   if (!field.IsNull()) {
     if (field.is_final()) {
       // Attempting to assign to a final variable will cause a NoSuchMethodError
@@ -759,11 +725,9 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
            (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
     if (isolate->type_checks()) {
-      rhs = new AssignableNode(
-          field.token_pos(),
-          rhs,
-          AbstractType::ZoneHandle(zone, field.type()),
-          String::ZoneHandle(zone, field.name()));
+      rhs = new AssignableNode(field.token_pos(), rhs,
+                               AbstractType::ZoneHandle(zone, field.type()),
+                               String::ZoneHandle(zone, field.name()));
     }
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   }

@@ -8,8 +8,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
@@ -98,8 +96,7 @@ class ErrorProcessor {
     }
 
     // Let the user configure how specific errors are processed.
-    List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+    List<ErrorProcessor> processors = context.analysisOptions.errorProcessors;
 
     // Give strong mode a chance to upgrade it.
     if (context.analysisOptions.strongMode) {

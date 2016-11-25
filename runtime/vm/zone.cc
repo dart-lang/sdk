@@ -107,7 +107,7 @@ void Zone::DeleteAll() {
     Segment::DeleteSegmentList(large_segments_);
   }
 
-  // Reset zone state.
+// Reset zone state.
 #ifdef DEBUG
   memset(initial_buffer_.pointer(), kZapDeletedByte, initial_buffer_.size());
 #endif
@@ -147,11 +147,11 @@ uword Zone::AllocateExpand(intptr_t size) {
   // there isn't enough room in the Zone to satisfy the request.
   ASSERT(Utils::IsAligned(size, kAlignment));
   intptr_t free_size = (limit_ - position_);
-  ASSERT(free_size <  size);
+  ASSERT(free_size < size);
 
   // First check to see if we should just chain it as a large segment.
-  intptr_t max_size = Utils::RoundDown(kSegmentSize - sizeof(Segment),
-                                       kAlignment);
+  intptr_t max_size =
+      Utils::RoundDown(kSegmentSize - sizeof(Segment), kAlignment);
   ASSERT(max_size > 0);
   if (size > max_size) {
     return AllocateLargeSegment(size);
@@ -175,7 +175,7 @@ uword Zone::AllocateLargeSegment(intptr_t size) {
   // there isn't enough room in the Zone to satisfy the request.
   ASSERT(Utils::IsAligned(size, kAlignment));
   intptr_t free_size = (limit_ - position_);
-  ASSERT(free_size <  size);
+  ASSERT(free_size < size);
 
   // Create a new large segment and chain it up.
   ASSERT(Utils::IsAligned(sizeof(Segment), kAlignment));
@@ -230,7 +230,8 @@ void Zone::DumpZoneSizes() {
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
     size += s->size();
   }
-  OS::PrintErr("***   Zone(0x%" Px ") size in bytes,"
+  OS::PrintErr("***   Zone(0x%" Px
+               ") size in bytes,"
                " Total = %" Pd " Large Segments = %" Pd "\n",
                reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }

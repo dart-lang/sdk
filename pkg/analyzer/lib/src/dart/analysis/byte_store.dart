@@ -30,40 +30,71 @@ abstract class ByteStore {
 }
 
 /**
- * A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
- *
- * TODO(scheglov) Consider implementing size and/or time eviction policies.
+ * [ByteStore] which stores data only in memory.
  */
-class MemoryCachingByteStore implements ByteStore {
-  final ByteStore store;
-  final int maxEntries;
-
-  final _map = <String, List<int>>{};
-  final _keys = new LinkedHashSet<String>();
-
-  MemoryCachingByteStore(this.store, this.maxEntries);
+class MemoryByteStore implements ByteStore {
+  final Map<String, List<int>> _map = {};
 
   @override
   List<int> get(String key) {
-    _keys.remove(key);
-    _keys.add(key);
-    _evict();
-    return _map.putIfAbsent(key, () => store.get(key));
+    return _map[key];
   }
 
   @override
   void put(String key, List<int> bytes) {
-    store.put(key, bytes);
     _map[key] = bytes;
-    _keys.add(key);
+  }
+}
+
+/**
+ * A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
+ */
+class MemoryCachingByteStore implements ByteStore {
+  final ByteStore _store;
+  final int _maxSizeBytes;
+
+  final _map = new LinkedHashMap<String, List<int>>();
+  int _currentSizeBytes = 0;
+
+  MemoryCachingByteStore(this._store, this._maxSizeBytes);
+
+  @override
+  List<int> get(String key) {
+    List<int> bytes = _map.remove(key);
+    if (bytes == null) {
+      bytes = _store.get(key);
+      if (bytes != null) {
+        _map[key] = bytes;
+        _currentSizeBytes += bytes.length;
+        _evict();
+      }
+    } else {
+      _map[key] = bytes;
+    }
+    return bytes;
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    _store.put(key, bytes);
+    _currentSizeBytes -= _map[key]?.length ?? 0;
+    _map[key] = bytes;
+    _currentSizeBytes += bytes.length;
     _evict();
   }
 
   void _evict() {
-    if (_keys.length > maxEntries) {
-      String key = _keys.first;
-      _keys.remove(key);
-      _map.remove(key);
+    while (_currentSizeBytes > _maxSizeBytes) {
+      if (_map.isEmpty) {
+        // Should be impossible, since _currentSizeBytes should always match
+        // _map.  But recover anyway.
+        assert(false);
+        _currentSizeBytes = 0;
+        break;
+      }
+      String key = _map.keys.first;
+      List<int> bytes = _map.remove(key);
+      _currentSizeBytes -= bytes.length;
     }
   }
 }

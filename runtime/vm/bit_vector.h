@@ -25,7 +25,7 @@ class BitVector : public ZoneAllocated {
       ASSERT(target->data_length_ > 0);
       Advance();
     }
-    ~Iterator() { }
+    ~Iterator() {}
 
     bool Done() const { return word_index_ >= target_->data_length_; }
     void Advance();

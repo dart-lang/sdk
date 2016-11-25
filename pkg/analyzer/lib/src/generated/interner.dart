@@ -6,17 +6,10 @@ library analyzer.src.generated.interner;
 
 import 'dart:collection';
 
-/**
- * The interface `Interner` defines the behavior of objects that can intern
- * strings.
- */
-abstract class Interner {
-  /**
-   * Return a string that is identical to all of the other strings that have
-   * been interned that are equal to the given [string].
-   */
-  String intern(String string);
-}
+import 'package:front_end/src/scanner/interner.dart';
+
+export 'package:front_end/src/scanner/interner.dart'
+    show Interner, NullInterner;
 
 /**
  * The class `MappedInterner` implements an interner that uses a map to manage
@@ -37,13 +30,4 @@ class MappedInterner implements Interner {
     }
     return original;
   }
-}
-
-/**
- * The class `NullInterner` implements an interner that does nothing (does not
- * actually intern any strings).
- */
-class NullInterner implements Interner {
-  @override
-  String intern(String string) => string;
 }

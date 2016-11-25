@@ -225,7 +225,11 @@ function selectEntryGroup(pageStart) {
       sink.writeln('</option>');
     }
     sink.writeln('</select>');
-    sink.writeln('Events $pageStart - ${pageEnd - 1} of ${length - 1}');
+    if (length == 0) {
+      sink.writeln('No matching events');
+    } else {
+      sink.writeln('Events $pageStart - ${pageEnd - 1} of $length');
+    }
     sink.writeln('</div>');
 
     sink.writeln('<div style="float: right">');

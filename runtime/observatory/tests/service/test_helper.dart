@@ -92,13 +92,15 @@ class _ServiceTesteeLauncher {
                                 bool pause_on_unhandled_exceptions,
                                 bool trace_service,
                                 bool trace_compiler,
-                                bool testeeControlsServer) {
+                                bool testeeControlsServer,
+                                bool useAuthToken) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(pause_on_unhandled_exceptions != null);
     assert(trace_service != null);
     assert(trace_compiler != null);
     assert(testeeControlsServer != null);
+    assert(useAuthToken != null);
 
     if (_shouldLaunchSkyShell()) {
       return _spawnSkyProcess(pause_on_start,
@@ -113,7 +115,8 @@ class _ServiceTesteeLauncher {
                                pause_on_unhandled_exceptions,
                                trace_service,
                                trace_compiler,
-                               testeeControlsServer);
+                               testeeControlsServer,
+                               useAuthToken);
     }
   }
 
@@ -122,7 +125,8 @@ class _ServiceTesteeLauncher {
                                     bool pause_on_unhandled_exceptions,
                                     bool trace_service,
                                     bool trace_compiler,
-                                    bool testeeControlsServer) {
+                                    bool testeeControlsServer,
+                                    bool useAuthToken) {
     assert(!_shouldLaunchSkyShell());
 
     String dartExecutable = Platform.executable;
@@ -151,7 +155,12 @@ class _ServiceTesteeLauncher {
     }
     fullArgs.addAll(args);
 
-    return _spawnCommon(dartExecutable, fullArgs);
+    return _spawnCommon(
+        dartExecutable,
+        fullArgs,
+        <String, String>{
+          'DART_SERVICE_USE_AUTH': '$useAuthToken'
+        });
   }
 
   Future<Process> _spawnSkyProcess(bool pause_on_start,
@@ -193,13 +202,20 @@ class _ServiceTesteeLauncher {
     fullArgs.add('--dart-flags=${dartFlags.join(' ')}');
     fullArgs.addAll(args);
 
-    return _spawnCommon(dartExecutable, fullArgs);
+    return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
-  Future<Process> _spawnCommon(String executable, List<String> arguments) {
+  Future<Process> _spawnCommon(String executable,
+                               List<String> arguments,
+                               Map<String, String> dartEnvironment) {
     var environment = _TESTEE_SPAWN_ENV;
     var bashEnvironment = new StringBuffer();
     environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
+    if (dartEnvironment != null) {
+      dartEnvironment.forEach((k, v) {
+        arguments.insert(0, '-D$k=$v');
+      });
+    }
     print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
     return Process.start(executable, arguments, environment: environment);
   }
@@ -209,13 +225,15 @@ class _ServiceTesteeLauncher {
                      bool pause_on_unhandled_exceptions,
                      bool trace_service,
                      bool trace_compiler,
-                     bool testeeControlsServer) {
+                     bool testeeControlsServer,
+                     bool useAuthToken) {
     return _spawnProcess(pause_on_start,
                   pause_on_exit,
                   pause_on_unhandled_exceptions,
                   trace_service,
                   trace_compiler,
-                  testeeControlsServer).then((p) {
+                  testeeControlsServer,
+                  useAuthToken).then((p) {
       Completer<Uri> completer = new Completer<Uri>();
       process = p;
       Uri uri;
@@ -263,7 +281,7 @@ class _ServiceTesteeLauncher {
 
 void setupAddresses(Uri serverAddress) {
   serviceWebsocketAddress =
-          'ws://${serverAddress.authority}${serverAddress.path}ws';
+      'ws://${serverAddress.authority}${serverAddress.path}ws';
   serviceHttpAddress =
       'http://${serverAddress.authority}${serverAddress.path}';
 }
@@ -278,12 +296,14 @@ class _ServiceTesterRunner {
             bool trace_compiler: false,
             bool verbose_vm: false,
             bool pause_on_unhandled_exceptions: false,
-            bool testeeControlsServer: false}) {
+            bool testeeControlsServer: false,
+            bool useAuthToken: false}) {
     var process = new _ServiceTesteeLauncher();
     process.launch(pause_on_start, pause_on_exit,
                    pause_on_unhandled_exceptions,
                    trace_service, trace_compiler,
-                   testeeControlsServer).then((Uri serverAddress) async {
+                   testeeControlsServer,
+                   useAuthToken).then((Uri serverAddress) async {
       if (mainArgs.contains("--gdb")) {
         var pid = process.process.pid;
         var wait = new Duration(seconds: 10);
@@ -348,7 +368,8 @@ Future runIsolateTests(List<String> mainArgs,
                         bool trace_compiler: false,
                         bool verbose_vm: false,
                         bool pause_on_unhandled_exceptions: false,
-                        bool testeeControlsServer: false}) async {
+                        bool testeeControlsServer: false,
+                        bool useAuthToken: false}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
     new _ServiceTesteeRunner().run(testeeBefore: testeeBefore,
@@ -365,7 +386,8 @@ Future runIsolateTests(List<String> mainArgs,
         trace_compiler: trace_compiler,
         verbose_vm: verbose_vm,
         pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
-        testeeControlsServer: testeeControlsServer);
+        testeeControlsServer: testeeControlsServer,
+        useAuthToken: useAuthToken);
   }
 }
 

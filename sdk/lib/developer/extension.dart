@@ -13,7 +13,7 @@ class ServiceExtensionResponse {
   final int _errorCode;
   final String _errorDetail;
 
-  /// Creates a successful to a service protocol extension RPC.
+  /// Creates a successful response to a service protocol extension RPC.
   ///
   /// Requires [result] to be a JSON object encoded as a string. When forming
   /// the JSON-RPC message [result] will be inlined directly.

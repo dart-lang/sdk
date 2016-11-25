@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+#ifndef PRODUCT
 #include "vm/source_report.h"
 
 #include "vm/compiler.h"
@@ -26,8 +26,7 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
       start_pos_(TokenPosition::kNoSource),
       end_pos_(TokenPosition::kNoSource),
       profile_(Isolate::Current()),
-      next_script_index_(0) {
-}
+      next_script_index_(0) {}
 
 
 SourceReport::~SourceReport() {
@@ -57,9 +56,8 @@ void SourceReport::Init(Thread* thread,
   ClearScriptTable();
   if (IsReportRequested(kProfile)) {
     // Build the profile.
-    SampleFilter samplesForIsolate(thread_->isolate(),
-                                   Thread::kMutatorTask,
-                                   -1, -1);
+    SampleFilter samplesForIsolate(thread_->isolate(), Thread::kMutatorTask, -1,
+                                   -1);
     profile_.Build(thread, &samplesForIsolate, Profile::kNoTags);
   }
 }
@@ -95,8 +93,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     default:
       return true;
   }
-  if (func.is_abstract() ||
-      func.IsImplicitConstructor() ||
+  if (func.is_abstract() || func.IsImplicitConstructor() ||
       func.IsRedirectingFactory()) {
     return true;
   }
@@ -166,10 +163,10 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
   const TokenPosition end_pos = function.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
-      new(zone()) ZoneGrowableArray<const ICData*>();
+      new (zone()) ZoneGrowableArray<const ICData*>();
   function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      zone(), code.pc_descriptors());
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone(), code.pc_descriptors());
 
   JSONArray sites(jsobj, "callSites");
 
@@ -178,7 +175,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
-    // TODO(zra): Remove this bailout once DBC has reliable ICData.
+// TODO(zra): Remove this bailout once DBC has reliable ICData.
 #if defined(TARGET_ARCH_DBC)
     if (iter.DeoptId() >= ic_data_array->length()) {
       continue;
@@ -206,10 +203,10 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const TokenPosition end_pos = function.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
-      new(zone()) ZoneGrowableArray<const ICData*>();
+      new (zone()) ZoneGrowableArray<const ICData*>();
   function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      zone(), code.pc_descriptors());
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone(), code.pc_descriptors());
 
   const int kCoverageNone = 0;
   const int kCoverageMiss = 1;
@@ -227,7 +224,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
-    // TODO(zra): Remove this bailout once DBC has reliable ICData.
+// TODO(zra): Remove this bailout once DBC has reliable ICData.
 #if defined(TARGET_ARCH_DBC)
     if (iter.DeoptId() >= ic_data_array->length()) {
       continue;
@@ -279,14 +276,14 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
                                                 const Function& func,
                                                 const Code& code) {
-  const uint8_t kSafepointKind = (RawPcDescriptors::kIcCall |
-                                  RawPcDescriptors::kUnoptStaticCall |
-                                  RawPcDescriptors::kRuntimeCall);
+  const uint8_t kSafepointKind =
+      (RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
+       RawPcDescriptors::kRuntimeCall);
   const TokenPosition begin_pos = func.token_pos();
   const TokenPosition end_pos = func.end_token_pos();
 
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      zone(), code.pc_descriptors());
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone(), code.pc_descriptors());
 
   intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
   GrowableArray<char> possible(func_length);
@@ -416,8 +413,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   // We skip compiled async functions.  Once an async function has
   // been compiled, there is another function with the same range which
   // actually contains the user code.
-  if (func.IsAsyncFunction() ||
-      func.IsAsyncGenerator() ||
+  if (func.IsAsyncFunction() || func.IsAsyncGenerator() ||
       func.IsSyncGenerator()) {
     return;
   }
@@ -537,3 +533,4 @@ void SourceReport::PrintJSON(JSONStream* js,
 }
 
 }  // namespace dart
+#endif  // PRODUCT

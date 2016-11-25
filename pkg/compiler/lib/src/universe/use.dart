@@ -73,6 +73,7 @@ enum StaticUseKind {
   CLOSURE,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
+  REDIRECTION,
   DIRECT_INVOKE,
 }
 
@@ -266,9 +267,12 @@ class StaticUse {
         element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE, type);
   }
 
-  /// Constructor redirection to [element].
-  factory StaticUse.constructorRedirect(ConstructorElement element) {
-    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  /// Constructor redirection to [element] on [type].
+  factory StaticUse.constructorRedirect(
+      ConstructorElement element, InterfaceType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    return new StaticUse.internal(element, StaticUseKind.REDIRECTION, type);
   }
 
   /// Initialization of an instance field [element].
@@ -323,6 +327,8 @@ enum TypeUseKind {
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
+  MIRROR_INSTANTIATION,
+  NATIVE_INSTANTIATION,
 }
 
 /// Use of a [DartType].
@@ -364,6 +370,16 @@ class TypeUse {
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
+  }
+
+  /// [type] used in an instantiation through mirrors.
+  factory TypeUse.mirrorInstantiation(InterfaceType type) {
+    return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
+  }
+
+  /// [type] used in a native instantiation.
+  factory TypeUse.nativeInstantiation(InterfaceType type) {
+    return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
   }
 
   bool operator ==(other) {

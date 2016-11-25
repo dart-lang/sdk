@@ -170,7 +170,9 @@ class DartUnitHighlightsComputer2 {
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
     Element element = node.bestElement;
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      if (node.parent is FieldFormalParameter) {
+        element = (element as FieldFormalParameterElement).field;
+      }
     }
     // prepare type
     HighlightRegionType type;

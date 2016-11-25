@@ -97,7 +97,7 @@ flattenFutures(builder) => JS(
 })()''');
 
 /// Memoize a generic type constructor function.
-generic(typeConstructor) => JS(
+generic(typeConstructor, [setBaseClass]) => JS(
     '',
     '''(() => {
   let length = $typeConstructor.length;
@@ -128,10 +128,12 @@ generic(typeConstructor) => JS(
             value[$_typeArguments] = args;
             value[$_originalDeclaration] = makeGenericType;
           }
+          map.set(arg, value);
+          if ($setBaseClass) $setBaseClass(value);
         } else {
           value = new Map();
+          map.set(arg, value);
         }
-        map.set(arg, value);
       }
     }
     return value;
@@ -539,4 +541,17 @@ defineNamedConstructorCallable(clazz, name, ctor) => JS(
   // Use defineProperty so we don't hit a property defined on Function,
   // like `caller` and `arguments`.
   $defineProperty($clazz, $name, { value: ctor, configurable: true });
+})()''');
+
+defineEnumValues(enumClass, names) => JS(
+    '',
+    '''(() => {
+  let values = [];
+  for (var i = 0; i < $names.length; i++) {
+    let value = $const_(new $enumClass(i));
+    values.push(value);
+    Object.defineProperty($enumClass, $names[i],
+        { value: value, configurable: true });
+  }
+  $enumClass.values = $constList(values, $enumClass);
 })()''');

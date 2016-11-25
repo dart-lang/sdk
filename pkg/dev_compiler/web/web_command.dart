@@ -197,11 +197,13 @@ class WebCompileCommand extends Command {
 
       JSModuleFile module = compiler.compile(unit, compilerOptions);
 
-      var moduleCode = module.isValid
-          ? module
-              .getCode(ModuleFormat.legacy, true, unit.name, unit.name + '.map')
-              .code
-          : '';
+      var moduleCode = '';
+      if (module.isValid) {
+        moduleCode = module
+            .getCode(ModuleFormat.legacy, unit.name, unit.name + '.map',
+                singleOutFile: true)
+            .code;
+      }
 
       return new CompileResult(
           code: moduleCode, isValid: module.isValid, errors: module.errors);

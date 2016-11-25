@@ -2724,7 +2724,7 @@ analyze(MockCompiler compiler, String text,
   Token tokens = scan(text);
   NodeListener listener =
       new NodeListener(const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener, new MockParserOptions());
+  Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   Element compilationUnit = new CompilationUnitElementX(
@@ -2768,7 +2768,7 @@ analyzeIn(MockCompiler compiler, FunctionElement element, String text,
   Token tokens = scan(text);
   NodeListener listener =
       new NodeListener(const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener, new MockParserOptions(),
+  Parser parser = new Parser(listener,
       asyncAwaitKeywordsEnabled: element.asyncMarker != AsyncMarker.SYNC);
   parser.parseStatement(tokens);
   Node node = listener.popNode();

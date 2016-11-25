@@ -16,7 +16,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -399,11 +399,11 @@ class InheritanceManagerTest {
     MethodElementImpl methodM1 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     ParameterElementImpl parameter2 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement>[parameter1, parameter2];
@@ -412,15 +412,15 @@ class InheritanceManagerTest {
     MethodElementImpl methodM2 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.REQUIRED;
     ParameterElementImpl parameter4 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a4"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a4"));
     parameter4.type = _typeProvider.intType;
     parameter4.parameterKind = ParameterKind.REQUIRED;
     ParameterElementImpl parameter5 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a5"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a5"));
     parameter5.type = _typeProvider.intType;
     parameter5.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[
@@ -584,7 +584,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM1 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement>[parameter1];
@@ -593,7 +593,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM2 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
     parameter2.type = _typeProvider.numType;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[parameter2];
@@ -692,7 +692,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM1 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
     parameter1.type = classA.type;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement>[parameter1];
@@ -701,7 +701,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM2 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
     parameter2.type = classB.type;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[parameter2];
@@ -710,7 +710,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM3 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
     parameter3.type = classC.type;
     parameter3.parameterKind = ParameterKind.REQUIRED;
     methodM3.parameters = <ParameterElement>[parameter3];
@@ -785,7 +785,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM2 =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM2.parameters = <ParameterElement>[parameter1];
@@ -814,7 +814,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM2 =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement>[parameter1];
@@ -823,11 +823,11 @@ class InheritanceManagerTest {
     MethodElementImpl methodM3 =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter2 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     ParameterElementImpl parameter3 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement>[parameter2, parameter3];
@@ -865,7 +865,7 @@ class InheritanceManagerTest {
     MethodElementImpl methodM3 =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter1 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement>[parameter1];
@@ -874,11 +874,11 @@ class InheritanceManagerTest {
     MethodElementImpl methodM4 =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     ParameterElementImpl parameter2 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     ParameterElementImpl parameter3 =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM4.parameters = <ParameterElement>[parameter2, parameter3];
@@ -968,7 +968,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
@@ -1064,7 +1064,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
@@ -1140,7 +1140,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
@@ -1183,7 +1183,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), isNull);
     _assertNoErrors(classA);
@@ -1286,7 +1286,7 @@ class InheritanceManagerTest {
   }
 
   void _assertErrors(ClassElement classElt,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     HashSet<AnalysisError> actualErrors =
         _inheritanceManager.getErrors(classElt);

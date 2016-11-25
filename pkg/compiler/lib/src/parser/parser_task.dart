@@ -8,7 +8,6 @@ import '../common.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/modelx.dart' show ElementX;
-import '../options.dart' show ParserOptions;
 import '../tokens/token.dart' show Token;
 import '../tree/tree.dart' show Node;
 import 'element_listener.dart' show ScannerOptions;
@@ -17,12 +16,9 @@ import 'node_listener.dart' show NodeListener;
 import 'parser.dart' show Parser;
 
 class ParserTask extends CompilerTask {
-  final ParserOptions parserOptions;
   final Compiler compiler;
 
-  ParserTask(Compiler compiler, this.parserOptions)
-      : compiler = compiler,
-        super(compiler.measurer);
+  ParserTask(Compiler compiler): compiler = compiler, super(compiler.measurer);
 
   String get name => 'Parser';
 
@@ -34,7 +30,7 @@ class ParserTask extends CompilerTask {
     return measure(() {
       NodeListener listener =
           new NodeListener(const ScannerOptions(), compiler.reporter, null);
-      Parser parser = new Parser(listener, parserOptions);
+      Parser parser = new Parser(listener);
       try {
         parser.parseUnit(token);
       } on ParserError catch (_) {

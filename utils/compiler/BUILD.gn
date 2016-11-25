@@ -2,8 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("//build/compiled_action.gni")
 import("../create_timestamp.gni")
-import("../invoke_dart.gni")
+import("../application_snapshot.gni")
 
 create_timestamp_file("dart2js_files_stamp") {
   path = rebase_path("../../pkg/compiler/lib")
@@ -20,7 +21,8 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-invoke_dart("dart2js_create_snapshot_entries") {
+compiled_action("dart2js_create_snapshot_entries") {
+  tool = "../../runtime/bin:dart"
   deps = [
     ":dart2js_files_stamp",
     ":dartdoc_files_stamp",
@@ -60,7 +62,8 @@ application_snapshot("dart2js") {
   main_dart = "$root_gen_dir/dart2js.dart"
   training_args = [
     "--library-root=" + rebase_path("../../sdk"),
-    rebase_path("../../tests/language/first_test.dart"),
+    "--categories=all",
+    rebase_path("$root_gen_dir/dart2js.dart"),
   ]
 }
 

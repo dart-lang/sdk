@@ -5,8 +5,7 @@
 // Test that native methods with unnamed optional arguments are called with the
 // number of arguments in the call site AND the call site is inlined.
 
-import "package:expect/expect.dart";
-import 'dart:_js_helper' show Native, NoInline;
+import 'native_testing.dart';
 
 typedef int Int2Int(int x);
 
@@ -71,6 +70,8 @@ findMethodTextContaining = function (instance, string) {
     if (s.indexOf(string)>0) return s;
   }
 };
+
+self.nativeConstructor(A);
 """;
 
 bool get isCheckedMode {
@@ -148,6 +149,7 @@ test2() {
 }
 
 main() {
+  nativeTesting();
   setup();
   test1();
   test2();

@@ -13,13 +13,18 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/class_set.dart';
+import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/util/enumset.dart';
+import 'package:compiler/src/world.dart' show ClosedWorld;
 import '../memory_compiler.dart';
 import 'helper.dart';
 import 'test_data.dart';
@@ -36,8 +41,8 @@ main(List<String> args) {
     Arguments arguments = new Arguments.from(args);
     SerializedData serializedData =
         await serializeDartCore(arguments: arguments);
-    if (arguments.filename != null) {
-      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
+    if (arguments.uri != null) {
+      Uri entryPoint = arguments.uri;
       SerializationResult result =
           await measure('${entryPoint}', 'serialize', () {
         return serialize(entryPoint,
@@ -90,97 +95,125 @@ Future checkModels(Uri entryPoint,
 
   return measure(title, 'check models', () async {
     checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);
-
-    checkSets(
-        compilerNormal.resolverWorld.directlyInstantiatedClasses,
-        compilerDeserialized.resolverWorld.directlyInstantiatedClasses,
-        "Directly instantiated classes mismatch",
-        areElementsEquivalent,
+    checkResolutionEnqueuers(compilerNormal.enqueuer.resolution,
+        compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
-
-    checkSets(
-        compilerNormal.resolverWorld.instantiatedTypes,
-        compilerDeserialized.resolverWorld.instantiatedTypes,
-        "Instantiated types mismatch",
-        areTypesEquivalent,
+    checkClosedWorlds(
+        compilerNormal.closedWorld, compilerDeserialized.closedWorld,
         verbose: verbose);
+    checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
+  });
+}
 
-    checkSets(
-        compilerNormal.resolverWorld.isChecks,
-        compilerDeserialized.resolverWorld.isChecks,
-        "Is-check mismatch",
-        areTypesEquivalent,
-        verbose: verbose);
+void checkResolutionEnqueuers(
+    ResolutionEnqueuer enqueuer1, ResolutionEnqueuer enqueuer2,
+    {bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
+    bool elementFilter(Element element),
+    bool verbose: false}) {
+  checkSets(enqueuer1.processedElements, enqueuer2.processedElements,
+      "Processed element mismatch", areElementsEquivalent,
+      elementFilter: elementFilter, verbose: verbose);
 
-    checkSets(
-        compilerNormal.enqueuer.resolution.processedElements,
-        compilerDeserialized.enqueuer.resolution.processedElements,
-        "Processed element mismatch",
-        areElementsEquivalent, onSameElement: (a, b) {
-      checkElements(compilerNormal, compilerDeserialized, a, b,
-          verbose: verbose);
-    }, verbose: verbose);
+  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.universe;
+  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.universe;
 
-    checkClassHierarchyNodes(
-        compilerNormal,
-        compilerDeserialized,
-        compilerNormal.closedWorld
-            .getClassHierarchyNode(compilerNormal.coreClasses.objectClass),
-        compilerDeserialized.closedWorld.getClassHierarchyNode(
-            compilerDeserialized.coreClasses.objectClass),
-        verbose: verbose);
+  checkMaps(
+      worldBuilder1.getInstantiationMap(),
+      worldBuilder2.getInstantiationMap(),
+      "Instantiated classes mismatch",
+      areElementsEquivalent,
+      (a, b) => areInstantiationInfosEquivalent(a, b, typeEquivalence),
+      verbose: verbose);
 
-    Expect.equals(
-        compilerNormal.enabledInvokeOn,
-        compilerDeserialized.enabledInvokeOn,
-        "Compiler.enabledInvokeOn mismatch");
-    Expect.equals(
-        compilerNormal.enabledFunctionApply,
-        compilerDeserialized.enabledFunctionApply,
-        "Compiler.enabledFunctionApply mismatch");
-    Expect.equals(
-        compilerNormal.enabledRuntimeType,
-        compilerDeserialized.enabledRuntimeType,
-        "Compiler.enabledRuntimeType mismatch");
-    Expect.equals(
-        compilerNormal.hasIsolateSupport,
-        compilerDeserialized.hasIsolateSupport,
-        "Compiler.hasIsolateSupport mismatch");
-    Expect.equals(
-        compilerNormal.deferredLoadTask.isProgramSplit,
-        compilerDeserialized.deferredLoadTask.isProgramSplit,
-        "isProgramSplit mismatch");
+  checkSets(
+      enqueuer1.universe.directlyInstantiatedClasses,
+      enqueuer2.universe.directlyInstantiatedClasses,
+      "Directly instantiated classes mismatch",
+      areElementsEquivalent,
+      verbose: verbose);
 
-    Map<ConstantValue, OutputUnit> constants1 =
-        compilerNormal.deferredLoadTask.outputUnitForConstantsForTesting;
-    Map<ConstantValue, OutputUnit> constants2 =
-        compilerDeserialized.deferredLoadTask.outputUnitForConstantsForTesting;
-    checkSets(
-        constants1.keys,
-        constants2.keys,
-        'deferredLoadTask._outputUnitForConstants.keys',
-        areConstantValuesEquivalent,
-        failOnUnfound: false,
-        failOnExtra: false,
-        onSameElement: (ConstantValue value1, ConstantValue value2) {
-      OutputUnit outputUnit1 = constants1[value1];
-      OutputUnit outputUnit2 = constants2[value2];
-      checkOutputUnits(
-          outputUnit1,
-          outputUnit2,
-          'for ${value1.toStructuredText()} '
-          'vs ${value2.toStructuredText()}');
-    }, onUnfoundElement: (ConstantValue value1) {
-      OutputUnit outputUnit1 = constants1[value1];
-      Expect.isTrue(outputUnit1.isMainOutput,
-          "Missing deferred constant: ${value1.toStructuredText()}");
-    }, onExtraElement: (ConstantValue value2) {
-      OutputUnit outputUnit2 = constants2[value2];
-      Expect.isTrue(outputUnit2.isMainOutput,
-          "Extra deferred constant: ${value2.toStructuredText()}");
-    }, elementToString: (a) {
-      return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
-    });
+  checkSets(
+      enqueuer1.universe.instantiatedTypes,
+      enqueuer2.universe.instantiatedTypes,
+      "Instantiated types mismatch",
+      typeEquivalence,
+      verbose: verbose);
+
+  checkSets(enqueuer1.universe.isChecks, enqueuer2.universe.isChecks,
+      "Is-check mismatch", typeEquivalence,
+      verbose: verbose);
+
+  JavaScriptBackend backend1 = enqueuer1.backend;
+  JavaScriptBackend backend2 = enqueuer2.backend;
+  Expect.equals(backend1.hasInvokeOnSupport, backend2.hasInvokeOnSupport,
+      "Compiler.enabledInvokeOn mismatch");
+  Expect.equals(
+      enqueuer1.universe.hasFunctionApplySupport,
+      enqueuer2.universe.hasFunctionApplySupport,
+      "ResolutionEnqueuer.universe.hasFunctionApplySupport mismatch");
+  Expect.equals(
+      enqueuer1.universe.hasRuntimeTypeSupport,
+      enqueuer2.universe.hasRuntimeTypeSupport,
+      "ResolutionEnqueuer.universe.hasRuntimeTypeSupport mismatch");
+  Expect.equals(
+      enqueuer1.universe.hasIsolateSupport,
+      enqueuer2.universe.hasIsolateSupport,
+      "ResolutionEnqueuer.universe.hasIsolateSupport mismatch");
+}
+
+void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
+    {bool verbose: false}) {
+  checkClassHierarchyNodes(
+      closedWorld1,
+      closedWorld2,
+      closedWorld1.getClassHierarchyNode(closedWorld1.coreClasses.objectClass),
+      closedWorld2.getClassHierarchyNode(closedWorld2.coreClasses.objectClass),
+      verbose: verbose);
+}
+
+void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
+    {bool verbose: false}) {
+  checkSets(
+      compilerNormal.enqueuer.resolution.processedElements,
+      compilerDeserialized.enqueuer.resolution.processedElements,
+      "Processed element mismatch",
+      areElementsEquivalent, onSameElement: (a, b) {
+    checkElements(compilerNormal, compilerDeserialized, a, b, verbose: verbose);
+  }, verbose: verbose);
+  Expect.equals(
+      compilerNormal.deferredLoadTask.isProgramSplit,
+      compilerDeserialized.deferredLoadTask.isProgramSplit,
+      "isProgramSplit mismatch");
+
+  Map<ConstantValue, OutputUnit> constants1 =
+      compilerNormal.deferredLoadTask.outputUnitForConstantsForTesting;
+  Map<ConstantValue, OutputUnit> constants2 =
+      compilerDeserialized.deferredLoadTask.outputUnitForConstantsForTesting;
+  checkSets(
+      constants1.keys,
+      constants2.keys,
+      'deferredLoadTask._outputUnitForConstants.keys',
+      areConstantValuesEquivalent,
+      failOnUnfound: false,
+      failOnExtra: false,
+      onSameElement: (ConstantValue value1, ConstantValue value2) {
+    OutputUnit outputUnit1 = constants1[value1];
+    OutputUnit outputUnit2 = constants2[value2];
+    checkOutputUnits(
+        outputUnit1,
+        outputUnit2,
+        'for ${value1.toStructuredText()} '
+        'vs ${value2.toStructuredText()}');
+  }, onUnfoundElement: (ConstantValue value1) {
+    OutputUnit outputUnit1 = constants1[value1];
+    Expect.isTrue(outputUnit1.isMainOutput,
+        "Missing deferred constant: ${value1.toStructuredText()}");
+  }, onExtraElement: (ConstantValue value2) {
+    OutputUnit outputUnit2 = constants2[value2];
+    Expect.isTrue(outputUnit2.isMainOutput,
+        "Extra deferred constant: ${value2.toStructuredText()}");
+  }, elementToString: (a) {
+    return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
   });
 }
 
@@ -260,19 +293,19 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-void checkMixinUses(Compiler compiler1, Compiler compiler2, ClassElement class1,
-    ClassElement class2,
+void checkMixinUses(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
+    ClassElement class1, ClassElement class2,
     {bool verbose: false}) {
-  checkSets(
-      compiler1.closedWorld.mixinUsesOf(class1),
-      compiler2.closedWorld.mixinUsesOf(class2),
-      "Mixin uses of $class1 vs $class2",
-      areElementsEquivalent,
+  checkSets(closedWorld1.mixinUsesOf(class1), closedWorld2.mixinUsesOf(class2),
+      "Mixin uses of $class1 vs $class2", areElementsEquivalent,
       verbose: verbose);
 }
 
-void checkClassHierarchyNodes(Compiler compiler1, Compiler compiler2,
-    ClassHierarchyNode node1, ClassHierarchyNode node2,
+void checkClassHierarchyNodes(
+    ClosedWorld closedWorld1,
+    ClosedWorld closedWorld2,
+    ClassHierarchyNode node1,
+    ClassHierarchyNode node2,
     {bool verbose: false}) {
   if (verbose) {
     print('Checking $node1 vs $node2');
@@ -295,7 +328,7 @@ void checkClassHierarchyNodes(Compiler compiler1, Compiler compiler2,
     bool found = false;
     for (ClassHierarchyNode other in node2.directSubclasses) {
       if (areElementsEquivalent(child.cls, other.cls)) {
-        checkClassHierarchyNodes(compiler1, compiler2, child, other,
+        checkClassHierarchyNodes(closedWorld1, closedWorld2, child, other,
             verbose: verbose);
         found = true;
         break;
@@ -305,10 +338,10 @@ void checkClassHierarchyNodes(Compiler compiler1, Compiler compiler2,
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');
-        print(compiler1.closedWorld
-            .dump(verbose ? compiler1.coreClasses.objectClass : node1.cls));
-        print(compiler2.closedWorld
-            .dump(verbose ? compiler2.coreClasses.objectClass : node2.cls));
+        print(closedWorld1
+            .dump(verbose ? closedWorld1.coreClasses.objectClass : node1.cls));
+        print(closedWorld2
+            .dump(verbose ? closedWorld2.coreClasses.objectClass : node2.cls));
       }
       Expect.isFalse(
           child.isInstantiated,
@@ -316,7 +349,8 @@ void checkClassHierarchyNodes(Compiler compiler1, Compiler compiler2,
           '${node2.directSubclasses}');
     }
   }
-  checkMixinUses(compiler1, compiler2, node1.cls, node2.cls, verbose: verbose);
+  checkMixinUses(closedWorld1, closedWorld2, node1.cls, node2.cls,
+      verbose: verbose);
 }
 
 bool areLocalsEquivalent(Local a, Local b) {
@@ -390,4 +424,24 @@ void checkOutputUnits(
       outputUnit1.imports,
       outputUnit2.imports,
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
+}
+
+bool areInstantiationInfosEquivalent(InstantiationInfo info1,
+    InstantiationInfo info2, bool typeEquivalence(DartType a, DartType b)) {
+  checkMaps(
+      info1.instantiationMap,
+      info2.instantiationMap,
+      'instantiationMap of\n   '
+      '${info1.instantiationMap}\nvs ${info2.instantiationMap}',
+      areElementsEquivalent,
+      (a, b) => areSetsEquivalent(
+          a, b, (a, b) => areInstancesEquivalent(a, b, typeEquivalence)));
+  return true;
+}
+
+bool areInstancesEquivalent(Instance instance1, Instance instance2,
+    bool typeEquivalence(DartType a, DartType b)) {
+  return typeEquivalence(instance1.type, instance2.type) &&
+      instance1.kind == instance2.kind &&
+      instance1.isRedirection == instance2.isRedirection;
 }

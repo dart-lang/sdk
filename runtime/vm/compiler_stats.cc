@@ -14,16 +14,16 @@
 namespace dart {
 
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
-DEFINE_FLAG(bool, compiler_benchmark, false,
+DEFINE_FLAG(bool,
+            compiler_benchmark,
+            false,
             "Compiler stat counters for benchmark.");
 
 
 class TokenStreamVisitor : public ObjectVisitor {
  public:
   explicit TokenStreamVisitor(CompilerStats* compiler_stats)
-      : obj_(Object::Handle()),
-        stats_(compiler_stats) {
-  }
+      : obj_(Object::Handle()), stats_(compiler_stats) {}
 
   void VisitObject(RawObject* raw_obj) {
     if (raw_obj->IsPseudoObject()) {
@@ -31,10 +31,9 @@ class TokenStreamVisitor : public ObjectVisitor {
     }
     obj_ = raw_obj;
     if (obj_.GetClassId() == TokenStream::kClassId) {
-      TokenStream::Iterator tkit(Thread::Current()->zone(),
-                                 TokenStream::Cast(obj_),
-                                 TokenPosition::kMinSource,
-                                 TokenStream::Iterator::kNoNewlines);
+      TokenStream::Iterator tkit(
+          Thread::Current()->zone(), TokenStream::Cast(obj_),
+          TokenPosition::kMinSource, TokenStream::Iterator::kNoNewlines);
       Token::Kind kind = tkit.CurrentTokenKind();
       while (kind != Token::kEOS) {
         ++stats_->num_tokens_total;
@@ -52,16 +51,14 @@ class TokenStreamVisitor : public ObjectVisitor {
 
 CompilerStats::CompilerStats(Isolate* isolate)
     : isolate_(isolate),
-#define INITIALIZE_TIMER(timer_name, description)                              \
-      timer_name(true, description),
-STAT_TIMERS(INITIALIZE_TIMER)
+#define INITIALIZE_TIMER(timer_name, description) timer_name(true, description),
+      STAT_TIMERS(INITIALIZE_TIMER)
 #undef INITIALIZE_TIMER
 
-#define INITIALIZE_COUNTERS(counter_name)                                      \
-      counter_name(0),
-STAT_COUNTERS(INITIALIZE_COUNTERS)
+#define INITIALIZE_COUNTERS(counter_name) counter_name(0),
+          STAT_COUNTERS(INITIALIZE_COUNTERS)
 #undef INITIALIZE_COUNTERS
-      text(NULL),
+              text(NULL),
       use_benchmark_output(false) {
 }
 
@@ -71,8 +68,7 @@ STAT_COUNTERS(INITIALIZE_COUNTERS)
 
 // Used to aggregate stats. Must be atomic.
 void CompilerStats::Add(const CompilerStats& other) {
-#define ADD_TOTAL(timer_name, literal)                                         \
-  timer_name.AddTotal(other.timer_name);
+#define ADD_TOTAL(timer_name, literal) timer_name.AddTotal(other.timer_name);
 
   STAT_TIMERS(ADD_TOTAL)
 #undef ADD_TOTAL
@@ -86,14 +82,12 @@ void CompilerStats::Add(const CompilerStats& other) {
 
 
 void CompilerStats::Clear() {
-#define CLEAR_TIMER(timer_name, literal)                                       \
-  timer_name.Reset();
+#define CLEAR_TIMER(timer_name, literal) timer_name.Reset();
 
   STAT_TIMERS(CLEAR_TIMER)
 #undef CLEAR_TIMER
 
-#define CLEAR_COUNTER(counter_name)                                            \
-  counter_name = 0;
+#define CLEAR_COUNTER(counter_name) counter_name = 0;
 
   STAT_COUNTERS(CLEAR_COUNTER)
 #undef CLEAR_COUNTER
@@ -191,8 +185,10 @@ char* CompilerStats::BenchmarkOutput() {
 
   log.Print("CompilerSpeed: %" Pd64 " tokens/ms\n", compile_speed);
   log.Print("CodeSize: %" Pd64 " KB\n", total_code_size / 1024);
-  int64_t code_density = total_instr_size > 0 ?
-      (num_func_tokens_compiled * 1024) / total_instr_size : 0;
+  int64_t code_density =
+      total_instr_size > 0
+          ? (num_func_tokens_compiled * 1024) / total_instr_size
+          : 0;
 
   log.Print("CodeDensity: %" Pd64 " tokens/KB\n", code_density);
   log.Print("InstrSize: %" Pd64 " KB\n", total_instr_size / 1024);
@@ -221,8 +217,9 @@ char* CompilerStats::PrintToZone() {
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
   log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);
 
-  int64_t num_local_functions = GrowableObjectArray::Handle(
-      isolate_->object_store()->closure_functions()).Length();
+  int64_t num_local_functions =
+      GrowableObjectArray::Handle(isolate_->object_store()->closure_functions())
+          .Length();
 
   log.Print("==== Parser stats:\n");
   log.Print("Total tokens consumed:   %" Pd64 "\n", num_tokens_consumed);
@@ -246,8 +243,7 @@ char* CompilerStats::PrintToZone() {
   int64_t parse_speed =
       parse_usecs > 0 ? 1000 * num_tokens_consumed / parse_usecs : 0;
   log.Print("Parser time:             %" Pd64 " ms\n", parse_usecs / 1000);
-  log.Print("Parser speed:            %" Pd64 " tokens/ms\n",
-             parse_speed);
+  log.Print("Parser speed:            %" Pd64 " tokens/ms\n", parse_speed);
 
   int64_t codegen_usecs = codegen_timer.TotalElapsedTime();
 
@@ -292,20 +288,21 @@ char* CompilerStats::PrintToZone() {
 
   log.Print("==== Compiled code stats:\n");
   int64_t compile_usecs = scan_usecs + parse_usecs + codegen_usecs;
-  int64_t compile_speed = compile_usecs > 0 ?
-      (1000 * num_func_tokens_compiled / compile_usecs) : 0;
+  int64_t compile_speed =
+      compile_usecs > 0 ? (1000 * num_func_tokens_compiled / compile_usecs) : 0;
   log.Print("Functions parsed:        %" Pd64 "\n", num_functions_parsed);
   log.Print("Functions compiled:      %" Pd64 "\n", num_functions_compiled);
   log.Print("  optimized:             %" Pd64 "\n", num_functions_optimized);
   log.Print("Compiler time:           %" Pd64 " ms\n", compile_usecs / 1000);
   log.Print("Tokens compiled:         %" Pd64 "\n", num_func_tokens_compiled);
   log.Print("Compilation speed:       %" Pd64 " tokens/ms\n", compile_speed);
-  int64_t code_density = total_instr_size > 0 ?
-      (num_func_tokens_compiled * 1024) / total_instr_size : 0;
+  int64_t code_density =
+      total_instr_size > 0
+          ? (num_func_tokens_compiled * 1024) / total_instr_size
+          : 0;
   log.Print("Code density:            %" Pd64 " tokens per KB\n", code_density);
   log.Print("Code size:               %" Pd64 " KB\n", total_code_size / 1024);
-  log.Print("  Instr size:            %" Pd64 " KB\n",
-            total_instr_size / 1024);
+  log.Print("  Instr size:            %" Pd64 " KB\n", total_instr_size / 1024);
   log.Print("  Pc Desc size:          %" Pd64 " KB\n", pc_desc_size / 1024);
   log.Print("  VarDesc size:          %" Pd64 " KB\n", vardesc_size / 1024);
   log.Flush();

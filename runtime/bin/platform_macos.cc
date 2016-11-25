@@ -9,13 +9,13 @@
 
 #if !TARGET_OS_IOS
 #include <crt_externs.h>  // NOLINT
-#endif  // !TARGET_OS_IOS
+#endif                    // !TARGET_OS_IOS
 #include <mach-o/dyld.h>
-#include <signal.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <signal.h>      // NOLINT
+#include <string.h>      // NOLINT
 #include <sys/sysctl.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <sys/types.h>   // NOLINT
+#include <unistd.h>      // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -28,6 +28,12 @@ char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
+static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
+  Dart_DumpNativeStackTrace(context);
+  abort();
+}
+
+
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
@@ -37,6 +43,20 @@ bool Platform::Initialize() {
   act.sa_handler = SIG_IGN;
   if (sigaction(SIGPIPE, &act, 0) != 0) {
     perror("Setting signal handler failed");
+    return false;
+  }
+  act.sa_flags = SA_SIGINFO;
+  act.sa_sigaction = &segv_handler;
+  if (sigemptyset(&act.sa_mask) != 0) {
+    perror("sigemptyset() failed.");
+    return false;
+  }
+  if (sigaddset(&act.sa_mask, SIGPROF) != 0) {
+    perror("sigaddset() failed");
+    return false;
+  }
+  if (sigaction(SIGSEGV, &act, NULL) != 0) {
+    perror("sigaction() failed.");
     return false;
   }
   return true;
@@ -74,7 +94,7 @@ const char* Platform::LibraryExtension() {
 }
 
 
-bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
 

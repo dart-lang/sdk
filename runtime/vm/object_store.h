@@ -13,6 +13,32 @@ namespace dart {
 class Isolate;
 class ObjectPointerVisitor;
 
+// A list of the bootstrap libraries including CamelName and name.
+//
+// These are listed in the order that they are compiled (see vm/bootstrap.cc).
+#define FOR_EACH_PRODUCT_LIBRARY(M)                                            \
+  M(Core, core)                                                                \
+  M(Async, async)                                                              \
+  M(Collection, collection)                                                    \
+  M(Convert, convert)                                                          \
+  M(Developer, developer)                                                      \
+  M(Internal, _internal)                                                       \
+  M(Isolate, isolate)                                                          \
+  M(Math, math)                                                                \
+  M(Profiler, profiler)                                                        \
+  M(TypedData, typed_data)                                                     \
+  M(VMService, _vmservice)
+
+#ifdef PRODUCT
+#define FOR_EACH_BOOTSTRAP_LIBRARY(M) FOR_EACH_PRODUCT_LIBRARY(M)
+
+#else
+#define FOR_EACH_BOOTSTRAP_LIBRARY(M)                                          \
+  FOR_EACH_PRODUCT_LIBRARY(M)                                                  \
+  M(Mirrors, mirrors)
+
+#endif
+
 // The object store is a per isolate instance which stores references to
 // objects used by the VM.
 // TODO(iposva): Move the actual store into the object heap for quick handling
@@ -20,19 +46,10 @@ class ObjectPointerVisitor;
 class ObjectStore {
  public:
   enum BootstrapLibraryId {
-    kNone = 0,
-    kAsync,
-    kCore,
-    kCollection,
-    kConvert,
-    kDeveloper,
-    kInternal,
-    kIsolate,
-    kMath,
-    kMirrors,
-    kProfiler,
-    kTypedData,
-    kVMService,
+#define MAKE_ID(Name, _) k##Name,
+
+    FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_ID)
+#undef MAKE_ID
   };
 
   ~ObjectStore();
@@ -47,9 +64,7 @@ class ObjectStore {
   }
 
   RawType* object_type() const { return object_type_; }
-  void set_object_type(const Type& value) {
-    object_type_ = value.raw();
-  }
+  void set_object_type(const Type& value) { object_type_ = value.raw(); }
 
   RawClass* null_class() const {
     ASSERT(null_class_ != Object::null());
@@ -58,28 +73,21 @@ class ObjectStore {
   void set_null_class(const Class& value) { null_class_ = value.raw(); }
 
   RawType* null_type() const { return null_type_; }
-  void set_null_type(const Type& value) {
-    null_type_ = value.raw();
-  }
+  void set_null_type(const Type& value) { null_type_ = value.raw(); }
 
   RawType* function_type() const { return function_type_; }
-  void set_function_type(const Type& value) {
-    function_type_ = value.raw();
-  }
+  void set_function_type(const Type& value) { function_type_ = value.raw(); }
 
   RawClass* closure_class() const { return closure_class_; }
-  void set_closure_class(const Class& value) {
-    closure_class_ = value.raw();
-  }
+  void set_closure_class(const Class& value) { closure_class_ = value.raw(); }
 
   RawType* number_type() const { return number_type_; }
-  void set_number_type(const Type& value) {
-    number_type_ = value.raw();
-  }
+  void set_number_type(const Type& value) { number_type_ = value.raw(); }
 
   RawType* int_type() const { return int_type_; }
-  void set_int_type(const Type& value) {
-    int_type_ = value.raw();
+  void set_int_type(const Type& value) { int_type_ = value.raw(); }
+  static intptr_t int_type_offset() {
+    return OFFSET_OF(ObjectStore, int_type_);
   }
 
   RawClass* integer_implementation_class() const {
@@ -93,14 +101,16 @@ class ObjectStore {
   void set_smi_class(const Class& value) { smi_class_ = value.raw(); }
 
   RawType* smi_type() const { return smi_type_; }
-  void set_smi_type(const Type& value) { smi_type_ = value.raw();
-  }
+  void set_smi_type(const Type& value) { smi_type_ = value.raw(); }
 
   RawClass* double_class() const { return double_class_; }
   void set_double_class(const Class& value) { double_class_ = value.raw(); }
 
   RawType* double_type() const { return double_type_; }
   void set_double_type(const Type& value) { double_type_ = value.raw(); }
+  static intptr_t double_type_offset() {
+    return OFFSET_OF(ObjectStore, double_type_);
+  }
 
   RawClass* mint_class() const { return mint_class_; }
   void set_mint_class(const Class& value) { mint_class_ = value.raw(); }
@@ -112,21 +122,18 @@ class ObjectStore {
   void set_bigint_class(const Class& value) { bigint_class_ = value.raw(); }
 
   RawType* string_type() const { return string_type_; }
-  void set_string_type(const Type& value) {
-    string_type_ = value.raw();
+  void set_string_type(const Type& value) { string_type_ = value.raw(); }
+  static intptr_t string_type_offset() {
+    return OFFSET_OF(ObjectStore, string_type_);
   }
 
-  RawClass* compiletime_error_class() const {
-    return compiletime_error_class_;
-  }
+  RawClass* compiletime_error_class() const { return compiletime_error_class_; }
   void set_compiletime_error_class(const Class& value) {
     compiletime_error_class_ = value.raw();
   }
 
   RawClass* future_class() const { return future_class_; }
-  void set_future_class(const Class& value) {
-    future_class_ = value.raw();
-  }
+  void set_future_class(const Class& value) { future_class_ = value.raw(); }
 
   RawClass* completer_class() const { return completer_class_; }
   void set_completer_class(const Class& value) {
@@ -139,9 +146,7 @@ class ObjectStore {
   }
 
   RawClass* symbol_class() { return symbol_class_; }
-  void set_symbol_class(const Class& value) {
-    symbol_class_ = value.raw();
-  }
+  void set_symbol_class(const Class& value) { symbol_class_ = value.raw(); }
 
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
   void set_one_byte_string_class(const Class& value) {
@@ -197,16 +202,12 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, growable_object_array_class_);
   }
 
-  RawClass* linked_hash_map_class() const {
-    return linked_hash_map_class_;
-  }
+  RawClass* linked_hash_map_class() const { return linked_hash_map_class_; }
   void set_linked_hash_map_class(const Class& value) {
     linked_hash_map_class_ = value.raw();
   }
 
-  RawClass* float32x4_class() const {
-    return float32x4_class_;
-  }
+  RawClass* float32x4_class() const { return float32x4_class_; }
   void set_float32x4_class(const Class& value) {
     float32x4_class_ = value.raw();
   }
@@ -214,19 +215,13 @@ class ObjectStore {
   RawType* float32x4_type() const { return float32x4_type_; }
   void set_float32x4_type(const Type& value) { float32x4_type_ = value.raw(); }
 
-  RawClass* int32x4_class() const {
-    return int32x4_class_;
-  }
-  void set_int32x4_class(const Class& value) {
-    int32x4_class_ = value.raw();
-  }
+  RawClass* int32x4_class() const { return int32x4_class_; }
+  void set_int32x4_class(const Class& value) { int32x4_class_ = value.raw(); }
 
   RawType* int32x4_type() const { return int32x4_type_; }
   void set_int32x4_type(const Type& value) { int32x4_type_ = value.raw(); }
 
-  RawClass* float64x2_class() const {
-    return float64x2_class_;
-  }
+  RawClass* float64x2_class() const { return float64x2_class_; }
   void set_float64x2_class(const Class& value) {
     float64x2_class_ = value.raw();
   }
@@ -234,19 +229,13 @@ class ObjectStore {
   RawType* float64x2_type() const { return float64x2_type_; }
   void set_float64x2_type(const Type& value) { float64x2_type_ = value.raw(); }
 
-  RawClass* error_class() const {
-    return error_class_;
-  }
-  void set_error_class(const Class& value) {
-    error_class_ = value.raw();
-  }
+  RawClass* error_class() const { return error_class_; }
+  void set_error_class(const Class& value) { error_class_ = value.raw(); }
   static intptr_t error_class_offset() {
     return OFFSET_OF(ObjectStore, error_class_);
   }
 
-  RawClass* weak_property_class() const {
-    return weak_property_class_;
-  }
+  RawClass* weak_property_class() const { return weak_property_class_; }
   void set_weak_property_class(const Class& value) {
     weak_property_class_ = value.raw();
   }
@@ -254,9 +243,7 @@ class ObjectStore {
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
-  RawArray* canonical_types() const {
-    return canonical_types_;
-  }
+  RawArray* canonical_types() const { return canonical_types_; }
   void set_canonical_types(const Array& value) {
     canonical_types_ = value.raw();
   }
@@ -268,58 +255,36 @@ class ObjectStore {
     canonical_type_arguments_ = value.raw();
   }
 
-  RawLibrary* async_library() const { return async_library_; }
-  RawLibrary* builtin_library() const { return builtin_library_; }
-  RawLibrary* core_library() const { return core_library_; }
-  RawLibrary* collection_library() const { return collection_library_; }
-  RawLibrary* convert_library() const { return convert_library_; }
-  RawLibrary* developer_library() const { return developer_library_; }
-  RawLibrary* internal_library() const { return internal_library_; }
-  RawLibrary* isolate_library() const { return isolate_library_; }
-  RawLibrary* math_library() const { return math_library_; }
-  RawLibrary* mirrors_library() const { return mirrors_library_; }
-  RawLibrary* profiler_library() const { return profiler_library_; }
-  RawLibrary* typed_data_library() const { return typed_data_library_; }
-  RawLibrary* vmservice_library() const { return vmservice_library_; }
+#define MAKE_GETTER(_, name)                                                   \
+  RawLibrary* name##_library() const { return name##_library_; }
+
+  FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_GETTER)
+#undef MAKE_GETTER
+
+  RawLibrary* bootstrap_library(BootstrapLibraryId index) {
+    switch (index) {
+#define MAKE_CASE(CamelName, name)                                             \
+  case k##CamelName:                                                           \
+    return name##_library_;
+
+      FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)
+#undef MAKE_CASE
+
+      default:
+        UNREACHABLE();
+        return Library::null();
+    }
+  }
 
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
-      case kAsync:
-        async_library_ = value.raw();
-        break;
-      case kCore:
-        core_library_ = value.raw();
-        break;
-      case kCollection:
-        collection_library_ = value.raw();
-        break;
-      case kConvert:
-        convert_library_ = value.raw();
-        break;
-      case kDeveloper:
-        developer_library_ = value.raw();
-        break;
-      case kInternal:
-        internal_library_ = value.raw();
-        break;
-      case kIsolate:
-        isolate_library_ = value.raw();
-        break;
-      case kMath:
-        math_library_ = value.raw();
-        break;
-      case kMirrors:
-        mirrors_library_ = value.raw();
-        break;
-      case kProfiler:
-        profiler_library_ = value.raw();
-        break;
-      case kTypedData:
-        typed_data_library_ = value.raw();
-        break;
-      case kVMService:
-        vmservice_library_ = value.raw();
-        break;
+#define MAKE_CASE(CamelName, name)                                             \
+  case k##CamelName:                                                           \
+    name##_library_ = value.raw();                                             \
+    break;
+
+      FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)
+#undef MAKE_CASE
       default:
         UNREACHABLE();
     }
@@ -337,9 +302,7 @@ class ObjectStore {
   }
 
   RawLibrary* root_library() const { return root_library_; }
-  void set_root_library(const Library& value) {
-    root_library_ = value.raw();
-  }
+  void set_root_library(const Library& value) { root_library_ = value.raw(); }
 
   RawGrowableObjectArray* libraries() const { return libraries_; }
   void set_libraries(const GrowableObjectArray& value) {
@@ -347,9 +310,7 @@ class ObjectStore {
   }
 
   RawArray* libraries_map() const { return libraries_map_; }
-  void set_libraries_map(const Array& value) {
-    libraries_map_ = value.raw();
-  }
+  void set_libraries_map(const Array& value) { libraries_map_ = value.raw(); }
 
   RawGrowableObjectArray* closure_functions() const {
     return closure_functions_;
@@ -376,18 +337,12 @@ class ObjectStore {
     return resume_capabilities_;
   }
 
-  RawGrowableObjectArray* exit_listeners() const {
-    return exit_listeners_;
-  }
+  RawGrowableObjectArray* exit_listeners() const { return exit_listeners_; }
 
-  RawGrowableObjectArray* error_listeners() const {
-    return error_listeners_;
-  }
+  RawGrowableObjectArray* error_listeners() const { return error_listeners_; }
 
   RawContext* empty_context() const { return empty_context_; }
-  void set_empty_context(const Context& value) {
-    empty_context_ = value.raw();
-  }
+  void set_empty_context(const Context& value) { empty_context_ = value.raw(); }
 
   RawInstance* stack_overflow() const { return stack_overflow_; }
   void set_stack_overflow(const Instance& value) {
@@ -413,16 +368,12 @@ class ObjectStore {
     preallocated_stack_trace_ = value.raw();
   }
 
-  RawFunction* lookup_port_handler() const {
-    return lookup_port_handler_;
-  }
+  RawFunction* lookup_port_handler() const { return lookup_port_handler_; }
   void set_lookup_port_handler(const Function& function) {
     lookup_port_handler_ = function.raw();
   }
 
-  RawTypedData* empty_uint32_array() const {
-    return empty_uint32_array_;
-  }
+  RawTypedData* empty_uint32_array() const { return empty_uint32_array_; }
   void set_empty_uint32_array(const TypedData& array) {
     // Only set once.
     ASSERT(empty_uint32_array_ == TypedData::null());
@@ -447,23 +398,17 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, library_load_error_table_);
   }
 
-  RawArray* unique_dynamic_targets() const {
-    return unique_dynamic_targets_;
-  }
+  RawArray* unique_dynamic_targets() const { return unique_dynamic_targets_; }
   void set_unique_dynamic_targets(const Array& value) {
     unique_dynamic_targets_ = value.raw();
   }
 
-  RawGrowableObjectArray* token_objects() const {
-    return token_objects_;
-  }
+  RawGrowableObjectArray* token_objects() const { return token_objects_; }
   void set_token_objects(const GrowableObjectArray& value) {
     token_objects_ = value.raw();
   }
 
-  RawArray* token_objects_map() const {
-    return token_objects_map_;
-  }
+  RawArray* token_objects_map() const { return token_objects_map_; }
   void set_token_objects_map(const Array& value) {
     token_objects_map_ = value.raw();
   }
@@ -474,9 +419,7 @@ class ObjectStore {
   void set_megamorphic_cache_table(const GrowableObjectArray& value) {
     megamorphic_cache_table_ = value.raw();
   }
-  RawCode* megamorphic_miss_code() const {
-    return megamorphic_miss_code_;
-  }
+  RawCode* megamorphic_miss_code() const { return megamorphic_miss_code_; }
   RawFunction* megamorphic_miss_function() const {
     return megamorphic_miss_function_;
   }
@@ -569,7 +512,7 @@ class ObjectStore {
   V(RawLibrary*, collection_library_)                                          \
   V(RawLibrary*, convert_library_)                                             \
   V(RawLibrary*, developer_library_)                                           \
-  V(RawLibrary*, internal_library_)                                            \
+  V(RawLibrary*, _internal_library_)                                           \
   V(RawLibrary*, isolate_library_)                                             \
   V(RawLibrary*, math_library_)                                                \
   V(RawLibrary*, mirrors_library_)                                             \
@@ -577,7 +520,7 @@ class ObjectStore {
   V(RawLibrary*, profiler_library_)                                            \
   V(RawLibrary*, root_library_)                                                \
   V(RawLibrary*, typed_data_library_)                                          \
-  V(RawLibrary*, vmservice_library_)                                           \
+  V(RawLibrary*, _vmservice_library_)                                          \
   V(RawGrowableObjectArray*, libraries_)                                       \
   V(RawArray*, libraries_map_)                                                 \
   V(RawGrowableObjectArray*, closure_functions_)                               \
@@ -607,9 +550,8 @@ class ObjectStore {
   // Please remember the last entry must be referred in the 'to' function below.
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
-#define DECLARE_OBJECT_STORE_FIELD(type, name)                                 \
-  type name;
-OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
+#define DECLARE_OBJECT_STORE_FIELD(type, name) type name;
+  OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);

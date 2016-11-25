@@ -736,24 +736,23 @@ void main() {
     """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    ClosedWorld world = compiler.openWorld.closeWorld();
+    ClosedWorld world = compiler.openWorld.closeWorld(compiler.reporter);
     helpers.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);
-        backend.registerInstantiatedType(element.rawType,
-            compiler.enqueuer.resolution, compiler.globalDependencies);
+        compiler.enqueuer.resolution.registerInstantiatedType(element.rawType);
       }
     });
     ClassElement patternImplClass = compiler.mainApp.find('PatternImpl');
     patternImplClass.ensureResolved(compiler.resolution);
 
-    backend.registerInstantiatedType(compiler.coreTypes.mapType(),
-        compiler.enqueuer.resolution, compiler.globalDependencies);
-    backend.registerInstantiatedType(compiler.coreTypes.functionType,
-        compiler.enqueuer.resolution, compiler.globalDependencies);
-    backend.registerInstantiatedType(patternImplClass.rawType,
-        compiler.enqueuer.resolution, compiler.globalDependencies);
-    compiler.openWorld.closeWorld();
+    compiler.enqueuer.resolution
+        .registerInstantiatedType(compiler.coreTypes.mapType());
+    compiler.enqueuer.resolution
+        .registerInstantiatedType(compiler.coreTypes.functionType);
+    compiler.enqueuer.resolution
+        .registerInstantiatedType(patternImplClass.rawType);
+    compiler.openWorld.closeWorld(compiler.reporter);
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.

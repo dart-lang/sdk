@@ -133,11 +133,8 @@ void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
   TimeStamp kernel;
   TimeStamp user;
   HANDLE handle = OpenThread(THREAD_QUERY_INFORMATION, false, thread_id);
-  BOOL result = GetThreadTimes(handle,
-                               &created.ft_,
-                               &exited.ft_,
-                               &kernel.ft_,
-                               &user.ft_);
+  BOOL result =
+      GetThreadTimes(handle, &created.ft_, &exited.ft_, &kernel.ft_, &user.ft_);
   CloseHandle(handle);
   if (!result) {
     FATAL1("GetThreadCpuUsage failed %d\n", GetLastError());
@@ -234,10 +231,9 @@ void Monitor::Exit() {
 
 
 void MonitorWaitData::ThreadExit() {
-  if (MonitorWaitData::monitor_wait_data_key_ !=
-      Thread::kUnsetThreadLocalKey) {
+  if (MonitorWaitData::monitor_wait_data_key_ != Thread::kUnsetThreadLocalKey) {
     uword raw_wait_data =
-      Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+        Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
     if (raw_wait_data != 0) {
       MonitorWaitData* wait_data =
           reinterpret_cast<MonitorWaitData*>(raw_wait_data);
@@ -351,7 +347,7 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Get the MonitorWaitData object containing the event for this
   // thread from thread local storage. Create it if it does not exist.
   uword raw_wait_data =
-    Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+      Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
   MonitorWaitData* wait_data = NULL;
   if (raw_wait_data == 0) {
     HANDLE event = CreateEvent(NULL, FALSE, FALSE, NULL);

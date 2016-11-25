@@ -123,13 +123,13 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
         c^''');
 
     // Make a request for suggestions
-    Request request =
+    Request request1 =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('7');
-    Response response = handleSuccessfulRequest(request);
-    var result1 = new CompletionGetSuggestionsResult.fromResponse(response);
+    Response response1 = await waitResponse(request1);
+    var result1 = new CompletionGetSuggestionsResult.fromResponse(response1);
     var completionId1 = result1.id;
-    assertValidId(response.id);
+    assertValidId(completionId1);
 
     // Perform some analysis but assert that no suggestions have yet been made
     completionId = completionId1;
@@ -141,7 +141,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     Request request2 =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('8');
-    Response response2 = handleSuccessfulRequest(request2);
+    Response response2 = await waitResponse(request2);
     var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
     var completionId2 = result2.id;
     assertValidId(completionId2);
@@ -164,7 +164,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     Request request =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     completionId = response.id;
     assertValidId(completionId);
 
@@ -227,7 +227,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
         {testFile: new AddContentOverlay(revisedContent)}).toRequest('add1'));
 
     // Request code completion immediately after edit
-    Response response = handleSuccessfulRequest(
+    Response response = await waitResponse(
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0'));
     completionId = response.id;
@@ -466,12 +466,12 @@ class B extends A {
     });
   }
 
-  test_offset_past_eof() {
+  test_offset_past_eof() async {
     addTestFile('main() { }', offset: 300);
     Request request =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(response.id, '0');
     expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }

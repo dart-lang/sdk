@@ -19,8 +19,7 @@ DECLARE_FLAG(bool, trace_service_pause_events);
 
 class MessageHandlerTask : public ThreadPool::Task {
  public:
-  explicit MessageHandlerTask(MessageHandler* handler)
-      : handler_(handler) {
+  explicit MessageHandlerTask(MessageHandler* handler) : handler_(handler) {
     ASSERT(handler != NULL);
   }
 
@@ -110,9 +109,10 @@ void MessageHandler::Run(ThreadPool* pool,
   bool task_running;
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print("[+] Starting message handler:\n"
-              "\thandler:    %s\n",
-              name());
+    OS::Print(
+        "[+] Starting message handler:\n"
+        "\thandler:    %s\n",
+        name());
   }
   ASSERT(pool_ == NULL);
   ASSERT(!delete_me_);
@@ -137,12 +137,14 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
       if (source_isolate) {
         source_name = source_isolate->name();
       }
-      OS::Print("[>] Posting message:\n"
-                "\tlen:        %" Pd "\n"
-                "\tsource:     %s\n"
-                "\tdest:       %s\n"
-                "\tdest_port:  %" Pd64 "\n",
-                message->len(), source_name, name(), message->dest_port());
+      OS::Print(
+          "[>] Posting message:\n"
+          "\tlen:        %" Pd
+          "\n"
+          "\tsource:     %s\n"
+          "\tdest:       %s\n"
+          "\tdest_port:  %" Pd64 "\n",
+          message->len(), source_name, name(), message->dest_port());
     }
 
     saved_priority = message->priority();
@@ -191,18 +193,20 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   StartIsolateScope start_isolate(isolate());
 
   MessageStatus max_status = kOK;
-  Message::Priority min_priority = ((allow_normal_messages && !paused())
-                                    ? Message::kNormalPriority
-                                    : Message::kOOBPriority);
+  Message::Priority min_priority =
+      ((allow_normal_messages && !paused()) ? Message::kNormalPriority
+                                            : Message::kOOBPriority);
   Message* message = DequeueMessage(min_priority);
   while (message != NULL) {
     intptr_t message_len = message->len();
     if (FLAG_trace_isolates) {
-      OS::Print("[<] Handling message:\n"
-                "\tlen:        %" Pd "\n"
-                "\thandler:    %s\n"
-                "\tport:       %" Pd64 "\n",
-                message_len, name(), message->dest_port());
+      OS::Print(
+          "[<] Handling message:\n"
+          "\tlen:        %" Pd
+          "\n"
+          "\thandler:    %s\n"
+          "\tport:       %" Pd64 "\n",
+          message_len, name(), message->dest_port());
     }
 
     // Release the monitor_ temporarily while we handle the message.
@@ -217,12 +221,13 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     message = NULL;  // May be deleted by now.
     ml->Enter();
     if (FLAG_trace_isolates) {
-      OS::Print("[.] Message handled (%s):\n"
-                "\tlen:        %" Pd "\n"
-                "\thandler:    %s\n"
-                "\tport:       %" Pd64 "\n",
-                MessageStatusString(status),
-                message_len, name(), saved_dest_port);
+      OS::Print(
+          "[.] Message handled (%s):\n"
+          "\tlen:        %" Pd
+          "\n"
+          "\thandler:    %s\n"
+          "\tport:       %" Pd64 "\n",
+          MessageStatusString(status), message_len, name(), saved_dest_port);
     }
     // If we are shutting down, do not process any more messages.
     if (status == kShutdown) {
@@ -245,8 +250,8 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     // Even if we encounter an error, we still process pending OOB
     // messages so that we don't lose the message notification.
     min_priority = (((max_status == kOK) && allow_normal_messages && !paused())
-                    ? Message::kNormalPriority
-                    : Message::kOOBPriority);
+                        ? Message::kNormalPriority
+                        : Message::kOOBPriority);
     message = DequeueMessage(min_priority);
   }
   return max_status;
@@ -375,8 +380,10 @@ void MessageHandler::TaskCallback() {
       if (ShouldPauseOnExit(status)) {
         if (!is_paused_on_exit()) {
           if (FLAG_trace_service_pause_events) {
-            OS::PrintErr("Isolate %s paused before exiting. "
-                         "Use the Observatory to release it.\n", name());
+            OS::PrintErr(
+                "Isolate %s paused before exiting. "
+                "Use the Observatory to release it.\n",
+                name());
           }
           PausedOnExitLocked(&ml, true);
           // More messages may have come in while we released the monitor.
@@ -394,14 +401,16 @@ void MessageHandler::TaskCallback() {
       if (FLAG_trace_isolates) {
         if (status != kOK && thread() != NULL) {
           const Error& error = Error::Handle(thread()->sticky_error());
-          OS::Print("[-] Stopping message handler (%s):\n"
-                    "\thandler:    %s\n"
-                    "\terror:    %s\n",
-                    MessageStatusString(status), name(), error.ToCString());
+          OS::Print(
+              "[-] Stopping message handler (%s):\n"
+              "\thandler:    %s\n"
+              "\terror:    %s\n",
+              MessageStatusString(status), name(), error.ToCString());
         } else {
-          OS::Print("[-] Stopping message handler (%s):\n"
-                    "\thandler:    %s\n",
-                    MessageStatusString(status), name());
+          OS::Print(
+              "[-] Stopping message handler (%s):\n"
+              "\thandler:    %s\n",
+              MessageStatusString(status), name());
         }
       }
       pool_ = NULL;
@@ -431,11 +440,13 @@ void MessageHandler::TaskCallback() {
 void MessageHandler::ClosePort(Dart_Port port) {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print("[-] Closing port:\n"
-              "\thandler:    %s\n"
-              "\tport:       %" Pd64 "\n"
-              "\tports:      live(%" Pd ")\n",
-              name(), port, live_ports_);
+    OS::Print(
+        "[-] Closing port:\n"
+        "\thandler:    %s\n"
+        "\tport:       %" Pd64
+        "\n"
+        "\tports:      live(%" Pd ")\n",
+        name(), port, live_ports_);
   }
 }
 
@@ -443,9 +454,10 @@ void MessageHandler::ClosePort(Dart_Port port) {
 void MessageHandler::CloseAllPorts() {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print("[-] Closing all ports:\n"
-              "\thandler:    %s\n",
-              name());
+    OS::Print(
+        "[-] Closing all ports:\n"
+        "\thandler:    %s\n",
+        name());
   }
   queue_->Clear();
   oob_queue_->Clear();

@@ -53,10 +53,11 @@ enum {
   kEmptyExceptionHandlers,
   kCachedArgumentsDescriptor0,
   kCachedArgumentsDescriptorN = (kCachedArgumentsDescriptor0 +
-      ArgumentsDescriptor::kCachedDescriptorCount - 1),
+                                 ArgumentsDescriptor::kCachedDescriptorCount -
+                                 1),
   kCachedICDataArray0,
-  kCachedICDataArrayN = (kCachedICDataArray0 +
-      ICData::kCachedICDataArrayCount - 1),
+  kCachedICDataArrayN =
+      (kCachedICDataArray0 + ICData::kCachedICDataArrayCount - 1),
 
   kInstanceObjectId,
   kStaticImplicitClosureObjectId,

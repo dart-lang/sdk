@@ -22,10 +22,14 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, early_tenuring_threshold, 66,
+DEFINE_FLAG(int,
+            early_tenuring_threshold,
+            66,
             "When more than this percentage of promotion candidates survive, "
             "promote all survivors of next scavenge.");
-DEFINE_FLAG(int, new_gen_garbage_threshold, 90,
+DEFINE_FLAG(int,
+            new_gen_garbage_threshold,
+            90,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
 
@@ -72,7 +76,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(scavenger->heap_->old_space()),
         bytes_promoted_(0),
-        visiting_old_object_(NULL) { }
+        visiting_old_object_(NULL) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
     ASSERT((visiting_old_object_ != NULL) ||
@@ -159,8 +163,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
       memmove(reinterpret_cast<void*>(new_addr),
-              reinterpret_cast<void*>(raw_addr),
-              size);
+              reinterpret_cast<void*>(raw_addr), size);
       // Remember forwarding address.
       ForwardTo(raw_addr, new_addr);
     }
@@ -193,16 +196,16 @@ class ScavengerWeakVisitor : public HandleVisitor {
  public:
   ScavengerWeakVisitor(Thread* thread,
                        Scavenger* scavenger,
-                       FinalizationQueue* finalization_queue) :
-      HandleVisitor(thread),
-      scavenger_(scavenger),
-      queue_(finalization_queue) {
+                       FinalizationQueue* finalization_queue)
+      : HandleVisitor(thread),
+        scavenger_(scavenger),
+        queue_(finalization_queue) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
-      reinterpret_cast<FinalizablePersistentHandle*>(addr);
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
       handle->UpdateUnreachable(thread()->isolate(), queue_);
@@ -223,8 +226,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
 // StoreBuffers.
 class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
  public:
-  VerifyStoreBufferPointerVisitor(Isolate* isolate,
-                                  const SemiSpace* to)
+  VerifyStoreBufferPointerVisitor(Isolate* isolate, const SemiSpace* to)
       : ObjectPointerVisitor(isolate), to_(to) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
@@ -254,8 +256,8 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), Heap::kZapByte,
-           size_in_words() << kWordSizeLog2);
+    memset(reserved_->address(), Heap::kZapByte, size_in_words()
+                                                     << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
@@ -320,8 +322,8 @@ void SemiSpace::Delete() {
 
 void SemiSpace::WriteProtect(bool read_only) {
   if (reserved_ != NULL) {
-    bool success = reserved_->Protect(
-        read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+    bool success = reserved_->Protect(read_only ? VirtualMemory::kReadOnly
+                                                : VirtualMemory::kReadWrite);
     ASSERT(success);
   }
 }
@@ -343,7 +345,8 @@ Scavenger::Scavenger(Heap* heap,
   ASSERT(Object::tags_offset() == 0);
 
   // Set initial size resulting in a total of three different levels.
-  const intptr_t initial_semi_capacity_in_words = max_semi_capacity_in_words /
+  const intptr_t initial_semi_capacity_in_words =
+      max_semi_capacity_in_words /
       (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
   to_ = SemiSpace::New(initial_semi_capacity_in_words);
   if (to_ == NULL) {
@@ -543,8 +546,7 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   // Iterate until all work has been drained.
-  while ((resolved_top_ < top_) ||
-         PromotedStackHasMore()) {
+  while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
@@ -613,8 +615,8 @@ void Scavenger::UpdateMaxHeapCapacity() {
   ASSERT(heap_ != NULL);
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate != NULL);
-  isolate->GetHeapNewCapacityMaxMetric()->SetValue(
-      to_->size_in_words() * kWordSize);
+  isolate->GetHeapNewCapacityMaxMetric()->SetValue(to_->size_in_words() *
+                                                   kWordSize);
 }
 
 
@@ -635,11 +637,11 @@ void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {
   ASSERT(raw_weak->IsHeapObject());
   ASSERT(raw_weak->IsNewObject());
   ASSERT(raw_weak->IsWeakProperty());
-  DEBUG_ONLY(
-      uword raw_addr = RawObject::ToAddr(raw_weak);
-      uword header = *reinterpret_cast<uword*>(raw_addr);
-      ASSERT(!IsForwarding(header));
-  )
+#if defined(DEBUG)
+  uword raw_addr = RawObject::ToAddr(raw_weak);
+  uword header = *reinterpret_cast<uword*>(raw_addr);
+  ASSERT(!IsForwarding(header));
+#endif  // defined(DEBUG)
   ASSERT(raw_weak->ptr()->next_ == 0);
   raw_weak->ptr()->next_ = reinterpret_cast<uword>(delayed_weak_properties_);
   delayed_weak_properties_ = raw_weak;
@@ -666,13 +668,10 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 
 void Scavenger::ProcessWeakReferences() {
   // Rehash the weak tables now that we know which objects survive this cycle.
-  for (int sel = 0;
-       sel < Heap::kNumWeakSelectors;
-       sel++) {
-    WeakTable* table = heap_->GetWeakTable(
-        Heap::kNew, static_cast<Heap::WeakSelector>(sel));
-    heap_->SetWeakTable(Heap::kNew,
-                        static_cast<Heap::WeakSelector>(sel),
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakTable* table =
+        heap_->GetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel));
+    heap_->SetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel),
                         WeakTable::NewFrom(table));
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
@@ -685,8 +684,7 @@ void Scavenger::ProcessWeakReferences() {
           // The object has survived.  Preserve its record.
           uword new_addr = ForwardedAddr(header);
           raw_obj = RawObject::FromAddr(new_addr);
-          heap_->SetWeakEntry(raw_obj,
-                              static_cast<Heap::WeakSelector>(sel),
+          heap_->SetWeakEntry(raw_obj, static_cast<Heap::WeakSelector>(sel),
                               table->ValueAt(i));
         }
       }
@@ -706,14 +704,14 @@ void Scavenger::ProcessWeakReferences() {
       // Reset the next pointer in the weak property.
       cur_weak->ptr()->next_ = 0;
 
-      DEBUG_ONLY(
-          RawObject* raw_key = cur_weak->ptr()->key_;
-          uword raw_addr = RawObject::ToAddr(raw_key);
-          uword header = *reinterpret_cast<uword*>(raw_addr);
-          ASSERT(!IsForwarding(header));
-          ASSERT(raw_key->IsHeapObject());
-          ASSERT(raw_key->IsNewObject());  // Key still points into from space.
-      )
+#if defined(DEBUG)
+      RawObject* raw_key = cur_weak->ptr()->key_;
+      uword raw_addr = RawObject::ToAddr(raw_key);
+      uword header = *reinterpret_cast<uword*>(raw_addr);
+      ASSERT(!IsForwarding(header));
+      ASSERT(raw_key->IsHeapObject());
+      ASSERT(raw_key->IsNewObject());  // Key still points into from space.
+#endif                                 // defined(DEBUG)
 
       WeakProperty::Clear(cur_weak);
 
@@ -836,11 +834,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     int64_t end = OS::GetCurrentTimeMicros();
     heap_->RecordTime(kProcessToSpace, middle - start);
     heap_->RecordTime(kIterateWeaks, end - middle);
-    stats_history_.Add(
-        ScavengeStats(start, end,
-                      usage_before, GetCurrentUsage(),
-                      promo_candidate_words,
-                      visitor.bytes_promoted() >> kWordSizeLog2));
+    stats_history_.Add(ScavengeStats(
+        start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
+        visitor.bytes_promoted() >> kWordSizeLog2));
   }
   Epilogue(isolate, from, invoke_api_callbacks);
 

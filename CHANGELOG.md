@@ -2,6 +2,10 @@
 
 ### Language
 
+* Don't warn about switch case fallthrough if the case ends in a `rethrow`
+  statement.
+* Also don't warn if the entire switch case is wrapped in braces - as long as
+  the block ends with a `break`, `continue`, `rethrow`, `return` or `throw`.
 * Allow `=` as well as `:` as separator for named parameter default values.
 
 ### Core library changes
@@ -11,11 +15,31 @@
 * `dart:developer`:
   * The service protocol http server can now be controlled from Dart code.
 
+### Tool changes
+
+* Dart Dev Compiler
+
+  * Support calls to `loadLibrary()` on deferred libraries. Deferred libraries
+    are still loaded eagerly. (#27343)
+
 ## 1.20.1 - 2016-10-13
 
 Patch release, resolves one issue:
 
 * Dartium: Fixes a bug that caused crashes.  No issue filed
+
+### Strong Mode
+
+* It is no longer a warning when casting from dynamic to a composite type
+    (SDK issue [27766](https://github.com/dart-lang/sdk/issues/27766)).
+
+    ```dart
+    main() {
+      dynamic obj = <int>[1, 2, 3];
+      // This is now allowed without a warning.
+      List<int> list = obj;
+    }
+    ```
 
 ## 1.20.0 - 2016-10-11
 

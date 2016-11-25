@@ -12,28 +12,28 @@ namespace dart {
 
 class Utils {
  public:
-  template<typename T>
+  template <typename T>
   static inline T Minimum(T x, T y) {
     return x < y ? x : y;
   }
 
-  template<typename T>
+  template <typename T>
   static inline T Maximum(T x, T y) {
     return x > y ? x : y;
   }
 
-  template<typename T>
+  template <typename T>
   static inline T Abs(T x) {
     if (x < 0) return -x;
     return x;
   }
 
-  template<typename T>
+  template <typename T>
   static inline bool IsPowerOfTwo(T x) {
     return ((x & (x - 1)) == 0) && (x != 0);
   }
 
-  template<typename T>
+  template <typename T>
   static inline int ShiftForPowerOfTwo(T x) {
     ASSERT(IsPowerOfTwo(x));
     int num_shifts = 0;
@@ -44,34 +44,34 @@ class Utils {
     return num_shifts;
   }
 
-  template<typename T>
+  template <typename T>
   static inline bool IsAligned(T x, intptr_t n) {
     ASSERT(IsPowerOfTwo(n));
     return (x & (n - 1)) == 0;
   }
 
-  template<typename T>
+  template <typename T>
   static inline bool IsAligned(T* x, intptr_t n) {
     return IsAligned(reinterpret_cast<uword>(x), n);
   }
 
-  template<typename T>
+  template <typename T>
   static inline T RoundDown(T x, intptr_t n) {
     ASSERT(IsPowerOfTwo(n));
     return (x & -n);
   }
 
-  template<typename T>
+  template <typename T>
   static inline T* RoundDown(T* x, intptr_t n) {
     return reinterpret_cast<T*>(RoundDown(reinterpret_cast<uword>(x), n));
   }
 
-  template<typename T>
+  template <typename T>
   static inline T RoundUp(T x, intptr_t n) {
     return RoundDown(x + n - 1, n);
   }
 
-  template<typename T>
+  template <typename T>
   static inline T* RoundUp(T* x, intptr_t n) {
     return reinterpret_cast<T*>(RoundUp(reinterpret_cast<uword>(x), n));
   }
@@ -97,7 +97,7 @@ class Utils {
   static uint32_t WordHash(intptr_t key);
 
   // Check whether an N-bit two's-complement representation can hold value.
-  template<typename T>
+  template <typename T>
   static inline bool IsInt(int N, T value) {
     ASSERT((0 < N) &&
            (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
@@ -105,7 +105,7 @@ class Utils {
     return (-limit <= value) && (value < limit);
   }
 
-  template<typename T>
+  template <typename T>
   static inline bool IsUint(int N, T value) {
     ASSERT((0 < N) &&
            (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
@@ -115,7 +115,7 @@ class Utils {
 
   // Check whether the magnitude of value fits in N bits, i.e., whether an
   // (N+1)-bit sign-magnitude representation can hold value.
-  template<typename T>
+  template <typename T>
   static inline bool IsAbsoluteUint(int N, T value) {
     ASSERT((0 < N) &&
            (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
@@ -143,14 +143,11 @@ class Utils {
     return (static_cast<int64_t>(high) << 32) | (low & 0x0ffffffffLL);
   }
 
-  static bool IsDecimalDigit(char c) {
-    return ('0' <= c) && (c <= '9');
-  }
+  static bool IsDecimalDigit(char c) { return ('0' <= c) && (c <= '9'); }
 
   static bool IsHexDigit(char c) {
-    return IsDecimalDigit(c)
-          || (('A' <= c) && (c <= 'F'))
-          || (('a' <= c) && (c <= 'f'));
+    return IsDecimalDigit(c) || (('A' <= c) && (c <= 'F')) ||
+           (('a' <= c) && (c <= 'f'));
   }
 
   static int HexDigitToInt(char c) {
@@ -172,9 +169,7 @@ class Utils {
   static inline bool RangeCheck(intptr_t offset,
                                 intptr_t count,
                                 intptr_t length) {
-    return offset >= 0 &&
-           count >= 0 &&
-           length >= 0 &&
+    return offset >= 0 && count >= 0 && length >= 0 &&
            count <= (length - offset);
   }
 

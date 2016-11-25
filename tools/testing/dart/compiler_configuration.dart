@@ -217,7 +217,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath(String buildDir) {
-    return 'third_party/pkg/kernel/bin/dartk.dart';
+    return 'tools/dartk_wrappers/dartk$executableScriptSuffix';
   }
 
   CompilationCommand computeCompilationCommand(
@@ -228,7 +228,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     var extraArguments = [
       '--sdk',
-      '$buildDir/obj/gen/patched_sdk',
+      '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
       '--out',
@@ -304,8 +304,9 @@ class PipelineCommand {
 
 class ComposedCompilerConfiguration extends CompilerConfiguration {
   final List<PipelineCommand> pipelineCommands;
+  final bool isPrecompiler;
 
-  ComposedCompilerConfiguration(this.pipelineCommands)
+  ComposedCompilerConfiguration(this.pipelineCommands, {this.isPrecompiler: false})
       : super._subclass();
 
   CommandArtifact computeCompilationArtifact(
@@ -354,7 +355,8 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    return <String>[artifact.filename];
+    final String suffix = isPrecompiler ? "/out.aotsnapshot" : "";
+    return <String>["${artifact.filename}${suffix}"];
   }
 
   static ComposedCompilerConfiguration createDartKPConfiguration(
@@ -372,7 +374,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
         new PrecompilerCompilerConfiguration(
           arch: arch, useBlobs: useBlobs, isAndroid: isAndroid)));
 
-    return new ComposedCompilerConfiguration(nested);
+    return new ComposedCompilerConfiguration(nested, isPrecompiler: true);
   }
 
   static ComposedCompilerConfiguration createDartKConfiguration(
@@ -384,7 +386,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
         new DartKCompilerConfiguration(isHostChecked: isHostChecked,
             useSdk: useSdk)));
 
-    return new ComposedCompilerConfiguration(nested);
+    return new ComposedCompilerConfiguration(nested, isPrecompiler: false);
   }
 }
 

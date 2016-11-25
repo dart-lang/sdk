@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=process_echo_util.dart
+
 import "package:path/path.dart";
 import "package:async_helper/async_helper.dart";
 import "dart:io";
@@ -11,9 +13,9 @@ import "dart:isolate";
 void testRunShell() {
   test(args) {
     asyncStart();
-    var path = Platform.script.resolve("process_echo_util.dart").toFilePath();
+    var script = Platform.script.resolve("process_echo_util.dart").toFilePath();
     Process.run(Platform.executable,
-                [path]..addAll(args),
+                [script]..addAll(args),
                 runInShell: true)
         .then((result) {
           if (Platform.operatingSystem == "windows") {

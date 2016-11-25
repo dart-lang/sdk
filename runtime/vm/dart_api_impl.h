@@ -27,9 +27,10 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
     if ((isolate) == NULL) {                                                   \
-      FATAL1("%s expects there to be a current isolate. Did you "              \
-             "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",        \
-             CURRENT_FUNC);                                                    \
+      FATAL1(                                                                  \
+          "%s expects there to be a current isolate. Did you "                 \
+          "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",           \
+          CURRENT_FUNC);                                                       \
     }                                                                          \
   } while (0)
 
@@ -37,8 +38,10 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_NO_ISOLATE(isolate)                                              \
   do {                                                                         \
     if ((isolate) != NULL) {                                                   \
-      FATAL1("%s expects there to be no current isolate. Did you "             \
-             "forget to call Dart_ExitIsolate?", CURRENT_FUNC);                \
+      FATAL1(                                                                  \
+          "%s expects there to be no current isolate. Did you "                \
+          "forget to call Dart_ExitIsolate?",                                  \
+          CURRENT_FUNC);                                                       \
     }                                                                          \
   } while (0)
 
@@ -49,10 +52,12 @@ const char* CanonicalFunction(const char* func);
     Isolate* tmpI = tmpT->isolate();                                           \
     CHECK_ISOLATE(tmpI);                                                       \
     if (tmpT->api_top_scope() == NULL) {                                       \
-      FATAL1("%s expects to find a current scope. Did you forget to call "     \
-           "Dart_EnterScope?", CURRENT_FUNC);                                  \
+      FATAL1(                                                                  \
+          "%s expects to find a current scope. Did you forget to call "        \
+          "Dart_EnterScope?",                                                  \
+          CURRENT_FUNC);                                                       \
     }                                                                          \
-  } while (0);                                                                 \
+  } while (0);
 
 #define DARTSCOPE(thread)                                                      \
   Thread* T = (thread);                                                        \
@@ -101,9 +106,7 @@ class Api : AllStatic {
     explicit Scope(Thread* thread) : StackResource(thread) {
       Dart_EnterScope();
     }
-    ~Scope() {
-      Dart_ExitScope();
-    }
+    ~Scope() { Dart_ExitScope(); }
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Scope);
@@ -115,24 +118,25 @@ class Api : AllStatic {
   // Unwraps the raw object from the handle.
   static RawObject* UnwrapHandle(Dart_Handle object);
 
-  // Unwraps a raw Type from the handle.  The handle will be null if
-  // the object was not of the requested Type.
+// Unwraps a raw Type from the handle.  The handle will be null if
+// the object was not of the requested Type.
 #define DECLARE_UNWRAP(Type)                                                   \
-  static const Type& Unwrap##Type##Handle(Zone* zone,                          \
-                                          Dart_Handle object);
+  static const Type& Unwrap##Type##Handle(Zone* zone, Dart_Handle object);
   CLASS_LIST_FOR_HANDLES(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP
 
   // Unwraps the raw object from the handle using a reused handle.
   static const String& UnwrapStringHandle(
-      const ReusableObjectHandleScope& reused, Dart_Handle object);
+      const ReusableObjectHandleScope& reused,
+      Dart_Handle object);
   static const Instance& UnwrapInstanceHandle(
-      const ReusableObjectHandleScope& reused, Dart_Handle object);
+      const ReusableObjectHandleScope& reused,
+      Dart_Handle object);
 
   // Returns an Error handle if isolate is in an inconsistent state
   // or there was an error while finalizing classes.
   // Returns a Success handle when no error condition exists.
-  static Dart_Handle CheckAndFinalizePendingClasses(Thread *thread);
+  static Dart_Handle CheckAndFinalizePendingClasses(Thread* thread);
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);
@@ -187,24 +191,16 @@ class Api : AllStatic {
   static Dart_Handle NewError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
-  static Dart_Handle Null() {
-    return null_handle_;
-  }
+  static Dart_Handle Null() { return null_handle_; }
 
   // Gets a handle to True.
-  static Dart_Handle True() {
-    return true_handle_;
-  }
+  static Dart_Handle True() { return true_handle_; }
 
   // Gets a handle to False.
-  static Dart_Handle False() {
-    return false_handle_;
-  }
+  static Dart_Handle False() { return false_handle_; }
 
   // Gets a handle to EmptyString.
-  static Dart_Handle EmptyString() {
-    return empty_string_handle_;
-  }
+  static Dart_Handle EmptyString() { return empty_string_handle_; }
 
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Thread* thread);
@@ -279,26 +275,24 @@ class Api : AllStatic {
 };
 
 // Start a scope in which no Dart API call backs are allowed.
-#define START_NO_CALLBACK_SCOPE(thread)                                        \
-  thread->IncrementNoCallbackScopeDepth()
+#define START_NO_CALLBACK_SCOPE(thread) thread->IncrementNoCallbackScopeDepth()
 
 // End a no Dart API call backs Scope.
-#define END_NO_CALLBACK_SCOPE(thread)                                          \
-  thread->DecrementNoCallbackScopeDepth()
+#define END_NO_CALLBACK_SCOPE(thread) thread->DecrementNoCallbackScopeDepth()
 
 #define CHECK_CALLBACK_STATE(thread)                                           \
   if (thread->no_callback_scope_depth() != 0) {                                \
     return reinterpret_cast<Dart_Handle>(                                      \
         Api::AcquiredError(thread->isolate()));                                \
-  }                                                                            \
+  }
 
 #define CHECK_COMPILATION_ALLOWED(isolate)                                     \
   if (!isolate->compilation_allowed()) {                                       \
     return Api::NewError("%s: Cannot load after Dart_Precompile",              \
                          CURRENT_FUNC);                                        \
-  }                                                                            \
+  }
 
-#define ASSERT_CALLBACK_STATE(thread)                                         \
+#define ASSERT_CALLBACK_STATE(thread)                                          \
   ASSERT(thread->no_callback_scope_depth() == 0)
 
 }  // namespace dart.

@@ -28,20 +28,23 @@ class Thread;
 // C-stack is always aligned on DBC because we don't have any native code.
 #define CHECK_STACK_ALIGNMENT
 #elif defined(USING_SIMULATOR)
-#define CHECK_STACK_ALIGNMENT {                                                \
-  uword current_sp = Simulator::Current()->get_register(SPREG);                \
-  ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
-}
+#define CHECK_STACK_ALIGNMENT                                                  \
+  {                                                                            \
+    uword current_sp = Simulator::Current()->get_register(SPREG);              \
+    ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
+  }
 #elif defined(TARGET_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
-#define CHECK_STACK_ALIGNMENT { }
+#define CHECK_STACK_ALIGNMENT                                                  \
+  {}
 #else
-#define CHECK_STACK_ALIGNMENT {                                                \
-  uword (*func)() = reinterpret_cast<uword (*)()>(                             \
-      StubCode::GetStackPointer_entry()->EntryPoint());                        \
-  uword current_sp = func();                                                   \
-  ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
-}
+#define CHECK_STACK_ALIGNMENT                                                  \
+  {                                                                            \
+    uword (*func)() = reinterpret_cast<uword (*)()>(                           \
+        StubCode::GetStackPointer_entry()->EntryPoint());                      \
+    uword current_sp = func();                                                 \
+    ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
+  }
 #endif
 
 void VerifyOnTransition();
@@ -57,9 +60,12 @@ void VerifyOnTransition();
 
 #else
 
-#define CHECK_STACK_ALIGNMENT { }
-#define VERIFY_ON_TRANSITION { }
-#define DEOPTIMIZE_ALOT { }
+#define CHECK_STACK_ALIGNMENT                                                  \
+  {}
+#define VERIFY_ON_TRANSITION                                                   \
+  {}
+#define DEOPTIMIZE_ALOT                                                        \
+  {}
 
 #endif
 
@@ -70,7 +76,8 @@ void VerifyOnTransition();
   }
 #else
 #define TRACE_NATIVE_CALL(format, name)                                        \
-  do { } while (0)
+  do {                                                                         \
+  } while (0)
 #endif
 
 // Class NativeArguments is used to access arguments passed in from
@@ -138,9 +145,7 @@ class NativeArguments {
     return ArgAt(actual_index);
   }
 
-  void SetReturn(const Object& value) const {
-    *retval_ = value.raw();
-  }
+  void SetReturn(const Object& value) const { *retval_ = value.raw(); }
 
   RawObject* ReturnValue() const {
     // Tell MemorySanitizer the retval_ was initialized (by generated code).
@@ -207,10 +212,10 @@ class NativeArguments {
     kAutoSetupScopeBit = 26,
   };
   class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
-  class FunctionBits :
-      public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
-  class AutoSetupScopeBits :
-      public BitField<intptr_t, int, kAutoSetupScopeBit, 1> {};
+  class FunctionBits
+      : public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
+  class AutoSetupScopeBits
+      : public BitField<intptr_t, int, kAutoSetupScopeBit, 1> {};
   friend class Api;
   friend class BootstrapNatives;
   friend class Simulator;
@@ -221,17 +226,14 @@ class NativeArguments {
                   int argc_tag,
                   RawObject** argv,
                   RawObject** retval)
-      : thread_(thread), argc_tag_(argc_tag), argv_(argv), retval_(retval) {
-  }
+      : thread_(thread), argc_tag_(argc_tag), argv_(argv), retval_(retval) {}
 #endif
 
   // Since this function is passed a RawObject directly, we need to be
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.
-  void SetReturnUnsafe(RawObject* value) const {
-    *retval_ = value;
-  }
+  void SetReturnUnsafe(RawObject* value) const { *retval_ = value; }
 
   // Returns true if the arguments are those of an instance function call.
   bool ToInstanceFunction() const {
@@ -254,9 +256,9 @@ class NativeArguments {
     return 0;
   }
 
-  Thread* thread_;  // Current thread pointer.
-  intptr_t argc_tag_;  // Encodes argument count and invoked native call type.
-  RawObject** argv_;  // Pointer to an array of arguments to runtime call.
+  Thread* thread_;      // Current thread pointer.
+  intptr_t argc_tag_;   // Encodes argument count and invoked native call type.
+  RawObject** argv_;    // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.
 };
 

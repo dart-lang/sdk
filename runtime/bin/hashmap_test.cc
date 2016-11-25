@@ -19,7 +19,7 @@ typedef uint32_t (*IntKeyHash)(uint32_t key);
 class IntSet {
  public:
   explicit IntSet(IntKeyHash hash)
-      : hash_(hash), map_(HashMap::SamePointerValue, kInitialSize)  {}
+      : hash_(hash), map_(HashMap::SamePointerValue, kInitialSize) {}
 
   void Insert(int x) {
     EXPECT_NE(0, x);  // 0 corresponds to (void*)NULL - illegal key value
@@ -43,9 +43,7 @@ class IntSet {
     return p != NULL;
   }
 
-  void Clear() {
-    map_.Clear();
-  }
+  void Clear() { map_.Clear(); }
 
   uint32_t occupancy() const {
     uint32_t count = 0;
@@ -62,12 +60,24 @@ class IntSet {
 };
 
 
-static uint32_t WordHash(uint32_t key) { return dart::Utils::WordHash(key); }
-static uint32_t Hash(uint32_t key)  { return 23; }
-static uint32_t CollisionHash1(uint32_t key)  { return key & 0x3; }
-static uint32_t CollisionHash2(uint32_t key)  { return kInitialSize - 1; }
-static uint32_t CollisionHash3(uint32_t key)  { return kInitialSize - 2; }
-static uint32_t CollisionHash4(uint32_t key)  { return kInitialSize - 2; }
+static uint32_t WordHash(uint32_t key) {
+  return dart::Utils::WordHash(key);
+}
+static uint32_t Hash(uint32_t key) {
+  return 23;
+}
+static uint32_t CollisionHash1(uint32_t key) {
+  return key & 0x3;
+}
+static uint32_t CollisionHash2(uint32_t key) {
+  return kInitialSize - 1;
+}
+static uint32_t CollisionHash3(uint32_t key) {
+  return kInitialSize - 2;
+}
+static uint32_t CollisionHash4(uint32_t key) {
+  return kInitialSize - 2;
+}
 
 
 void TestSet(IntKeyHash hash, int size) {

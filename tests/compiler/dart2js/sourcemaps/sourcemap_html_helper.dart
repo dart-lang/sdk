@@ -307,7 +307,9 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
 
   void addAnnotations(List<Annotation> annotations) {
     currentAnnotations.addAll(annotations);
-    currentLine.annotations.addAll(annotations);
+    if (currentLine != null) {
+      currentLine.annotations.addAll(annotations);
+    }
   }
 
   void beginLine(int currentOffset) {

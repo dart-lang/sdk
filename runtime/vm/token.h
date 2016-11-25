@@ -42,12 +42,12 @@ namespace dart {
   TOK(kLBRACE, "{", 0, kNoAttribute)                                           \
   TOK(kRBRACE, "}", 0, kNoAttribute)                                           \
   TOK(kARROW, "=>", 0, kNoAttribute)                                           \
-  TOK(kCOLON,  ":", 0, kNoAttribute)                                           \
+  TOK(kCOLON, ":", 0, kNoAttribute)                                            \
   TOK(kSEMICOLON, ";", 0, kNoAttribute)                                        \
   TOK(kPERIOD, ".", 0, kNoAttribute)                                           \
   TOK(kQM_PERIOD, "?.", 0, kNoAttribute)                                       \
-  TOK(kINCR,   "++", 0, kNoAttribute)                                          \
-  TOK(kDECR,   "--", 0, kNoAttribute)                                          \
+  TOK(kINCR, "++", 0, kNoAttribute)                                            \
+  TOK(kDECR, "--", 0, kNoAttribute)                                            \
                                                                                \
   /* Assignment operators.                            */                       \
   /* Please update IsAssignmentOperator() if you make */                       \
@@ -139,7 +139,7 @@ namespace dart {
   TOK(kSCRIPTTAG, "#!", 0, kNoAttribute)                                       \
                                                                                \
   /* Support for optimized code */                                             \
-  TOK(kREM, "", 0, kNoAttribute)                                               \
+  TOK(kREM, "", 0, kNoAttribute)
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.
@@ -199,17 +199,13 @@ class String;
 class Token {
  public:
 #define T(t, s, p, a) t,
-  enum Kind {
-    DART_TOKEN_LIST(T)
-    DART_KEYWORD_LIST(T)
-    kNumTokens
-  };
+  enum Kind { DART_TOKEN_LIST(T) DART_KEYWORD_LIST(T) kNumTokens };
 #undef T
 
   enum Attribute {
-    kNoAttribute     = 0,
-    kKeyword         = 1 << 0,
-    kPseudoKeyword   = 1 << 1,
+    kNoAttribute = 0,
+    kKeyword = 1 << 0,
+    kPseudoKeyword = 1 << 1,
   };
 
   static const Kind kFirstKeyword = kABSTRACT;
@@ -236,9 +232,7 @@ class Token {
     return (tok == kIS) || (tok == kISNOT);
   }
 
-  static bool IsTypeCastOperator(Kind tok) {
-    return tok == kAS;
-  }
+  static bool IsTypeCastOperator(Kind tok) { return tok == kAS; }
 
   static bool IsIndexOperator(Kind tok) {
     return tok == kINDEX || tok == kASSIGN_INDEX;
@@ -248,9 +242,7 @@ class Token {
     return (Attributes(tok) & kPseudoKeyword) != 0;
   }
 
-  static bool IsKeyword(Kind tok) {
-    return (Attributes(tok) & kKeyword) != 0;
-  }
+  static bool IsKeyword(Kind tok) { return (Attributes(tok) & kKeyword) != 0; }
 
   static bool IsIdentifier(Kind tok) {
     return (tok == kIDENT) || IsPseudoKeyword(tok);
@@ -278,20 +270,16 @@ class Token {
 
   static bool CanBeOverloaded(Kind tok) {
     ASSERT(tok < kNumTokens);
-    return IsRelationalOperator(tok) ||
-           (tok == kEQ) ||
-           (tok >= kADD && tok <= kMOD) ||  // Arithmetic operations.
+    return IsRelationalOperator(tok) || (tok == kEQ) ||
+           (tok >= kADD && tok <= kMOD) ||     // Arithmetic operations.
            (tok >= kBIT_OR && tok <= kSHR) ||  // Bit operations.
-           (tok == kINDEX) ||
-           (tok == kASSIGN_INDEX);
+           (tok == kINDEX) || (tok == kASSIGN_INDEX);
   }
 
   static bool NeedsLiteralToken(Kind tok) {
     ASSERT(tok < kNumTokens);
-    return ((tok == Token::kINTEGER) ||
-            (tok == Token::kSTRING) ||
-            (tok == Token::kINTERPOL_VAR) ||
-            (tok == Token::kERROR) ||
+    return ((tok == Token::kINTEGER) || (tok == Token::kSTRING) ||
+            (tok == Token::kINTERPOL_VAR) || (tok == Token::kERROR) ||
             (tok == Token::kDOUBLE));
   }
 
@@ -301,20 +289,32 @@ class Token {
   static bool IsBinaryArithmeticOperator(Token::Kind token);
   static bool IsUnaryArithmeticOperator(Token::Kind token);
 
+  static bool IsBinaryBitwiseOperator(Token::Kind token);
+
   // For a comparison operation return an operation for the negated comparison:
   // !(a (op) b) === a (op') b
   static Token::Kind NegateComparison(Token::Kind op) {
     switch (op) {
-      case Token::kEQ: return Token::kNE;
-      case Token::kNE: return Token::kEQ;
-      case Token::kLT: return Token::kGTE;
-      case Token::kGT: return Token::kLTE;
-      case Token::kLTE: return Token::kGT;
-      case Token::kGTE: return Token::kLT;
-      case Token::kEQ_STRICT: return Token::kNE_STRICT;
-      case Token::kNE_STRICT: return Token::kEQ_STRICT;
-      case Token::kIS:    return Token::kISNOT;
-      case Token::kISNOT: return Token::kIS;
+      case Token::kEQ:
+        return Token::kNE;
+      case Token::kNE:
+        return Token::kEQ;
+      case Token::kLT:
+        return Token::kGTE;
+      case Token::kGT:
+        return Token::kLTE;
+      case Token::kLTE:
+        return Token::kGT;
+      case Token::kGTE:
+        return Token::kLT;
+      case Token::kEQ_STRICT:
+        return Token::kNE_STRICT;
+      case Token::kNE_STRICT:
+        return Token::kEQ_STRICT;
+      case Token::kIS:
+        return Token::kISNOT;
+      case Token::kISNOT:
+        return Token::kIS;
       default:
         UNREACHABLE();
         return Token::kILLEGAL;

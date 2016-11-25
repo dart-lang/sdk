@@ -7,8 +7,8 @@
 
 #include "vm/cpuinfo.h"
 
-#include <errno.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
+#include <errno.h>       // NOLINT
+#include <sys/types.h>   // NOLINT
 #include <sys/sysctl.h>  // NOLINT
 
 #include "platform/assert.h"
@@ -25,6 +25,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "machdep.cpu.brand_string";
   fields_[kCpuInfoHardware] = "machdep.cpu.brand_string";
   fields_[kCpuInfoFeatures] = "machdep.cpu.features";
+  fields_[kCpuInfoArchitecture] = NULL;
 }
 
 

@@ -114,8 +114,8 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateAsHelper(task_isolate_,
-                                               Thread::kSweeperTask);
+    bool result =
+        Thread::EnterIsolateAsHelper(task_isolate_, Thread::kSweeperTask);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
@@ -168,11 +168,8 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,
                                 HeapPage* last,
                                 FreeList* freelist) {
-  SweeperTask* task =
-      new SweeperTask(isolate,
-                      isolate->heap()->old_space(),
-                      first, last,
-                      freelist);
+  SweeperTask* task = new SweeperTask(isolate, isolate->heap()->old_space(),
+                                      first, last, freelist);
   ThreadPool* pool = Dart::thread_pool();
   pool->Run(task);
 }

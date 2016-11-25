@@ -463,6 +463,9 @@ enum MessageKind {
   VOID_EXPRESSION,
   VOID_NOT_ALLOWED,
   VOID_VARIABLE,
+  WRONG_ARGUMENT_FOR_JS,
+  WRONG_ARGUMENT_FOR_JS_FIRST,
+  WRONG_ARGUMENT_FOR_JS_SECOND,
   WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
   WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
   YIELDING_MODIFIER_ON_ARROW_BODY,
@@ -1218,7 +1221,6 @@ void main() => new C().m(null);
       MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED: const MessageTemplate(
           MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
           "Method type variables do not have a runtime value.",
-          options: const ["--generic-method-syntax"],
           howToFix: "Try using the upper bound of the type variable, "
               "or refactor the code to avoid needing this runtime value.",
           examples: const [
@@ -1240,7 +1242,6 @@ main() => f<int>(42);
       const MessageTemplate(
           MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
           "Method type variables are treated as `dynamic` in `as` expressions.",
-          options: const ["--generic-method-syntax"],
           howToFix: "Try using the upper bound of the type variable, or check "
               "that the blind success of the test does not introduce bugs.",
           examples: const [
@@ -2694,6 +2695,18 @@ main() {}
           howToFix:
               "Use an immediately called JavaScript function to capture the"
               " the placeholder values as JavaScript function parameters."),
+
+      MessageKind.WRONG_ARGUMENT_FOR_JS: const MessageTemplate(
+          MessageKind.WRONG_ARGUMENT_FOR_JS,
+          "JS expression must take two or more arguments."),
+
+      MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST: const MessageTemplate(
+          MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST,
+          "JS expression must take two or more arguments."),
+
+      MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND: const MessageTemplate(
+          MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND,
+          "JS second argument must be a string literal."),
 
       MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT:
           const MessageTemplate(

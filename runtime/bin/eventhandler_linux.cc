@@ -10,15 +10,15 @@
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_linux.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <pthread.h>  // NOLINT
-#include <stdio.h>  // NOLINT
-#include <string.h>  // NOLINT
-#include <sys/epoll.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
+#include <errno.h>        // NOLINT
+#include <fcntl.h>        // NOLINT
+#include <pthread.h>      // NOLINT
+#include <stdio.h>        // NOLINT
+#include <string.h>       // NOLINT
+#include <sys/epoll.h>    // NOLINT
+#include <sys/stat.h>     // NOLINT
 #include <sys/timerfd.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>       // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -47,12 +47,8 @@ intptr_t DescriptorInfo::GetPollEvents() {
 
 // Unregister the file descriptor for a DescriptorInfo structure with
 // epoll.
-static void RemoveFromEpollInstance(intptr_t epoll_fd_,
-                                    DescriptorInfo* di) {
-  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                   EPOLL_CTL_DEL,
-                                   di->fd(),
-                                   NULL));
+static void RemoveFromEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
+  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, di->fd(), NULL));
 }
 
 
@@ -63,10 +59,8 @@ static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
     event.events |= EPOLLET;
   }
   event.data.ptr = di;
-  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                           EPOLL_CTL_ADD,
-                                           di->fd(),
-                                           &event));
+  int status =
+      NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, di->fd(), &event));
   if (status == -1) {
     // TODO(dart:io): Verify that the dart end is handling this correctly.
 
@@ -86,9 +80,15 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
-  FDUtils::SetNonBlocking(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[1]);
+  if (!FDUtils::SetNonBlocking(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd non blocking\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[1])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
   shutdown_ = false;
   // The initial size passed to epoll_create is ignore on newer (>=
   // 2.6.8) Linux versions
@@ -97,15 +97,15 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (epoll_fd_ == -1) {
     FATAL1("Failed creating epoll file descriptor: %i", errno);
   }
-  FDUtils::SetCloseOnExec(epoll_fd_);
+  if (!FDUtils::SetCloseOnExec(epoll_fd_)) {
+    FATAL("Failed to set epoll fd close on exec\n");
+  }
   // Register the interrupt_fd with the epoll instance.
   struct epoll_event event;
   event.events = EPOLLIN;
   event.data.ptr = NULL;
-  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                           EPOLL_CTL_ADD,
-                                           interrupt_fds_[0],
-                                           &event));
+  int status = NO_RETRY_EXPECTED(
+      epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, interrupt_fds_[0], &event));
   if (status == -1) {
     FATAL("Failed adding interrupt fd to epoll instance");
   }
@@ -116,13 +116,11 @@ EventHandlerImplementation::EventHandlerImplementation()
   // Register the timer_fd_ with the epoll instance.
   event.events = EPOLLIN;
   event.data.fd = timer_fd_;
-  status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                       EPOLL_CTL_ADD,
-                                       timer_fd_,
-                                       &event));
+  status =
+      NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, timer_fd_, &event));
   if (status == -1) {
-    FATAL2(
-        "Failed adding timerfd fd(%i) to epoll instance: %i", timer_fd_, errno);
+    FATAL2("Failed adding timerfd fd(%i) to epoll instance: %i", timer_fd_,
+           errno);
   }
 }
 
@@ -144,7 +142,7 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 
 
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
-                                                     DescriptorInfo *di) {
+                                                     DescriptorInfo* di) {
   intptr_t new_mask = di->Mask();
   if ((old_mask != 0) && (new_mask == 0)) {
     RemoveFromEpollInstance(epoll_fd_, di);
@@ -159,10 +157,11 @@ void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
 
 
 DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
-    intptr_t fd, bool is_listening) {
+    intptr_t fd,
+    bool is_listening) {
   ASSERT(fd >= 0);
-  HashMap::Entry* entry = socket_map_.Lookup(
-      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
+  HashMap::Entry* entry = socket_map_.Lookup(GetHashmapKeyFromFd(fd),
+                                             GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
@@ -224,8 +223,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else {
       ASSERT((msg[i].data & COMMAND_MASK) != 0);
 
-      DescriptorInfo* di = GetDescriptorInfo(
-          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
+      DescriptorInfo* di =
+          GetDescriptorInfo(msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!di->IsListeningSocket());
         // Close the socket for reading.
@@ -248,7 +247,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
           // We only close the socket file descriptor from the operating
           // system if there are no other dart socket objects which
           // are listening on the same (address, port) combination.
-          ListeningSocketRegistry *registry =
+          ListeningSocketRegistry* registry =
               ListeningSocketRegistry::Instance();
 
           MutexLocker locker(registry->mutex());
@@ -262,8 +261,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
           }
         } else {
           ASSERT(new_mask == 0);
-          socket_map_.Remove(
-              GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+          socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
         }
@@ -311,8 +309,8 @@ static void PrintEventMask(intptr_t fd, intptr_t events) {
   if ((events & EPOLLRDHUP) != 0) {
     Log::Print("EPOLLRDHUP ");
   }
-  int all_events = EPOLLIN | EPOLLPRI | EPOLLOUT |
-      EPOLLERR | EPOLLHUP | EPOLLRDHUP;
+  int all_events =
+      EPOLLIN | EPOLLPRI | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP;
   if ((events & ~all_events) != 0) {
     Log::Print("(and %08x) ", events & ~all_events);
   }

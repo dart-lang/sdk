@@ -6,14 +6,17 @@ library universe;
 
 import 'dart:collection';
 
+import '../cache_strategy.dart';
 import '../common.dart';
+import '../common/backend_api.dart' show Backend;
+import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../universe/class_set.dart' show Instantiation;
-import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, OpenWorld;
+import '../world.dart' show World, ClosedWorld, OpenWorld, WorldImpl;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -120,7 +123,7 @@ abstract class WorldBuilder {
 
   /// Registers that [type] is checked in this universe. The unaliased type is
   /// returned.
-  DartType registerIsCheck(DartType type, Compiler compiler);
+  DartType registerIsCheck(DartType type, Resolution resolution);
 
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
@@ -159,27 +162,191 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// Set of all fields that are statically known to be written to.
   Iterable<Element> get fieldSetters;
 
-  /// Call [f] for all directly or abstractly instantiated classes.
-  void forEachInstantiatedClass(
-      f(ClassElement cls, EnumSet<Instantiation> instantiations));
+  /// Call [f] for all classes with instantiated types. This includes the
+  /// directly and abstractly instantiated classes but also classes whose type
+  /// arguments are used in live factory constructors.
+  void forEachInstantiatedClass(f(ClassElement cls, InstantiationInfo info));
+
+  /// `true` of `Object.runtimeType` is supported.
+  bool get hasRuntimeTypeSupport;
+
+  /// `true` of use of the `dart:isolate` library is supported.
+  bool get hasIsolateSupport;
+
+  /// `true` of `Function.apply` is supported.
+  bool get hasFunctionApplySupport;
+
+  /// The [OpenWorld] being created by this world builder.
+  // TODO(johnniwinther): Merge this with [ResolutionWorldBuilder].
+  OpenWorld get openWorld;
+}
+
+/// The type and kind of an instantiation registered through
+/// `ResolutionWorldBuilder.registerTypeInstantiation`.
+class Instance {
+  final InterfaceType type;
+  final Instantiation kind;
+  final bool isRedirection;
+
+  Instance(this.type, this.kind, {this.isRedirection: false});
+
+  int get hashCode {
+    return Hashing.objectHash(
+        type, Hashing.objectHash(kind, Hashing.objectHash(isRedirection)));
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! Instance) return false;
+    return type == other.type &&
+        kind == other.kind &&
+        isRedirection == other.isRedirection;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(type);
+    if (kind == Instantiation.DIRECTLY_INSTANTIATED) {
+      sb.write(' directly');
+    } else if (kind == Instantiation.ABSTRACTLY_INSTANTIATED) {
+      sb.write(' abstractly');
+    } else if (kind == Instantiation.UNINSTANTIATED) {
+      sb.write(' none');
+    }
+    if (isRedirection) {
+      sb.write(' redirect');
+    }
+    return sb.toString();
+  }
+}
+
+/// Information about instantiations of a class.
+class InstantiationInfo {
+  /// A map from constructor of the class to their instantiated types.
+  ///
+  /// For instance
+  ///
+  ///    import 'dart:html';
+  ///
+  ///    abstract class AbstractClass<S> {
+  ///      factory AbstractClass.a() = Class<S>.a;
+  ///      factory AbstractClass.b() => new Class<S>.b();
+  ///    }
+  ///    class Class<T> implements AbstractClass<T> {
+  ///      Class.a();
+  ///      Class.b();
+  ///      factory Class.c() = Class.b<T>;
+  ///    }
+  ///
+  ///
+  ///    main() {
+  ///      new Class.a();
+  ///      new Class<int>.a();
+  ///      new Class<String>.b();
+  ///      new Class<num>.c();
+  ///      new AbstractClass<double>.a();
+  ///      new AbstractClass<bool>.b();
+  ///      new DivElement(); // native instantiation
+  ///    }
+  ///
+  /// will generate the mappings
+  ///
+  ///    AbstractClass: {
+  ///      AbstractClass.a: {
+  ///        AbstractClass<double> none, // from `new AbstractClass<double>.a()`
+  ///      },
+  ///      AbstractClass.b: {
+  ///        AbstractClass<bool> none, // from `new AbstractClass<bool>.b()`
+  ///      },
+  ///    },
+  ///    Class: {
+  ///      Class.a: {
+  ///        Class directly, // from `new Class.a()`
+  ///        Class<int> directly, // from `new Class<int>.a()`
+  ///        Class<S> directly redirect, // from `factory AbstractClass.a`
+  ///      },
+  ///      Class.b: {
+  ///        Class<String> directly, // from `new Class<String>.b()`
+  ///        Class<T> directly redirect, // from `factory Class.c`
+  ///        Class<S> directly, // from `factory AbstractClass.b`
+  ///      },
+  ///      Class.c: {
+  ///        Class<num> directly, // from `new Class<num>.c()`
+  ///      },
+  ///    },
+  ///    DivElement: {
+  ///      DivElement: {
+  ///        DivElement abstractly, // from `new DivElement()`
+  ///      },
+  ///    }
+  ///
+  /// If the constructor is unknown, for instance for native or mirror usage,
+  /// `null` is used as key.
+  Map<ConstructorElement, Set<Instance>> instantiationMap;
+
+  /// Register [type] as the instantiation [kind] using [constructor].
+  void addInstantiation(
+      ConstructorElement constructor, InterfaceType type, Instantiation kind,
+      {bool isRedirection: false}) {
+    instantiationMap ??= <ConstructorElement, Set<Instance>>{};
+    instantiationMap
+        .putIfAbsent(constructor, () => new Set<Instance>())
+        .add(new Instance(type, kind, isRedirection: isRedirection));
+    switch (kind) {
+      case Instantiation.DIRECTLY_INSTANTIATED:
+        isDirectlyInstantiated = true;
+        break;
+      case Instantiation.ABSTRACTLY_INSTANTIATED:
+        isAbstractlyInstantiated = true;
+        break;
+      case Instantiation.UNINSTANTIATED:
+        break;
+      default:
+        throw new StateError("Instantiation $kind is not allowed.");
+    }
+  }
+
+  /// `true` if the class is either directly or abstractly instantiated.
+  bool get hasInstantiation =>
+      isDirectlyInstantiated || isAbstractlyInstantiated;
+
+  /// `true` if the class is directly instantiated.
+  bool isDirectlyInstantiated = false;
+
+  /// `true` if the class is abstractly instantiated.
+  bool isAbstractlyInstantiated = false;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('InstantiationInfo[');
+    if (instantiationMap != null) {
+      bool needsComma = false;
+      instantiationMap
+          .forEach((ConstructorElement constructor, Set<Instance> set) {
+        if (needsComma) {
+          sb.write(', ');
+        }
+        if (constructor != null) {
+          sb.write(constructor);
+        } else {
+          sb.write('<unknown>');
+        }
+        sb.write(': ');
+        sb.write(set);
+        needsComma = true;
+      });
+    }
+    sb.write(']');
+    return sb.toString();
+  }
 }
 
 class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
-  /// The set of all directly instantiated classes, that is, classes with a
-  /// generative constructor that has been called directly and not only through
-  /// a super-call.
+  /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
-  // TODO(johnniwinther): [_directlyInstantiatedClasses] and
-  // [_instantiatedTypes] sets should be merged.
-  final Map<ClassElement, EnumSet<Instantiation>> _directlyInstantiatedClasses =
-      <ClassElement, EnumSet<Instantiation>>{};
-
-  /// The set of all directly instantiated types, that is, the types of the
-  /// directly instantiated classes.
-  ///
-  /// See [_directlyInstantiatedClasses].
-  final Set<DartType> _instantiatedTypes = new Set<DartType>();
+  final Map<ClassElement, InstantiationInfo> _instantiationInfo =
+      <ClassElement, InstantiationInfo>{};
 
   /// Classes implemented by directly instantiated classes.
   final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
@@ -236,14 +403,35 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  ResolutionWorldBuilderImpl(this.selectorConstraintsStrategy);
+  bool hasRuntimeTypeSupport = false;
+  bool hasIsolateSupport = false;
+  bool hasFunctionApplySupport = false;
+
+  /// Used for testing the new more precise computation of instantiated types
+  /// and classes.
+  bool useInstantiationMap = false;
+
+  OpenWorld _openWorld;
+
+  ResolutionWorldBuilderImpl(Backend backend, CoreClasses coreClasses,
+      CacheStrategy cacheStrategy, this.selectorConstraintsStrategy) {
+    _openWorld = new WorldImpl(this, backend, coreClasses, cacheStrategy);
+  }
+
+  OpenWorld get openWorld => _openWorld;
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<ClassElement> get directlyInstantiatedClasses {
-    return _directlyInstantiatedClasses.keys;
+    Set<ClassElement> classes = new Set<ClassElement>();
+    getInstantiationMap().forEach((ClassElement cls, InstantiationInfo info) {
+      if (info.hasInstantiation) {
+        classes.add(cls);
+      }
+    });
+    return classes;
   }
 
   /// All directly instantiated types, that is, the types of the directly
@@ -251,7 +439,19 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
+  Iterable<DartType> get instantiatedTypes {
+    Set<InterfaceType> types = new Set<InterfaceType>();
+    getInstantiationMap().forEach((_, InstantiationInfo info) {
+      if (info.instantiationMap != null) {
+        for (Set<Instance> instances in info.instantiationMap.values) {
+          for (Instance instance in instances) {
+            types.add(instance.type);
+          }
+        }
+      }
+    });
+    return types;
+  }
 
   /// Returns `true` if [cls] is considered to be implemented by an
   /// instantiated class, either directly, through subclasses or through
@@ -269,11 +469,15 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(InterfaceType type,
-      {bool byMirrors: false,
+      {ConstructorElement constructor,
+      bool byMirrors: false,
       bool isNative: false,
+      bool isRedirection: false,
       void onImplemented(ClassElement cls)}) {
-    _instantiatedTypes.add(type);
     ClassElement cls = type.element;
+    InstantiationInfo info =
+        _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
+    Instantiation kind = Instantiation.UNINSTANTIATED;
     if (!cls.isAbstract
         // We can't use the closed-world assumption with native abstract
         // classes; a native abstract class may have non-abstract subclasses
@@ -286,17 +490,17 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         // TODO(herhut): Track classes required by mirrors seperately.
         ||
         byMirrors) {
-      EnumSet<Instantiation> instantiations = _directlyInstantiatedClasses
-          .putIfAbsent(cls, () => new EnumSet<Instantiation>());
       if (isNative || byMirrors) {
-        instantiations.add(Instantiation.ABSTRACTLY_INSTANTIATED);
+        kind = Instantiation.ABSTRACTLY_INSTANTIATED;
       } else {
-        instantiations.add(Instantiation.DIRECTLY_INSTANTIATED);
+        kind = Instantiation.DIRECTLY_INSTANTIATED;
       }
     }
+    info.addInstantiation(constructor, type, kind,
+        isRedirection: isRedirection);
 
-    // TODO(johnniwinther): Replace this by separate more specific mappings that
-    // include the type arguments.
+    // TODO(johnniwinther): Use [_instantiationInfo] to compute this information
+    // instead.
     if (_implementedClasses.add(cls)) {
       onImplemented(cls);
       cls.allSupertypes.forEach((InterfaceType supertype) {
@@ -308,9 +512,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   }
 
   @override
-  void forEachInstantiatedClass(
-      f(ClassElement cls, EnumSet<Instantiation> instantiations)) {
-    _directlyInstantiatedClasses.forEach(f);
+  void forEachInstantiatedClass(f(ClassElement cls, InstantiationInfo info)) {
+    getInstantiationMap().forEach(f);
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
@@ -325,6 +528,50 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       }
     }
     return false;
+  }
+
+  /// Returns the instantiation map used for computing the closed world.
+  ///
+  /// If [useInstantiationMap] is `true`, redirections are removed and
+  /// redirecting factories are converted to their effective target and type.
+  Map<ClassElement, InstantiationInfo> getInstantiationMap() {
+    if (!useInstantiationMap) return _instantiationInfo;
+
+    Map<ClassElement, InstantiationInfo> instantiationMap =
+        <ClassElement, InstantiationInfo>{};
+
+    InstantiationInfo infoFor(ClassElement cls) {
+      return instantiationMap.putIfAbsent(cls, () => new InstantiationInfo());
+    }
+
+    _instantiationInfo.forEach((cls, info) {
+      if (info.instantiationMap != null) {
+        info.instantiationMap
+            .forEach((ConstructorElement constructor, Set<Instance> set) {
+          for (Instance instance in set) {
+            if (instance.isRedirection) {
+              continue;
+            }
+            if (constructor == null || !constructor.isRedirectingFactory) {
+              infoFor(cls)
+                  .addInstantiation(constructor, instance.type, instance.kind);
+            } else {
+              ConstructorElement target = constructor.effectiveTarget;
+              InterfaceType targetType =
+                  constructor.computeEffectiveTargetType(instance.type);
+              Instantiation kind = Instantiation.DIRECTLY_INSTANTIATED;
+              if (target.enclosingClass.isAbstract) {
+                // If target is a factory constructor on an abstract class.
+                kind = Instantiation.UNINSTANTIATED;
+              }
+              infoFor(targetType.element)
+                  .addInstantiation(target, targetType, kind);
+            }
+          }
+        });
+      }
+    });
+    return instantiationMap;
   }
 
   bool hasInvocation(Element member, OpenWorld world) {
@@ -365,8 +612,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  DartType registerIsCheck(DartType type, Compiler compiler) {
-    type.computeUnaliased(compiler.resolution);
+  DartType registerIsCheck(DartType type, Resolution resolution) {
+    type.computeUnaliased(resolution);
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -393,6 +640,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.REDIRECTION:
         break;
       case StaticUseKind.CLOSURE:
         allClosures.add(element);
@@ -409,12 +657,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     slowDirectlyNestedClosures(element).forEach(compiler.forgetElement);
     closurizedMembers.remove(element);
     fieldSetters.remove(element);
-    _directlyInstantiatedClasses.remove(element);
-    if (element is ClassElement) {
-      assert(invariant(element, element.thisType.isRaw,
-          message: 'Generic classes not supported (${element.thisType}).'));
-      _instantiatedTypes..remove(element.rawType)..remove(element.thisType);
-    }
+    _instantiationInfo.remove(element);
   }
 
   // TODO(ahe): Replace this method with something that is O(1), for example,
@@ -644,8 +887,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  DartType registerIsCheck(DartType type, Compiler compiler) {
-    type.computeUnaliased(compiler.resolution);
+  DartType registerIsCheck(DartType type, Resolution resolution) {
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -673,6 +915,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.REDIRECTION:
       case StaticUseKind.DIRECT_INVOKE:
         break;
     }

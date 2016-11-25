@@ -43,18 +43,9 @@ class File : public ReferenceCounted<File> {
     kDartWriteOnlyAppend = 4
   };
 
-  enum Type {
-    kIsFile = 0,
-    kIsDirectory = 1,
-    kIsLink = 2,
-    kDoesNotExist = 3
-  };
+  enum Type { kIsFile = 0, kIsDirectory = 1, kIsLink = 2, kDoesNotExist = 3 };
 
-  enum Identical {
-    kIdentical = 0,
-    kDifferent = 1,
-    kError = 2
-  };
+  enum Identical { kIdentical = 0, kDifferent = 1, kError = 2 };
 
   enum StdioHandleType {
     kTerminal = 0,
@@ -105,9 +96,7 @@ class File : public ReferenceCounted<File> {
   // occurred the result will be set to false.
   bool ReadFully(void* buffer, int64_t num_bytes);
   bool WriteFully(const void* buffer, int64_t num_bytes);
-  bool WriteByte(uint8_t byte) {
-    return WriteFully(&byte, 1);
-  }
+  bool WriteByte(uint8_t byte) { return WriteFully(&byte, 1); }
 
   // Get the length of the file. Returns a negative value if the length cannot
   // be determined (e.g. not seekable device).
@@ -217,10 +206,8 @@ class File : public ReferenceCounted<File> {
   static CObject* LockRequest(const CObjectArray& request);
 
  private:
-  explicit File(FileHandle* handle) :
-      ReferenceCounted(),
-      handle_(handle),
-      weak_handle_(NULL) {}
+  explicit File(FileHandle* handle)
+      : ReferenceCounted(), handle_(handle), weak_handle_(NULL) {}
 
   ~File();
 

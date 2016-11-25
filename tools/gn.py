@@ -72,18 +72,10 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['target_cpu'] = target_cpu_for_arch(arch, target_os)
   gn_args['host_cpu'] = host_cpu_for_arch(arch)
 
-  # TODO(zra): This is for the observatory, which currently builds using the
-  # checked-in sdk. If/when the observatory no longer builds with the
-  # checked-in sdk, this can be removed.
-  pub = 'pub'
-  if host_os == 'win':
-    pub = pub + ".bat"
-  gn_args['dart_host_pub_exe'] = os.path.join(
-      DART_ROOT, 'tools', 'sdks', host_os, 'dart-sdk', 'bin', pub)
-
-  # For Fuchsia support, the default is to not compile in the root
-  # certificates.
-  gn_args['dart_use_fallback_root_certificates'] = True
+  # See: runtime/observatory/BUILD.gn.
+  # This allows the standalone build of the observatory to fall back on
+  # dart_bootstrap if the prebuilt SDK doesn't work.
+  gn_args['dart_host_pub_exe'] = ""
 
   gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
@@ -91,8 +83,14 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['dart_use_tcmalloc'] = (gn_args['target_os'] == 'linux'
                                   and not args.asan)
 
-  if gn_args['target_cpu'].startswith('arm'):
+  # Force -mfloat-abi=hard and -mfpu=neon on Linux as we're specifying
+  # a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
+  # TODO(zra): This will likely need some adjustment to build for armv6 etc.
+  hard_float = (gn_args['target_cpu'].startswith('arm') and
+                gn_args['target_os'] == 'linux')
+  if hard_float:
     gn_args['arm_float_abi'] = 'hard'
+    gn_args['arm_use_neon'] = True
 
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'
@@ -110,18 +108,23 @@ def to_gn_args(args, mode, arch, target_os):
   has_clang = (host_os != 'win'
                and args.os not in ['android']
                and not (gn_args['target_os'] == 'linux' and
-                        gn_args['host_cpu'] == 'x86')
+                        gn_args['host_cpu'] == 'x86' and
+                        not args.asan)  # Use clang for asan builds.
                and not gn_args['target_cpu'].startswith('arm')
                and not gn_args['target_cpu'].startswith('mips'))
   gn_args['is_clang'] = args.clang and has_clang
 
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
 
-  if args.target_sysroot:
-    gn_args['target_sysroot'] = args.target_sysroot
+  # Setup the user-defined sysroot.
+  if gn_args['target_os'] == 'linux' and args.wheezy:
+    gn_args['dart_use_wheezy_sysroot'] = True
+  else:
+    if args.target_sysroot:
+      gn_args['target_sysroot'] = args.target_sysroot
 
-  if args.toolchain_prefix:
-    gn_args['toolchain_prefix'] = args.toolchain_prefix
+    if args.toolchain_prefix:
+      gn_args['toolchain_prefix'] = args.toolchain_prefix
 
   goma_dir = os.environ.get('GOMA_DIR')
   goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
@@ -199,6 +202,18 @@ def ide_switch(host_os):
     return '--ide=json'
 
 
+# Environment variables for default settings.
+DART_USE_ASAN = "DART_USE_ASAN"
+DART_USE_WHEEZY = "DART_USE_WHEEZY"
+
+def use_asan():
+  return DART_USE_ASAN in os.environ
+
+
+def use_wheezy():
+  return DART_USE_WHEEZY in os.environ
+
+
 def parse_args(args):
   args = args[1:]
   parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
@@ -224,8 +239,20 @@ def parse_args(args):
       default='x64')
   parser.add_argument('--asan',
       help='Build with ASAN',
-      default=False,
+      default=use_asan(),
       action='store_true')
+  parser.add_argument('--no-asan',
+      help='Disable ASAN',
+      dest='asan',
+      action='store_false')
+  parser.add_argument('--wheezy',
+      help='Use the Debian wheezy sysroot on Linux',
+      default=use_wheezy(),
+      action='store_true')
+  parser.add_argument('--no-wheezy',
+      help='Disable the Debian wheezy sysroot on Linux',
+      dest='wheezy',
+      action='store_false')
   parser.add_argument('--goma',
       help='Use goma',
       default=True,

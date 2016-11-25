@@ -31,7 +31,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkFieldTypeInClass(String className, String fieldName, type) {
           var cls = findElement(compiler, className);
@@ -40,12 +40,13 @@ void main() {
               simplify(typesInferrer.getTypeOfElement(element), compiler));
         }
 
-        checkFieldTypeInClass('A', 'intField', compiler.commonMasks.uint31Type);
+        checkFieldTypeInClass(
+            'A', 'intField', compiler.closedWorld.commonMasks.uint31Type);
         checkFieldTypeInClass('A', 'giveUpField1',
             findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
         checkFieldTypeInClass('A', 'giveUpField2',
-            compiler.commonMasks.dynamicType.nonNullable());
+            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
         checkFieldTypeInClass(
-            'A', 'fieldParameter', compiler.commonMasks.uint31Type);
+            'A', 'fieldParameter', compiler.closedWorld.commonMasks.uint31Type);
       }));
 }

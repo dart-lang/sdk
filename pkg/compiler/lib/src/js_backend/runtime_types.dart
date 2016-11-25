@@ -181,7 +181,7 @@ class _RuntimeTypes implements RuntimeTypes {
         InterfaceType interface = type;
         do {
           for (DartType argument in interface.typeArguments) {
-            universe.registerIsCheck(argument, compiler);
+            universe.registerIsCheck(argument, compiler.resolution);
           }
           interface = interface.element.supertype;
         } while (interface != null && !instantiatedTypes.contains(interface));
@@ -204,7 +204,7 @@ class _RuntimeTypes implements RuntimeTypes {
             InterfaceType instance = current.asInstanceOf(cls);
             if (instance == null) break;
             for (DartType argument in instance.typeArguments) {
-              universe.registerIsCheck(argument, compiler);
+              universe.registerIsCheck(argument, compiler.resolution);
             }
             current = current.element.supertype;
           } while (current != null && !instantiatedTypes.contains(current));

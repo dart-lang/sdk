@@ -43,8 +43,8 @@ class StringUtilsWin {
 class WideToUtf8Scope {
  public:
   explicit WideToUtf8Scope(const wchar_t* wide) {
-    intptr_t utf8_len = WideCharToMultiByte(
-          CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
+    intptr_t utf8_len =
+        WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
     char* utf8 = new char[utf8_len];
     WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, utf8_len, NULL, NULL);
     length_ = utf8_len;
@@ -77,9 +77,7 @@ class Utf8ToWideScope {
     wide_ = wide;
   }
 
-  ~Utf8ToWideScope() {
-    delete[] wide_;
-  }
+  ~Utf8ToWideScope() { delete[] wide_; }
 
   wchar_t* wide() const { return wide_; }
   intptr_t length() const { return length_; }

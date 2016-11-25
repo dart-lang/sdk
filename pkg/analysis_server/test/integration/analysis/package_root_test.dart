@@ -5,7 +5,7 @@
 library test.integration.analysis.packageRoot;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,9 +21,9 @@ main() {
 class Test extends AbstractAnalysisServerIntegrationTest {
   test_package_root() {
     String projPath = sourcePath('project');
-    String mainPath = join(projPath, 'main.dart');
+    String mainPath = path.join(projPath, 'main.dart');
     String packagesPath = sourcePath('packages');
-    String fooBarPath = join(packagesPath, 'foo', 'bar.dart');
+    String fooBarPath = path.join(packagesPath, 'foo', 'bar.dart');
     String mainText = """
 library main;
 

@@ -24,8 +24,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool, use_slow_path, false,
-    "Set to true for debugging & verifying the slow paths.");
+DEFINE_FLAG(bool,
+            use_slow_path,
+            false,
+            "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
 #define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
@@ -51,7 +53,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
-  { Label ok;
+  {
+    Label ok;
     // Check that we are always entering from Dart code.
     __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
@@ -76,8 +79,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   // Compute argv.
   __ leal(EAX, Address(EBP, EDX, TIMES_4, kParamEndSlotFromFp * kWordSize));
-  __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
-  __ addl(EAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
+  __ movl(Address(ESP, argv_offset), EAX);    // Set argv in NativeArguments.
+  __ addl(EAX, Immediate(1 * kWordSize));     // Retval is next to 1st argument.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
@@ -137,7 +140,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
-  { Label ok;
+  {
+    Label ok;
     // Check that we are always entering from Dart code.
     __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
@@ -159,10 +163,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
-  __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
-  __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
+  __ movl(Address(ESP, argv_offset), EAX);      // Set argv in NativeArguments.
+  __ leal(EAX, Address(EBP, 2 * kWordSize));    // Compute return value addr.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ leal(EAX, Address(ESP, 2 * kWordSize));  // Pointer to the NativeArguments.
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
@@ -205,7 +209,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
-  { Label ok;
+  {
+    Label ok;
     // Check that we are always entering from Dart code.
     __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
@@ -226,12 +231,12 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
-  __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
-  __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
+  __ movl(Address(ESP, argv_offset), EAX);      // Set argv in NativeArguments.
+  __ leal(EAX, Address(EBP, 2 * kWordSize));    // Compute return value addr.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
-  __ leal(EAX, Address(ESP, kWordSize));  // Pointer to the NativeArguments.
+  __ leal(EAX, Address(ESP, kWordSize));      // Pointer to the NativeArguments.
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
 
@@ -249,7 +254,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 //   EDX: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ pushl(EDX);  // Preserve arguments descriptor array.
+  __ pushl(EDX);           // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object result.
@@ -269,7 +274,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ pushl(EDX);  // Preserve arguments descriptor array.
+  __ pushl(EDX);           // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
@@ -387,8 +392,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ movl(ECX, ESP);  // Preserve saved registers block.
   __ ReserveAlignedFrameSpace(2 * kWordSize);
   __ movl(Address(ESP, 0 * kWordSize), ECX);  // Start of register block.
-  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
-                 (kind == kLazyDeoptFromThrow);
+  bool is_lazy =
+      (kind == kLazyDeoptFromReturn) || (kind == kLazyDeoptFromThrow);
   __ movl(Address(ESP, 1 * kWordSize), Immediate(is_lazy ? 1 : 0));
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (EAX) is stack-size (FP - SP) in bytes.
@@ -403,10 +408,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   __ LeaveFrame();
-  __ popl(EDX);  // Preserve return address.
+  __ popl(EDX);       // Preserve return address.
   __ movl(ESP, EBP);  // Discard optimized frame.
   __ subl(ESP, EAX);  // Reserve space for deoptimized frame.
-  __ pushl(EDX);  // Restore return address.
+  __ pushl(EDX);      // Restore return address.
 
   // Leaf runtime function DeoptimizeFillFrame expects a Dart frame.
   __ EnterDartFrame(0);
@@ -454,9 +459,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   __ LeaveFrame();
 
-  __ popl(ECX);  // Pop return address.
+  __ popl(ECX);       // Pop return address.
   __ addl(ESP, EBX);  // Remove materialization arguments.
-  __ pushl(ECX);  // Push return address.
+  __ pushl(ECX);      // Push return address.
   __ ret();
 }
 
@@ -495,12 +500,12 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ EnterStubFrame();
   // Load the receiver.
   __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  __ movl(EAX, Address(
-      EBP, EDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
+  __ movl(EAX, Address(EBP, EDI, TIMES_HALF_WORD_SIZE,
+                       kParamEndSlotFromFp * kWordSize));
   __ pushl(Immediate(0));  // Setup space on stack for result.
-  __ pushl(EAX);  // Receiver.
-  __ pushl(ECX);  // ICData/MegamorphicCache.
-  __ pushl(EDX);  // Arguments descriptor array.
+  __ pushl(EAX);           // Receiver.
+  __ pushl(ECX);           // ICData/MegamorphicCache.
+  __ pushl(EDX);           // Arguments descriptor array.
   __ movl(EDX, EDI);
   // EDX: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
@@ -526,9 +531,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushl(EDX);
 
   __ pushl(Immediate(0));  // Space for the result of the runtime call.
-  __ pushl(EAX);  // Pass receiver.
-  __ pushl(ECX);  // Pass IC data.
-  __ pushl(EDX);  // Pass arguments descriptor.
+  __ pushl(EAX);           // Pass receiver.
+  __ pushl(ECX);           // Pass IC data.
+  __ pushl(EDX);           // Pass arguments descriptor.
   __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry, 3);
   // Discard arguments.
   __ popl(EAX);
@@ -570,7 +575,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ j(NOT_ZERO, &slow_case);
   }
   __ cmpl(EDX, Immediate(0));
-  __ j(LESS,  &slow_case);
+  __ j(LESS, &slow_case);
 
   // Check for maximum allowed length.
   const Immediate& max_len =
@@ -578,10 +583,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ cmpl(EDX, max_len);
   __ j(GREATER, &slow_case);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
-                                         EAX,
-                                         &slow_case,
-                                         Assembler::kFarJump));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(kArrayCid, EAX, &slow_case, Assembler::kFarJump));
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
@@ -642,13 +645,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EDX: Array length as Smi (preserved).
   // Store the type argument field.
   // No generetional barrier needed, since we store into a new object.
-  __ StoreIntoObjectNoBarrier(EAX,
-                              FieldAddress(EAX, Array::type_arguments_offset()),
-                              ECX);
+  __ StoreIntoObjectNoBarrier(
+      EAX, FieldAddress(EAX, Array::type_arguments_offset()), ECX);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(EAX,
-                              FieldAddress(EAX, Array::length_offset()),
+  __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, Array::length_offset()),
                               EDX);
 
   // Initialize all array elements to raw_null.
@@ -679,8 +680,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(Immediate(0));  // Setup space on stack for return value.
-  __ pushl(EDX);  // Array length as Smi.
-  __ pushl(ECX);  // Element type.
+  __ pushl(EDX);           // Array length as Smi.
+  __ pushl(ECX);           // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument (preserved).
@@ -814,9 +815,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ leal(EBX, Address(EDX, TIMES_4, fixed_size));
     __ andl(EBX, Immediate(-kObjectAlignment));
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid,
-                                           EAX,
-                                           &slow_case,
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, EAX, &slow_case,
                                            Assembler::kFarJump));
 
     // Now allocate the object.
@@ -874,8 +873,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // EAX: new object.
       // EDX: number of context variables.
       // EBX: size and bit tags.
-      __ orl(EBX,
-             Immediate(RawObject::ClassIdTag::encode(cid)));
+      __ orl(EBX, Immediate(RawObject::ClassIdTag::encode(cid)));
       __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
@@ -903,8 +901,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ decl(EDX);
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(EAX,
-                                  Address(EBX, EDX, TIMES_4, 0),
+      __ StoreIntoObjectNoBarrier(EAX, Address(EBX, EDX, TIMES_4, 0),
                                   Object::null_object());
       __ Bind(&entry);
       __ cmpl(EDX, Immediate(0));
@@ -1008,8 +1005,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
-void StubCode::GenerateAllocationStubForClass(
-    Assembler* assembler, const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+                                              const Class& cls) {
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1072,10 +1069,8 @@ void StubCode::GenerateAllocationStubForClass(
       // Check if the object contains any non-header fields.
       // Small objects are initialized using a consecutive set of writes.
       for (intptr_t current_offset = Instance::NextFieldOffset();
-           current_offset < instance_size;
-           current_offset += kWordSize) {
-        __ StoreIntoObjectNoBarrier(EAX,
-                                    FieldAddress(EAX, current_offset),
+           current_offset < instance_size; current_offset += kWordSize) {
+        __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, current_offset),
                                     Object::null_object());
       }
     } else {
@@ -1090,9 +1085,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ StoreIntoObjectNoBarrier(EAX,
-                                  Address(ECX, 0),
-                                  Object::null_object());
+      __ StoreIntoObjectNoBarrier(EAX, Address(ECX, 0), Object::null_object());
       __ addl(ECX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
@@ -1149,8 +1142,8 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ movl(EAX, Address(EBP, EDI, TIMES_2, kParamEndSlotFromFp * kWordSize));
 
   __ pushl(Immediate(0));  // Setup space on stack for result from noSuchMethod.
-  __ pushl(EAX);  // Receiver.
-  __ pushl(EDX);  // Arguments descriptor array.
+  __ pushl(EAX);           // Receiver.
+  __ pushl(EDX);           // Arguments descriptor array.
 
   __ movl(EDX, EDI);
   // EDX: Smi-tagged arguments array length.
@@ -1170,15 +1163,15 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   Register func_reg = EBX;
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
-    __ pushl(func_reg);     // Preserve
-    __ pushl(ic_reg);       // Preserve.
-    __ pushl(ic_reg);       // Argument.
-    __ pushl(func_reg);     // Argument.
+    __ pushl(func_reg);  // Preserve
+    __ pushl(ic_reg);    // Preserve.
+    __ pushl(ic_reg);    // Argument.
+    __ pushl(func_reg);  // Argument.
     __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ popl(EAX);          // Discard argument;
-    __ popl(EAX);          // Discard argument;
-    __ popl(ic_reg);       // Restore.
-    __ popl(func_reg);     // Restore.
+    __ popl(EAX);       // Discard argument;
+    __ popl(EAX);       // Discard argument;
+    __ popl(ic_reg);    // Restore.
+    __ popl(func_reg);  // Restore.
     __ LeaveFrame();
   }
   __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
@@ -1209,8 +1202,8 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow) {
   __ Comment("Fast Smi op");
   ASSERT(num_args == 2);
-  __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Right
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left
+  __ movl(EDI, Address(ESP, +1 * kWordSize));  // Right
+  __ movl(EAX, Address(ESP, +2 * kWordSize));  // Left
   __ movl(EBX, EDI);
   __ orl(EBX, EAX);
   __ testl(EBX, Immediate(kSmiTagMask));
@@ -1243,7 +1236,8 @@ static void EmitFastSmiOp(Assembler* assembler,
       __ Bind(&done);
       break;
     }
-    default: UNIMPLEMENTED();
+    default:
+      UNIMPLEMENTED();
   }
 
   // ECX: IC data object.
@@ -1294,7 +1288,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
-  { Label ok;
+  {
+    Label ok;
     // Check that the IC data array has NumArgsTested() == num_args.
     // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
     __ movl(EBX, FieldAddress(ECX, ICData::state_bits_offset()));
@@ -1349,7 +1344,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (i > 0) {
       // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-      __ movl(EDI, Address(ESP, EAX, TIMES_2, - i * kWordSize));
+      __ movl(EDI, Address(ESP, EAX, TIMES_2, -i * kWordSize));
       __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
 
       // EAX: next argument class ID (smi).
@@ -1374,7 +1369,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
   __ addl(EBX, Immediate(entry_size));  // Next entry.
-  __ movl(EDI, Address(EBX, 0));  // Next class ID.
+  __ movl(EDI, Address(EBX, 0));        // Next class ID.
 
   __ Bind(&test);
   __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
@@ -1388,8 +1383,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve IC data object.
+  __ pushl(EDX);           // Preserve arguments descriptor array.
+  __ pushl(ECX);           // Preserve IC data object.
   __ pushl(Immediate(0));  // Result slot.
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
@@ -1458,41 +1453,37 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 //   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL);
+                                    kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+                                    Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kADD);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
 }
 
 
 void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kSUB);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
 }
 
 
 void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kEQ);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ);
 }
 
 
@@ -1511,9 +1502,8 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL,
-      true /* optimized */);
+                                    kInlineCacheMissHandlerOneArgRuntimeEntry,
+                                    Token::kILLEGAL, true /* optimized */);
 }
 
 
@@ -1521,9 +1511,8 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
-     kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-     Token::kILLEGAL,
-     true /* optimized */);
+                                    kInlineCacheMissHandlerTwoArgsRuntimeEntry,
+                                    Token::kILLEGAL, true /* optimized */);
 }
 
 
@@ -1534,7 +1523,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
 
 #if defined(DEBUG)
-  { Label ok;
+  {
+    Label ok;
     // Check that the IC data array has NumArgsTested() == num_args.
     // 'NumArgsTested' is stored in the least significant bits of 'state_bits'.
     __ movl(EBX, FieldAddress(ECX, ICData::state_bits_offset()));
@@ -1595,16 +1585,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry,
-      Token::kILLEGAL);
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 2,
-      kStaticCallMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
@@ -1699,8 +1687,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     // Compute instance type arguments into EBX.
     Label has_no_type_arguments;
     __ movl(EBX, raw_null);
-    __ movl(EDI, FieldAddress(ECX,
-        Class::type_arguments_field_offset_in_words_offset()));
+    __ movl(EDI,
+            FieldAddress(ECX,
+                         Class::type_arguments_field_offset_in_words_offset()));
     __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
     __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
     __ movl(EBX, FieldAddress(EAX, EDI, TIMES_4, 0));
@@ -1724,9 +1713,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movl(ECX, FieldAddress(EAX, Closure::function_offset()));
   // ECX: instance class id as Smi or function.
   __ Bind(&loop);
-  __ movl(EDI,
-          Address(EDX,
-                  kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
+  __ movl(EDI, Address(EDX, kWordSize *
+                                SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpl(EDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpl(EDI, ECX);
@@ -1735,7 +1723,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ movl(EDI,
-          Address(EDX, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+            Address(EDX, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
     __ cmpl(EDI, EBX);
     if (n == 2) {
       __ j(EQUAL, &found, Assembler::kNearJump);
@@ -1743,7 +1731,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ movl(EDI,
               Address(EDX, kWordSize *
-                           SubtypeTestCache::kInstantiatorTypeArguments));
+                               SubtypeTestCache::kInstantiatorTypeArguments));
       __ cmpl(EDI, Address(ESP, kInstantiatorTypeArgumentsInBytes));
       __ j(EQUAL, &found, Assembler::kNearJump);
     }
@@ -1804,21 +1792,15 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to the exception or error handler.
+// Jump to a frame on the call stack.
 // TOS + 0: return address
 // TOS + 1: program_counter
 // TOS + 2: stack_pointer
 // TOS + 3: frame_pointer
-// TOS + 4: exception object
-// TOS + 5: stacktrace object
-// TOS + 6: thread
+// TOS + 4: thread
 // No Result.
-void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == EAX);
-  ASSERT(kStackTraceObjectReg == EDX);
-  __ movl(THR, Address(ESP, 6 * kWordSize));  // Load target thread.
-  __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
-  __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
+void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
+  __ movl(THR, Address(ESP, 4 * kWordSize));  // Load target thread.
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
@@ -1827,6 +1809,29 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // Clear top exit frame.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.
+}
+
+
+// Run an exception handler.  Execution comes from JumpToFrame stub.
+//
+// The arguments are stored in the Thread object.
+// No result.
+void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == EAX);
+  ASSERT(kStackTraceObjectReg == EDX);
+  __ movl(EBX, Address(THR, Thread::resume_pc_offset()));
+
+  // Load the exception from the current thread.
+  Address exception_addr(THR, Thread::active_exception_offset());
+  __ movl(kExceptionObjectReg, exception_addr);
+  __ movl(exception_addr, Immediate(0));
+
+  // Load the stacktrace from the current thread.
+  Address stacktrace_addr(THR, Thread::active_stacktrace_offset());
+  __ movl(kStackTraceObjectReg, stacktrace_addr);
+  __ movl(stacktrace_addr, Immediate(0));
+
+  __ jmp(EBX);  // Jump to continuation point.
 }
 
 

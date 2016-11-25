@@ -9,15 +9,12 @@ import 'dart:async';
 import 'dart:io' show exit, stderr;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -25,6 +22,10 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:package_config/discovery.dart';
+
+import 'package:front_end/src/scanner/reader.dart';
+import 'package:front_end/src/scanner/scanner.dart';
+import 'package:front_end/src/scanner/token.dart';
 
 /// Cumulative total number of chars scanned.
 int scanTotalChars = 0;
@@ -74,7 +75,7 @@ main(List<String> args) async {
   if (handler == null) {
     // TODO(sigmund): implement the remaining benchmarks.
     print('unsupported bench-id: $bench. Please specify one of the following: '
-        '${handler.keys.join(", ")}');
+        '${handlers.keys.join(", ")}');
     exit(1);
   }
   await handler();
@@ -205,11 +206,21 @@ Token tokenize(Source source) {
   scanTotalChars += contents.length;
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner = new Scanner(source, new CharSequenceReader(contents),
-      AnalysisErrorListener.NULL_LISTENER)..preserveComments = false;
+  var scanner = new _Scanner(contents);
   var token = scanner.tokenize();
   scanTimer.stop();
   return token;
+}
+
+class _Scanner extends Scanner {
+  _Scanner(String contents) : super(new CharSequenceReader(contents)) {
+    preserveComments = false;
+  }
+
+  @override
+  void reportError(errorCode, int offset, List<Object> arguments) {
+    // ignore errors.
+  }
 }
 
 /// Report that metric [name] took [time] micro-seconds to process

@@ -40,7 +40,7 @@ class ViewFooterElement extends HtmlElement implements Renderable {
   void render() {
     children = [
       new AnchorElement()
-        ..href = 'https://www.dartlang.org/tools/observatory'
+        ..href = 'https://dart-lang.github.io/observatory/'
         ..text = 'View documentation',
       new AnchorElement()
         ..href =

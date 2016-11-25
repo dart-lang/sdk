@@ -38,9 +38,7 @@ class PathBuffer {
 
   void Reset(intptr_t new_length);
 
-  intptr_t length() const {
-    return length_;
-  }
+  intptr_t length() const { return length_; }
 
  private:
   void* data_;
@@ -64,23 +62,17 @@ struct LinkList;
 class DirectoryListingEntry {
  public:
   explicit DirectoryListingEntry(DirectoryListingEntry* parent)
-    : parent_(parent), lister_(0), done_(false), link_(NULL) {}
+      : parent_(parent), lister_(0), done_(false), link_(NULL) {}
 
   ~DirectoryListingEntry();
 
   ListType Next(DirectoryListing* listing);
 
-  DirectoryListingEntry* parent() const {
-    return parent_;
-  }
+  DirectoryListingEntry* parent() const { return parent_; }
 
-  LinkList* link() {
-    return link_;
-  }
+  LinkList* link() { return link_; }
 
-  void set_link(LinkList* link) {
-    link_ = link;
-  }
+  void set_link(LinkList* link) { link_ = link; }
 
   void ResetLink();
 
@@ -97,19 +89,17 @@ class DirectoryListingEntry {
 class DirectoryListing {
  public:
   DirectoryListing(const char* dir_name, bool recursive, bool follow_links)
-    : top_(NULL),
-      error_(false),
-      recursive_(recursive),
-      follow_links_(follow_links) {
+      : top_(NULL),
+        error_(false),
+        recursive_(recursive),
+        follow_links_(follow_links) {
     if (!path_buffer_.Add(dir_name)) {
       error_ = true;
     }
     Push(new DirectoryListingEntry(NULL));
   }
 
-  virtual ~DirectoryListing() {
-    PopAll();
-  }
+  virtual ~DirectoryListing() { PopAll(); }
 
   virtual bool HandleDirectory(const char* dir_name) = 0;
   virtual bool HandleFile(const char* file_name) = 0;
@@ -117,9 +107,7 @@ class DirectoryListing {
   virtual bool HandleError() = 0;
   virtual void HandleDone() {}
 
-  void Push(DirectoryListingEntry* directory) {
-    top_ = directory;
-  }
+  void Push(DirectoryListingEntry* directory) { top_ = directory; }
 
   void Pop() {
     ASSERT(!IsEmpty());
@@ -128,9 +116,7 @@ class DirectoryListing {
     delete current;
   }
 
-  bool IsEmpty() const {
-    return top_ == NULL;
-  }
+  bool IsEmpty() const { return top_ == NULL; }
 
   void PopAll() {
     while (!IsEmpty()) {
@@ -138,29 +124,17 @@ class DirectoryListing {
     }
   }
 
-  DirectoryListingEntry* top() const {
-    return top_;
-  }
+  DirectoryListingEntry* top() const { return top_; }
 
-  bool recursive() const {
-    return recursive_;
-  }
+  bool recursive() const { return recursive_; }
 
-  bool follow_links() const {
-    return follow_links_;
-  }
+  bool follow_links() const { return follow_links_; }
 
-  const char* CurrentPath() {
-    return path_buffer_.AsScopedString();
-  }
+  const char* CurrentPath() { return path_buffer_.AsScopedString(); }
 
-  PathBuffer& path_buffer() {
-    return path_buffer_;
-  }
+  PathBuffer& path_buffer() { return path_buffer_; }
 
-  bool error() const {
-    return error_;
-  }
+  bool error() const { return error_; }
 
  private:
   PathBuffer path_buffer_;
@@ -182,9 +156,7 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
     kListDone = 4
   };
 
-  AsyncDirectoryListing(const char* dir_name,
-                        bool recursive,
-                        bool follow_links)
+  AsyncDirectoryListing(const char* dir_name, bool recursive, bool follow_links)
       : ReferenceCounted(),
         DirectoryListing(dir_name, recursive, follow_links),
         array_(NULL),
@@ -204,9 +176,7 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
     length_ = length;
   }
 
-  intptr_t index() const {
-    return index_;
-  }
+  intptr_t index() const { return index_; }
 
  private:
   virtual ~AsyncDirectoryListing() {}
@@ -220,21 +190,17 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
 };
 
 
-class SyncDirectoryListing: public DirectoryListing {
+class SyncDirectoryListing : public DirectoryListing {
  public:
   SyncDirectoryListing(Dart_Handle results,
                        const char* dir_name,
                        bool recursive,
                        bool follow_links)
-      : DirectoryListing(dir_name, recursive, follow_links),
-        results_(results) {
+      : DirectoryListing(dir_name, recursive, follow_links), results_(results) {
     add_string_ = DartUtils::NewString("add");
-    directory_type_ =
-        DartUtils::GetDartType(DartUtils::kIOLibURL, "Directory");
-    file_type_ =
-        DartUtils::GetDartType(DartUtils::kIOLibURL, "File");
-    link_type_ =
-        DartUtils::GetDartType(DartUtils::kIOLibURL, "Link");
+    directory_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "Directory");
+    file_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "File");
+    link_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "Link");
   }
   virtual ~SyncDirectoryListing() {}
   virtual bool HandleDirectory(const char* dir_name);
@@ -256,11 +222,7 @@ class SyncDirectoryListing: public DirectoryListing {
 
 class Directory {
  public:
-  enum ExistsResult {
-    UNKNOWN,
-    EXISTS,
-    DOES_NOT_EXIST
-  };
+  enum ExistsResult { UNKNOWN, EXISTS, DOES_NOT_EXIST };
 
   static void List(DirectoryListing* listing);
   static ExistsResult Exists(const char* path);

@@ -214,14 +214,19 @@ class ReadStream {
   static const int maxUnsignedDataPerByte = byteMask;
 }
 
+// Node indices for the root and sentinel nodes. Note that using 0 as the
+// sentinel means a newly allocated typed array comes initialized with all
+// elements as the sentinel.
+const ROOT = 1;
+const SENTINEL = 0;
+
 class ObjectVertex {
-  // 0 represents invalid/uninitialized, 1 is the root.
   final int _id;
   final ObjectGraph _graph;
 
   ObjectVertex._(this._id, this._graph);
 
-  bool get isRoot => _id == 1;
+  bool get isRoot => ROOT == _id;
 
   bool operator ==(other) => _id == other._id && _graph == other._graph;
   int get hashCode => _id;
@@ -272,10 +277,85 @@ class ObjectVertex {
     var parentId = _id;
     var domChildren = [];
 
-    for (var childId = 1; childId <= N; childId++) {
+    for (var childId = ROOT; childId <= N; childId++) {
       if (doms[childId] == parentId) {
         domChildren.add(new ObjectVertex._(childId, _graph));
       }
+    }
+
+    return domChildren;
+  }
+}
+
+// A node in the dominator tree where siblings with the same class are merged.
+// That is, a set of objects with the same cid whose parent chains in the
+// dominator tree have the same cids at each level. [id_] is the representative
+// object of this set. The other members of the set are found by walking the
+// mergedDomNext links until finding the sentinel node or a node with a
+// different class.
+class MergedObjectVertex {
+  final int _id;
+  final ObjectGraph _graph;
+
+  MergedObjectVertex._(this._id, this._graph);
+
+  bool get isRoot => ROOT == _id;
+
+  bool operator ==(other) => _id == other._id && _graph == other._graph;
+  int get hashCode => _id;
+
+  int get vmCid => _graph._cids[_id];
+
+  int get shallowSize {
+    var cids = _graph._cids;
+    var size = 0;
+    var sibling = _id;
+    while (sibling != SENTINEL &&
+           cids[sibling] == cids[_id]) {
+      size += _graph._shallowSizes[sibling];
+      sibling = _graph._mergedDomNext[sibling];
+    }
+    return size;
+  }
+  int get retainedSize {
+    var cids = _graph._cids;
+    var size = 0;
+    var sibling = _id;
+    while (sibling != SENTINEL &&
+           cids[sibling] == cids[_id]) {
+      size += _graph._retainedSizes[sibling];
+      sibling = _graph._mergedDomNext[sibling];
+    }
+    return size;
+  }
+  int get instanceCount {
+    var cids = _graph._cids;
+    var count = 0;
+    var sibling = _id;
+    while (sibling != SENTINEL &&
+           cids[sibling] == cids[_id]) {
+      count++;
+      sibling = _graph._mergedDomNext[sibling];
+    }
+    return count;
+  }
+
+  List<MergedObjectVertex> dominatorTreeChildren() {
+    var next = _graph._mergedDomNext;
+    var cids = _graph._cids;
+
+    var domChildren = [];
+    var prev = SENTINEL;
+    var child = _graph._mergedDomHead[_id];
+    // Walk the list of children and look for the representative objects, i.e.
+    // the first sibling of each cid.
+    while (child != SENTINEL) {
+      if (prev == SENTINEL ||
+          cids[prev] != cids[child]) {
+        domChildren.add(new MergedObjectVertex._(child, _graph));
+      }
+      prev = child;
+      child = next[child];
     }
 
     return domChildren;
@@ -345,7 +425,8 @@ class ObjectGraph {
   int get vertexCount => _N;
   int get edgeCount => _E;
 
-  ObjectVertex get root => new ObjectVertex._(1, this);
+  ObjectVertex get root => new ObjectVertex._(ROOT, this);
+  MergedObjectVertex get mergedRoot => new MergedObjectVertex._(ROOT, this);
   Iterable<ObjectVertex> get vertices => new _VerticesIterable(this);
 
   Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
@@ -381,10 +462,10 @@ class ObjectGraph {
       controller.add(["Finding depth-first order...", 30.0]);
       await new Future(() => _dfs());
 
-      controller.add(["Finding predecessors...", 45.0]);
+      controller.add(["Finding predecessors...", 40.0]);
       await new Future(() => _buildPredecessors());
 
-      controller.add(["Finding dominators...", 60.0]);
+      controller.add(["Finding dominators...", 50.0]);
       await new Future(() => _buildDominators());
 
       _firstPreds = null;
@@ -393,12 +474,21 @@ class ObjectGraph {
       _semi = null;
       _parent = null;
 
-      controller.add(["Finding retained sizes...", 75.0]);
+      controller.add(["Finding retained sizes...", 60.0]);
       await new Future(() => _calculateRetainedSizes());
 
       _vertex = null;
 
-      controller.add(["Loaded", 100.0]);
+      controller.add(["Linking dominator tree children...", 70.0]);
+      await new Future(() => _linkDominatorChildren());
+
+      controller.add(["Sorting dominator tree children...", 80.0]);
+      await new Future(() => _sortDominatorChildren());
+
+      controller.add(["Merging dominator tree siblings...", 90.0]);
+      await new Future(() => _mergeDominatorSiblings());
+
+      controller.add(["Processed", 100.0]);
       controller.close();
     }());
     return controller.stream;
@@ -431,6 +521,8 @@ class ObjectGraph {
   // Outputs.
   Uint32List _doms;
   Uint32List _retainedSizes;
+  Uint32List _mergedDomHead;
+  Uint32List _mergedDomNext;
 
   void _remapNodes() {
     var N = _N;
@@ -446,7 +538,7 @@ class ObjectGraph {
     stream.readUnsigned();
     _kObjectAlignment = stream.clampedUint32;
 
-    var id = 1;
+    var id = ROOT;
     while (stream.pendingBytes > 0) {
       stream.readUnsigned(); // addr
       addrToId.put(stream.high, stream.mid, stream.low, id);
@@ -466,8 +558,7 @@ class ObjectGraph {
     }
     assert(id == (N + 1));
 
-    var root = addrToId.get(0, 0, 0);
-    assert(root == 1);
+    assert(ROOT == addrToId.get(0, 0, 0));
 
     _E = E;
     _addrToId = addrToId;
@@ -503,7 +594,8 @@ class ObjectGraph {
           succs[edge] = childId;
           edge++;
         } else {
-          // Reference into VM isolate's heap.
+          throw new Exception(
+              "Heap snapshot contains an edge but lacks its target node");
         }
         stream.readUnsigned();
       }
@@ -512,8 +604,7 @@ class ObjectGraph {
     firstSuccs[id] = edge; // Extra entry for cheap boundary detection.
 
     assert(id == N + 1);
-    assert(edge <= E); // edge is smaller because E was computed before we knew
-    // if references pointed into the VM isolate
+    assert(edge == E);
 
     _E = edge;
     _firstSuccs = firstSuccs;
@@ -534,11 +625,10 @@ class ObjectGraph {
     var dfsNumber = 0;
 
     var stackTop = 0;
-    var root = 1;
 
     // Push root.
-    stackNodes[0] = root;
-    stackCurrentEdgePos[0] = firstSuccs[root];
+    stackNodes[0] = ROOT;
+    stackCurrentEdgePos[0] = firstSuccs[ROOT];
 
     while (stackTop >= 0) {
       var v = stackNodes[stackTop];
@@ -571,12 +661,12 @@ class ObjectGraph {
     }
 
     assert(dfsNumber == N);
-    for (var i = 1; i <= N; i++) {
-      assert(semi[i] != 0);
+    for (var i = ROOT; i <= N; i++) {
+      assert(semi[i] != SENTINEL);
     }
-    assert(parent[1] == 0);
-    for (var i = 2; i <= N; i++) {
-      assert(parent[i] != 0);
+    assert(parent[ROOT] == SENTINEL);
+    for (var i = ROOT + 1; i <= N; i++) {
+      assert(parent[i] != SENTINEL);
     }
 
     _vertex = vertex;
@@ -636,7 +726,7 @@ class ObjectGraph {
 
   static int _eval(int v, Uint32List ancestor, Uint32List semi,
       Uint32List label, Uint32List stackNode, Uint8List stackState) {
-    if (ancestor[v] == 0) {
+    if (ancestor[v] == SENTINEL) {
       return label[v];
     } else {
       {
@@ -719,7 +809,6 @@ class ObjectGraph {
     var firstPreds = _firstPreds;
     var preds = _preds;
 
-    var root = 1;
     var dom = new Uint32List(N + 1);
 
     var ancestor = new Uint32List(N + 1);
@@ -738,7 +827,7 @@ class ObjectGraph {
 
     for (var i = N; i > 1; i--) {
       var w = vertex[i];
-      assert(w != root);
+      assert(w != ROOT);
 
       // Lengauer & Tarjan Step 2.
       var startPred = firstPreds[w];
@@ -771,7 +860,7 @@ class ObjectGraph {
         }
       }
     }
-    for (var i = 1; i <= N; i++) {
+    for (var i = ROOT; i <= N; i++) {
       assert(buckets[i] == null);
     }
     // Lengauer & Tarjan Step 4.
@@ -794,7 +883,7 @@ class ObjectGraph {
     var doms = _doms;
 
     // Sum shallow sizes.
-    for (var i = 1; i < N; i++) {
+    for (var i = ROOT; i < N; i++) {
       size += shallowSizes[i];
     }
 
@@ -805,11 +894,172 @@ class ObjectGraph {
     // size, skipping root.
     for (var i = N; i > 1; i--) {
       var v = vertex[i];
-      assert(v != 1);
+      assert(v != ROOT);
       retainedSizes[doms[i]] += retainedSizes[i];
     }
 
     _retainedSizes = retainedSizes;
     _size = size;
+  }
+
+  // Build linked lists of the children for each node in the dominator tree.
+  void _linkDominatorChildren() {
+    var N = _N;
+    var doms = _doms;
+    var head = new Uint32List(N + 1);
+    var next = new Uint32List(N + 1);
+
+    for (var child = ROOT; child <= N; child++) {
+      var parent = doms[child];
+      next[child] = head[parent];
+      head[parent] = child;
+    }
+
+    _mergedDomHead = head;
+    _mergedDomNext = next;
+  }
+
+  // Merge the given lists according to the given key in ascending order.
+  // Returns the head of the merged list.
+  static int _mergeSorted(int head1, int head2,
+                          Uint32List next, Uint16List key) {
+    var head = head1;
+    var beforeInsert = SENTINEL;
+    var afterInsert = head1;
+    var startInsert = head2;
+
+    while (startInsert != SENTINEL) {
+      while ((afterInsert != SENTINEL) &&
+             (key[afterInsert] <= key[startInsert])) {
+        beforeInsert = afterInsert;
+        afterInsert = next[beforeInsert];
+      }
+
+      var endInsert = startInsert;
+      var peek = next[endInsert];
+
+      while ((peek != SENTINEL) && (key[peek] < key[afterInsert])) {
+        endInsert = peek;
+        peek = next[endInsert];
+      }
+      assert(endInsert != SENTINEL);
+
+      if (beforeInsert == SENTINEL) {
+        head = startInsert;
+      } else {
+        next[beforeInsert] = startInsert;
+      }
+      next[endInsert] = afterInsert;
+
+      startInsert = peek;
+      beforeInsert = endInsert;
+    }
+
+    return head;
+  }
+
+  void _sortDominatorChildren() {
+    var N = _N;
+    var cids = _cids;
+    var head = _mergedDomHead;
+    var next = _mergedDomNext;
+
+    // Returns the new head of the sorted list.
+    int sort(int head) {
+      if (head == SENTINEL) return SENTINEL;
+      if (next[head] == SENTINEL) return head;
+
+      // Find the middle of the list.
+      int head1 = head;
+      int slow = head;
+      int fast = head;
+      while (next[fast] != SENTINEL &&
+             next[next[fast]] != SENTINEL) {
+        slow = next[slow];
+        fast = next[next[fast]];
+      }
+
+      // Split the list in half.
+      int head2 = next[slow];
+      next[slow] = SENTINEL;
+
+      // Recursively sort the sublists and merge.
+      assert(head1 != head2);
+      int newHead1 = sort(head1);
+      int newHead2 = sort(head2);
+      return _mergeSorted(newHead1, newHead2, next, cids);
+    }
+
+    // Sort all list of dominator tree children by cid.
+    for (var parent = ROOT; parent <= N; parent++) {
+      head[parent] = sort(head[parent]);
+    }
+  }
+
+  void _mergeDominatorSiblings() {
+    var N = _N;
+    var cids = _cids;
+    var head = _mergedDomHead;
+    var next = _mergedDomNext;
+    var workStack = new Uint32List(N);
+    var workStackTop = 0;
+
+    mergeChildrenAndSort(var parent1, var end) {
+      assert(parent1 != SENTINEL);
+      if (next[parent1] == end) return;
+
+      // Find the middle of the list.
+      int cid = cids[parent1];
+      int slow = parent1;
+      int fast = parent1;
+      while (next[fast] != end &&
+             next[next[fast]] != end) {
+        slow = next[slow];
+        fast = next[next[fast]];
+      }
+
+      int parent2 = next[slow];
+
+      assert(parent2 != SENTINEL);
+      assert(parent1 != parent2);
+      assert(cids[parent1] == cids[parent2]);
+
+      // Recursively sort the sublists.
+      mergeChildrenAndSort(parent1, parent2);
+      mergeChildrenAndSort(parent2, end);
+
+      // Merge sorted sublists.
+      head[parent1] = _mergeSorted(head[parent1], head[parent2], next, cids);
+
+      // Children moved to parent1.
+      head[parent2] = SENTINEL;
+    }
+
+    // Push root.
+    workStack[workStackTop++] = ROOT;
+
+    while (workStackTop > 0) {
+      var parent = workStack[--workStackTop];
+
+      var prev = SENTINEL;
+      var child = head[parent];
+      while (child != SENTINEL) {
+        // Push child.
+        workStack[workStackTop++] = child;
+
+        // Find next sibling with a different cid.
+        var after = child;
+        while (after != SENTINEL &&
+               cids[after] == cids[child]) {
+          after = next[after];
+        }
+
+        // From all the siblings between child and after, take their children,
+        // merge them and given to child.
+        mergeChildrenAndSort(child, after);
+
+        child = after;
+      }
+    }
   }
 }

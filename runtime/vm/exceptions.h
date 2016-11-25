@@ -80,6 +80,11 @@ class Exceptions : AllStatic {
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
 
+  static void JumpToFrame(Thread* thread,
+                          uword program_counter,
+                          uword stack_pointer,
+                          uword frame_pointer);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);
 };

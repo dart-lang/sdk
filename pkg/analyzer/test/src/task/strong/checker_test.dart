@@ -723,7 +723,7 @@ class Cat extends Animal {}
 
 void main() {
   Cat c = /*info:ASSIGNMENT_CAST*/new Animal.cat();
-  c = /*error:STATIC_TYPE_ERROR*/new Animal();
+  c = /*error:INVALID_CAST_NEW_EXPR*/new Animal();
 }''');
   }
 
@@ -988,7 +988,7 @@ Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/new Stream<int>
 
 baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz3() async* { yield* /*warning:DOWN_CAST_COMPOSITE*/x; }
+Stream<int> baz3() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream<int> baz4() async* { yield* new Stream<int>(); }
 Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream(); }
 ''');
@@ -1005,7 +1005,7 @@ Iterable<int> bar4() sync* { yield /*error:YIELD_OF_INVALID_TYPE*/bar3(); }
 
 baz1() sync* { yield* /*info:DYNAMIC_CAST*/x; }
 Iterable baz2() sync* { yield* /*info:DYNAMIC_CAST*/x; }
-Iterable<int> baz3() sync* { yield* /*warning:DOWN_CAST_COMPOSITE*/x; }
+Iterable<int> baz3() sync* { yield* /*info:DYNAMIC_CAST*/x; }
 Iterable<int> baz4() sync* { yield* bar3(); }
 Iterable<int> baz5() sync* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new List(); }
 ''');
@@ -1042,23 +1042,23 @@ void main() {
   }
   {
     Left f;
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
   {
     Bot f;
-    f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/left;
+    f = /*error:INVALID_CAST_FUNCTION*/right;
     f = bot;
   }
 }
@@ -1226,14 +1226,14 @@ void main() {
     f = topA;
     f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
-    f = /*error:STATIC_TYPE_ERROR*/aTop; // known function
+    f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*warning:DOWN_CAST_COMPOSITE*/botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<AA>*/(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
-        /*error:STATIC_TYPE_ERROR*/aTop, // known function
+        /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                   );
@@ -1241,7 +1241,7 @@ void main() {
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
-        /*error:STATIC_TYPE_ERROR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                   );
@@ -1251,14 +1251,14 @@ void main() {
     f = topA;
     f = topTop;
     f = /*error:INVALID_ASSIGNMENT*/aa;
-    f = /*error:STATIC_TYPE_ERROR*/aTop; // known function
+    f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<TopTop>*/(
         topA,
         topTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aa,
-        /*error:STATIC_TYPE_ERROR*/aTop, // known function
+        /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                       );
@@ -1266,7 +1266,7 @@ void main() {
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
-        /*error:STATIC_TYPE_ERROR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                       );
@@ -1274,24 +1274,24 @@ void main() {
   {
     TopA f;
     f = topA;
-    f = /*error:STATIC_TYPE_ERROR*/topTop; // known function
-    f = /*error:STATIC_TYPE_ERROR*/aa; // known function
-    f = /*error:STATIC_TYPE_ERROR*/aTop; // known function
+    f = /*error:INVALID_CAST_FUNCTION*/topTop; // known function
+    f = /*error:INVALID_CAST_FUNCTION*/aa; // known function
+    f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*warning:DOWN_CAST_COMPOSITE*/botA;
     f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<TopA>*/(
         topA,
-        /*error:STATIC_TYPE_ERROR*/topTop, // known function
-        /*error:STATIC_TYPE_ERROR*/aa, // known function
-        /*error:STATIC_TYPE_ERROR*/aTop, // known function
+        /*error:INVALID_CAST_FUNCTION*/topTop, // known function
+        /*error:INVALID_CAST_FUNCTION*/aa, // known function
+        /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply/*<TopA>*/(
         (dynamic x) => new A(),
-        /*error:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object), // known function
-        /*error:STATIC_TYPE_ERROR*/(A x) => x, // known function
-        /*error:STATIC_TYPE_ERROR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(dynamic x) => (x as Object), // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*warning:DOWN_CAST_COMPOSITE*/botA,
         /*warning:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -1300,7 +1300,7 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_dynamicFunctions_clasuresAreNotFuzzy() {
+  void test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() {
     // Regression test for
     // https://github.com/dart-lang/sdk/issues/26118
     // https://github.com/dart-lang/sdk/issues/26156
@@ -1379,23 +1379,23 @@ void main() {
   }
   {
     Function2<B, B> f; // left
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<A, A> f; // right
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
   {
     Function2<A, B> f;
-    f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/left;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/left;
+    f = /*error:INVALID_CAST_FUNCTION*/right;
     f = bot;
   }
 }
@@ -1466,14 +1466,14 @@ void main() {
   }
   {
     Function2<AToB, AToB> f; // Left
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<BToA, BToA> f; // Right
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
@@ -1481,9 +1481,9 @@ void main() {
   {
     Function2<BToA, AToB> f; // Bot
     f = bot;
-    f = /*error:STATIC_TYPE_ERROR*/left;
-    f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_CAST_FUNCTION*/left;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/right;
   }
 }
 ''');
@@ -1515,14 +1515,14 @@ void main() {
   }
   {
     Function2<AToB, AToB> f; // Left
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<BToA, BToA> f; // Right
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
@@ -1530,9 +1530,9 @@ void main() {
   {
     Function2<BToA, AToB> f; // Bot
     f = bot;
-    f = /*error:STATIC_TYPE_ERROR*/left;
-    f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_CAST_FUNCTION*/left;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/right;
   }
 }
 ''');
@@ -1564,14 +1564,14 @@ void main() {
   }
   {
     Function2<AToB, AToB> f; // Left
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Function2<BToA, BToA> f; // Right
-    f = /*error:STATIC_TYPE_ERROR*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
@@ -1579,9 +1579,9 @@ void main() {
   {
     Function2<BToA, AToB> f; // Bot
     f = bot;
-    f = /*error:STATIC_TYPE_ERROR*/left;
-    f = /*error:STATIC_TYPE_ERROR*/top;
-    f = /*error:STATIC_TYPE_ERROR*/right;
+    f = /*error:INVALID_CAST_FUNCTION*/left;
+    f = /*error:INVALID_CAST_FUNCTION*/top;
+    f = /*error:INVALID_CAST_FUNCTION*/right;
   }
 }
 ''');
@@ -1937,23 +1937,23 @@ void main() {
   }
   {
     Function2<B, B> f;
-    f = /*error:STATIC_TYPE_ERROR*/C.top;
+    f = /*error:INVALID_CAST_METHOD*/C.top;
     f = C.left;
     f = /*error:INVALID_ASSIGNMENT*/C.right;
     f = C.bot;
   }
   {
     Function2<A, A> f;
-    f = /*error:STATIC_TYPE_ERROR*/C.top;
+    f = /*error:INVALID_CAST_METHOD*/C.top;
     f = /*error:INVALID_ASSIGNMENT*/C.left;
     f = C.right;
     f = C.bot;
   }
   {
     Function2<A, B> f;
-    f = /*error:STATIC_TYPE_ERROR*/C.top;
-    f = /*error:STATIC_TYPE_ERROR*/C.left;
-    f = /*error:STATIC_TYPE_ERROR*/C.right;
+    f = /*error:INVALID_CAST_METHOD*/C.top;
+    f = /*error:INVALID_CAST_METHOD*/C.left;
+    f = /*error:INVALID_CAST_METHOD*/C.right;
     f = C.bot;
   }
 }
@@ -1984,7 +1984,7 @@ void main() {
 
     var local2 = g;
     local = local2;
-    local2 = /*error:STATIC_TYPE_ERROR*/f;
+    local2 = /*error:INVALID_CAST_FUNCTION*/f;
     local2 = /*warning:DOWN_CAST_COMPOSITE*/local;
 
     // Non-generic function cannot subtype a generic one.
@@ -2751,7 +2751,7 @@ void main() {
 typedef T Returns<T>();
 
 // regression test for https://github.com/dart-lang/sdk/issues/26094
-class A <S extends  Returns<S>, T extends Returns<T>> {
+class A <S extends Returns<S>, T extends Returns<T>> {
   int test(bool b) {
     S s;
     T t;
@@ -3721,7 +3721,9 @@ g() {
   }
 
   void test_typePromotionFromTypeParameter() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26965
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/26965
+    // https://github.com/dart-lang/sdk/issues/27040
     checkFile(r'''
 void f/*<T>*/(/*=T*/ object) {
   if (object is String) print(object.substring(1));
@@ -3734,13 +3736,46 @@ class Clonable<T> {}
 class SubClonable<T> extends Clonable<T> {
   T m(T t) => t;
 }
+void takesSubClonable/*<A>*/(SubClonable/*<A>*/ t) {}
+
 void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
   if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable/*<T>*/) {
-    // Note we need to cast back to T, because promotion lost that type info.
-    print(object.m(object as dynamic/*=T*/));
+    print(object.m(object));
+
+    SubClonable/*<T>*/ s = object;
+    takesSubClonable/*<T>*/(object);
+    h(object);
   }
 }
 ''');
+  }
+
+  void test_typePromotionFromTypeParameterAndInference() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/27040
+    checkFile(r'''
+void f/*<T extends num>*/(T x, T y) {
+  var z = x;
+  var f = () => x;
+  f = () => y;
+  if (x is int) {
+    /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
+    var q = x;
+    q = /*warning:DOWN_CAST_COMPOSITE*/z;
+    /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
+
+    // This does not capture the type `T extends int`. Instead the return type
+    // is `T extends num`. What happens is we substitute {T/T} on the function
+    // type, and the way it is implemented, this leads back to `T extends num`.
+    // See https://github.com/dart-lang/sdk/issues/27725
+    var g = () => x;
+    g = f;
+    /*info:DYNAMIC_INVOKE*/g()./*error:UNDEFINED_GETTER*/isEven;
+    q = /*warning:DOWN_CAST_COMPOSITE*/g();
+    int r = x;
+  }
+}
+    ''');
   }
 
   void test_typeSubtyping_assigningClass() {

@@ -49,12 +49,12 @@ class ThreadBarrier {
   explicit ThreadBarrier(intptr_t num_threads,
                          Monitor* monitor,
                          Monitor* done_monitor)
-    : num_threads_(num_threads),
-      monitor_(monitor),
-      remaining_(num_threads),
-      parity_(false),
-      done_monitor_(done_monitor),
-      done_(false) {
+      : num_threads_(num_threads),
+        monitor_(monitor),
+        remaining_(num_threads),
+        parity_(false),
+        done_monitor_(done_monitor),
+        done_(false) {
     ASSERT(remaining_ > 0);
   }
 

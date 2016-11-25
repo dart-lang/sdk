@@ -347,6 +347,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAssertInitializer(AssertInitializer node) {
+    _checkForNonBoolExpression(node);
+    _checkAssertMessage(node);
+    return super.visitAssertInitializer(node);
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
     _checkAssertMessage(node);
@@ -924,6 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
+    _checkForTypeAnnotationGenericFunctionParameter(node.type);
     return super.visitIsExpression(node);
   }
 
@@ -1294,11 +1302,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * If the given assert [statement] specifies a message, verify that support
+   * If the given [assertion] specifies a message, verify that support
    * for assertions with messages is enabled.
    */
-  void _checkAssertMessage(AssertStatement statement) {
-    Expression expression = statement.message;
+  void _checkAssertMessage(Assertion assertion) {
+    Expression expression = assertion.message;
     if (expression != null && !enableAssertMessage) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
@@ -1754,7 +1762,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         int count = params1.length;
         if (params2.length != count) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+              HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
               errorNameTarget, [
             count,
             params2.length,
@@ -1788,7 +1796,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           pFresh.bound = bound2;
           if (!_typeSystem.isSubtypeOf(bound2, bound1)) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
+                HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
                 errorNameTarget, [
               p1.displayName,
               p1.bound,
@@ -2610,8 +2618,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // terminated with 'throw' expression
       if (statement is ExpressionStatement) {
         Expression expression = statement.expression;
-        if (expression is ThrowExpression ||
-            expression is RethrowExpression) {
+        if (expression is ThrowExpression || expression is RethrowExpression) {
           return;
         }
       }
@@ -5163,13 +5170,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given assert [statement] has either a 'bool' or
-   * '() -> bool' input.
+   * Verify that the given [assertion] has either a 'bool' or '() -> bool'
+   * condition.
    *
    * See [StaticTypeWarningCode.NON_BOOL_EXPRESSION].
    */
-  void _checkForNonBoolExpression(AssertStatement statement) {
-    Expression expression = statement.condition;
+  void _checkForNonBoolExpression(Assertion assertion) {
+    Expression expression = assertion.condition;
     DartType type = getStaticType(expression);
     if (type is InterfaceType) {
       if (!_typeSystem.isAssignableTo(type, _boolType)) {
@@ -5686,6 +5693,29 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (name != null && name.isDeferred) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, name, [name.name]);
+    }
+  }
+
+  /**
+   * Verify that the given type [name] is not a type parameter in a generic
+   * method.
+   *
+   * See [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER].
+   */
+  void _checkForTypeAnnotationGenericFunctionParameter(TypeName typeName) {
+    if (typeName == null) {
+      return;
+    }
+    Identifier name = typeName.name;
+    if (name is SimpleIdentifier) {
+      Element element = name.staticElement;
+      if (element is TypeParameterElement &&
+          element.enclosingElement is ExecutableElement) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER,
+            name,
+            [name.name]);
+      }
     }
   }
 

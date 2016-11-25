@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 // Test to see if resolving a hidden native class's method interferes with
 // subsequent resolving the subclass's method.  This might happen if the
@@ -67,9 +66,15 @@ B2.prototype.foo = function(z){return z + 20000;}
 
 makeA2 = function(){return new A2};
 makeB2 = function(){return new B2};
+
+self.nativeConstructor(A1);
+self.nativeConstructor(A2);
+self.nativeConstructor(B1);
+self.nativeConstructor(B2);
 """;
 
 main() {
+  nativeTesting();
   setup();
 
   var a1 = makeA1();

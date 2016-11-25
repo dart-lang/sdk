@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static field core::List<core::String> stringList = <dynamic>["bar"];
+static method asyncString() → asy::Future<core::String> async {
+  return "foo";
+}
+static method asyncString2() → asy::Future<core::String> async {
+  return self::asyncString();
+}
+static method syncStarString() → core::Iterable<core::String> sync* {
+  yield "foo";
+  yield* self::syncStarString2();
+  yield* self::stringList;
+}
+static method syncStarString2() → core::Iterable<core::String> sync* {
+  yield "foo";
+}
+static method asyncStarString() → asy::Stream<core::String> async* {
+  yield "foo";
+  yield* self::asyncStarString2();
+  yield await self::asyncString();
+}
+static method asyncStarString2() → asy::Stream<core::String> async* {
+  yield "bar";
+}
+static method main() → dynamic async {
+  core::String str = await self::asyncString();
+}

@@ -27,9 +27,8 @@ typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {
  public:
-  ReadStream(const uint8_t* buffer, intptr_t size) : buffer_(buffer),
-                                                     current_(buffer),
-                                                     end_(buffer + size)  {}
+  ReadStream(const uint8_t* buffer, intptr_t size)
+      : buffer_(buffer), current_(buffer), end_(buffer + size) {}
 
   void SetStream(const uint8_t* buffer, intptr_t size) {
     buffer_ = buffer;
@@ -37,39 +36,31 @@ class ReadStream : public ValueObject {
     end_ = buffer + size;
   }
 
-  template<int N, typename T>
-  class Raw { };
+  template <int N, typename T>
+  class Raw {};
 
-  template<typename T>
+  template <typename T>
   class Raw<1, T> {
    public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->ReadByte());
-    }
+    static T Read(ReadStream* st) { return bit_cast<T>(st->ReadByte()); }
   };
 
-  template<typename T>
+  template <typename T>
   class Raw<2, T> {
    public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read16());
-    }
+    static T Read(ReadStream* st) { return bit_cast<T>(st->Read16()); }
   };
 
-  template<typename T>
+  template <typename T>
   class Raw<4, T> {
    public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read32());
-    }
+    static T Read(ReadStream* st) { return bit_cast<T>(st->Read32()); }
   };
 
-  template<typename T>
+  template <typename T>
   class Raw<8, T> {
    public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read64());
-    }
+    static T Read(ReadStream* st) { return bit_cast<T>(st->Read64()); }
   };
 
   // Reads 'len' bytes from the stream.
@@ -79,9 +70,7 @@ class ReadStream : public ValueObject {
     current_ += len;
   }
 
-  intptr_t ReadUnsigned() {
-    return Read<intptr_t>(kEndUnsignedByteMarker);
-  }
+  intptr_t ReadUnsigned() { return Read<intptr_t>(kEndUnsignedByteMarker); }
 
   intptr_t Position() const { return current_ - buffer_; }
 
@@ -90,9 +79,7 @@ class ReadStream : public ValueObject {
     current_ = buffer_ + value;
   }
 
-  const uint8_t* AddressOfCurrentPosition() const {
-    return current_;
-  }
+  const uint8_t* AddressOfCurrentPosition() const { return current_; }
 
   void Advance(intptr_t value) {
     ASSERT((end_ - current_) > value);
@@ -105,24 +92,18 @@ class ReadStream : public ValueObject {
   }
 
  private:
-  template<typename T>
+  template <typename T>
   T Read() {
     return Read<T>(kEndByteMarker);
   }
 
-  int16_t Read16() {
-    return Read16(kEndByteMarker);
-  }
+  int16_t Read16() { return Read16(kEndByteMarker); }
 
-  int32_t Read32() {
-    return Read32(kEndByteMarker);
-  }
+  int32_t Read32() { return Read32(kEndByteMarker); }
 
-  int64_t Read64() {
-    return Read64(kEndByteMarker);
-  }
+  int64_t Read64() { return Read64(kEndByteMarker); }
 
-  template<typename T>
+  template <typename T>
   T Read(uint8_t end_byte_marker) {
     const uint8_t* c = current_;
     ASSERT(c < end_);
@@ -309,18 +290,16 @@ class ReadStream : public ValueObject {
 // Stream for writing various types into a buffer.
 class WriteStream : public ValueObject {
  public:
-  WriteStream(uint8_t** buffer, ReAlloc alloc, intptr_t initial_size) :
-      buffer_(buffer),
-      end_(NULL),
-      current_(NULL),
-      current_size_(0),
-      alloc_(alloc),
-      initial_size_(initial_size) {
+  WriteStream(uint8_t** buffer, ReAlloc alloc, intptr_t initial_size)
+      : buffer_(buffer),
+        end_(NULL),
+        current_(NULL),
+        current_size_(0),
+        alloc_(alloc),
+        initial_size_(initial_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
-    *buffer_ = reinterpret_cast<uint8_t*>(alloc_(NULL,
-                                                 0,
-                                                 initial_size_));
+    *buffer_ = reinterpret_cast<uint8_t*>(alloc_(NULL, 0, initial_size_));
     if (*buffer_ == NULL) {
       Exceptions::ThrowOOM();
     }
@@ -334,10 +313,10 @@ class WriteStream : public ValueObject {
 
   void set_current(uint8_t* value) { current_ = value; }
 
-  template<int N, typename T>
-  class Raw { };
+  template <int N, typename T>
+  class Raw {};
 
-  template<typename T>
+  template <typename T>
   class Raw<1, T> {
    public:
     static void Write(WriteStream* st, T value) {
@@ -345,7 +324,7 @@ class WriteStream : public ValueObject {
     }
   };
 
-  template<typename T>
+  template <typename T>
   class Raw<2, T> {
    public:
     static void Write(WriteStream* st, T value) {
@@ -353,7 +332,7 @@ class WriteStream : public ValueObject {
     }
   };
 
-  template<typename T>
+  template <typename T>
   class Raw<4, T> {
    public:
     static void Write(WriteStream* st, T value) {
@@ -361,7 +340,7 @@ class WriteStream : public ValueObject {
     }
   };
 
-  template<typename T>
+  template <typename T>
   class Raw<8, T> {
    public:
     static void Write(WriteStream* st, T value) {
@@ -404,11 +383,10 @@ class WriteStream : public ValueObject {
   }
 
  private:
-  template<typename T>
+  template <typename T>
   void Write(T value) {
     T v = value;
-    while (v < kMinDataPerByte ||
-           v > kMaxDataPerByte) {
+    while (v < kMinDataPerByte || v > kMaxDataPerByte) {
       WriteByte(static_cast<uint8_t>(v & kByteMask));
       v = v >> kDataBitsPerByte;
     }
@@ -431,9 +409,8 @@ class WriteStream : public ValueObject {
     }
     intptr_t new_size = current_size_ + increment_size;
     ASSERT(new_size > current_size_);
-    *buffer_ = reinterpret_cast<uint8_t*>(alloc_(*buffer_,
-                                                 current_size_,
-                                                 new_size));
+    *buffer_ =
+        reinterpret_cast<uint8_t*>(alloc_(*buffer_, current_size_, new_size));
     if (*buffer_ == NULL) {
       Exceptions::ThrowOOM();
     }
@@ -459,8 +436,8 @@ class WriteStream : public ValueObject {
     // Print.
     va_list print_args;
     va_copy(print_args, args);
-    OS::VSNPrint(reinterpret_cast<char*>(current_),
-                 len + 1, format, print_args);
+    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
+                 print_args);
     va_end(print_args);
     current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }

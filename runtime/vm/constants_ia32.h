@@ -58,16 +58,16 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 
 // Register aliases.
-const Register TMP = kNoRegister;  // No scratch register used by assembler.
+const Register TMP = kNoRegister;   // No scratch register used by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CTX = EDI;  // Location of current context at method entry.
 const Register CODE_REG = EDI;
-const Register PP = kNoRegister;  // No object pool pointer.
-const Register SPREG = ESP;  // Stack pointer register.
-const Register FPREG = EBP;  // Frame pointer register.
-const Register ICREG = ECX;  // IC data register.
+const Register PP = kNoRegister;     // No object pool pointer.
+const Register SPREG = ESP;          // Stack pointer register.
+const Register FPREG = EBP;          // Frame pointer register.
+const Register ICREG = ECX;          // IC data register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
-const Register THR = ESI;  // Caches current thread in generated code.
+const Register THR = ESI;            // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = EBX;
 const Register CALLEE_SAVED_TEMP2 = EDI;
 
@@ -83,10 +83,7 @@ const Register kStackTraceObjectReg = EDX;
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 
-const intptr_t kReservedCpuRegisters =
-    (1 << SPREG) |
-    (1 << FPREG) |
-    (1 << THR);
+const intptr_t kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -103,29 +100,29 @@ enum ScaleFactor {
 
 
 enum Condition {
-  OVERFLOW      =  0,
-  NO_OVERFLOW   =  1,
-  BELOW         =  2,
-  ABOVE_EQUAL   =  3,
-  EQUAL         =  4,
-  NOT_EQUAL     =  5,
-  BELOW_EQUAL   =  6,
-  ABOVE         =  7,
-  SIGN          =  8,
-  NOT_SIGN      =  9,
-  PARITY_EVEN   = 10,
-  PARITY_ODD    = 11,
-  LESS          = 12,
+  OVERFLOW = 0,
+  NO_OVERFLOW = 1,
+  BELOW = 2,
+  ABOVE_EQUAL = 3,
+  EQUAL = 4,
+  NOT_EQUAL = 5,
+  BELOW_EQUAL = 6,
+  ABOVE = 7,
+  SIGN = 8,
+  NOT_SIGN = 9,
+  PARITY_EVEN = 10,
+  PARITY_ODD = 11,
+  LESS = 12,
   GREATER_EQUAL = 13,
-  LESS_EQUAL    = 14,
-  GREATER       = 15,
+  LESS_EQUAL = 14,
+  GREATER = 15,
 
-  ZERO          = EQUAL,
-  NOT_ZERO      = NOT_EQUAL,
-  NEGATIVE      = SIGN,
-  POSITIVE      = NOT_SIGN,
-  CARRY         = BELOW,
-  NOT_CARRY     = ABOVE_EQUAL
+  ZERO = EQUAL,
+  NOT_ZERO = NOT_EQUAL,
+  NEGATIVE = SIGN,
+  POSITIVE = NOT_SIGN,
+  CARRY = BELOW,
+  NOT_CARRY = ABOVE_EQUAL
 };
 
 

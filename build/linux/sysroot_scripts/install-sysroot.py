@@ -108,18 +108,6 @@ def main():
       print 'Unable to detect host architecture'
       return 1
 
-  if options.running_as_hook and target_arch != 'arm' and target_arch != 'mips':
-    # When run from runhooks, only install the sysroot for an Official Chrome
-    # Linux build, except on ARM where we always use a sysroot.
-    skip_if_defined = ['branding=Chrome', 'buildtype=Official']
-    skip_if_undefined = ['chromeos=1']
-    for option in skip_if_defined:
-      if option not in gyp_defines:
-        return 0
-    for option in skip_if_undefined:
-      if option in gyp_defines:
-        return 0
-
   # The sysroot directory should match the one specified in build/common.gypi.
   # TODO(thestig) Consider putting this else where to avoid having to recreate
   # it on every build.

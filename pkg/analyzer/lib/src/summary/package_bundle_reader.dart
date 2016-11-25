@@ -174,6 +174,23 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
       return true;
     }
     AnalysisTarget target = entry.target;
+
+    // LINE_INFO can be provided using just the UnlinkedUnit.
+    if (target is Source && result == LINE_INFO) {
+      String uriString = target.uri.toString();
+      UnlinkedUnit unlinkedUnit = _dataStore.unlinkedMap[uriString];
+      if (unlinkedUnit != null) {
+        List<int> lineStarts = unlinkedUnit.lineStarts;
+        if (lineStarts.isNotEmpty) {
+          LineInfo lineInfo = new LineInfo(lineStarts);
+          entry.setValue(result as ResultDescriptor<LineInfo>, lineInfo,
+              TargetedResult.EMPTY_LIST);
+          return true;
+        }
+      }
+      return false;
+    }
+
     // Check whether there are results for the source.
     if (!hasResultsForSource(target.librarySource ?? target.source)) {
       return false;
@@ -236,16 +253,6 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
               .toList(growable: false);
           entry.setValue(result as ResultDescriptor<List<Source>>,
               librarySources, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        return false;
-      } else if (result == LINE_INFO) {
-        UnlinkedUnit unlinkedUnit = _dataStore.unlinkedMap[uriString];
-        List<int> lineStarts = unlinkedUnit.lineStarts;
-        if (lineStarts.isNotEmpty) {
-          LineInfo lineInfo = new LineInfo(lineStarts);
-          entry.setValue(result as ResultDescriptor<LineInfo>, lineInfo,
-              TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;

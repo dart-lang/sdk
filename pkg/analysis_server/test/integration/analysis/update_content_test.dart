@@ -37,7 +37,7 @@ main() {
         .then((result) => analysisFinished)
         .then((_) {
           // There should be no errors now because the contents on disk have been
-          // overriden with goodText.
+          // overridden with goodText.
           expect(currentAnalysisErrors[pathname], isEmpty);
           return sendAnalysisUpdateContent({
             pathname: new ChangeContentOverlay(

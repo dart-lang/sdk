@@ -345,6 +345,9 @@ class InitializerResolver {
         Node parameterNode = variableDefinitions.definitions.nodes.head;
         InitializingFormalElementX initializingFormal = element;
         FieldElement field = initializingFormal.fieldElement;
+        if (!field.isMalformed) {
+          registry.registerStaticUse(new StaticUse.fieldInit(field));
+        }
         checkForDuplicateInitializers(field, element.initializer);
         if (enableInitializingFormalAccess) {
           visitor.defineLocalVariable(parameterNode, initializingFormal);
@@ -408,7 +411,7 @@ class InitializerResolver {
             reporter.reportErrorMessage(
                 call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
           } else {
-            constructor.isRedirectingGenerative = true;
+            constructor.isRedirectingGenerativeInternal = true;
           }
           // Check that there are no field initializing parameters.
           FunctionSignature signature = constructor.functionSignature;

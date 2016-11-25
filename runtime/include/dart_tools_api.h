@@ -18,7 +18,7 @@
  */
 
 
- /*
+/*
   * ========
   * Debugger
   * ========
@@ -155,9 +155,8 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url);
  * \return A handle to string containing the source text if no error
  * occurs.
  */
-DART_EXPORT Dart_Handle Dart_ScriptGetSource(
-                            intptr_t library_id,
-                            Dart_Handle script_url_in);
+DART_EXPORT Dart_Handle Dart_ScriptGetSource(intptr_t library_id,
+                                             Dart_Handle script_url_in);
 
 
 /**
@@ -177,9 +176,8 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
  *
  * \return A handle to an array or an error object.
  */
-DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
-                            intptr_t library_id,
-                            Dart_Handle script_url_in);
+DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(intptr_t library_id,
+                                                Dart_Handle script_url_in);
 
 
 /**
@@ -205,9 +203,8 @@ DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
  * \return A handle containing the breakpoint id, which is an integer
  * value, or an error object if a breakpoint could not be set.
  */
-DART_EXPORT Dart_Handle Dart_SetBreakpoint(
-                            Dart_Handle script_url,
-                            intptr_t line_number);
+DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url,
+                                           intptr_t line_number);
 
 /**
  * Deletes the breakpoint with the given id \pb_id.
@@ -251,10 +248,9 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id);
  * \return A handle containing the breakpoint id, which is an integer
  * value, or an error object if a breakpoint could not be set.
  */
-DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
-                            Dart_Handle library,
-                            Dart_Handle class_name,
-                            Dart_Handle function_name);
+DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(Dart_Handle library,
+                                                  Dart_Handle class_name,
+                                                  Dart_Handle function_name);
 
 
 /**
@@ -266,10 +262,9 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
-                            Dart_Handle library,
-                            Dart_Handle class_name,
-                            Dart_Handle function_name);
+DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(Dart_Handle library,
+                                                 Dart_Handle class_name,
+                                                 Dart_Handle function_name);
 
 
 /**
@@ -305,8 +300,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOut();
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT void Dart_SetPausedEventHandler(
-                            Dart_PausedEventHandler handler);
+DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler);
 
 
 /**
@@ -316,7 +310,7 @@ DART_EXPORT void Dart_SetPausedEventHandler(
  * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_SetBreakpointResolvedHandler(
-                            Dart_BreakpointResolvedHandler handler);
+    Dart_BreakpointResolvedHandler handler);
 
 /**
  * Installs a callback function that gets called by the VM when
@@ -325,7 +319,7 @@ DART_EXPORT void Dart_SetBreakpointResolvedHandler(
  * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_SetExceptionThrownHandler(
-                            Dart_ExceptionThrownHandler handler);
+    Dart_ExceptionThrownHandler handler);
 
 /**
  * Installs a callback function that gets called by the VM when
@@ -349,8 +343,8 @@ typedef enum {
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
-                            Dart_ExceptionPauseInfo pause_info);
+DART_EXPORT Dart_Handle
+Dart_SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
 
 
 /**
@@ -390,9 +384,8 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_StackTraceLength(
-                            Dart_StackTrace trace,
-                            intptr_t* length);
+DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
+                                              intptr_t* length);
 
 
 /**
@@ -403,10 +396,9 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_GetActivationFrame(
-                            Dart_StackTrace trace,
-                            int frame_index,
-                            Dart_ActivationFrame* frame);
+DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
+                                                int frame_index,
+                                                Dart_ActivationFrame* frame);
 
 
 /**
@@ -425,12 +417,12 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
-                            Dart_ActivationFrame activation_frame,
-                            Dart_Handle* function_name,
-                            Dart_Handle* script_url,
-                            intptr_t* line_number,
-                            intptr_t* column_number);
+DART_EXPORT Dart_Handle
+Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
+                         Dart_Handle* function_name,
+                         Dart_Handle* script_url,
+                         intptr_t* line_number,
+                         intptr_t* column_number);
 
 
 /**
@@ -456,11 +448,11 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
  *         A handle to the False object if there is no text
  *         position for the frame.
  */
-DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
-                            Dart_ActivationFrame activation_frame,
-                            Dart_Handle* function_name,
-                            Dart_Handle* function,
-                            Dart_CodeLocation* location);
+DART_EXPORT Dart_Handle
+Dart_ActivationFrameGetLocation(Dart_ActivationFrame activation_frame,
+                                Dart_Handle* function_name,
+                                Dart_Handle* function,
+                                Dart_CodeLocation* location);
 
 /**
  * Returns frame pointer of the given activation frame.
@@ -471,9 +463,9 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_ActivationFrameGetFramePointer(
-                            Dart_ActivationFrame activation_frame,
-                            uintptr_t* frame_pointer);
+DART_EXPORT Dart_Handle
+Dart_ActivationFrameGetFramePointer(Dart_ActivationFrame activation_frame,
+                                    uintptr_t* frame_pointer);
 
 /**
  * Returns an array containing all the local variable names and values of
@@ -486,8 +478,8 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetFramePointer(
  * no variables. If non-empty, variable names are at array offsets 2*n,
  * values at offset 2*n+1.
  */
-DART_EXPORT Dart_Handle Dart_GetLocalVariables(
-                            Dart_ActivationFrame activation_frame);
+DART_EXPORT Dart_Handle
+Dart_GetLocalVariables(Dart_ActivationFrame activation_frame);
 
 
 /**
@@ -519,9 +511,9 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
  * Execute the expression given in string \expr in the context
  * of stack frame \activation_frame.
  */
-DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
-                            Dart_ActivationFrame activation_frame,
-                            Dart_Handle expr_in);
+DART_EXPORT Dart_Handle
+Dart_ActivationFrameEvaluate(Dart_ActivationFrame activation_frame,
+                             Dart_Handle expr_in);
 
 
 /**
@@ -542,8 +534,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
  * the compilation of the expression fails, or if the evaluation throws
  * an error.
  */
-DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target,
-                                          Dart_Handle expr);
+DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target, Dart_Handle expr);
 
 
 /**
@@ -783,13 +774,12 @@ DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate isolate);
  * \return True if the result is a regular JSON-RPC response, false if the
  *   result is a JSON-RPC error.
  */
-typedef bool (*Dart_ServiceRequestCallback)(
-    const char* method,
-    const char** param_keys,
-    const char** param_values,
-    intptr_t num_params,
-    void* user_data,
-    const char** json_object);
+typedef bool (*Dart_ServiceRequestCallback)(const char* method,
+                                            const char** param_keys,
+                                            const char** param_values,
+                                            intptr_t num_params,
+                                            void* user_data,
+                                            const char** json_object);
 
 
 /**
@@ -913,8 +903,8 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  */
 typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 
-DART_EXPORT Dart_Handle Dart_SetFileModifiedCallback(
-    Dart_FileModifiedCallback file_modified_callback);
+DART_EXPORT Dart_Handle
+Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
 
 /*
  * ========
@@ -948,14 +938,11 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
 #define DART_TIMELINE_STREAM_VM (1 << 7)
 
 /** All timeline streams */
-#define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
-                                  DART_TIMELINE_STREAM_COMPILER |              \
-                                  DART_TIMELINE_STREAM_DART |                  \
-                                  DART_TIMELINE_STREAM_DEBUGGER |              \
-                                  DART_TIMELINE_STREAM_EMBEDDER |              \
-                                  DART_TIMELINE_STREAM_GC |                    \
-                                  DART_TIMELINE_STREAM_ISOLATE |               \
-                                  DART_TIMELINE_STREAM_VM)
+#define DART_TIMELINE_STREAM_ALL                                               \
+  (DART_TIMELINE_STREAM_API | DART_TIMELINE_STREAM_COMPILER |                  \
+   DART_TIMELINE_STREAM_DART | DART_TIMELINE_STREAM_DEBUGGER |                 \
+   DART_TIMELINE_STREAM_EMBEDDER | DART_TIMELINE_STREAM_GC |                   \
+   DART_TIMELINE_STREAM_ISOLATE | DART_TIMELINE_STREAM_VM)
 
 /** Disable all timeline stream recording */
 #define DART_TIMELINE_STREAM_DISABLE 0
@@ -1001,12 +988,11 @@ typedef enum {
  * At the end of each stream state will be DART_STREAM_CONSUMER_STATE_FINISH
  * and buffer will be NULL.
  */
-typedef void (*Dart_StreamConsumer)(
-    Dart_StreamConsumer_State state,
-    const char* stream_name,
-    const uint8_t* buffer,
-    intptr_t buffer_length,
-    void* stream_callback_data);
+typedef void (*Dart_StreamConsumer)(Dart_StreamConsumer_State state,
+                                    const char* stream_name,
+                                    const uint8_t* buffer,
+                                    intptr_t buffer_length,
+                                    void* stream_callback_data);
 
 /**
  * Get the timeline for entire VM (including all isolates).

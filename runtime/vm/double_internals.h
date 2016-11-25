@@ -10,7 +10,9 @@
 namespace dart {
 
 // We assume that doubles and uint64_t have the same endianness.
-static uint64_t double_to_uint64(double d) { return bit_cast<uint64_t>(d); }
+static uint64_t double_to_uint64(double d) {
+  return bit_cast<uint64_t>(d);
+}
 
 // Helper functions for doubles.
 class DoubleInternals {
@@ -20,9 +22,7 @@ class DoubleInternals {
   explicit DoubleInternals(double d) : d64_(double_to_uint64(d)) {}
 
   // Returns the double's bit as uint64.
-  uint64_t AsUint64() const {
-    return d64_;
-  }
+  uint64_t AsUint64() const { return d64_; }
 
   int Exponent() const {
     if (IsDenormal()) return kDenormalExponent;
@@ -58,7 +58,7 @@ class DoubleInternals {
 
   int Sign() const {
     uint64_t d64 = AsUint64();
-    return (d64 & kSignMask) == 0? 1: -1;
+    return (d64 & kSignMask) == 0 ? 1 : -1;
   }
 
  private:

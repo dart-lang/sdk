@@ -13,11 +13,10 @@
 namespace dart {
 
 TEST_CASE(Ast) {
-  LocalVariable* v = new LocalVariable(
-      TokenPosition::kNoSource,
-      TokenPosition::kNoSource,
-      String::ZoneHandle(Symbols::New(thread, "v")),
-      Type::ZoneHandle(Type::DynamicType()));
+  LocalVariable* v =
+      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                        String::ZoneHandle(Symbols::New(thread, "v")),
+                        Type::ZoneHandle(Type::DynamicType()));
   AstNode* ll = new LoadLocalNode(TokenPosition::kNoSource, v);
   EXPECT(ll->IsLoadLocalNode());
   EXPECT(!ll->IsLiteralNode());
@@ -26,11 +25,10 @@ TEST_CASE(Ast) {
   v->set_index(1);
   EXPECT_EQ(1, v->index());
 
-  LocalVariable* p = new LocalVariable(
-      TokenPosition::kNoSource,
-      TokenPosition::kNoSource,
-      String::ZoneHandle(Symbols::New(thread, "p")),
-      Type::ZoneHandle(Type::DynamicType()));
+  LocalVariable* p =
+      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                        String::ZoneHandle(Symbols::New(thread, "p")),
+                        Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
   p->set_index(-1);
   EXPECT(p->HasIndex());
@@ -39,8 +37,8 @@ TEST_CASE(Ast) {
   ReturnNode* r = new ReturnNode(TokenPosition::kNoSource, lln);
   EXPECT_EQ(lln, r->value());
 
-  LiteralNode* l = new LiteralNode(TokenPosition::kNoSource,
-                                   Smi::ZoneHandle(Smi::New(3)));
+  LiteralNode* l =
+      new LiteralNode(TokenPosition::kNoSource, Smi::ZoneHandle(Smi::New(3)));
   EXPECT(l->literal().IsSmi());
   EXPECT_EQ(Smi::New(3), l->literal().raw());
 
@@ -50,17 +48,15 @@ TEST_CASE(Ast) {
   EXPECT_EQ(l, b->left());
   EXPECT_EQ(lln, b->right());
 
-  UnaryOpNode* u =
-      new UnaryOpNode(TokenPosition::kNoSource, Token::kNEGATE, b);
+  UnaryOpNode* u = new UnaryOpNode(TokenPosition::kNoSource, Token::kNEGATE, b);
   EXPECT_EQ(Token::kNEGATE, u->kind());
   EXPECT_EQ(b, u->operand());
 
   SequenceNode* sequence_node =
       new SequenceNode(TokenPosition(1), new LocalScope(NULL, 0, 0));
   LiteralNode* literal_node =
-      new LiteralNode(TokenPosition(2),  Smi::ZoneHandle(Smi::New(3)));
-  ReturnNode* return_node =
-      new ReturnNode(TokenPosition(3), literal_node);
+      new LiteralNode(TokenPosition(2), Smi::ZoneHandle(Smi::New(3)));
+  ReturnNode* return_node = new ReturnNode(TokenPosition(3), literal_node);
   sequence_node->Add(return_node);
   GrowableArray<AstNode*> nodes;
   sequence_node->CollectAllNodes(&nodes);

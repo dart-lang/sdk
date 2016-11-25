@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/aot_optimizer.h"
@@ -24,41 +24,71 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, deoptimization_counter_inlining_threshold, 12,
-    "How many times we allow deoptimization before we stop inlining.");
+DEFINE_FLAG(int,
+            deoptimization_counter_inlining_threshold,
+            12,
+            "How many times we allow deoptimization before we stop inlining.");
 DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 
 // Flags for inlining heuristics.
-DEFINE_FLAG(int, inline_getters_setters_smaller_than, 10,
-    "Always inline getters and setters that have fewer instructions");
-DEFINE_FLAG(int, inlining_depth_threshold, 6,
-    "Inline function calls up to threshold nesting depth");
-DEFINE_FLAG(int, inlining_size_threshold, 25,
+DEFINE_FLAG(int,
+            inline_getters_setters_smaller_than,
+            10,
+            "Always inline getters and setters that have fewer instructions");
+DEFINE_FLAG(int,
+            inlining_depth_threshold,
+            6,
+            "Inline function calls up to threshold nesting depth");
+DEFINE_FLAG(
+    int,
+    inlining_size_threshold,
+    25,
     "Always inline functions that have threshold or fewer instructions");
-DEFINE_FLAG(int, inlining_callee_call_sites_threshold, 1,
-    "Always inline functions containing threshold or fewer calls.");
-DEFINE_FLAG(int, inlining_callee_size_threshold, 80,
-    "Do not inline callees larger than threshold");
-DEFINE_FLAG(int, inlining_caller_size_threshold, 50000,
-    "Stop inlining once caller reaches the threshold.");
-DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
-    "Inline function calls with sufficient constant arguments "
-    "and up to the increased threshold on instructions");
-DEFINE_FLAG(int, inlining_constant_arguments_max_size_threshold, 200,
+DEFINE_FLAG(int,
+            inlining_callee_call_sites_threshold,
+            1,
+            "Always inline functions containing threshold or fewer calls.");
+DEFINE_FLAG(int,
+            inlining_callee_size_threshold,
+            80,
+            "Do not inline callees larger than threshold");
+DEFINE_FLAG(int,
+            inlining_caller_size_threshold,
+            50000,
+            "Stop inlining once caller reaches the threshold.");
+DEFINE_FLAG(int,
+            inlining_constant_arguments_count,
+            1,
+            "Inline function calls with sufficient constant arguments "
+            "and up to the increased threshold on instructions");
+DEFINE_FLAG(
+    int,
+    inlining_constant_arguments_max_size_threshold,
+    200,
     "Do not inline callees larger than threshold if constant arguments");
-DEFINE_FLAG(int, inlining_constant_arguments_min_size_threshold, 60,
-    "Inline function calls with sufficient constant arguments "
-    "and up to the increased threshold on instructions");
-DEFINE_FLAG(int, inlining_hotness, 10,
-    "Inline only hotter calls, in percents (0 .. 100); "
-    "default 10%: calls above-equal 10% of max-count are inlined.");
-DEFINE_FLAG(int, inlining_recursion_depth_threshold, 1,
-    "Inline recursive function calls up to threshold recursion depth.");
-DEFINE_FLAG(int, max_inlined_per_depth, 500,
-    "Max. number of inlined calls per depth");
+DEFINE_FLAG(int,
+            inlining_constant_arguments_min_size_threshold,
+            60,
+            "Inline function calls with sufficient constant arguments "
+            "and up to the increased threshold on instructions");
+DEFINE_FLAG(int,
+            inlining_hotness,
+            10,
+            "Inline only hotter calls, in percents (0 .. 100); "
+            "default 10%: calls above-equal 10% of max-count are inlined.");
+DEFINE_FLAG(int,
+            inlining_recursion_depth_threshold,
+            1,
+            "Inline recursive function calls up to threshold recursion depth.");
+DEFINE_FLAG(int,
+            max_inlined_per_depth,
+            500,
+            "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
-DEFINE_FLAG(bool, enable_inlining_annotations, false,
+DEFINE_FLAG(bool,
+            enable_inlining_annotations,
+            false,
             "Enable inlining annotations");
 
 DECLARE_FLAG(bool, compiler_stats);
@@ -80,10 +110,10 @@ DECLARE_FLAG(bool, verify_compiler);
 #define PRINT_INLINING_TREE(comment, caller, target, instance_call)            \
   do {                                                                         \
     if (FLAG_print_inlining_tree) {                                            \
-      inlined_info_.Add(InlinedInfo(                                           \
-          caller, target, inlining_depth_, instance_call, comment));           \
-      }                                                                        \
-  } while (false)                                                              \
+      inlined_info_.Add(InlinedInfo(caller, target, inlining_depth_,           \
+                                    instance_call, comment));                  \
+    }                                                                          \
+  } while (false)
 
 
 // Test if a call is recursive by looking in the deoptimization environment.
@@ -110,8 +140,7 @@ static ConstantInstr* GetDefaultValue(intptr_t i,
 struct NamedArgument {
   String* name;
   Value* value;
-  NamedArgument(String* name, Value* value)
-    : name(name), value(value) { }
+  NamedArgument(String* name, Value* value) : name(name), value(value) {}
 };
 
 
@@ -119,23 +148,18 @@ struct NamedArgument {
 // inlining.
 class GraphInfoCollector : public ValueObject {
  public:
-  GraphInfoCollector()
-      : call_site_count_(0),
-        instruction_count_(0) { }
+  GraphInfoCollector() : call_site_count_(0), instruction_count_(0) {}
 
   void Collect(const FlowGraph& graph) {
     call_site_count_ = 0;
     instruction_count_ = 0;
-    for (BlockIterator block_it = graph.postorder_iterator();
-         !block_it.Done();
+    for (BlockIterator block_it = graph.postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
-      for (ForwardInstructionIterator it(block_it.Current());
-           !it.Done();
+      for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
            it.Advance()) {
         ++instruction_count_;
         Instruction* current = it.Current();
-        if (current->IsStaticCall() ||
-            current->IsClosureCall()) {
+        if (current->IsStaticCall() || current->IsClosureCall()) {
           ++call_site_count_;
           continue;
         }
@@ -189,9 +213,7 @@ struct InlinedInfo {
 class CallSites : public ValueObject {
  public:
   explicit CallSites(FlowGraph* flow_graph)
-      : static_calls_(),
-        closure_calls_(),
-        instance_calls_() { }
+      : static_calls_(), closure_calls_(), instance_calls_() {}
 
   struct InstanceCallInfo {
     PolymorphicInstanceCallInstr* call;
@@ -199,9 +221,7 @@ class CallSites : public ValueObject {
     const FlowGraph* caller_graph;
     InstanceCallInfo(PolymorphicInstanceCallInstr* call_arg,
                      FlowGraph* flow_graph)
-        : call(call_arg),
-          ratio(0.0),
-          caller_graph(flow_graph) {}
+        : call(call_arg), ratio(0.0), caller_graph(flow_graph) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -210,9 +230,7 @@ class CallSites : public ValueObject {
     double ratio;
     FlowGraph* caller_graph;
     StaticCallInfo(StaticCallInstr* value, FlowGraph* flow_graph)
-        : call(value),
-          ratio(0.0),
-          caller_graph(flow_graph) {}
+        : call(value), ratio(0.0), caller_graph(flow_graph) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -220,8 +238,7 @@ class CallSites : public ValueObject {
     ClosureCallInstr* call;
     FlowGraph* caller_graph;
     ClosureCallInfo(ClosureCallInstr* value, FlowGraph* flow_graph)
-        : call(value),
-          caller_graph(flow_graph) {}
+        : call(value), caller_graph(flow_graph) {}
     const Function& caller() const { return caller_graph->function(); }
   };
 
@@ -238,14 +255,12 @@ class CallSites : public ValueObject {
   }
 
   bool HasCalls() const {
-    return !(static_calls_.is_empty() &&
-             closure_calls_.is_empty() &&
+    return !(static_calls_.is_empty() && closure_calls_.is_empty() &&
              instance_calls_.is_empty());
   }
 
   intptr_t NumCalls() const {
-    return instance_calls_.length() +
-           static_calls_.length() +
+    return instance_calls_.length() + static_calls_.length() +
            closure_calls_.length();
   }
 
@@ -266,8 +281,9 @@ class CallSites : public ValueObject {
     GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
       const intptr_t aggregate_count =
-          instance_calls_[i + instance_call_start_ix].
-              call->ic_data().AggregateCount();
+          instance_calls_[i + instance_call_start_ix]
+              .call->ic_data()
+              .AggregateCount();
       instance_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -278,9 +294,9 @@ class CallSites : public ValueObject {
       if (static_calls_[i + static_call_start_ix].call->ic_data() == NULL) {
         aggregate_count = 0;
       } else {
-        aggregate_count =
-            static_calls_[i + static_call_start_ix].
-                call->ic_data()->AggregateCount();
+        aggregate_count = static_calls_[i + static_call_start_ix]
+                              .call->ic_data()
+                              ->AggregateCount();
       }
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
@@ -288,13 +304,17 @@ class CallSites : public ValueObject {
 
     // max_count can be 0 if none of the calls was executed.
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const double ratio = (max_count == 0) ?
-          0.0 : static_cast<double>(instance_call_counts[i]) / max_count;
+      const double ratio =
+          (max_count == 0)
+              ? 0.0
+              : static_cast<double>(instance_call_counts[i]) / max_count;
       instance_calls_[i + instance_call_start_ix].ratio = ratio;
     }
     for (intptr_t i = 0; i < num_static_calls; ++i) {
-      const double ratio = (max_count == 0) ?
-          0.0 : static_cast<double>(static_call_counts[i]) / max_count;
+      const double ratio =
+          (max_count == 0)
+              ? 0.0
+              : static_cast<double>(static_call_counts[i]) / max_count;
       static_calls_[i + static_call_start_ix].ratio = ratio;
     }
   }
@@ -304,12 +324,10 @@ class CallSites : public ValueObject {
       intptr_t depth,
       GrowableArray<InlinedInfo>* inlined_info) {
     const Function* caller = &graph->function();
-    Function& target  = Function::ZoneHandle();
-    for (BlockIterator block_it = graph->postorder_iterator();
-         !block_it.Done();
+    Function& target = Function::ZoneHandle();
+    for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
-      for (ForwardInstructionIterator it(block_it.Current());
-           !it.Done();
+      for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
         Definition* call = NULL;
@@ -326,8 +344,8 @@ class CallSites : public ValueObject {
           // TODO(srdjan): Add data for closure calls.
         }
         if (call != NULL) {
-          inlined_info->Add(InlinedInfo(
-              caller, &target, depth + 1, call, "Too deep"));
+          inlined_info->Add(
+              InlinedInfo(caller, &target, depth + 1, call, "Too deep"));
         }
       }
     }
@@ -352,11 +370,9 @@ class CallSites : public ValueObject {
 
     const intptr_t instance_call_start_ix = instance_calls_.length();
     const intptr_t static_call_start_ix = static_calls_.length();
-    for (BlockIterator block_it = graph->postorder_iterator();
-         !block_it.Done();
+    for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
-      for (ForwardInstructionIterator it(block_it.Current());
-           !it.Done();
+      for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
         if (current->IsPolymorphicInstanceCall()) {
@@ -371,11 +387,10 @@ class CallSites : public ValueObject {
             // not recognized.
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
-              const Function* target =
-                  &Function::ZoneHandle(
-                      instance_call->ic_data().GetTargetAt(0));
-              inlined_info->Add(InlinedInfo(
-                  caller, target, depth + 1, instance_call, "Too deep"));
+              const Function* target = &Function::ZoneHandle(
+                  instance_call->ic_data().GetTargetAt(0));
+              inlined_info->Add(InlinedInfo(caller, target, depth + 1,
+                                            instance_call, "Too deep"));
             }
           }
         } else if (current->IsStaticCall()) {
@@ -389,8 +404,8 @@ class CallSites : public ValueObject {
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
               const Function* target = &static_call->function();
-              inlined_info->Add(InlinedInfo(
-                  caller, target, depth + 1, static_call, "Too deep"));
+              inlined_info->Add(InlinedInfo(caller, target, depth + 1,
+                                            static_call, "Too deep"));
             }
           }
         } else if (current->IsClosureCall()) {
@@ -424,7 +439,7 @@ struct InlinedCallData {
         parameter_stubs(NULL),
         exit_collector(NULL),
         caller(caller),
-        caller_inlining_id_(caller_inlining_id) { }
+        caller_inlining_id_(caller_inlining_id) {}
 
   Definition* call;
   GrowableArray<Value*>* arguments;
@@ -507,7 +522,7 @@ class CallSiteInliner : public ValueObject {
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
         function_cache_(),
-        inlined_info_() { }
+        inlined_info_() {}
 
   FlowGraph* caller_graph() const { return caller_graph_; }
 
@@ -564,18 +579,17 @@ class CallSiteInliner : public ValueObject {
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;
     // Collect initial call sites.
-    collected_call_sites_->FindCallSites(caller_graph_,
-                                         inlining_depth_,
+    collected_call_sites_->FindCallSites(caller_graph_, inlining_depth_,
                                          &inlined_info_);
     while (collected_call_sites_->HasCalls()) {
-      TRACE_INLINING(THR_Print("  Depth %" Pd " ----------\n",
-                               inlining_depth_));
+      TRACE_INLINING(
+          THR_Print("  Depth %" Pd " ----------\n", inlining_depth_));
       if (collected_call_sites_->NumCalls() > FLAG_max_inlined_per_depth) {
         break;
       }
       if (FLAG_print_inlining_tree) {
-        THR_Print("**Depth % " Pd " calls to inline %" Pd "\n",
-            inlining_depth_, collected_call_sites_->NumCalls());
+        THR_Print("**Depth % " Pd " calls to inline %" Pd "\n", inlining_depth_,
+                  collected_call_sites_->NumCalls());
       }
       // Swap collected and inlining arrays and clear the new collecting array.
       call_sites_temp = collected_call_sites_;
@@ -602,7 +616,7 @@ class CallSiteInliner : public ValueObject {
 
   double GrowthFactor() const {
     return static_cast<double>(inlined_size_) /
-        static_cast<double>(initial_size_);
+           static_cast<double>(initial_size_);
   }
 
   // Helper to create a parameter stub from an actual argument.
@@ -611,9 +625,9 @@ class CallSiteInliner : public ValueObject {
                                   FlowGraph* graph) {
     ConstantInstr* constant = argument->definition()->AsConstant();
     if (constant != NULL) {
-      return new(Z) ConstantInstr(constant->value());
+      return new (Z) ConstantInstr(constant->value());
     } else {
-      ParameterInstr* param = new(Z) ParameterInstr(i, graph->graph_entry());
+      ParameterInstr* param = new (Z) ParameterInstr(i, graph->graph_entry());
       param->UpdateType(*argument->Type());
       return param;
     }
@@ -622,26 +636,24 @@ class CallSiteInliner : public ValueObject {
   bool TryInlining(const Function& function,
                    const Array& argument_names,
                    InlinedCallData* call_data) {
-    TRACE_INLINING(THR_Print("  => %s (deopt count %d)\n",
-                             function.ToCString(),
+    TRACE_INLINING(THR_Print("  => %s (deopt count %d)\n", function.ToCString(),
                              function.deoptimization_counter()));
 
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
       TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
-      PRINT_INLINING_TREE("Not inlinable",
-          &call_data->caller, &function, call_data->call);
+      PRINT_INLINING_TREE("Not inlinable", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
-    if (FLAG_precompiled_mode &&
-        function.is_intrinsic() &&
+    if (FLAG_precompiled_mode && function.is_intrinsic() &&
         !inliner_->AlwaysInline(function)) {
       TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
-      PRINT_INLINING_TREE("intrinsic",
-          &call_data->caller, &function, call_data->call);
+      PRINT_INLINING_TREE("intrinsic", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -649,8 +661,8 @@ class CallSiteInliner : public ValueObject {
     // if a function was compiled.
     if (!FLAG_precompiled_mode && !function.was_compiled()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
-      PRINT_INLINING_TREE("Not compiled",
-          &call_data->caller, &function, call_data->call);
+      PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -658,8 +670,8 @@ class CallSiteInliner : public ValueObject {
     // but we need it for inlining.
     if (!FLAG_precompiled_mode && (function.ic_data_array() == Array::null())) {
       TRACE_INLINING(THR_Print("     Bailout: type feedback cleared\n"));
-      PRINT_INLINING_TREE("Not compiled",
-          &call_data->caller, &function, call_data->call);
+      PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -669,7 +681,7 @@ class CallSiteInliner : public ValueObject {
       function.set_is_inlinable(false);
       TRACE_INLINING(THR_Print("     Bailout: deoptimization threshold\n"));
       PRINT_INLINING_TREE("Deoptimization threshold exceeded",
-          &call_data->caller, &function, call_data->call);
+                          &call_data->caller, &function, call_data->call);
       return false;
     }
 
@@ -682,19 +694,18 @@ class CallSiteInliner : public ValueObject {
 
     GrowableArray<Value*>* arguments = call_data->arguments;
     const intptr_t constant_arguments = CountConstants(*arguments);
-    if (!ShouldWeInline(function,
-                        function.optimized_instruction_count(),
+    if (!ShouldWeInline(function, function.optimized_instruction_count(),
                         function.optimized_call_site_count(),
                         constant_arguments)) {
-      TRACE_INLINING(THR_Print("     Bailout: early heuristics with "
-                               "code size:  %" Pd ", "
-                               "call sites: %" Pd ", "
-                               "const args: %" Pd "\n",
-                               function.optimized_instruction_count(),
-                               function.optimized_call_site_count(),
-                               constant_arguments));
-      PRINT_INLINING_TREE("Early heuristic",
-          &call_data->caller, &function, call_data->call);
+      TRACE_INLINING(
+          THR_Print("     Bailout: early heuristics with "
+                    "code size:  %" Pd ", "
+                    "call sites: %" Pd ", "
+                    "const args: %" Pd "\n",
+                    function.optimized_instruction_count(),
+                    function.optimized_call_site_count(), constant_arguments));
+      PRINT_INLINING_TREE("Early heuristic", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -705,8 +716,8 @@ class CallSiteInliner : public ValueObject {
     if (is_recursive_call &&
         inlining_recursion_depth_ >= FLAG_inlining_recursion_depth_threshold) {
       TRACE_INLINING(THR_Print("     Bailout: recursive function\n"));
-      PRINT_INLINING_TREE("Recursive function",
-          &call_data->caller, &function, call_data->call);
+      PRINT_INLINING_TREE("Recursive function", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -725,24 +736,24 @@ class CallSiteInliner : public ValueObject {
 
         if (Compiler::IsBackgroundCompilation()) {
           if (isolate->IsTopLevelParsing() ||
-                  (loading_invalidation_gen_at_start !=
-                   isolate->loading_invalidation_gen())) {
+              (loading_invalidation_gen_at_start !=
+               isolate->loading_invalidation_gen())) {
             // Loading occured while parsing. We need to abort here because
             // state changed while compiling.
-            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-                "Loading occured while parsing in inliner");
+            Compiler::AbortBackgroundCompilation(
+                Thread::kNoDeoptId, "Loading occured while parsing in inliner");
           }
         }
 
         // Load IC data for the callee.
         ZoneGrowableArray<const ICData*>* ic_data_array =
-              new(Z) ZoneGrowableArray<const ICData*>();
+            new (Z) ZoneGrowableArray<const ICData*>();
         const bool clone_ic_data = Compiler::IsBackgroundCompilation();
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
         if (Compiler::IsBackgroundCompilation() &&
             (function.ic_data_array() == Array::null())) {
           Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-              "ICData cleared while inlining");
+                                               "ICData cleared while inlining");
         }
 
         // Parse the callee function.
@@ -755,27 +766,22 @@ class CallSiteInliner : public ValueObject {
 
         // Build the callee graph.
         InlineExitCollector* exit_collector =
-            new(Z) InlineExitCollector(caller_graph_, call);
+            new (Z) InlineExitCollector(caller_graph_, call);
         FlowGraph* callee_graph;
         if (UseKernelFrontEndFor(parsed_function)) {
           kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
               parsed_function->function().kernel_function());
 
-          kernel::FlowGraphBuilder builder(node,
-                                           parsed_function,
-                                           *ic_data_array,
-                                           exit_collector,
-                                           Compiler::kNoOSRDeoptId,
-                                           caller_graph_->max_block_id() + 1);
+          kernel::FlowGraphBuilder builder(
+              node, parsed_function, *ic_data_array, exit_collector,
+              Compiler::kNoOSRDeoptId, caller_graph_->max_block_id() + 1);
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();
           }
         } else {
-          FlowGraphBuilder builder(*parsed_function,
-                                   *ic_data_array,
-                                   exit_collector,
-                                   Compiler::kNoOSRDeoptId);
+          FlowGraphBuilder builder(*parsed_function, *ic_data_array,
+                                   exit_collector, Compiler::kNoOSRDeoptId);
           builder.SetInitialBlockId(caller_graph_->max_block_id());
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
@@ -788,13 +794,12 @@ class CallSiteInliner : public ValueObject {
         // without linking between the caller and callee graphs.
         // TODO(zerny): Put more information in the stubs, eg, type information.
         ZoneGrowableArray<Definition*>* param_stubs =
-            new(Z) ZoneGrowableArray<Definition*>(
-                function.NumParameters());
+            new (Z) ZoneGrowableArray<Definition*>(function.NumParameters());
 
         // Create a parameter stub for each fixed positional parameter.
         for (intptr_t i = 0; i < function.num_fixed_parameters(); ++i) {
-          param_stubs->Add(CreateParameterStub(i, (*arguments)[i],
-                                               callee_graph));
+          param_stubs->Add(
+              CreateParameterStub(i, (*arguments)[i], callee_graph));
         }
 
         // If the callee has optional parameters, rebuild the argument and stub
@@ -802,15 +807,13 @@ class CallSiteInliner : public ValueObject {
         // parameters.
         if (function.HasOptionalParameters()) {
           TRACE_INLINING(THR_Print("     adjusting for optional parameters\n"));
-          if (!AdjustForOptionalParameters(*parsed_function,
-                                           argument_names,
-                                           arguments,
-                                           param_stubs,
+          if (!AdjustForOptionalParameters(*parsed_function, argument_names,
+                                           arguments, param_stubs,
                                            callee_graph)) {
             function.set_is_inlinable(false);
             TRACE_INLINING(THR_Print("     Bailout: optional arg mismatch\n"));
-            PRINT_INLINING_TREE("Optional arg mismatch",
-                &call_data->caller, &function, call_data->call);
+            PRINT_INLINING_TREE("Optional arg mismatch", &call_data->caller,
+                                &function, call_data->call);
             return false;
           }
         }
@@ -848,7 +851,7 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotOptimizer optimizer(callee_graph,
+            AotOptimizer optimizer(inliner_->precompiler_, callee_graph,
                                    inliner_->use_speculative_inlining_,
                                    inliner_->inlining_black_list_);
             optimizer.PopulateWithICData();
@@ -920,22 +923,22 @@ class CallSiteInliner : public ValueObject {
             function.set_is_inlinable(false);
           }
           thread()->set_deopt_id(prev_deopt_id);
-          TRACE_INLINING(THR_Print("     Bailout: heuristics with "
-                                   "code size:  %" Pd ", "
-                                   "call sites: %" Pd ", "
-                                   "const args: %" Pd "\n",
-                                   size,
-                                   call_site_count,
-                                   constants_count));
-          PRINT_INLINING_TREE("Heuristic fail",
-              &call_data->caller, &function, call_data->call);
+          TRACE_INLINING(
+              THR_Print("     Bailout: heuristics with "
+                        "code size:  %" Pd ", "
+                        "call sites: %" Pd ", "
+                        "const args: %" Pd "\n",
+                        size, call_site_count, constants_count));
+          PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
+                              call_data->call);
           return false;
         }
 
         // Inline dispatcher methods regardless of the current depth.
-        const intptr_t depth =
-            (function.IsInvokeFieldDispatcher() ||
-             function.IsNoSuchMethodDispatcher()) ? 0 : inlining_depth_;
+        const intptr_t depth = (function.IsInvokeFieldDispatcher() ||
+                                function.IsNoSuchMethodDispatcher())
+                                   ? 0
+                                   : inlining_depth_;
         collected_call_sites_->FindCallSites(callee_graph, depth,
                                              &inlined_info_);
 
@@ -961,21 +964,21 @@ class CallSiteInliner : public ValueObject {
         const ZoneGrowableArray<const Field*>& callee_guarded_fields =
             *callee_graph->parsed_function().guarded_fields();
         for (intptr_t i = 0; i < callee_guarded_fields.length(); ++i) {
-          caller_graph()->
-              parsed_function().AddToGuardedFields(callee_guarded_fields[i]);
+          caller_graph()->parsed_function().AddToGuardedFields(
+              callee_guarded_fields[i]);
         }
         // When inlined, we add the deferred prefixes of the callee to the
         // caller's list of deferred prefixes.
         caller_graph()->AddToDeferredPrefixes(
             callee_graph->deferred_prefixes());
 
-        FlowGraphInliner::SetInliningId(callee_graph,
+        FlowGraphInliner::SetInliningId(
+            callee_graph,
             inliner_->NextInlineId(callee_graph->function(),
                                    call_data->call->token_pos(),
                                    call_data->caller_inlining_id_));
         TRACE_INLINING(THR_Print("     Success\n"));
-        PRINT_INLINING_TREE(NULL,
-            &call_data->caller, &function, call);
+        PRINT_INLINING_TREE(NULL, &call_data->caller, &function, call);
         return true;
       } else {
         error = thread()->sticky_error();
@@ -984,13 +987,12 @@ class CallSiteInliner : public ValueObject {
         if (error.IsLanguageError() &&
             (LanguageError::Cast(error).kind() == Report::kBailout)) {
           if (error.raw() == Object::background_compilation_error().raw()) {
-             // Fall through to exit the compilation, and retry it later.
+            // Fall through to exit the compilation, and retry it later.
           } else {
             thread()->set_deopt_id(prev_deopt_id);
-            TRACE_INLINING(THR_Print("     Bailout: %s\n",
-                                     error.ToErrorCString()));
-            PRINT_INLINING_TREE("Bailout",
-                &call_data->caller, &function, call);
+            TRACE_INLINING(
+                THR_Print("     Bailout: %s\n", error.ToErrorCString()));
+            PRINT_INLINING_TREE("Bailout", &call_data->caller, &function, call);
             return false;
           }
         } else {
@@ -1006,8 +1008,7 @@ class CallSiteInliner : public ValueObject {
     // In background compilation we may abort compilation as the state
     // changes while compiling. Propagate that 'error' and retry compilation
     // later.
-    ASSERT(FLAG_precompiled_mode ||
-           Compiler::IsBackgroundCompilation() ||
+    ASSERT(FLAG_precompiled_mode || Compiler::IsBackgroundCompilation() ||
            error.IsUnhandledException());
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
@@ -1017,10 +1018,8 @@ class CallSiteInliner : public ValueObject {
   void PrintInlinedInfo(const Function& top) {
     if (inlined_info_.length() > 0) {
       THR_Print("Inlining into: '%s' growth: %f (%" Pd " -> %" Pd ")\n",
-          top.ToFullyQualifiedCString(),
-          GrowthFactor(),
-          initial_size_,
-          inlined_size_);
+                top.ToFullyQualifiedCString(), GrowthFactor(), initial_size_,
+                inlined_size_);
       PrintInlinedInfoFor(top, 1);
     }
   }
@@ -1050,9 +1049,8 @@ class CallSiteInliner : public ValueObject {
         for (int t = 0; t < depth; t++) {
           THR_Print("  ");
         }
-        THR_Print("%" Pd " %s\n",
-            info.call_instr->GetDeoptId(),
-            info.inlined->ToQualifiedCString());
+        THR_Print("%" Pd " %s\n", info.call_instr->GetDeoptId(),
+                  info.inlined->ToQualifiedCString());
         PrintInlinedInfoFor(*info.inlined, depth + 1);
         call_instructions_printed.Add(info.call_instr->GetDeoptId());
       }
@@ -1070,10 +1068,8 @@ class CallSiteInliner : public ValueObject {
         for (int t = 0; t < depth; t++) {
           THR_Print("  ");
         }
-        THR_Print("NO %" Pd " %s - %s\n",
-            info.call_instr->GetDeoptId(),
-            info.inlined->ToQualifiedCString(),
-            info.bailout_reason);
+        THR_Print("NO %" Pd " %s - %s\n", info.call_instr->GetDeoptId(),
+                  info.inlined->ToQualifiedCString(), info.bailout_reason);
         call_instructions_printed.Add(info.call_instr->GetDeoptId());
       }
     }
@@ -1119,14 +1115,12 @@ class CallSiteInliner : public ValueObject {
       CurrentContextInstr* context = (*defns)[i]->AsCurrentContext();
       if ((context != NULL) && context->HasUses()) {
         ASSERT(call->IsClosureCall());
-        LoadFieldInstr* context_load = new(Z) LoadFieldInstr(
-            new Value((*arguments)[0]->definition()),
-            Closure::context_offset(),
+        LoadFieldInstr* context_load = new (Z) LoadFieldInstr(
+            new Value((*arguments)[0]->definition()), Closure::context_offset(),
             AbstractType::ZoneHandle(zone(), AbstractType::null()),
             call_data->call->token_pos());
         context_load->set_is_immutable(true);
-        context_load->set_ssa_temp_index(
-            caller_graph_->alloc_ssa_temp_index());
+        context_load->set_ssa_temp_index(caller_graph_->alloc_ssa_temp_index());
         context_load->InsertBefore(callee_entry->next());
         context->ReplaceUsesWith(context_load);
       }
@@ -1156,7 +1150,7 @@ class CallSiteInliner : public ValueObject {
     }
     *in_cache = false;
     ParsedFunction* parsed_function =
-        new(Z) ParsedFunction(thread(), function);
+        new (Z) ParsedFunction(thread(), function);
     if (!UseKernelFrontEndFor(parsed_function)) {
       Parser::ParseFunction(parsed_function);
       parsed_function->AllocateVariables();
@@ -1173,13 +1167,12 @@ class CallSiteInliner : public ValueObject {
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
-        TRACE_INLINING(THR_Print(
-            "  => %s (deopt count %d)\n     Bailout: cold %f\n",
-            target.ToCString(),
-            target.deoptimization_counter(),
-            call_info[call_idx].ratio));
-        PRINT_INLINING_TREE("Too cold",
-            &call_info[call_idx].caller(), &call->function(), call);
+        TRACE_INLINING(
+            THR_Print("  => %s (deopt count %d)\n     Bailout: cold %f\n",
+                      target.ToCString(), target.deoptimization_counter(),
+                      call_info[call_idx].ratio));
+        PRINT_INLINING_TREE("Too cold", &call_info[call_idx].caller(),
+                            &call->function(), call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -1198,8 +1191,8 @@ class CallSiteInliner : public ValueObject {
   void InlineClosureCalls() {
     const GrowableArray<CallSites::ClosureCallInfo>& call_info =
         inlining_call_sites_->closure_calls();
-    TRACE_INLINING(THR_Print("  Closure Calls (%" Pd ")\n",
-        call_info.length()));
+    TRACE_INLINING(
+        THR_Print("  Closure Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       ClosureCallInstr* call = call_info[call_idx].call;
       // Find the closure of the callee.
@@ -1213,8 +1206,7 @@ class CallSiteInliner : public ValueObject {
       }
       ConstantInstr* constant =
           call->ArgumentAt(0)->OriginalDefinition()->AsConstant();
-      if ((constant != NULL) &&
-          constant->value().IsClosure()) {
+      if ((constant != NULL) && constant->value().IsClosure()) {
         target ^= Closure::Cast(constant->value()).function();
       }
 
@@ -1229,9 +1221,7 @@ class CallSiteInliner : public ValueObject {
       InlinedCallData call_data(
           call, &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
-      if (TryInlining(target,
-                      call->argument_names(),
-                      &call_data)) {
+      if (TryInlining(target, call->argument_names(), &call_data)) {
         InlineCall(&call_data);
       }
     }
@@ -1247,9 +1237,9 @@ class CallSiteInliner : public ValueObject {
       if (call->with_checks()) {
         // PolymorphicInliner introduces deoptimization paths.
         if (!call->complete() && !FLAG_polymorphic_with_deopt) {
-          TRACE_INLINING(THR_Print(
-              "  => %s\n     Bailout: call with checks\n",
-              call->instance_call()->function_name().ToCString()));
+          TRACE_INLINING(
+              THR_Print("  => %s\n     Bailout: call with checks\n",
+                        call->instance_call()->function_name().ToCString()));
           continue;
         }
         const Function& cl = call_info[call_idx].caller();
@@ -1264,13 +1254,12 @@ class CallSiteInliner : public ValueObject {
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
-        TRACE_INLINING(THR_Print(
-            "  => %s (deopt count %d)\n     Bailout: cold %f\n",
-            target.ToCString(),
-            target.deoptimization_counter(),
-            call_info[call_idx].ratio));
-        PRINT_INLINING_TREE("Too cold",
-            &call_info[call_idx].caller(), &target, call);
+        TRACE_INLINING(
+            THR_Print("  => %s (deopt count %d)\n     Bailout: cold %f\n",
+                      target.ToCString(), target.deoptimization_counter(),
+                      call_info[call_idx].ratio));
+        PRINT_INLINING_TREE("Too cold", &call_info[call_idx].caller(), &target,
+                            call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -1280,8 +1269,7 @@ class CallSiteInliner : public ValueObject {
       InlinedCallData call_data(
           call, &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
-      if (TryInlining(target,
-                      call->instance_call()->argument_names(),
+      if (TryInlining(target, call->instance_call()->argument_names(),
                       &call_data)) {
         InlineCall(&call_data);
       }
@@ -1317,7 +1305,7 @@ class CallSiteInliner : public ValueObject {
       for (intptr_t i = arg_count; i < param_count; ++i) {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);
-        ConstantInstr* constant = new(Z) ConstantInstr(object);
+        ConstantInstr* constant = new (Z) ConstantInstr(object);
         arguments->Add(NULL);
         param_stubs->Add(constant);
       }
@@ -1406,11 +1394,9 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       inlined_variants_(num_variants_),
       non_inlined_variants_(num_variants_),
       inlined_entries_(num_variants_),
-      exit_collector_(new(Z)
-          InlineExitCollector(owner->caller_graph(), call)),
+      exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function),
-      caller_inlining_id_(caller_inlining_id) {
-}
+      caller_inlining_id_(caller_inlining_id) {}
 
 
 Isolate* PolymorphicInliner::isolate() const {
@@ -1462,7 +1448,7 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
             new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                  old_target->try_index());
         new_target->InheritDeoptTarget(zone(), new_join);
-        GotoInstr* new_goto = new(Z) GotoInstr(new_join);
+        GotoInstr* new_goto = new (Z) GotoInstr(new_join);
         new_goto->InheritDeoptTarget(zone(), new_join);
         new_target->LinkTo(new_goto);
         new_target->set_last_instruction(new_goto);
@@ -1497,7 +1483,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 
 bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
-                                        const Function& target) {
+                                         const Function& target) {
   if ((!FLAG_precompiled_mode ||
        owner_->inliner_->use_speculative_inlining()) &&
       TryInlineRecognizedMethod(receiver_cid, target)) {
@@ -1509,11 +1495,9 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
   }
-  InlinedCallData call_data(call_, &arguments,
-                            caller_function_,
+  InlinedCallData call_data(call_, &arguments, caller_function_,
                             caller_inlining_id_);
-  if (!owner_->TryInlining(target,
-                           call_->instance_call()->argument_names(),
+  if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),
                            &call_data)) {
     return false;
   }
@@ -1528,8 +1512,7 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
   // hoisted above the inlined entry.
   ASSERT(arguments.length() > 0);
   Value* actual = arguments[0];
-  RedefinitionInstr* redefinition = new(Z)
-      RedefinitionInstr(actual->Copy(Z));
+  RedefinitionInstr* redefinition = new (Z) RedefinitionInstr(actual->Copy(Z));
   redefinition->set_ssa_temp_index(
       owner_->caller_graph()->alloc_ssa_temp_index());
   redefinition->UpdateType(CompileType::FromCid(receiver_cid));
@@ -1555,11 +1538,10 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
     CurrentContextInstr* context = (*defns)[i]->AsCurrentContext();
     if ((context != NULL) && context->HasUses()) {
       ASSERT(call_data.call->IsClosureCall());
-      LoadFieldInstr* context_load = new(Z) LoadFieldInstr(
-          new Value(redefinition),
-          Closure::context_offset(),
-          AbstractType::ZoneHandle(zone(), AbstractType::null()),
-          call_data.call->token_pos());
+      LoadFieldInstr* context_load = new (Z)
+          LoadFieldInstr(new Value(redefinition), Closure::context_offset(),
+                         AbstractType::ZoneHandle(zone(), AbstractType::null()),
+                         call_data.call->token_pos());
       context_load->set_is_immutable(true);
       context_load->set_ssa_temp_index(
           owner_->caller_graph()->alloc_ssa_temp_index());
@@ -1571,8 +1553,7 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
 }
 
 
-static Instruction* AppendInstruction(Instruction* first,
-                                      Instruction* second) {
+static Instruction* AppendInstruction(Instruction* first, Instruction* second) {
   for (intptr_t i = second->InputCount() - 1; i >= 0; --i) {
     Value* input = second->InputAt(i);
     input->definition()->AddInputUse(input);
@@ -1590,40 +1571,31 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   // the inlined body from being hoisted above the inlined entry.
   GrowableArray<Definition*> arguments(call_->ArgumentCount());
   Definition* receiver = call_->ArgumentAt(0);
-    RedefinitionInstr* redefinition =
-        new(Z) RedefinitionInstr(new(Z) Value(receiver));
-    redefinition->set_ssa_temp_index(
-        owner_->caller_graph()->alloc_ssa_temp_index());
+  RedefinitionInstr* redefinition =
+      new (Z) RedefinitionInstr(new (Z) Value(receiver));
+  redefinition->set_ssa_temp_index(
+      owner_->caller_graph()->alloc_ssa_temp_index());
   if (FlowGraphInliner::TryInlineRecognizedMethod(
-          owner_->caller_graph(),
-          receiver_cid,
-          target,
-          call_,
-          redefinition,
+          owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->instance_call()->token_pos(),
-          *call_->instance_call()->ic_data(),
-          &entry, &last)) {
+          *call_->instance_call()->ic_data(), &entry, &last)) {
     // Create a graph fragment.
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
-        new(Z) InlineExitCollector(owner_->caller_graph(), call_);
+        new (Z) InlineExitCollector(owner_->caller_graph(), call_);
 
-    ReturnInstr* result =
-        new(Z) ReturnInstr(call_->instance_call()->token_pos(),
-            new(Z) Value(last));
+    ReturnInstr* result = new (Z)
+        ReturnInstr(call_->instance_call()->token_pos(), new (Z) Value(last));
     owner_->caller_graph()->AppendTo(
-        last,
-        result,
+        last, result,
         call_->env(),  // Return can become deoptimization target.
         FlowGraph::kEffect);
     entry->set_last_instruction(result);
     exit_collector->AddExit(result);
     ParsedFunction* temp_parsed_function =
         new ParsedFunction(Thread::Current(), target);
-    GraphEntryInstr* graph_entry =
-        new(Z) GraphEntryInstr(*temp_parsed_function,
-                               entry,
-                               Compiler::kNoOSRDeoptId);
+    GraphEntryInstr* graph_entry = new (Z)
+        GraphEntryInstr(*temp_parsed_function, entry, Compiler::kNoOSRDeoptId);
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);
@@ -1642,9 +1614,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
 TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   // Start with a fresh target entry.
   TargetEntryInstr* entry =
-      new(Z) TargetEntryInstr(
-          owner_->caller_graph()->allocate_block_id(),
-          call_->GetBlock()->try_index());
+      new (Z) TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
+                               call_->GetBlock()->try_index());
   entry->InheritDeoptTarget(zone(), call_);
 
   // This function uses a cursor (a pointer to the 'current' instruction) to
@@ -1657,7 +1628,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   // There are at least two variants including non-inlined ones, so we have
   // at least one branch on the class id.
   LoadClassIdInstr* load_cid =
-      new(Z) LoadClassIdInstr(new(Z) Value(receiver));
+      new (Z) LoadClassIdInstr(new (Z) Value(receiver));
   load_cid->set_ssa_temp_index(owner_->caller_graph()->alloc_ssa_temp_index());
   cursor = AppendInstruction(cursor, load_cid);
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
@@ -1669,14 +1640,13 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       // we know that we have covered all possible classes.
       if (!call_->complete()) {
         RedefinitionInstr* cid_redefinition =
-            new RedefinitionInstr(new(Z) Value(load_cid));
+            new RedefinitionInstr(new (Z) Value(load_cid));
         cid_redefinition->set_ssa_temp_index(
             owner_->caller_graph()->alloc_ssa_temp_index());
         cursor = AppendInstruction(cursor, cid_redefinition);
-        CheckClassIdInstr* check_class_id = new(Z) CheckClassIdInstr(
-            new(Z) Value(cid_redefinition),
-            inlined_variants_[i].cid,
-            call_->deopt_id());
+        CheckClassIdInstr* check_class_id = new (Z)
+            CheckClassIdInstr(new (Z) Value(cid_redefinition),
+                              inlined_variants_[i].cid, call_->deopt_id());
         check_class_id->InheritDeoptTarget(zone(), call_);
         cursor = AppendInstruction(cursor, check_class_id);
       }
@@ -1688,8 +1658,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       if (callee_entry->IsGraphEntry()) {
         // Unshared.  Graft the normal entry on after the check class
         // instruction.
-        TargetEntryInstr* target =
-            callee_entry->AsGraphEntry()->normal_entry();
+        TargetEntryInstr* target = callee_entry->AsGraphEntry()->normal_entry();
         cursor->LinkTo(target->next());
         target->ReplaceAsPredecessorWith(current_block);
         // Unuse all inputs of the graph entry and the normal entry. They are
@@ -1698,9 +1667,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         target->UnuseAllInputs();
         // All blocks that were dominated by the normal entry are now
         // dominated by the current block.
-        for (intptr_t j = 0;
-             j < target->dominated_blocks().length();
-             ++j) {
+        for (intptr_t j = 0; j < target->dominated_blocks().length(); ++j) {
           BlockEntryInstr* block = target->dominated_blocks()[j];
           current_block->AddDominatedBlock(block);
         }
@@ -1727,12 +1694,10 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       ConstantInstr* cid_constant = new ConstantInstr(cid);
       cid_constant->set_ssa_temp_index(
           owner_->caller_graph()->alloc_ssa_temp_index());
-      StrictCompareInstr* compare =
-          new StrictCompareInstr(call_->instance_call()->token_pos(),
-                                 Token::kEQ_STRICT,
-                                 new Value(load_cid),
-                                 new Value(cid_constant),
-                                 false);  // No number check.
+      StrictCompareInstr* compare = new StrictCompareInstr(
+          call_->instance_call()->token_pos(), Token::kEQ_STRICT,
+          new Value(load_cid), new Value(cid_constant),
+          false);  // No number check.
       BranchInstr* branch = new BranchInstr(compare);
       branch->InheritDeoptTarget(zone(), call_);
       AppendInstruction(AppendInstruction(cursor, cid_constant), branch);
@@ -1753,8 +1718,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         // Shared inlined body and this is the first entry.  We have already
         // constructed a join and this target jumps to it.
         true_target = callee_entry->AsTargetEntry();
-        BlockEntryInstr* join =
-            true_target->last_instruction()->SuccessorAt(0);
+        BlockEntryInstr* join = true_target->last_instruction()->SuccessorAt(0);
         current_block->AddDominatedBlock(join);
       } else {
         // Shared inlined body and this is a subsequent entry.  We have
@@ -1798,33 +1762,28 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cursor = push;
     }
     const ICData& old_checks = call_->ic_data();
-    const ICData& new_checks = ICData::ZoneHandle(
-        ICData::New(Function::Handle(old_checks.Owner()),
-                    String::Handle(old_checks.target_name()),
-                    Array::Handle(old_checks.arguments_descriptor()),
-                    old_checks.deopt_id(),
-                    1,        // Number of args tested.
-                    false));  // is_static_call
+    const ICData& new_checks = ICData::ZoneHandle(ICData::New(
+        Function::Handle(old_checks.Owner()),
+        String::Handle(old_checks.target_name()),
+        Array::Handle(old_checks.arguments_descriptor()), old_checks.deopt_id(),
+        1,        // Number of args tested.
+        false));  // is_static_call
     for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {
       new_checks.AddReceiverCheck(non_inlined_variants_[i].cid,
                                   *non_inlined_variants_[i].target,
                                   non_inlined_variants_[i].count);
     }
     PolymorphicInstanceCallInstr* fallback_call =
-        new PolymorphicInstanceCallInstr(call_->instance_call(),
-                                         new_checks,
+        new PolymorphicInstanceCallInstr(call_->instance_call(), new_checks,
                                          /* with_checks = */ true,
                                          call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
-    ReturnInstr* fallback_return =
-        new ReturnInstr(call_->instance_call()->token_pos(),
-                        new Value(fallback_call));
-    fallback_return->InheritDeoptTargetAfter(
-        owner_->caller_graph(),
-        call_,
-        fallback_call);
+    ReturnInstr* fallback_return = new ReturnInstr(
+        call_->instance_call()->token_pos(), new Value(fallback_call));
+    fallback_return->InheritDeoptTargetAfter(owner_->caller_graph(), call_,
+                                             fallback_call);
     AppendInstruction(AppendInstruction(cursor, fallback_call),
                       fallback_return);
     exit_collector_->AddExit(fallback_return);
@@ -1843,8 +1802,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
 
 void PolymorphicInliner::Inline() {
   // Consider the polymorphic variants in order by frequency.
-  FlowGraphCompiler::SortICDataByCount(call_->ic_data(),
-                                       &variants_,
+  FlowGraphCompiler::SortICDataByCount(call_->ic_data(), &variants_,
                                        /* drop_smi = */ false);
   for (intptr_t var_idx = 0; var_idx < variants_.length(); ++var_idx) {
     const Function& target = *variants_[var_idx].target;
@@ -1899,14 +1857,16 @@ FlowGraphInliner::FlowGraphInliner(
     GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
     bool use_speculative_inlining,
-    GrowableArray<intptr_t>* inlining_black_list)
+    GrowableArray<intptr_t>* inlining_black_list,
+    Precompiler* precompiler)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
       use_speculative_inlining_(use_speculative_inlining),
-      inlining_black_list_(inlining_black_list) {
+      inlining_black_list_(inlining_black_list),
+      precompiler_(precompiler) {
   ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
 }
 
@@ -1932,10 +1892,8 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
   ASSERT(flow_graph->inlining_id() < 0);
   flow_graph->set_inlining_id(inlining_id);
   for (BlockIterator block_it = flow_graph->postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
-    for (ForwardInstructionIterator it(block_it.Current());
-         !it.Done();
+       !block_it.Done(); block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
          it.Advance()) {
       Instruction* current = it.Current();
       // Do not overwrite owner function.
@@ -1960,8 +1918,8 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   const char* kAlwaysInlineAnnotation = "AlwaysInline";
   if (FLAG_enable_inlining_annotations &&
       HasAnnotation(function, kAlwaysInlineAnnotation)) {
-    TRACE_INLINING(THR_Print("AlwaysInline annotation for %s\n",
-                             function.ToCString()));
+    TRACE_INLINING(
+        THR_Print("AlwaysInline annotation for %s\n", function.ToCString()));
     return true;
   }
 
@@ -1991,11 +1949,10 @@ void FlowGraphInliner::Inline() {
 
   TRACE_INLINING(THR_Print("Inlining calls in %s\n", top.ToCString()));
 
-  if (FLAG_support_il_printer &&
-      trace_inlining() &&
+  if (FLAG_support_il_printer && trace_inlining() &&
       (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
-    THR_Print("Before Inlining of %s\n", flow_graph_->
-              function().ToFullyQualifiedCString());
+    THR_Print("Before Inlining of %s\n",
+              flow_graph_->function().ToFullyQualifiedCString());
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
   }
@@ -2012,8 +1969,8 @@ void FlowGraphInliner::Inline() {
       THR_Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_support_il_printer &&
           (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
-        THR_Print("After Inlining of %s\n", flow_graph_->
-                  function().ToFullyQualifiedCString());
+        THR_Print("After Inlining of %s\n",
+                  flow_graph_->function().ToFullyQualifiedCString());
         FlowGraphPrinter printer(*flow_graph_);
         printer.PrintBlocks();
       }
@@ -2076,54 +2033,36 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Definition* index,
                                        Instruction** cursor) {
   // Insert array length load and bounds check.
-  LoadFieldInstr* length =
-      new(Z) LoadFieldInstr(
-          new(Z) Value(*array),
-          CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-          Type::ZoneHandle(Z, Type::SmiType()),
-          call->token_pos());
+  LoadFieldInstr* length = new (Z) LoadFieldInstr(
+      new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
+      Type::ZoneHandle(Z, Type::SmiType()), call->token_pos());
   length->set_is_immutable(
       CheckArrayBoundInstr::IsFixedLengthArrayType(array_cid));
   length->set_result_cid(kSmiCid);
   length->set_recognized_kind(
       LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 length,
-                                 NULL,
-                                 FlowGraph::kValue);
+  *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 new(Z) CheckArrayBoundInstr(
-                                     new(Z) Value(length),
-                                     new(Z) Value(index),
-                                     call->deopt_id()),
-                                 call->env(),
-                                 FlowGraph::kEffect);
+  *cursor = flow_graph->AppendTo(
+      *cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(length), new (Z) Value(index),
+                                   call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
-    LoadFieldInstr* elements =
-        new(Z) LoadFieldInstr(
-            new(Z) Value(*array),
-            GrowableObjectArray::data_offset(),
-            Object::dynamic_type(),
-            call->token_pos());
+    LoadFieldInstr* elements = new (Z) LoadFieldInstr(
+        new (Z) Value(*array), GrowableObjectArray::data_offset(),
+        Object::dynamic_type(), call->token_pos());
     elements->set_result_cid(kArrayCid);
-    *cursor = flow_graph->AppendTo(*cursor,
-                                   elements,
-                                   NULL,
-                                   FlowGraph::kValue);
+    *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
     array_cid = kArrayCid;
   } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements =
-        new(Z) LoadUntaggedInstr(new(Z) Value(*array),
-                                 ExternalTypedData::data_offset());
-    *cursor = flow_graph->AppendTo(*cursor,
-                                   elements,
-                                   NULL,
-                                   FlowGraph::kValue);
+    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
+        new (Z) Value(*array), ExternalTypedData::data_offset());
+    *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   }
   return array_cid;
@@ -2137,12 +2076,10 @@ static Instruction* GetCheckClass(FlowGraph* flow_graph,
                                   TokenPosition token_pos) {
   if ((unary_checks.NumberOfUsedChecks() == 1) &&
       unary_checks.HasReceiverClassId(kSmiCid)) {
-    return new(Z) CheckSmiInstr(new(Z) Value(to_check),
-                                deopt_id,
-                                token_pos);
+    return new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id, token_pos);
   }
-  return new(Z) CheckClassInstr(
-      new(Z) Value(to_check), deopt_id, unary_checks, token_pos);
+  return new (Z) CheckClassInstr(new (Z) Value(to_check), deopt_id,
+                                 unary_checks, token_pos);
 }
 
 
@@ -2156,16 +2093,12 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  array_cid = PrepareInlineIndexedOp(flow_graph,
-                                     call,
-                                     array_cid,
-                                     &array,
-                                     index,
+  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
                                      &cursor);
 
   intptr_t deopt_id = Thread::kNoDeoptId;
@@ -2177,23 +2110,16 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   // Array load and return.
   intptr_t index_scale = Instance::ElementSizeFor(array_cid);
-  *last = new(Z) LoadIndexedInstr(new(Z) Value(array),
-                                  new(Z) Value(index),
-                                  index_scale,
-                                  array_cid,
-                                  kAlignedAccess,
-                                  deopt_id,
-                                  call->token_pos());
+  *last = new (Z)
+      LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
+                       array_cid, kAlignedAccess, deopt_id, call->token_pos());
   cursor = flow_graph->AppendTo(
-      cursor,
-      *last,
-      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
+      cursor, *last, deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
-    *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
-    flow_graph->AppendTo(cursor,
-                         *last,
+    *last = new (Z) FloatToDoubleInstr(new (Z) Value(*last), deopt_id);
+    flow_graph->AppendTo(cursor, *last,
                          deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                          FlowGraph::kValue);
   }
@@ -2216,8 +2142,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   Definition* index = call->ArgumentAt(1);
   Definition* stored_value = call->ArgumentAt(2);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   if (flow_graph->isolate()->type_checks()) {
@@ -2230,17 +2156,14 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     switch (array_cid) {
       case kArrayCid:
       case kGrowableObjectArrayCid: {
-        const Class& instantiator_class =  Class::Handle(Z, target.Owner());
+        const Class& instantiator_class = Class::Handle(Z, target.Owner());
         intptr_t type_arguments_field_offset =
             instantiator_class.type_arguments_field_offset();
-        LoadFieldInstr* load_type_args =
-            new(Z) LoadFieldInstr(new(Z) Value(array),
-                                  type_arguments_field_offset,
-                                  Type::ZoneHandle(Z),  // No type.
-                                  call->token_pos());
-        cursor = flow_graph->AppendTo(cursor,
-                                      load_type_args,
-                                      NULL,
+        LoadFieldInstr* load_type_args = new (Z)
+            LoadFieldInstr(new (Z) Value(array), type_arguments_field_offset,
+                           Type::ZoneHandle(Z),  // No type.
+                           call->token_pos());
+        cursor = flow_graph->AppendTo(cursor, load_type_args, NULL,
                                       FlowGraph::kValue);
 
         type_args = load_type_args;
@@ -2257,7 +2180,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       case kTypedDataUint32ArrayCid:
       case kTypedDataInt64ArrayCid:
         ASSERT(value_type.IsIntType());
-        // Fall through.
+      // Fall through.
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid: {
         type_args = flow_graph->constant_null();
@@ -2285,94 +2208,62 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         // TODO(fschneider): Add support for other array types.
         UNREACHABLE();
     }
-    AssertAssignableInstr* assert_value =
-        new(Z) AssertAssignableInstr(token_pos,
-                                     new(Z) Value(stored_value),
-                                     new(Z) Value(type_args),
-                                     value_type,
-                                     Symbols::Value(),
-                                     call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor,
-                                  assert_value,
-                                  call->env(),
+    AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
+        token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
+        value_type, Symbols::Value(), call->deopt_id());
+    cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                   FlowGraph::kValue);
   }
 
-  array_cid = PrepareInlineIndexedOp(flow_graph,
-                                     call,
-                                     array_cid,
-                                     &array,
-                                     index,
+  array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
                                      &cursor);
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
       (RawObject::IsTypedDataClassId(array_cid) ||
        RawObject::IsTypedDataViewClassId(array_cid) ||
-       RawObject::IsExternalTypedDataClassId(array_cid)) ? kNoStoreBarrier
-                                                         : kEmitStoreBarrier;
+       RawObject::IsExternalTypedDataClassId(array_cid))
+          ? kNoStoreBarrier
+          : kEmitStoreBarrier;
 
   // No need to class check stores to Int32 and Uint32 arrays because
   // we insert unboxing instructions below which include a class check.
   if ((array_cid != kTypedDataUint32ArrayCid) &&
-      (array_cid != kTypedDataInt32ArrayCid) &&
-      !value_check.IsNull()) {
+      (array_cid != kTypedDataInt32ArrayCid) && !value_check.IsNull()) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
     // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
     needs_store_barrier = kNoStoreBarrier;
-    Instruction* check = GetCheckClass(flow_graph,
-                                       stored_value,
-                                       value_check,
-                                       call->deopt_id(),
-                                       call->token_pos());
-    cursor = flow_graph->AppendTo(cursor,
-                                  check,
-                                  call->env(),
-                                  FlowGraph::kEffect);
+    Instruction* check = GetCheckClass(flow_graph, stored_value, value_check,
+                                       call->deopt_id(), call->token_pos());
+    cursor =
+        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
   }
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
-    stored_value =
-        new(Z) DoubleToFloatInstr(
-            new(Z) Value(stored_value), call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor,
-                                  stored_value,
-                                  NULL,
-                                  FlowGraph::kValue);
+    stored_value = new (Z)
+        DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
+    cursor =
+        flow_graph->AppendTo(cursor, stored_value, NULL, FlowGraph::kValue);
   } else if (array_cid == kTypedDataInt32ArrayCid) {
-    stored_value = new(Z) UnboxInt32Instr(
-        UnboxInt32Instr::kTruncate,
-        new(Z) Value(stored_value),
-        call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor,
-                                  stored_value,
-                                  call->env(),
+    stored_value =
+        new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
+                                new (Z) Value(stored_value), call->deopt_id());
+    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
   } else if (array_cid == kTypedDataUint32ArrayCid) {
-    stored_value = new(Z) UnboxUint32Instr(
-        new(Z) Value(stored_value),
-        call->deopt_id());
+    stored_value =
+        new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
     ASSERT(stored_value->AsUnboxInteger()->is_truncating());
-    cursor = flow_graph->AppendTo(cursor,
-                                  stored_value,
-                                  call->env(),
+    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
   }
 
   const intptr_t index_scale = Instance::ElementSizeFor(array_cid);
-  *last = new(Z) StoreIndexedInstr(new(Z) Value(array),
-                                   new(Z) Value(index),
-                                   new(Z) Value(stored_value),
-                                   needs_store_barrier,
-                                   index_scale,
-                                   array_cid,
-                                   kAlignedAccess,
-                                   call->deopt_id(),
-                                   call->token_pos());
-  flow_graph->AppendTo(cursor,
-                       *last,
-                       call->env(),
-                       FlowGraph::kEffect);
+  *last = new (Z) StoreIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
+      needs_store_barrier, index_scale, array_cid, kAlignedAccess,
+      call->deopt_id(), call->token_pos());
+  flow_graph->AppendTo(cursor, *last, call->env(), FlowGraph::kEffect);
   return true;
 }
 
@@ -2388,15 +2279,13 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   // Arguments are checked. No need for class check.
-  BinaryDoubleOpInstr* double_bin_op =
-      new(Z) BinaryDoubleOpInstr(op_kind,
-                                 new(Z) Value(left),
-                                 new(Z) Value(right),
-                                 call->deopt_id(), call->token_pos());
+  BinaryDoubleOpInstr* double_bin_op = new (Z)
+      BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
+                          call->deopt_id(), call->token_pos());
   flow_graph->AppendTo(*entry, double_bin_op, call->env(), FlowGraph::kValue);
   *last = double_bin_op;
 
@@ -2414,18 +2303,14 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
   }
   Definition* d = call->ArgumentAt(0);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   // Arguments are checked. No need for class check.
 
-  DoubleTestOpInstr* double_test_op =
-      new(Z) DoubleTestOpInstr(kind,
-                               new(Z) Value(d),
-                               call->deopt_id(),
-                               call->token_pos());
-  flow_graph->AppendTo(
-      *entry, double_test_op, call->env(), FlowGraph::kValue);
+  DoubleTestOpInstr* double_test_op = new (Z) DoubleTestOpInstr(
+      kind, new (Z) Value(d), call->deopt_id(), call->token_pos());
+  flow_graph->AppendTo(*entry, double_test_op, call->env(), FlowGraph::kValue);
   *last = double_test_op;
 
   return true;
@@ -2439,15 +2324,13 @@ static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   // Right arguments is known to be smi: other._bitAndFromSmi(this);
   BinarySmiOpInstr* smi_op =
-      new(Z) BinarySmiOpInstr(Token::kBIT_AND,
-                              new(Z) Value(left),
-                              new(Z) Value(right),
-                              call->deopt_id());
+      new (Z) BinarySmiOpInstr(Token::kBIT_AND, new (Z) Value(left),
+                               new (Z) Value(right), call->deopt_id());
   flow_graph->AppendTo(*entry, smi_op, call->env(), FlowGraph::kValue);
   *last = smi_op;
 
@@ -2464,16 +2347,13 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   Definition* array = call->ArgumentAt(0);
   Definition* value = call->ArgumentAt(1);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
 
   // This is an internal method, no need to check argument types.
-  StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-      offset,
-      new(Z) Value(array),
-      new(Z) Value(value),
-      store_barrier_type,
+  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
+      offset, new (Z) Value(array), new (Z) Value(value), store_barrier_type,
       call->token_pos());
   flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
   *last = store;
@@ -2482,37 +2362,28 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
 }
 
 
-static void PrepareInlineByteArrayBaseOp(
-    FlowGraph* flow_graph,
-    Instruction* call,
-    intptr_t array_cid,
-    intptr_t view_cid,
-    Definition** array,
-    Definition* byte_index,
-    Instruction** cursor) {
-  LoadFieldInstr* length =
-      new(Z) LoadFieldInstr(
-          new(Z) Value(*array),
-          CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-          Type::ZoneHandle(Z, Type::SmiType()),
-          call->token_pos());
+static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
+                                         Instruction* call,
+                                         intptr_t array_cid,
+                                         intptr_t view_cid,
+                                         Definition** array,
+                                         Definition* byte_index,
+                                         Instruction** cursor) {
+  LoadFieldInstr* length = new (Z) LoadFieldInstr(
+      new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
+      Type::ZoneHandle(Z, Type::SmiType()), call->token_pos());
   length->set_is_immutable(true);
   length->set_result_cid(kSmiCid);
   length->set_recognized_kind(
       LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 length,
-                                 NULL,
-                                 FlowGraph::kValue);
+  *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   intptr_t element_size = Instance::ElementSizeFor(array_cid);
   ConstantInstr* bytes_per_element =
       flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
-  BinarySmiOpInstr* len_in_bytes =
-      new(Z) BinarySmiOpInstr(Token::kMUL,
-                              new(Z) Value(length),
-                              new(Z) Value(bytes_per_element),
-                              call->deopt_id());
+  BinarySmiOpInstr* len_in_bytes = new (Z)
+      BinarySmiOpInstr(Token::kMUL, new (Z) Value(length),
+                       new (Z) Value(bytes_per_element), call->deopt_id());
   *cursor = flow_graph->AppendTo(*cursor, len_in_bytes, call->env(),
                                  FlowGraph::kValue);
 
@@ -2522,42 +2393,31 @@ static void PrepareInlineByteArrayBaseOp(
   if (adjustment > 0) {
     ConstantInstr* length_adjustment =
         flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
-    adjusted_length =
-        new(Z) BinarySmiOpInstr(Token::kSUB,
-                                new(Z) Value(len_in_bytes),
-                                new(Z) Value(length_adjustment),
-                                call->deopt_id());
+    adjusted_length = new (Z)
+        BinarySmiOpInstr(Token::kSUB, new (Z) Value(len_in_bytes),
+                         new (Z) Value(length_adjustment), call->deopt_id());
     *cursor = flow_graph->AppendTo(*cursor, adjusted_length, call->env(),
                                    FlowGraph::kValue);
   }
 
   // Check adjusted_length > 0.
-  ConstantInstr* zero =
-      flow_graph->GetConstant(Smi::Handle(Z, Smi::New(0)));
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 new(Z) CheckArrayBoundInstr(
-                                     new(Z) Value(adjusted_length),
-                                     new(Z) Value(zero),
-                                     call->deopt_id()),
-                                 call->env(),
-                                 FlowGraph::kEffect);
+  ConstantInstr* zero = flow_graph->GetConstant(Smi::Handle(Z, Smi::New(0)));
+  *cursor = flow_graph->AppendTo(
+      *cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
+                                   new (Z) Value(zero), call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
   // Check 0 <= byte_index < adjusted_length.
-  *cursor = flow_graph->AppendTo(*cursor,
-                                 new(Z) CheckArrayBoundInstr(
-                                     new(Z) Value(adjusted_length),
-                                     new(Z) Value(byte_index),
-                                     call->deopt_id()),
-                                 call->env(),
-                                 FlowGraph::kEffect);
+  *cursor = flow_graph->AppendTo(
+      *cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
+                                   new (Z) Value(byte_index), call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements =
-        new(Z) LoadUntaggedInstr(new(Z) Value(*array),
-                                 ExternalTypedData::data_offset());
-    *cursor = flow_graph->AppendTo(*cursor,
-                                   elements,
-                                   NULL,
-                                   FlowGraph::kValue);
+    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
+        new (Z) Value(*array), ExternalTypedData::data_offset());
+    *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   }
 }
@@ -2573,18 +2433,13 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   ASSERT(array_cid != kIllegalCid);
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  PrepareInlineByteArrayBaseOp(flow_graph,
-                               call,
-                               array_cid,
-                               view_cid,
-                               &array,
-                               index,
-                               &cursor);
+  PrepareInlineByteArrayBaseOp(flow_graph, call, array_cid, view_cid, &array,
+                               index, &cursor);
 
   intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
@@ -2593,23 +2448,16 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
     deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
-  *last = new(Z) LoadIndexedInstr(new(Z) Value(array),
-                                  new(Z) Value(index),
-                                  1,
-                                  view_cid,
-                                  kUnalignedAccess,
-                                  deopt_id,
-                                  call->token_pos());
+  *last = new (Z)
+      LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), 1, view_cid,
+                       kUnalignedAccess, deopt_id, call->token_pos());
   cursor = flow_graph->AppendTo(
-      cursor,
-      *last,
-      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
+      cursor, *last, deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
-    *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
-    flow_graph->AppendTo(cursor,
-                         *last,
+    *last = new (Z) FloatToDoubleInstr(new (Z) Value(*last), deopt_id);
+    flow_graph->AppendTo(cursor, *last,
                          deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                          FlowGraph::kValue);
   }
@@ -2628,18 +2476,13 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   ASSERT(array_cid != kIllegalCid);
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  PrepareInlineByteArrayBaseOp(flow_graph,
-                               call,
-                               array_cid,
-                               view_cid,
-                               &array,
-                               index,
-                               &cursor);
+  PrepareInlineByteArrayBaseOp(flow_graph, call, array_cid, view_cid, &array,
+                               index, &cursor);
 
   // Extract the instance call so we can use the function_name in the stored
   // value check ICData.
@@ -2661,12 +2504,9 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       // Check that value is always smi.
-      value_check = ICData::New(flow_graph->function(),
-                                i_call->function_name(),
+      value_check = ICData::New(flow_graph->function(), i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Thread::kNoDeoptId,
-                                1,
-                                false);
+                                Thread::kNoDeoptId, 1, false);
       value_check.AddReceiverCheck(kSmiCid, target);
       break;
     }
@@ -2674,46 +2514,35 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataUint32ArrayCid:
       // On 64-bit platforms assume that stored value is always a smi.
       if (kSmiBits >= 32) {
-        value_check = ICData::New(flow_graph->function(),
-                                  i_call->function_name(),
-                                  Object::empty_array(),  // Dummy args. descr.
-                                  Thread::kNoDeoptId,
-                                  1,
-                                  false);
+        value_check =
+            ICData::New(flow_graph->function(), i_call->function_name(),
+                        Object::empty_array(),  // Dummy args. descr.
+                        Thread::kNoDeoptId, 1, false);
         value_check.AddReceiverCheck(kSmiCid, target);
       }
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      value_check = ICData::New(flow_graph->function(),
-                                i_call->function_name(),
+      value_check = ICData::New(flow_graph->function(), i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Thread::kNoDeoptId,
-                                1,
-                                false);
+                                Thread::kNoDeoptId, 1, false);
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
     }
     case kTypedDataInt32x4ArrayCid: {
       // Check that value is always Int32x4.
-      value_check = ICData::New(flow_graph->function(),
-                                i_call->function_name(),
+      value_check = ICData::New(flow_graph->function(), i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Thread::kNoDeoptId,
-                                1,
-                                false);
+                                Thread::kNoDeoptId, 1, false);
       value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
     }
     case kTypedDataFloat32x4ArrayCid: {
       // Check that value is always Float32x4.
-      value_check = ICData::New(flow_graph->function(),
-                                i_call->function_name(),
+      value_check = ICData::New(flow_graph->function(), i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Thread::kNoDeoptId,
-                                1,
-                                false);
+                                Thread::kNoDeoptId, 1, false);
       value_check.AddReceiverCheck(kFloat32x4Cid, target);
       break;
     }
@@ -2724,95 +2553,71 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
 
   Definition* stored_value = call->ArgumentAt(2);
   if (!value_check.IsNull()) {
-    Instruction* check = GetCheckClass(flow_graph,
-                                       stored_value,
-                                       value_check,
-                                       call->deopt_id(),
-                                       call->token_pos());
-    cursor = flow_graph->AppendTo(cursor,
-                                  check,
-                                  call->env(),
-                                  FlowGraph::kEffect);
+    Instruction* check = GetCheckClass(flow_graph, stored_value, value_check,
+                                       call->deopt_id(), call->token_pos());
+    cursor =
+        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
   }
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
-    stored_value = new(Z) DoubleToFloatInstr(
-        new(Z) Value(stored_value), call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor,
-                                  stored_value,
-                                  NULL,
-                                  FlowGraph::kValue);
+    stored_value = new (Z)
+        DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
+    cursor =
+        flow_graph->AppendTo(cursor, stored_value, NULL, FlowGraph::kValue);
   } else if (view_cid == kTypedDataInt32ArrayCid) {
-    stored_value = new(Z) UnboxInt32Instr(
-        UnboxInt32Instr::kTruncate,
-        new(Z) Value(stored_value),
-        call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor,
-                                  stored_value,
-                                  call->env(),
+    stored_value =
+        new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
+                                new (Z) Value(stored_value), call->deopt_id());
+    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
   } else if (view_cid == kTypedDataUint32ArrayCid) {
-    stored_value = new(Z) UnboxUint32Instr(
-        new(Z) Value(stored_value),
-        call->deopt_id());
+    stored_value =
+        new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
     ASSERT(stored_value->AsUnboxInteger()->is_truncating());
-    cursor = flow_graph->AppendTo(cursor,
-                                  stored_value,
-                                  call->env(),
+    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
   }
 
   StoreBarrierType needs_store_barrier = kNoStoreBarrier;
-  *last = new(Z) StoreIndexedInstr(new(Z) Value(array),
-                                   new(Z) Value(index),
-                                   new(Z) Value(stored_value),
-                                   needs_store_barrier,
-                                   1,  // Index scale
-                                   view_cid,
-                                   kUnalignedAccess,
-                                   call->deopt_id(),
-                                   call->token_pos());
+  *last = new (Z) StoreIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
+      needs_store_barrier,
+      1,  // Index scale
+      view_cid, kUnalignedAccess, call->deopt_id(), call->token_pos());
 
-  flow_graph->AppendTo(cursor,
-                       *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                          call->env() : NULL,
-                       FlowGraph::kEffect);
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kEffect);
   return true;
 }
 
 
-
 // Returns the LoadIndexedInstr.
-static Definition* PrepareInlineStringIndexOp(
-    FlowGraph* flow_graph,
-    Instruction* call,
-    intptr_t cid,
-    Definition* str,
-    Definition* index,
-    Instruction* cursor) {
+static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
+                                              Instruction* call,
+                                              intptr_t cid,
+                                              Definition* str,
+                                              Definition* index,
+                                              Instruction* cursor) {
   // Load the length of the string.
   // Treat length loads as mutable (i.e. affected by side effects) to avoid
   // hoisting them since we can't hoist the preceding class-check. This
   // is because of externalization of strings that affects their class-id.
-  LoadFieldInstr* length = new(Z) LoadFieldInstr(
-      new(Z) Value(str),
-      String::length_offset(),
-      Type::ZoneHandle(Z, Type::SmiType()),
-      str->token_pos());
+  LoadFieldInstr* length = new (Z)
+      LoadFieldInstr(new (Z) Value(str), String::length_offset(),
+                     Type::ZoneHandle(Z, Type::SmiType()), str->token_pos());
   length->set_result_cid(kSmiCid);
   length->set_is_immutable(!FLAG_support_externalizable_strings);
   length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
 
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
   // Bounds check.
-  cursor = flow_graph->AppendTo(cursor,
-                                new(Z) CheckArrayBoundInstr(
-                                    new(Z) Value(length),
-                                    new(Z) Value(index),
-                                    call->deopt_id()),
-                                call->env(),
-                                FlowGraph::kEffect);
+  cursor = flow_graph->AppendTo(
+      cursor,
+      new (Z) CheckArrayBoundInstr(new (Z) Value(length), new (Z) Value(index),
+                                   call->deopt_id()),
+      call->env(), FlowGraph::kEffect);
 
   // For external strings: Load backing store.
   if (cid == kExternalOneByteStringCid) {
@@ -2820,27 +2625,20 @@ static Definition* PrepareInlineStringIndexOp(
                                 ExternalOneByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
     str = new LoadUntaggedInstr(
-        new Value(str),
-        RawExternalOneByteString::ExternalData::data_offset());
+        new Value(str), RawExternalOneByteString::ExternalData::data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   } else if (cid == kExternalTwoByteStringCid) {
     str = new LoadUntaggedInstr(new Value(str),
                                 ExternalTwoByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
     str = new LoadUntaggedInstr(
-        new Value(str),
-        RawExternalTwoByteString::ExternalData::data_offset());
+        new Value(str), RawExternalTwoByteString::ExternalData::data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   }
 
-  LoadIndexedInstr* load_indexed = new(Z) LoadIndexedInstr(
-      new(Z) Value(str),
-      new(Z) Value(index),
-      Instance::ElementSizeFor(cid),
-      cid,
-      kAlignedAccess,
-      Thread::kNoDeoptId,
-      call->token_pos());
+  LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
+      new (Z) Value(str), new (Z) Value(index), Instance::ElementSizeFor(cid),
+      cid, kAlignedAccess, Thread::kNoDeoptId, call->token_pos());
 
   cursor = flow_graph->AppendTo(cursor, load_indexed, NULL, FlowGraph::kValue);
   ASSERT(cursor == load_indexed);
@@ -2848,26 +2646,25 @@ static Definition* PrepareInlineStringIndexOp(
 }
 
 
-static bool InlineStringBaseCharAt(
-    FlowGraph* flow_graph,
-    Instruction* call,
-    intptr_t cid,
-    TargetEntryInstr** entry,
-    Definition** last) {
+static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
+                                   Instruction* call,
+                                   intptr_t cid,
+                                   TargetEntryInstr** entry,
+                                   Definition** last) {
   if ((cid != kOneByteStringCid) && (cid != kExternalOneByteStringCid)) {
     return false;
   }
   Definition* str = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
 
   *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
 
   OneByteStringFromCharCodeInstr* char_at =
-      new(Z) OneByteStringFromCharCodeInstr(new(Z) Value(*last));
+      new (Z) OneByteStringFromCharCodeInstr(new (Z) Value(*last));
 
   flow_graph->AppendTo(*last, char_at, NULL, FlowGraph::kValue);
   *last = char_at;
@@ -2876,21 +2673,19 @@ static bool InlineStringBaseCharAt(
 }
 
 
-static bool InlineStringCodeUnitAt(
-    FlowGraph* flow_graph,
-    Instruction* call,
-    intptr_t cid,
-    TargetEntryInstr** entry,
-    Definition** last) {
-  ASSERT((cid == kOneByteStringCid) ||
-         (cid == kTwoByteStringCid) ||
+static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
+                                   Instruction* call,
+                                   intptr_t cid,
+                                   TargetEntryInstr** entry,
+                                   Definition** last) {
+  ASSERT((cid == kOneByteStringCid) || (cid == kTwoByteStringCid) ||
          (cid == kExternalOneByteStringCid) ||
          (cid == kExternalTwoByteStringCid));
   Definition* str = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
 
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
 
   *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
@@ -2910,23 +2705,16 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
 
   TargetEntryInstr* entry;
   Definition* last;
-  if (FlowGraphInliner::TryInlineRecognizedMethod(flow_graph,
-                                                  receiver_cid,
-                                                  target,
-                                                  call,
-                                                  call->ArgumentAt(0),
-                                                  call->token_pos(),
-                                                  *call->ic_data(),
-                                                  &entry, &last)) {
+  if (FlowGraphInliner::TryInlineRecognizedMethod(
+          flow_graph, receiver_cid, target, call, call->ArgumentAt(0),
+          call->token_pos(), *call->ic_data(), &entry, &last)) {
     // Insert receiver class check if needed.
     if (MethodRecognizer::PolymorphicTarget(target) ||
         flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
       Instruction* check = GetCheckClass(
-          flow_graph,
-          call->ArgumentAt(0),
+          flow_graph, call->ArgumentAt(0),
           ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
-          call->deopt_id(),
-          call->token_pos());
+          call->deopt_id(), call->token_pos());
       flow_graph->InsertBefore(call, check, call->env(), FlowGraph::kEffect);
     }
 
@@ -2966,14 +2754,9 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     StaticCallInstr* call) {
   TargetEntryInstr* entry;
   Definition* last;
-  if (FlowGraphInliner::TryInlineRecognizedMethod(flow_graph,
-                                                  kIllegalCid,
-                                                  call->function(),
-                                                  call,
-                                                  call->ArgumentAt(0),
-                                                  call->token_pos(),
-                                                  *call->ic_data(),
-                                                  &entry, &last)) {
+  if (FlowGraphInliner::TryInlineRecognizedMethod(
+          flow_graph, kIllegalCid, call->function(), call, call->ArgumentAt(0),
+          call->token_pos(), *call->ic_data(), &entry, &last)) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
       PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -3012,8 +2795,8 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
@@ -3021,16 +2804,15 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat32x4ShuffleY:
     case MethodRecognizer::kFloat32x4ShuffleZ:
     case MethodRecognizer::kFloat32x4ShuffleW: {
-      *last = new(Z) Simd32x4ShuffleInstr(kind,
-                                          new(Z) Value(call->ArgumentAt(0)),
-                                          0,  // mask ignored.
-                                          call->deopt_id());
+      *last =
+          new (Z) Simd32x4ShuffleInstr(kind, new (Z) Value(call->ArgumentAt(0)),
+                                       0,  // mask ignored.
+                                       call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4GetSignMask: {
-      *last = new(Z) Simd32x4GetSignMaskInstr(kind,
-                                              new(Z) Value(call->ArgumentAt(0)),
-                                              call->deopt_id());
+      *last = new (Z) Simd32x4GetSignMaskInstr(
+          kind, new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4Equal:
@@ -3041,20 +2823,16 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat32x4NotEqual: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      *last = new(Z) Float32x4ComparisonInstr(kind,
-                                              new(Z) Value(left),
-                                              new(Z) Value(right),
-                                              call->deopt_id());
+      *last = new (Z) Float32x4ComparisonInstr(
+          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4Min:
     case MethodRecognizer::kFloat32x4Max: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      *last = new(Z) Float32x4MinMaxInstr(kind,
-                                          new(Z) Value(left),
-                                          new(Z) Value(right),
-                                          call->deopt_id());
+      *last = new (Z) Float32x4MinMaxInstr(
+          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4Scale: {
@@ -3063,19 +2841,16 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
       // Left and right values are swapped when handed to the instruction,
       // this is done so that the double value is loaded into the output
       // register and can be destroyed.
-      *last = new(Z) Float32x4ScaleInstr(kind,
-                                         new(Z) Value(right),
-                                         new(Z) Value(left),
-                                         call->deopt_id());
+      *last = new (Z) Float32x4ScaleInstr(
+          kind, new (Z) Value(right), new (Z) Value(left), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4Sqrt:
     case MethodRecognizer::kFloat32x4ReciprocalSqrt:
     case MethodRecognizer::kFloat32x4Reciprocal: {
       Definition* left = call->ArgumentAt(0);
-      *last = new(Z) Float32x4SqrtInstr(kind,
-                                        new(Z) Value(left),
-                                        call->deopt_id());
+      *last = new (Z)
+          Float32x4SqrtInstr(kind, new (Z) Value(left), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4WithX:
@@ -3084,39 +2859,34 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat32x4WithW: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      *last = new(Z) Float32x4WithInstr(kind,
-                                        new(Z) Value(left),
-                                        new(Z) Value(right),
-                                        call->deopt_id());
+      *last = new (Z) Float32x4WithInstr(
+          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4Absolute:
     case MethodRecognizer::kFloat32x4Negate: {
       Definition* left = call->ArgumentAt(0);
-      *last = new(Z) Float32x4ZeroArgInstr(kind,
-                                           new(Z) Value(left),
-                                           call->deopt_id());
+      *last = new (Z)
+          Float32x4ZeroArgInstr(kind, new (Z) Value(left), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat32x4Clamp: {
       Definition* left = call->ArgumentAt(0);
       Definition* lower = call->ArgumentAt(1);
       Definition* upper = call->ArgumentAt(2);
-      *last = new(Z) Float32x4ClampInstr(
-          new(Z) Value(left),
-          new(Z) Value(lower),
-          new(Z) Value(upper),
-          call->deopt_id());
+      *last =
+          new (Z) Float32x4ClampInstr(new (Z) Value(left), new (Z) Value(lower),
+                                      new (Z) Value(upper), call->deopt_id());
       break;
     }
     default:
       UNREACHABLE();
       return false;
   }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
 
@@ -3143,8 +2913,8 @@ static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   Definition* mask_definition = call->ArgumentAt(1);
@@ -3152,15 +2922,12 @@ static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
   if (!CheckMask(mask_definition, &mask)) {
     return false;
   }
-  *last = new(Z) Simd32x4ShuffleInstr(
-      kind,
-      new(Z) Value(call->ArgumentAt(0)),
-      mask,
-      call->deopt_id());
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  *last = new (Z) Simd32x4ShuffleInstr(kind, new (Z) Value(call->ArgumentAt(0)),
+                                       mask, call->deopt_id());
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
 
@@ -3173,8 +2940,8 @@ static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   Definition* mask_definition = call->ArgumentAt(2);
@@ -3182,19 +2949,15 @@ static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
   if (!CheckMask(mask_definition, &mask)) {
     return false;
   }
-  *last = new(Z) Simd32x4ShuffleMixInstr(
-      kind,
-      new(Z) Value(call->ArgumentAt(0)),
-      new(Z) Value(call->ArgumentAt(1)),
-      mask,
-      call->deopt_id());
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  *last = new (Z) Simd32x4ShuffleMixInstr(
+      kind, new (Z) Value(call->ArgumentAt(0)),
+      new (Z) Value(call->ArgumentAt(1)), mask, call->deopt_id());
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
-
 
 
 static bool InlineInt32x4Method(FlowGraph* flow_graph,
@@ -3205,8 +2968,8 @@ static bool InlineInt32x4Method(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
@@ -3214,48 +2977,40 @@ static bool InlineInt32x4Method(FlowGraph* flow_graph,
     case MethodRecognizer::kInt32x4GetFlagY:
     case MethodRecognizer::kInt32x4GetFlagZ:
     case MethodRecognizer::kInt32x4GetFlagW: {
-      *last = new(Z) Int32x4GetFlagInstr(
-          kind,
-          new(Z) Value(call->ArgumentAt(0)),
-          call->deopt_id());
+      *last = new (Z) Int32x4GetFlagInstr(
+          kind, new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
       break;
     }
     case MethodRecognizer::kInt32x4GetSignMask: {
-      *last = new(Z) Simd32x4GetSignMaskInstr(
-          kind,
-          new(Z) Value(call->ArgumentAt(0)),
-          call->deopt_id());
+      *last = new (Z) Simd32x4GetSignMaskInstr(
+          kind, new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
       break;
     }
     case MethodRecognizer::kInt32x4Select: {
       Definition* mask = call->ArgumentAt(0);
       Definition* trueValue = call->ArgumentAt(1);
       Definition* falseValue = call->ArgumentAt(2);
-      *last = new(Z) Int32x4SelectInstr(
-          new(Z) Value(mask),
-          new(Z) Value(trueValue),
-          new(Z) Value(falseValue),
-          call->deopt_id());
+      *last = new (Z)
+          Int32x4SelectInstr(new (Z) Value(mask), new (Z) Value(trueValue),
+                             new (Z) Value(falseValue), call->deopt_id());
       break;
     }
     case MethodRecognizer::kInt32x4WithFlagX:
     case MethodRecognizer::kInt32x4WithFlagY:
     case MethodRecognizer::kInt32x4WithFlagZ:
     case MethodRecognizer::kInt32x4WithFlagW: {
-      *last = new(Z) Int32x4SetFlagInstr(
-          kind,
-          new(Z) Value(call->ArgumentAt(0)),
-          new(Z) Value(call->ArgumentAt(1)),
-          call->deopt_id());
+      *last = new (Z) Int32x4SetFlagInstr(
+          kind, new (Z) Value(call->ArgumentAt(0)),
+          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
       break;
     }
     default:
       return false;
   }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
 
@@ -3268,26 +3023,25 @@ static bool InlineFloat64x2Method(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
     case MethodRecognizer::kFloat64x2GetX:
     case MethodRecognizer::kFloat64x2GetY: {
-      *last = new(Z) Simd64x2ShuffleInstr(
-          kind,
-          new(Z) Value(call->ArgumentAt(0)),
-          0,  // mask is ignored.
-          call->deopt_id());
+      *last =
+          new (Z) Simd64x2ShuffleInstr(kind, new (Z) Value(call->ArgumentAt(0)),
+                                       0,  // mask is ignored.
+                                       call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat64x2Negate:
     case MethodRecognizer::kFloat64x2Abs:
     case MethodRecognizer::kFloat64x2Sqrt:
     case MethodRecognizer::kFloat64x2GetSignMask: {
-      *last = new(Z) Float64x2ZeroArgInstr(
-          kind, new(Z) Value(call->ArgumentAt(0)), call->deopt_id());
+      *last = new (Z) Float64x2ZeroArgInstr(
+          kind, new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
       break;
     }
     case MethodRecognizer::kFloat64x2Scale:
@@ -3297,20 +3051,18 @@ static bool InlineFloat64x2Method(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat64x2Max: {
       Definition* left = call->ArgumentAt(0);
       Definition* right = call->ArgumentAt(1);
-      *last = new(Z) Float64x2OneArgInstr(kind,
-                                          new(Z) Value(left),
-                                          new(Z) Value(right),
-                                          call->deopt_id());
+      *last = new (Z) Float64x2OneArgInstr(
+          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       break;
     }
     default:
       UNREACHABLE();
       return false;
   }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
 
@@ -3323,81 +3075,75 @@ static bool InlineSimdConstructor(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
     case MethodRecognizer::kFloat32x4Zero:
-      *last = new(Z) Float32x4ZeroInstr();
+      *last = new (Z) Float32x4ZeroInstr();
       break;
     case MethodRecognizer::kFloat32x4Splat:
-      *last = new(Z) Float32x4SplatInstr(new(Z) Value(call->ArgumentAt(1)),
-                                         call->deopt_id());
+      *last = new (Z) Float32x4SplatInstr(new (Z) Value(call->ArgumentAt(1)),
+                                          call->deopt_id());
       break;
     case MethodRecognizer::kFloat32x4Constructor:
-      *last = new(Z) Float32x4ConstructorInstr(
-          new(Z) Value(call->ArgumentAt(1)),
-          new(Z) Value(call->ArgumentAt(2)),
-          new(Z) Value(call->ArgumentAt(3)),
-          new(Z) Value(call->ArgumentAt(4)),
-          call->deopt_id());
+      *last = new (Z) Float32x4ConstructorInstr(
+          new (Z) Value(call->ArgumentAt(1)),
+          new (Z) Value(call->ArgumentAt(2)),
+          new (Z) Value(call->ArgumentAt(3)),
+          new (Z) Value(call->ArgumentAt(4)), call->deopt_id());
       break;
     case MethodRecognizer::kFloat32x4FromInt32x4Bits:
-      *last = new(Z) Int32x4ToFloat32x4Instr(new(Z) Value(call->ArgumentAt(1)),
-                                             call->deopt_id());
+      *last = new (Z) Int32x4ToFloat32x4Instr(
+          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
       break;
-    case  MethodRecognizer::kFloat32x4FromFloat64x2:
-      *last = new(Z) Float64x2ToFloat32x4Instr(
-          new(Z) Value(call->ArgumentAt(1)),
-          call->deopt_id());
+    case MethodRecognizer::kFloat32x4FromFloat64x2:
+      *last = new (Z) Float64x2ToFloat32x4Instr(
+          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
       break;
     case MethodRecognizer::kFloat64x2Zero:
-      *last = new(Z) Float64x2ZeroInstr();
+      *last = new (Z) Float64x2ZeroInstr();
       break;
     case MethodRecognizer::kFloat64x2Splat:
-      *last = new(Z) Float64x2SplatInstr(new(Z) Value(call->ArgumentAt(1)),
-                                         call->deopt_id());
+      *last = new (Z) Float64x2SplatInstr(new (Z) Value(call->ArgumentAt(1)),
+                                          call->deopt_id());
       break;
     case MethodRecognizer::kFloat64x2Constructor:
-      *last = new(Z) Float64x2ConstructorInstr(
-          new(Z) Value(call->ArgumentAt(1)),
-          new(Z) Value(call->ArgumentAt(2)),
-          call->deopt_id());
+      *last = new (Z) Float64x2ConstructorInstr(
+          new (Z) Value(call->ArgumentAt(1)),
+          new (Z) Value(call->ArgumentAt(2)), call->deopt_id());
       break;
     case MethodRecognizer::kFloat64x2FromFloat32x4:
-      *last = new(Z) Float32x4ToFloat64x2Instr(
-          new(Z) Value(call->ArgumentAt(1)),
-          call->deopt_id());
+      *last = new (Z) Float32x4ToFloat64x2Instr(
+          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
       break;
     case MethodRecognizer::kInt32x4BoolConstructor:
-      *last = new(Z) Int32x4BoolConstructorInstr(
-          new(Z) Value(call->ArgumentAt(1)),
-          new(Z) Value(call->ArgumentAt(2)),
-          new(Z) Value(call->ArgumentAt(3)),
-          new(Z) Value(call->ArgumentAt(4)),
-          call->deopt_id());
+      *last = new (Z) Int32x4BoolConstructorInstr(
+          new (Z) Value(call->ArgumentAt(1)),
+          new (Z) Value(call->ArgumentAt(2)),
+          new (Z) Value(call->ArgumentAt(3)),
+          new (Z) Value(call->ArgumentAt(4)), call->deopt_id());
       break;
     case MethodRecognizer::kInt32x4Constructor:
-      *last = new(Z) Int32x4ConstructorInstr(
-          new(Z) Value(call->ArgumentAt(1)),
-          new(Z) Value(call->ArgumentAt(2)),
-          new(Z) Value(call->ArgumentAt(3)),
-          new(Z) Value(call->ArgumentAt(4)),
-          call->deopt_id());
+      *last = new (Z) Int32x4ConstructorInstr(
+          new (Z) Value(call->ArgumentAt(1)),
+          new (Z) Value(call->ArgumentAt(2)),
+          new (Z) Value(call->ArgumentAt(3)),
+          new (Z) Value(call->ArgumentAt(4)), call->deopt_id());
       break;
     case MethodRecognizer::kInt32x4FromFloat32x4Bits:
-      *last = new(Z) Float32x4ToInt32x4Instr(new(Z) Value(call->ArgumentAt(1)),
-                                             call->deopt_id());
+      *last = new (Z) Float32x4ToInt32x4Instr(
+          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
       break;
     default:
       UNREACHABLE();
       return false;
   }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
 
@@ -3410,35 +3156,33 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
   if (!CanUnboxDouble()) {
     return false;
   }
-  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                   call->GetBlock()->try_index());
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
   switch (kind) {
     case MethodRecognizer::kMathSqrt: {
-      *last = new(Z) MathUnaryInstr(MathUnaryInstr::kSqrt,
-                                    new(Z) Value(call->ArgumentAt(0)),
-                                    call->deopt_id());
+      *last = new (Z)
+          MathUnaryInstr(MathUnaryInstr::kSqrt,
+                         new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
       break;
     }
     default: {
       ZoneGrowableArray<Value*>* args =
-          new(Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
+          new (Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
       for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-        args->Add(new(Z) Value(call->ArgumentAt(i)));
+        args->Add(new (Z) Value(call->ArgumentAt(i)));
       }
-      *last = new(Z) InvokeMathCFunctionInstr(args,
-                                              call->deopt_id(),
-                                              kind,
-                                              call->token_pos());
+      *last = new (Z) InvokeMathCFunctionInstr(args, call->deopt_id(), kind,
+                                               call->token_pos());
       break;
     }
   }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != Thread::kNoDeoptId ?
-                       call->env() : NULL,
-                       FlowGraph::kValue);
+  flow_graph->AppendTo(
+      cursor, *last,
+      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+      FlowGraph::kValue);
   return true;
 }
 
@@ -3548,132 +3292,113 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                               token_pos, value_check, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt8:
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt8ArrayCid,
-                                     entry, last);
+                                     kTypedDataInt8ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint8:
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint8ArrayCid,
-                                     entry, last);
+                                     kTypedDataUint8ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt16:
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt16ArrayCid,
-                                     entry, last);
+                                     kTypedDataInt16ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint16:
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint16ArrayCid,
-                                     entry, last);
+                                     kTypedDataUint16ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32:
       if (!CanUnboxInt32()) {
         return false;
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32ArrayCid,
-                                     entry, last);
+                                     kTypedDataInt32ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint32:
       if (!CanUnboxInt32()) {
         return false;
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint32ArrayCid,
-                                     entry, last);
+                                     kTypedDataUint32ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32ArrayCid,
-                                     entry, last);
+                                     kTypedDataFloat32ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat64:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64ArrayCid,
-                                     entry, last);
+                                     kTypedDataFloat64ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32x4ArrayCid,
-                                     entry, last);
+                                     kTypedDataFloat32x4ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32x4ArrayCid,
-                                     entry, last);
+                                     kTypedDataInt32x4ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt8:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataInt8ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint8:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataUint8ArrayCid,
+                                      receiver_cid, kTypedDataUint8ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt16:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataInt16ArrayCid,
+                                      receiver_cid, kTypedDataInt16ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint16:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataUint16ArrayCid,
+                                      receiver_cid, kTypedDataUint16ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataInt32ArrayCid,
+                                      receiver_cid, kTypedDataInt32ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataUint32ArrayCid,
+                                      receiver_cid, kTypedDataUint32ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataFloat32ArrayCid,
+                                      receiver_cid, kTypedDataFloat32ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat64:
       if (!CanUnboxDouble()) {
         return false;
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataFloat64ArrayCid,
+                                      receiver_cid, kTypedDataFloat64ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataFloat32x4ArrayCid,
+                                      receiver_cid, kTypedDataFloat32x4ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
-                                      receiver_cid,
-                                      kTypedDataInt32x4ArrayCid,
+                                      receiver_cid, kTypedDataInt32x4ArrayCid,
                                       entry, last);
     case MethodRecognizer::kOneByteStringCodeUnitAt:
     case MethodRecognizer::kTwoByteStringCodeUnitAt:
     case MethodRecognizer::kExternalOneByteStringCodeUnitAt:
     case MethodRecognizer::kExternalTwoByteStringCodeUnitAt:
-      return InlineStringCodeUnitAt(
-          flow_graph, call, receiver_cid, entry, last);
+      return InlineStringCodeUnitAt(flow_graph, call, receiver_cid, entry,
+                                    last);
     case MethodRecognizer::kStringBaseCharAt:
-      return InlineStringBaseCharAt(
-          flow_graph, call, receiver_cid, entry, last);
+      return InlineStringBaseCharAt(flow_graph, call, receiver_cid, entry,
+                                    last);
     case MethodRecognizer::kDoubleAdd:
       return InlineDoubleOp(flow_graph, Token::kADD, call, entry, last);
     case MethodRecognizer::kDoubleSub:
@@ -3688,15 +3413,15 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kGrowableArraySetData:
       ASSERT(receiver_cid == kGrowableObjectArrayCid);
       ASSERT(ic_data.NumberOfChecks() == 1);
-      return InlineGrowableArraySetter(
-          flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
-          call, entry, last);
+      return InlineGrowableArraySetter(flow_graph,
+                                       GrowableObjectArray::data_offset(),
+                                       kEmitStoreBarrier, call, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
       ASSERT(receiver_cid == kGrowableObjectArrayCid);
       ASSERT(ic_data.NumberOfChecks() == 1);
-      return InlineGrowableArraySetter(
-          flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
-          call, entry, last);
+      return InlineGrowableArraySetter(flow_graph,
+                                       GrowableObjectArray::length_offset(),
+                                       kNoStoreBarrier, call, entry, last);
     case MethodRecognizer::kSmi_bitAndFromSmi:
       return InlineSmiBitAndFromSmi(flow_graph, call, entry, last);
 
@@ -3784,8 +3509,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return InlineMathCFunction(flow_graph, call, kind, entry, last);
 
     case MethodRecognizer::kObjectConstructor: {
-      *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                       call->GetBlock()->try_index());
+      *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                        call->GetBlock()->try_index());
       (*entry)->InheritDeoptTarget(Z, call);
       ASSERT(!call->HasUses());
       *last = NULL;  // Empty body.
@@ -3793,24 +3518,53 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     }
 
     case MethodRecognizer::kObjectArrayAllocate: {
-      Value* num_elements = new(Z) Value(call->ArgumentAt(1));
+      Value* num_elements = new (Z) Value(call->ArgumentAt(1));
       if (num_elements->BindsToConstant() &&
           num_elements->BoundConstant().IsSmi()) {
-        intptr_t length =
-            Smi::Cast(num_elements->BoundConstant()).Value();
+        intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
         if (length >= 0 && length <= Array::kMaxElements) {
-          Value* type = new(Z) Value(call->ArgumentAt(0));
-          *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                           call->GetBlock()->try_index());
+          Value* type = new (Z) Value(call->ArgumentAt(0));
+          *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                            call->GetBlock()->try_index());
           (*entry)->InheritDeoptTarget(Z, call);
           *last =
-              new(Z) CreateArrayInstr(call->token_pos(), type, num_elements);
-          flow_graph->AppendTo(*entry, *last,
-                               call->deopt_id() != Thread::kNoDeoptId ?
-                               call->env() : NULL,
-                               FlowGraph::kValue);
+              new (Z) CreateArrayInstr(call->token_pos(), type, num_elements);
+          flow_graph->AppendTo(
+              *entry, *last,
+              call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+              FlowGraph::kValue);
           return true;
         }
+      }
+      return false;
+    }
+
+    case MethodRecognizer::kObjectRuntimeType: {
+      Type& type = Type::ZoneHandle(Z);
+      if (RawObject::IsStringClassId(receiver_cid)) {
+        type = Type::StringType();
+      } else if (receiver_cid == kDoubleCid) {
+        type = Type::Double();
+      } else if (RawObject::IsIntegerClassId(receiver_cid)) {
+        type = Type::IntType();
+      } else if (receiver_cid != kClosureCid) {
+        const Class& cls = Class::Handle(
+            Z, flow_graph->isolate()->class_table()->At(receiver_cid));
+        if (!cls.IsGeneric()) {
+          type = cls.CanonicalType();
+        }
+      }
+
+      if (!type.IsNull()) {
+        *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                          call->GetBlock()->try_index());
+        (*entry)->InheritDeoptTarget(Z, call);
+        *last = new (Z) ConstantInstr(type);
+        flow_graph->AppendTo(
+            *entry, *last,
+            call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+            FlowGraph::kValue);
+        return true;
       }
       return false;
     }
@@ -3818,27 +3572,22 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kOneByteStringSetAt: {
       // This is an internal method, no need to check argument types nor
       // range.
-      *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                       call->GetBlock()->try_index());
+      *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                        call->GetBlock()->try_index());
       (*entry)->InheritDeoptTarget(Z, call);
       Definition* str = call->ArgumentAt(0);
       Definition* index = call->ArgumentAt(1);
       Definition* value = call->ArgumentAt(2);
-      *last = new(Z) StoreIndexedInstr(
-          new(Z) Value(str),
-          new(Z) Value(index),
-          new(Z) Value(value),
-          kNoStoreBarrier,
-          1,  // Index scale
-          kOneByteStringCid,
-          kAlignedAccess,
-          call->deopt_id(),
-          call->token_pos());
-      flow_graph->AppendTo(*entry,
-                           *last,
-                           call->deopt_id() != Thread::kNoDeoptId ?
-                              call->env() : NULL,
-                           FlowGraph::kEffect);
+      *last =
+          new (Z) StoreIndexedInstr(new (Z) Value(str), new (Z) Value(index),
+                                    new (Z) Value(value), kNoStoreBarrier,
+                                    1,  // Index scale
+                                    kOneByteStringCid, kAlignedAccess,
+                                    call->deopt_id(), call->token_pos());
+      flow_graph->AppendTo(
+          *entry, *last,
+          call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+          FlowGraph::kEffect);
       return true;
     }
 
@@ -3849,3 +3598,4 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
 
 
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

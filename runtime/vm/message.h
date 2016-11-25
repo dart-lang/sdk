@@ -87,9 +87,7 @@ class Message {
     ASSERT(len_ > 0);
     return data_;
   }
-  intptr_t len() const {
-    return len_;
-  }
+  intptr_t len() const { return len_; }
   RawObject* raw_obj() const {
     ASSERT(len_ == 0);
     return reinterpret_cast<RawObject*>(data_);

@@ -170,19 +170,16 @@ class MonitorLocker : public ValueObject {
   }
 
   Monitor::WaitResult WaitWithSafepointCheck(
-      Thread* thread, int64_t millis = Monitor::kNoTimeout);
+      Thread* thread,
+      int64_t millis = Monitor::kNoTimeout);
 
   Monitor::WaitResult WaitMicros(int64_t micros = Monitor::kNoTimeout) {
     return monitor_->WaitMicros(micros);
   }
 
-  void Notify() {
-    monitor_->Notify();
-  }
+  void Notify() { monitor_->Notify(); }
 
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
+  void NotifyAll() { monitor_->NotifyAll(); }
 
  private:
   Monitor* const monitor_;
@@ -212,9 +209,7 @@ class MonitorLocker : public ValueObject {
 class SafepointMutexLocker : public ValueObject {
  public:
   explicit SafepointMutexLocker(Mutex* mutex);
-  virtual ~SafepointMutexLocker() {
-    mutex_->Unlock();
-  }
+  virtual ~SafepointMutexLocker() { mutex_->Unlock(); }
 
  private:
   Mutex* const mutex_;
@@ -243,9 +238,7 @@ class SafepointMutexLocker : public ValueObject {
 class SafepointMonitorLocker : public ValueObject {
  public:
   explicit SafepointMonitorLocker(Monitor* monitor);
-  virtual ~SafepointMonitorLocker() {
-    monitor_->Exit();
-  }
+  virtual ~SafepointMonitorLocker() { monitor_->Exit(); }
 
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 

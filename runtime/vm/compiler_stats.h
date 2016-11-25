@@ -32,7 +32,7 @@ DECLARE_FLAG(bool, compiler_benchmark);
   V(graphinliner_subst_timer, "inliner substitution timer")                    \
   V(graphoptimizer_timer, "flow graph optimizer timer")                        \
   V(graphcompiler_timer, "flow graph compiler timer")                          \
-  V(codefinalizer_timer, "code finalization timer")                            \
+  V(codefinalizer_timer, "code finalization timer")
 
 
 #define STAT_COUNTERS(V)                                                       \
@@ -54,23 +54,23 @@ DECLARE_FLAG(bool, compiler_benchmark);
   V(total_code_size)                                                           \
   V(total_instr_size)                                                          \
   V(pc_desc_size)                                                              \
-  V(vardesc_size)                                                              \
+  V(vardesc_size)
 
 class CompilerStats {
  public:
   explicit CompilerStats(Isolate* isolate);
-  ~CompilerStats() { }
+  ~CompilerStats() {}
 
   Isolate* isolate_;
 
   // We could use STAT_TIMERS and STAT_COUNTERS to declare fields, but then
   // we would be losing the comments.
-  Timer parser_timer;         // Cumulative runtime of parser.
-  Timer scanner_timer;        // Cumulative runtime of scanner.
-  Timer codegen_timer;        // Cumulative runtime of code generator.
-  Timer graphbuilder_timer;   // Included in codegen_timer.
-  Timer ssa_timer;            // Included in codegen_timer.
-  Timer graphinliner_timer;   // Included in codegen_timer.
+  Timer parser_timer;              // Cumulative runtime of parser.
+  Timer scanner_timer;             // Cumulative runtime of scanner.
+  Timer codegen_timer;             // Cumulative runtime of code generator.
+  Timer graphbuilder_timer;        // Included in codegen_timer.
+  Timer ssa_timer;                 // Included in codegen_timer.
+  Timer graphinliner_timer;        // Included in codegen_timer.
   Timer graphinliner_parse_timer;  // Included in codegen_timer.
   Timer graphinliner_build_timer;  // Included in codegen_timer.
   Timer graphinliner_ssa_timer;    // Included in codegen_timer.
@@ -81,7 +81,7 @@ class CompilerStats {
   Timer graphcompiler_timer;   // Included in codegen_timer.
   Timer codefinalizer_timer;   // Included in codegen_timer.
 
-  int64_t num_tokens_total;    // Isolate + VM isolate
+  int64_t num_tokens_total;  // Isolate + VM isolate
   int64_t num_tokens_scanned;
   int64_t num_tokens_consumed;
   int64_t num_cached_consts;
@@ -90,16 +90,16 @@ class CompilerStats {
 
   int64_t num_classes_parsed;
   int64_t num_class_tokens;
-  int64_t num_functions_parsed;      // Num parsed functions.
-  int64_t num_functions_compiled;    // Num unoptimized compilations.
-  int64_t num_functions_optimized;   // Num optimized compilations.
+  int64_t num_functions_parsed;     // Num parsed functions.
+  int64_t num_functions_compiled;   // Num unoptimized compilations.
+  int64_t num_functions_optimized;  // Num optimized compilations.
   int64_t num_func_tokens_compiled;
   int64_t num_implicit_final_getters;
   int64_t num_method_extractors;
 
-  int64_t src_length;          // Total number of characters in source.
-  int64_t total_code_size;     // Bytes allocated for code and meta info.
-  int64_t total_instr_size;    // Total size of generated code in bytes.
+  int64_t src_length;        // Total number of characters in source.
+  int64_t total_code_size;   // Bytes allocated for code and meta info.
+  int64_t total_instr_size;  // Total size of generated code in bytes.
   int64_t pc_desc_size;
   int64_t vardesc_size;
   char* text;
@@ -125,19 +125,21 @@ class CompilerStats {
 // other thread.
 #define INC_STAT(thread, counter, incr)                                        \
   if (FLAG_support_compiler_stats && FLAG_compiler_stats) {                    \
-    AtomicOperations::IncrementInt64By(                                        \
-        &(thread)->compiler_stats()->counter, (incr));                         \
+    AtomicOperations::IncrementInt64By(&(thread)->compiler_stats()->counter,   \
+                                       (incr));                                \
   }
 
 #define STAT_VALUE(thread, counter)                                            \
-  ((FLAG_support_compiler_stats && FLAG_compiler_stats) ?                      \
-      (thread)->compiler_stats()->counter : 0)
+  ((FLAG_support_compiler_stats && FLAG_compiler_stats)                        \
+       ? (thread)->compiler_stats()->counter                                   \
+       : 0)
 
 #define CSTAT_TIMER_SCOPE(thr, t)                                              \
-  TimerScope timer(FLAG_support_compiler_stats && FLAG_compiler_stats,         \
-      (FLAG_support_compiler_stats && FLAG_compiler_stats) ?                   \
-      &((thr)->compiler_stats()->t) : NULL,                                    \
-      thr);
+  TimerScope timer(FLAG_support_compiler_stats&& FLAG_compiler_stats,          \
+                   (FLAG_support_compiler_stats && FLAG_compiler_stats)        \
+                       ? &((thr)->compiler_stats()->t)                         \
+                       : NULL,                                                 \
+                   thr);
 
 
 }  // namespace dart

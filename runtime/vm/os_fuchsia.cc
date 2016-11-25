@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <magenta/syscalls.h>
 #include <magenta/types.h>
+#include <sys/time.h>
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -18,8 +19,10 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DEFINE_FLAG(bool, generate_perf_events_symbols, false,
-    "Generate events symbols for profiling with perf");
+DEFINE_FLAG(bool,
+            generate_perf_events_symbols,
+            false,
+            "Generate events symbols for profiling with perf");
 
 #endif  // !PRODUCT
 
@@ -75,12 +78,17 @@ int64_t OS::GetCurrentTimeMillis() {
 
 
 int64_t OS::GetCurrentTimeMicros() {
-  return mx_current_time() / 1000;
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) < 0) {
+    UNREACHABLE();
+    return 0;
+  }
+  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return mx_current_time();
+  return mx_time_get(MX_CLOCK_MONOTONIC);
 }
 
 
@@ -105,7 +113,7 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
 intptr_t OS::ActivationFrameAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) || \
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_DBC)
@@ -124,10 +132,8 @@ intptr_t OS::ActivationFrameAlignment() {
 
 
 intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 32;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 16;
@@ -157,20 +163,19 @@ int OS::NumberOfAvailableProcessors() {
 
 
 uintptr_t OS::MaxRSS() {
-  UNIMPLEMENTED();
+  // TODO(US-95): Implement.
   return 0;
 }
 
 
 void OS::Sleep(int64_t millis) {
-  mx_nanosleep(
-      millis * kMicrosecondsPerMillisecond * kNanosecondsPerMicrosecond);
+  mx_nanosleep(millis * kMicrosecondsPerMillisecond *
+               kNanosecondsPerMicrosecond);
 }
 
 
 void OS::SleepMicros(int64_t micros) {
-  mx_nanosleep(
-      micros * kNanosecondsPerMicrosecond);
+  mx_nanosleep(micros * kNanosecondsPerMicrosecond);
 }
 
 
@@ -262,8 +267,7 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   if (str[0] == '-') {
     i = 1;
   }
-  if ((str[i] == '0') &&
-      (str[i + 1] == 'x' || str[i + 1] == 'X') &&
+  if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
     base = 16;
   }
@@ -300,8 +304,7 @@ void OS::InitOnce() {
 }
 
 
-void OS::Shutdown() {
-}
+void OS::Shutdown() {}
 
 
 void OS::Abort() {

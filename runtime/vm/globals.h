@@ -25,12 +25,12 @@ namespace dart {
 // N=30 (32-bit build) or N=62 (64-bit build).
 const intptr_t kSmiBits = kBitsPerWord - 2;
 const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
-const intptr_t kSmiMin =  -(static_cast<intptr_t>(1) << kSmiBits);
+const intptr_t kSmiMin = -(static_cast<intptr_t>(1) << kSmiBits);
 
 // Hard coded from above but for 32-bit architectures.
 const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
 const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
-const intptr_t kSmiMin32 =  -(static_cast<intptr_t>(1) << kSmiBits32);
+const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
@@ -39,9 +39,9 @@ const intptr_t kSmiMin32 =  -(static_cast<intptr_t>(1) << kSmiBits32);
 // size_t which represents the number of elements of the given
 // array. You should only use ARRAY_SIZE on statically allocated
 // arrays.
-#define ARRAY_SIZE(array)                                       \
-  ((sizeof(array) / sizeof(*(array))) /                         \
-  static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))
+#define ARRAY_SIZE(array)                                                      \
+  ((sizeof(array) / sizeof(*(array))) /                                        \
+   static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
 
 
 // The expression OFFSET_OF(type, field) computes the byte-offset of
@@ -56,12 +56,14 @@ const intptr_t kSmiMin32 =  -(static_cast<intptr_t>(1) << kSmiBits32);
 const intptr_t kOffsetOfPtr = 32;
 
 #define OFFSET_OF(type, field)                                                 \
-  (reinterpret_cast<intptr_t>(&(reinterpret_cast<type*>(kOffsetOfPtr)->field)) \
-      - kOffsetOfPtr)
+  (reinterpret_cast<intptr_t>(                                                 \
+       &(reinterpret_cast<type*>(kOffsetOfPtr)->field)) -                      \
+   kOffsetOfPtr)  // NOLINT
 
 #define OFFSET_OF_RETURNED_VALUE(type, accessor)                               \
   (reinterpret_cast<intptr_t>(                                                 \
-      (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) - kOffsetOfPtr)
+       (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) -                  \
+   kOffsetOfPtr)  // NOLINT
 
 #define OPEN_ARRAY_START(type, align)                                          \
   do {                                                                         \
@@ -98,10 +100,16 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 // Macros to get the contents of the fp register.
 #if defined(TARGET_OS_WINDOWS)
 
+// clang-format off
 #if defined(HOST_ARCH_IA32)
-#define COPY_FP_REGISTER(fp) __asm { mov fp, ebp };  // NOLINT
+#define COPY_FP_REGISTER(fp)                                                   \
+  __asm { mov fp, ebp}                                                         \
+  ;  // NOLINT
+// clang-format on
 #elif defined(HOST_ARCH_X64)
-#define COPY_FP_REGISTER(fp) UNIMPLEMENTED();
+// We don't have the asm equivalent to get at the frame pointer on
+// windows x64, return the stack pointer instead.
+#define COPY_FP_REGISTER(fp) fp = Thread::GetCurrentStackPointer();
 #else
 #error Unknown host architecture.
 #endif
@@ -110,25 +118,32 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 
 // Assume GCC-like inline syntax is valid.
 #if defined(HOST_ARCH_IA32)
-#define COPY_FP_REGISTER(fp) asm volatile ("movl %%ebp, %0" : "=r" (fp) );
+#define COPY_FP_REGISTER(fp) asm volatile("movl %%ebp, %0" : "=r"(fp));
 #elif defined(HOST_ARCH_X64)
-#define COPY_FP_REGISTER(fp) asm volatile ("movq %%rbp, %0" : "=r" (fp) );
+#define COPY_FP_REGISTER(fp) asm volatile("movq %%rbp, %0" : "=r"(fp));
 #elif defined(HOST_ARCH_ARM)
-#  if defined(TARGET_OS_MAC)
-#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r7" : "=r" (fp) );
-#  else
-#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r11" : "=r" (fp) );
-#  endif
+#if defined(TARGET_OS_MAC)
+#define COPY_FP_REGISTER(fp) asm volatile("mov %0, r7" : "=r"(fp));
+#else
+#define COPY_FP_REGISTER(fp) asm volatile("mov %0, r11" : "=r"(fp));
+#endif
 #elif defined(HOST_ARCH_ARM64)
-#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, x29" : "=r" (fp) );
+#define COPY_FP_REGISTER(fp) asm volatile("mov %0, x29" : "=r"(fp));
 #elif defined(HOST_ARCH_MIPS)
-#define COPY_FP_REGISTER(fp) asm volatile ("move %0, $fp" : "=r" (fp) );
+#define COPY_FP_REGISTER(fp) asm volatile("move %0, $fp" : "=r"(fp));
 #else
 #error Unknown host architecture.
 #endif
 
 
 #endif  // !defined(TARGET_OS_WINDOWS))
+
+// Default value for flag --use-corelib-source-files.
+#if defined(TARGET_OS_WINDOWS)
+static const bool kDefaultCorelibSourceFlag = true;
+#else
+static const bool kDefaultCorelibSourceFlag = false;
+#endif  // defined(TARGET_OS_WINDOWS)
 
 }  // namespace dart
 

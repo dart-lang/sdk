@@ -1333,9 +1333,19 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('getSourceReport', params);
   }
 
-  Future<ServiceMap> reloadSources() {
-    return invokeRpc('_reloadSources', {}).then((_) {
+  Future<ServiceMap> reloadSources(
+      {String rootLibUri,
+       bool pause}) {
+    Map<String, dynamic> params = <String, dynamic>{};
+    if (rootLibUri != null) {
+      params['rootLibUri'] = rootLibUri;
+    }
+    if (pause != null) {
+      params['pause'] = pause;
+    }
+    return invokeRpc('reloadSources', params).then((result) {
       reloading = true;
+      return result;
     });
   }
 

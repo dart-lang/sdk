@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_KERNEL_TO_IL_H_
 #define RUNTIME_VM_KERNEL_TO_IL_H_
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 
@@ -15,6 +17,42 @@
 
 namespace dart {
 namespace kernel {
+
+// TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
+// should use [TokenPosition]s.
+class KernelConstMapKeyEqualsTraits {
+ public:
+  static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const Smi& key1 = Smi::Cast(a);
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.Value() == key2.Value());
+  }
+  static bool IsMatch(const TreeNode* key1, const Object& b) {
+    return KeyAsSmi(key1) == Smi::Cast(b).raw();
+  }
+  static uword Hash(const Object& obj) {
+    const Smi& key = Smi::Cast(obj);
+    return HashValue(key.Value());
+  }
+  static uword Hash(const TreeNode* key) {
+    return HashValue(Smi::Value(KeyAsSmi(key)));
+  }
+  static RawObject* NewKey(const TreeNode* key) { return KeyAsSmi(key); }
+
+ private:
+  static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
+
+  static RawSmi* KeyAsSmi(const TreeNode* key) {
+    // We exploit that all [TreeNode] objects will be aligned and therefore are
+    // already [Smi]s!
+    return reinterpret_cast<RawSmi*>(const_cast<TreeNode*>(key));
+  }
+};
+typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
+
 
 template <typename K, typename V>
 class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
@@ -97,7 +135,8 @@ class ActiveClass {
 
 class ActiveClassScope {
  public:
-  ActiveClassScope(ActiveClass* active_class, Class* kernel_class,
+  ActiveClassScope(ActiveClass* active_class,
+                   Class* kernel_class,
                    const dart::Class* klass)
       : active_class_(active_class), saved_(*active_class) {
     active_class_->kernel_class = kernel_class;
@@ -150,7 +189,11 @@ class ActiveFunctionScope {
 class TranslationHelper {
  public:
   TranslationHelper(dart::Thread* thread, dart::Zone* zone, Isolate* isolate)
-      : thread_(thread), zone_(zone), isolate_(isolate) {}
+      : thread_(thread),
+        zone_(zone),
+        isolate_(isolate),
+        allocation_space_(thread_->IsMutatorThread() ? Heap::kNew
+                                                     : Heap::kOld) {}
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -159,16 +202,20 @@ class TranslationHelper {
 
   Isolate* isolate() { return isolate_; }
 
-  // Set whether unfinalized classes should be finalized.  The base class
-  // implementation used at flow graph construction time looks up classes in the
-  // VM's heap, all of which should already be finalized.
-  virtual void SetFinalize(bool finalize) {}
+  Heap::Space allocation_space() { return allocation_space_; }
 
   RawInstance* Canonicalize(const Instance& instance);
 
-  const dart::String& DartString(const char* content,
-                                 Heap::Space space = Heap::kNew);
-  dart::String& DartString(String* content, Heap::Space space = Heap::kNew);
+  const dart::String& DartString(const char* content) {
+    return DartString(content, allocation_space_);
+  }
+  const dart::String& DartString(const char* content, Heap::Space space);
+
+  dart::String& DartString(String* content) {
+    return DartString(content, allocation_space_);
+  }
+  dart::String& DartString(String* content, Heap::Space space);
+
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
 
@@ -191,11 +238,14 @@ class TranslationHelper {
   virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
   virtual RawClass* LookupClassByKernelClass(Class* klass);
 
+  RawUnresolvedClass* ToUnresolvedClass(Class* klass);
+
   RawField* LookupFieldByKernelField(Field* field);
   RawFunction* LookupStaticMethodByKernelProcedure(Procedure* procedure);
   RawFunction* LookupConstructorByKernelConstructor(Constructor* constructor);
   dart::RawFunction* LookupConstructorByKernelConstructor(
-      const dart::Class& owner, Constructor* constructor);
+      const dart::Class& owner,
+      Constructor* constructor);
 
   dart::Type& GetCanonicalType(const dart::Class& klass);
 
@@ -212,6 +262,7 @@ class TranslationHelper {
   dart::Thread* thread_;
   dart::Zone* zone_;
   dart::Isolate* isolate_;
+  Heap::Space allocation_space_;
 };
 
 // Regarding malformed types:
@@ -228,8 +279,9 @@ class TranslationHelper {
 // runtime unless explicitly specified otherwise.
 class DartTypeTranslator : public DartTypeVisitor {
  public:
-  DartTypeTranslator(TranslationHelper* helper, ActiveClass* active_class,
-                     bool finalize = true)
+  DartTypeTranslator(TranslationHelper* helper,
+                     ActiveClass* active_class,
+                     bool finalize = false)
       : translation_helper_(*helper),
         active_class_(active_class),
         zone_(helper->zone()),
@@ -241,6 +293,9 @@ class DartTypeTranslator : public DartTypeVisitor {
 
   // Can return a malformed type.
   AbstractType& TranslateTypeWithoutFinalization(DartType* node);
+
+  // Is guaranteed to be not malformed.
+  const AbstractType& TranslateVariableType(VariableDeclaration* variable);
 
 
   virtual void VisitDefaultDartType(DartType* node) { UNREACHABLE(); }
@@ -260,7 +315,8 @@ class DartTypeTranslator : public DartTypeVisitor {
   // Will return `TypeArguments::null()` in case any of the arguments are
   // malformed.
   const TypeArguments& TranslateInstantiatedTypeArguments(
-      const dart::Class& receiver_class, DartType** receiver_type_arguments,
+      const dart::Class& receiver_class,
+      DartType** receiver_type_arguments,
       intptr_t length);
 
   // Will return `TypeArguments::null()` in case any of the arguments are
@@ -301,14 +357,10 @@ class DartTypeTranslator : public DartTypeVisitor {
 // compile-time.
 class ConstantEvaluator : public ExpressionVisitor {
  public:
-  ConstantEvaluator(FlowGraphBuilder* builder, Zone* zone, TranslationHelper* h,
-                    DartTypeTranslator* type_translator)
-      : builder_(builder),
-        isolate_(Isolate::Current()),
-        zone_(zone),
-        translation_helper_(*h),
-        type_translator_(*type_translator),
-        result_(dart::Instance::Handle(zone)) {}
+  ConstantEvaluator(FlowGraphBuilder* builder,
+                    Zone* zone,
+                    TranslationHelper* h,
+                    DartTypeTranslator* type_translator);
   virtual ~ConstantEvaluator() {}
 
   Instance& EvaluateExpression(Expression* node);
@@ -352,11 +404,13 @@ class ConstantEvaluator : public ExpressionVisitor {
                                               dart::Class* target_klass,
                                               Arguments* kernel_arguments);
 
-  const Object& RunFunction(const Function& function, Arguments* arguments,
+  const Object& RunFunction(const Function& function,
+                            Arguments* arguments,
                             const Instance* receiver = NULL,
                             const TypeArguments* type_args = NULL);
 
-  const Object& RunFunction(const Function& function, const Array& arguments,
+  const Object& RunFunction(const Function& function,
+                            const Array& arguments,
                             const Array& names);
 
   RawObject* EvaluateConstConstructorCall(const dart::Class& type_class,
@@ -364,12 +418,19 @@ class ConstantEvaluator : public ExpressionVisitor {
                                           const Function& constructor,
                                           const Object& argument);
 
+  // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
+  // should use [TokenPosition]s as well as the existing functionality in
+  // `Parser::CacheConstantValue`.
+  bool GetCachedConstant(TreeNode* node, Instance* value);
+  void CacheConstantValue(TreeNode* node, const Instance& value);
+
   FlowGraphBuilder* builder_;
   Isolate* isolate_;
   Zone* zone_;
   TranslationHelper& translation_helper_;
   DartTypeTranslator& type_translator_;
 
+  Script& script_;
   Instance& result_;
 };
 
@@ -383,13 +444,13 @@ struct FunctionScope {
 class ScopeBuildingResult : public ZoneAllocated {
  public:
   ScopeBuildingResult()
-    : this_variable(NULL),
-      type_arguments_variable(NULL),
-      switch_variable(NULL),
-      finally_return_variable(NULL),
-      setter_value(NULL),
-      yield_jump_variable(NULL),
-      yield_context_variable(NULL) {}
+      : this_variable(NULL),
+        type_arguments_variable(NULL),
+        switch_variable(NULL),
+        finally_return_variable(NULL),
+        setter_value(NULL),
+        yield_jump_variable(NULL),
+        yield_context_variable(NULL) {}
 
   Map<VariableDeclaration, LocalVariable*> locals;
   Map<TreeNode, LocalScope*> scopes;
@@ -439,6 +500,9 @@ class ScopeBuilder : public RecursiveVisitor {
         node_(node),
         zone_(Thread::Current()->zone()),
         translation_helper_(Thread::Current(), zone_, Isolate::Current()),
+        type_translator_(&translation_helper_,
+                         &active_class_,
+                         /*finalize=*/true),
         current_function_scope_(NULL),
         scope_(NULL),
         depth_(0),
@@ -479,14 +543,16 @@ class ScopeBuilder : public RecursiveVisitor {
   void EnterScope(TreeNode* node);
   void ExitScope();
 
-  LocalVariable* MakeVariable(const dart::String& name);
-  LocalVariable* MakeVariable(const dart::String& name, const Type& type);
+  const Type& TranslateVariableType(VariableDeclaration* variable);
+  LocalVariable* MakeVariable(const dart::String& name,
+                              const AbstractType& type);
 
   void AddParameters(FunctionNode* function, intptr_t pos = 0);
   void AddParameter(VariableDeclaration* declaration, intptr_t pos);
   void AddVariable(VariableDeclaration* declaration);
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
-                            const char* prefix, intptr_t nesting_depth);
+                            const char* prefix,
+                            intptr_t nesting_depth);
   void AddTryVariables();
   void AddCatchVariables();
   void AddIteratorVariable();
@@ -526,9 +592,11 @@ class ScopeBuilder : public RecursiveVisitor {
   ParsedFunction* parsed_function_;
   TreeNode* node_;
 
+  ActiveClass active_class_;
+
   Zone* zone_;
   TranslationHelper translation_helper_;
-
+  DartTypeTranslator type_translator_;
 
   FunctionNode* current_function_node_;
   LocalScope* current_function_scope_;
@@ -541,9 +609,11 @@ class ScopeBuilder : public RecursiveVisitor {
 
 class FlowGraphBuilder : public TreeVisitor {
  public:
-  FlowGraphBuilder(TreeNode* node, ParsedFunction* parsed_function,
+  FlowGraphBuilder(TreeNode* node,
+                   ParsedFunction* parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
-                   InlineExitCollector* exit_collector, intptr_t osr_id,
+                   InlineExitCollector* exit_collector,
+                   intptr_t osr_id,
                    intptr_t first_block_id = 1);
   virtual ~FlowGraphBuilder();
 
@@ -683,19 +753,27 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment CreateArray();
   Fragment Goto(JoinEntryInstr* destination);
   Fragment IntConstant(int64_t value);
-  Fragment InstanceCall(const dart::String& name, Token::Kind kind,
-                        intptr_t argument_count, intptr_t num_args_checked = 1);
-  Fragment InstanceCall(const dart::String& name, Token::Kind kind,
-                        intptr_t argument_count, const Array& argument_names,
+  Fragment InstanceCall(TokenPosition position,
+                        const dart::String& name,
+                        Token::Kind kind,
+                        intptr_t argument_count,
+                        intptr_t num_args_checked = 1);
+  Fragment InstanceCall(TokenPosition position,
+                        const dart::String& name,
+                        Token::Kind kind,
+                        intptr_t argument_count,
+                        const Array& argument_names,
                         intptr_t num_args_checked = 1);
   Fragment ClosureCall(int argument_count, const Array& argument_names);
-  Fragment ThrowException();
+  Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(int catch_try_index);
   Fragment LoadClassId();
   Fragment LoadField(const dart::Field& field);
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
-  Fragment LoadNativeField(MethodRecognizer::Kind kind, intptr_t offset,
-                           const Type& type, intptr_t class_id,
+  Fragment LoadNativeField(MethodRecognizer::Kind kind,
+                           intptr_t offset,
+                           const Type& type,
+                           intptr_t class_id,
                            bool is_immutable = false);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const dart::Field& field);
@@ -704,18 +782,29 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment NativeCall(const dart::String* name, const Function* function);
   Fragment PushArgument();
   Fragment Return();
-  Fragment StaticCall(const Function& target, intptr_t argument_count);
-  Fragment StaticCall(const Function& target, intptr_t argument_count,
+  Fragment StaticCall(TokenPosition position,
+                      const Function& target,
+                      intptr_t argument_count);
+  Fragment StaticCall(TokenPosition position,
+                      const Function& target,
+                      intptr_t argument_count,
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment StoreInstanceField(const dart::Field& field);
-  Fragment StoreInstanceField(intptr_t offset);
+  Fragment StoreInstanceFieldGuarded(const dart::Field& field);
+  Fragment StoreInstanceField(
+      const dart::Field& field,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+  Fragment StoreInstanceField(
+      intptr_t offset,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreLocal(LocalVariable* variable);
   Fragment StoreStaticField(const dart::Field& field);
   Fragment StringInterpolate();
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);
+  Fragment GuardFieldLength(const dart::Field& field, intptr_t deopt_id);
+  Fragment GuardFieldClass(const dart::Field& field, intptr_t deopt_id);
 
   dart::RawFunction* LookupMethodByMember(Member* target,
                                           const dart::String& method_name);
@@ -727,7 +816,8 @@ class FlowGraphBuilder : public TreeVisitor {
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
 
   void AddVariable(VariableDeclaration* declaration, LocalVariable* variable);
-  void AddParameter(VariableDeclaration* declaration, LocalVariable* variable,
+  void AddParameter(VariableDeclaration* declaration,
+                    LocalVariable* variable,
                     intptr_t pos);
   dart::LocalVariable* LookupVariable(VariableDeclaration* var);
 
@@ -835,5 +925,5 @@ class FlowGraphBuilder : public TreeVisitor {
 }  // namespace kernel
 }  // namespace dart
 
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_KERNEL_TO_IL_H_

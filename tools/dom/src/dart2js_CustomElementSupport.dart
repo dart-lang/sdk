@@ -47,6 +47,21 @@ _makeCallbackMethod3(callback) {
       convertDartClosureToJS(callback, 4));
 }
 
+/// Checks whether the given [element] correctly extends from the native class
+/// with the given [baseClassName]. This method will throw if the base class
+/// doesn't match, except when the element extends from `template` and it's base
+/// class is `HTMLUnknownElement`. This exclusion is needed to support extension
+/// of template elements (used heavily in Polymer 1.0) on IE11 when using the
+/// webcomponents-lite.js polyfill.
+void _checkExtendsNativeClassOrTemplate(
+    Element element, String extendsTag, String baseClassName) {
+  if (!JS('bool', '(# instanceof window[#])', element, baseClassName) &&
+      !((extendsTag == 'template' &&
+       JS('bool', '(# instanceof window["HTMLUnknownElement"])', element)))) {
+    throw new UnsupportedError('extendsTag does not match base native class');
+  }
+}
+
 void _registerCustomElement(context, document, String tag, Type type,
     String extendsTagName) {
   // Function follows the same pattern as the following JavaScript code for
@@ -90,10 +105,8 @@ void _registerCustomElement(context, document, String tag, Type type,
           'native class is not HtmlElement');
     }
   } else {
-    if (!JS('bool', '(#.createElement(#) instanceof window[#])',
-        document, extendsTagName, baseClassName)) {
-      throw new UnsupportedError('extendsTag does not match base native class');
-    }
+    var element = document.createElement(extendsTagName);
+    _checkExtendsNativeClassOrTemplate(element, extendsTagName, baseClassName);
   }
 
   var baseConstructor = JS('=Object', '#[#]', context, baseClassName);
@@ -163,11 +176,7 @@ class _JSElementUpgrader implements ElementUpgrader {
       _nativeType = HtmlElement;
     } else {
       var element = document.createElement(extendsTag);
-      if (!JS('bool', '(# instanceof window[#])',
-          element, baseClassName)) {
-        throw new UnsupportedError(
-            'extendsTag does not match base native class');
-      }
+      _checkExtendsNativeClassOrTemplate(element, extendsTag, baseClassName);
       _nativeType = element.runtimeType;
     }
 

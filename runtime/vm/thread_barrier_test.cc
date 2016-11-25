@@ -12,13 +12,8 @@ namespace dart {
 
 class FuzzTask : public ThreadPool::Task {
  public:
-  FuzzTask(intptr_t num_rounds,
-           ThreadBarrier* barrier,
-           uint64_t seed)
-    : num_rounds_(num_rounds),
-      barrier_(barrier),
-      rng_(seed) {
-  }
+  FuzzTask(intptr_t num_rounds, ThreadBarrier* barrier, uint64_t seed)
+      : num_rounds_(num_rounds), barrier_(barrier), rng_(seed) {}
 
   virtual void Run() {
     for (intptr_t i = 0; i < num_rounds_; ++i) {

@@ -20,6 +20,7 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
+  V(Object_haveSameRuntimeType, 2)                                             \
   V(Object_instanceOf, 4)                                                      \
   V(Object_simpleInstanceOf, 2)                                                \
   V(Object_instanceOfNum, 2)                                                   \
@@ -111,6 +112,7 @@ namespace dart {
   V(RegExp_getIsCaseSensitive, 1)                                              \
   V(RegExp_getGroupCount, 1)                                                   \
   V(RegExp_ExecuteMatch, 3)                                                    \
+  V(RegExp_ExecuteMatchSticky, 3)                                              \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
@@ -345,6 +347,7 @@ namespace dart {
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
   V(ClassID_getID, 1)                                                          \
+  V(ClassID_byName, 1)                                                         \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_SendObjectRootServiceMessage, 1)                                 \
@@ -355,7 +358,7 @@ namespace dart {
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
-  V(VMService_spawnUriNotify, 2)                                               \
+  V(VMService_spawnUriNotify, 2)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
@@ -407,7 +410,7 @@ namespace dart {
   V(ParameterMirror_type, 3)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
   V(TypedefMirror_declaration, 1)                                              \
-  V(VariableMirror_type, 2)                                                    \
+  V(VariableMirror_type, 2)
 
 class BootstrapNatives : public AllStatic {
  public:

@@ -351,6 +351,20 @@ var y = C.x;
         '(D) → E');
   }
 
+  void test_inferredType_instanceField_conditional_genericFunctions() {
+    createLinker('''
+class C {
+  final f = true ? <T>(T t) => 0 : <T>(T t) => 1;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('C');
+    expect(cls.fields, hasLength(1));
+    var field = cls.fields[0];
+    expect(field.type.toString(), '(<bottom>) → dynamic');
+  }
+
   void test_inferredType_instanceField_dynamic() {
     createLinker('''
 var x;

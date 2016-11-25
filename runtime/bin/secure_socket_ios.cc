@@ -74,7 +74,7 @@ static void ThrowIOException(OSStatus status,
                              const char* message) {
   TextBuffer status_message(SSL_ERROR_MESSAGE_BUFFER_SIZE);
   status_message.Printf("OSStatus = %ld: https://www.osstatus.com",
-      static_cast<intptr_t>(status));
+                        static_cast<intptr_t>(status));
   OSError os_error_struct(status, status_message.buf(), OSError::kBoringSSL);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle exception =
@@ -99,10 +99,9 @@ static SSLFilter* GetFilter(Dart_NativeArguments args) {
   SSLFilter* filter;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
-  ThrowIfError(Dart_GetNativeInstanceField(
-      dart_this,
-      kSSLFilterNativeFieldIndex,
-      reinterpret_cast<intptr_t*>(&filter)));
+  ThrowIfError(
+      Dart_GetNativeInstanceField(dart_this, kSSLFilterNativeFieldIndex,
+                                  reinterpret_cast<intptr_t*>(&filter)));
   return filter;
 }
 
@@ -121,15 +120,12 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
   Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
   RETURN_IF_ERROR(dart_this);
   ASSERT(Dart_IsInstance(dart_this));
-  Dart_Handle err = Dart_SetNativeInstanceField(
-      dart_this,
-      kSSLFilterNativeFieldIndex,
-      reinterpret_cast<intptr_t>(filter));
+  Dart_Handle err =
+      Dart_SetNativeInstanceField(dart_this, kSSLFilterNativeFieldIndex,
+                                  reinterpret_cast<intptr_t>(filter));
   RETURN_IF_ERROR(err);
-  Dart_NewWeakPersistentHandle(dart_this,
-                               reinterpret_cast<void*>(filter),
-                               approximate_size_of_filter,
-                               DeleteFilter);
+  Dart_NewWeakPersistentHandle(dart_this, reinterpret_cast<void*>(filter),
+                               approximate_size_of_filter, DeleteFilter);
   return Dart_Null();
 }
 
@@ -138,10 +134,9 @@ static SSLCertContext* GetSecurityContext(Dart_NativeArguments args) {
   SSLCertContext* context;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
-  ThrowIfError(Dart_GetNativeInstanceField(
-      dart_this,
-      kSecurityContextNativeFieldIndex,
-      reinterpret_cast<intptr_t*>(&context)));
+  ThrowIfError(
+      Dart_GetNativeInstanceField(dart_this, kSecurityContextNativeFieldIndex,
+                                  reinterpret_cast<intptr_t*>(&context)));
   return context;
 }
 
@@ -160,14 +155,11 @@ static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
   Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
   RETURN_IF_ERROR(dart_this);
   ASSERT(Dart_IsInstance(dart_this));
-  Dart_Handle err = Dart_SetNativeInstanceField(
-      dart_this,
-      kSecurityContextNativeFieldIndex,
-      reinterpret_cast<intptr_t>(context));
+  Dart_Handle err =
+      Dart_SetNativeInstanceField(dart_this, kSecurityContextNativeFieldIndex,
+                                  reinterpret_cast<intptr_t>(context));
   RETURN_IF_ERROR(err);
-  Dart_NewWeakPersistentHandle(dart_this,
-                               context,
-                               approximate_size_of_context,
+  Dart_NewWeakPersistentHandle(dart_this, context, approximate_size_of_context,
                                DeleteCertContext);
   return Dart_Null();
 }
@@ -177,10 +169,9 @@ static SecCertificateRef GetX509Certificate(Dart_NativeArguments args) {
   SecCertificateRef certificate;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
-  ThrowIfError(Dart_GetNativeInstanceField(
-      dart_this,
-      kX509NativeFieldIndex,
-      reinterpret_cast<intptr_t*>(&certificate)));
+  ThrowIfError(
+      Dart_GetNativeInstanceField(dart_this, kX509NativeFieldIndex,
+                                  reinterpret_cast<intptr_t*>(&certificate)));
   return certificate;
 }
 
@@ -203,7 +194,7 @@ static Dart_Handle WrappedX509Certificate(SecCertificateRef certificate) {
   if (Dart_IsError(x509_type)) {
     return x509_type;
   }
-  Dart_Handle arguments[] = { NULL };
+  Dart_Handle arguments[] = {NULL};
 
   Dart_Handle result =
       Dart_New(x509_type, DartUtils::NewString("_"), 0, arguments);
@@ -215,15 +206,12 @@ static Dart_Handle WrappedX509Certificate(SecCertificateRef certificate) {
   // CFRetain in case the returned Dart object outlives the SecurityContext.
   // CFRelease is in the Dart object's finalizer
   CFRetain(certificate);
-  Dart_NewWeakPersistentHandle(result,
-                               reinterpret_cast<void*>(certificate),
+  Dart_NewWeakPersistentHandle(result, reinterpret_cast<void*>(certificate),
                                approximate_size_of_certificate,
                                ReleaseCertificate);
 
   Dart_Handle status = Dart_SetNativeInstanceField(
-      result,
-      kX509NativeFieldIndex,
-      reinterpret_cast<intptr_t>(certificate));
+      result, kX509NativeFieldIndex, reinterpret_cast<intptr_t>(certificate));
   if (Dart_IsError(status)) {
     return status;
   }
@@ -245,8 +233,8 @@ static const char* GetPasswordArgument(Dart_NativeArguments args,
   } else if (Dart_IsNull(password_object)) {
     password = "";
   } else {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Password is not a String or null"));
+    Dart_ThrowException(
+        DartUtils::NewDartArgumentError("Password is not a String or null"));
   }
   return password;
 }
@@ -256,8 +244,8 @@ static OSStatus TryPKCS12Import(CFDataRef cfdata,
                                 CFStringRef password,
                                 CFArrayRef* out_certs,
                                 SecIdentityRef* out_identity) {
-  const void* keys[] = { kSecImportExportPassphrase };
-  const void* values[] = { password };
+  const void* keys[] = {kSecImportExportPassphrase};
+  const void* values[] = {password};
   CFDictionaryRef params =
       CFDictionaryCreate(NULL, keys, values, 1, NULL, NULL);
   CFArrayRef items = NULL;
@@ -267,7 +255,7 @@ static OSStatus TryPKCS12Import(CFDataRef cfdata,
   if (status != noErr) {
     if (SSL_LOG_STATUS) {
       Log::PrintErr("SecPKCS12Import: status = %ld",
-          static_cast<intptr_t>(status));
+                    static_cast<intptr_t>(status));
       return status;
     }
   }
@@ -328,8 +316,8 @@ static OSStatus TryPKCS12Import(CFDataRef cfdata,
         CFIndex count = CFArrayGetCount(certs);
         Log::PrintErr("\titem %ld has a cert chain %ld certs long\n", i, count);
       }
-      CFArrayAppendArray(
-          result_certs, certs, CFRangeMake(0, CFArrayGetCount(certs)));
+      CFArrayAppendArray(result_certs, certs,
+                         CFRangeMake(0, CFArrayGetCount(certs)));
     }
   }
 
@@ -365,8 +353,8 @@ static OSStatus ExtractSecItems(uint8_t* buffer,
   ASSERT(password != NULL);
   OSStatus status = noErr;
 
-  CFDataRef cfdata = CFDataCreateWithBytesNoCopy(
-      NULL, buffer, length, kCFAllocatorNull);
+  CFDataRef cfdata =
+      CFDataCreateWithBytesNoCopy(NULL, buffer, length, kCFAllocatorNull);
   CFStringRef cfpassword = CFStringCreateWithCStringNoCopy(
       NULL, password, kCFStringEncodingUTF8, kCFAllocatorNull);
   ASSERT(cfdata != NULL);
@@ -415,15 +403,11 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   SSLCertContext* context = NULL;
   if (!Dart_IsNull(context_object)) {
     ThrowIfError(Dart_GetNativeInstanceField(
-        context_object,
-        kSecurityContextNativeFieldIndex,
+        context_object, kSecurityContextNativeFieldIndex,
         reinterpret_cast<intptr_t*>(&context)));
   }
 
-  GetFilter(args)->Connect(dart_this,
-                           host_name,
-                           context,
-                           is_server,
+  GetFilter(args)->Connect(dart_this, host_name, context, is_server,
                            request_client_certificate,
                            require_client_certificate);
 }
@@ -460,8 +444,7 @@ void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
   bool require_client_certificate =
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  GetFilter(args)->Renegotiate(use_session_cache,
-                               request_client_certificate,
+  GetFilter(args)->Renegotiate(use_session_cache, request_client_certificate,
                                require_client_certificate);
 }
 
@@ -480,8 +463,7 @@ void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
 
 void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
     Dart_NativeArguments args) {
-  Dart_Handle callback =
-      ThrowIfError(Dart_GetNativeArgument(args, 1));
+  Dart_Handle callback = ThrowIfError(Dart_GetNativeArgument(args, 1));
   if (!Dart_IsClosure(callback) && !Dart_IsNull(callback)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "Illegal argument to RegisterBadCertificateCallback"));
@@ -526,8 +508,8 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
   SecIdentityRef identity = NULL;
   {
     ScopedMemBuffer buffer(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = ExtractSecItems(
-        buffer.get(), buffer.length(), password, &cert_chain, &identity);
+    status = ExtractSecItems(buffer.get(), buffer.length(), password,
+                             &cert_chain, &identity);
   }
 
   // Set the context fields. Repeated calls to usePrivateKeyBytes are an error.
@@ -642,7 +624,7 @@ void FUNCTION_NAME(X509_StartValidity)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
-    Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
       "X509Certificate.endValidity is not supported on this platform."));
 }
 
@@ -681,8 +663,8 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
 
   OSStatus status = filter->ProcessAllBuffers(starts, ends, in_handshake);
   if (status == noErr) {
-    CObjectArray* result = new CObjectArray(
-        CObject::NewArray(SSLFilter::kNumBuffers * 2));
+    CObjectArray* result =
+        new CObjectArray(CObject::NewArray(SSLFilter::kNumBuffers * 2));
     for (intptr_t i = 0; i < SSLFilter::kNumBuffers; ++i) {
       result->SetAt(2 * i, new CObjectInt32(CObject::NewInt32(starts[i])));
       result->SetAt(2 * i + 1, new CObjectInt32(CObject::NewInt32(ends[i])));
@@ -691,11 +673,11 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
   } else {
     TextBuffer status_message(SSL_ERROR_MESSAGE_BUFFER_SIZE);
     status_message.Printf("OSStatus = %ld: https://www.osstatus.com",
-        static_cast<intptr_t>(status));
+                          static_cast<intptr_t>(status));
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(status)));
-    result->SetAt(1, new CObjectString(CObject::NewString(
-        status_message.buf())));
+    result->SetAt(1,
+                  new CObjectString(CObject::NewString(status_message.buf())));
     return result;
   }
 }
@@ -741,8 +723,8 @@ void SSLFilter::SetBufferStart(intptr_t idx, intptr_t value) {
   }
   Dart_Handle buffer_handle =
       ThrowIfError(Dart_HandleFromPersistent(dart_buffer_objects_[idx]));
-  ThrowIfError(DartUtils::SetIntegerField(
-      buffer_handle, "start", static_cast<int64_t>(value)));
+  ThrowIfError(DartUtils::SetIntegerField(buffer_handle, "start",
+                                          static_cast<int64_t>(value)));
 }
 
 
@@ -753,8 +735,8 @@ void SSLFilter::SetBufferEnd(intptr_t idx, intptr_t value) {
   }
   Dart_Handle buffer_handle =
       ThrowIfError(Dart_HandleFromPersistent(dart_buffer_objects_[idx]));
-  ThrowIfError(DartUtils::SetIntegerField(
-      buffer_handle, "end", static_cast<int64_t>(value)));
+  ThrowIfError(DartUtils::SetIntegerField(buffer_handle, "end",
+                                          static_cast<int64_t>(value)));
 }
 
 
@@ -888,8 +870,8 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   RETURN_IF_ERROR(secure_filter_impl_type);
   Dart_Handle size_string = DartUtils::NewString("SIZE");
   RETURN_IF_ERROR(size_string);
-  Dart_Handle dart_buffer_size = Dart_GetField(
-      secure_filter_impl_type, size_string);
+  Dart_Handle dart_buffer_size =
+      Dart_GetField(secure_filter_impl_type, size_string);
   RETURN_IF_ERROR(dart_buffer_size);
 
   int64_t buffer_size = 0;
@@ -899,8 +881,8 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   Dart_Handle encrypted_size_string = DartUtils::NewString("ENCRYPTED_SIZE");
   RETURN_IF_ERROR(encrypted_size_string);
 
-  Dart_Handle dart_encrypted_buffer_size = Dart_GetField(
-      secure_filter_impl_type, encrypted_size_string);
+  Dart_Handle dart_encrypted_buffer_size =
+      Dart_GetField(secure_filter_impl_type, encrypted_size_string);
   RETURN_IF_ERROR(dart_encrypted_buffer_size);
 
   int64_t encrypted_buffer_size = 0;
@@ -1008,34 +990,25 @@ void SSLFilter::Connect(Dart_Handle dart_this,
   // Configure the context.
   OSStatus status;
   status = SSLSetPeerDomainName(ssl_context, hostname, strlen(hostname));
-  CheckStatus(status,
-      "TlsException",
-      "Failed to set peer domain name");
+  CheckStatus(status, "TlsException", "Failed to set peer domain name");
 
-  status = SSLSetIOFuncs(
-      ssl_context, SSLFilter::SSLReadCallback, SSLFilter::SSLWriteCallback);
-  CheckStatus(status,
-      "TlsException",
-      "Failed to set IO Callbacks");
+  status = SSLSetIOFuncs(ssl_context, SSLFilter::SSLReadCallback,
+                         SSLFilter::SSLWriteCallback);
+  CheckStatus(status, "TlsException", "Failed to set IO Callbacks");
 
-  status = SSLSetConnection(
-      ssl_context, reinterpret_cast<SSLConnectionRef>(this));
-  CheckStatus(status,
-      "TlsException",
-      "Failed to set connection object");
+  status =
+      SSLSetConnection(ssl_context, reinterpret_cast<SSLConnectionRef>(this));
+  CheckStatus(status, "TlsException", "Failed to set connection object");
 
   // Always evaluate the certs manually so that we can cache the peer
   // certificates in the context for calls to peerCertificate.
-  status = SSLSetSessionOption(
-      ssl_context, kSSLSessionOptionBreakOnServerAuth, true);
-  CheckStatus(status,
-      "TlsException",
-      "Failed to set BreakOnServerAuth option");
+  status = SSLSetSessionOption(ssl_context, kSSLSessionOptionBreakOnServerAuth,
+                               true);
+  CheckStatus(status, "TlsException", "Failed to set BreakOnServerAuth option");
 
   status = SSLSetProtocolVersionMin(ssl_context, kTLSProtocol1);
-  CheckStatus(status,
-      "TlsException",
-      "Failed to set minimum protocol version to kTLSProtocol1");
+  CheckStatus(status, "TlsException",
+              "Failed to set minimum protocol version to kTLSProtocol1");
 
   // If the context has an identity pass it to SSLSetCertificate().
   if (context->identity() != NULL) {
@@ -1048,8 +1021,8 @@ void SSLFilter::Connect(Dart_Handle dart_this,
       // Skip the first one, it's already included in the identity.
       CFIndex chain_length = CFArrayGetCount(context->cert_chain());
       if (chain_length > 1) {
-        CFArrayAppendArray(
-            chain, context->cert_chain(), CFRangeMake(1, chain_length));
+        CFArrayAppendArray(chain, context->cert_chain(),
+                           CFRangeMake(1, chain_length));
       }
     }
 
@@ -1061,21 +1034,20 @@ void SSLFilter::Connect(Dart_Handle dart_this,
   if (is_server) {
     SSLAuthenticate auth =
         require_client_certificate
-        ? kAlwaysAuthenticate
-        : (request_client_certificate ? kTryAuthenticate : kNeverAuthenticate);
+            ? kAlwaysAuthenticate
+            : (request_client_certificate ? kTryAuthenticate
+                                          : kNeverAuthenticate);
     status = SSLSetClientSideAuthenticate(ssl_context, auth);
-    CheckStatus(status,
-        "TlsException",
-        "Failed to set client authentication mode");
+    CheckStatus(status, "TlsException",
+                "Failed to set client authentication mode");
 
     // If we're at least trying client authentication, then break handshake
     // for client authentication.
     if (auth != kNeverAuthenticate) {
-      status = SSLSetSessionOption(
-          ssl_context, kSSLSessionOptionBreakOnClientAuth, true);
-      CheckStatus(status,
-          "TlsException",
-          "Failed to set client authentication mode");
+      status = SSLSetSessionOption(ssl_context,
+                                   kSSLSessionOptionBreakOnClientAuth, true);
+      CheckStatus(status, "TlsException",
+                  "Failed to set client authentication mode");
     }
   }
 
@@ -1092,9 +1064,9 @@ void SSLFilter::Connect(Dart_Handle dart_this,
     status = noErr;
     in_handshake_ = true;
   }
-  CheckStatus(status,
-     "HandshakeException",
-      is_server_ ? "Handshake error in server" : "Handshake error in client");
+  CheckStatus(status, "HandshakeException", is_server_
+                                                ? "Handshake error in server"
+                                                : "Handshake error in client");
 }
 
 
@@ -1113,7 +1085,7 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
     }
     if (SSL_LOG_STATUS) {
       Log::PrintErr("Handshake error from SSLCopyPeerTrust(): %ld.\n",
-          static_cast<intptr_t>(status));
+                    static_cast<intptr_t>(status));
     }
     return status;
   }
@@ -1130,7 +1102,7 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
   if (status != noErr) {
     if (SSL_LOG_STATUS) {
       Log::PrintErr("Handshake error from SecTrustSetAnchorCertificates: %ld\n",
-          static_cast<intptr_t>(status));
+                    static_cast<intptr_t>(status));
     }
     CFRelease(trusted_certs);
     CFRelease(peer_trust);
@@ -1138,7 +1110,8 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
   }
 
   if (SSL_LOG_STATUS) {
-    Log::PrintErr("Handshake %s built in root certs\n",
+    Log::PrintErr(
+        "Handshake %s built in root certs\n",
         cert_context_.get()->trust_builtin() ? "trusting" : "not trusting");
   }
 
@@ -1350,7 +1323,8 @@ void SSLFilter::Destroy() {
 
 
 OSStatus SSLFilter::SSLReadCallback(SSLConnectionRef connection,
-                                    void* data, size_t* data_requested) {
+                                    void* data,
+                                    size_t* data_requested) {
   // Copy at most `data_requested` bytes from `buffers_[kReadEncrypted]` into
   // `data`
   ASSERT(connection != NULL);
@@ -1396,7 +1370,7 @@ OSStatus SSLFilter::SSLReadCallback(SSLConnectionRef connection,
 
   if (SSL_LOG_DATA) {
     Log::PrintErr("SSLReadCallback: requested: %ld, read %ld bytes\n",
-        *data_requested, data_read);
+                  *data_requested, data_read);
   }
 
   filter->SetBufferStart(kReadEncrypted, start);
@@ -1415,11 +1389,10 @@ OSStatus SSLFilter::ProcessReadPlaintextBuffer(intptr_t start,
   OSStatus status = noErr;
   size_t bytes = 0;
   if (length > 0) {
-    status = SSLRead(
-        ssl_context_,
-        reinterpret_cast<void*>((buffers_[kReadPlaintext] + start)),
-        length,
-        &bytes);
+    status =
+        SSLRead(ssl_context_,
+                reinterpret_cast<void*>((buffers_[kReadPlaintext] + start)),
+                length, &bytes);
     if (SSL_LOG_STATUS) {
       Log::PrintErr("SSLRead: status = %ld\n", static_cast<intptr_t>(status));
     }
@@ -1430,8 +1403,8 @@ OSStatus SSLFilter::ProcessReadPlaintextBuffer(intptr_t start,
   }
   if (SSL_LOG_DATA) {
     Log::PrintErr(
-        "ProcessReadPlaintextBuffer: requested: %ld, read %ld bytes\n",
-        length, bytes);
+        "ProcessReadPlaintextBuffer: requested: %ld, read %ld bytes\n", length,
+        bytes);
   }
   *bytes_processed = static_cast<intptr_t>(bytes);
   return status;
@@ -1439,7 +1412,8 @@ OSStatus SSLFilter::ProcessReadPlaintextBuffer(intptr_t start,
 
 
 OSStatus SSLFilter::SSLWriteCallback(SSLConnectionRef connection,
-                                     const void* data, size_t* data_provided) {
+                                     const void* data,
+                                     size_t* data_provided) {
   // Copy at most `data_provided` bytes from data into
   // `buffers_[kWriteEncrypted]`.
   ASSERT(connection != NULL);
@@ -1447,7 +1421,7 @@ OSStatus SSLFilter::SSLWriteCallback(SSLConnectionRef connection,
   ASSERT(data_provided != NULL);
 
   SSLFilter* filter =
-    const_cast<SSLFilter*>(reinterpret_cast<const SSLFilter*>(connection));
+      const_cast<SSLFilter*>(reinterpret_cast<const SSLFilter*>(connection));
   const uint8_t* datap = reinterpret_cast<const uint8_t*>(data);
   uint8_t* buffer = filter->buffers_[kWriteEncrypted];
   intptr_t start = filter->GetBufferStart(kWriteEncrypted);
@@ -1488,7 +1462,7 @@ OSStatus SSLFilter::SSLWriteCallback(SSLConnectionRef connection,
 
   if (SSL_LOG_DATA) {
     Log::PrintErr("SSLWriteCallback: provided: %ld, written %ld bytes\n",
-        *data_provided, data_written);
+                  *data_provided, data_written);
   }
 
   filter->SetBufferEnd(kWriteEncrypted, end);
@@ -1505,11 +1479,10 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
   OSStatus status = noErr;
   size_t bytes = 0;
   if (length > 0) {
-    status = SSLWrite(
-        ssl_context_,
-        reinterpret_cast<void*>(buffers_[kWritePlaintext] + start),
-        length,
-        &bytes);
+    status =
+        SSLWrite(ssl_context_,
+                 reinterpret_cast<void*>(buffers_[kWritePlaintext] + start),
+                 length, &bytes);
     if (SSL_LOG_STATUS) {
       Log::PrintErr("SSLWrite: status = %ld\n", static_cast<intptr_t>(status));
     }
@@ -1520,7 +1493,7 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
   }
   if (SSL_LOG_DATA) {
     Log::PrintErr("ProcessWritePlaintextBuffer: requested: %ld, written: %ld\n",
-        length, bytes);
+                  length, bytes);
   }
   *bytes_processed = static_cast<intptr_t>(bytes);
   return status;

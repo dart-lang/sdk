@@ -12,7 +12,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_type_propagation, false,
+DEFINE_FLAG(bool,
+            trace_type_propagation,
+            false,
             "Trace flow graph type propagation");
 
 DECLARE_FLAG(bool, propagate_types);
@@ -22,8 +24,7 @@ void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 #ifndef PRODUCT
   Thread* thread = flow_graph->thread();
   TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
-  TimelineDurationScope tds2(thread,
-                             compiler_timeline,
+  TimelineDurationScope tds2(thread, compiler_timeline,
                              "FlowGraphTypePropagator");
 #endif  // !PRODUCT
   FlowGraphTypePropagator propagator(flow_graph);
@@ -34,11 +35,13 @@ void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
-      visited_blocks_(new(flow_graph->zone()) BitVector(
-          flow_graph->zone(), flow_graph->reverse_postorder().length())),
+      visited_blocks_(new (flow_graph->zone())
+                          BitVector(flow_graph->zone(),
+                                    flow_graph->reverse_postorder().length())),
       types_(flow_graph->current_ssa_temp_index()),
-      in_worklist_(new(flow_graph->zone()) BitVector(
-          flow_graph->zone(), flow_graph->current_ssa_temp_index())),
+      in_worklist_(new (flow_graph->zone())
+                       BitVector(flow_graph->zone(),
+                                 flow_graph->current_ssa_temp_index())),
       asserts_(NULL),
       collected_asserts_(NULL) {
   for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
@@ -80,16 +83,14 @@ void FlowGraphTypePropagator::Propagate() {
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
     if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
-      THR_Print("recomputing type of v%" Pd ": %s\n",
-                def->ssa_temp_index(),
+      THR_Print("recomputing type of v%" Pd ": %s\n", def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
       if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
         THR_Print("  ... new type %s\n", def->Type()->ToCString());
       }
-      for (Value::Iterator it(def->input_use_list());
-           !it.Done();
+      for (Value::Iterator it(def->input_use_list()); !it.Done();
            it.Advance()) {
         Instruction* instr = it.Current()->instruction();
 
@@ -218,8 +219,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
     THR_Print("reaching type to %s for v%" Pd " is %s\n",
               value->instruction()->ToCString(),
-              value->definition()->ssa_temp_index(),
-              type->ToCString());
+              value->definition()->ssa_temp_index(), type->ToCString());
   }
 }
 
@@ -264,8 +264,7 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 
 void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->has_unique_selector()) {
-    SetCid(instr->ArgumentAt(0),
-           instr->ic_data()->GetReceiverClassIdAt(0));
+    SetCid(instr->ArgumentAt(0), instr->ic_data()->GetReceiverClassIdAt(0));
   }
 }
 
@@ -273,8 +272,7 @@ void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
   if (instr->instance_call()->has_unique_selector()) {
-    SetCid(instr->ArgumentAt(0),
-           instr->ic_data().GetReceiverClassIdAt(0));
+    SetCid(instr->ArgumentAt(0), instr->ic_data().GetReceiverClassIdAt(0));
   }
 }
 
@@ -282,16 +280,14 @@ void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
 void FlowGraphTypePropagator::VisitGuardFieldClass(
     GuardFieldClassInstr* guard) {
   const intptr_t cid = guard->field().guarded_cid();
-  if ((cid == kIllegalCid) ||
-      (cid == kDynamicCid) ||
+  if ((cid == kIllegalCid) || (cid == kDynamicCid) ||
       Field::IsExternalizableCid(cid)) {
     return;
   }
 
   Definition* def = guard->value()->definition();
   CompileType* current = TypeOf(def);
-  if (current->IsNone() ||
-      (current->ToCid() != cid) ||
+  if (current->IsNone() || (current->ToCid() != cid) ||
       (current->is_nullable() && !guard->field().is_nullable())) {
     const bool is_nullable =
         guard->field().is_nullable() && current->is_nullable();
@@ -377,17 +373,14 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   if (check->IsCheckSmi()) {
     check_clone =
         new CheckSmiInstr(assert->value()->Copy(zone()),
-                          assert->env()->deopt_id(),
-                          check->token_pos());
+                          assert->env()->deopt_id(), check->token_pos());
     check_clone->AsCheckSmi()->set_licm_hoisted(
         check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
-    check_clone =
-        new CheckClassInstr(assert->value()->Copy(zone()),
-                            assert->env()->deopt_id(),
-                            check->AsCheckClass()->unary_checks(),
-                            check->token_pos());
+    check_clone = new CheckClassInstr(
+        assert->value()->Copy(zone()), assert->env()->deopt_id(),
+        check->AsCheckClass()->unary_checks(), check->token_pos());
     check_clone->AsCheckClass()->set_licm_hoisted(
         check->AsCheckClass()->licm_hoisted());
   }
@@ -429,15 +422,15 @@ void CompileType::Union(CompileType* other) {
 
   const AbstractType* compile_type = ToAbstractType();
   const AbstractType* other_compile_type = other->ToAbstractType();
-  if (compile_type->IsMoreSpecificThan(
-          *other_compile_type, NULL, NULL, Heap::kOld)) {
+  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL, NULL,
+                                       Heap::kOld)) {
     type_ = other_compile_type;
-  } else if (other_compile_type->
-      IsMoreSpecificThan(*compile_type, NULL, NULL, Heap::kOld)) {
-  // Nothing to do.
+  } else if (other_compile_type->IsMoreSpecificThan(*compile_type, NULL, NULL,
+                                                    Heap::kOld)) {
+    // Nothing to do.
   } else {
-  // Can't unify.
-  type_ = &Object::dynamic_type();
+    // Can't unify.
+    type_ = &Object::dynamic_type();
   }
 }
 
@@ -528,7 +521,7 @@ intptr_t CompileType::ToNullableCid() {
                    thread->isolate()->all_classes_finalized()) {
           if (FLAG_trace_cha) {
             THR_Print("  **(CHA) Compile type not subclassed: %s\n",
-                type_class.ToCString());
+                      type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
             cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
@@ -624,8 +617,8 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
   // except generative constructors, which return the object being constructed.
   // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
-    *is_instance = is_nullable ||
-        type.IsObjectType() || type.IsDynamicType() || type.IsVoidType();
+    *is_instance = is_nullable || type.IsObjectType() || type.IsDynamicType() ||
+                   type.IsVoidType();
     return true;
   }
 
@@ -680,9 +673,7 @@ bool PhiInstr::RecomputeType() {
   for (intptr_t i = 0; i < InputCount(); i++) {
     if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
       THR_Print("  phi %" Pd " input %" Pd ": v%" Pd " has reaching type %s\n",
-                ssa_temp_index(),
-                i,
-                InputAt(i)->definition()->ssa_temp_index(),
+                ssa_temp_index(), i, InputAt(i)->definition()->ssa_temp_index(),
                 InputAt(i)->Type()->ToCString());
     }
     result.Union(InputAt(i)->Type());
@@ -744,7 +735,8 @@ CompileType ParameterInstr::ComputeType() const {
         return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:
         return CompileType::FromCid(kSmiCid);
-      default: UNREACHABLE();
+      default:
+        UNREACHABLE();
     }
     UNREACHABLE();
     return CompileType::Dynamic();
@@ -774,13 +766,14 @@ CompileType ParameterInstr::ComputeType() const {
           if (FLAG_use_cha_deopt ||
               thread->isolate()->all_classes_finalized()) {
             if (FLAG_trace_cha) {
-              THR_Print("  **(CHA) Computing exact type of receiver, "
+              THR_Print(
+                  "  **(CHA) Computing exact type of receiver, "
                   "no subclasses: %s\n",
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToGuardedClasses(
-                  type_class, /*subclass_count=*/0);
+              thread->cha()->AddToGuardedClasses(type_class,
+                                                 /*subclass_count=*/0);
             }
             cid = type_class.id();
           }
@@ -811,8 +804,11 @@ CompileType ConstantInstr::ComputeType() const {
   }
 
   if (value().IsInstance()) {
-    return CompileType::Create(cid,
-        AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
+    // Allocate in old-space since this may be invoked from the
+    // background compiler.
+    return CompileType::Create(
+        cid,
+        AbstractType::ZoneHandle(Instance::Cast(value()).GetType(Heap::kOld)));
   } else {
     // Type info for non-instance objects.
     return CompileType::FromCid(cid);
@@ -884,29 +880,25 @@ CompileType RelationalOpInstr::ComputeType() const {
 
 
 CompileType CurrentContextInstr::ComputeType() const {
-  return CompileType(CompileType::kNonNullable,
-                     kContextCid,
+  return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
 
 
 CompileType CloneContextInstr::ComputeType() const {
-  return CompileType(CompileType::kNonNullable,
-                     kContextCid,
+  return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
 
 
 CompileType AllocateContextInstr::ComputeType() const {
-  return CompileType(CompileType::kNonNullable,
-                     kContextCid,
+  return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
 
 
 CompileType AllocateUninitializedContextInstr::ComputeType() const {
-  return CompileType(CompileType::kNonNullable,
-                     kContextCid,
+  return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
 
@@ -915,8 +907,8 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   if (!HasSingleRecognizedTarget()) return CompileType::Dynamic();
   const Function& target = Function::Handle(ic_data().GetTargetAt(0));
   return (target.recognized_kind() != MethodRecognizer::kUnknown)
-      ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
-      : CompileType::Dynamic();
+             ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
+             : CompileType::Dynamic();
 }
 
 
@@ -930,9 +922,9 @@ CompileType StaticCallInstr::ComputeType() const {
     // from the function.
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
-    return CompileType::FromAbstractType(result_type.IsVoidType()
-        ? AbstractType::ZoneHandle(Type::NullType())
-        : result_type);
+    return CompileType::FromAbstractType(
+        result_type.IsVoidType() ? AbstractType::ZoneHandle(Type::NullType())
+                                 : result_type);
   }
 
   return CompileType::Dynamic();
@@ -964,7 +956,7 @@ CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
 
 
 CompileType StringToCharCodeInstr::ComputeType() const {
-    return CompileType::FromCid(kSmiCid);
+  return CompileType::FromCid(kSmiCid);
 }
 
 
@@ -988,8 +980,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     if (!FLAG_fields_may_be_reset) {
       const Instance& obj = Instance::Handle(field.StaticValue());
       if ((obj.raw() != Object::sentinel().raw()) &&
-          (obj.raw() != Object::transition_sentinel().raw()) &&
-          !obj.IsNull()) {
+          (obj.raw() != Object::transition_sentinel().raw()) && !obj.IsNull()) {
         is_nullable = CompileType::kNonNullable;
         cid = obj.GetClassId();
       }
@@ -1014,8 +1005,7 @@ CompileType CreateArrayInstr::ComputeType() const {
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
     ASSERT(cls().id() == kClosureCid);
-    return CompileType(CompileType::kNonNullable,
-                       kClosureCid,
+    return CompileType(CompileType::kNonNullable, kClosureCid,
                        &Type::ZoneHandle(closure_function().SignatureType()));
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
@@ -1045,13 +1035,14 @@ CompileType LoadFieldInstr::ComputeType() const {
   if (Isolate::Current()->type_checks() &&
       (type().IsFunctionType() ||
        (type().HasResolvedTypeClass() &&
-       !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())))) {
+        !Field::IsExternalizableCid(
+            Class::Handle(type().type_class()).id())))) {
     abstract_type = &type();
   }
 
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
     bool is_nullable = field_->is_nullable();
-    intptr_t field_cid =  field_->guarded_cid();
+    intptr_t field_cid = field_->guarded_cid();
     if (Field::IsExternalizableCid(field_cid)) {
       // We cannot assume that the type of the value in the field has not
       // changed on the fly.

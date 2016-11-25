@@ -22,7 +22,7 @@ class TimelineEventBlock;
 class ServiceEvent {
  public:
   enum EventKind {
-    kVMUpdate,           // VM identity information has changed
+    kVMUpdate,  // VM identity information has changed
 
     kIsolateStart,           // New isolate has started
     kIsolateRunnable,        // Isolate is ready to run
@@ -32,13 +32,13 @@ class ServiceEvent {
     kIsolateSpawn,           // Result of an isolate spawn request
     kServiceExtensionAdded,  // A service extension was registered
 
-    kPauseStart,         // --pause-isolates-on-start
-    kPauseExit,          // --pause-isolates-on-exit
+    kPauseStart,  // --pause-isolates-on-start
+    kPauseExit,   // --pause-isolates-on-exit
     kPauseBreakpoint,
     kPauseInterrupted,
     kPauseException,
-    kPausePostRequest,    // isolate is paused after a service request.
-    kNone,                // isolate has not been made runnable yet.
+    kPausePostRequest,  // isolate is paused after a service request.
+    kNone,              // isolate has not been made runnable yet.
     kResume,
     kBreakpointAdded,
     kBreakpointResolved,
@@ -80,14 +80,12 @@ class ServiceEvent {
   Isolate* isolate() const { return isolate_; }
 
   // Used by the C embedding api.
-  Dart_Port isolate_id() const {
-    return isolate_->main_port();
-  }
+  Dart_Port isolate_id() const { return isolate_->main_port(); }
 
   EventKind kind() const { return kind_; }
 
   bool IsPause() const {
-    switch (kind())  {
+    switch (kind()) {
       case kPauseStart:
       case kPauseExit:
       case kPauseBreakpoint:
@@ -115,39 +113,27 @@ class ServiceEvent {
     embedder_stream_id_ = stream_id;
   }
 
-  Breakpoint* breakpoint() const {
-    return breakpoint_;
-  }
+  Breakpoint* breakpoint() const { return breakpoint_; }
   void set_breakpoint(Breakpoint* bpt) {
-    ASSERT(kind() == kPauseBreakpoint ||
-           kind() == kBreakpointAdded ||
-           kind() == kBreakpointResolved ||
-           kind() == kBreakpointRemoved);
+    ASSERT(kind() == kPauseBreakpoint || kind() == kBreakpointAdded ||
+           kind() == kBreakpointResolved || kind() == kBreakpointRemoved);
     breakpoint_ = bpt;
   }
 
-  ActivationFrame* top_frame() const {
-    return top_frame_;
-  }
+  ActivationFrame* top_frame() const { return top_frame_; }
   void set_top_frame(ActivationFrame* frame) {
-    ASSERT(kind() == kPauseBreakpoint ||
-           kind() == kPauseInterrupted ||
-           kind() == kPauseException ||
-           kind() == kPausePostRequest ||
+    ASSERT(kind() == kPauseBreakpoint || kind() == kPauseInterrupted ||
+           kind() == kPauseException || kind() == kPausePostRequest ||
            kind() == kResume);
     top_frame_ = frame;
   }
 
-  const String* extension_rpc() const {
-    return extension_rpc_;
-  }
+  const String* extension_rpc() const { return extension_rpc_; }
   void set_extension_rpc(const String* extension_rpc) {
     extension_rpc_ = extension_rpc;
   }
 
-  const Object* exception() const {
-    return exception_;
-  }
+  const Object* exception() const { return exception_; }
   void set_exception(const Object* exception) {
     ASSERT(kind_ == kPauseException);
     exception_ = exception;
@@ -180,45 +166,29 @@ class ServiceEvent {
     spawn_error_ = error;
   }
 
-  bool at_async_jump() const {
-    return at_async_jump_;
-  }
-  void set_at_async_jump(bool value) {
-    at_async_jump_ = value;
-  }
+  bool at_async_jump() const { return at_async_jump_; }
+  void set_at_async_jump(bool value) { at_async_jump_ = value; }
 
-  const Object* inspectee() const {
-    return inspectee_;
-  }
+  const Object* inspectee() const { return inspectee_; }
   void set_inspectee(const Object* inspectee) {
     ASSERT(kind_ == kInspect);
     inspectee_ = inspectee;
   }
 
-  const Heap::GCStats* gc_stats() const {
-    return gc_stats_;
-  }
+  const Heap::GCStats* gc_stats() const { return gc_stats_; }
 
-  void set_gc_stats(const Heap::GCStats* gc_stats) {
-    gc_stats_ = gc_stats;
-  }
+  void set_gc_stats(const Heap::GCStats* gc_stats) { gc_stats_ = gc_stats; }
 
-  const uint8_t* bytes() const {
-    return bytes_;
-  }
+  const uint8_t* bytes() const { return bytes_; }
 
-  intptr_t bytes_length() const {
-    return bytes_length_;
-  }
+  intptr_t bytes_length() const { return bytes_length_; }
 
   void set_bytes(const uint8_t* bytes, intptr_t bytes_length) {
     bytes_ = bytes;
     bytes_length_ = bytes_length;
   }
 
-  void set_log_record(const LogRecord& log_record) {
-    log_record_ = log_record;
-  }
+  void set_log_record(const LogRecord& log_record) { log_record_ = log_record; }
 
   void set_extension_event(const ExtensionEvent& extension_event) {
     extension_event_ = extension_event;
@@ -226,9 +196,7 @@ class ServiceEvent {
 
   void UpdateTimestamp();
 
-  int64_t timestamp() const {
-    return timestamp_;
-  }
+  int64_t timestamp() const { return timestamp_; }
 
   const TimelineEventBlock* timeline_event_block() const {
     return timeline_event_block_;

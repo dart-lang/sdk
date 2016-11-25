@@ -10,15 +10,15 @@
 #include "bin/socket.h"
 #include "bin/socket_macos.h"
 
-#include <errno.h>  // NOLINT
-#include <ifaddrs.h>  // NOLINT
-#include <net/if.h>  // NOLINT
+#include <errno.h>        // NOLINT
+#include <ifaddrs.h>      // NOLINT
+#include <net/if.h>       // NOLINT
 #include <netinet/tcp.h>  // NOLINT
-#include <stdio.h>  // NOLINT
-#include <stdlib.h>  // NOLINT
-#include <string.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <stdio.h>        // NOLINT
+#include <stdlib.h>       // NOLINT
+#include <string.h>       // NOLINT
+#include <sys/stat.h>     // NOLINT
+#include <unistd.h>       // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -29,19 +29,19 @@ namespace bin {
 
 SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  if (!Socket::FormatNumericAddress(
-          *reinterpret_cast<RawAddr*>(sa), as_string_, INET6_ADDRSTRLEN)) {
+  if (!Socket::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa), as_string_,
+                                    INET6_ADDRSTRLEN)) {
     as_string_[0] = 0;
   }
   socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
-  memmove(reinterpret_cast<void *>(&addr_), sa, salen);
+  memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
 
 bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
-  return (NO_RETRY_EXPECTED(getnameinfo(
-      &addr.addr, salen, address, len, NULL, 0, NI_NUMERICHOST)) == 0);
+  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len, NULL,
+                                        0, NI_NUMERICHOST)) == 0);
 }
 
 
@@ -57,8 +57,14 @@ static intptr_t Create(const RawAddr& addr) {
   if (fd < 0) {
     return -1;
   }
-  FDUtils::SetCloseOnExec(fd);
-  FDUtils::SetNonBlocking(fd);
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+  if (!FDUtils::SetNonBlocking(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -69,7 +75,7 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   if ((result == 0) || (errno == EINPROGRESS)) {
     return fd;
   }
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  FDUtils::SaveErrorAndClose(fd);
   return -1;
 }
 
@@ -94,7 +100,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
   if ((result != 0) && (errno != EINPROGRESS)) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -104,7 +110,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
 bool Socket::IsBindError(intptr_t error_number) {
   return error_number == EADDRINUSE || error_number == EADDRNOTAVAIL ||
-      error_number == EINVAL;
+         error_number == EINVAL;
 }
 
 
@@ -126,8 +132,10 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::RecvFrom(
-    intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr) {
+intptr_t Socket::RecvFrom(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          RawAddr* addr) {
   ASSERT(fd >= 0);
   socklen_t addr_len = sizeof(addr->ss);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(
@@ -154,12 +162,14 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::SendTo(
-    intptr_t fd, const void* buffer, intptr_t num_bytes, const RawAddr& addr) {
+intptr_t Socket::SendTo(intptr_t fd,
+                        const void* buffer,
+                        intptr_t num_bytes,
+                        const RawAddr& addr) {
   ASSERT(fd >= 0);
-  ssize_t written_bytes = TEMP_FAILURE_RETRY(
-      sendto(fd, buffer, num_bytes, 0,
-             &addr.addr, SocketAddress::GetAddrLength(addr)));
+  ssize_t written_bytes =
+      TEMP_FAILURE_RETRY(sendto(fd, buffer, num_bytes, 0, &addr.addr,
+                                SocketAddress::GetAddrLength(addr)));
   ASSERT(EAGAIN == EWOULDBLOCK);
   if ((written_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the would block we need to retry and therefore return 0 as
@@ -195,10 +205,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
 
 void Socket::GetError(intptr_t fd, OSError* os_error) {
   int len = sizeof(errno);
-  getsockopt(fd,
-             SOL_SOCKET,
-             SO_ERROR,
-             &errno,
+  getsockopt(fd, SOL_SOCKET, SO_ERROR, &errno,
              reinterpret_cast<socklen_t*>(&len));
   os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
@@ -242,9 +249,8 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   int status = getaddrinfo(host, 0, &hints, &info);
   if (status != 0) {
     ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
     return NULL;
   }
   intptr_t count = 0;
@@ -271,19 +277,13 @@ bool Socket::ReverseLookup(const RawAddr& addr,
                            intptr_t host_len,
                            OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
-  int status = NO_RETRY_EXPECTED(getnameinfo(
-      &addr.addr,
-      SocketAddress::GetAddrLength(addr),
-      host,
-      host_len,
-      NULL,
-      0,
-      NI_NAMEREQD));
+  int status = NO_RETRY_EXPECTED(
+      getnameinfo(&addr.addr, SocketAddress::GetAddrLength(addr), host,
+                  host_len, NULL, 0, NI_NAMEREQD));
   if (status != 0) {
     ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
     return false;
   }
   return true;
@@ -310,7 +310,10 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     return -1;
   }
 
-  FDUtils::SetCloseOnExec(fd);
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
 
   if (reuseAddress) {
     int optval = 1;
@@ -320,11 +323,14 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
-  FDUtils::SetNonBlocking(fd);
+  if (!FDUtils::SetNonBlocking(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -336,8 +342,8 @@ static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
   }
   int family = ifa->ifa_addr->sa_family;
   return ((lookup_family == family) ||
-         ((lookup_family == AF_UNSPEC) &&
-          ((family == AF_INET) || (family == AF_INET6))));
+          ((lookup_family == AF_UNSPEC) &&
+           ((family == AF_INET) || (family == AF_INET6))));
 }
 
 
@@ -354,9 +360,8 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
   int status = getifaddrs(&ifaddr);
   if (status != 0) {
     ASSERT(*os_error == NULL);
-    *os_error = new OSError(status,
-                            gai_strerror(status),
-                            OSError::kGetAddressInfo);
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
     return NULL;
   }
 
@@ -364,7 +369,9 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
 
   intptr_t count = 0;
   for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) count++;
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      count++;
+    }
   }
 
   AddressList<InterfaceSocketAddress>* addresses =
@@ -373,8 +380,9 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
   for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
-      addresses->SetAt(i, new InterfaceSocketAddress(
-          ifa->ifa_addr, ifa_name, if_nametoindex(ifa->ifa_name)));
+      addresses->SetAt(
+          i, new InterfaceSocketAddress(ifa->ifa_addr, ifa_name,
+                                        if_nametoindex(ifa->ifa_name)));
       i++;
     }
   }
@@ -393,7 +401,10 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     return -1;
   }
 
-  FDUtils::SetCloseOnExec(fd);
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
 
   int optval = 1;
   VOID_NO_RETRY_EXPECTED(
@@ -407,7 +418,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -417,18 +428,19 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     // Don't close the socket until we have created a new socket, ensuring
     // that we do not get the bad port number again.
     intptr_t new_fd = CreateBindListen(addr, backlog, v6_only);
-    int err = errno;
-    VOID_TEMP_FAILURE_RETRY(close(fd));
-    errno = err;
+    FDUtils::SaveErrorAndClose(fd);
     return new_fd;
   }
 
   if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
-  FDUtils::SetNonBlocking(fd);
+  if (!FDUtils::SetNonBlocking(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -453,8 +465,14 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       socket = kTemporaryFailure;
     }
   } else {
-    FDUtils::SetCloseOnExec(socket);
-    FDUtils::SetNonBlocking(socket);
+    if (!FDUtils::SetCloseOnExec(socket)) {
+      FDUtils::SaveErrorAndClose(socket);
+      return -1;
+    }
+    if (!FDUtils::SetNonBlocking(socket)) {
+      FDUtils::SaveErrorAndClose(socket);
+      return -1;
+    }
   }
   return socket;
 }
@@ -469,11 +487,8 @@ void Socket::Close(intptr_t fd) {
 bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
   int on;
   socklen_t len = sizeof(on);
-  int err = NO_RETRY_EXPECTED(getsockopt(fd,
-                                         IPPROTO_TCP,
-                                         TCP_NODELAY,
-                                         reinterpret_cast<void *>(&on),
-                                         &len));
+  int err = NO_RETRY_EXPECTED(getsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+                                         reinterpret_cast<void*>(&on), &len));
   if (err == 0) {
     *enabled = (on == 1);
   }
@@ -483,10 +498,8 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
 
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
-  return NO_RETRY_EXPECTED(setsockopt(fd,
-                                      IPPROTO_TCP,
-                                      TCP_NODELAY,
-                                      reinterpret_cast<char *>(&on),
+  return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+                                      reinterpret_cast<char*>(&on),
                                       sizeof(on))) == 0;
 }
 
@@ -495,13 +508,10 @@ bool Socket::GetMulticastLoop(intptr_t fd, intptr_t protocol, bool* enabled) {
   uint8_t on;
   socklen_t len = sizeof(on);
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
-  if (NO_RETRY_EXPECTED(getsockopt(fd,
-                                   level,
-                                   optname,
-                                   reinterpret_cast<char *>(&on),
-                                   &len)) == 0) {
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_LOOP
+                                                     : IPV6_MULTICAST_LOOP;
+  if (NO_RETRY_EXPECTED(getsockopt(fd, level, optname,
+                                   reinterpret_cast<char*>(&on), &len)) == 0) {
     *enabled = (on == 1);
     return true;
   }
@@ -512,13 +522,11 @@ bool Socket::GetMulticastLoop(intptr_t fd, intptr_t protocol, bool* enabled) {
 bool Socket::SetMulticastLoop(intptr_t fd, intptr_t protocol, bool enabled) {
   u_int on = enabled ? 1 : 0;
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
-  return NO_RETRY_EXPECTED(setsockopt(fd,
-                                      level,
-                                      optname,
-                                      reinterpret_cast<char *>(&on),
-                                      sizeof(on))) == 0;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_LOOP
+                                                     : IPV6_MULTICAST_LOOP;
+  return NO_RETRY_EXPECTED(setsockopt(
+             fd, level, optname, reinterpret_cast<char*>(&on), sizeof(on))) ==
+         0;
 }
 
 
@@ -526,13 +534,10 @@ bool Socket::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
   uint8_t v;
   socklen_t len = sizeof(v);
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
-  if (NO_RETRY_EXPECTED(getsockopt(fd,
-                                   level,
-                                   optname,
-                                   reinterpret_cast<char *>(&v),
-                                   &len)) == 0) {
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_TTL
+                                                     : IPV6_MULTICAST_HOPS;
+  if (NO_RETRY_EXPECTED(getsockopt(fd, level, optname,
+                                   reinterpret_cast<char*>(&v), &len)) == 0) {
     *value = v;
     return true;
   }
@@ -543,24 +548,18 @@ bool Socket::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
 bool Socket::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   int v = value;
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
-  return NO_RETRY_EXPECTED(setsockopt(fd,
-                                      level,
-                                      optname,
-                                      reinterpret_cast<char *>(&v),
-                                      sizeof(v))) == 0;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_TTL
+                                                     : IPV6_MULTICAST_HOPS;
+  return NO_RETRY_EXPECTED(setsockopt(
+             fd, level, optname, reinterpret_cast<char*>(&v), sizeof(v))) == 0;
 }
 
 
 bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
   int on;
   socklen_t len = sizeof(on);
-  int err = NO_RETRY_EXPECTED(getsockopt(fd,
-                                         SOL_SOCKET,
-                                         SO_BROADCAST,
-                                         reinterpret_cast<char *>(&on),
-                                         &len));
+  int err = NO_RETRY_EXPECTED(getsockopt(fd, SOL_SOCKET, SO_BROADCAST,
+                                         reinterpret_cast<char*>(&on), &len));
   if (err == 0) {
     *enabled = (on == 1);
   }
@@ -570,10 +569,8 @@ bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
 
 bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
-  return NO_RETRY_EXPECTED(setsockopt(fd,
-                                      SOL_SOCKET,
-                                      SO_BROADCAST,
-                                      reinterpret_cast<char *>(&on),
+  return NO_RETRY_EXPECTED(setsockopt(fd, SOL_SOCKET, SO_BROADCAST,
+                                      reinterpret_cast<char*>(&on),
                                       sizeof(on))) == 0;
 }
 
@@ -586,32 +583,29 @@ static bool JoinOrLeaveMulticast(intptr_t fd,
   if (addr.addr.sa_family == AF_INET) {
     ASSERT(interface.addr.sa_family == AF_INET);
     struct ip_mreq mreq;
-    memmove(&mreq.imr_multiaddr,
-            &addr.in.sin_addr,
+    memmove(&mreq.imr_multiaddr, &addr.in.sin_addr,
             SocketAddress::GetInAddrLength(addr));
-    memmove(&mreq.imr_interface,
-            &interface.in.sin_addr,
+    memmove(&mreq.imr_interface, &interface.in.sin_addr,
             SocketAddress::GetInAddrLength(interface));
     if (join) {
-      return NO_RETRY_EXPECTED(setsockopt(
-          fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
+      return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                                          &mreq, sizeof(mreq))) == 0;
     } else {
-      return NO_RETRY_EXPECTED(setsockopt(
-          fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
+      return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                                          &mreq, sizeof(mreq))) == 0;
     }
   } else {
     ASSERT(addr.addr.sa_family == AF_INET6);
     struct ipv6_mreq mreq;
-    memmove(&mreq.ipv6mr_multiaddr,
-            &addr.in6.sin6_addr,
+    memmove(&mreq.ipv6mr_multiaddr, &addr.in6.sin6_addr,
             SocketAddress::GetInAddrLength(addr));
     mreq.ipv6mr_interface = interfaceIndex;
     if (join) {
-      return NO_RETRY_EXPECTED(setsockopt(
-          fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
+      return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP,
+                                          &mreq, sizeof(mreq))) == 0;
     } else {
-      return NO_RETRY_EXPECTED(setsockopt(
-          fd, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &mreq, sizeof(mreq))) == 0;
+      return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_IPV6, IPV6_LEAVE_GROUP,
+                                          &mreq, sizeof(mreq))) == 0;
     }
   }
 }

@@ -238,6 +238,7 @@ class Parser {
   /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
+  @deprecated
   bool parseGenericMethods = false;
 
   /**
@@ -298,8 +299,9 @@ class Parser {
    * parameters, followed by a left-parenthesis. This is used by
    * [parseTypeAlias] to determine whether or not to parse a return type.
    */
-  @deprecated
   bool get hasReturnTypeInTypeAlias {
+    // TODO(brianwilkerson) This is too expensive as implemented and needs to be
+    // re-implemented or removed.
     Token next = skipReturnType(_currentToken);
     if (next == null) {
       return false;
@@ -1400,7 +1402,7 @@ class Parser {
       // function type alias that was parsed.
       _parseFunctionTypeAlias(commentAndMetadata, getAndAdvance());
       return null;
-    } else if (parseGenericMethods) {
+    } else {
       Token token = _skipTypeParameterList(_peek());
       if (token != null && _tokenMatches(token, TokenType.OPEN_PAREN)) {
         return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
@@ -1489,7 +1491,7 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (parseGenericMethods && _tokenMatches(next, TokenType.LT)) {
+    } else if (_tokenMatches(next, TokenType.LT)) {
       return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type);
     } else if (_tokenMatches(next, TokenType.OPEN_CURLY_BRACKET)) {
@@ -2799,6 +2801,7 @@ class Parser {
       if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.POSITIONAL;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -2812,6 +2815,7 @@ class Parser {
       } else if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.NAMED;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -4116,7 +4120,7 @@ class Parser {
         type == TokenType.PERIOD ||
         type == TokenType.QUESTION_PERIOD ||
         type == TokenType.OPEN_PAREN ||
-        (parseGenericMethods && type == TokenType.LT) ||
+        type == TokenType.LT ||
         type == TokenType.INDEX) {
       do {
         if (_isLikelyArgumentList()) {
@@ -4269,6 +4273,9 @@ class Parser {
         _inInitializer = wasInInitializer;
       }
     } else if (type == TokenType.LT || _injectGenericCommentTypeList()) {
+      if (isFunctionExpression(currentToken)) {
+        return parseFunctionExpression();
+      }
       return parseListOrMapLiteral(null);
     } else if (type == TokenType.OPEN_CURLY_BRACKET) {
       return parseMapLiteral(null, null);
@@ -5758,9 +5765,6 @@ class Parser {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = skipTypeArgumentList(_currentToken);
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -5819,9 +5823,6 @@ class Parser {
   }
 
   bool _isPeekGenericTypeParametersAndOpenParen() {
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -5976,9 +5977,7 @@ class Parser {
    *     assertInitializer ::=
    *         'assert' '(' expression [',' expression] ')'
    */
-  void _parseAssertInitializer() {
-    // TODO(brianwilkerson) Capture the syntax in the AST using a new class,
-    // such as AssertInitializer
+  AssertInitializer _parseAssertInitializer() {
     Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
@@ -5989,8 +5988,8 @@ class Parser {
       message = parseExpression2();
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
-//    return new AssertInitializer(
-//        keyword, leftParen, expression, comma, message, rightParen);
+    return new AssertInitializer(
+        keyword, leftParen, expression, comma, message, rightParen);
   }
 
   /**
@@ -6225,7 +6224,7 @@ class Parser {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
         } else if (_enableAssertInitializer &&
             _matchesKeyword(Keyword.ASSERT)) {
-          _parseAssertInitializer();
+          initializers.add(_parseAssertInitializer());
         } else {
           initializers.add(parseConstructorFieldInitializer(false));
         }
@@ -6613,8 +6612,7 @@ class Parser {
    * See [parseGenericMethodComments].
    */
   TypeParameterList _parseGenericMethodTypeParameters() {
-    if (parseGenericMethods && _matches(TokenType.LT) ||
-        _injectGenericCommentTypeList()) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return parseTypeParameterList();
     }
     return null;

@@ -31,9 +31,7 @@ class BlockLabel : public ValueObject {
   }
 
   bool IsLinked() const { return !is_bound_ && is_linked_; }
-  void SetLinked() {
-    is_linked_ = true;
-  }
+  void SetLinked() { is_linked_ = true; }
 
   intptr_t Position() const {
     ASSERT(IsBound());
@@ -48,13 +46,9 @@ class BlockLabel : public ValueObject {
 
   // Used by the bytecode assembler.
  public:
-  ~BlockLabel() {
-    ASSERT(!is_linked());
-  }
+  ~BlockLabel() { ASSERT(!is_linked()); }
 
-  intptr_t pos() const {
-    return pos_;
-  }
+  intptr_t pos() const { return pos_; }
   bool is_bound() const { return IsBound(); }
   bool is_linked() const { return IsLinked(); }
 
@@ -101,10 +95,7 @@ class RegExpMacroAssembler : public ZoneAllocated {
     kParamCount
   };
 
-  enum IrregexpImplementation {
-    kBytecodeImplementation,
-    kIRImplementation
-  };
+  enum IrregexpImplementation { kBytecodeImplementation, kIRImplementation };
 
   explicit RegExpMacroAssembler(Zone* zone);
   virtual ~RegExpMacroAssembler();
@@ -132,8 +123,8 @@ class RegExpMacroAssembler : public ZoneAllocated {
   virtual void CheckCharacterLT(uint16_t limit, BlockLabel* on_less) = 0;
   virtual void CheckGreedyLoop(BlockLabel* on_tos_equals_current_position) = 0;
   virtual void CheckNotAtStart(BlockLabel* on_not_at_start) = 0;
-  virtual void CheckNotBackReference(
-      intptr_t start_reg, BlockLabel* on_no_match) = 0;
+  virtual void CheckNotBackReference(intptr_t start_reg,
+                                     BlockLabel* on_no_match) = 0;
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
                                                BlockLabel* on_no_match) = 0;
   // Check the current character for a match with a literal character.  If we
@@ -178,12 +169,14 @@ class RegExpMacroAssembler : public ZoneAllocated {
   virtual void Fail() = 0;
   // Check whether a register is >= a given constant and go to a label if it
   // is.  Backtracks instead if the label is NULL.
-  virtual void IfRegisterGE(
-      intptr_t reg, intptr_t comparand, BlockLabel* if_ge) = 0;
+  virtual void IfRegisterGE(intptr_t reg,
+                            intptr_t comparand,
+                            BlockLabel* if_ge) = 0;
   // Check whether a register is < a given constant and go to a label if it is.
   // Backtracks instead if the label is NULL.
-  virtual void IfRegisterLT(
-      intptr_t reg, intptr_t comparand, BlockLabel* if_lt) = 0;
+  virtual void IfRegisterLT(intptr_t reg,
+                            intptr_t comparand,
+                            BlockLabel* if_lt) = 0;
   // Check whether a register is == to the current position and go to a
   // label if it is.
   virtual void IfRegisterEqPos(intptr_t reg, BlockLabel* if_eq) = 0;
@@ -213,8 +206,8 @@ class RegExpMacroAssembler : public ZoneAllocated {
   virtual void SetRegister(intptr_t register_index, intptr_t to) = 0;
   // Return whether the matching (with a global regexp) will be restarted.
   virtual bool Succeed() = 0;
-  virtual void WriteCurrentPositionToRegister(
-      intptr_t reg, intptr_t cp_offset) = 0;
+  virtual void WriteCurrentPositionToRegister(intptr_t reg,
+                                              intptr_t cp_offset) = 0;
   virtual void ClearRegisters(intptr_t reg_from, intptr_t reg_to) = 0;
   virtual void WriteStackPointerToRegister(intptr_t reg) = 0;
 
@@ -227,9 +220,7 @@ class RegExpMacroAssembler : public ZoneAllocated {
   // a failure in a global regexp may still mean success overall.
   inline void set_global_mode(GlobalMode mode) { global_mode_ = mode; }
   inline bool global() { return global_mode_ != NOT_GLOBAL; }
-  inline bool global_with_zero_length_check() {
-    return global_mode_ == GLOBAL;
-  }
+  inline bool global_with_zero_length_check() { return global_mode_ == GLOBAL; }
 
   Zone* zone() const { return zone_; }
 

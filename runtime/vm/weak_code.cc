@@ -32,13 +32,13 @@ void WeakCodeReferences::Register(const Code& value) {
     }
   }
 
-  const WeakProperty& weak_property = WeakProperty::Handle(
-      WeakProperty::New(Heap::kOld));
+  const WeakProperty& weak_property =
+      WeakProperty::Handle(WeakProperty::New(Heap::kOld));
   weak_property.set_key(value);
 
   intptr_t length = array_.IsNull() ? 0 : array_.Length();
-  const Array& new_array = Array::Handle(
-      Array::Grow(array_, length + 1, Heap::kOld));
+  const Array& new_array =
+      Array::Handle(Array::Grow(array_, length + 1, Heap::kOld));
   new_array.SetAt(length, weak_property);
   UpdateArrayTo(new_array);
 }

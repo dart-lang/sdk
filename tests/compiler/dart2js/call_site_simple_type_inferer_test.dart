@@ -211,7 +211,7 @@ void doTest(String test, bool enableInlining, Function f) {
     var expectedTypes = f(compiler);
     var signature = element.functionSignature;
     int index = 0;
-    var inferrer = compiler.globalInference.typesInferrer;
+    var inferrer = compiler.globalInference.typesInferrerInternal;
     signature.forEachParameter((Element element) {
       Expect.equals(expectedTypes[index++],
           simplify(inferrer.getTypeOfElement(element), compiler), test);
@@ -230,31 +230,37 @@ subclassOfInterceptor(compiler) {
 }
 
 void test() {
-  runTest(TEST_1, (compiler) => [compiler.commonMasks.stringType]);
-  runTest(TEST_2, (compiler) => [compiler.commonMasks.uint31Type]);
-  runTest(TEST_3, (compiler) => [compiler.commonMasks.intType]);
-  runTest(TEST_4, (compiler) => [compiler.commonMasks.numType]);
-  runTest(TEST_5, (compiler) => [compiler.commonMasks.numType]);
-  runTest(TEST_6, (compiler) => [compiler.commonMasks.numType]);
+  runTest(TEST_1, (compiler) => [compiler.closedWorld.commonMasks.stringType]);
+  runTest(TEST_2, (compiler) => [compiler.closedWorld.commonMasks.uint31Type]);
+  runTest(TEST_3, (compiler) => [compiler.closedWorld.commonMasks.intType]);
+  runTest(TEST_4, (compiler) => [compiler.closedWorld.commonMasks.numType]);
+  runTest(TEST_5, (compiler) => [compiler.closedWorld.commonMasks.numType]);
+  runTest(TEST_6, (compiler) => [compiler.closedWorld.commonMasks.numType]);
   runTest(TEST_7a, (compiler) => [subclassOfInterceptor(compiler)]);
   runTest(
-      TEST_7b, (compiler) => [compiler.commonMasks.dynamicType.nonNullable()]);
+      TEST_7b,
+      (compiler) =>
+          [compiler.closedWorld.commonMasks.dynamicType.nonNullable()]);
 
   runTest(
       TEST_8,
       (compiler) => [
-            compiler.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.uint31Type,
             subclassOfInterceptor(compiler),
-            compiler.commonMasks.dynamicType.nonNullable()
+            compiler.closedWorld.commonMasks.dynamicType.nonNullable()
           ]);
   runTest(
       TEST_9,
-      (compiler) =>
-          [compiler.commonMasks.uint31Type, compiler.commonMasks.uint31Type]);
+      (compiler) => [
+            compiler.closedWorld.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.uint31Type
+          ]);
   runTest(
       TEST_10,
-      (compiler) =>
-          [compiler.commonMasks.uint31Type, compiler.commonMasks.uint31Type]);
+      (compiler) => [
+            compiler.closedWorld.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.uint31Type
+          ]);
   runTest(
       TEST_11,
       (compiler) =>
@@ -262,35 +268,41 @@ void test() {
 
   runTest(
       TEST_12,
-      (compiler) =>
-          [compiler.commonMasks.stringType, compiler.commonMasks.uint31Type]);
+      (compiler) => [
+            compiler.closedWorld.commonMasks.stringType,
+            compiler.closedWorld.commonMasks.uint31Type
+          ]);
 
-  runTest(TEST_13, (compiler) => [compiler.commonMasks.numType]);
+  runTest(TEST_13, (compiler) => [compiler.closedWorld.commonMasks.numType]);
 
   runTest(
       TEST_14,
-      (compiler) =>
-          [compiler.commonMasks.uint31Type, compiler.commonMasks.stringType]);
+      (compiler) => [
+            compiler.closedWorld.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.stringType
+          ]);
 
   runTest(
       TEST_15,
-      (compiler) =>
-          [compiler.commonMasks.stringType, compiler.commonMasks.boolType]);
+      (compiler) => [
+            compiler.closedWorld.commonMasks.stringType,
+            compiler.closedWorld.commonMasks.boolType
+          ]);
 
   runTest(
       TEST_16,
       (compiler) => [
-            compiler.commonMasks.uint31Type,
-            compiler.commonMasks.uint31Type,
-            compiler.commonMasks.stringType
+            compiler.closedWorld.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.stringType
           ]);
 
   runTest(
       TEST_17,
       (compiler) => [
-            compiler.commonMasks.uint31Type,
-            compiler.commonMasks.boolType,
-            compiler.commonMasks.doubleType
+            compiler.closedWorld.commonMasks.uint31Type,
+            compiler.closedWorld.commonMasks.boolType,
+            compiler.closedWorld.commonMasks.doubleType
           ]);
 
   runTest(

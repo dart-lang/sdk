@@ -389,11 +389,11 @@ class Driver implements ServerStarter {
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
-      results[ENABLE_NEW_ANALYSIS_DRIVER];
+        results[ENABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.enablePubSummaryManager =
         results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
-        true /*results[FINER_GRAINED_INVALIDATION]*/;
+        results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -428,7 +428,8 @@ class Driver implements ServerStarter {
           .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
           .path;
     }
-    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
+    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is' ||
+        analysisServerOptions.enableNewAnalysisDriver;
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.

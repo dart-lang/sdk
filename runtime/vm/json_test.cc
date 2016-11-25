@@ -24,16 +24,12 @@ TEST_CASE(JSON_TextBuffer) {
 TEST_CASE(JSON_JSONStream_Primitives) {
   {
     JSONStream js;
-    {
-      JSONObject jsobj(&js);
-    }
+    { JSONObject jsobj(&js); }
     EXPECT_STREQ("{}", js.ToCString());
   }
   {
     JSONStream js;
-    {
-      JSONArray jsarr(&js);
-    }
+    { JSONArray jsarr(&js); }
     EXPECT_STREQ("[]", js.ToCString());
   }
   {
@@ -183,24 +179,25 @@ TEST_CASE(JSON_JSONStream_DartObject) {
   }
   char buffer[1024];
   ElideJSONSubstring("classes", js.ToCString(), buffer);
-  EXPECT_STREQ("[{\"type\":\"@Instance\","
-               "\"_vmType\":\"null\","
-               "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-               "\"name\":\"Null\"},"
-               "\"kind\":\"Null\","
-               "\"fixedId\":true,"
-               "\"id\":\"objects\\/null\","
-               "\"valueAsString\":\"null\"},"
-               "{\"object_key\":"
-               "{\"type\":\"@Instance\","
-               "\"_vmType\":\"null\","
-               "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-               "\"name\":\"Null\"},"
-               "\"kind\":\"Null\","
-               "\"fixedId\":true,"
-               "\"id\":\"objects\\/null\","
-               "\"valueAsString\":\"null\"}}]",
-               buffer);
+  EXPECT_STREQ(
+      "[{\"type\":\"@Instance\","
+      "\"_vmType\":\"null\","
+      "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+      "\"name\":\"Null\"},"
+      "\"kind\":\"Null\","
+      "\"fixedId\":true,"
+      "\"id\":\"objects\\/null\","
+      "\"valueAsString\":\"null\"},"
+      "{\"object_key\":"
+      "{\"type\":\"@Instance\","
+      "\"_vmType\":\"null\","
+      "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+      "\"name\":\"Null\"},"
+      "\"kind\":\"Null\","
+      "\"fixedId\":true,"
+      "\"id\":\"objects\\/null\","
+      "\"valueAsString\":\"null\"}}]",
+      buffer);
 }
 
 TEST_CASE(JSON_JSONStream_EscapedString) {
@@ -338,16 +335,13 @@ TEST_CASE(JSON_JSONStream_AppendJSONStreamConsumer) {
       const char* test_data = "{a, b, c},";
       AppendJSONStreamConsumer(Dart_StreamConsumer_kData, "",
                                reinterpret_cast<const uint8_t*>(&test_data[0]),
-                               strlen(test_data),
-                               &js);
+                               strlen(test_data), &js);
       AppendJSONStreamConsumer(Dart_StreamConsumer_kData, "",
                                reinterpret_cast<const uint8_t*>(&test_data[0]),
-                               strlen(test_data),
-                               &js);
+                               strlen(test_data), &js);
       AppendJSONStreamConsumer(Dart_StreamConsumer_kData, "",
                                reinterpret_cast<const uint8_t*>(&test_data[0]),
-                               strlen(test_data) - 1,
-                               &js);
+                               strlen(test_data) - 1, &js);
     }
   }
 

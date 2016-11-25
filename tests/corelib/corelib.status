@@ -81,6 +81,8 @@ double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1
 [ $runtime == ff ]
 double_round3_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
+list_test/none: RuntimeError # Issue 27871
+list_test/01: RuntimeError # Issue 27871
 
 [ $runtime == opera ]
 core_runtime_types_test: Fail
@@ -207,5 +209,7 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-big_integer_arith_vm_test/gcd: Pass, RuntimeError # Issue #27474
-big_integer_arith_vm_test/modPow: Pass, RuntimeError # Issue #27474
+
+[ $hot_reload || $hot_reload_rollback ]
+big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
+

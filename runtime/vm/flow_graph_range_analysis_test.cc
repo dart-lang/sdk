@@ -8,18 +8,14 @@
 namespace dart {
 
 TEST_CASE(RangeTests) {
-  Range* zero = new Range(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(0));
-  Range* positive = new Range(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(100));
-  Range* negative = new Range(
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(-100));
-  Range* range_x = new Range(
-      RangeBoundary::FromConstant(-15),
-      RangeBoundary::FromConstant(100));
+  Range* zero =
+      new Range(RangeBoundary::FromConstant(0), RangeBoundary::FromConstant(0));
+  Range* positive = new Range(RangeBoundary::FromConstant(0),
+                              RangeBoundary::FromConstant(100));
+  Range* negative = new Range(RangeBoundary::FromConstant(-1),
+                              RangeBoundary::FromConstant(-100));
+  Range* range_x = new Range(RangeBoundary::FromConstant(-15),
+                             RangeBoundary::FromConstant(100));
   EXPECT(positive->IsPositive());
   EXPECT(zero->Overlaps(0, 0));
   EXPECT(positive->Overlaps(0, 0));
@@ -29,15 +25,14 @@ TEST_CASE(RangeTests) {
   EXPECT(!range_x->IsWithin(-15, 99));
   EXPECT(!range_x->IsWithin(-14, 100));
 
-#define TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, Clamp, res_min, res_max)\
+#define TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, Clamp, res_min,         \
+                       res_max)                                                \
   {                                                                            \
     RangeBoundary min, max;                                                    \
-    Range* left_range = new Range(                                             \
-      RangeBoundary::FromConstant(l_min),                                      \
-      RangeBoundary::FromConstant(l_max));                                     \
-    Range* shift_range = new Range(                                            \
-      RangeBoundary::FromConstant(r_min),                                      \
-      RangeBoundary::FromConstant(r_max));                                     \
+    Range* left_range = new Range(RangeBoundary::FromConstant(l_min),          \
+                                  RangeBoundary::FromConstant(l_max));         \
+    Range* shift_range = new Range(RangeBoundary::FromConstant(r_min),         \
+                                   RangeBoundary::FromConstant(r_max));        \
     Op(left_range, shift_range, &min, &max);                                   \
     min = Clamp(min);                                                          \
     max = Clamp(max);                                                          \
@@ -53,52 +48,44 @@ TEST_CASE(RangeTests) {
 
 #define NO_CLAMP(b) (b)
 #define TEST_RANGE_OP(Op, l_min, l_max, r_min, r_max, result_min, result_max)  \
-  TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max,                               \
-                 NO_CLAMP, result_min, result_max)
+  TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, NO_CLAMP, result_min,         \
+                 result_max)
 
 #define CLAMP_TO_SMI(b) (b.Clamp(RangeBoundary::kRangeBoundarySmi))
 #define TEST_RANGE_OP_SMI(Op, l_min, l_max, r_min, r_max, res_min, res_max)    \
-  TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max,                               \
-                 CLAMP_TO_SMI, res_min, res_max)
+  TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, CLAMP_TO_SMI, res_min, res_max)
 
-  TEST_RANGE_OP(Range::Shl, -15, 100, 0, 2,
-                RangeBoundary(-60), RangeBoundary(400));
-  TEST_RANGE_OP(Range::Shl, -15, 100, -2, 2,
-                RangeBoundary(-60), RangeBoundary(400));
-  TEST_RANGE_OP(Range::Shl, -15, -10, 1, 2,
-                RangeBoundary(-60), RangeBoundary(-20));
-  TEST_RANGE_OP(Range::Shl, 5, 10, -2, 2,
-                RangeBoundary(5), RangeBoundary(40));
-  TEST_RANGE_OP(Range::Shl, -15, 100, 0, 64,
-                RangeBoundary::NegativeInfinity(),
+  TEST_RANGE_OP(Range::Shl, -15, 100, 0, 2, RangeBoundary(-60),
+                RangeBoundary(400));
+  TEST_RANGE_OP(Range::Shl, -15, 100, -2, 2, RangeBoundary(-60),
+                RangeBoundary(400));
+  TEST_RANGE_OP(Range::Shl, -15, -10, 1, 2, RangeBoundary(-60),
+                RangeBoundary(-20));
+  TEST_RANGE_OP(Range::Shl, 5, 10, -2, 2, RangeBoundary(5), RangeBoundary(40));
+  TEST_RANGE_OP(Range::Shl, -15, 100, 0, 64, RangeBoundary::NegativeInfinity(),
                 RangeBoundary::PositiveInfinity());
-  TEST_RANGE_OP(Range::Shl, -1, 1, 63, 63,
-                RangeBoundary(kMinInt64),
+  TEST_RANGE_OP(Range::Shl, -1, 1, 63, 63, RangeBoundary(kMinInt64),
                 RangeBoundary::PositiveInfinity());
   if (kBitsPerWord == 64) {
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62,
-                  RangeBoundary(kSmiMin),
-                  RangeBoundary(kSmiMax));
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,
-                  RangeBoundary(-(1 << 30)),
-                  RangeBoundary(1 << 30));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
+                      RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(-(1 << 30)),
+                      RangeBoundary(1 << 30));
   } else {
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,
-                  RangeBoundary(kSmiMin),
-                  RangeBoundary(kSmiMax));
-    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62,
-                  RangeBoundary(kSmiMin),
-                  RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30, RangeBoundary(kSmiMin),
+                      RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62, RangeBoundary(kSmiMin),
+                      RangeBoundary(kSmiMax));
   }
-  TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64,
-                RangeBoundary(0), RangeBoundary::PositiveInfinity());
-  TEST_RANGE_OP(Range::Shl, -100, 0, 0, 64,
-                RangeBoundary::NegativeInfinity(), RangeBoundary(0));
+  TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64, RangeBoundary(0),
+                RangeBoundary::PositiveInfinity());
+  TEST_RANGE_OP(Range::Shl, -100, 0, 0, 64, RangeBoundary::NegativeInfinity(),
+                RangeBoundary(0));
 
   TEST_RANGE_OP(Range::Shr, -8, 8, 1, 2, RangeBoundary(-4), RangeBoundary(4));
   TEST_RANGE_OP(Range::Shr, 1, 8, 1, 2, RangeBoundary(0), RangeBoundary(4));
-  TEST_RANGE_OP(Range::Shr, -16, -8, 1, 2,
-                RangeBoundary(-8), RangeBoundary(-2));
+  TEST_RANGE_OP(Range::Shr, -16, -8, 1, 2, RangeBoundary(-8),
+                RangeBoundary(-2));
   TEST_RANGE_OP(Range::Shr, 2, 4, -1, 1, RangeBoundary(1), RangeBoundary(4));
   TEST_RANGE_OP(Range::Shr, kMaxInt64, kMaxInt64, 0, 1,
                 RangeBoundary(kMaxInt64 >> 1), RangeBoundary(kMaxInt64));
@@ -232,10 +219,9 @@ TEST_CASE(RangeUtils) {
   EXPECT(Range::ConstantAbsMax(&range_i) == 1);
 
   // RangeBOundary.Equals.
-  EXPECT(RangeBoundary::FromConstant(1).Equals(
-      RangeBoundary::FromConstant(1)));
-  EXPECT(!RangeBoundary::FromConstant(2).Equals(
-      RangeBoundary::FromConstant(1)));
+  EXPECT(RangeBoundary::FromConstant(1).Equals(RangeBoundary::FromConstant(1)));
+  EXPECT(
+      !RangeBoundary::FromConstant(2).Equals(RangeBoundary::FromConstant(1)));
   EXPECT(RangeBoundary::PositiveInfinity().Equals(
       RangeBoundary::PositiveInfinity()));
   EXPECT(!RangeBoundary::PositiveInfinity().Equals(
@@ -267,11 +253,7 @@ TEST_CASE(RangeBinaryOp) {
 
   {
     Range result;
-    Range::BinaryOp(Token::kADD,
-                    range_a,
-                    range_b,
-                    NULL,
-                    &result);
+    Range::BinaryOp(Token::kADD, range_a, range_b, NULL, &result);
     ASSERT(!Range::IsUnknown(&result));
     EXPECT(result.min().IsNegativeInfinity());
     EXPECT(result.max().IsPositiveInfinity());
@@ -280,16 +262,12 @@ TEST_CASE(RangeBinaryOp) {
   // Test that [5, 10] + [0, 5] = [5, 15].
   Range* range_c = new Range(RangeBoundary::FromConstant(5),
                              RangeBoundary::FromConstant(10));
-  Range* range_d = new Range(RangeBoundary::FromConstant(0),
-                             RangeBoundary::FromConstant(5));
+  Range* range_d =
+      new Range(RangeBoundary::FromConstant(0), RangeBoundary::FromConstant(5));
 
   {
     Range result;
-    Range::BinaryOp(Token::kADD,
-                    range_c,
-                    range_d,
-                    NULL,
-                    &result);
+    Range::BinaryOp(Token::kADD, range_c, range_d, NULL, &result);
     ASSERT(!Range::IsUnknown(&result));
     EXPECT(result.min().ConstantValue() == 5);
     EXPECT(result.max().ConstantValue() == 15);
@@ -302,11 +280,7 @@ TEST_CASE(RangeBinaryOp) {
                              RangeBoundary::FromConstant(0xf));
   {
     Range result;
-    Range::BinaryOp(Token::kBIT_AND,
-                    range_e,
-                    range_f,
-                    NULL,
-                    &result);
+    Range::BinaryOp(Token::kBIT_AND, range_e, range_f, NULL, &result);
     ASSERT(!Range::IsUnknown(&result));
     EXPECT(result.min().ConstantValue() == 0x0);
     EXPECT(result.max().ConstantValue() == 0xf);
@@ -318,12 +292,10 @@ TEST_CASE(RangeAdd) {
 #define TEST_RANGE_ADD(l_min, l_max, r_min, r_max, result_min, result_max)     \
   {                                                                            \
     RangeBoundary min, max;                                                    \
-    Range* left_range = new Range(                                             \
-      RangeBoundary::FromConstant(l_min),                                      \
-      RangeBoundary::FromConstant(l_max));                                     \
-    Range* right_range = new Range(                                            \
-      RangeBoundary::FromConstant(r_min),                                      \
-      RangeBoundary::FromConstant(r_max));                                     \
+    Range* left_range = new Range(RangeBoundary::FromConstant(l_min),          \
+                                  RangeBoundary::FromConstant(l_max));         \
+    Range* right_range = new Range(RangeBoundary::FromConstant(r_min),         \
+                                   RangeBoundary::FromConstant(r_max));        \
     EXPECT(left_range->min().ConstantValue() == l_min);                        \
     EXPECT(left_range->max().ConstantValue() == l_max);                        \
     EXPECT(right_range->min().ConstantValue() == r_min);                       \
@@ -341,68 +313,56 @@ TEST_CASE(RangeAdd) {
 
   // [kMaxInt32, kMaxInt32 + 15] + [10, 20] = [kMaxInt32 + 10, kMaxInt32 + 35].
   TEST_RANGE_ADD(static_cast<int64_t>(kMaxInt32),
-                 static_cast<int64_t>(kMaxInt32) + 15,
-                 static_cast<int64_t>(10),
+                 static_cast<int64_t>(kMaxInt32) + 15, static_cast<int64_t>(10),
                  static_cast<int64_t>(20),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 10),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 35));
 
   // [kMaxInt32 - 15, kMaxInt32 + 15] + [15, -15] = [kMaxInt32, kMaxInt32].
   TEST_RANGE_ADD(static_cast<int64_t>(kMaxInt32) - 15,
-                 static_cast<int64_t>(kMaxInt32) + 15,
-                 static_cast<int64_t>(15),
+                 static_cast<int64_t>(kMaxInt32) + 15, static_cast<int64_t>(15),
                  static_cast<int64_t>(-15),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32)),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32)));
 
   // [kMaxInt32, kMaxInt32 + 15] + [10, kMaxInt64] = [kMaxInt32 + 10, +inf].
   TEST_RANGE_ADD(static_cast<int64_t>(kMaxInt32),
-                 static_cast<int64_t>(kMaxInt32) + 15,
-                 static_cast<int64_t>(10),
+                 static_cast<int64_t>(kMaxInt32) + 15, static_cast<int64_t>(10),
                  static_cast<int64_t>(kMaxInt64),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 10),
                  RangeBoundary::PositiveInfinity());
 
   // [kMinInt64, kMaxInt32 + 15] + [10, 20] = [kMinInt64 + 10, kMaxInt32 + 35].
   TEST_RANGE_ADD(static_cast<int64_t>(kMinInt64),
-                 static_cast<int64_t>(kMaxInt32) + 15,
-                 static_cast<int64_t>(10),
+                 static_cast<int64_t>(kMaxInt32) + 15, static_cast<int64_t>(10),
                  static_cast<int64_t>(20),
                  RangeBoundary(static_cast<int64_t>(kMinInt64) + 10),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 35));
 
   // [0, 0] + [kMinInt64, kMaxInt64] = [kMinInt64, kMaxInt64].
-  TEST_RANGE_ADD(static_cast<int64_t>(0),
-                 static_cast<int64_t>(0),
+  TEST_RANGE_ADD(static_cast<int64_t>(0), static_cast<int64_t>(0),
                  static_cast<int64_t>(kMinInt64),
-                 static_cast<int64_t>(kMaxInt64),
-                 RangeBoundary(kMinInt64),
+                 static_cast<int64_t>(kMaxInt64), RangeBoundary(kMinInt64),
                  RangeBoundary(kMaxInt64));
 
   // Overflows.
 
   // [-1, 1] + [kMinInt64, kMaxInt64] = [-inf, +inf].
-  TEST_RANGE_ADD(static_cast<int64_t>(-1),
-                 static_cast<int64_t>(1),
-                 static_cast<int64_t>(kMinInt64),
-                 static_cast<int64_t>(kMaxInt64),
-                 RangeBoundary::NegativeInfinity(),
-                 RangeBoundary::PositiveInfinity());
+  TEST_RANGE_ADD(
+      static_cast<int64_t>(-1), static_cast<int64_t>(1),
+      static_cast<int64_t>(kMinInt64), static_cast<int64_t>(kMaxInt64),
+      RangeBoundary::NegativeInfinity(), RangeBoundary::PositiveInfinity());
 
   // [kMaxInt64, kMaxInt64] + [kMaxInt64, kMaxInt64] = [-inf, +inf].
-  TEST_RANGE_ADD(static_cast<int64_t>(kMaxInt64),
-                 static_cast<int64_t>(kMaxInt64),
-                 static_cast<int64_t>(kMaxInt64),
-                 static_cast<int64_t>(kMaxInt64),
-                 RangeBoundary::NegativeInfinity(),
-                 RangeBoundary::PositiveInfinity());
+  TEST_RANGE_ADD(
+      static_cast<int64_t>(kMaxInt64), static_cast<int64_t>(kMaxInt64),
+      static_cast<int64_t>(kMaxInt64), static_cast<int64_t>(kMaxInt64),
+      RangeBoundary::NegativeInfinity(), RangeBoundary::PositiveInfinity());
 
   // [kMaxInt64, kMaxInt64] + [1, 1] = [-inf, +inf].
   TEST_RANGE_ADD(static_cast<int64_t>(kMaxInt64),
-                 static_cast<int64_t>(kMaxInt64),
-                 static_cast<int64_t>(1),
-                 static_cast<int64_t>(1),
-                 RangeBoundary::NegativeInfinity(),
+                 static_cast<int64_t>(kMaxInt64), static_cast<int64_t>(1),
+                 static_cast<int64_t>(1), RangeBoundary::NegativeInfinity(),
                  RangeBoundary::PositiveInfinity());
 
 #undef TEST_RANGE_ADD
@@ -413,12 +373,10 @@ TEST_CASE(RangeSub) {
 #define TEST_RANGE_SUB(l_min, l_max, r_min, r_max, result_min, result_max)     \
   {                                                                            \
     RangeBoundary min, max;                                                    \
-    Range* left_range = new Range(                                             \
-      RangeBoundary::FromConstant(l_min),                                      \
-      RangeBoundary::FromConstant(l_max));                                     \
-    Range* right_range = new Range(                                            \
-      RangeBoundary::FromConstant(r_min),                                      \
-      RangeBoundary::FromConstant(r_max));                                     \
+    Range* left_range = new Range(RangeBoundary::FromConstant(l_min),          \
+                                  RangeBoundary::FromConstant(l_max));         \
+    Range* right_range = new Range(RangeBoundary::FromConstant(r_min),         \
+                                   RangeBoundary::FromConstant(r_max));        \
     EXPECT(left_range->min().ConstantValue() == l_min);                        \
     EXPECT(left_range->max().ConstantValue() == l_max);                        \
     EXPECT(right_range->min().ConstantValue() == r_min);                       \
@@ -436,34 +394,28 @@ TEST_CASE(RangeSub) {
 
   // [kMaxInt32, kMaxInt32 + 15] - [10, 20] = [kMaxInt32 - 20, kMaxInt32 + 5].
   TEST_RANGE_SUB(static_cast<int64_t>(kMaxInt32),
-                 static_cast<int64_t>(kMaxInt32) + 15,
-                 static_cast<int64_t>(10),
+                 static_cast<int64_t>(kMaxInt32) + 15, static_cast<int64_t>(10),
                  static_cast<int64_t>(20),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) - 20),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 5));
 
   // [kMintInt64, kMintInt64] - [1, 1] = [-inf, +inf].
   TEST_RANGE_SUB(static_cast<int64_t>(kMinInt64),
-                 static_cast<int64_t>(kMinInt64),
-                 static_cast<int64_t>(1),
-                 static_cast<int64_t>(1),
-                 RangeBoundary::NegativeInfinity(),
+                 static_cast<int64_t>(kMinInt64), static_cast<int64_t>(1),
+                 static_cast<int64_t>(1), RangeBoundary::NegativeInfinity(),
                  RangeBoundary::PositiveInfinity());
 
   // [1, 1] - [kMintInt64, kMintInt64] = [-inf, +inf].
-  TEST_RANGE_SUB(static_cast<int64_t>(1),
-                 static_cast<int64_t>(1),
-                 static_cast<int64_t>(kMinInt64),
-                 static_cast<int64_t>(kMinInt64),
-                 RangeBoundary::NegativeInfinity(),
-                 RangeBoundary::PositiveInfinity());
+  TEST_RANGE_SUB(
+      static_cast<int64_t>(1), static_cast<int64_t>(1),
+      static_cast<int64_t>(kMinInt64), static_cast<int64_t>(kMinInt64),
+      RangeBoundary::NegativeInfinity(), RangeBoundary::PositiveInfinity());
 
   // [kMaxInt32 + 10, kMaxInt32 + 20] - [-20, -20] =
   //     [kMaxInt32 + 30, kMaxInt32 + 40].
   TEST_RANGE_SUB(static_cast<int64_t>(kMaxInt32) + 10,
                  static_cast<int64_t>(kMaxInt32) + 20,
-                 static_cast<int64_t>(-20),
-                 static_cast<int64_t>(-20),
+                 static_cast<int64_t>(-20), static_cast<int64_t>(-20),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 30),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 40));
 
@@ -476,12 +428,10 @@ TEST_CASE(RangeAnd) {
 #define TEST_RANGE_AND(l_min, l_max, r_min, r_max, result_min, result_max)     \
   {                                                                            \
     RangeBoundary min, max;                                                    \
-    Range* left_range = new Range(                                             \
-      RangeBoundary::FromConstant(l_min),                                      \
-      RangeBoundary::FromConstant(l_max));                                     \
-    Range* right_range = new Range(                                            \
-      RangeBoundary::FromConstant(r_min),                                      \
-      RangeBoundary::FromConstant(r_max));                                     \
+    Range* left_range = new Range(RangeBoundary::FromConstant(l_min),          \
+                                  RangeBoundary::FromConstant(l_max));         \
+    Range* right_range = new Range(RangeBoundary::FromConstant(r_min),         \
+                                   RangeBoundary::FromConstant(r_max));        \
     EXPECT(left_range->min().ConstantValue() == l_min);                        \
     EXPECT(left_range->max().ConstantValue() == l_max);                        \
     EXPECT(right_range->min().ConstantValue() == r_min);                       \
@@ -498,44 +448,32 @@ TEST_CASE(RangeAnd) {
   }
 
   // [0xff, 0xfff] & [0xf, 0xf] = [0x0, 0xf].
-  TEST_RANGE_AND(static_cast<int64_t>(0xff),
-                 static_cast<int64_t>(0xfff),
-                 static_cast<int64_t>(0xf),
-                 static_cast<int64_t>(0xf),
-                 RangeBoundary(0),
-                 RangeBoundary(0xf));
+  TEST_RANGE_AND(static_cast<int64_t>(0xff), static_cast<int64_t>(0xfff),
+                 static_cast<int64_t>(0xf), static_cast<int64_t>(0xf),
+                 RangeBoundary(0), RangeBoundary(0xf));
 
   // [0xffffffff, 0xffffffff] & [0xfffffffff, 0xfffffffff] = [0x0, 0xfffffffff].
-  TEST_RANGE_AND(static_cast<int64_t>(0xffffffff),
-                 static_cast<int64_t>(0xffffffff),
-                 static_cast<int64_t>(0xfffffffff),
-                 static_cast<int64_t>(0xfffffffff),
-                 RangeBoundary(0),
-                 RangeBoundary(static_cast<int64_t>(0xfffffffff)));
+  TEST_RANGE_AND(
+      static_cast<int64_t>(0xffffffff), static_cast<int64_t>(0xffffffff),
+      static_cast<int64_t>(0xfffffffff), static_cast<int64_t>(0xfffffffff),
+      RangeBoundary(0), RangeBoundary(static_cast<int64_t>(0xfffffffff)));
 
   // [0xffffffff, 0xffffffff] & [-20, 20] = [0x0, 0xffffffff].
   TEST_RANGE_AND(static_cast<int64_t>(0xffffffff),
-                 static_cast<int64_t>(0xffffffff),
-                 static_cast<int64_t>(-20),
-                 static_cast<int64_t>(20),
-                 RangeBoundary(0),
+                 static_cast<int64_t>(0xffffffff), static_cast<int64_t>(-20),
+                 static_cast<int64_t>(20), RangeBoundary(0),
                  RangeBoundary(static_cast<int64_t>(0xffffffff)));
 
   // [-20, 20] & [0xffffffff, 0xffffffff] = [0x0, 0xffffffff].
-  TEST_RANGE_AND(static_cast<int64_t>(-20),
-                 static_cast<int64_t>(20),
+  TEST_RANGE_AND(static_cast<int64_t>(-20), static_cast<int64_t>(20),
                  static_cast<int64_t>(0xffffffff),
-                 static_cast<int64_t>(0xffffffff),
-                 RangeBoundary(0),
+                 static_cast<int64_t>(0xffffffff), RangeBoundary(0),
                  RangeBoundary(static_cast<int64_t>(0xffffffff)));
 
   // Test that [-20, 20] & [-20, 20] = [-32, 31].
-  TEST_RANGE_AND(static_cast<int64_t>(-20),
-                 static_cast<int64_t>(20),
-                 static_cast<int64_t>(-20),
-                 static_cast<int64_t>(20),
-                 RangeBoundary(-32),
-                 RangeBoundary(31));
+  TEST_RANGE_AND(static_cast<int64_t>(-20), static_cast<int64_t>(20),
+                 static_cast<int64_t>(-20), static_cast<int64_t>(20),
+                 RangeBoundary(-32), RangeBoundary(31));
 
 #undef TEST_RANGE_AND
 }
@@ -547,77 +485,77 @@ TEST_CASE(RangeIntersectionMinMax) {
 
   // Constants.
   // MIN(0, 1) == 0
-  EXPECT(RangeBoundary::IntersectionMax(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::IntersectionMax(RangeBoundary::FromConstant(0),
+                                        RangeBoundary::FromConstant(1))
+             .ConstantValue() == 0);
   // MIN(0, -1) == -1
-  EXPECT(RangeBoundary::IntersectionMax(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
+  EXPECT(RangeBoundary::IntersectionMax(RangeBoundary::FromConstant(0),
+                                        RangeBoundary::FromConstant(-1))
+             .ConstantValue() == -1);
 
   // MIN(1, 0) == 0
-  EXPECT(RangeBoundary::IntersectionMax(
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::IntersectionMax(RangeBoundary::FromConstant(1),
+                                        RangeBoundary::FromConstant(0))
+             .ConstantValue() == 0);
   // MIN(-1, 0) == -1
-  EXPECT(RangeBoundary::IntersectionMax(
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == -1);
+  EXPECT(RangeBoundary::IntersectionMax(RangeBoundary::FromConstant(-1),
+                                        RangeBoundary::FromConstant(0))
+             .ConstantValue() == -1);
 
   // MAX(0, 1) == 1
-  EXPECT(RangeBoundary::IntersectionMin(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
+  EXPECT(RangeBoundary::IntersectionMin(RangeBoundary::FromConstant(0),
+                                        RangeBoundary::FromConstant(1))
+             .ConstantValue() == 1);
 
   // MAX(0, -1) == 0
-  EXPECT(RangeBoundary::IntersectionMin(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::IntersectionMin(RangeBoundary::FromConstant(0),
+                                        RangeBoundary::FromConstant(-1))
+             .ConstantValue() == 0);
 
   // MAX(1, 0) == 1
-  EXPECT(RangeBoundary::IntersectionMin(
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == 1);
+  EXPECT(RangeBoundary::IntersectionMin(RangeBoundary::FromConstant(1),
+                                        RangeBoundary::FromConstant(0))
+             .ConstantValue() == 1);
   // MAX(-1, 0) == 0
-  EXPECT(RangeBoundary::IntersectionMin(
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::IntersectionMin(RangeBoundary::FromConstant(-1),
+                                        RangeBoundary::FromConstant(0))
+             .ConstantValue() == 0);
 
   RangeBoundary n_infinity = RangeBoundary::NegativeInfinity();
   RangeBoundary p_infinity = RangeBoundary::PositiveInfinity();
 
   // Constants vs. infinity.
-  EXPECT(RangeBoundary::IntersectionMin(
-      n_infinity,
-      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
+  EXPECT(RangeBoundary::IntersectionMin(n_infinity,
+                                        RangeBoundary::FromConstant(-1))
+             .ConstantValue() == -1);
 
-  EXPECT(RangeBoundary::IntersectionMin(
-      RangeBoundary::FromConstant(-1),
-      n_infinity).ConstantValue() == -1);
+  EXPECT(RangeBoundary::IntersectionMin(RangeBoundary::FromConstant(-1),
+                                        n_infinity)
+             .ConstantValue() == -1);
 
-  EXPECT(RangeBoundary::IntersectionMin(
-      RangeBoundary::FromConstant(1),
-      n_infinity).ConstantValue() == 1);
+  EXPECT(
+      RangeBoundary::IntersectionMin(RangeBoundary::FromConstant(1), n_infinity)
+          .ConstantValue() == 1);
 
-  EXPECT(RangeBoundary::IntersectionMin(
-      n_infinity,
-      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
+  EXPECT(
+      RangeBoundary::IntersectionMin(n_infinity, RangeBoundary::FromConstant(1))
+          .ConstantValue() == 1);
 
-  EXPECT(RangeBoundary::IntersectionMax(
-      p_infinity,
-      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
+  EXPECT(RangeBoundary::IntersectionMax(p_infinity,
+                                        RangeBoundary::FromConstant(-1))
+             .ConstantValue() == -1);
 
-  EXPECT(RangeBoundary::IntersectionMax(
-      RangeBoundary::FromConstant(-1),
-      p_infinity).ConstantValue() == -1);
+  EXPECT(RangeBoundary::IntersectionMax(RangeBoundary::FromConstant(-1),
+                                        p_infinity)
+             .ConstantValue() == -1);
 
-  EXPECT(RangeBoundary::IntersectionMax(
-      RangeBoundary::FromConstant(1),
-      p_infinity).ConstantValue() == 1);
+  EXPECT(
+      RangeBoundary::IntersectionMax(RangeBoundary::FromConstant(1), p_infinity)
+          .ConstantValue() == 1);
 
-  EXPECT(RangeBoundary::IntersectionMax(
-      p_infinity,
-      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
+  EXPECT(
+      RangeBoundary::IntersectionMax(p_infinity, RangeBoundary::FromConstant(1))
+          .ConstantValue() == 1);
 }
 
 
@@ -627,82 +565,66 @@ TEST_CASE(RangeJoinMinMax) {
   const RangeBoundary::RangeSize size = RangeBoundary::kRangeBoundarySmi;
 
   // Constants.
-  EXPECT(RangeBoundary::JoinMax(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1),
-      size).ConstantValue() == 1);
-  EXPECT(RangeBoundary::JoinMax(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1),
-      size).ConstantValue() == 0);
-  EXPECT(RangeBoundary::JoinMax(
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0),
-      size).ConstantValue() == 1);
-  EXPECT(RangeBoundary::JoinMax(
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0),
-      size).ConstantValue() == 0);
-  EXPECT(RangeBoundary::JoinMin(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1),
-      size).ConstantValue() == 0);
-  EXPECT(RangeBoundary::JoinMin(
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1),
-      size).ConstantValue() == -1);
-  EXPECT(RangeBoundary::JoinMin(
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0),
-      size).ConstantValue() == 0);
-  EXPECT(RangeBoundary::JoinMin(
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0),
-      size).ConstantValue() == -1);
+  EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(0),
+                                RangeBoundary::FromConstant(1), size)
+             .ConstantValue() == 1);
+  EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(0),
+                                RangeBoundary::FromConstant(-1), size)
+             .ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(1),
+                                RangeBoundary::FromConstant(0), size)
+             .ConstantValue() == 1);
+  EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(-1),
+                                RangeBoundary::FromConstant(0), size)
+             .ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(0),
+                                RangeBoundary::FromConstant(1), size)
+             .ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(0),
+                                RangeBoundary::FromConstant(-1), size)
+             .ConstantValue() == -1);
+  EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(1),
+                                RangeBoundary::FromConstant(0), size)
+             .ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(-1),
+                                RangeBoundary::FromConstant(0), size)
+             .ConstantValue() == -1);
 
   RangeBoundary n_infinity = RangeBoundary::NegativeInfinity();
   RangeBoundary p_infinity = RangeBoundary::PositiveInfinity();
 
   // Constants vs. infinity.
-  EXPECT(RangeBoundary::JoinMin(
-      n_infinity,
-      RangeBoundary::FromConstant(-1),
-      size).IsMinimumOrBelow(size));
+  EXPECT(
+      RangeBoundary::JoinMin(n_infinity, RangeBoundary::FromConstant(-1), size)
+          .IsMinimumOrBelow(size));
 
-  EXPECT(RangeBoundary::JoinMin(
-      RangeBoundary::FromConstant(-1),
-      n_infinity,
-      size).IsMinimumOrBelow(size));
+  EXPECT(
+      RangeBoundary::JoinMin(RangeBoundary::FromConstant(-1), n_infinity, size)
+          .IsMinimumOrBelow(size));
 
-  EXPECT(RangeBoundary::JoinMin(
-      RangeBoundary::FromConstant(1),
-      n_infinity,
-      size).IsMinimumOrBelow(size));
+  EXPECT(
+      RangeBoundary::JoinMin(RangeBoundary::FromConstant(1), n_infinity, size)
+          .IsMinimumOrBelow(size));
 
-  EXPECT(RangeBoundary::JoinMin(
-      n_infinity,
-      RangeBoundary::FromConstant(1),
-      size).IsMinimumOrBelow(size));
+  EXPECT(
+      RangeBoundary::JoinMin(n_infinity, RangeBoundary::FromConstant(1), size)
+          .IsMinimumOrBelow(size));
 
-  EXPECT(RangeBoundary::JoinMax(
-      p_infinity,
-      RangeBoundary::FromConstant(-1),
-      size).IsMaximumOrAbove(size));
+  EXPECT(
+      RangeBoundary::JoinMax(p_infinity, RangeBoundary::FromConstant(-1), size)
+          .IsMaximumOrAbove(size));
 
-  EXPECT(RangeBoundary::JoinMax(
-      RangeBoundary::FromConstant(-1),
-      p_infinity,
-      size).IsMaximumOrAbove(size));
+  EXPECT(
+      RangeBoundary::JoinMax(RangeBoundary::FromConstant(-1), p_infinity, size)
+          .IsMaximumOrAbove(size));
 
-  EXPECT(RangeBoundary::JoinMax(
-      RangeBoundary::FromConstant(1),
-      p_infinity,
-      size).IsMaximumOrAbove(size));
+  EXPECT(
+      RangeBoundary::JoinMax(RangeBoundary::FromConstant(1), p_infinity, size)
+          .IsMaximumOrAbove(size));
 
-  EXPECT(RangeBoundary::JoinMax(
-      p_infinity,
-      RangeBoundary::FromConstant(1),
-      size).IsMaximumOrAbove(size));
+  EXPECT(
+      RangeBoundary::JoinMax(p_infinity, RangeBoundary::FromConstant(1), size)
+          .IsMaximumOrAbove(size));
 }
 
 }  // namespace dart

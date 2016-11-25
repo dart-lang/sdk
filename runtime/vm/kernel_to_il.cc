@@ -18,6 +18,7 @@
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
 DECLARE_FLAG(bool, support_externalizable_strings);
@@ -30,30 +31,48 @@ namespace kernel {
 #define I Isolate::Current()
 
 
+static void DiscoverEnclosingElements(Zone* zone,
+                                      const Function& function,
+                                      Function* outermost_function,
+                                      TreeNode** outermost_node,
+                                      Class** klass) {
+  // Find out if there is an enclosing kernel class (which will be used to
+  // resolve type parameters).
+  *outermost_function = function.raw();
+  while (outermost_function->parent_function() != Object::null()) {
+    *outermost_function = outermost_function->parent_function();
+  }
+  *outermost_node =
+      static_cast<TreeNode*>(outermost_function->kernel_function());
+  if (*outermost_node != NULL) {
+    TreeNode* parent = NULL;
+    if ((*outermost_node)->IsProcedure()) {
+      parent = Procedure::Cast(*outermost_node)->parent();
+    } else if ((*outermost_node)->IsConstructor()) {
+      parent = Constructor::Cast(*outermost_node)->parent();
+    } else if ((*outermost_node)->IsField()) {
+      parent = Field::Cast(*outermost_node)->parent();
+    }
+    if (parent != NULL && parent->IsClass()) *klass = Class::Cast(parent);
+  }
+}
+
+
 void ScopeBuilder::EnterScope(TreeNode* node) {
   scope_ = new (Z) LocalScope(scope_, depth_.function_, depth_.loop_);
   result_->scopes.Insert(node, scope_);
 }
 
 
-void ScopeBuilder::ExitScope() { scope_ = scope_->parent(); }
-
-
-LocalVariable* ScopeBuilder::MakeVariable(const dart::String& name) {
-  return new (Z)
-      LocalVariable(TokenPosition::kNoSource,
-                    TokenPosition::kNoSource,
-                    name,
-                    Object::dynamic_type());
+void ScopeBuilder::ExitScope() {
+  scope_ = scope_->parent();
 }
 
 
 LocalVariable* ScopeBuilder::MakeVariable(const dart::String& name,
-                                          const Type& type) {
+                                          const AbstractType& type) {
   return new (Z) LocalVariable(TokenPosition::kNoSource,
-                               TokenPosition::kNoSource,
-                               name,
-                               type);
+                               TokenPosition::kNoSource, name, type);
 }
 
 
@@ -71,8 +90,11 @@ void ScopeBuilder::AddParameters(FunctionNode* function, intptr_t pos) {
 
 void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
                                 intptr_t pos) {
-  // TODO(27590): Handle final.
-  LocalVariable* variable = MakeVariable(H.DartSymbol(declaration->name()));
+  LocalVariable* variable = MakeVariable(H.DartSymbol(declaration->name()),
+                                         T.TranslateVariableType(declaration));
+  if (declaration->IsFinal()) {
+    variable->set_is_final();
+  }
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(declaration, variable);
 
@@ -86,7 +108,8 @@ void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
 
 
 void ScopeBuilder::AddExceptionVariable(
-    GrowableArray<LocalVariable*>* variables, const char* prefix,
+    GrowableArray<LocalVariable*>* variables,
+    const char* prefix,
     intptr_t nesting_depth) {
   LocalVariable* v = NULL;
 
@@ -115,7 +138,8 @@ void ScopeBuilder::AddExceptionVariable(
   // If variable was not lifted by the transformer introduce a new
   // one into the current function scope.
   if (v == NULL) {
-    v = MakeVariable(GenerateName(prefix, nesting_depth - 1));
+    v = MakeVariable(GenerateName(prefix, nesting_depth - 1),
+                     AbstractType::dynamic_type());
 
     // If transformer did not lift the variable then there is no need
     // to lift it into the context when we encouter a YieldStatement.
@@ -147,7 +171,8 @@ void ScopeBuilder::AddIteratorVariable() {
 
   ASSERT(result_->iterator_variables.length() == depth_.for_in_ - 1);
   LocalVariable* iterator =
-      MakeVariable(GenerateName(":iterator", depth_.for_in_ - 1));
+      MakeVariable(GenerateName(":iterator", depth_.for_in_ - 1),
+                   AbstractType::dynamic_type());
   current_function_scope_->AddVariable(iterator);
   result_->iterator_variables.Add(iterator);
 }
@@ -205,11 +230,17 @@ const dart::String& ScopeBuilder::GenerateName(const char* prefix,
 
 
 void ScopeBuilder::AddVariable(VariableDeclaration* declaration) {
-  // TODO(27590): Handle final and const, including function declarations.
+  // In case `declaration->IsConst()` the flow graph building will take care of
+  // evaluating the constant and setting it via
+  // `declaration->SetConstantValue()`.
   const dart::String& name = declaration->name()->is_empty()
                                  ? GenerateName(":var", name_index_++)
                                  : H.DartSymbol(declaration->name());
-  LocalVariable* variable = MakeVariable(name);
+  LocalVariable* variable =
+      MakeVariable(name, T.TranslateVariableType(declaration));
+  if (declaration->IsFinal()) {
+    variable->set_is_final();
+  }
   scope_->AddVariable(variable);
   result_->locals.Insert(declaration, variable);
 }
@@ -231,14 +262,37 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   ParsedFunction* parsed_function = parsed_function_;
   const dart::Function& function = parsed_function->function();
 
+  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // e.g. for type translation.
+  const dart::Class& klass =
+      dart::Class::Handle(zone_, parsed_function_->function().Owner());
+  Function& outermost_function = Function::Handle(Z);
+  TreeNode* outermost_node = NULL;
+  Class* kernel_klass = NULL;
+  DiscoverEnclosingElements(Z, function, &outermost_function, &outermost_node,
+                            &kernel_klass);
+  // Use [klass]/[kernel_klass] as active class.  Type parameters will get
+  // resolved via [kernel_klass] unless we are nested inside a static factory
+  // in which case we will use [member].
+  ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
+  Member* member = ((outermost_node != NULL) && outermost_node->IsMember())
+                       ? Member::Cast(outermost_node)
+                       : NULL;
+  ActiveMemberScope active_member(&active_class_, member);
+
+
   LocalScope* enclosing_scope = NULL;
   if (function.IsLocalFunction()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));
   }
   current_function_scope_ = scope_ = new (Z) LocalScope(enclosing_scope, 0, 0);
+
+  LocalVariable* context_var = parsed_function->current_context_var();
+  context_var->set_is_forced_stack();
+  scope_->AddVariable(context_var);
   scope_->AddVariable(parsed_function->EnsureExpressionTemp());
-  scope_->AddVariable(parsed_function->current_context_var());
+
   parsed_function->SetNodeSequence(
       new SequenceNode(TokenPosition::kNoSource, scope_));
 
@@ -260,7 +314,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {
-        LocalVariable* variable = MakeVariable(Symbols::ClosureParameter());
+        LocalVariable* variable = MakeVariable(Symbols::ClosureParameter(),
+                                               AbstractType::dynamic_type());
+        variable->set_is_forced_stack();
         scope_->InsertParameterAt(pos++, variable);
       } else if (!function.is_static()) {
         // We use [is_static] instead of [IsStaticFunction] because the latter
@@ -320,7 +376,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         result_->this_variable = variable;
       }
       if (is_setter) {
-        result_->setter_value = MakeVariable(Symbols::Value());
+        result_->setter_value =
+            MakeVariable(Symbols::Value(), AbstractType::dynamic_type());
         scope_->InsertParameterAt(pos++, result_->setter_value);
       }
       break;
@@ -341,7 +398,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kInvokeFieldDispatcher:
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         LocalVariable* variable = MakeVariable(
-            dart::String::ZoneHandle(Z, function.ParameterNameAt(i)));
+            dart::String::ZoneHandle(Z, function.ParameterNameAt(i)),
+            AbstractType::dynamic_type());
         scope_->InsertParameterAt(i, variable);
       }
       break;
@@ -516,7 +574,9 @@ void ScopeBuilder::VisitForInStatement(ForInStatement* node) {
 
 void ScopeBuilder::AddSwitchVariable() {
   if ((depth_.function_ == 0) && (result_->switch_variable == NULL)) {
-    LocalVariable* variable = MakeVariable(Symbols::SwitchExpr());
+    LocalVariable* variable =
+        MakeVariable(Symbols::SwitchExpr(), AbstractType::dynamic_type());
+    variable->set_is_forced_stack();
     current_function_scope_->AddVariable(variable);
     result_->switch_variable = variable;
   }
@@ -533,7 +593,7 @@ void ScopeBuilder::VisitReturnStatement(ReturnStatement* node) {
   if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
       (result_->finally_return_variable == NULL)) {
     const dart::String& name = H.DartSymbol(":try_finally_return_value");
-    LocalVariable* variable = MakeVariable(name);
+    LocalVariable* variable = MakeVariable(name, AbstractType::dynamic_type());
     current_function_scope_->AddVariable(variable);
     result_->finally_return_variable = variable;
   }
@@ -586,6 +646,16 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
   for (intptr_t i = 0; i < type_parameters.length(); ++i) {
     VisitTypeParameter(type_parameters[i]);
   }
+
+  if (node->async_marker() == FunctionNode::kSyncYielding) {
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+    for (intptr_t i = 0;
+         i < parsed_function_->function().NumOptionalPositionalParameters();
+         i++) {
+      scope->VariableAt(i)->set_is_forced_stack();
+    }
+  }
+
   // Do not visit the positional and named parameters, because they've
   // already been added to the scope.
   if (node->body() != NULL) {
@@ -781,7 +851,8 @@ class TryFinallyBlock {
         // Finalizers are executed outside of the try block hence
         // try depth of finalizers are one less than current try
         // depth.
-        try_depth_(builder->try_depth_ - 1) {
+        try_depth_(builder->try_depth_ - 1),
+        try_index_(builder_->CurrentTryIndex()) {
     builder_->try_finally_block_ = this;
   }
   ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }
@@ -789,6 +860,7 @@ class TryFinallyBlock {
   Statement* finalizer() const { return finalizer_; }
   intptr_t context_depth() const { return context_depth_; }
   intptr_t try_depth() const { return try_depth_; }
+  intptr_t try_index() const { return try_index_; }
   TryFinallyBlock* outer() const { return outer_; }
 
  private:
@@ -797,6 +869,7 @@ class TryFinallyBlock {
   Statement* const finalizer_;
   const intptr_t context_depth_;
   const intptr_t try_depth_;
+  const intptr_t try_index_;
 };
 
 
@@ -812,7 +885,8 @@ class TryCatchBlock {
   }
   ~TryCatchBlock() { builder_->try_catch_block_ = outer_; }
 
-  intptr_t TryIndex() { return try_index_; }
+  intptr_t try_index() { return try_index_; }
+  TryCatchBlock* outer() const { return outer_; }
 
  private:
   FlowGraphBuilder* builder_;
@@ -823,8 +897,10 @@ class TryCatchBlock {
 
 class CatchBlock {
  public:
-  CatchBlock(FlowGraphBuilder* builder, LocalVariable* exception_var,
-             LocalVariable* stack_trace_var, intptr_t catch_try_index)
+  CatchBlock(FlowGraphBuilder* builder,
+             LocalVariable* exception_var,
+             LocalVariable* stack_trace_var,
+             intptr_t catch_try_index)
       : builder_(builder),
         outer_(builder->catch_block_),
         exception_var_(exception_var),
@@ -928,45 +1004,9 @@ dart::String& TranslationHelper::DartSymbol(String* content) const {
 
 const dart::String& TranslationHelper::DartClassName(
     kernel::Class* kernel_klass) {
-  if (kernel_klass->name() != NULL) {
-    ASSERT(kernel_klass->IsNormalClass());
-    dart::String& name = DartString(kernel_klass->name());
-    return ManglePrivateName(kernel_klass->parent(), &name);
-  } else {
-    // Mixin class names are not mangled.
-    ASSERT(kernel_klass->IsMixinClass());
-
-    // We construct the string from right to left:
-    //     "Base&Mixin1&Mixin2&...&MixinN"
-    dart::String& partial = dart::String::Handle(Z, dart::String::New(""));
-    dart::String& amp = dart::String::Handle(Z, dart::String::New("&"));
-    dart::String& tmp = dart::String::Handle(Z);
-    while (kernel_klass->name() == NULL) {
-      ASSERT(kernel_klass->IsMixinClass());
-
-      MixinClass* kernel_mixin_class = MixinClass::Cast(kernel_klass);
-      InterfaceType* base_type = kernel_mixin_class->first();
-      InterfaceType* mixin_type = kernel_mixin_class->second();
-
-      String* mixin_name = NormalClass::Cast(mixin_type->klass())->name();
-
-      tmp = dart::String::FromUTF8(mixin_name->buffer(), mixin_name->size());
-
-      partial = dart::String::Concat(amp, partial);
-      partial = dart::String::Concat(tmp, partial);
-
-      kernel_klass = base_type->klass();
-    }
-
-    tmp = dart::String::FromUTF8(kernel_klass->name()->buffer(),
-                                 kernel_klass->name()->size());
-
-    partial = dart::String::Concat(amp, partial);
-    partial = dart::String::Concat(tmp, partial);
-
-    partial = dart::Symbols::New(thread_, partial);
-    return partial;
-  }
+  ASSERT(kernel_klass->IsNormalClass());
+  dart::String& name = DartString(kernel_klass->name());
+  return ManglePrivateName(kernel_klass->parent(), &name);
 }
 
 
@@ -1005,7 +1045,8 @@ const dart::String& TranslationHelper::DartSetterName(Name* kernel_name) {
     skip = 1;
   }
   dart::String& name = dart::String::ZoneHandle(
-      Z, dart::String::FromUTF8(content->buffer(), content->size() - skip));
+      Z, dart::String::FromUTF8(content->buffer(), content->size() - skip,
+                                allocation_space_));
   ManglePrivateName(kernel_name->library(), &name, false);
   name = dart::Field::SetterSymbol(name);
   return name;
@@ -1044,15 +1085,12 @@ const dart::String& TranslationHelper::DartMethodName(Name* kernel_name) {
 const dart::String& TranslationHelper::DartFactoryName(Class* klass,
                                                        Name* method_name) {
   // [DartMethodName] will mangle the name.
-  dart::String& name =
-      dart::String::Handle(Z, DartMethodName(method_name).raw());
-
-  // We build a String which looks like <classname>.<constructor-name>.
-  // [DartClassName] will mangle the name.
-  dart::String& temp = dart::String::Handle(Z, DartClassName(klass).raw());
-  temp = dart::String::Concat(temp, Symbols::Dot());
-  temp = dart::String::Concat(temp, name);
-  return dart::String::ZoneHandle(Z, dart::Symbols::New(thread_, temp));
+  GrowableHandlePtrArray<const dart::String> pieces(Z, 3);
+  pieces.Add(DartClassName(klass));
+  pieces.Add(Symbols::Dot());
+  pieces.Add(DartMethodName(method_name));
+  return dart::String::ZoneHandle(
+      Z, dart::Symbols::FromConcatAll(thread_, pieces));
 }
 
 
@@ -1079,6 +1117,21 @@ dart::RawClass* TranslationHelper::LookupClassByKernelClass(
 
   ASSERT(klass != Object::null());
   return klass;
+}
+
+
+dart::RawUnresolvedClass* TranslationHelper::ToUnresolvedClass(
+    Class* kernel_klass) {
+  dart::RawClass* klass = NULL;
+
+  const dart::String& class_name = DartClassName(kernel_klass);
+  Library* kernel_library = Library::Cast(kernel_klass->parent());
+  dart::Library& library =
+      dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
+
+  ASSERT(klass != Object::null());
+  return dart::UnresolvedClass::New(library, class_name,
+                                    TokenPosition::kNoSource);
 }
 
 
@@ -1147,7 +1200,8 @@ dart::RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
 
 
 dart::RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
-    const dart::Class& owner, Constructor* constructor) {
+    const dart::Class& owner,
+    Constructor* constructor) {
   dart::RawFunction* function =
       owner.LookupConstructorAllowPrivate(DartConstructorName(constructor));
   ASSERT(function != Object::null());
@@ -1187,7 +1241,8 @@ void TranslationHelper::ReportError(const char* format, ...) {
 }
 
 
-void TranslationHelper::ReportError(const Error& prev_error, const char* format,
+void TranslationHelper::ReportError(const Error& prev_error,
+                                    const char* format,
                                     ...) {
   const Script& null_script = Script::Handle(Z);
 
@@ -1217,7 +1272,8 @@ dart::String& TranslationHelper::ManglePrivateName(Library* kernel_library,
 const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
   if (named->length() == 0) return Array::ZoneHandle(Z);
 
-  const Array& names = Array::ZoneHandle(Z, Array::New(named->length()));
+  const Array& names =
+      Array::ZoneHandle(Z, Array::New(named->length(), allocation_space_));
   for (intptr_t i = 0; i < named->length(); ++i) {
     names.SetAt(i, DartSymbol((*named)[i]->name()));
   }
@@ -1225,8 +1281,26 @@ const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
 }
 
 
+ConstantEvaluator::ConstantEvaluator(FlowGraphBuilder* builder,
+                                     Zone* zone,
+                                     TranslationHelper* h,
+                                     DartTypeTranslator* type_translator)
+    : builder_(builder),
+      isolate_(Isolate::Current()),
+      zone_(zone),
+      translation_helper_(*h),
+      type_translator_(*type_translator),
+      script_(dart::Script::Handle(
+          zone,
+          builder_->parsed_function_->function().script())),
+      result_(dart::Instance::Handle(zone)) {}
+
+
 Instance& ConstantEvaluator::EvaluateExpression(Expression* expression) {
-  expression->AcceptExpressionVisitor(this);
+  if (!GetCachedConstant(expression, &result_)) {
+    expression->AcceptExpressionVisitor(this);
+    CacheConstantValue(expression, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1249,7 +1323,10 @@ Object& ConstantEvaluator::EvaluateExpressionSafe(Expression* expression) {
 
 Instance& ConstantEvaluator::EvaluateConstructorInvocation(
     ConstructorInvocation* node) {
-  VisitConstructorInvocation(node);
+  if (!GetCachedConstant(node, &result_)) {
+    VisitConstructorInvocation(node);
+    CacheConstantValue(node, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1257,7 +1334,10 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
 
 
 Instance& ConstantEvaluator::EvaluateListLiteral(ListLiteral* node) {
-  VisitListLiteral(node);
+  if (!GetCachedConstant(node, &result_)) {
+    VisitListLiteral(node);
+    CacheConstantValue(node, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1265,7 +1345,10 @@ Instance& ConstantEvaluator::EvaluateListLiteral(ListLiteral* node) {
 
 
 Instance& ConstantEvaluator::EvaluateMapLiteral(MapLiteral* node) {
-  VisitMapLiteral(node);
+  if (!GetCachedConstant(node, &result_)) {
+    VisitMapLiteral(node);
+    CacheConstantValue(node, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1316,8 +1399,10 @@ void ConstantEvaluator::VisitTypeLiteral(TypeLiteral* node) {
 
 
 RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
-    const dart::Class& type_class, const TypeArguments& type_arguments,
-    const Function& constructor, const Object& argument) {
+    const dart::Class& type_class,
+    const TypeArguments& type_arguments,
+    const Function& constructor,
+    const Object& argument) {
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
   const int kNumArgs = 1;
@@ -1350,6 +1435,55 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
     instance ^= result.raw();
   }
   return H.Canonicalize(instance);
+}
+
+
+bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
+  const Function& function = builder_->parsed_function_->function();
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    // Don't cache constants in initializer expressions. They get
+    // evaluated only once.
+    return false;
+  }
+
+  bool is_present = false;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    return false;
+  }
+  KernelConstantsMap constants(script_.compile_time_constants());
+  *value ^= constants.GetOrNull(node, &is_present);
+  // Mutator compiler thread may add constants while background compiler
+  // is running, and thus change the value of 'compile_time_constants';
+  // do not assert that 'compile_time_constants' has not changed.
+  constants.Release();
+  if (FLAG_compiler_stats && is_present) {
+    H.thread()->compiler_stats()->num_const_cache_hits++;
+  }
+  return is_present;
+}
+
+
+void ConstantEvaluator::CacheConstantValue(TreeNode* node,
+                                           const Instance& value) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  const Function& function = builder_->parsed_function_->function();
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    // Don't cache constants in initializer expressions. They get
+    // evaluated only once.
+    return;
+  }
+  const intptr_t kInitialConstMapSize = 16;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    const Array& array = Array::Handle(
+        HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
+    script_.set_compile_time_constants(array);
+  }
+  KernelConstantsMap constants(script_.compile_time_constants());
+  constants.InsertNewOrGetValue(node, value);
+  script_.set_compile_time_constants(constants.Release());
 }
 
 
@@ -1470,7 +1604,6 @@ void ConstantEvaluator::VisitMethodInvocation(MethodInvocation* node) {
   ASSERT(!klass.IsNull());
 
   // Search the superclass chain for the selector.
-  // TODO(27590): Can we assume this will never be a no-such-method error?
   dart::Function& function = dart::Function::Handle(Z);
   const dart::String& method_name = H.DartMethodName(node->name());
   while (!klass.IsNull()) {
@@ -1478,6 +1611,9 @@ void ConstantEvaluator::VisitMethodInvocation(MethodInvocation* node) {
     if (!function.IsNull()) break;
     klass = klass.SuperClass();
   }
+
+  // The frontend should guarantee that [MethodInvocation]s inside constant
+  // expressions are always valid.
   ASSERT(!function.IsNull());
 
   // Run the method and canonicalize the result.
@@ -1628,7 +1764,8 @@ void ConstantEvaluator::VisitNot(Not* node) {
 
 
 const TypeArguments* ConstantEvaluator::TranslateTypeArguments(
-    const Function& target, dart::Class* target_klass,
+    const Function& target,
+    dart::Class* target_klass,
     Arguments* kernel_arguments) {
   List<DartType>& kernel_type_arguments = kernel_arguments->types();
 
@@ -1700,12 +1837,15 @@ const Object& ConstantEvaluator::RunFunction(const Function& function,
 
 
 FlowGraphBuilder::FlowGraphBuilder(
-    TreeNode* node, ParsedFunction* parsed_function,
+    TreeNode* node,
+    ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    InlineExitCollector* exit_collector, intptr_t osr_id,
+    InlineExitCollector* exit_collector,
+    intptr_t osr_id,
     intptr_t first_block_id)
     : zone_(Thread::Current()->zone()),
-      translation_helper_(Thread::Current(), zone_,
+      translation_helper_(Thread::Current(),
+                          zone_,
                           Thread::Current()->isolate()),
       node_(node),
       parsed_function_(parsed_function),
@@ -1729,8 +1869,12 @@ FlowGraphBuilder::FlowGraphBuilder(
       try_catch_block_(NULL),
       next_used_try_index_(0),
       catch_block_(NULL),
-      type_translator_(&translation_helper_, &active_class_),
-      constant_evaluator_(this, zone_, &translation_helper_,
+      type_translator_(&translation_helper_,
+                       &active_class_,
+                       /* finalize= */ true),
+      constant_evaluator_(this,
+                          zone_,
+                          &translation_helper_,
                           &type_translator_) {}
 
 
@@ -1738,8 +1882,10 @@ FlowGraphBuilder::~FlowGraphBuilder() {}
 
 
 Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
-    TryFinallyBlock* outer_finally, intptr_t target_context_depth) {
+    TryFinallyBlock* outer_finally,
+    intptr_t target_context_depth) {
   TryFinallyBlock* const saved_block = try_finally_block_;
+  TryCatchBlock* const saved_try_catch_block = try_catch_block_;
   const intptr_t saved_depth = context_depth_;
   const intptr_t saved_try_depth = try_depth_;
 
@@ -1755,6 +1901,20 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
     // block.
     instructions += AdjustContextTo(try_finally_block_->context_depth());
 
+    // The to-be-translated finalizer has to have the correct try-index (namely
+    // the one outside the try-finally block).
+    bool changed_try_index = false;
+    intptr_t target_try_index = try_finally_block_->try_index();
+    while (CurrentTryIndex() != target_try_index) {
+      try_catch_block_ = try_catch_block_->outer();
+      changed_try_index = true;
+    }
+    if (changed_try_index) {
+      JoinEntryInstr* entry = BuildJoinEntry();
+      instructions += Goto(entry);
+      instructions = Fragment(instructions.entry, entry);
+    }
+
     Statement* finalizer = try_finally_block_->finalizer();
     try_finally_block_ = try_finally_block_->outer();
 
@@ -1768,13 +1928,14 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
   }
 
   if (instructions.is_open() && target_context_depth != -1) {
-    // A target context depth of -1 indicates that we the code after this
+    // A target context depth of -1 indicates that the code after this
     // will not care about the context chain so we can leave it any way we
     // want after the last finalizer.  That is used when returning.
     instructions += AdjustContextTo(target_context_depth);
   }
 
   try_finally_block_ = saved_block;
+  try_catch_block_ = saved_try_catch_block;
   context_depth_ = saved_depth;
   try_depth_ = saved_try_depth;
 
@@ -2002,7 +2163,8 @@ Fragment FlowGraphBuilder::BranchIfEqual(TargetEntryInstr** then_entry,
 
 
 Fragment FlowGraphBuilder::BranchIfStrictEqual(
-    TargetEntryInstr** then_entry, TargetEntryInstr** otherwise_entry) {
+    TargetEntryInstr** then_entry,
+    TargetEntryInstr** otherwise_entry) {
   Value* rhs = Pop();
   Value* lhs = Pop();
   StrictCompareInstr* compare = new (Z) StrictCompareInstr(
@@ -2017,10 +2179,9 @@ Fragment FlowGraphBuilder::BranchIfStrictEqual(
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index) {
   ASSERT(CurrentException()->is_captured() ==
-             CurrentStackTrace()->is_captured());
+         CurrentStackTrace()->is_captured());
   const bool should_restore_closure_context =
-      CurrentException()->is_captured() ||
-      CurrentCatchContext()->is_captured();
+      CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
@@ -2126,24 +2287,26 @@ Fragment FlowGraphBuilder::IntConstant(int64_t value) {
 }
 
 
-Fragment FlowGraphBuilder::InstanceCall(const dart::String& name,
+Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
+                                        const dart::String& name,
                                         Token::Kind kind,
                                         intptr_t argument_count,
                                         intptr_t num_args_checked) {
-  return InstanceCall(name, kind, argument_count, Array::null_array(),
+  return InstanceCall(position, name, kind, argument_count, Array::null_array(),
                       num_args_checked);
 }
 
 
-Fragment FlowGraphBuilder::InstanceCall(const dart::String& name,
+Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
+                                        const dart::String& name,
                                         Token::Kind kind,
                                         intptr_t argument_count,
                                         const Array& argument_names,
                                         intptr_t num_args_checked) {
   ArgumentArray arguments = GetArguments(argument_count);
-  InstanceCallInstr* call = new (Z)
-      InstanceCallInstr(TokenPosition::kNoSource, name, kind, arguments,
-                        argument_names, num_args_checked, ic_data_array_);
+  InstanceCallInstr* call =
+      new (Z) InstanceCallInstr(position, name, kind, arguments, argument_names,
+                                num_args_checked, ic_data_array_);
   Push(call);
   return Fragment(call);
 }
@@ -2160,11 +2323,10 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
 }
 
 
-Fragment FlowGraphBuilder::ThrowException() {
+Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   Fragment instructions;
   instructions += Drop();
-  instructions +=
-      Fragment(new (Z) ThrowInstr(TokenPosition::kNoSource)).closed();
+  instructions += Fragment(new (Z) ThrowInstr(position)).closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -2199,10 +2361,22 @@ Fragment FlowGraphBuilder::LoadClassId() {
 }
 
 
+const dart::Field& MayCloneField(Zone* zone, const dart::Field& field) {
+  if ((Compiler::IsBackgroundCompilation() ||
+       FLAG_force_clone_compiler_objects) &&
+      field.IsOriginal()) {
+    return dart::Field::ZoneHandle(zone, field.CloneFromOriginal());
+  } else {
+    ASSERT(field.IsZoneHandle());
+    return field;
+  }
+}
+
+
 Fragment FlowGraphBuilder::LoadField(const dart::Field& field) {
-  LoadFieldInstr* load = new (Z)
-      LoadFieldInstr(Pop(), &field, AbstractType::ZoneHandle(Z, field.type()),
-                     TokenPosition::kNoSource);
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), &MayCloneField(Z, field),
+      AbstractType::ZoneHandle(Z, field.type()), TokenPosition::kNoSource);
   Push(load);
   return Fragment(load);
 }
@@ -2218,7 +2392,8 @@ Fragment FlowGraphBuilder::LoadField(intptr_t offset, intptr_t class_id) {
 
 
 Fragment FlowGraphBuilder::LoadNativeField(MethodRecognizer::Kind kind,
-                                           intptr_t offset, const Type& type,
+                                           intptr_t offset,
+                                           const Type& type,
                                            intptr_t class_id,
                                            bool is_immutable) {
   LoadFieldInstr* load =
@@ -2247,7 +2422,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
 
 
 Fragment FlowGraphBuilder::InitStaticField(const dart::Field& field) {
-  InitStaticFieldInstr* init = new (Z) InitStaticFieldInstr(Pop(), field);
+  InitStaticFieldInstr* init =
+      new (Z) InitStaticFieldInstr(Pop(), MayCloneField(Z, field));
   return Fragment(init);
 }
 
@@ -2296,9 +2472,10 @@ Fragment FlowGraphBuilder::Return() {
 }
 
 
-Fragment FlowGraphBuilder::StaticCall(const Function& target,
+Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
+                                      const Function& target,
                                       intptr_t argument_count) {
-  return StaticCall(target, argument_count, Array::null_array());
+  return StaticCall(position, target, argument_count, Array::null_array());
 }
 
 
@@ -2324,13 +2501,13 @@ static intptr_t GetResultCidOfListFactory(Zone* zone,
 }
 
 
-Fragment FlowGraphBuilder::StaticCall(const Function& target,
+Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
+                                      const Function& target,
                                       intptr_t argument_count,
                                       const Array& argument_names) {
   ArgumentArray arguments = GetArguments(argument_count);
-  StaticCallInstr* call =
-      new (Z) StaticCallInstr(TokenPosition::kNoSource, target, argument_names,
-                              arguments, ic_data_array_);
+  StaticCallInstr* call = new (Z) StaticCallInstr(
+      position, target, argument_names, arguments, ic_data_array_);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -2347,31 +2524,57 @@ Fragment FlowGraphBuilder::StaticCall(const Function& target,
 Fragment FlowGraphBuilder::StoreIndexed(intptr_t class_id) {
   Value* value = Pop();
   Value* index = Pop();
-  // TODO(27590): Omit store barrier when possible (e.g., storing
-  // some constants).
+  const StoreBarrierType emit_store_barrier =
+      value->BindsToConstant() ? kNoStoreBarrier : kEmitStoreBarrier;
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
-      index, value, kEmitStoreBarrier, Instance::ElementSizeFor(class_id),
+      index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
       class_id, kAlignedAccess, Thread::kNoDeoptId, TokenPosition::kNoSource);
   Push(store);
   return Fragment(store);
 }
 
 
-Fragment FlowGraphBuilder::StoreInstanceField(const dart::Field& field) {
+Fragment FlowGraphBuilder::StoreInstanceField(
+    const dart::Field& field,
+    StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
-  // TODO(27590): Omit store barrier when possible (e.g., storing
-  // some constants).
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      field, Pop(), value, kEmitStoreBarrier, TokenPosition::kNoSource);
+  if (value->BindsToConstant()) {
+    emit_store_barrier = kNoStoreBarrier;
+  }
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(MayCloneField(Z, field), Pop(), value,
+                              emit_store_barrier, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
 
-Fragment FlowGraphBuilder::StoreInstanceField(intptr_t offset) {
+Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
+  Fragment instructions;
+  const dart::Field& field_clone = MayCloneField(Z, field);
+  if (FLAG_use_field_guards) {
+    LocalVariable* store_expression = MakeTemporary();
+    instructions += LoadLocal(store_expression);
+    instructions +=
+        GuardFieldClass(field_clone, Thread::Current()->GetNextDeoptId());
+    instructions += LoadLocal(store_expression);
+    instructions +=
+        GuardFieldLength(field_clone, Thread::Current()->GetNextDeoptId());
+  }
+  instructions += StoreInstanceField(field_clone);
+  return instructions;
+}
+
+
+Fragment FlowGraphBuilder::StoreInstanceField(
+    intptr_t offset,
+    StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
+  if (value->BindsToConstant()) {
+    emit_store_barrier = kNoStoreBarrier;
+  }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      offset, Pop(), value, kEmitStoreBarrier, TokenPosition::kNoSource);
+      offset, Pop(), value, emit_store_barrier, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
@@ -2395,8 +2598,8 @@ Fragment FlowGraphBuilder::StoreLocal(LocalVariable* variable) {
 
 
 Fragment FlowGraphBuilder::StoreStaticField(const dart::Field& field) {
-  return Fragment(
-      new (Z) StoreStaticFieldInstr(field, Pop(), TokenPosition::kNoSource));
+  return Fragment(new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(),
+                                                TokenPosition::kNoSource));
 }
 
 
@@ -2444,12 +2647,12 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   instructions += Constant(H.DartSymbol("Malformed type."));
   instructions += PushArgument();  // message
 
-  instructions += StaticCall(constructor, 5);
+  instructions += StaticCall(TokenPosition::kNoSource, constructor, 5);
   instructions += Drop();
 
   // Throw the exception
   instructions += PushArgument();
-  instructions += ThrowException();
+  instructions += ThrowException(TokenPosition::kNoSource);
 
   return instructions;
 }
@@ -2484,7 +2687,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
   instructions += NullConstant();
   instructions += PushArgument();  // existingArgumentNames
 
-  instructions += StaticCall(throw_function, 6);
+  instructions += StaticCall(TokenPosition::kNoSource, throw_function, 6);
   // Leave "result" on the stack since callers expect it to be there (even
   // though the function will result in an exception).
 
@@ -2493,7 +2696,8 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
 
 
 dart::RawFunction* FlowGraphBuilder::LookupMethodByMember(
-    Member* target, const dart::String& method_name) {
+    Member* target,
+    const dart::String& method_name) {
   Class* kernel_klass = Class::Cast(target->parent());
   dart::Class& klass =
       dart::Class::Handle(Z, H.LookupClassByKernelClass(kernel_klass));
@@ -2508,11 +2712,9 @@ LocalVariable* FlowGraphBuilder::MakeTemporary() {
   char name[64];
   intptr_t index = stack_->definition()->temp_index();
   OS::SNPrint(name, 64, ":temp%" Pd, index);
-  LocalVariable* variable = new (Z) LocalVariable(
-      TokenPosition::kNoSource,
-      TokenPosition::kNoSource,
-      H.DartSymbol(name),
-      Object::dynamic_type());
+  LocalVariable* variable =
+      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                            H.DartSymbol(name), Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
   variable->set_index(parsed_function_->first_stack_local_index() -
@@ -2532,7 +2734,7 @@ intptr_t FlowGraphBuilder::CurrentTryIndex() {
   if (try_catch_block_ == NULL) {
     return CatchClauseNode::kInvalidTryIndex;
   } else {
-    return try_catch_block_->TryIndex();
+    return try_catch_block_->try_index();
   }
 }
 
@@ -2655,34 +2857,18 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   dart::Class& klass =
       dart::Class::Handle(zone_, parsed_function_->function().Owner());
 
-  // Find out if there is an enclosing kernel class (which will be used to
-  // resolve type parameters).
+  Function& outermost_function = Function::Handle(Z);
+  TreeNode* outermost_node = NULL;
   Class* kernel_klass = NULL;
-  dart::Function& topmost = dart::Function::Handle(Z, function.raw());
-  while (topmost.parent_function() != Object::null()) {
-    topmost = topmost.parent_function();
-  }
-  TreeNode* topmost_node = static_cast<TreeNode*>(topmost.kernel_function());
-  if (topmost_node != NULL) {
-    // Going up the closure->parent chain needs to result in a Procedure or
-    // Constructor.
-    TreeNode* parent = NULL;
-    if (topmost_node->IsProcedure()) {
-      parent = Procedure::Cast(topmost_node)->parent();
-    } else if (topmost_node->IsConstructor()) {
-      parent = Constructor::Cast(topmost_node)->parent();
-    } else if (topmost_node->IsField()) {
-      parent = Field::Cast(topmost_node)->parent();
-    }
-    if (parent != NULL && parent->IsClass()) kernel_klass = Class::Cast(parent);
-  }
+  DiscoverEnclosingElements(Z, function, &outermost_function, &outermost_node,
+                            &kernel_klass);
 
   // Mark that we are using [klass]/[kernell_klass] as active class.  Resolving
   // of type parameters will get resolved via [kernell_klass] unless we are
   // nested inside a static factory in which case we will use [member].
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
-  Member* member = topmost_node != NULL && topmost_node->IsMember()
-                       ? Member::Cast(topmost_node)
+  Member* member = ((outermost_node != NULL) && outermost_node->IsMember())
+                       ? Member::Cast(outermost_node)
                        : NULL;
   ActiveMemberScope active_member(&active_class_, member);
 
@@ -2749,8 +2935,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
                                                   Constructor* constructor) {
   const Function& dart_function = parsed_function_->function();
   TargetEntryInstr* normal_entry = BuildTargetEntry();
-  graph_entry_ = new (Z)
-      GraphEntryInstr(*parsed_function_, normal_entry, osr_id_);
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, normal_entry, osr_id_);
 
   SetupDefaultParameterValues(function);
 
@@ -2770,12 +2956,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
         // There is no LocalVariable describing the on-stack parameter so
-        // create one directly.
-        LocalVariable* parameter =
-            new (Z) LocalVariable(TokenPosition::kNoSource,
-                                  TokenPosition::kNoSource,
-                                  Symbols::TempParam(),
-                                  Object::dynamic_type());
+        // create one directly and use the same type.
+        LocalVariable* parameter = new (Z)
+            LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                          Symbols::TempParam(), variable->type());
         parameter->set_index(parameter_index);
         // Mark the stack variable so it will be ignored by the code for
         // try/catch.
@@ -2921,7 +3105,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
   // unreachable from the OSR entry. Catch entries are always considered
   // reachable, even if they become unreachable after OSR.
   if (osr_id_ != Compiler::kNoOSRDeoptId) {
-    BitVector* block_marks = new(Z) BitVector(Z, next_block_id_);
+    BitVector* block_marks = new (Z) BitVector(Z, next_block_id_);
     bool found = graph_entry_->PruneUnreachable(graph_entry_, NULL, osr_id_,
                                                 block_marks);
     ASSERT(found);
@@ -3041,8 +3225,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      // TODO(27590): This store does not need a store barrier.
-      body += StoreInstanceField(LinkedHashMap::hash_mask_offset());
+      body += StoreInstanceField(LinkedHashMap::hash_mask_offset(),
+                                 kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getUsedData:
@@ -3054,8 +3238,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      // TODO(27590): This store does not need a store barrier.
-      body += StoreInstanceField(LinkedHashMap::used_data_offset());
+      body += StoreInstanceField(LinkedHashMap::used_data_offset(),
+                                 kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
@@ -3067,8 +3251,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      // TODO(27590): This store does not need a store barrier.
-      body += StoreInstanceField(LinkedHashMap::deleted_keys_offset());
+      body += StoreInstanceField(LinkedHashMap::deleted_keys_offset(),
+                                 kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kBigint_getNeg:
@@ -3087,7 +3271,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
 
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
-    Field* kernel_field, LocalVariable* setter_value) {
+    Field* kernel_field,
+    LocalVariable* setter_value) {
   const dart::Function& function = parsed_function_->function();
 
   bool is_setter = function.IsImplicitSetterFunction();
@@ -3099,13 +3284,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   graph_entry_ = new (Z)
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
-  // TODO(27590): Add support for FLAG_use_field_guards.
   Fragment body(normal_entry);
   if (is_setter) {
     if (is_method) {
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(setter_value);
-      body += StoreInstanceField(field);
+      body += StoreInstanceFieldGuarded(field);
     } else {
       body += LoadLocal(setter_value);
       body += StoreStaticField(field);
@@ -3193,6 +3377,18 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
 }
 
 
+Fragment FlowGraphBuilder::GuardFieldLength(const dart::Field& field,
+                                            intptr_t deopt_id) {
+  return Fragment(new (Z) GuardFieldLengthInstr(Pop(), field, deopt_id));
+}
+
+
+Fragment FlowGraphBuilder::GuardFieldClass(const dart::Field& field,
+                                           intptr_t deopt_id) {
+  return Fragment(new (Z) GuardFieldClassInstr(Pop(), field, deopt_id));
+}
+
+
 FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
     const Function& method) {
   // A method extractor is the implicit getter for a method.
@@ -3212,7 +3408,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
 
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
-    FunctionNode* kernel_function, const Function& function) {
+    FunctionNode* kernel_function,
+    const Function& function) {
   const Function& target = Function::ZoneHandle(Z, function.parent_function());
 
   TargetEntryInstr* normal_entry = BuildTargetEntry();
@@ -3252,7 +3449,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // Forward them to the target.
   intptr_t argument_count = positional_argument_count + named_argument_count;
   if (!target.is_static()) ++argument_count;
-  body += StaticCall(target, argument_count, argument_names);
+  body += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names);
 
   // Return the result.
   body += Return();
@@ -3339,7 +3537,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
       Z, mirror_class.LookupStaticFunction(dart::Library::PrivateCoreLibName(
              Symbols::AllocateInvocationMirror())));
   ASSERT(!allocation_function.IsNull());
-  body += StaticCall(allocation_function, 4);
+  body += StaticCall(TokenPosition::kMinSource, allocation_function, 4);
   body += PushArgument();  // For the call to noSuchMethod.
 
   ArgumentsDescriptor two_arguments(
@@ -3355,7 +3553,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
         dart::Class::Handle(Z, I->object_store()->object_class()),
         Symbols::NoSuchMethod(), two_arguments);
   }
-  body += StaticCall(no_such_method, 2);
+  body += StaticCall(TokenPosition::kMinSource, no_such_method, 2);
   body += Return();
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, next_block_id_ - 1);
@@ -3419,7 +3617,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     // Invoke the getter to get the field value.
     body += LoadLocal(scope->VariableAt(0));
     body += PushArgument();
-    body += InstanceCall(getter_name, Token::kGET, 1);
+    body +=
+        InstanceCall(TokenPosition::kMinSource, getter_name, Token::kGET, 1);
   }
 
   body += PushArgument();
@@ -3438,8 +3637,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
     body += ClosureCall(descriptor.Count(), argument_names);
   } else {
-    body += InstanceCall(Symbols::Call(), Token::kILLEGAL, descriptor.Count(),
-                         argument_names);
+    body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
+                         Token::kILLEGAL, descriptor.Count(), argument_names);
   }
 
   body += Return();
@@ -3500,7 +3699,8 @@ JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry() {
 
 
 Fragment FlowGraphBuilder::TranslateInitializers(
-    Class* kernel_klass, List<Initializer>* initializers) {
+    Class* kernel_klass,
+    List<Initializer>* initializers) {
   Fragment instructions;
 
   // These come from:
@@ -3515,10 +3715,9 @@ Fragment FlowGraphBuilder::TranslateInitializers(
           dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(kernel_field));
 
       EnterScope(kernel_field);
-      // TODO(27590): Support FLAG_use_field_guards.
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init);
-      instructions += StoreInstanceField(field);
+      instructions += StoreInstanceFieldGuarded(field);
       ExitScope(kernel_field);
     }
   }
@@ -3536,10 +3735,9 @@ Fragment FlowGraphBuilder::TranslateInitializers(
       dart::Field& field =
           dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(init->field()));
 
-      // TODO(27590): Support FLAG_use_field_guards.
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init->value());
-      instructions += StoreInstanceField(field);
+      instructions += StoreInstanceFieldGuarded(field);
     } else if (initializer->IsSuperInitializer()) {
       SuperInitializer* init = SuperInitializer::Cast(initializer);
 
@@ -3553,7 +3751,8 @@ Fragment FlowGraphBuilder::TranslateInitializers(
       const Function& target = Function::ZoneHandle(
           Z, H.LookupConstructorByKernelConstructor(init->target()));
       intptr_t argument_count = init->arguments()->count() + 1;
-      instructions += StaticCall(target, argument_count, argument_names);
+      instructions += StaticCall(TokenPosition::kNoSource, target,
+                                 argument_count, argument_names);
       instructions += Drop();
     } else if (initializer->IsRedirectingInitializer()) {
       RedirectingInitializer* init = RedirectingInitializer::Cast(initializer);
@@ -3568,7 +3767,8 @@ Fragment FlowGraphBuilder::TranslateInitializers(
       const Function& target = Function::ZoneHandle(
           Z, H.LookupConstructorByKernelConstructor(init->target()));
       intptr_t argument_count = init->arguments()->count() + 1;
-      instructions += StaticCall(target, argument_count, argument_names);
+      instructions += StaticCall(TokenPosition::kNoSource, target,
+                                 argument_count, argument_names);
       instructions += Drop();
     } else if (initializer->IsLocalInitializer()) {
       // The other initializers following this one might read the variable. This
@@ -3655,9 +3855,9 @@ ArgumentArray FlowGraphBuilder::GetArguments(int count) {
 
 
 void FlowGraphBuilder::VisitInvalidExpression(InvalidExpression* node) {
-  // TODO(27590): Once we have better error information we might need to
-  // make some invalid expressions not NSM errors but type/compile-time/...
-  // errors.
+  // The frontend will take care of emitting normal errors (like
+  // [NoSuchMethodError]s) and only emit [InvalidExpression]s in very special
+  // situations (e.g. an invalid annotation).
   fragment_ = ThrowNoSuchMethodError();
 }
 
@@ -3711,11 +3911,27 @@ AbstractType& DartTypeTranslator::TranslateTypeWithoutFinalization(
     DartType* node) {
   bool saved_finalize = finalize_;
   finalize_ = false;
-  H.SetFinalize(false);
   AbstractType& result = TranslateType(node);
   finalize_ = saved_finalize;
-  H.SetFinalize(saved_finalize);
   return result;
+}
+
+
+const AbstractType& DartTypeTranslator::TranslateVariableType(
+    VariableDeclaration* variable) {
+  AbstractType& abstract_type = TranslateType(variable->type());
+
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  AbstractType& type = Type::ZoneHandle(Z);
+
+  if (abstract_type.IsMalformed()) {
+    type = AbstractType::dynamic_type().raw();
+  } else {
+    type = result_.raw();
+  }
+
+  return type;
 }
 
 
@@ -3728,15 +3944,22 @@ void DartTypeTranslator::VisitInvalidType(InvalidType* node) {
 
 
 void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
-  // TODO(27590): Fix function types which are composed of malformed types.
-  // We might need to convert them to dynamic types instead of making the
-  // function type malformed.
+  // The spec describes in section "19.1 Static Types":
+  //
+  //     Any use of a malformed type gives rise to a static warning. A
+  //     malformed type is then interpreted as dynamic by the static type
+  //     checker and the runtime unless explicitly specified otherwise.
+  //
+  // So we convert malformed return/parameter types to `dynamic`.
+
   const Function& signature_function = Function::ZoneHandle(
       Z, Function::NewSignatureFunction(*active_class_->klass,
                                         TokenPosition::kNoSource));
 
   node->return_type()->AcceptDartTypeVisitor(this);
-  if (result_.IsMalformed()) return;
+  if (result_.IsMalformed()) {
+    result_ = AbstractType::dynamic_type().raw();
+  }
   signature_function.set_result_type(result_);
 
   const intptr_t positional_count = node->positional_parameters().length();
@@ -3762,14 +3985,18 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   pos++;
   for (intptr_t i = 0; i < positional_count; i++, pos++) {
     node->positional_parameters()[i]->AcceptDartTypeVisitor(this);
-    if (result_.IsMalformed()) return;
+    if (result_.IsMalformed()) {
+      result_ = AbstractType::dynamic_type().raw();
+    }
     parameter_types.SetAt(pos, result_);
     parameter_names.SetAt(pos, H.DartSymbol("noname"));
   }
   for (intptr_t i = 0; i < named_count; i++, pos++) {
     Tuple<String, DartType>* tuple = node->named_parameters()[i];
     tuple->second()->AcceptDartTypeVisitor(this);
-    if (result_.IsMalformed()) return;
+    if (result_.IsMalformed()) {
+      result_ = AbstractType::dynamic_type().raw();
+    }
     parameter_types.SetAt(pos, result_);
     parameter_names.SetAt(pos, H.DartSymbol(tuple->first()));
   }
@@ -3841,13 +4068,13 @@ void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
   const TypeArguments& type_arguments = TranslateTypeArguments(
       node->type_arguments().raw_array(), node->type_arguments().length());
 
-  const dart::Class& klass =
-      dart::Class::Handle(Z, H.LookupClassByKernelClass(node->klass()));
 
+  dart::Object& klass =
+      dart::Object::Handle(Z, H.ToUnresolvedClass(node->klass()));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
-  result_.SetIsResolved();
   if (finalize_) {
-    result_ = ClassFinalizer::FinalizeType(klass, result_,
+    ASSERT(active_class_->klass != NULL);
+    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_,
                                            ClassFinalizer::kCanonicalize);
   }
 }
@@ -3864,7 +4091,8 @@ void DartTypeTranslator::VisitVoidType(VoidType* node) {
 
 
 const TypeArguments& DartTypeTranslator::TranslateTypeArguments(
-    DartType** dart_types, intptr_t length) {
+    DartType** dart_types,
+    intptr_t length) {
   bool only_dynamic = true;
   for (intptr_t i = 0; i < length; i++) {
     if (!dart_types[i]->IsDynamicType()) {
@@ -3892,7 +4120,8 @@ const TypeArguments& DartTypeTranslator::TranslateTypeArguments(
 
 
 const TypeArguments& DartTypeTranslator::TranslateInstantiatedTypeArguments(
-    const dart::Class& receiver_class, DartType** receiver_type_arguments,
+    const dart::Class& receiver_class,
+    DartType** receiver_type_arguments,
     intptr_t length) {
   const TypeArguments& type_arguments =
       TranslateTypeArguments(receiver_type_arguments, length);
@@ -3925,6 +4154,11 @@ const Type& DartTypeTranslator::ReceiverType(const dart::Class& klass) {
   }
   type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                    klass.token_pos());
+  if (klass.is_type_finalized()) {
+    type ^= ClassFinalizer::FinalizeType(
+        klass, type, ClassFinalizer::kCanonicalizeWellFormed);
+    klass.SetCanonicalType(type);
+  }
   return type;
 }
 
@@ -3944,15 +4178,8 @@ void FlowGraphBuilder::VisitVariableGet(VariableGet* node) {
 
 void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
   Fragment instructions = TranslateExpression(node->expression());
-  // The IR should not include assignments to final or const variables.
-  // This is https://github.com/dart-lang/rasta/issues/83.
-  //
-  // TODO(27590): simply ASSERT that the variable is not const or final
-  // when that issue is fixed.
-  fragment_ = instructions +
-              ((node->variable()->IsFinal() || node->variable()->IsConst())
-                   ? Drop() + ThrowNoSuchMethodError()
-                   : StoreLocal(LookupVariable(node->variable())));
+  instructions += StoreLocal(LookupVariable(node->variable()));
+  fragment_ = instructions;
 }
 
 
@@ -3973,8 +4200,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
         Fragment instructions = Constant(field);
         fragment_ = instructions + LoadStaticField();
       } else {
-        // TODO(27590): figure out how to trigger this case and add tests.
-        fragment_ = StaticCall(getter, 0);
+        fragment_ = StaticCall(node->position(), getter, 0);
       }
     }
   } else {
@@ -3983,7 +4209,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
         Z, H.LookupStaticMethodByKernelProcedure(procedure));
 
     if (procedure->kind() == Procedure::kGetter) {
-      fragment_ = StaticCall(target, 0);
+      fragment_ = StaticCall(node->position(), target, 0);
     } else if (procedure->kind() == Procedure::kMethod) {
       ASSERT(procedure->IsStatic());
       Function& closure_function =
@@ -4024,7 +4250,7 @@ void FlowGraphBuilder::VisitStaticSet(StaticSet* node) {
     Procedure* procedure = Procedure::Cast(target);
     const Function& target = Function::ZoneHandle(
         Z, H.LookupStaticMethodByKernelProcedure(procedure));
-    instructions += StaticCall(target, 1);
+    instructions += StaticCall(node->position(), target, 1);
 
     // Drop the unused result & leave the stored value on the stack.
     fragment_ = instructions + Drop();
@@ -4036,7 +4262,8 @@ void FlowGraphBuilder::VisitPropertyGet(PropertyGet* node) {
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
   const dart::String& getter_name = H.DartGetterName(node->name());
-  fragment_ = instructions + InstanceCall(getter_name, Token::kGET, 1);
+  fragment_ = instructions +
+              InstanceCall(node->position(), getter_name, Token::kGET, 1);
 }
 
 
@@ -4050,7 +4277,7 @@ void FlowGraphBuilder::VisitPropertySet(PropertySet* node) {
   instructions += PushArgument();
 
   const dart::String& setter_name = H.DartSetterName(node->name());
-  instructions += InstanceCall(setter_name, Token::kSET, 2);
+  instructions += InstanceCall(node->position(), setter_name, Token::kSET, 2);
   fragment_ = instructions + Drop();
 }
 
@@ -4080,7 +4307,7 @@ void FlowGraphBuilder::VisitDirectPropertyGet(DirectPropertyGet* node) {
 
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
-  fragment_ = instructions + StaticCall(target, 1);
+  fragment_ = instructions + StaticCall(node->position(), target, 1);
 }
 
 
@@ -4097,7 +4324,7 @@ void FlowGraphBuilder::VisitDirectPropertySet(DirectPropertySet* node) {
   instructions += TranslateExpression(node->value());
   instructions += StoreLocal(value);
   instructions += PushArgument();
-  instructions += StaticCall(target, 2);
+  instructions += StaticCall(node->position(), target, 2);
 
   fragment_ = instructions + Drop();
 }
@@ -4113,30 +4340,14 @@ void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
     // every factory constructor.
     ++argument_count;
   }
+
   List<NamedExpression>& named = node->arguments()->named();
   const Array& argument_names = H.ArgumentNames(&named);
 
+  // The frontend ensures we the [StaticInvocation] has matching arguments.
+  ASSERT(target.AreValidArguments(argument_count, argument_names, NULL));
+
   Fragment instructions;
-  if (!target.AreValidArguments(argument_count, argument_names, NULL)) {
-    // An argument mismatch for a static invocation really should not occur
-    // in the IR.  This is issue https://github.com/dart-lang/rasta/issues/76.
-    //
-    // TODO(27590): Change this to an ASSERT when that issue is fixed.
-    List<Expression>& positional = node->arguments()->positional();
-    for (intptr_t i = 0; i < positional.length(); ++i) {
-      instructions += TranslateExpression(positional[i]);
-      instructions += Drop();
-    }
-
-    for (intptr_t i = 0; i < named.length(); ++i) {
-      instructions += TranslateExpression(named[i]->expression());
-      instructions += Drop();
-    }
-
-    fragment_ = instructions + ThrowNoSuchMethodError();
-    return;
-  }
-
   LocalVariable* instance_variable = NULL;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
@@ -4198,7 +4409,8 @@ void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
     instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
   } else {
     instructions += TranslateArguments(node->arguments(), NULL);
-    instructions += StaticCall(target, argument_count, argument_names);
+    instructions +=
+        StaticCall(node->position(), target, argument_count, argument_names);
 
     if (target.IsGenerativeConstructor()) {
       // Drop the result of the constructor call and leave [instance_variable]
@@ -4255,8 +4467,9 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
     num_args_checked = argument_count;
   }
 
-  fragment_ = instructions + InstanceCall(name, token_kind, argument_count,
-                                          argument_names, num_args_checked);
+  fragment_ = instructions + InstanceCall(node->position(), name, token_kind,
+                                          argument_count, argument_names,
+                                          num_args_checked);
 }
 
 
@@ -4273,7 +4486,8 @@ void FlowGraphBuilder::VisitDirectMethodInvocation(
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
   instructions += TranslateArguments(node->arguments(), &argument_names);
-  fragment_ = instructions + StaticCall(target, argument_count, argument_names);
+  fragment_ = instructions + StaticCall(node->position(), target,
+                                        argument_count, argument_names);
 }
 
 
@@ -4333,7 +4547,8 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
   const Function& target = Function::ZoneHandle(
       Z, H.LookupConstructorByKernelConstructor(klass, node->target()));
   intptr_t argument_count = node->arguments()->count() + 1;
-  instructions += StaticCall(target, argument_count, argument_names);
+  instructions +=
+      StaticCall(node->position(), target, argument_count, argument_names);
   fragment_ = instructions + Drop();
 }
 
@@ -4376,7 +4591,8 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
     instructions += PushArgument();  // Negate?.
 
     instructions +=
-        InstanceCall(dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
+        InstanceCall(TokenPosition::kNoSource,
+                     dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
                      Token::kIS, 4);
   }
 
@@ -4416,6 +4632,7 @@ void FlowGraphBuilder::VisitAsExpression(AsExpression* node) {
     instructions += PushArgument();  // Type.
 
     instructions += InstanceCall(
+        TokenPosition::kNoSource,
         dart::Library::PrivateCoreLibName(Symbols::_as()), Token::kAS, 3);
   }
 
@@ -4562,7 +4779,7 @@ void FlowGraphBuilder::VisitListLiteral(ListLiteral* node) {
   const Function& factory_method = Function::ZoneHandle(
       Z, factory_class.LookupFactory(
              dart::Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
-  fragment_ = instructions + StaticCall(factory_method, 2);
+  fragment_ = instructions + StaticCall(node->position(), factory_method, 2);
 }
 
 
@@ -4613,7 +4830,7 @@ void FlowGraphBuilder::VisitMapLiteral(MapLiteral* node) {
   }
   instructions += PushArgument();  // The array.
 
-  fragment_ = instructions + StaticCall(factory_method, 2);
+  fragment_ = instructions + StaticCall(node->position(), factory_method, 2);
 }
 
 
@@ -4634,7 +4851,7 @@ void FlowGraphBuilder::VisitThrow(Throw* node) {
 
   instructions += TranslateExpression(node->expression());
   instructions += PushArgument();
-  instructions += ThrowException();
+  instructions += ThrowException(node->position());
   ASSERT(instructions.is_closed());
 
   fragment_ = instructions;
@@ -4918,7 +5135,8 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
 
   const dart::String& iterator_getter = dart::String::ZoneHandle(
       Z, dart::Field::GetterSymbol(Symbols::Iterator()));
-  instructions += InstanceCall(iterator_getter, Token::kGET, 1);
+  instructions +=
+      InstanceCall(TokenPosition::kNoSource, iterator_getter, Token::kGET, 1);
   LocalVariable* iterator = scopes_->iterator_variables[for_in_depth_];
   instructions += StoreLocal(iterator);
   instructions += Drop();
@@ -4927,7 +5145,8 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
   ++loop_depth_;
   Fragment condition = LoadLocal(iterator);
   condition += PushArgument();
-  condition += InstanceCall(Symbols::MoveNext(), Token::kILLEGAL, 1);
+  condition += InstanceCall(TokenPosition::kNoSource, Symbols::MoveNext(),
+                            Token::kILLEGAL, 1);
   TargetEntryInstr* body_entry;
   TargetEntryInstr* loop_exit;
   condition += BranchIfTrue(&body_entry, &loop_exit);
@@ -4938,7 +5157,8 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
   body += PushArgument();
   const dart::String& current_getter = dart::String::ZoneHandle(
       Z, dart::Field::GetterSymbol(Symbols::Current()));
-  body += InstanceCall(current_getter, Token::kGET, 1);
+  body +=
+      InstanceCall(TokenPosition::kNoSource, current_getter, Token::kGET, 1);
   body += StoreLocal(LookupVariable(node->variable()));
   body += Drop();
   body += TranslateStatement(node->body());
@@ -5059,12 +5279,12 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
       body_fragment += NullConstant();
       body_fragment += PushArgument();  // line
 
-      body_fragment += StaticCall(constructor, 3);
+      body_fragment += StaticCall(TokenPosition::kNoSource, constructor, 3);
       body_fragment += Drop();
 
       // Throw the exception
       body_fragment += PushArgument();
-      body_fragment += ThrowException();
+      body_fragment += ThrowException(TokenPosition::kNoSource);
       body_fragment += Drop();
     }
 
@@ -5128,10 +5348,10 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
         current_instructions += PushArgument();
         current_instructions += LoadLocal(scopes_->switch_variable);
         current_instructions += PushArgument();
-        current_instructions +=
-            InstanceCall(Symbols::EqualOperator(), Token::kEQ,
-                         /*argument_count=*/2,
-                         /*num_args_checked=*/2);
+        current_instructions += InstanceCall(
+            TokenPosition::kNoSource, Symbols::EqualOperator(), Token::kEQ,
+            /*argument_count=*/2,
+            /*num_args_checked=*/2);
         current_instructions += BranchIfTrue(&then, &otherwise);
 
         Fragment then_fragment(then);
@@ -5251,12 +5471,12 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
   otherwise_fragment += IntConstant(0);
   otherwise_fragment += PushArgument();  // column
 
-  otherwise_fragment += StaticCall(constructor, 5);
+  otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 5);
   otherwise_fragment += Drop();
 
   // Throw _AssertionError exception.
   otherwise_fragment += PushArgument();
-  otherwise_fragment += ThrowException();
+  otherwise_fragment += ThrowException(TokenPosition::kNoSource);
   otherwise_fragment += Drop();
 
   fragment_ = Fragment(instructions.entry, then);
@@ -5295,8 +5515,8 @@ void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
   // Fill in the body of the try.
   ++try_depth_;
   {
-    TryCatchBlock tcb(this, try_handler_index);
     TryFinallyBlock tfb(this, node->finalizer());
+    TryCatchBlock tcb(this, try_handler_index);
     try_body += TranslateStatement(node->body());
   }
   --try_depth_;
@@ -5411,6 +5631,7 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
         catch_body += Constant(Object::bool_false());
         catch_body += PushArgument();  // negate
         catch_body += InstanceCall(
+            TokenPosition::kNoSource,
             dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
             Token::kIS, 4);
 
@@ -5528,6 +5749,7 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
   for (intptr_t i = 0; i < scopes_->function_scopes.length(); ++i) {
     if (scopes_->function_scopes[i].function != node) continue;
 
+    // NOTE: This is not TokenPosition in the general sense!
     function = I->LookupClosureFunction(parsed_function_->function(),
                                         TokenPosition(i));
     if (function.IsNull()) {
@@ -5539,6 +5761,7 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
         name = &H.DartSymbol(
             FunctionDeclaration::Cast(parent)->variable()->name());
       }
+      // NOTE: This is not TokenPosition in the general sense!
       function = Function::NewClosureFunction(
           *name, parsed_function_->function(), TokenPosition(i));
       function.set_is_debuggable(false);
@@ -5585,3 +5808,4 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
 
 }  // namespace kernel
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

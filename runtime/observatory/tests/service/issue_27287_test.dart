@@ -3,14 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug
 
-import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
-import 'dart:async';
 import 'test_helper.dart';
 import 'dart:developer';
 
-const int LINE_A = 19;
-const int LINE_B = 20;
+const int LINE_A = 17;
+const int LINE_B = 18;
 
 var libVariable;
 

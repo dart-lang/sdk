@@ -15,8 +15,8 @@ namespace dart {
 static int64_t kMaxAllowedSeconds = kMaxInt32;
 
 DEFINE_NATIVE_ENTRY(DateTime_timeZoneName, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Integer, dart_seconds, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, dart_seconds,
+                               arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
   if (llabs(seconds) > kMaxAllowedSeconds) {
     Exceptions::ThrowArgumentError(dart_seconds);
@@ -27,8 +27,8 @@ DEFINE_NATIVE_ENTRY(DateTime_timeZoneName, 1) {
 
 
 DEFINE_NATIVE_ENTRY(DateTime_timeZoneOffsetInSeconds, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Integer, dart_seconds, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, dart_seconds,
+                               arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
   if (llabs(seconds) > kMaxAllowedSeconds) {
     Exceptions::ThrowArgumentError(dart_seconds);

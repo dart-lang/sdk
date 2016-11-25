@@ -26,10 +26,8 @@ CallPattern::CallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
 
   Register reg;
-  ic_data_load_end_ =
-      InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
-                                                 &reg,
-                                                 &target_code_pool_index_);
+  ic_data_load_end_ = InstructionPattern::DecodeLoadWordFromPool(
+      end_ - 2 * Instr::kInstrSize, &reg, &target_code_pool_index_);
   ASSERT(reg == CODE_REG);
 }
 
@@ -44,13 +42,10 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
 
   Register reg;
-  uword native_function_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
-                                                 &reg,
-                                                 &target_code_pool_index_);
+  uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      end_ - 2 * Instr::kInstrSize, &reg, &target_code_pool_index_);
   ASSERT(reg == CODE_REG);
-  InstructionPattern::DecodeLoadWordFromPool(native_function_load_end,
-                                             &reg,
+  InstructionPattern::DecodeLoadWordFromPool(native_function_load_end, &reg,
                                              &native_function_pool_index_);
   ASSERT(reg == R9);
 }
@@ -76,7 +71,7 @@ NativeFunction NativeCallPattern::native_function() const {
 
 void NativeCallPattern::set_native_function(NativeFunction func) const {
   object_pool_.SetRawValueAt(native_function_pool_index_,
-      reinterpret_cast<uword>(func));
+                             reinterpret_cast<uword>(func));
 }
 
 
@@ -156,8 +151,10 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
 }
 
 
-static bool IsLoadWithOffset(int32_t instr, Register base,
-                             intptr_t* offset, Register* dst) {
+static bool IsLoadWithOffset(int32_t instr,
+                             Register base,
+                             intptr_t* offset,
+                             Register* dst) {
   if ((instr & 0xffff0000) == (0xe5900000 | (base << 16))) {
     // ldr reg, [base, #+offset]
     *offset = instr & 0xfff;
@@ -203,9 +200,7 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj) {
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
 
   int32_t instr = Instr::At(pc)->InstructionBits();
@@ -230,9 +225,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc,
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;
-    InstructionPattern::DecodeLoadObject(ic_data_load_end_,
-                                         object_pool_,
-                                         &reg,
+    InstructionPattern::DecodeLoadObject(ic_data_load_end_, object_pool_, &reg,
                                          &ic_data_);
     ASSERT(reg == R9);
   }
@@ -260,14 +253,11 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
-  uword data_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(pc - Instr::kInstrSize,
-                                                 &reg,
-                                                 &data_pool_index_);
+  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      pc - Instr::kInstrSize, &reg, &data_pool_index_);
   ASSERT(reg == R9);
   InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
-                                             &reg,
-                                             &target_pool_index_);
+                                             &reg, &target_pool_index_);
   ASSERT(reg == CODE_REG);
 }
 
@@ -278,8 +268,7 @@ RawObject* SwitchableCallPattern::data() const {
 
 
 RawCode* SwitchableCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_pool_index_));
+  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
 
 
@@ -295,9 +284,7 @@ void SwitchableCallPattern::SetTarget(const Code& target) const {
 }
 
 
-ReturnPattern::ReturnPattern(uword pc)
-    : pc_(pc) {
-}
+ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}
 
 
 bool ReturnPattern::IsValid() const {
@@ -305,8 +292,8 @@ bool ReturnPattern::IsValid() const {
   const int32_t B4 = 1 << 4;
   const int32_t B21 = 1 << 21;
   const int32_t B24 = 1 << 24;
-  int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) |
-                         B24 | B21 | (0xfff << 8) | B4 |
+  int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) | B24 |
+                        B21 | (0xfff << 8) | B4 |
                         (static_cast<int32_t>(LR) << kRmShift);
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {

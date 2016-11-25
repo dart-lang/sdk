@@ -3373,6 +3373,45 @@ a.A v;'''
     ]);
   }
 
+  void test_typeAnnotationGenericFunctionParameter_localFunction() {
+    Source source = addSource(r'''
+class A {
+  void method() {
+    T local<T>(Object t) {
+      return (t is T) ? t : null;
+    }
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationGenericFunctionParameter_method() {
+    Source source = addSource(r'''
+class A {
+  T method<T>(Object t) {
+    return (t is T) ? t : null;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationGenericFunctionParameter_topLevelFunction() {
+    Source source = addSource(r'''
+T function<T>(Object t) {
+  return (t is T) ? t : null;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
+    verify([source]);
+  }
+
   void test_typeParameterReferencedByStatic_field() {
     Source source = addSource(r'''
 class A<K> {

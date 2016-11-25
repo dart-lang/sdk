@@ -323,29 +323,35 @@ abstract class AsExpression extends Expression {
 }
 
 /**
- * An assert statement.
+ * An assert in the initializer list of a constructor.
  *
- *    assertStatement ::=
- *        'assert' '(' [Expression] ')' ';'
+ *    assertInitializer ::=
+ *        'assert' '(' [Expression] (',' [Expression])? ')'
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AssertStatement extends Statement {
+abstract class AssertInitializer implements Assertion, ConstructorInitializer {
   /**
-   * Initialize a newly created assert statement. The [comma] and [message] can
-   * be `null` if there is no message.
+   * Initialize a newly created assert initializer. The [comma] and [message]
+   * can be `null` if there is no message.
    */
-  factory AssertStatement(
+  factory AssertInitializer(
           Token assertKeyword,
           Token leftParenthesis,
           Expression condition,
           Token comma,
           Expression message,
-          Token rightParenthesis,
-          Token semicolon) =>
-      new AssertStatementImpl(assertKeyword, leftParenthesis, condition, comma,
-          message, rightParenthesis, semicolon);
+          Token rightParenthesis) =>
+      new AssertInitializerImpl(assertKeyword, leftParenthesis, condition,
+          comma, message, rightParenthesis);
+}
 
+/**
+ * An assertion, either in a block or in the initializer list of a constructor.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class Assertion implements AstNode {
   /**
    * Return the token representing the 'assert' keyword.
    */
@@ -363,7 +369,8 @@ abstract class AssertStatement extends Statement {
   Token get comma;
 
   /**
-   * Set the comma between the [condition] and the [message] to the given [token].
+   * Set the comma between the [condition] and the [message] to the given
+   * [token].
    */
   void set comma(Token token);
 
@@ -409,6 +416,31 @@ abstract class AssertStatement extends Statement {
    *  Set the right parenthesis to the given [token].
    */
   void set rightParenthesis(Token token);
+}
+
+/**
+ * An assert statement.
+ *
+ *    assertStatement ::=
+ *        'assert' '(' [Expression] (',' [Expression])? ')' ';'
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class AssertStatement implements Assertion, Statement {
+  /**
+   * Initialize a newly created assert statement. The [comma] and [message] can
+   * be `null` if there is no message.
+   */
+  factory AssertStatement(
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message,
+          Token rightParenthesis,
+          Token semicolon) =>
+      new AssertStatementImpl(assertKeyword, leftParenthesis, condition, comma,
+          message, rightParenthesis, semicolon);
 
   /**
    * Return the semicolon terminating the statement.
@@ -637,6 +669,8 @@ abstract class AstVisitor<R> {
   R visitArgumentList(ArgumentList node);
 
   R visitAsExpression(AsExpression node);
+
+  R visitAssertInitializer(AssertInitializer node);
 
   R visitAssertStatement(AssertStatement assertStatement);
 

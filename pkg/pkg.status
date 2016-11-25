@@ -26,6 +26,7 @@ dev_compiler/gen/*: SkipByDesign
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign
+front_end/*: SkipByDesign
 
 [ $runtime == vm && $mode == debug ]
 analysis_server/test/completion_test: Pass, Slow
@@ -53,6 +54,11 @@ compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
+front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
+
+[ $compiler == dart2js && $fast_startup ]
+front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
 
 [ $compiler == dart2js && $builder_tag != dart2js_analyzer ]
 analyzer/test/*: Skip # Issue 26813
@@ -65,6 +71,7 @@ crypto/test/base64_test: Slow, Pass
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.
 lookup_map/test/lookup_map_test: RuntimeError, OK # Issue 26103. Timers are not supported.
+front_end/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548

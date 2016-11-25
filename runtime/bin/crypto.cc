@@ -14,11 +14,11 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   Dart_Handle count_obj = Dart_GetNativeArgument(args, 0);
   const int64_t kMaxRandomBytes = 4096;
   int64_t count64 = 0;
-  if (!DartUtils::GetInt64Value(count_obj, &count64) ||
-      (count64 < 0) || (count64 > kMaxRandomBytes)) {
-    Dart_Handle error =
-        DartUtils::NewString("Invalid argument: count must be a positive int "
-                             "less than or equal to 4096.");
+  if (!DartUtils::GetInt64Value(count_obj, &count64) || (count64 < 0) ||
+      (count64 > kMaxRandomBytes)) {
+    Dart_Handle error = DartUtils::NewString(
+        "Invalid argument: count must be a positive int "
+        "less than or equal to 4096.");
     Dart_ThrowException(error);
   }
   intptr_t count = static_cast<intptr_t>(count64);

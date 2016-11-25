@@ -7,18 +7,6 @@ library dart2js.src.options;
 import '../compiler.dart' show PackagesDiscoveryProvider;
 import 'commandline_options.dart' show Flags;
 
-/// Options used for parsing.
-///
-/// Use this to conditionally support certain constructs, e.g.,
-/// experimental ones.
-abstract class ParserOptions {
-  const ParserOptions();
-
-  /// Support parsing of generic method declarations, and invocations of
-  /// methods where type arguments are passed.
-  bool get enableGenericMethodSyntax;
-}
-
 /// Options used for controlling diagnostic messages.
 abstract class DiagnosticOptions {
   const DiagnosticOptions();
@@ -48,7 +36,7 @@ abstract class DiagnosticOptions {
 /// Object for passing options to the compiler. Superclasses are used to select
 /// subsets of these options, enabling each part of the compiler to depend on
 /// as few as possible.
-class CompilerOptions implements DiagnosticOptions, ParserOptions {
+class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
   final Uri entryPoint;
 
@@ -144,10 +132,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   final bool enableAssertMessage;
-
-  /// Support parsing of generic method declarations, and invocations of
-  /// methods where type arguments are passed.
-  final bool enableGenericMethodSyntax;
 
   /// Support access to initializing formal constructor arguments, e.g., the
   /// use of `x` to initialize `y` in `C(this.x) : y = x`.
@@ -288,8 +272,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
         dumpInfo: _hasOption(options, Flags.dumpInfo),
         enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
-        enableGenericMethodSyntax:
-            _hasOption(options, Flags.genericMethodSyntax),
         enableInitializingFormalAccess:
             _hasOption(options, Flags.initializingFormalAccess),
         enableExperimentalMirrors:
@@ -358,7 +340,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool disableTypeInference: false,
       bool dumpInfo: false,
       bool enableAssertMessage: false,
-      bool enableGenericMethodSyntax: false,
       bool enableInitializingFormalAccess: false,
       bool enableExperimentalMirrors: false,
       bool enableMinification: false,
@@ -430,7 +411,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         disableTypeInference: disableTypeInference,
         dumpInfo: dumpInfo,
         enableAssertMessage: enableAssertMessage,
-        enableGenericMethodSyntax: enableGenericMethodSyntax,
         enableInitializingFormalAccess: enableInitializingFormalAccess,
         enableExperimentalMirrors: enableExperimentalMirrors,
         enableMinification: enableMinification,
@@ -481,7 +461,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.disableTypeInference: false,
       this.dumpInfo: false,
       this.enableAssertMessage: false,
-      this.enableGenericMethodSyntax: false,
       this.enableInitializingFormalAccess: false,
       this.enableExperimentalMirrors: false,
       this.enableMinification: false,
@@ -539,7 +518,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       disableTypeInference,
       dumpInfo,
       enableAssertMessage,
-      enableGenericMethodSyntax,
       enableInitializingFormalAccess,
       enableExperimentalMirrors,
       enableMinification,
@@ -598,8 +576,6 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
             disableTypeInference ?? options.disableTypeInference,
         dumpInfo: dumpInfo ?? options.dumpInfo,
         enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
-        enableGenericMethodSyntax:
-            enableGenericMethodSyntax ?? options.enableGenericMethodSyntax,
         enableInitializingFormalAccess: enableInitializingFormalAccess ??
             options.enableInitializingFormalAccess,
         enableExperimentalMirrors:

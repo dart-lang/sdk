@@ -11,22 +11,22 @@ namespace dart {
 
 class Mirrors : public AllStatic {
  public:
-  #define MIRRORS_KIND_SHIFT_LIST(V)                                           \
-    V(kAbstract)                                                               \
-    V(kGetter)                                                                 \
-    V(kSetter)                                                                 \
-    V(kConstructor)                                                            \
-    V(kConstCtor)                                                              \
-    V(kGenerativeCtor)                                                         \
-    V(kRedirectingCtor)                                                        \
-    V(kFactoryCtor)                                                            \
-    V(kExternal)                                                               \
+#define MIRRORS_KIND_SHIFT_LIST(V)                                             \
+  V(kAbstract)                                                                 \
+  V(kGetter)                                                                   \
+  V(kSetter)                                                                   \
+  V(kConstructor)                                                              \
+  V(kConstCtor)                                                                \
+  V(kGenerativeCtor)                                                           \
+  V(kRedirectingCtor)                                                          \
+  V(kFactoryCtor)                                                              \
+  V(kExternal)
 
   // These offsets much be kept in sync with those in mirrors_impl.dart.
   enum KindShifts {
-  #define DEFINE_KIND_SHIFT_ENUM(name) name,
-  MIRRORS_KIND_SHIFT_LIST(DEFINE_KIND_SHIFT_ENUM)
-  #undef DEFINE_KIND_SHIFT_ENUM
+#define DEFINE_KIND_SHIFT_ENUM(name) name,
+    MIRRORS_KIND_SHIFT_LIST(DEFINE_KIND_SHIFT_ENUM)
+#undef DEFINE_KIND_SHIFT_ENUM
   };
 };
 

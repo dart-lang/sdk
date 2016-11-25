@@ -64,6 +64,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    if (_isBodyToCreateElementsFor(node)) {
+      _walker.consumeLocalElements();
+      node.accept(_walker.elementBuilder);
+      return null;
+    } else {
+      return super.visitBlockFunctionBody(node);
+    }
+  }
+
+  @override
   Object visitCatchClause(CatchClause node) {
     _walker.elementBuilder.buildCatchVariableElements(node);
     return super.visitCatchClause(node);
@@ -143,9 +154,29 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitExportDirective(ExportDirective node) {
     super.visitExportDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      int index = (node.parent as CompilationUnit)
+          .directives
+          .where((directive) => directive is ExportDirective)
+          .toList()
+          .indexOf(node);
+      annotations = _walker.element.library.exports[index].metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
+  }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (_isBodyToCreateElementsFor(node)) {
+      _walker.consumeLocalElements();
+      node.accept(_walker.elementBuilder);
+      return null;
+    } else {
+      return super.visitExpressionFunctionBody(node);
+    }
   }
 
   @override
@@ -189,6 +220,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     node.functionExpression.element = element;
+    _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
     });
@@ -202,6 +234,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       FunctionElement element = _walker.getFunction();
       _matchOffset(element, node.offset);
       node.element = element;
+      _walker._elementHolder.addFunction(element);
       _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
         super.visitFunctionExpression(node);
       });
@@ -239,8 +272,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     super.visitImportDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      int index = (node.parent as CompilationUnit)
+          .directives
+          .where((directive) => directive is ImportDirective)
+          .toList()
+          .indexOf(node);
+      annotations = _walker.element.library.imports[index].metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -461,6 +503,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     walker.validate();
     _walker = outerWalker;
   }
+
+  static bool _isBodyToCreateElementsFor(FunctionBody node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorDeclaration ||
+        parent is MethodDeclaration ||
+        parent.parent is FunctionDeclaration &&
+            parent.parent.parent is CompilationUnit;
+  }
 }
 
 /**
@@ -569,6 +619,10 @@ class ElementWalker {
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
+  void consumeLocalElements() {
+    _functionIndex = _functions.length;
+  }
+
   /**
    * Returns the next non-synthetic child of [element] which is an accessor;
    * throws an [IndexError] if there are no more.
@@ -649,6 +703,7 @@ class ElementWalker {
     check(_variables, _variableIndex);
     Element element = this.element;
     if (element is ExecutableElementImpl) {
+      element.functions = _elementHolder.functions;
       element.labels = _elementHolder.labels;
       element.localVariables = _elementHolder.localVariables;
     }

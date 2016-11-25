@@ -31,9 +31,12 @@ class Isolate {
     throw new UnsupportedError("Isolate.packageConfig");
   }
 
+  static Uri _packageBase = Uri.base.resolve(IsolateNatives.packagesBase);
+
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) {
-    throw new UnsupportedError("Isolate.resolvePackageUri");
+  static Future<Uri> resolvePackageUri(Uri packageUri) async {
+    if (packageUri.scheme != 'package') return packageUri;
+    return _packageBase.resolveUri(packageUri.replace(scheme: ''));
   }
 
   @patch

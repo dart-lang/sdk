@@ -4,9 +4,8 @@
 
 library test.type_error_decode_test;
 
-import 'package:expect/expect.dart';
-
-import 'dart:_js_helper';
+import 'native_testing.dart';
+import 'dart:_js_helper' show NullError, JsNoSuchMethodError;
 
 class Foo {
   var field;
@@ -41,12 +40,19 @@ main() {
   var s = "Cannot call method 'foo' of null";
   var nul = null;
   var f = new Foo();
-  // This should foil code analysis so the variables aren't inlined below.
-  [].forEach((y) => f.field = nul = s = x = z = v = y);
+
   expectThrows(() => x.fisk(), isNullError);
   expectThrows(() => v.fisk(), isNullError);
   expectThrows(() => z.fisk(), isJsNoSuchMethodError);
   expectThrows(() => s.fisk(), isJsNoSuchMethodError);
   expectThrows(() => null(), isNullError);
   expectThrows(() => f.field(), isNullError);
+
+  expectThrows(() => confuse(x).fisk(), isNullError);
+  expectThrows(() => confuse(v).fisk(), isNullError);
+  expectThrows(() => confuse(z).fisk(), isJsNoSuchMethodError);
+  expectThrows(() => confuse(s).fisk(), isJsNoSuchMethodError);
+  expectThrows(() => confuse(null)(), isNullError);
+  expectThrows(() => confuse(f).field(), isNullError);
+  expectThrows(() => confuse(f.field)(), isNullError);
 }

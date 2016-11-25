@@ -26,8 +26,7 @@ class BranchSimplifier : public AllStatic {
   // Replace a target entry instruction with a join entry instruction.  Does
   // not update the original target's predecessors to point to the new block
   // and does not replace the target in already computed block order lists.
-  static JoinEntryInstr* ToJoinEntry(Zone* zone,
-                                     TargetEntryInstr* target);
+  static JoinEntryInstr* ToJoinEntry(Zone* zone, TargetEntryInstr* target);
 
  private:
   // Match an instance of the pattern to rewrite.  See the implementation

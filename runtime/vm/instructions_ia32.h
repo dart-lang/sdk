@@ -23,11 +23,10 @@ class RawObject;
 
 // Template class for all instruction pattern classes.
 // P has to specify a static pattern and a pattern length method.
-template<class P> class InstructionPattern : public ValueObject {
+template <class P>
+class InstructionPattern : public ValueObject {
  public:
-  explicit InstructionPattern(uword pc) : start_(pc) {
-    ASSERT(pc != 0);
-  }
+  explicit InstructionPattern(uword pc) : start_(pc) { ASSERT(pc != 0); }
 
   // Call to check if the instruction pattern at 'pc' match the instruction.
   // 'P::pattern()' returns the expected byte pattern in form of an integer
@@ -67,9 +66,8 @@ class CallPattern : public InstructionPattern<CallPattern> {
   explicit CallPattern(uword pc) : InstructionPattern(pc) {}
   uword TargetAddress() const {
     ASSERT(this->IsValid());
-    return this->start() +
-        CallPattern::pattern_length_in_bytes() +
-        *reinterpret_cast<uword*>(this->start() + 1);
+    return this->start() + CallPattern::pattern_length_in_bytes() +
+           *reinterpret_cast<uword*>(this->start() + 1);
   }
 
   void SetTargetAddress(uword new_target) const {
@@ -97,7 +95,7 @@ class ReturnPattern : public InstructionPattern<ReturnPattern> {
   explicit ReturnPattern(uword pc) : InstructionPattern(pc) {}
 
   static const int* pattern() {
-    static const int kReturnPattern[kLengthInBytes] = { 0xC3 };
+    static const int kReturnPattern[kLengthInBytes] = {0xC3};
     return kReturnPattern;
   }
   static int pattern_length_in_bytes() { return kLengthInBytes; }
@@ -114,7 +112,7 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
   explicit ProloguePattern(uword pc) : InstructionPattern(pc) {}
 
   static const int* pattern() {
-    static const int kProloguePattern[kLengthInBytes] = { 0x55, 0x89, 0xe5 };
+    static const int kProloguePattern[kLengthInBytes] = {0x55, 0x89, 0xe5};
     return kProloguePattern;
   }
 
@@ -126,13 +124,13 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
 
 
 // mov ebp, esp
-class SetFramePointerPattern :
-    public InstructionPattern<SetFramePointerPattern> {
+class SetFramePointerPattern
+    : public InstructionPattern<SetFramePointerPattern> {
  public:
   explicit SetFramePointerPattern(uword pc) : InstructionPattern(pc) {}
 
   static const int* pattern() {
-    static const int kFramePointerPattern[kLengthInBytes] = { 0x89, 0xe5 };
+    static const int kFramePointerPattern[kLengthInBytes] = {0x89, 0xe5};
     return kFramePointerPattern;
   }
 

@@ -22,8 +22,6 @@ import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 
-import 'multi_package_resolver.dart' show MultiPackageResolver;
-
 /// Options used to set up Source URI resolution in the analysis context.
 class AnalyzerOptions {
   /// Custom URI mappings, such as "dart:foo" -> "path/to/foo.dart"
@@ -35,9 +33,6 @@ class AnalyzerOptions {
   /// List of summary file paths.
   final List<String> summaryPaths;
 
-  /// List of paths used for the multi-package resolver.
-  final List<String> packagePaths;
-
   /// Path to the dart-sdk. Null if `useMockSdk` is true or if the path couldn't
   /// be determined
   final String dartSdkPath;
@@ -46,42 +41,54 @@ class AnalyzerOptions {
   /// of the unsummarized one.
   final String dartSdkSummaryPath;
 
+  /// Defined variables used by `bool.fromEnvironment` etc.
+  final Map<String, String> declaredVariables;
+
   AnalyzerOptions(
       {this.summaryPaths: const [],
       String dartSdkPath,
       this.dartSdkSummaryPath,
       this.customUrlMappings: const {},
       this.packageRoot: null,
-      this.packagePaths: const []})
+      this.declaredVariables: const {}})
       : dartSdkPath = dartSdkPath ?? getSdkDir().path;
 
-  AnalyzerOptions.fromArguments(ArgResults args)
-      : summaryPaths = args['summary'] as List<String>,
-        dartSdkPath = args['dart-sdk'] ?? getSdkDir().path,
-        dartSdkSummaryPath = args['dart-sdk-summary'],
-        customUrlMappings = _parseUrlMappings(args['url-mapping']),
-        packageRoot = args['package-root'],
-        packagePaths = (args['package-paths'] as String)?.split(',') ?? [];
+  factory AnalyzerOptions.fromArguments(
+      ArgResults args, Map<String, String> declaredVariables) {
+    var sdkPath = args['dart-sdk'] ?? getSdkDir().path;
+    var sdkSummaryPath = args['dart-sdk-summary'];
 
-  /// Whether to resolve 'package:' uris using the multi-package resolver.
-  bool get useMultiPackage => packagePaths.isNotEmpty;
+    if (sdkSummaryPath == null) {
+      sdkSummaryPath = path.join(sdkPath, 'lib', '_internal', 'ddc_sdk.sum');
+    } else if (sdkSummaryPath == 'build') {
+      // For building the SDK, we explicitly set the path to none.
+      sdkSummaryPath = null;
+    }
+
+    return new AnalyzerOptions(
+        summaryPaths: args['summary'] as List<String>,
+        dartSdkPath: sdkPath,
+        dartSdkSummaryPath: sdkSummaryPath,
+        customUrlMappings: _parseUrlMappings(args['url-mapping']),
+        packageRoot: args['package-root'],
+        declaredVariables: declaredVariables);
+  }
 
   static void addArguments(ArgParser parser) {
     parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
-      ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+      ..addOption('dart-sdk',
+          help: 'Dart SDK Path', defaultsTo: null, hide: true)
       ..addOption('dart-sdk-summary',
-          help: 'Dart SDK Summary Path', defaultsTo: null)
+          help: 'Dart SDK Summary Path', defaultsTo: null, hide: true)
       ..addOption('package-root',
           abbr: 'p', help: 'Package root to resolve "package:" imports')
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
               'library.dart as the source for an import of of "libraryUri".',
           allowMultiple: true,
-          splitCommas: false)
-      ..addOption('package-paths',
-          help: 'use a list of directories to resolve "package:" imports');
+          splitCommas: false);
   }
 
   static Map<String, String> _parseUrlMappings(Iterable argument) {
@@ -149,12 +156,7 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
         builder.convertPackagesToMap(builder.createPackageMap('')));
   }
 
-  return [
-    new ResourceUriResolver(resourceProvider),
-    options.useMultiPackage
-        ? new MultiPackageResolver(options.packagePaths)
-        : packageResolver()
-  ];
+  return [new ResourceUriResolver(resourceProvider), packageResolver()];
 }
 
 FolderBasedDartSdk _createFolderBasedDartSdk(String sdkPath) {
@@ -172,4 +174,26 @@ DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
       ? new SummaryBasedDartSdk(sdkSummaryPath, true)
       : _createFolderBasedDartSdk(sdkPath);
   return new DartUriResolver(sdk);
+}
+
+List<String> parseDeclaredVariables(
+    List<String> args, Map<String, String> declaredVars) {
+  var count = args.length;
+  var remainingArgs = <String>[];
+  for (int i = 0; i < count; i++) {
+    var arg = args[i];
+    if (arg == '--') {
+      while (i < count) {
+        remainingArgs.add(args[i++]);
+      }
+    } else if (arg.startsWith("-D")) {
+      // The format for defined variables is:
+      //     -D<name>=<value>
+      var parts = arg.substring(2).split('=');
+      declaredVars[parts[0]] = parts.length > 1 ? parts[1] : '';
+    } else {
+      remainingArgs.add(arg);
+    }
+  }
+  return remainingArgs;
 }

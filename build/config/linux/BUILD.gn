@@ -17,5 +17,14 @@ config("sdk") {
                                sysroot,
                              ],
                              "value") ]
+
+    # When using the pulled wheezy sysroot with gcc, we have to specify these
+    # excplicitly.
+    if (dart_use_wheezy_sysroot && !is_clang) {
+      cflags += [
+        "-I=/usr/include/c++/4.6",
+        "-I=/usr/include/c++/4.6/i486-linux-gnu",
+      ]
+    }
   }
 }

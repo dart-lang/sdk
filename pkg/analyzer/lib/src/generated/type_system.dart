@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
@@ -170,7 +171,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool canPromoteToType(DartType to, DartType from) {
+  DartType tryPromoteToType(DartType to, DartType from) {
     // Allow promoting to a subtype, for example:
     //
     //     f(Base b) {
@@ -182,25 +183,17 @@ class StrongTypeSystemImpl extends TypeSystem {
     // This allows the variable to be used wherever the supertype (here `Base`)
     // is expected, while gaining a more precise type.
     if (isSubtypeOf(to, from)) {
-      return true;
+      return to;
     }
-    // For a type parameter `T extends U`, allow promoting from the upper bound
-    // `U` to `S` where `S <: U`.
-    //
-    // This does restrict the variable, because `S </: T`, it can no longer be
-    // used as a `T` without another cast.
-    //
-    // However the members you could access from a variable of type `T`, were
-    // already those on the upper bound `U`. So all members on `U` will be
-    // accessible, as well as those on `S`. Pragmatically this feels like a
-    // useful enough trade-off to allow promotion.
-    //
-    // (In general we would need union types to support this feature precisely.)
+    // For a type parameter `T extends U`, allow promoting the upper bound
+    // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      return isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance));
+      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
+        return new TypeParameterMember(from.element, null, to).type;
+      }
     }
 
-    return false;
+    return null;
   }
 
   @override
@@ -226,7 +219,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     List<ParameterElement> parameters = t.parameters.map(shave).toList();
     FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
+    function.isSynthetic = true;
     function.returnType = t.returnType;
     function.shareTypeParameters(t.typeFormals);
     function.shareParameters(parameters);
@@ -922,7 +915,9 @@ class StrongTypeSystemImpl extends TypeSystem {
     //  True if T == S
     //  Or true if bound of S is S' and S' <: T
     if (t1 is TypeParameterType) {
-      if (t1 == t2) {
+      if (t2 is TypeParameterType &&
+          t1.definition == t2.definition &&
+          guardedSubtype(t1.bound, t2.bound, visited)) {
         return true;
       }
       if (guardedInferTypeParameter(t1, t2, visited)) {
@@ -1051,15 +1046,18 @@ class StrongTypeSystemImpl extends TypeSystem {
  */
 abstract class TypeSystem {
   /**
-   * Returns `true` if we can promote to the first type from the second type.
+   * Tries to promote from the first type from the second type, and returns the
+   * promoted type if it succeeds, otherwise null.
    *
-   * In the standard Dart type system, it is not possible to promote from or to
+   * In the Dart 1 type system, it is not possible to promote from or to
    * `dynamic`, and we must be promoting to a more specific type, see
-   * [isMoreSpecificThan].
+   * [isMoreSpecificThan]. Also it will always return the promote [to] type or
+   * null.
    *
-   * In strong mode, this is equivalent to [isSubtypeOf].
+   * In strong mode, this can potentially return a different type, see
+   * the override in [StrongTypeSystemImpl].
    */
-  bool canPromoteToType(DartType to, DartType from);
+  DartType tryPromoteToType(DartType to, DartType from);
 
   /**
    * Make a function type concrete.
@@ -1425,11 +1423,15 @@ class TypeSystemImpl extends TypeSystem {
   TypeSystemImpl();
 
   @override
-  bool canPromoteToType(DartType to, DartType from) {
+  DartType tryPromoteToType(DartType to, DartType from) {
     // Declared type should not be "dynamic".
     // Promoted type should not be "dynamic".
     // Promoted type should be more specific than declared.
-    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
+    if (!from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from)) {
+      return to;
+    } else {
+      return null;
+    }
   }
 
   @override

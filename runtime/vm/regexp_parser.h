@@ -12,7 +12,7 @@
 namespace dart {
 
 // Accumulates RegExp atoms and assertions into lists of terms and alternatives.
-class RegExpBuilder: public ZoneAllocated {
+class RegExpBuilder : public ZoneAllocated {
  public:
   RegExpBuilder();
 
@@ -23,8 +23,9 @@ class RegExpBuilder: public ZoneAllocated {
   void AddAtom(RegExpTree* tree);
   void AddAssertion(RegExpTree* tree);
   void NewAlternative();  // '|'
-  void AddQuantifierToAtom(
-      intptr_t min, intptr_t max, RegExpQuantifier::QuantifierType type);
+  void AddQuantifierToAtom(intptr_t min,
+                           intptr_t max,
+                           RegExpQuantifier::QuantifierType type);
   RegExpTree* ToRegExp();
 
  private:
@@ -41,7 +42,7 @@ class RegExpBuilder: public ZoneAllocated {
   GrowableArray<RegExpTree*> text_;
   GrowableArray<RegExpTree*> alternatives_;
 #ifdef DEBUG
-  enum {ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM} last_added_;
+  enum { ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM } last_added_;
 #define LAST(x) last_added_ = x;
 #else
 #define LAST(x)
@@ -50,9 +51,7 @@ class RegExpBuilder: public ZoneAllocated {
 
 class RegExpParser : public ValueObject {
  public:
-  RegExpParser(const String& in,
-               String* error,
-               bool multiline_mode);
+  RegExpParser(const String& in, String* error, bool multiline_mode);
 
   static bool ParseFunction(ParsedFunction* parsed_function);
 
@@ -96,8 +95,9 @@ class RegExpParser : public ValueObject {
   bool simple();
   bool contains_anchor() { return contains_anchor_; }
   void set_contains_anchor() { contains_anchor_ = true; }
-  intptr_t captures_started() { return captures_ == NULL ?
-          0 : captures_->length(); }
+  intptr_t captures_started() {
+    return captures_ == NULL ? 0 : captures_->length();
+  }
   intptr_t position() { return next_pos_ - 1; }
   bool failed() { return failed_; }
 
@@ -118,9 +118,9 @@ class RegExpParser : public ValueObject {
     RegExpParserState(RegExpParserState* previous_state,
                       SubexpressionType group_type,
                       intptr_t disjunction_capture_index,
-                      Zone *zone)
+                      Zone* zone)
         : previous_state_(previous_state),
-          builder_(new(zone) RegExpBuilder()),
+          builder_(new (zone) RegExpBuilder()),
           group_type_(group_type),
           disjunction_capture_index_(disjunction_capture_index) {}
     // Parser state of containing expression, if any.

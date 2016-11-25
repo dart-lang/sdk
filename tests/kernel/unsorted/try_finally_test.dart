@@ -144,6 +144,34 @@ testStopContinueInsideSwitch2() {
   }
 }
 
+testNestedFinally() {
+  var events = '';
+  try {
+    try {
+      events = '$events|start';
+    } finally {
+      events = '$events|start-catch';
+    }
+    try {
+      try {
+        return;
+      } finally {
+        events = '$events|inner';
+        throw 0;
+      }
+    } finally {
+      events = '$events|middle';
+    }
+  } catch (e) {
+    events = '$events|outer-catch';
+  } finally {
+    events = '$events|outer-finally';
+  }
+  Expect.equals(
+      events,
+      '|start|start-catch|inner|middle|outer-catch|outer-finally');
+}
+
 main() {
   Expect.isTrue(testSimpleBreak() == 3);
   Expect.isTrue(testReturnFinally() == 42);
@@ -155,4 +183,5 @@ main() {
   Expect.isTrue(testStopContinueInsideLoop() == 42);
   Expect.isTrue(testStopContinueInsideSwitch() == 42);
   Expect.isTrue(testStopContinueInsideSwitch2() == 42);
+  testNestedFinally();
 }

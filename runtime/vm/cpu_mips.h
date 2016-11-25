@@ -23,7 +23,7 @@ enum MIPSVersion {
   MIPSvUnknown,
 };
 
-class HostCPUFeatures: public AllStatic {
+class HostCPUFeatures : public AllStatic {
  public:
   static void InitOnce();
   static void Cleanup();
@@ -46,21 +46,11 @@ class HostCPUFeatures: public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static bool double_truncate_round_supported() {
-    return false;
-  }
-  static MIPSVersion mips_version() {
-    return HostCPUFeatures::mips_version();
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static bool double_truncate_round_supported() { return false; }
+  static MIPSVersion mips_version() { return HostCPUFeatures::mips_version(); }
 };
 
 }  // namespace dart

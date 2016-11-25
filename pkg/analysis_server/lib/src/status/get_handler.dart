@@ -46,8 +46,6 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -413,7 +411,7 @@ class GetHandler {
    */
   String _encodeSdkDescriptor(SdkDescription descriptor) {
     StringBuffer buffer = new StringBuffer();
-    buffer.write(descriptor.options.encodeCrossContextOptions());
+    buffer.write(descriptor.options.encodeCrossContextOptions().join(','));
     for (String path in descriptor.paths) {
       buffer.write('+');
       buffer.write(path);
@@ -1408,8 +1406,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
       _writeOption(
-          buffer, 'Enable generic methods', options.enableGenericMethods);
-      _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
@@ -1452,8 +1448,7 @@ class GetHandler {
             });
           },
           (StringBuffer buffer) {
-            List<Linter> lints =
-                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            List<Linter> lints = context.analysisOptions.lintRules;
             buffer.write('<p><b>Lints</b></p>');
             if (lints.isEmpty) {
               buffer.write('<p>none</p>');
@@ -1466,7 +1461,7 @@ class GetHandler {
             }
 
             List<ErrorProcessor> errorProcessors =
-                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+                context.analysisOptions.errorProcessors;
             int processorCount = errorProcessors?.length ?? 0;
             buffer
                 .write('<p><b>Error Processor count</b>: $processorCount</p>');

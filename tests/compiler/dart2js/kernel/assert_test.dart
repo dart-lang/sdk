@@ -24,9 +24,6 @@ main() {
   assert(foo(), "foo failed");
 }''';
     return check(code,
-        // disable type inference because kernel doesn't yet support
-        // checked mode type checks
-        disableTypeInference: false,
         extraOptions: const <String>[
           Flags.enableCheckedMode,
           Flags.enableAssertMessage,

@@ -3544,9 +3544,7 @@ class C {
 class ReferencedNamesBuilderTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
-    context.analysisOptions = new AnalysisOptionsImpl()
-      ..enableGenericMethods = true
-      ..strongMode = true;
+    context.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
   }
 
   test_class_constructor() {
@@ -5376,7 +5374,7 @@ B b = new A();
 
     var errors = errorListener.errors;
     expect(errors.length, 1);
-    expect(errors[0].errorCode.name, "STRONG_MODE_STATIC_TYPE_ERROR");
+    expect(errors[0].errorCode.name, "STRONG_MODE_INVALID_CAST_NEW_EXPR");
   }
 }
 

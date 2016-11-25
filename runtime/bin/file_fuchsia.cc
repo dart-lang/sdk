@@ -7,13 +7,13 @@
 
 #include "bin/file.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <libgen.h>  // NOLINT
-#include <sys/mman.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
+#include <errno.h>      // NOLINT
+#include <fcntl.h>      // NOLINT
+#include <libgen.h>     // NOLINT
+#include <sys/mman.h>   // NOLINT
+#include <sys/stat.h>   // NOLINT
 #include <sys/types.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -25,8 +25,8 @@ namespace bin {
 
 class FileHandle {
  public:
-  explicit FileHandle(int fd) : fd_(fd) { }
-  ~FileHandle() { }
+  explicit FileHandle(int fd) : fd_(fd) {}
+  ~FileHandle() {}
   int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
@@ -435,9 +435,9 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
     return File::kError;
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
-          (file_1_info.st_dev == file_2_info.st_dev)) ?
-      File::kIdentical :
-      File::kDifferent;
+          (file_1_info.st_dev == file_2_info.st_dev))
+             ? File::kIdentical
+             : File::kDifferent;
 }
 
 }  // namespace bin

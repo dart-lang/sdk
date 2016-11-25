@@ -28,10 +28,8 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // in the code, points to the Ret instruction above, i.e. one instruction
   // before the end of the code buffer.
   uword end = test->payload_start() + test->code().Size();
-  CallPattern call(end - Instr::kInstrSize,
-                   test->code());
-  EXPECT_EQ(StubCode::InvokeDartCode_entry()->code(),
-            call.TargetCode());
+  CallPattern call(end - Instr::kInstrSize, test->code());
+  EXPECT_EQ(StubCode::InvokeDartCode_entry()->code(), call.TargetCode());
 }
 
 

@@ -594,7 +594,7 @@ class Send extends Expression with StoredTreeElementMixin {
   final Node selector;
   final NodeList argumentsNode;
 
-  /// Whether this is a conditinal send of the form `a?.b`.
+  /// Whether this is a conditional send of the form `a?.b`.
   final bool isConditional;
 
   Link<Node> get arguments => argumentsNode.nodes;

@@ -7,11 +7,8 @@ library analyzer.test.src.task.options_test;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -54,14 +51,14 @@ analyzer:
     expect(analysisOptions.strongMode, false);
   }
 
-  test_configure_enableGenericMethods() {
-    expect(analysisOptions.enableGenericMethods, false);
+  test_configure_enableLazyAssignmentOperators() {
+    expect(analysisOptions.enableStrictCallChecks, false);
     configureContext('''
 analyzer:
   language:
-    enableGenericMethods: true
+    enableStrictCallChecks: true
 ''');
-    expect(analysisOptions.enableGenericMethods, true);
+    expect(analysisOptions.enableStrictCallChecks, true);
   }
 
   test_configure_enableStrictCallChecks() {
@@ -90,8 +87,7 @@ analyzer:
     unused_local_variable: error
 ''');
 
-    List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+    List<ErrorProcessor> processors = context.analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(
@@ -122,7 +118,7 @@ analyzer:
     - 'test/**'
 ''');
 
-    List<String> excludes = context.getConfigurationData(CONTEXT_EXCLUDES);
+    List<String> excludes = context.analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
@@ -224,6 +220,79 @@ abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
         outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, AnalysisOptionsErrorCode.PARSE_ERROR);
+  }
+
+  test_perform_include() {
+    newSource('/other_options.yaml', '');
+    String code = r'''
+include: other_options.yaml
+''';
+    AnalysisTarget target = newSource(optionsFilePath, code);
+    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
+    expect(task, isGenerateOptionsErrorsTask);
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
+    expect(errors, hasLength(0));
+  }
+
+  test_perform_include_bad_value() {
+    newSource(
+        '/other_options.yaml',
+        '''
+analyzer:
+  errors:
+    unused_local_variable: ftw
+''');
+    String code = r'''
+include: other_options.yaml
+''';
+    AnalysisTarget target = newSource(optionsFilePath, code);
+    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
+    expect(task, isGenerateOptionsErrorsTask);
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.errorCode, AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING);
+    expect(error.source, target.source);
+    expect(error.offset, 10);
+    expect(error.length, 18);
+    expect(error.message, contains('other_options.yaml(47..49)'));
+  }
+
+  test_perform_include_bad_yaml() {
+    newSource('/other_options.yaml', ':');
+    String code = r'''
+include: other_options.yaml
+''';
+    AnalysisTarget target = newSource(optionsFilePath, code);
+    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
+    expect(task, isGenerateOptionsErrorsTask);
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.errorCode, AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR);
+    expect(error.source, target.source);
+    expect(error.offset, 10);
+    expect(error.length, 18);
+    expect(error.message, contains('other_options.yaml(0..0)'));
+  }
+
+  test_perform_include_missing() {
+    String code = r'''
+include: other_options.yaml
+''';
+    AnalysisTarget target = newSource(optionsFilePath, code);
+    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
+    expect(task, isGenerateOptionsErrorsTask);
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.errorCode, AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND);
+    expect(error.offset, 10);
+    expect(error.length, 18);
   }
 
   test_perform_OK() {

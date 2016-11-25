@@ -12,10 +12,20 @@ namespace dart {
 
 // Forward declarations.
 class RawError;
+namespace kernel {
+class Program;
+}
 
 class Bootstrap : public AllStatic {
  public:
-  static RawError* LoadandCompileScripts();
+  // Compile the bootstrap libraries, either from sources or a Kernel program.
+  // If program is NULL, compile from sources or source paths linked into
+  // the VM.  If it is non-NULL it represents the Kernel program to use for
+  // bootstrapping.
+  // The caller of this function is responsible for managing the kernel
+  // program's memory.
+  static RawError* DoBootstrapping(kernel::Program* program);
+
   static void SetupNativeResolver();
   static bool IsBootstapResolver(Dart_NativeEntryResolver resolver);
 
@@ -45,9 +55,11 @@ class Bootstrap : public AllStatic {
   static const char* isolate_patch_paths_[];
   static const char* math_patch_paths_[];
   static const char* mirrors_patch_paths_[];
-  static const char* profiler_patch_paths_[];
-  static const char* typed_data_patch_paths_[];
   static const char* _vmservice_patch_paths_[];
+
+  // NULL patch paths for libraries that do not have patch files.
+  static const char** profiler_patch_paths_;
+  static const char** typed_data_patch_paths_;
 };
 
 }  // namespace dart

@@ -8,7 +8,7 @@
 #include "vm/virtual_memory.h"
 
 #include <sys/mman.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>    // NOLINT
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -32,8 +32,7 @@ void VirtualMemory::InitOnce() {
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   void* address = mmap(NULL, size, PROT_NONE,
-                       MAP_PRIVATE | MAP_ANON | MAP_NORESERVE,
-                       -1, 0);
+                       MAP_PRIVATE | MAP_ANON | MAP_NORESERVE, -1, 0);
   if (address == MAP_FAILED) {
     return NULL;
   }
@@ -71,8 +70,7 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
   ASSERT(Contains(addr + size) || (addr + size == end()));
   int prot = PROT_READ | PROT_WRITE | (executable ? PROT_EXEC : 0);
   void* address = mmap(reinterpret_cast<void*>(addr), size, prot,
-                       MAP_PRIVATE | MAP_ANON | MAP_FIXED,
-                       -1, 0);
+                       MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
   if (address == MAP_FAILED) {
     return false;
   }
@@ -105,8 +103,7 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       break;
   }
   return (mprotect(reinterpret_cast<void*>(page_address),
-                   end_address - page_address,
-                   prot) == 0);
+                   end_address - page_address, prot) == 0);
 }
 
 

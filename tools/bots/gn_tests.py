@@ -20,6 +20,18 @@ def main(argv):
       + argv[1:])
   if build_result != 0:
     return build_result
+  build_result = subprocess.call(
+      ['python', test_py, '--builder-tag=no_ipv6',
+       '-cdart2js', '-rd8', '--use-sdk', 'language/first']
+      + argv[1:])
+  if build_result != 0:
+    return build_result
+  build_result = subprocess.call(
+      ['python', test_py, '--builder-tag=no_ipv6',
+       '-cdart2analyzer', '-rnone', '--use-sdk', 'language/first']
+      + argv[1:])
+  if build_result != 0:
+    return build_result
   return 0
 
 if __name__ == '__main__':

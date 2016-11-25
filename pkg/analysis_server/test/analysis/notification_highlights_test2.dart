@@ -911,6 +911,23 @@ main(int p) {
     assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'p = 42');
   }
 
+  test_PARAMETER_named() async {
+    addTestFile('''
+class C {
+  final int aaa;
+  C({this.aaa, int bbb});
+}
+main() {
+  new C(aaa: 1, bbb: 2);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'aaa,');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'bbb}');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'aaa: 1');
+    assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'bbb: 2');
+  }
+
   test_SETTER_DECLARATION() async {
     addTestFile('''
 set aaa(x) {}

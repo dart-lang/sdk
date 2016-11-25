@@ -9,7 +9,7 @@
 
 #include "bin/file_system_watcher.h"
 
-#include <errno.h>  // NOLINT
+#include <errno.h>        // NOLINT
 #include <sys/inotify.h>  // NOLINT
 
 #include "bin/fdutils.h"
@@ -127,7 +127,8 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
       Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));
       if (e->len > 0) {
         Dart_ListSetAt(event, 2, Dart_NewStringFromUTF8(
-            reinterpret_cast<uint8_t*>(e->name), strlen(e->name)));
+                                     reinterpret_cast<uint8_t*>(e->name),
+                                     strlen(e->name)));
       } else {
         Dart_ListSetAt(event, 2, Dart_Null());
       }

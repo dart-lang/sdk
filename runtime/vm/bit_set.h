@@ -12,12 +12,10 @@ namespace dart {
 
 // Just like its namesake in the STL, a BitSet object contains a fixed
 // length sequence of bits.
-template<intptr_t N>
+template <intptr_t N>
 class BitSet {
  public:
-  BitSet() {
-    Reset();
-  }
+  BitSet() { Reset(); }
 
   void Set(intptr_t i, bool value) {
     ASSERT(i >= 0);
@@ -85,13 +83,9 @@ class BitSet {
     }
   }
 
-  void Reset() {
-    memset(data_, 0, sizeof(data_));
-  }
+  void Reset() { memset(data_, 0, sizeof(data_)); }
 
-  intptr_t Size() const {
-    return N;
-  }
+  intptr_t Size() const { return N; }
 
  private:
   static const int kLengthInWords = 1 + ((N - 1) / kBitsPerWord);

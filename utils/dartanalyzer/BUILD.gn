@@ -2,7 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../invoke_dart.gni")
+import("//build/compiled_action.gni")
+import("../application_snapshot.gni")
 
 group("dartanalyzer") {
   deps = [
@@ -37,7 +38,8 @@ template("generate_summary") {
   assert(defined(invoker.type), "Must specify the summary type")
   type = invoker.type
   assert(type == "spec" || type == "strong")
-  invoke_dart(target_name) {
+  compiled_action(target_name) {
+    tool = "../../runtime/bin:dart"
     inputs = sdk_lib_files + analyzer_files
 
     output = "$root_gen_dir/$type.sum"

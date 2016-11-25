@@ -7,10 +7,10 @@
 
 #include "bin/fdutils.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
+#include <errno.h>      // NOLINT
+#include <fcntl.h>      // NOLINT
 #include <sys/ioctl.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "platform/signal_blocker.h"
 
@@ -21,10 +21,12 @@ bool FDUtils::SetCloseOnExec(intptr_t fd) {
   intptr_t status;
   status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFD));
   if (status < 0) {
+    perror("fcntl(F_GETFD) failed");
     return false;
   }
   status |= FD_CLOEXEC;
   if (NO_RETRY_EXPECTED(fcntl(fd, F_SETFD, status)) < 0) {
+    perror("fcntl(F_SETFD, FD_CLOEXEC) failed");
     return false;
   }
   return true;
@@ -35,10 +37,12 @@ static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   intptr_t status;
   status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFL));
   if (status < 0) {
+    perror("fcntl(F_GETFL) failed");
     return false;
   }
   status = blocking ? (status & ~O_NONBLOCK) : (status | O_NONBLOCK);
   if (NO_RETRY_EXPECTED(fcntl(fd, F_SETFL, status)) < 0) {
+    perror("fcntl(F_SETFL, O_NONBLOCK) failed");
     return false;
   }
   return true;
@@ -131,6 +135,13 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
     }
   }
   return count;
+}
+
+
+void FDUtils::SaveErrorAndClose(intptr_t fd) {
+  int err = errno;
+  VOID_TEMP_FAILURE_RETRY(close(fd));
+  errno = err;
 }
 
 }  // namespace bin

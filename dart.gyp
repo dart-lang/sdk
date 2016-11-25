@@ -42,6 +42,7 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart_precompiled_runtime',
         'runtime/dart-runtime.gyp:dart_bootstrap#host',
+        'runtime/dart-runtime.gyp:process_test',
         'runtime/dart-runtime.gyp:generate_patched_sdk#host',
       ],
     },

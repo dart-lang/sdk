@@ -25,9 +25,7 @@ class VmService {
   static const char* GetErrorMessage();
 
   // HTTP Server's address.
-  static const char* GetServerAddress() {
-    return &server_uri_[0];
-  }
+  static const char* GetServerAddress() { return &server_uri_[0]; }
 
  private:
   static const intptr_t kServerUriStringBufferSize = 1024;
@@ -36,11 +34,12 @@ class VmService {
   static void SetServerAddress(const char* server_uri_);
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LoadScript(const char* name);
-  static Dart_Handle LoadLibrary(const char* name);
+  static Dart_Handle LookupOrLoadLibrary(const char* name);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);
   static Dart_Handle LoadResources(Dart_Handle library);
   static Dart_Handle LoadResource(Dart_Handle library, const char* name);
-  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
+  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                       Dart_Handle library,
                                        Dart_Handle url);
 
   static const char* error_msg_;

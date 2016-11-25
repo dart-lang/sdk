@@ -139,4 +139,4 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library);
 DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure);
 
 
-#endif  /* INCLUDE_DART_MIRRORS_API_H_ */  /* NOLINT */
+#endif /* INCLUDE_DART_MIRRORS_API_H_ */ /* NOLINT */

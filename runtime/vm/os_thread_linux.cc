@@ -8,10 +8,10 @@
 
 #include "vm/os_thread.h"
 
-#include <errno.h>  // NOLINT
+#include <errno.h>         // NOLINT
 #include <sys/resource.h>  // NOLINT
-#include <sys/syscall.h>  // NOLINT
-#include <sys/time.h>  // NOLINT
+#include <sys/syscall.h>   // NOLINT
+#include <sys/time.h>      // NOLINT
 
 #include "platform/assert.h"
 #include "platform/signal_blocker.h"
@@ -21,13 +21,13 @@
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result) \
-  if (result != 0) { \
-    const int kBufferSize = 1024; \
-    char error_buf[kBufferSize]; \
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /* native_stack_trace */)); \
-    FATAL2("pthread error: %d (%s)", result, \
-           Utils::StrError(result, error_buf, kBufferSize)); \
+#define VALIDATE_PTHREAD_RESULT(result)                                        \
+  if (result != 0) {                                                           \
+    const int kBufferSize = 1024;                                              \
+    char error_buf[kBufferSize];                                               \
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
+    FATAL2("pthread error: %d (%s)", result,                                   \
+           Utils::StrError(result, error_buf, kBufferSize));                   \
   }
 
 
@@ -40,17 +40,16 @@ namespace dart {
 
 
 #ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) { \
-    const int kBufferSize = 1024; \
-    char error_buf[kBufferSize]; \
-    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
-            __FILE__, __LINE__, result, \
-            Utils::StrError(result, error_buf, kBufferSize)); \
-    return result; \
+#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
+  if (result != 0) {                                                           \
+    const int kBufferSize = 1024;                                              \
+    char error_buf[kBufferSize];                                               \
+    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
+            result, Utils::StrError(result, error_buf, kBufferSize));          \
+    return result;                                                             \
   }
 #else
-#define RETURN_ON_PTHREAD_FAILURE(result) \
+#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) return result;
 #endif
 

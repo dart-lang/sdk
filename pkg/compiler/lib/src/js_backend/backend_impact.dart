@@ -83,6 +83,18 @@ class BackendImpacts {
     return _computeSignature;
   }
 
+  BackendImpact _mainWithArguments;
+
+  BackendImpact get mainWithArguments {
+    if (_mainWithArguments == null) {
+      _mainWithArguments = new BackendImpact(
+          instantiatedClasses: [
+            helpers.jsArrayClass,
+            helpers.jsStringClass]);
+    }
+    return _mainWithArguments;
+  }
+
   BackendImpact _asyncBody;
 
   BackendImpact get asyncBody {

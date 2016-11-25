@@ -6,6 +6,7 @@ library analyzer.test.src.summary.resynthesize_ast_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -71,9 +72,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
 
   @override
-  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl()
-    ..enableGenericMethods = true
-    ..strongMode = true;
+  AnalysisOptionsImpl createOptions() =>
+      new AnalysisOptionsImpl()..strongMode = true;
 
   @override
   @failingTest
@@ -619,9 +619,25 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   @override
   @failingTest
   void
+      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment();
+  }
+
+  @override
+  @failingTest
+  void
       test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
     super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
   }
 
   @override
@@ -633,9 +649,25 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   @override
   @failingTest
   void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment();
+  }
+
+  @override
+  @failingTest
+  void
       test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
     super
         .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
+  }
+
+  @override
+  @failingTest
+  void
+      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() {
+    super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment();
   }
 
   @override
@@ -660,6 +692,13 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   @failingTest
   void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
     super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
+  }
+
+  @override
+  @failingTest
+  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() {
+    super
+        .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
   LibraryElementImpl _checkSource(
@@ -882,6 +921,12 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
     Source source = addTestSource(text);
     LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
     LibraryElementImpl original = context.computeLibraryElement(source);
+    if (!allowErrors) {
+      List<AnalysisError> errors = context.computeErrors(source);
+      if (errors.where((e) => e.message.startsWith('unused')).isNotEmpty) {
+        fail('Analysis errors: $errors');
+      }
+    }
     checkLibraryElements(original, resynthesized);
     return resynthesized;
   }

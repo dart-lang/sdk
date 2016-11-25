@@ -51,8 +51,7 @@ class ArgumentsDescriptor : public ValueObject {
   // Allocate and return an arguments descriptor.  The first
   // (count - optional_arguments_names.Length()) arguments are
   // positional and the remaining ones are named optional arguments.
-  static RawArray* New(intptr_t count,
-                       const Array& optional_arguments_names);
+  static RawArray* New(intptr_t count, const Array& optional_arguments_names);
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional.
@@ -61,9 +60,7 @@ class ArgumentsDescriptor : public ValueObject {
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void InitOnce();
 
-  enum {
-    kCachedDescriptorCount = 32
-  };
+  enum { kCachedDescriptorCount = 32 };
 
  private:
   // Absolute indexes into the array.
@@ -89,15 +86,11 @@ class ArgumentsDescriptor : public ValueObject {
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
-    return kFirstNamedEntryIndex +
-           (index * kNamedEntrySize) +
-           kNameOffset;
+    return kFirstNamedEntryIndex + (index * kNamedEntrySize) + kNameOffset;
   }
 
   static intptr_t position_index(intptr_t index) {
-    return kFirstNamedEntryIndex +
-           (index * kNamedEntrySize) +
-           kPositionOffset;
+    return kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
   }
 
   const Array& array_;

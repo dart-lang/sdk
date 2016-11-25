@@ -12,6 +12,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../dart_types.dart' show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
+import '../js_backend/backend.dart';
 import '../tree/dartstring.dart' show DartString;
 import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
 import '../types/masks.dart'
@@ -521,13 +522,13 @@ class MemberTypeInformation extends ElementTypeInformation
       return mask;
     }
     if (element.isField) {
-      return _narrowType(compiler, mask, element.type);
+      return _narrowType(compiler.closedWorld, mask, element.type);
     }
     assert(
         element.isFunction || element.isGetter || element.isFactoryConstructor);
 
     FunctionType type = element.type;
-    return _narrowType(compiler, mask, type.returnType);
+    return _narrowType(compiler.closedWorld, mask, type.returnType);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -668,7 +669,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
     assert(!compiler.options.enableTypeAssertions);
-    return _narrowType(compiler, mask, element.type);
+    return _narrowType(compiler.closedWorld, mask, element.type);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -970,9 +971,10 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     inferrer.updateSelectorInTree(caller, call, selector, typeMask);
 
     Compiler compiler = inferrer.compiler;
+    JavaScriptBackend backend = compiler.backend;
     TypeMask maskToUse =
         compiler.closedWorld.extendMaskIfReachesAll(selector, typeMask);
-    bool canReachAll = compiler.enabledInvokeOn && (maskToUse != typeMask);
+    bool canReachAll = backend.hasInvokeOnSupport && (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`
@@ -1724,24 +1726,24 @@ abstract class TypeInformationVisitor<T> {
   T visitAwaitTypeInformation(AwaitTypeInformation info);
 }
 
-TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
+TypeMask _narrowType(
+    ClosedWorld closedWorld, TypeMask type, DartType annotation,
     {bool isNullable: true}) {
   if (annotation.treatAsDynamic) return type;
   if (annotation.isObject) return type;
   TypeMask otherType;
   if (annotation.isTypedef || annotation.isFunctionType) {
-    otherType = compiler.commonMasks.functionType;
+    otherType = closedWorld.commonMasks.functionType;
   } else if (annotation.isTypeVariable) {
     // TODO(ngeoffray): Narrow to bound.
     return type;
   } else if (annotation.isVoid) {
-    otherType = compiler.commonMasks.nullType;
+    otherType = closedWorld.commonMasks.nullType;
   } else {
     assert(annotation.isInterfaceType);
-    otherType =
-        new TypeMask.nonNullSubtype(annotation.element, compiler.closedWorld);
+    otherType = new TypeMask.nonNullSubtype(annotation.element, closedWorld);
   }
   if (isNullable) otherType = otherType.nullable();
   if (type == null) return otherType;
-  return type.intersection(otherType, compiler.closedWorld);
+  return type.intersection(otherType, closedWorld);
 }

@@ -16,11 +16,9 @@ namespace dart {
 
 TEST_CASE(AstPrinter) {
   const TokenPosition kPos = TokenPosition::kNoSource;
-  LocalVariable* v =
-      new LocalVariable(kPos,
-                        kPos,
-                        String::ZoneHandle(Symbols::New(thread, "wurscht")),
-                        Type::ZoneHandle(Type::DynamicType()));
+  LocalVariable* v = new LocalVariable(
+      kPos, kPos, String::ZoneHandle(Symbols::New(thread, "wurscht")),
+      Type::ZoneHandle(Type::DynamicType()));
   v->set_index(5);
   AstPrinter ast_printer;
   LoadLocalNode* ll = new LoadLocalNode(kPos, v);
@@ -33,10 +31,9 @@ TEST_CASE(AstPrinter) {
 
   ast_printer.PrintNode(new ReturnNode(kPos));
 
-  ast_printer.PrintNode(new BinaryOpNode(kPos,
-                        Token::kADD,
-                        new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))),
-                        new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(5)))));
+  ast_printer.PrintNode(new BinaryOpNode(
+      kPos, Token::kADD, new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))),
+      new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(5)))));
   ast_printer.PrintNode(new UnaryOpNode(kPos, Token::kNEGATE, ll));
 }
 

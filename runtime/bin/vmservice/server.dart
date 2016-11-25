@@ -134,11 +134,8 @@ class Server {
     }
     var ip = _server.address.address;
     var port = _server.port;
-    if (useAuthToken) {
-      return Uri.parse('http://$ip:$port/$serviceAuthToken/');
-    } else {
-      return Uri.parse('http://$ip:$port/');
-    }
+    var path = useAuthToken ? "$serviceAuthToken/" : "/";
+    return new Uri(scheme: 'http', host: ip, port: port, path: path);
   }
 
   Server(this._service, this._ip, this._port, this._originCheckDisabled);
@@ -154,6 +151,7 @@ class Server {
     // Explicitly add localhost and 127.0.0.1 on any port (necessary for
     // adb port forwarding).
     if ((uri.host == 'localhost') ||
+        (uri.host == '::1') ||
         (uri.host == '127.0.0.1')) {
       return true;
     }
@@ -300,28 +298,34 @@ class Server {
     }
   }
 
-  Future startup() {
+  Future startup() async {
     if (_server != null) {
       // Already running.
-      return new Future.value(this);
+      return this;
     }
 
-    var address = new InternetAddress(_ip);
     // Startup HTTP server.
-    return HttpServer.bind(address, _port).then((s) {
-      _server = s;
+    try {
+      var addresses = await InternetAddress.lookup(_ip);
+      var address;
+      // Prefer IPv4 addresses.
+      for (var i = 0; i < addresses.length; i++) {
+        address = addresses[i];
+        if (address.type == InternetAddressType.IP_V4) break;
+      }
+      _server = await HttpServer.bind(address, _port);
       _server.listen(_requestHandler, cancelOnError: true);
       print('Observatory listening on $serverAddress');
       // Server is up and running.
       _notifyServerState(serverAddress.toString());
       onServerAddressChange('$serverAddress');
       return this;
-    }).catchError((e, st) {
+    } catch (e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
       _notifyServerState("");
       onServerAddressChange(null);
       return this;
-    });
+    }
   }
 
   Future cleanup(bool force) {
@@ -338,7 +342,7 @@ class Server {
     }
 
     // Shutdown HTTP server and subscription.
-    String oldServerAddress = serverAddress;
+    Uri oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
       print('Observatory no longer listening on $oldServerAddress');
       _server = null;

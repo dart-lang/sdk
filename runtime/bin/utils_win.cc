@@ -6,7 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include <errno.h>  // NOLINT
-#include <time.h>  // NOLINT
+#include <time.h>   // NOLINT
 
 #include "bin/log.h"
 #include "bin/utils.h"
@@ -17,18 +17,12 @@ namespace dart {
 namespace bin {
 
 void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
-  DWORD message_size =
-      FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                     NULL,
-                     code,
-                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                     buffer,
-                     buffer_length,
-                     NULL);
+  DWORD message_size = FormatMessageW(
+      FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code,
+      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, buffer_length, NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed for error code %d (error %d)\n",
-                    code,
+      Log::PrintErr("FormatMessage failed for error code %d (error %d)\n", code,
                     GetLastError());
     }
     _snwprintf(buffer, buffer_length, L"OS Error %d", code);
@@ -79,8 +73,8 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t* result_len) {
   intptr_t wide_len;
   wchar_t* wide = StringUtilsWin::Utf8ToWide(utf8, len, &wide_len);
-  int system_len = WideCharToMultiByte(
-      CP_ACP, 0, wide, wide_len, NULL, 0, NULL, NULL);
+  int system_len =
+      WideCharToMultiByte(CP_ACP, 0, wide, wide_len, NULL, 0, NULL, NULL);
   char* ansi;
   ansi =
       reinterpret_cast<char*>(Dart_ScopeAllocate(system_len * sizeof(*ansi)));
@@ -100,8 +94,8 @@ char* StringUtilsWin::WideToUtf8(wchar_t* wide,
                                  intptr_t* result_len) {
   // If len is -1 then WideCharToMultiByte will include the terminating
   // NUL byte in the length.
-  int utf8_len = WideCharToMultiByte(
-      CP_UTF8, 0, wide, len, NULL, 0, NULL, NULL);
+  int utf8_len =
+      WideCharToMultiByte(CP_UTF8, 0, wide, len, NULL, 0, NULL, NULL);
   char* utf8;
   utf8 = reinterpret_cast<char*>(Dart_ScopeAllocate(utf8_len * sizeof(*utf8)));
   WideCharToMultiByte(CP_UTF8, 0, wide, len, utf8, utf8_len, NULL, NULL);
@@ -129,31 +123,33 @@ wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
 }
 
 
-const char* StringUtils::Utf8ToConsoleString(
-    const char* utf8, intptr_t len, intptr_t* result_len) {
-  return const_cast<const char*>(
-      StringUtils::Utf8ToConsoleString(
-          const_cast<char*>(utf8), len, result_len));
+const char* StringUtils::Utf8ToConsoleString(const char* utf8,
+                                             intptr_t len,
+                                             intptr_t* result_len) {
+  return const_cast<const char*>(StringUtils::Utf8ToConsoleString(
+      const_cast<char*>(utf8), len, result_len));
 }
 
 
-const char* StringUtils::ConsoleStringToUtf8(
-    const char* str, intptr_t len, intptr_t* result_len) {
-  return const_cast<const char*>(
-      StringUtils::ConsoleStringToUtf8(
-          const_cast<char*>(str), len, result_len));
+const char* StringUtils::ConsoleStringToUtf8(const char* str,
+                                             intptr_t len,
+                                             intptr_t* result_len) {
+  return const_cast<const char*>(StringUtils::ConsoleStringToUtf8(
+      const_cast<char*>(str), len, result_len));
 }
 
 
-const char* StringUtilsWin::WideToUtf8(
-    const wchar_t* wide, intptr_t len, intptr_t* result_len) {
+const char* StringUtilsWin::WideToUtf8(const wchar_t* wide,
+                                       intptr_t len,
+                                       intptr_t* result_len) {
   return const_cast<const char*>(
       StringUtilsWin::WideToUtf8(const_cast<wchar_t*>(wide), len, result_len));
 }
 
 
-const wchar_t* StringUtilsWin::Utf8ToWide(
-    const char* utf8, intptr_t len, intptr_t* result_len) {
+const wchar_t* StringUtilsWin::Utf8ToWide(const char* utf8,
+                                          intptr_t len,
+                                          intptr_t* result_len) {
   return const_cast<const wchar_t*>(
       StringUtilsWin::Utf8ToWide(const_cast<char*>(utf8), len, result_len));
 }
@@ -190,8 +186,7 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   }
   for (int i = 0; i < unicode_argc; i++) {
     wchar_t* arg = unicode_argv[i];
-    int arg_len =
-        WideCharToMultiByte(CP_UTF8, 0, arg, -1, NULL, 0, NULL, NULL);
+    int arg_len = WideCharToMultiByte(CP_UTF8, 0, arg, -1, NULL, 0, NULL, NULL);
     char* utf8_arg = reinterpret_cast<char*>(malloc(arg_len));
     WideCharToMultiByte(CP_UTF8, 0, arg, -1, utf8_arg, arg_len, NULL, NULL);
     argv[i] = utf8_arg;

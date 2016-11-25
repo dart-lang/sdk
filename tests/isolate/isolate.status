@@ -112,6 +112,7 @@ spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out. Issue 144
 typed_message_test: Skip # Issue 13921, 14400
 isolate_stress_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
 object_leak_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
+send_private_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
 spawn_uri_missing_from_isolate_test: Skip # Issue 17649
 spawn_uri_missing_test: SkipSlow # Times out.
 kill3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
@@ -152,7 +153,7 @@ pause_test: RuntimeError, OK  # Uses Isolate.spawn.
 simple_message_test/none: RuntimeError, OK  # Uses Isolate.spawn.
 start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
 message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
-
+browser/package_*: Skip # Issue 25594 (missing implementation in Dartium).
 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning

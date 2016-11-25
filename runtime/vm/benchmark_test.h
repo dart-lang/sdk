@@ -34,7 +34,8 @@ extern const uint8_t* isolate_snapshot_buffer;
 #define BENCHMARK_HELPER(name, kind)                                           \
   void Dart_Benchmark##name(Benchmark* benchmark);                             \
   static Benchmark kRegister##name(Dart_Benchmark##name, #name, kind);         \
-  static void Dart_BenchmarkHelper##name(Benchmark* benchmark, Thread* thread);\
+  static void Dart_BenchmarkHelper##name(Benchmark* benchmark,                 \
+                                         Thread* thread);                      \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_old_gen_growth_space_ratio = 100;                                     \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
@@ -57,15 +58,15 @@ inline Dart_Handle NewString(const char* str) {
 
 class Benchmark {
  public:
-  typedef void (RunEntry)(Benchmark* benchmark);
+  typedef void(RunEntry)(Benchmark* benchmark);
 
-  Benchmark(RunEntry* run, const char* name, const char* score_kind) :
-      run_(run),
-      name_(name),
-      score_kind_(score_kind),
-      score_(0),
-      isolate_(NULL),
-      next_(NULL) {
+  Benchmark(RunEntry* run, const char* name, const char* score_kind)
+      : run_(run),
+        name_(name),
+        score_kind_(score_kind),
+        score_(0),
+        isolate_(NULL),
+        next_(NULL) {
     if (first_ == NULL) {
       first_ = this;
     } else {

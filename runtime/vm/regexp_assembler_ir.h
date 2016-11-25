@@ -40,6 +40,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   static RawArray* Execute(const RegExp& regexp,
                            const String& input,
                            const Smi& start_offset,
+                           bool sticky,
                            Zone* zone);
 
   virtual bool IsClosed() const { return (current_instruction_ == NULL); }
@@ -83,13 +84,15 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // Checks whether the given offset from the current position is before
   // the end of the string.
   virtual void CheckPosition(intptr_t cp_offset, BlockLabel* on_outside_input);
-  virtual bool CheckSpecialCharacterClass(
-      uint16_t type, BlockLabel* on_no_match);
+  virtual bool CheckSpecialCharacterClass(uint16_t type,
+                                          BlockLabel* on_no_match);
   virtual void Fail();
   virtual void IfRegisterGE(intptr_t reg,
-                            intptr_t comparand, BlockLabel* if_ge);
+                            intptr_t comparand,
+                            BlockLabel* if_ge);
   virtual void IfRegisterLT(intptr_t reg,
-                            intptr_t comparand, BlockLabel* if_lt);
+                            intptr_t comparand,
+                            BlockLabel* if_lt);
   virtual void IfRegisterEqPos(intptr_t reg, BlockLabel* if_eq);
   virtual IrregexpImplementation Implementation();
   virtual void GoTo(BlockLabel* to);
@@ -149,44 +152,48 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   struct InstanceCallDescriptor {
     // Standard (i.e. most non-Smi) functions.
     explicit InstanceCallDescriptor(const String& name)
-      : name(name),
-        token_kind(Token::kILLEGAL),
-        checked_argument_count(1) { }
+        : name(name), token_kind(Token::kILLEGAL), checked_argument_count(1) {}
 
     InstanceCallDescriptor(const String& name,
                            Token::Kind token_kind,
                            intptr_t checked_argument_count)
-      : name(name),
-        token_kind(token_kind),
-        checked_argument_count(checked_argument_count) { }
+        : name(name),
+          token_kind(token_kind),
+          checked_argument_count(checked_argument_count) {}
 
     // Special cases for Smi and indexing functions.
     static InstanceCallDescriptor FromToken(Token::Kind token_kind) {
       switch (token_kind) {
-        case Token::kEQ: return InstanceCallDescriptor(
-                  Symbols::EqualOperator(), token_kind, 2);
-        case Token::kADD: return InstanceCallDescriptor(
-                Symbols::Plus(), token_kind, 2);
-        case Token::kSUB: return InstanceCallDescriptor(
-                Symbols::Minus(), token_kind, 2);
-        case Token::kBIT_OR: return InstanceCallDescriptor(
-                Symbols::BitOr(), token_kind, 2);
-        case Token::kBIT_AND: return InstanceCallDescriptor(
-                Symbols::BitAnd(), token_kind, 2);
-        case Token::kLT: return InstanceCallDescriptor(
-                Symbols::LAngleBracket(), token_kind, 2);
-        case Token::kLTE: return InstanceCallDescriptor(
-                Symbols::LessEqualOperator(), token_kind, 2);
-        case Token::kGT: return InstanceCallDescriptor(
-                Symbols::RAngleBracket(), token_kind, 2);
-        case Token::kGTE: return InstanceCallDescriptor(
-                Symbols::GreaterEqualOperator(), token_kind, 2);
-        case Token::kNEGATE: return InstanceCallDescriptor(
-                Symbols::UnaryMinus(), token_kind, 1);
-        case Token::kINDEX: return InstanceCallDescriptor(
-                Symbols::IndexToken(), token_kind, 2);
-        case Token::kASSIGN_INDEX: return InstanceCallDescriptor(
-                Symbols::AssignIndexToken(), token_kind, 2);
+        case Token::kEQ:
+          return InstanceCallDescriptor(Symbols::EqualOperator(), token_kind,
+                                        2);
+        case Token::kADD:
+          return InstanceCallDescriptor(Symbols::Plus(), token_kind, 2);
+        case Token::kSUB:
+          return InstanceCallDescriptor(Symbols::Minus(), token_kind, 2);
+        case Token::kBIT_OR:
+          return InstanceCallDescriptor(Symbols::BitOr(), token_kind, 2);
+        case Token::kBIT_AND:
+          return InstanceCallDescriptor(Symbols::BitAnd(), token_kind, 2);
+        case Token::kLT:
+          return InstanceCallDescriptor(Symbols::LAngleBracket(), token_kind,
+                                        2);
+        case Token::kLTE:
+          return InstanceCallDescriptor(Symbols::LessEqualOperator(),
+                                        token_kind, 2);
+        case Token::kGT:
+          return InstanceCallDescriptor(Symbols::RAngleBracket(), token_kind,
+                                        2);
+        case Token::kGTE:
+          return InstanceCallDescriptor(Symbols::GreaterEqualOperator(),
+                                        token_kind, 2);
+        case Token::kNEGATE:
+          return InstanceCallDescriptor(Symbols::UnaryMinus(), token_kind, 1);
+        case Token::kINDEX:
+          return InstanceCallDescriptor(Symbols::IndexToken(), token_kind, 2);
+        case Token::kASSIGN_INDEX:
+          return InstanceCallDescriptor(Symbols::AssignIndexToken(), token_kind,
+                                        2);
         default:
           UNREACHABLE();
       }
@@ -294,9 +301,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   intptr_t GetNextLocalIndex();
 
   // We never have any copied parameters.
-  intptr_t num_copied_params() const {
-    return 0;
-  }
+  intptr_t num_copied_params() const { return 0; }
 
   // Return the position register at the specified index, creating it if
   // necessary. Note that the number of such registers can exceed the amount
@@ -336,7 +341,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // A utility class tracking ids of various objects such as blocks, temps, etc.
   class IdAllocator : public ValueObject {
    public:
-    IdAllocator() : next_id(0) { }
+    IdAllocator() : next_id(0) {}
 
     intptr_t Count() const { return next_id; }
     intptr_t Alloc(intptr_t count = 1) {

@@ -188,7 +188,7 @@ static intptr_t LookupMapping(const int32_t* table,
 
 
 // Letter:               point.category in ['Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Nl']
-
+// clang-format off
 static const uint16_t kLetterTable0Size = 431;
 static const int32_t kLetterTable0[431] = {
     1073741889, 90,         1073741921, 122,
@@ -1823,34 +1823,29 @@ static const MultiCharacterSpecialCase<1> kCanonicalizationRangeMultiStrings7[1]
 static const uint16_t kCanonicalizationRangeTable7Size = 4;  // NOLINT
 static const int32_t kCanonicalizationRangeTable7[8] = {
   1073749793, 100, 7994, 0, 1073749825, 100, 8026, 0 };  // NOLINT
+
+// clang-format on
+
 intptr_t CanonicalizationRange::Convert(int32_t c,
-                      int32_t n,
-                      int32_t* result,
-                      bool* allow_caching_ptr) {
+                                        int32_t n,
+                                        int32_t* result,
+                                        bool* allow_caching_ptr) {
   intptr_t chunk_index = c >> 13;
   switch (chunk_index) {
-    case 0: return LookupMapping<false>(kCanonicalizationRangeTable0,
-                                           kCanonicalizationRangeTable0Size,
-                                           kCanonicalizationRangeMultiStrings0,
-                                           c,
-                                           n,
-                                           result,
-                                           allow_caching_ptr);
-    case 1: return LookupMapping<false>(kCanonicalizationRangeTable1,
-                                           kCanonicalizationRangeTable1Size,
-                                           kCanonicalizationRangeMultiStrings1,
-                                           c,
-                                           n,
-                                           result,
-                                           allow_caching_ptr);
-    case 7: return LookupMapping<false>(kCanonicalizationRangeTable7,
-                                           kCanonicalizationRangeTable7Size,
-                                           kCanonicalizationRangeMultiStrings7,
-                                           c,
-                                           n,
-                                           result,
-                                           allow_caching_ptr);
-    default: return 0;
+    case 0:
+      return LookupMapping<false>(
+          kCanonicalizationRangeTable0, kCanonicalizationRangeTable0Size,
+          kCanonicalizationRangeMultiStrings0, c, n, result, allow_caching_ptr);
+    case 1:
+      return LookupMapping<false>(
+          kCanonicalizationRangeTable1, kCanonicalizationRangeTable1Size,
+          kCanonicalizationRangeMultiStrings1, c, n, result, allow_caching_ptr);
+    case 7:
+      return LookupMapping<false>(
+          kCanonicalizationRangeTable7, kCanonicalizationRangeTable7Size,
+          kCanonicalizationRangeMultiStrings7, c, n, result, allow_caching_ptr);
+    default:
+      return 0;
   }
 }
 

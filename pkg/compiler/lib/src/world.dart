@@ -4,10 +4,10 @@
 
 library dart2js.world;
 
+import 'cache_strategy.dart';
 import 'closure.dart' show SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
-import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
 import 'dart_types.dart';
 import 'elements/elements.dart'
@@ -17,7 +17,7 @@ import 'elements/elements.dart'
         FunctionElement,
         MixinApplicationElement,
         TypedefElement,
-        VariableElement;
+        FieldElement;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
@@ -25,7 +25,8 @@ import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
-import 'util/enumset.dart';
+import 'universe/world_builder.dart'
+    show InstantiationInfo, ResolutionWorldBuilder;
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -45,6 +46,8 @@ abstract class ClosedWorld implements World {
 
   /// Access to core classes used in the Dart language.
   CoreClasses get coreClasses;
+
+  CommonMasks get commonMasks;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
@@ -264,7 +267,7 @@ abstract class ClosedWorld implements World {
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
   /// is not a field, `null` is returned.
-  VariableElement locateSingleField(Selector selector, TypeMask mask);
+  FieldElement locateSingleField(Selector selector, TypeMask mask);
 
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(Element element);
@@ -334,7 +337,7 @@ abstract class OpenWorld implements World {
   void registerUsedElement(Element element);
   void registerTypedef(TypedefElement typedef);
 
-  ClosedWorld closeWorld();
+  ClosedWorld closeWorld(DiagnosticReporter reporter);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls);
@@ -437,7 +440,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls) {
     assert(isClosed);
-    return _compiler.resolverWorld.isImplemented(cls);
+    return resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -836,11 +839,9 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     }
   }
 
-  final Compiler _compiler;
+  final JavaScriptBackend _backend;
   BackendClasses get backendClasses => _backend.backendClasses;
-  JavaScriptBackend get _backend => _compiler.backend;
-  CommonMasks get commonMasks => _compiler.commonMasks;
-  final FunctionSet allFunctions;
+  FunctionSet _allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
@@ -871,20 +872,33 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   final Set<Element> alreadyPopulated;
 
+  CommonMasks _commonMasks;
+
+  final CoreClasses coreClasses;
+
+  final CacheStrategy cacheStrategy;
+
+  final ResolutionWorldBuilder resolverWorld;
+
   bool get isClosed => _closed;
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
     return _typesImplementedBySubclasses[cls.declaration];
   }
 
-  WorldImpl(Compiler compiler)
-      : allFunctions = new FunctionSet(compiler),
-        this._compiler = compiler,
-        alreadyPopulated = compiler.cacheStrategy.newSet();
+  WorldImpl(this.resolverWorld, this._backend, this.coreClasses,
+      CacheStrategy cacheStrategy)
+      : this.cacheStrategy = cacheStrategy,
+        alreadyPopulated = cacheStrategy.newSet() {
+    _allFunctions = new FunctionSet(this);
+  }
 
-  CoreClasses get coreClasses => _compiler.coreClasses;
+  FunctionSet get allFunctions => _allFunctions;
 
-  DiagnosticReporter get reporter => _compiler.reporter;
+  CommonMasks get commonMasks {
+    assert(isClosed);
+    return _commonMasks;
+  }
 
   /// Called to add [cls] to the set of known classes.
   ///
@@ -979,7 +993,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   void _updateClassHierarchyNodeForClass(ClassElement cls,
       {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
-    ClassHierarchyNode node = getClassHierarchyNode(cls);
+    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
     _updateSuperClassHierarchyNodeForClass(node);
     if (directlyInstantiated) {
       node.isDirectlyInstantiated = true;
@@ -989,13 +1003,15 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     }
   }
 
-  ClosedWorld closeWorld() {
+  ClosedWorld closeWorld(DiagnosticReporter reporter) {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
-    void addSubtypes(ClassElement cls, EnumSet<Instantiation> instantiations) {
-      if (_compiler.options.hasIncrementalSupport &&
-          !alreadyPopulated.add(cls)) {
+    void addSubtypes(ClassElement cls, InstantiationInfo info) {
+      if (!info.hasInstantiation) {
+        return;
+      }
+      if (cacheStrategy.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
         return;
       }
       assert(cls.isDeclaration);
@@ -1004,10 +1020,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
       }
 
       _updateClassHierarchyNodeForClass(cls,
-          directlyInstantiated:
-              instantiations.contains(Instantiation.DIRECTLY_INSTANTIATED),
-          abstractlyInstantiated:
-              instantiations.contains(Instantiation.ABSTRACTLY_INSTANTIATED));
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
@@ -1027,9 +1041,10 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    _compiler.resolverWorld.forEachInstantiatedClass(addSubtypes);
+    resolverWorld.forEachInstantiatedClass(addSubtypes);
 
     _closed = true;
+    _commonMasks = new CommonMasks(this);
     return this;
   }
 
@@ -1066,20 +1081,22 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector, TypeMask mask) {
+  FieldElement locateSingleField(Selector selector, TypeMask mask) {
     Element result = locateSingleElement(selector, mask);
     return (result != null && result.isField) ? result : null;
   }
 
   Element locateSingleElement(Selector selector, TypeMask mask) {
+    assert(isClosed);
     mask ??= commonMasks.dynamicType;
-    return mask.locateSingleElement(selector, _compiler);
+    return mask.locateSingleElement(selector, this);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
+    assert(isClosed);
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = _compiler.enabledInvokeOn &&
+      canReachAll = _backend.hasInvokeOnSupport &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? commonMasks.dynamicType : mask;
@@ -1107,8 +1124,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
       return true;
     }
     if (element.isInstanceMember) {
-      return !_compiler.resolverWorld.hasInvokedSetter(element, this) &&
-          !_compiler.resolverWorld.fieldSetters.contains(element);
+      return !resolverWorld.hasInvokedSetter(element, this) &&
+          !resolverWorld.fieldSetters.contains(element);
     }
     return false;
   }

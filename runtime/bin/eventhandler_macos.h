@@ -24,9 +24,9 @@ namespace bin {
 class DescriptorInfo : public DescriptorInfoBase {
  public:
   explicit DescriptorInfo(intptr_t fd)
-      : DescriptorInfoBase(fd), tracked_by_kqueue_(false) { }
+      : DescriptorInfoBase(fd), tracked_by_kqueue_(false) {}
 
-  virtual ~DescriptorInfo() { }
+  virtual ~DescriptorInfo() {}
 
   intptr_t GetPollEvents();
 
@@ -35,9 +35,7 @@ class DescriptorInfo : public DescriptorInfoBase {
     fd_ = -1;
   }
 
-  void set_tracked_by_kqueue(bool value) {
-    tracked_by_kqueue_ = value;
-  }
+  void set_tracked_by_kqueue(bool value) { tracked_by_kqueue_ = value; }
 
   bool tracked_by_kqueue() { return tracked_by_kqueue_; }
 
@@ -53,8 +51,7 @@ class DescriptorInfo : public DescriptorInfoBase {
 };
 
 
-class DescriptorInfoSingle
-    : public DescriptorInfoSingleMixin<DescriptorInfo> {
+class DescriptorInfoSingle : public DescriptorInfoSingleMixin<DescriptorInfo> {
  public:
   explicit DescriptorInfoSingle(intptr_t fd)
       : DescriptorInfoSingleMixin(fd, false) {}
@@ -82,7 +79,7 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
-  void UpdateKQueueInstance(intptr_t old_mask, DescriptorInfo *di);
+  void UpdateKQueueInstance(intptr_t old_mask, DescriptorInfo* di);
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.

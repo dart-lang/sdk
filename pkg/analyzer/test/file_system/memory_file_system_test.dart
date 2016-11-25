@@ -111,6 +111,20 @@ class FileTest {
     expect(file.isOrContains(provider.convertPath('/foo/bar')), isFalse);
   }
 
+  void test_lengthSync_doesNotExist() {
+    File file = provider.getResource(provider.convertPath('/test.txt'));
+    expect(() {
+      file.lengthSync;
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_lengthSync_exists() {
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    File file =
+        provider.newFileWithBytes(provider.convertPath('/file.bin'), bytes);
+    expect(file.lengthSync, bytes.length);
+  }
+
   void test_modificationStamp_doesNotExist() {
     String path = provider.convertPath('/foo/bar/file.txt');
     File file = provider.newFile(path, 'qwerty');

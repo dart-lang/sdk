@@ -90,9 +90,7 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   }
   DWORD old_prot = 0;
   bool result = VirtualProtect(reinterpret_cast<void*>(page_address),
-                        end_address - page_address,
-                        prot,
-                        &old_prot);
+                               end_address - page_address, prot, &old_prot);
   return result;
 }
 

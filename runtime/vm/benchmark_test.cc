@@ -32,20 +32,14 @@ const char* Benchmark::executable_ = NULL;
 static char* ComputeDart2JSPath(const char* arg) {
   char buffer[2048];
   char* dart2js_path = strdup(File::GetCanonicalPath(arg));
-  const char* compiler_path =
-      "%s%spkg%scompiler%slib%scompiler.dart";
+  const char* compiler_path = "%s%spkg%scompiler%slib%scompiler.dart";
   const char* path_separator = File::PathSeparator();
   ASSERT(path_separator != NULL && strlen(path_separator) == 1);
   char* ptr = strrchr(dart2js_path, *path_separator);
   while (ptr != NULL) {
     *ptr = '\0';
-    OS::SNPrint(buffer, 2048, compiler_path,
-                dart2js_path,
-                path_separator,
-                path_separator,
-                path_separator,
-                path_separator,
-                path_separator);
+    OS::SNPrint(buffer, 2048, compiler_path, dart2js_path, path_separator,
+                path_separator, path_separator, path_separator, path_separator);
     if (File::Exists(buffer)) {
       break;
     }
@@ -59,8 +53,7 @@ static char* ComputeDart2JSPath(const char* arg) {
 }
 
 
-static void func(Dart_NativeArguments args) {
-}
+static void func(Dart_NativeArguments args) {}
 
 
 static Dart_NativeFunction NativeResolver(Dart_Handle name,
@@ -85,8 +78,8 @@ static void SetupDart2JSPackagePath() {
       strdup(File::GetCanonicalPath(Benchmark::Executable()));
   const char* packages_path = "%s%s..%spackages";
   const char* path_separator = File::PathSeparator();
-  OS::SNPrint(buffer, 2048, packages_path,
-              executable_path, path_separator, path_separator);
+  OS::SNPrint(buffer, 2048, packages_path, executable_path, path_separator,
+              path_separator);
   result = bin::DartUtils::SetupPackageRoot(buffer, NULL);
   DART_CHECK_VALID(result);
 }
@@ -163,11 +156,10 @@ BENCHMARK(Dart2JSCompilerStats) {
   char* script = NULL;
   if (dart_root != NULL) {
     HANDLESCOPE(thread);
-    script = OS::SCreate(NULL,
-        "import '%s/pkg/compiler/lib/compiler.dart';", dart_root);
+    script = OS::SCreate(NULL, "import '%s/pkg/compiler/lib/compiler.dart';",
+                         dart_root);
     Dart_Handle lib = TestCase::LoadTestScript(
-        script,
-        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+        script, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   } else {
     Dart_Handle lib = TestCase::LoadTestScript(
@@ -301,14 +293,12 @@ BENCHMARK(UseDartApi) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
-      USER_TEST_URI,
-      false);
+      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
+      USER_TEST_URI, false);
 
   // Create a native wrapper class with native fields.
-  Dart_Handle result = Dart_CreateNativeWrapperClass(
-      lib, NewString("NativeFieldsWrapper"), 1);
+  Dart_Handle result =
+      Dart_CreateNativeWrapperClass(lib, NewString("NativeFieldsWrapper"), 1);
   EXPECT_VALID(result);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
@@ -338,7 +328,7 @@ BENCHMARK(DartStringAccess) {
   Dart_EnterScope();
 
   // Create strings.
-  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
+  uint8_t data8[] = {'o', 'n', 'e', 0xFF};
   int external_peer_data = 123;
   intptr_t char_size;
   intptr_t str_len;
@@ -353,9 +343,7 @@ BENCHMARK(DartStringAccess) {
     EXPECT_VALID(external_string);
     EXPECT(Dart_IsExternalString(external_string));
     void* external_peer = NULL;
-    EXPECT_VALID(Dart_StringGetProperties(external_string,
-                                          &char_size,
-                                          &str_len,
+    EXPECT_VALID(Dart_StringGetProperties(external_string, &char_size, &str_len,
                                           &external_peer));
     EXPECT_EQ(1, char_size);
     EXPECT_EQ(4, str_len);
@@ -377,11 +365,10 @@ BENCHMARK(Dart2JSCompileAll) {
   char* script = NULL;
   if (dart_root != NULL) {
     HANDLESCOPE(thread);
-    script = OS::SCreate(NULL,
-        "import '%s/pkg/compiler/lib/compiler.dart';", dart_root);
+    script = OS::SCreate(NULL, "import '%s/pkg/compiler/lib/compiler.dart';",
+                         dart_root);
     Dart_Handle lib = TestCase::LoadTestScript(
-        script,
-        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
+        script, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   } else {
     Dart_Handle lib = TestCase::LoadTestScript(
@@ -498,8 +485,9 @@ BENCHMARK(FrameLookup) {
 }
 
 
-static uint8_t* malloc_allocator(
-    uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
 }
 
@@ -525,10 +513,8 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kCore,
-                            &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer,
-                            &malloc_allocator,
+  FullSnapshotWriter writer(Snapshot::kCore, &vm_isolate_snapshot_buffer,
+                            &isolate_snapshot_buffer, &malloc_allocator,
                             NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
@@ -561,10 +547,8 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kCore,
-                            &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer,
-                            &malloc_allocator,
+  FullSnapshotWriter writer(Snapshot::kCore, &vm_isolate_snapshot_buffer,
+                            &isolate_snapshot_buffer, &malloc_allocator,
                             NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
@@ -613,8 +597,9 @@ BENCHMARK(EnterExitIsolate) {
 
 
 static uint8_t message_buffer[64];
-static uint8_t* message_allocator(
-    uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* message_allocator(uint8_t* ptr,
+                                  intptr_t old_size,
+                                  intptr_t new_size) {
   return message_buffer;
 }
 
@@ -632,9 +617,7 @@ BENCHMARK(SerializeNull) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer,
-                                 buffer_len,
-                                 thread);
+    MessageSnapshotReader reader(buffer, buffer_len, thread);
     reader.ReadObject();
   }
   timer.Stop();
@@ -656,9 +639,7 @@ BENCHMARK(SerializeSmi) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer,
-                                 buffer_len,
-                                 thread);
+    MessageSnapshotReader reader(buffer, buffer_len, thread);
     reader.ReadObject();
   }
   timer.Stop();
@@ -683,9 +664,7 @@ BENCHMARK(SimpleMessage) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer,
-                                 buffer_len,
-                                 thread);
+    MessageSnapshotReader reader(buffer, buffer_len, thread);
     reader.ReadObject();
     free(buffer);
   }
@@ -719,9 +698,7 @@ BENCHMARK(LargeMap) {
     intptr_t buffer_len = writer.BytesWritten();
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer,
-                                 buffer_len,
-                                 thread);
+    MessageSnapshotReader reader(buffer, buffer_len, thread);
     reader.ReadObject();
     free(buffer);
   }

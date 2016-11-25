@@ -22,14 +22,12 @@ typedef void (*RuntimeFunction)(NativeArguments arguments);
 
 enum RuntimeFunctionId {
   kNoRuntimeFunctionId = -1,
-#define DECLARE_ENUM_VALUE(name) \
-  k##name##Id,
+#define DECLARE_ENUM_VALUE(name) k##name##Id,
   RUNTIME_ENTRY_LIST(DECLARE_ENUM_VALUE)
 #undef DECLARE_ENUM_VALUE
 
-#define DECLARE_LEAF_ENUM_VALUE(type, name, ...) \
-  k##name##Id,
-  LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_ENUM_VALUE)
+#define DECLARE_LEAF_ENUM_VALUE(type, name, ...) k##name##Id,
+      LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_ENUM_VALUE)
 #undef DECLARE_LEAF_ENUM_VALUE
 };
 
@@ -38,8 +36,11 @@ enum RuntimeFunctionId {
 // by the function.
 class RuntimeEntry : public ValueObject {
  public:
-  RuntimeEntry(const char* name, RuntimeFunction function,
-               intptr_t argument_count, bool is_leaf, bool is_float)
+  RuntimeEntry(const char* name,
+               RuntimeFunction function,
+               intptr_t argument_count,
+               bool is_leaf,
+               bool is_float)
       : name_(name),
         function_(function),
         argument_count_(argument_count),
@@ -83,7 +84,8 @@ class RuntimeEntry : public ValueObject {
   }
 #else
 #define TRACE_RUNTIME_CALL(format, name)                                       \
-  do { } while (0)
+  do {                                                                         \
+  } while (0)
 #endif
 
 // Helper macros for declaring and defining runtime entries.
@@ -91,16 +93,14 @@ class RuntimeEntry : public ValueObject {
 #define DEFINE_RUNTIME_ENTRY(name, argument_count)                             \
   extern void DRT_##name(NativeArguments arguments);                           \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DRT_"#name, &DRT_##name, argument_count, false, false);                 \
-  static void DRT_Helper##name(Isolate* isolate,                               \
-                               Thread* thread,                                 \
-                               Zone* zone,                                     \
+      "DRT_" #name, &DRT_##name, argument_count, false, false);                \
+  static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     ASSERT(arguments.ArgCount() == argument_count);                            \
-    TRACE_RUNTIME_CALL("%s", ""#name);                                         \
+    TRACE_RUNTIME_CALL("%s", "" #name);                                        \
     {                                                                          \
       Thread* thread = arguments.thread();                                     \
       ASSERT(thread == Thread::Current());                                     \
@@ -112,23 +112,21 @@ class RuntimeEntry : public ValueObject {
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
-  static void DRT_Helper##name(Isolate* isolate,                               \
-                               Thread* thread,                                 \
-                               Zone* zone,                                     \
+  static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments)
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
-  extern void DRT_##name(NativeArguments arguments);                           \
+  extern void DRT_##name(NativeArguments arguments);
 
 #define DEFINE_LEAF_RUNTIME_ENTRY(type, name, argument_count, ...)             \
   extern "C" type DLRT_##name(__VA_ARGS__);                                    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_"#name, reinterpret_cast<RuntimeFunction>(&DLRT_##name),           \
+      "DLRT_" #name, reinterpret_cast<RuntimeFunction>(&DLRT_##name),          \
       argument_count, true, false);                                            \
   type DLRT_##name(__VA_ARGS__) {                                              \
     CHECK_STACK_ALIGNMENT;                                                     \
-    NoSafepointScope no_safepoint_scope;                                       \
+    NoSafepointScope no_safepoint_scope;
 
 #define END_LEAF_RUNTIME_ENTRY }
 
@@ -136,11 +134,11 @@ class RuntimeEntry : public ValueObject {
 // DEFINE_LEAF_RUNTIME_ENTRY instead.
 #define DEFINE_RAW_LEAF_RUNTIME_ENTRY(name, argument_count, is_float, func)    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DFLRT_"#name, func, argument_count, true, is_float)                     \
+      "DFLRT_" #name, func, argument_count, true, is_float)
 
 #define DECLARE_LEAF_RUNTIME_ENTRY(type, name, ...)                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
-  extern "C" type DLRT_##name(__VA_ARGS__);                                    \
+  extern "C" type DLRT_##name(__VA_ARGS__);
 
 
 // Declare all runtime functions here.
@@ -154,14 +152,16 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
 
 uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
-    switch (id) {
+  switch (id) {
 #define DEFINE_RUNTIME_CASE(name)                                              \
-    case k##name##Id: return k##name##RuntimeEntry.GetEntryPoint();
+  case k##name##Id:                                                            \
+    return k##name##RuntimeEntry.GetEntryPoint();
     RUNTIME_ENTRY_LIST(DEFINE_RUNTIME_CASE)
 #undef DEFINE_RUNTIME_CASE
 
 #define DEFINE_LEAF_RUNTIME_CASE(type, name, ...)                              \
-    case k##name##Id: return k##name##RuntimeEntry.GetEntryPoint();
+  case k##name##Id:                                                            \
+    return k##name##RuntimeEntry.GetEntryPoint();
     LEAF_RUNTIME_ENTRY_LIST(DEFINE_LEAF_RUNTIME_CASE)
 #undef DEFINE_LEAF_RUNTIME_CASE
     default:

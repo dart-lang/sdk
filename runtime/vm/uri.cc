@@ -9,23 +9,32 @@
 namespace dart {
 
 static bool IsUnreservedChar(intptr_t value) {
-  return ((value >= 'a' && value <= 'z') ||
-          (value >= 'A' && value <= 'Z') ||
-          (value >= '0' && value <= '9') ||
-          value == '-' ||
-          value == '.' ||
-          value == '_' ||
-          value == '~');
+  return ((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z') ||
+          (value >= '0' && value <= '9') || value == '-' || value == '.' ||
+          value == '_' || value == '~');
 }
 
 
 static bool IsDelimiter(intptr_t value) {
   switch (value) {
-    case ':': case '/': case '?': case '#':
-    case '[': case ']': case '@': case '!':
-    case '$': case '&': case '\'': case '(':
-    case ')': case '*': case '+': case ',':
-    case ';': case '=':
+    case ':':
+    case '/':
+    case '?':
+    case '#':
+    case '[':
+    case ']':
+    case '@':
+    case '!':
+    case '$':
+    case '&':
+    case '\'':
+    case '(':
+    case ')':
+    case '*':
+    case '+':
+    case ',':
+    case ';':
+    case '=':
       return true;
     default:
       return false;
@@ -34,8 +43,7 @@ static bool IsDelimiter(intptr_t value) {
 
 
 static bool IsHexDigit(char value) {
-  return ((value >= '0' && value <= '9') ||
-          (value >= 'A' && value <= 'F') ||
+  return ((value >= '0' && value <= '9') || (value >= 'A' && value <= 'F') ||
           (value >= 'a' && value <= 'f'));
 }
 
@@ -224,8 +232,7 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
   if (*question_pos == '?') {
     // There is a query part.
     const char* query_start = question_pos + 1;
-    parsed_uri->query =
-        NormalizeEscapes(query_start, (hash_pos - query_start));
+    parsed_uri->query = NormalizeEscapes(query_start, (hash_pos - query_start));
   } else {
     parsed_uri->query = NULL;
   }
@@ -235,8 +242,7 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
     // There is an authority part.
     const char* authority_start = rest + 2;  // 2 for '//'.
 
-    intptr_t authority_len =
-        ParseAuthority(authority_start, parsed_uri);
+    intptr_t authority_len = ParseAuthority(authority_start, parsed_uri);
     if (authority_len < 0) {
       ClearParsedUri(parsed_uri);
       return false;
@@ -367,7 +373,7 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
   intptr_t truncated_base_len = last_slash - base_path;
   intptr_t ref_path_len = strlen(ref_path);
   intptr_t len = truncated_base_len + ref_path_len + 1;  // +1 for '/'
-  char* buffer = zone->Alloc<char>(len + 1);  // +1 for '\0'
+  char* buffer = zone->Alloc<char>(len + 1);             // +1 for '\0'
 
   // Copy truncated base.
   strncpy(buffer, base_path, truncated_base_len);
@@ -399,17 +405,16 @@ static char* BuildUri(const ParsedUri& uri) {
   // relative urls inside a "dart:" library.
   if (uri.scheme == NULL) {
     ASSERT(uri.userinfo == NULL && uri.host == NULL && uri.port == NULL);
-    return zone->PrintToString("%s%s%s%s%s",
-                               uri.path, query_separator, query,
+    return zone->PrintToString("%s%s%s%s%s", uri.path, query_separator, query,
                                fragment_separator, fragment);
   }
 
   // Uri with no authority: "scheme:path[?query][#fragment]"
   if (uri.host == NULL) {
     ASSERT(uri.userinfo == NULL && uri.port == NULL);
-    return zone->PrintToString("%s:%s%s%s%s%s",
-                               uri.scheme, uri.path, query_separator, query,
-                               fragment_separator, fragment);
+    return zone->PrintToString("%s:%s%s%s%s%s", uri.scheme, uri.path,
+                               query_separator, query, fragment_separator,
+                               fragment);
   }
 
   const char* user = uri.userinfo == NULL ? "" : uri.userinfo;
@@ -419,16 +424,16 @@ static char* BuildUri(const ParsedUri& uri) {
 
   // If the path doesn't start with a '/', add one.  We need it to
   // separate the path from the authority.
-  const char* path_separator = ((uri.path[0] == '\0' || uri.path[0] == '/')
-                                ? "" : "/");
+  const char* path_separator =
+      ((uri.path[0] == '\0' || uri.path[0] == '/') ? "" : "/");
 
   // Uri with authority:
   //   "scheme://[userinfo@]host[:port][/]path[?query][#fragment]"
   return zone->PrintToString(
       "%s://%s%s%s%s%s%s%s%s%s%s%s",  // There is *nothing* wrong with this.
       uri.scheme, user, user_separator, uri.host, port_separator, port,
-      path_separator, uri.path, query_separator, query,
-      fragment_separator, fragment);
+      path_separator, uri.path, query_separator, query, fragment_separator,
+      fragment);
 }
 
 

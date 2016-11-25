@@ -558,21 +558,16 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 }
 
 /**
- * An assert statement.
+ * An assert in the initializer list of a constructor.
  *
- *    assertStatement ::=
- *        'assert' '(' [Expression] ')' ';'
+ *    assertInitializer ::=
+ *        'assert' '(' [Expression] (',' [Expression])? ')'
  */
-class AssertStatementImpl extends StatementImpl implements AssertStatement {
-  /**
-   * The token representing the 'assert' keyword.
-   */
+class AssertInitializerImpl extends ConstructorInitializerImpl
+    implements AssertInitializer {
   @override
   Token assertKeyword;
 
-  /**
-   * The left parenthesis.
-   */
   @override
   Token leftParenthesis;
 
@@ -581,27 +576,104 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
    */
   Expression _condition;
 
-  /**
-   * The comma, if a message expression was supplied.  Otherwise `null`.
-   */
   @override
   Token comma;
 
   /**
-   * The message to report if the assertion fails.  `null` if no message was
+   * The message to report if the assertion fails, or `null` if no message was
    * supplied.
    */
   Expression _message;
 
-  /**
-   * The right parenthesis.
-   */
   @override
   Token rightParenthesis;
 
   /**
-   * The semicolon terminating the statement.
+   * Initialize a newly created assert initializer.
    */
+  AssertInitializerImpl(
+      this.assertKeyword,
+      this.leftParenthesis,
+      ExpressionImpl condition,
+      this.comma,
+      ExpressionImpl message,
+      this.rightParenthesis) {
+    _condition = _becomeParentOf(condition);
+    _message = _becomeParentOf(message);
+  }
+
+  @override
+  Token get beginToken => assertKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(assertKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(comma)
+    ..add(_message)
+    ..add(rightParenthesis);
+
+  @override
+  Expression get condition => _condition;
+
+  @override
+  void set condition(Expression condition) {
+    _condition = _becomeParentOf(condition as AstNodeImpl);
+  }
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  Expression get message => _message;
+
+  @override
+  void set message(Expression expression) {
+    _message = _becomeParentOf(expression as AstNodeImpl);
+  }
+
+  @override
+  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+      visitor.visitAssertInitializer(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _condition?.accept(visitor);
+    message?.accept(visitor);
+  }
+}
+
+/**
+ * An assert statement.
+ *
+ *    assertStatement ::=
+ *        'assert' '(' [Expression] ')' ';'
+ */
+class AssertStatementImpl extends StatementImpl implements AssertStatement {
+  @override
+  Token assertKeyword;
+
+  @override
+  Token leftParenthesis;
+
+  /**
+   * The condition that is being asserted to be `true`.
+   */
+  Expression _condition;
+
+  @override
+  Token comma;
+
+  /**
+   * The message to report if the assertion fails, or `null` if no message was
+   * supplied.
+   */
+  Expression _message;
+
+  @override
+  Token rightParenthesis;
+
   @override
   Token semicolon;
 

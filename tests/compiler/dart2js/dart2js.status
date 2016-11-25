@@ -8,8 +8,6 @@ compile_with_empty_libraries_test: Fail # Issue 24223
 
 kernel/*: Slow, Pass
 
-kernel/visitor_test: Fail # Issue 27684
-
 boolified_operator_test: Fail # Issue 8001
 
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they
@@ -70,6 +68,7 @@ serialization*: Slow, Pass
 uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 jsinterop/world_test: Pass, Slow
+sourcemaps/stacktrace_test: Pass, Slow
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one

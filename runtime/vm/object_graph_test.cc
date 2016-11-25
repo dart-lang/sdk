@@ -13,7 +13,7 @@ class CounterVisitor : public ObjectGraph::Visitor {
   // Records the number of objects and total size visited, excluding 'skip'
   // and any objects only reachable through 'skip'.
   CounterVisitor(RawObject* skip, RawObject* expected_parent)
-      : count_(0), size_(0), skip_(skip), expected_parent_(expected_parent) { }
+      : count_(0), size_(0), skip_(skip), expected_parent_(expected_parent) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* obj = it->Get();
@@ -74,8 +74,7 @@ VM_TEST_CASE(ObjectGraph) {
       graph.IterateObjectsFrom(a, &without);
       // Only 'b' and 'c' were cut off.
       EXPECT_EQ(2, with.count() - without.count());
-      EXPECT_EQ(b_size + c_size,
-                with.size() - without.size());
+      EXPECT_EQ(b_size + c_size, with.size() - without.size());
     }
     {
       // Like above, but iterate over the entire isolate. The counts and sizes
@@ -85,8 +84,7 @@ VM_TEST_CASE(ObjectGraph) {
       CounterVisitor without(b_raw, a.raw());
       graph.IterateObjects(&without);
       EXPECT_EQ(2, with.count() - without.count());
-      EXPECT_EQ(b_size + c_size,
-                with.size() - without.size());
+      EXPECT_EQ(b_size + c_size, with.size() - without.size());
     }
     EXPECT_EQ(a_size + b_size + c_size + d_size,
               graph.SizeRetainedByInstance(a));

@@ -52,8 +52,7 @@ void TextBuffer::AddChar(char ch) {
 }
 
 
-void TextBuffer::AddRaw(const uint8_t* buffer,
-                        intptr_t buffer_length) {
+void TextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
   EnsureCapacity(buffer_length);
   memmove(&buf_[msg_len_], buffer, buffer_length);
   msg_len_ += buffer_length;

@@ -13,11 +13,15 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DEFINE_FLAG(bool, display_sorted_ic_data, false,
-    "Calls display a unary, sorted-by count form of ICData");
+DEFINE_FLAG(bool,
+            display_sorted_ic_data,
+            false,
+            "Calls display a unary, sorted-by count form of ICData");
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
-DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
-    "Print only IR of functions with matching names");
+DEFINE_FLAG(charp,
+            print_flow_graph_filter,
+            NULL,
+            "Print only IR of functions with matching names");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 
@@ -32,8 +36,7 @@ void BufferFormatter::Print(const char* format, ...) {
 void BufferFormatter::VPrint(const char* format, va_list args) {
   intptr_t available = size_ - position_;
   if (available <= 0) return;
-  intptr_t written =
-      OS::VSNPrint(buffer_ + position_, available, format, args);
+  intptr_t written = OS::VSNPrint(buffer_ + position_, available, format, args);
   if (written >= 0) {
     position_ += (available <= written) ? available : written;
   }
@@ -65,8 +68,8 @@ bool FlowGraphPrinter::PassesFilter(const char* filter,
     const intptr_t token_len = strlen(token);
     if (token[token_len - 1] == '%') {
       if (function_name_len > token_len) {
-        const char* suffix = function_name +
-            (function_name_len - token_len + 1);
+        const char* suffix =
+            function_name + (function_name_len - token_len + 1);
         if (strncmp(suffix, token, token_len - 1) == 0) {
           found = true;
           break;
@@ -154,17 +157,16 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const AbstractType& dst_type,
                                       const String& dst_name,
                                       bool eliminated) {
-    const char* compile_type_name = "unknown";
-    if (value != NULL && value->reaching_type_ != NULL) {
-      compile_type_name = value->reaching_type_->ToCString();
-    }
-    THR_Print("%s type check: compile type %s is %s specific than "
-              "type '%s' of '%s'.\n",
-                         eliminated ? "Eliminated" : "Generated",
-                         compile_type_name,
-                         eliminated ? "more" : "not more",
-                         String::Handle(dst_type.Name()).ToCString(),
-                         dst_name.ToCString());
+  const char* compile_type_name = "unknown";
+  if (value != NULL && value->reaching_type_ != NULL) {
+    compile_type_name = value->reaching_type_->ToCString();
+  }
+  THR_Print(
+      "%s type check: compile type %s is %s specific than "
+      "type '%s' of '%s'.\n",
+      eliminated ? "Eliminated" : "Generated", compile_type_name,
+      eliminated ? "more" : "not more",
+      String::Handle(dst_type.Name()).ToCString(), dst_name.ToCString());
 }
 
 
@@ -231,14 +233,13 @@ static void PrintICDataSortedHelper(BufferFormatter* f,
                                     const ICData& ic_data_orig) {
   const ICData& ic_data =
       ICData::Handle(ic_data_orig.AsUnaryClassChecksSortedByCount());
-  f->Print(" IC[n:%" Pd"; ", ic_data.NumberOfChecks());
+  f->Print(" IC[n:%" Pd "; ", ic_data.NumberOfChecks());
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     const intptr_t count = ic_data.GetCountAt(i);
     const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
     const Class& cls =
         Class::Handle(Isolate::Current()->class_table()->At(cid));
-    f->Print("%s : %" Pd ", ",
-        String::Handle(cls.Name()).ToCString(), count);
+    f->Print("%s : %" Pd ", ", String::Handle(cls.Name()).ToCString(), count);
   }
   f->Print("]");
 }
@@ -259,7 +260,7 @@ static void PrintUse(BufferFormatter* f, const Definition& definition) {
   if (definition.HasSSATemp()) {
     if (definition.HasPairRepresentation()) {
       f->Print("(v%" Pd ", v%" Pd ")", definition.ssa_temp_index(),
-                                       definition.ssa_temp_index() + 1);
+               definition.ssa_temp_index() + 1);
     } else {
       f->Print("v%" Pd "", definition.ssa_temp_index());
     }
@@ -332,8 +333,7 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
 void Value::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *definition());
 
-  if ((reaching_type_ != NULL) &&
-      (reaching_type_ != definition()->type_)) {
+  if ((reaching_type_ != NULL) && (reaching_type_ != definition()->type_)) {
     f->Print(" ");
     reaching_type_->PrintTo(f);
   }
@@ -423,9 +423,7 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s'",
-           dst_type().ToCString(),
-           dst_name().ToCString());
+  f->Print(", %s, '%s'", dst_type().ToCString(), dst_name().ToCString());
   f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -498,8 +496,8 @@ void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s [", Token::Str(kind()));
   for (intptr_t i = 0; i < cid_results().length(); i += 2) {
-    f->Print("0x%" Px ":%s ",
-        cid_results()[i], cid_results()[i + 1] == 0 ? "false" : "true");
+    f->Print("0x%" Px ":%s ", cid_results()[i],
+             cid_results()[i + 1] == 0 ? "false" : "true");
   }
   f->Print("] ");
 }
@@ -538,8 +536,7 @@ void NativeCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s %s, ",
-           String::Handle(field().name()).ToCString(),
+  f->Print("%s %s, ", String::Handle(field().name()).ToCString(),
            field().GuardedPropertiesAsCString());
   value()->PrintTo(f);
 }
@@ -549,8 +546,7 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (field().IsNull()) {
     f->Print("{%" Pd "}, ", offset_in_bytes());
   } else {
-    f->Print("%s {%" Pd "}, ",
-             String::Handle(field().name()).ToCString(),
+    f->Print("%s {%" Pd "}, ", String::Handle(field().name()).ToCString(),
              field().Offset());
   }
   instance()->PrintTo(f);
@@ -561,9 +557,7 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
   comparison()->PrintOperandsTo(f);
-  f->Print(" ? %" Pd " : %" Pd,
-           if_true_,
-           if_false_);
+  f->Print(" ? %" Pd " : %" Pd, if_true_, if_false_);
 }
 
 
@@ -580,9 +574,8 @@ void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(" %s %s",
-            negate_result() ? "ISNOT" : "IS",
-            String::Handle(type().Name()).ToCString());
+  f->Print(" %s %s", negate_result() ? "ISNOT" : "IS",
+           String::Handle(type().Name()).ToCString());
   f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -629,12 +622,11 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
     const char* expected = "?";
     if (field()->guarded_cid() != kIllegalCid) {
       const Class& cls = Class::Handle(
-            Isolate::Current()->class_table()->At(field()->guarded_cid()));
+          Isolate::Current()->class_table()->At(field()->guarded_cid()));
       expected = String::Handle(cls.Name()).ToCString();
     }
 
-    f->Print(" [%s %s]",
-             field()->is_nullable() ? "nullable" : "non-nullable",
+    f->Print(" [%s %s]", field()->is_nullable() ? "nullable" : "non-nullable",
              expected);
   }
 
@@ -697,6 +689,15 @@ void UnaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void CheckedSmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Token::Str(op_kind()));
+  f->Print(", ");
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
+void CheckedSmiComparisonInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(kind()));
   f->Print(", ");
   left()->PrintTo(f);
   f->Print(", ");
@@ -982,7 +983,7 @@ void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 
   const Class& cls =
-    Class::Handle(Isolate::Current()->class_table()->At(cid()));
+      Class::Handle(Isolate::Current()->class_table()->At(cid()));
   f->Print(", %s", String::Handle(cls.ScrubbedName()).ToCString());
 }
 
@@ -1023,8 +1024,8 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
   if (try_index() != CatchClauseNode::kInvalidTryIndex) {
-    f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(",
-             block_id(), try_index(), GetDeoptId());
+    f->Print("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(", block_id(),
+             try_index(), GetDeoptId());
   } else {
     f->Print("B%" Pd "[join]:%" Pd " pred(", block_id(), GetDeoptId());
   }
@@ -1073,7 +1074,7 @@ void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
-static const char *RepresentationToCString(Representation rep) {
+static const char* RepresentationToCString(Representation rep) {
   switch (rep) {
     case kTagged:
       return "tagged";
@@ -1108,8 +1109,8 @@ static const char *RepresentationToCString(Representation rep) {
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   if (HasPairRepresentation()) {
-    f->Print("(v%" Pd ", v%" Pd ") <- phi(",
-             ssa_temp_index(), ssa_temp_index() + 1);
+    f->Print("(v%" Pd ", v%" Pd ") <- phi(", ssa_temp_index(),
+             ssa_temp_index() + 1);
   } else {
     f->Print("v%" Pd " <- phi(", ssa_temp_index());
   }
@@ -1128,8 +1129,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     range_->PrintTo(f);
   }
 
-  if (representation() != kNoRepresentation &&
-      representation() != kTagged) {
+  if (representation() != kNoRepresentation && representation() != kTagged) {
     f->Print(" %s", RepresentationToCString(representation()));
   }
 
@@ -1149,10 +1149,8 @@ void UnboxIntegerInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s->%s%s, ",
-           RepresentationToCString(from()),
-           RepresentationToCString(to()),
-           is_truncating() ? "[tr]" : "");
+  f->Print("%s->%s%s, ", RepresentationToCString(from()),
+           RepresentationToCString(to()), is_truncating() ? "[tr]" : "");
   Definition::PrintOperandsTo(f);
 }
 
@@ -1169,8 +1167,8 @@ void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   if (try_index() != CatchClauseNode::kInvalidTryIndex) {
-    f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd,
-             block_id(), try_index(), GetDeoptId());
+    f->Print("B%" Pd "[target try_idx %" Pd "]:%" Pd, block_id(), try_index(),
+             GetDeoptId());
   } else {
     f->Print("B%" Pd "[target]:%" Pd, block_id(), GetDeoptId());
   }
@@ -1236,9 +1234,8 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("if ");
   comparison()->PrintTo(f);
 
-  f->Print(" goto (%" Pd ", %" Pd ")",
-            true_successor()->block_id(),
-            false_successor()->block_id());
+  f->Print(" goto (%" Pd ", %" Pd ")", true_successor()->block_id(),
+           false_successor()->block_id());
 }
 
 

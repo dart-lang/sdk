@@ -17,17 +17,17 @@
 namespace dart {
 namespace bin {
 
-#define RETURN_ERROR_HANDLE(handle)                             \
-  if (Dart_IsError(handle)) {                                   \
-    return handle;                                              \
+#define RETURN_ERROR_HANDLE(handle)                                            \
+  if (Dart_IsError(handle)) {                                                  \
+    return handle;                                                             \
   }
 
-#define SHUTDOWN_ON_ERROR(handle)                               \
-  if (Dart_IsError(handle)) {                                   \
-    error_msg_ = strdup(Dart_GetError(handle));                 \
-    Dart_ExitScope();                                           \
-    Dart_ShutdownIsolate();                                     \
-    return false;                                               \
+#define SHUTDOWN_ON_ERROR(handle)                                              \
+  if (Dart_IsError(handle)) {                                                  \
+    error_msg_ = strdup(Dart_GetError(handle));                                \
+    Dart_ExitScope();                                                          \
+    Dart_ShutdownIsolate();                                                    \
+    return false;                                                              \
   }
 
 #define kLibrarySourceNamePrefix "/vmservice"
@@ -122,8 +122,8 @@ struct VmServiceIONativeEntry {
 
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
-  {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
-  {"VMServiceIO_Shutdown", 0, Shutdown },
+    {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
+    {"VMServiceIO_Shutdown", 0, Shutdown},
 };
 
 
@@ -155,7 +155,8 @@ char VmService::server_uri_[kServerUriStringBufferSize];
 bool VmService::LoadForGenPrecompiled() {
   Dart_Handle result;
   Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library = LoadLibrary(kVMServiceIOLibraryScriptResourceName);
+  Dart_Handle library =
+      LookupOrLoadLibrary(kVMServiceIOLibraryScriptResourceName);
   ASSERT(library != Dart_Null());
   SHUTDOWN_ON_ERROR(library);
   result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
@@ -230,15 +231,13 @@ bool VmService::Setup(const char* server_ip,
   }
   result = DartUtils::SetIntegerField(library, "_port", server_port);
   SHUTDOWN_ON_ERROR(result);
-  result = Dart_SetField(library,
-                         DartUtils::NewString("_autoStart"),
+  result = Dart_SetField(library, DartUtils::NewString("_autoStart"),
                          Dart_NewBoolean(auto_start));
   SHUTDOWN_ON_ERROR(result);
-  result = Dart_SetField(library,
-                         DartUtils::NewString("_originCheckDisabled"),
+  result = Dart_SetField(library, DartUtils::NewString("_originCheckDisabled"),
                          Dart_NewBoolean(dev_mode_server));
 
-  // Are we running on Windows?
+// Are we running on Windows?
 #if defined(TARGET_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();
 #else
@@ -248,7 +247,7 @@ bool VmService::Setup(const char* server_ip,
       Dart_SetField(library, DartUtils::NewString("_isWindows"), is_windows);
   SHUTDOWN_ON_ERROR(result);
 
-  // Are we running on Fuchsia?
+// Are we running on Fuchsia?
 #if defined(TARGET_OS_FUCHSIA)
   Dart_Handle is_fuchsia = Dart_True();
 #else
@@ -270,8 +269,7 @@ bool VmService::Setup(const char* server_ip,
   SHUTDOWN_ON_ERROR(signal_watch);
   Dart_Handle field_name = Dart_NewStringFromCString("_signalWatch");
   SHUTDOWN_ON_ERROR(field_name);
-  result =
-      Dart_SetField(library, field_name, signal_watch);
+  result = Dart_SetField(library, field_name, signal_watch);
   SHUTDOWN_ON_ERROR(field_name);
   return true;
 }
@@ -298,7 +296,8 @@ void VmService::SetServerAddress(const char* server_uri) {
 Dart_Handle VmService::GetSource(const char* name) {
   const intptr_t kBufferSize = 512;
   char buffer[kBufferSize];
-  snprintf(&buffer[0], kBufferSize-1, "%s/%s", kLibrarySourceNamePrefix, name);
+  snprintf(&buffer[0], kBufferSize - 1, "%s/%s", kLibrarySourceNamePrefix,
+           name);
   const char* vmservice_source = NULL;
   int r = Resources::ResourceLookup(buffer, &vmservice_source);
   if (r == Resources::kNoSuchInstance) {
@@ -316,10 +315,14 @@ Dart_Handle VmService::LoadScript(const char* name) {
 }
 
 
-Dart_Handle VmService::LoadLibrary(const char* name) {
+Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
-  Dart_Handle source = GetSource(name);
-  return Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
+  Dart_Handle library = Dart_LookupLibrary(uri);
+  if (!Dart_IsLibrary(library)) {
+    Dart_Handle source = GetSource(name);
+    library = Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
+  }
+  return library;
 }
 
 

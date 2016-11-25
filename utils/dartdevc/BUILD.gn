@@ -2,13 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../invoke_dart.gni")
+import("../application_snapshot.gni")
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
   training_args = [
     "--dart-sdk",
     rebase_path("../../sdk"),
+    "--dart-sdk-summary",
+    rebase_path("../../pkg/dev_compiler/lib/sdk/ddc_sdk.sum"),
     "--help",
   ]
   inputs = exec_script("../../tools/list_dart_files.py",

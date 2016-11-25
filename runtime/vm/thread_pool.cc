@@ -10,20 +10,21 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, worker_timeout_millis, 5000,
+DEFINE_FLAG(int,
+            worker_timeout_millis,
+            5000,
             "Free workers when they have been idle for this amount of time.");
 
 ThreadPool::ThreadPool()
-  : shutting_down_(false),
-    all_workers_(NULL),
-    idle_workers_(NULL),
-    count_started_(0),
-    count_stopped_(0),
-    count_running_(0),
-    count_idle_(0),
-    shutting_down_workers_(NULL),
-    join_list_(NULL) {
-}
+    : shutting_down_(false),
+      all_workers_(NULL),
+      idle_workers_(NULL),
+      count_started_(0),
+      count_stopped_(0),
+      count_running_(0),
+      count_idle_(0),
+      shutting_down_workers_(NULL),
+      join_list_(NULL) {}
 
 
 ThreadPool::~ThreadPool() {
@@ -146,8 +147,7 @@ void ThreadPool::Shutdown() {
 
 bool ThreadPool::IsIdle(Worker* worker) {
   ASSERT(worker != NULL && worker->owned_);
-  for (Worker* current = idle_workers_;
-       current != NULL;
+  for (Worker* current = idle_workers_; current != NULL;
        current = current->idle_next_) {
     if (current == worker) {
       return true;
@@ -170,8 +170,7 @@ bool ThreadPool::RemoveWorkerFromIdleList(Worker* worker) {
     return true;
   }
 
-  for (Worker* current = idle_workers_;
-       current->idle_next_ != NULL;
+  for (Worker* current = idle_workers_; current->idle_next_ != NULL;
        current = current->idle_next_) {
     if (current->idle_next_ == worker) {
       current->idle_next_ = worker->idle_next_;
@@ -198,8 +197,7 @@ bool ThreadPool::RemoveWorkerFromAllList(Worker* worker) {
     return true;
   }
 
-  for (Worker* current = all_workers_;
-       current->all_next_ != NULL;
+  for (Worker* current = all_workers_; current->all_next_ != NULL;
        current = current->all_next_) {
     if (current->all_next_ == worker) {
       current->all_next_ = worker->all_next_;
@@ -298,8 +296,7 @@ bool ThreadPool::RemoveWorkerFromShutdownList(Worker* worker) {
   }
 
   for (Worker* current = shutting_down_workers_;
-       current->shutdown_next_ != NULL;
-       current = current->shutdown_next_) {
+       current->shutdown_next_ != NULL; current = current->shutdown_next_) {
     if (current->shutdown_next_ == worker) {
       current->shutdown_next_ = worker->shutdown_next_;
       worker->shutdown_next_ = NULL;
@@ -325,24 +322,21 @@ void ThreadPool::JoinList::Join(JoinList** list) {
 }
 
 
-ThreadPool::Task::Task() {
-}
+ThreadPool::Task::Task() {}
 
 
-ThreadPool::Task::~Task() {
-}
+ThreadPool::Task::~Task() {}
 
 
 ThreadPool::Worker::Worker(ThreadPool* pool)
-  : pool_(pool),
-    task_(NULL),
-    id_(OSThread::kInvalidThreadId),
-    done_(false),
-    owned_(false),
-    all_next_(NULL),
-    idle_next_(NULL),
-    shutdown_next_(NULL) {
-}
+    : pool_(pool),
+      task_(NULL),
+      id_(OSThread::kInvalidThreadId),
+      done_(false),
+      owned_(false),
+      all_next_(NULL),
+      idle_next_(NULL),
+      shutdown_next_(NULL) {}
 
 
 ThreadId ThreadPool::Worker::id() {
@@ -354,13 +348,12 @@ ThreadId ThreadPool::Worker::id() {
 void ThreadPool::Worker::StartThread() {
 #if defined(DEBUG)
   // Must call SetTask before StartThread.
-  { // NOLINT
+  {  // NOLINT
     MonitorLocker ml(&monitor_);
     ASSERT(task_ != NULL);
   }
 #endif
-  int result = OSThread::Start("Dart ThreadPool Worker",
-                               &Worker::Main,
+  int result = OSThread::Start("Dart ThreadPool Worker", &Worker::Main,
                                reinterpret_cast<uword>(this));
   if (result != 0) {
     FATAL1("Could not start worker thread: result = %d.", result);
@@ -478,8 +471,8 @@ void ThreadPool::Worker::Main(uword args) {
       JoinList::AddLocked(join_id, &pool->join_list_);
     }
 
-    // worker->id_ should never be read again, so set to invalid in debug mode
-    // for asserts.
+// worker->id_ should never be read again, so set to invalid in debug mode
+// for asserts.
 #if defined(DEBUG)
     {
       MonitorLocker ml(&worker->monitor_);

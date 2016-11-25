@@ -155,7 +155,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
-    element.const2 = node.constKeyword != null;
+    element.isConst = node.constKeyword != null;
     if (body.isAsynchronous) {
       element.asynchronous = true;
     }
@@ -198,8 +198,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
       SimpleIdentifier constantName = constant.name;
       FieldElementImpl constantField =
           new ConstFieldElementImpl.forNode(constantName);
-      constantField.static = true;
-      constantField.const3 = true;
+      constantField.isStatic = true;
+      constantField.isConst = true;
       constantField.type = enumType;
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
@@ -235,8 +235,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
       FieldFormalParameterElementImpl parameter =
           new FieldFormalParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
-      parameter.const3 = node.isConst;
-      parameter.final2 = node.isFinal;
+      parameter.isConst = node.isConst;
+      parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       if (field != null) {
         parameter.field = field;
@@ -304,8 +304,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
             .getTopLevelVariable(propertyName) as TopLevelVariableElementImpl;
         if (variable == null) {
           variable = new TopLevelVariableElementImpl(node.name.name, -1);
-          variable.final2 = true;
-          variable.synthetic = true;
+          variable.isFinal = true;
+          variable.isSynthetic = true;
           _currentHolder.addTopLevelVariable(variable);
         }
         if (node.isGetter) {
@@ -328,7 +328,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           getter.variable = variable;
           getter.getter = true;
-          getter.static = true;
+          getter.isStatic = true;
           variable.getter = getter;
           if (node.returnType == null) {
             getter.hasImplicitReturnType = true;
@@ -357,12 +357,12 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           setter.variable = variable;
           setter.setter = true;
-          setter.static = true;
+          setter.isStatic = true;
           if (node.returnType == null) {
             setter.hasImplicitReturnType = true;
           }
           variable.setter = setter;
-          variable.final2 = false;
+          variable.isFinal = false;
           _currentHolder.addAccessor(setter);
           expression.element = setter;
           propertyNameNode.staticElement = setter;
@@ -471,7 +471,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
-        element.static = isStatic;
+        element.isStatic = isStatic;
         element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
           element.asynchronous = true;
@@ -491,9 +491,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
             synthetic: true) as FieldElementImpl;
         if (field == null) {
           field = new FieldElementImpl(node.name.name, -1);
-          field.final2 = true;
-          field.static = isStatic;
-          field.synthetic = true;
+          field.isFinal = true;
+          field.isStatic = isStatic;
+          field.isSynthetic = true;
           _currentHolder.addField(field);
         }
         if (node.isGetter) {
@@ -517,7 +517,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           getter.variable = field;
           getter.abstract = node.isAbstract;
           getter.getter = true;
-          getter.static = isStatic;
+          getter.isStatic = isStatic;
           field.getter = getter;
           if (node.returnType == null) {
             getter.hasImplicitReturnType = true;
@@ -546,12 +546,12 @@ class ApiElementBuilder extends _BaseElementBuilder {
           setter.variable = field;
           setter.abstract = node.isAbstract;
           setter.setter = true;
-          setter.static = isStatic;
+          setter.isStatic = isStatic;
           if (node.returnType == null) {
             setter.hasImplicitReturnType = true;
           }
           field.setter = setter;
-          field.final2 = false;
+          field.isFinal = false;
           _currentHolder.addAccessor(setter);
           propertyNameNode.staticElement = setter;
         }
@@ -621,7 +621,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
-      field.static = fieldNode.isStatic;
+      field.isStatic = fieldNode.isStatic;
       _setCodeRange(element, node);
       setElementDocumentationComment(element, fieldNode);
       field.hasImplicitType = varList.type == null;
@@ -644,8 +644,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
       _currentHolder.addTopLevelVariable(variable);
       variableName.staticElement = element;
     }
-    element.const3 = isConst;
-    element.final2 = isFinal;
+    element.isConst = isConst;
+    element.isFinal = isFinal;
     if (element is PropertyInducingElementImpl) {
       PropertyAccessorElementImpl_ImplicitGetter getter =
           new PropertyAccessorElementImpl_ImplicitGetter(element);
@@ -699,7 +699,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       ClassElementImpl definingClass) {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forNode(null);
-    constructor.synthetic = true;
+    constructor.isSynthetic = true;
     constructor.enclosingElement = definingClass;
     return <ConstructorElement>[constructor];
   }
@@ -867,7 +867,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     if (!explicitlyImportsCore && coreLibrarySource != librarySource) {
       ImportElementImpl importElement = new ImportElementImpl(-1);
       importElement.importedLibrary = importLibraryMap[coreLibrarySource];
-      importElement.synthetic = true;
+      importElement.isSynthetic = true;
       imports.add(importElement);
     }
     //
@@ -1137,8 +1137,8 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
     element.setVisibleRange(statement.offset, statement.length);
-    element.const3 = node.isConst;
-    element.final2 = node.isFinal;
+    element.isConst = node.isConst;
+    element.isFinal = node.isFinal;
     if (node.type == null) {
       element.hasImplicitType = true;
     }
@@ -1283,8 +1283,8 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.hasImplicitType = varList.type == null;
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
-    element.const3 = isConst;
-    element.final2 = isFinal;
+    element.isConst = isConst;
+    element.isFinal = isFinal;
     buildVariableInitializer(element, initializerNode);
     return null;
   }
@@ -1344,7 +1344,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
       initializer.parameters = holder.parameters;
-      initializer.synthetic = true;
+      initializer.isSynthetic = true;
       initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
@@ -1367,7 +1367,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       initializerElement.functions = holder.functions;
       initializerElement.labels = holder.labels;
       initializerElement.localVariables = holder.localVariables;
-      initializerElement.synthetic = true;
+      initializerElement.isSynthetic = true;
       initializerElement.type = new FunctionTypeImpl(initializerElement);
       variable.initializer = initializerElement;
       holder.validate();
@@ -1388,8 +1388,8 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter = new DefaultParameterElementImpl.forNode(parameterName);
     }
     _setCodeRange(parameter, node);
-    parameter.const3 = node.isConst;
-    parameter.final2 = node.isFinal;
+    parameter.isConst = node.isConst;
+    parameter.isFinal = node.isFinal;
     parameter.parameterKind = node.kind;
     // visible range
     _setParameterVisibleRange(node, parameter);
@@ -1436,8 +1436,8 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
-      parameter.const3 = node.isConst;
-      parameter.final2 = node.isFinal;
+      parameter.isConst = node.isConst;
+      parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       if (node.type == null) {

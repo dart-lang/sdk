@@ -117,6 +117,17 @@ class _FastUriTest {
     _compareUris(uri3, Uri.parse('package:analyzer/aaa/bbbb/dd/eeee.dart'));
   }
 
+  void test_resolveUri_short_absolute() {
+    // Check the case where the URI being resolved is a "short absolute" uri
+    // (starts with a "/" but doesn't start with "file://").  Such URIs are not
+    // actually valid URIs but we still want to handle them in a way that's
+    // consistent with the behavior of Uri.
+    String containing = 'file:///foo/bar';
+    String relative = '/a.dart';
+    String expectedResult = Uri.parse(containing).resolve(relative).toString();
+    _checkResolveUri(containing, relative, expectedResult);
+  }
+
   void _checkResolveUri(String srcText, String relText, String targetText) {
     Uri src = FastUri.parse(srcText);
     Uri rel = FastUri.parse(relText);

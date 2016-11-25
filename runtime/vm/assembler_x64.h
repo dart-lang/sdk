@@ -23,9 +23,9 @@ class StubEntry;
 
 class Immediate : public ValueObject {
  public:
-  explicit Immediate(int64_t value) : value_(value) { }
+  explicit Immediate(int64_t value) : value_(value) {}
 
-  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) {}
 
   int64_t value() const { return value_; }
 
@@ -45,13 +45,9 @@ class Immediate : public ValueObject {
 
 class Operand : public ValueObject {
  public:
-  uint8_t rex() const {
-    return rex_;
-  }
+  uint8_t rex() const { return rex_; }
 
-  uint8_t mod() const {
-    return (encoding_at(0) >> 6) & 3;
-  }
+  uint8_t mod() const { return (encoding_at(0) >> 6) & 3; }
 
   Register rm() const {
     int rm_rex = (rex_ & REX_B) << 3;
@@ -104,7 +100,7 @@ class Operand : public ValueObject {
   }
 
  protected:
-  Operand() : length_(0), rex_(REX_NONE) { }  // Needed by subclass Address.
+  Operand() : length_(0), rex_(REX_NONE) {}  // Needed by subclass Address.
 
   void SetModRM(int mod, Register rm) {
     ASSERT((mod & ~3) == 0);
@@ -155,8 +151,8 @@ class Operand : public ValueObject {
   // disguise. Used from the assembler to generate better encodings.
   bool IsRegister(Register reg) const {
     return ((reg > 7 ? 1 : 0) == (rex_ & REX_B))  // REX.B match.
-        && ((encoding_at(0) & 0xF8) == 0xC0)  // Addressing mode is register.
-        && ((encoding_at(0) & 0x07) == reg);  // Register codes match.
+           && ((encoding_at(0) & 0xF8) == 0xC0)  // Addressing mode is register.
+           && ((encoding_at(0) & 0x07) == reg);  // Register codes match.
   }
 
   friend class Assembler;
@@ -218,7 +214,7 @@ class Address : public Operand {
   // This addressing mode does not exist.
   Address(Register base, Register index, ScaleFactor scale, Register r);
 
-  Address(const Address& other) : Operand(other) { }
+  Address(const Address& other) : Operand(other) {}
 
   Address& operator=(const Address& other) {
     Operand::operator=(other);
@@ -246,7 +242,7 @@ class Address : public Operand {
   }
 
   struct RIPRelativeDisp {
-    explicit RIPRelativeDisp(int32_t disp) : disp_(disp) { }
+    explicit RIPRelativeDisp(int32_t disp) : disp_(disp) {}
     const int32_t disp_;
   };
 
@@ -260,18 +256,18 @@ class Address : public Operand {
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) { }
+      : Address(base, disp - kHeapObjectTag) {}
 
   // This addressing mode does not exist.
   FieldAddress(Register base, Register r);
 
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
-      : Address(base, index, scale, disp - kHeapObjectTag) { }
+      : Address(base, index, scale, disp - kHeapObjectTag) {}
 
   // This addressing mode does not exist.
   FieldAddress(Register base, Register index, ScaleFactor scale, Register r);
 
-  FieldAddress(const FieldAddress& other) : Address(other) { }
+  FieldAddress(const FieldAddress& other) : Address(other) {}
 
   FieldAddress& operator=(const FieldAddress& other) {
     Address::operator=(other);
@@ -353,7 +349,7 @@ class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false);
 
-  ~Assembler() { }
+  ~Assembler() {}
 
   static const bool kNearJump = true;
   static const bool kFarJump = false;
@@ -503,9 +499,9 @@ class Assembler : public ValueObject {
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
-    kRoundDown      = 0x1,
-    kRoundUp        = 0x2,
-    kRoundToZero    = 0x3
+    kRoundDown = 0x1,
+    kRoundUp = 0x2,
+    kRoundToZero = 0x3
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
@@ -682,9 +678,7 @@ class Assembler : public ValueObject {
   void int3();
   void hlt();
 
-  static uword GetBreakInstructionFiller() {
-    return 0xCCCCCCCCCCCCCCCC;
-  }
+  static uword GetBreakInstructionFiller() { return 0xCCCCCCCCCCCCCCCC; }
 
   void j(Condition condition, Label* label, bool near = kFarJump);
 
@@ -749,12 +743,8 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
 
-  bool constant_pool_allowed() const {
-    return constant_pool_allowed_;
-  }
-  void set_constant_pool_allowed(bool b) {
-    constant_pool_allowed_ = b;
-  }
+  bool constant_pool_allowed() const { return constant_pool_allowed_; }
+  void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
   void LoadImmediate(Register reg, const Immediate& imm);
   void LoadIsolate(Register dst);
@@ -783,9 +773,9 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   // Destroys value.
-  void StoreIntoObject(Register object,  // Object we are storing into.
+  void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
-                       Register value,  // Value we are storing.
+                       Register value,       // Value we are storing.
                        bool can_value_be_smi = true);
 
   void StoreIntoObjectNoBarrier(Register object,
@@ -853,13 +843,9 @@ class Assembler : public ValueObject {
   /*
    * Misc. functionality.
    */
-  void SmiTag(Register reg) {
-    addq(reg, reg);
-  }
+  void SmiTag(Register reg) { addq(reg, reg); }
 
-  void SmiUntag(Register reg) {
-    sarq(reg, Immediate(kSmiTagSize));
-  }
+  void SmiUntag(Register reg) { sarq(reg, Immediate(kSmiTagSize)); }
 
   void BranchIfNotSmi(Register reg, Label* label) {
     testq(reg, Immediate(kSmiTagMask));
@@ -876,18 +862,15 @@ class Assembler : public ValueObject {
   const Code::Comments& GetCodeComments() const;
 
   // Address of code at offset.
-  uword CodeAddress(intptr_t offset) {
-    return buffer_.Address(offset);
-  }
+  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
 
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.
-  intptr_t CountPointerOffsets() const {
-    return buffer_.CountPointerOffsets();
-  }
+  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
 
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
@@ -949,12 +932,9 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void RawEntry() { buffer_.Reset(); }
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
-  void UpdateAllocationStats(intptr_t cid,
-                             Heap::Space space);
+  void UpdateAllocationStats(intptr_t cid, Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
@@ -965,9 +945,7 @@ class Assembler : public ValueObject {
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid,
-                            Label* trace,
-                            bool near_jump);
+  void MaybeTraceAllocation(intptr_t cid, Label* trace, bool near_jump);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -1025,11 +1003,12 @@ class Assembler : public ValueObject {
   ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
+  bool has_single_entry_point_;
 
   class CodeComment : public ZoneAllocated {
    public:
     CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) { }
+        : pc_offset_(pc_offset), comment_(comment) {}
 
     intptr_t pc_offset() const { return pc_offset_; }
     const String& comment() const { return comment_; }
@@ -1146,18 +1125,14 @@ inline void Assembler::EmitREX_RB(XmmRegister reg,
 }
 
 
-inline void Assembler::EmitREX_RB(XmmRegister reg,
-                                  Register base,
-                                  uint8_t rex) {
+inline void Assembler::EmitREX_RB(XmmRegister reg, Register base, uint8_t rex) {
   if (reg > 7) rex |= REX_R;
   if (base > 7) rex |= REX_B;
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
 
-inline void Assembler::EmitREX_RB(Register reg,
-                                  XmmRegister base,
-                                  uint8_t rex) {
+inline void Assembler::EmitREX_RB(Register reg, XmmRegister base, uint8_t rex) {
   if (reg > 7) rex |= REX_R;
   if (base > 7) rex |= REX_B;
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
