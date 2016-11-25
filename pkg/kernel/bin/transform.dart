@@ -7,8 +7,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:kernel/checks.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/checks.dart' as checks;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/infer_values.dart' as infer_values;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
@@ -79,7 +79,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       throw 'Unknown transformation';
   }
 
-  program.accept(new checks.CheckParentPointers());
+  runSanityChecks(program);
 
   if (format == 'text') {
     writeProgramToText(program, path: output);

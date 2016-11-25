@@ -4,79 +4,90 @@
 library kernel.checks;
 
 import 'ast.dart';
+import 'transformations/flags.dart';
 
 void runSanityChecks(Program program) {
-  CheckParentPointers.check(program);
-  CheckReferences.check(program);
-}
-
-class CheckParentPointers extends Visitor {
-  static void check(TreeNode node) {
-    node.accept(new CheckParentPointers(node.parent));
-  }
-
-  TreeNode parent;
-
-  CheckParentPointers([this.parent]);
-
-  defaultTreeNode(TreeNode node) {
-    if (node.parent != parent) {
-      throw 'Parent pointer on ${node.runtimeType} '
-          'is ${node.parent.runtimeType} '
-          'but should be ${parent.runtimeType}';
-    }
-    var oldParent = parent;
-    parent = node;
-    node.visitChildren(this);
-    parent = oldParent;
-  }
+  SanityCheck.check(program);
 }
 
 /// Checks that references refer to something in scope.
 ///
 /// Currently only checks member, class, and type parameter references.
-class CheckReferences extends RecursiveVisitor {
-  final Set<Member> members = new Set<Member>();
+class SanityCheck extends RecursiveVisitor {
   final Set<Class> classes = new Set<Class>();
   final Set<TypeParameter> typeParameters = new Set<TypeParameter>();
 
   Member currentMember;
   Class currentClass;
+  TreeNode currentParent;
 
   TreeNode get context => currentMember ?? currentClass;
 
   static void check(Program program) {
-    program.accept(new CheckReferences());
+    program.accept(new SanityCheck());
+  }
+
+  defaultTreeNode(TreeNode node) {
+    visitChildren(node);
+  }
+
+  void visitChildren(TreeNode node) {
+    if (!identical(node.parent, currentParent)) {
+      throw 'Parent pointer on ${node.runtimeType} '
+          'is ${node.parent.runtimeType} '
+          'but should be ${currentParent.runtimeType}';
+    }
+    var oldParent = currentParent;
+    currentParent = node;
+    node.visitChildren(this);
+    currentParent = oldParent;
+  }
+
+  void declareMember(Member member) {
+    if (member.transformerFlags & TransformerFlag.seenBySanityCheck != 0) {
+      throw '$member has been declared more than once';
+    }
+    member.transformerFlags |= TransformerFlag.seenBySanityCheck;
+  }
+
+  void undeclareMember(Member member) {
+    member.transformerFlags &= ~TransformerFlag.seenBySanityCheck;
   }
 
   visitProgram(Program program) {
     for (var library in program.libraries) {
       classes.addAll(library.classes);
-      members.addAll(library.members);
+      library.members.forEach(declareMember);
       for (var class_ in library.classes) {
-        members.addAll(class_.members);
+        class_.members.forEach(declareMember);
       }
     }
-    program.visitChildren(this);
+    visitChildren(program);
+    for (var library in program.libraries) {
+      library.members.forEach(undeclareMember);
+      for (var class_ in library.classes) {
+        class_.members.forEach(undeclareMember);
+      }
+    }
   }
 
   defaultMember(Member node) {
     currentMember = node;
-    node.visitChildren(this);
+    visitChildren(node);
     currentMember = null;
   }
 
   visitClass(Class node) {
     currentClass = node;
     typeParameters.addAll(node.typeParameters);
-    node.visitChildren(this);
+    visitChildren(node);
     typeParameters.removeAll(node.typeParameters);
     currentClass = null;
   }
 
   visitFunctionNode(FunctionNode node) {
     typeParameters.addAll(node.typeParameters);
-    node.visitChildren(this);
+    visitChildren(node);
     typeParameters.removeAll(node.typeParameters);
   }
 
@@ -87,12 +98,19 @@ class CheckReferences extends RecursiveVisitor {
             '$context';
       }
     }
-    node.visitChildren(this);
+    typeParameters.addAll(node.typeParameters);
+    for (var typeParameter in node.typeParameters) {
+      typeParameter.bound?.accept(this);
+    }
+    visitList(node.positionalParameters, this);
+    visitList(node.namedParameters, this);
+    node.returnType.accept(this);
+    typeParameters.removeAll(node.typeParameters);
   }
 
   @override
   defaultMemberReference(Member node) {
-    if (!members.contains(node)) {
+    if (node.transformerFlags & TransformerFlag.seenBySanityCheck == 0) {
       throw 'Dangling reference to $node found in $context.\n'
           'Parent pointer is set to ${node.parent}';
     }
@@ -126,23 +144,24 @@ class CheckReferences extends RecursiveVisitor {
   }
 }
 
-class SizeCounter extends RecursiveVisitor {
-  int size = 0;
-  int emptyArguments = 0;
-
-  void visit(TreeNode node) => node.accept(this);
-
-  visitArguments(Arguments node) {
-    super.visitArguments(node);
-    if (node.positional.isEmpty &&
-        node.positional.isEmpty &&
-        node.types.isEmpty) {
-      ++emptyArguments;
-    }
+class CheckParentPointers extends Visitor {
+  static void check(TreeNode node) {
+    node.accept(new CheckParentPointers(node.parent));
   }
 
-  defaultNode(Node node) {
-    ++size;
+  TreeNode parent;
+
+  CheckParentPointers([this.parent]);
+
+  defaultTreeNode(TreeNode node) {
+    if (node.parent != parent) {
+      throw 'Parent pointer on ${node.runtimeType} '
+          'is ${node.parent.runtimeType} '
+          'but should be ${parent.runtimeType}';
+    }
+    var oldParent = parent;
+    parent = node;
     node.visitChildren(this);
+    parent = oldParent;
   }
 }

@@ -12,6 +12,10 @@ class TransformerFlag {
   /// [SuperPropertyGet], [SuperPropertySet], [SuperMethodInvocation].
   static const int superCalls = 1 << 0;
 
+  /// Temporary flag used by sanity checks to indicate that the given member
+  /// has been seen.
+  static const int seenBySanityCheck = 1 << 1;
+
   // TODO(asgerf):  We could also add a flag for 'async' and will probably have
   // one for closures as well.
 }

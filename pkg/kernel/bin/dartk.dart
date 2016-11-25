@@ -334,7 +334,9 @@ Future<CompilerOutcome> batchMain(
     }
   }
 
-  sanityCheck();
+  if (canContinueCompilation) {
+    sanityCheck();
+  }
 
   String outputDependencies = options['write-dependencies'];
   if (outputDependencies != null) {
