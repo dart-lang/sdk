@@ -74,9 +74,12 @@ class Flags {
   // https://gist.github.com/eernstg/4353d7b4f669745bed3a5423e04a453c.
   static const String genericMethodSyntax = '--generic-method-syntax';
 
+  // Initializing-formal access is enabled by default and cannot be disabled.
+  // For backward compatibility the option is still accepted, but it is ignored.
+  static const String initializingFormalAccess = '--initializing-formal-access';
+
   // Experimental flags.
   static const String resolveOnly = '--resolve-only';
-  static const String initializingFormalAccess = '--initializing-formal-access';
 }
 
 class Option {

@@ -294,8 +294,7 @@ class InitializerResolver {
    * Resolve all initializers of this constructor. In the case of a redirecting
    * constructor, the resolved constructor's function element is returned.
    */
-  ConstructorElement resolveInitializers(
-      {bool enableInitializingFormalAccess: false}) {
+  ConstructorElement resolveInitializers() {
     Map<dynamic /*String|int*/, ConstantExpression> defaultValues =
         <dynamic /*String|int*/, ConstantExpression>{};
     ConstructedConstantExpression constructorInvocation;
@@ -303,12 +302,10 @@ class InitializerResolver {
     // that we can ensure that fields are initialized only once.
     FunctionSignature functionParameters = constructor.functionSignature;
     Scope oldScope = visitor.scope;
-    if (enableInitializingFormalAccess) {
-      // In order to get the correct detection of name clashes between all
-      // parameters (regular ones and initializing formals) we must extend
-      // the parameter scope rather than adding a new nested scope.
-      visitor.scope = new ExtensionScope(visitor.scope);
-    }
+    // In order to get the correct detection of name clashes between all
+    // parameters (regular ones and initializing formals) we must extend
+    // the parameter scope rather than adding a new nested scope.
+    visitor.scope = new ExtensionScope(visitor.scope);
     Link<Node> parameterNodes = (functionNode.parameters == null)
         ? const Link<Node>()
         : functionNode.parameters.nodes;
@@ -349,10 +346,8 @@ class InitializerResolver {
           registry.registerStaticUse(new StaticUse.fieldInit(field));
         }
         checkForDuplicateInitializers(field, element.initializer);
-        if (enableInitializingFormalAccess) {
-          visitor.defineLocalVariable(parameterNode, initializingFormal);
-          visitor.addToScope(initializingFormal);
-        }
+        visitor.defineLocalVariable(parameterNode, initializingFormal);
+        visitor.addToScope(initializingFormal);
         if (isConst) {
           if (element.isNamed) {
             fieldInitializers[field] = new NamedArgumentReference(element.name);

@@ -133,10 +133,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// reason for why an assertion fails. (experimental)
   final bool enableAssertMessage;
 
-  /// Support access to initializing formal constructor arguments, e.g., the
-  /// use of `x` to initialize `y` in `C(this.x) : y = x`.
-  final bool enableInitializingFormalAccess;
-
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
   /// silences a warning produced by the compiler.
   final bool enableExperimentalMirrors;
@@ -272,8 +268,6 @@ class CompilerOptions implements DiagnosticOptions {
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
         dumpInfo: _hasOption(options, Flags.dumpInfo),
         enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
-        enableInitializingFormalAccess:
-            _hasOption(options, Flags.initializingFormalAccess),
         enableExperimentalMirrors:
             _hasOption(options, Flags.enableExperimentalMirrors),
         enableMinification: _hasOption(options, Flags.minify),
@@ -340,7 +334,6 @@ class CompilerOptions implements DiagnosticOptions {
       bool disableTypeInference: false,
       bool dumpInfo: false,
       bool enableAssertMessage: false,
-      bool enableInitializingFormalAccess: false,
       bool enableExperimentalMirrors: false,
       bool enableMinification: false,
       bool enableNativeLiveTypeAnalysis: true,
@@ -411,7 +404,6 @@ class CompilerOptions implements DiagnosticOptions {
         disableTypeInference: disableTypeInference,
         dumpInfo: dumpInfo,
         enableAssertMessage: enableAssertMessage,
-        enableInitializingFormalAccess: enableInitializingFormalAccess,
         enableExperimentalMirrors: enableExperimentalMirrors,
         enableMinification: enableMinification,
         enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis,
@@ -461,7 +453,6 @@ class CompilerOptions implements DiagnosticOptions {
       this.disableTypeInference: false,
       this.dumpInfo: false,
       this.enableAssertMessage: false,
-      this.enableInitializingFormalAccess: false,
       this.enableExperimentalMirrors: false,
       this.enableMinification: false,
       this.enableNativeLiveTypeAnalysis: false,
@@ -518,7 +509,6 @@ class CompilerOptions implements DiagnosticOptions {
       disableTypeInference,
       dumpInfo,
       enableAssertMessage,
-      enableInitializingFormalAccess,
       enableExperimentalMirrors,
       enableMinification,
       enableNativeLiveTypeAnalysis,
@@ -576,8 +566,6 @@ class CompilerOptions implements DiagnosticOptions {
             disableTypeInference ?? options.disableTypeInference,
         dumpInfo: dumpInfo ?? options.dumpInfo,
         enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
-        enableInitializingFormalAccess: enableInitializingFormalAccess ??
-            options.enableInitializingFormalAccess,
         enableExperimentalMirrors:
             enableExperimentalMirrors ?? options.enableExperimentalMirrors,
         enableMinification: enableMinification ?? options.enableMinification,

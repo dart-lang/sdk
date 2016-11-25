@@ -356,7 +356,6 @@ parameter_initializer1_negative_test: CompileTimeError
 parameter_initializer2_negative_test: CompileTimeError
 parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
-parameter_initializer5_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
 parser_quirks_test: StaticWarning
 part2_test: StaticWarning
