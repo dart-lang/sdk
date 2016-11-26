@@ -96,7 +96,8 @@ class KernelAstAdapter {
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
-    assert(result != null);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
+        message: "No node found for $node"));
     return result;
   }
 
@@ -144,6 +145,7 @@ class KernelAstAdapter {
 
   Selector getSelector(ir.Expression node) {
     if (node is ir.PropertyGet) return getGetterSelector(node);
+    if (node is ir.PropertySet) return getSetterSelector(node);
     if (node is ir.InvocationExpression) return getInvocationSelector(node);
     _compiler.reporter.internalError(getNode(node),
         "Can only get the selector for a property get or an invocation.");
@@ -174,12 +176,27 @@ class KernelAstAdapter {
     return new Selector.getter(name);
   }
 
+  Selector getSetterSelector(ir.PropertySet setter) {
+    ir.Name irName = setter.name;
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getElement(irName.library) : null);
+    return new Selector.setter(name);
+  }
+
   TypeMask typeOfInvocation(ir.Expression send) {
+    ast.Node operatorNode = kernel.nodeToAstOperator[send];
+    if (operatorNode != null) {
+      return _resultOf(_target).typeOfOperator(operatorNode);
+    }
     return _resultOf(_target).typeOfSend(getNode(send));
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {
     return _resultOf(_target).typeOfSend(getNode(getter));
+  }
+
+  TypeMask typeOfSet(ir.PropertySet setter) {
+    return _compiler.closedWorld.commonMasks.dynamicType;
   }
 
   TypeMask typeOfSend(ir.Expression send) {

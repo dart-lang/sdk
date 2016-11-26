@@ -73,6 +73,7 @@ class Kernel {
 
   final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
   final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
+  final Map<ir.Node, Node> nodeToAstOperator = <ir.Node, Node>{};
 
   /// FIFO queue of work that needs to be completed before the returned AST
   /// nodes are correct.

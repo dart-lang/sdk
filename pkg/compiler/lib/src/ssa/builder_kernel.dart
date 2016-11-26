@@ -86,6 +86,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
+  final Map<ir.VariableDeclaration, HInstruction> letBindings =
+      <ir.VariableDeclaration, HInstruction>{};
+
   KernelSsaBuilder(
       this.targetElement,
       this.resolvedAst,
@@ -939,8 +942,29 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitVariableGet(ir.VariableGet variableGet) {
+    ir.VariableDeclaration variable = variableGet.variable;
+    HInstruction letBinding = letBindings[variable];
+    if (letBinding != null) {
+      stack.add(letBinding);
+      return;
+    }
+
     Local local = astAdapter.getLocal(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
+  }
+
+  @override
+  void visitPropertySet(ir.PropertySet propertySet) {
+    propertySet.receiver.accept(this);
+    HInstruction receiver = pop();
+    propertySet.value.accept(this);
+    HInstruction value = pop();
+
+    _pushDynamicInvocation(propertySet, astAdapter.typeOfSet(propertySet),
+        <HInstruction>[receiver, value]);
+
+    pop();
+    stack.add(value);
   }
 
   @override
@@ -982,6 +1006,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         local,
         typeBuilder.potentiallyCheckOrTrustType(
             value, astAdapter.getDartType(variable.type)));
+  }
+
+  @override
+  void visitLet(ir.Let let) {
+    ir.VariableDeclaration variable = let.variable;
+    variable.initializer.accept(this);
+    HInstruction initializedValue = pop();
+    // TODO(sra): Apply inferred type information.
+    letBindings[variable] = initializedValue;
+    let.body.accept(this);
   }
 
   // TODO(het): Also extract type arguments

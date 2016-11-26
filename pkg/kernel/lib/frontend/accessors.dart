@@ -9,6 +9,13 @@ library kernel.frontend.accessors;
 import '../ast.dart';
 
 abstract class Accessor {
+  // [builtBinary] and [builtGetter] capture the inner nodes. Used by
+  // dart2js+rasta for determining how subexpressions map to legacy dart2js Ast
+  // nodes. This will be removed once dart2js type analysis (aka inference) is
+  // reimplemented on kernel.
+  Expression builtBinary;
+  Expression builtGetter;
+
   Expression buildSimpleRead() {
     return _finish(_makeSimpleRead());
   }
@@ -37,7 +44,8 @@ abstract class Accessor {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return _finish(_makeWrite(
-        makeBinary(_makeRead(), binaryOperator, interfaceTarget, value),
+        builtBinary =
+            makeBinary(_makeRead(), binaryOperator, interfaceTarget, value),
         voidContext));
   }
 
@@ -56,7 +64,7 @@ abstract class Accessor {
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        makeBinary(
+        builtBinary = makeBinary(
             valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1)),
         true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
@@ -122,7 +130,7 @@ class PropertyAccessor extends Accessor {
     return new VariableGet(_receiverVariable);
   }
 
-  _makeRead() => new PropertyGet(receiverAccess(), name, getter);
+  _makeRead() => builtGetter = new PropertyGet(receiverAccess(), name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(receiverAccess(), name, value, setter);
@@ -139,7 +147,8 @@ class ThisPropertyAccessor extends Accessor {
 
   ThisPropertyAccessor(this.name, this.getter, this.setter);
 
-  _makeRead() => new PropertyGet(new ThisExpression(), name, getter);
+  _makeRead() =>
+      builtGetter = new PropertyGet(new ThisExpression(), name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(new ThisExpression(), name, value, setter);
@@ -158,7 +167,7 @@ class NullAwarePropertyAccessor extends Accessor {
 
   receiverAccess() => new VariableGet(receiver);
 
-  _makeRead() => new PropertyGet(receiverAccess(), name, getter);
+  _makeRead() => builtGetter = new PropertyGet(receiverAccess(), name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(receiverAccess(), name, value, setter);
