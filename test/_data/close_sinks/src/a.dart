@@ -4,9 +4,14 @@
 
 import 'dart:io';
 import 'dart:async';
-import 'package:mockito/mockito.dart';
 
-class MockIOSink extends Mock implements IOSink {}
+class MockIOSink implements Sink {
+  @override
+  void add(data) {}
+
+  @override
+  void close() {}
+}
 
 IOSink outSink = stdout;
 void inScope() {
@@ -52,13 +57,15 @@ class C1 {
   final IOSink _sinkC1; // OK
   final Object unrelated;
 
-  C1.initializer(IOSink sink, blah) : this._sinkC1 = sink, this.unrelated = blah;
+  C1.initializer(IOSink sink, blah)
+      : this._sinkC1 = sink,
+        this.unrelated = blah;
 }
 
 class C2 {
   IOSink _sinkC2; // OK
 
-  void initialize(IOSink sink){
+  void initialize(IOSink sink) {
     this._sinkC2 = sink;
   }
 }
@@ -66,7 +73,7 @@ class C2 {
 class C3 {
   IOSink _sinkC3; // OK
 
-  void initialize(IOSink sink){
+  void initialize(IOSink sink) {
     _sinkC3 = sink;
   }
 }
@@ -93,7 +100,7 @@ IOSink someFunctionReturningIOSink() {
 }
 
 void startChunkedConversion(Socket sink) {
-  IOSink stringSink;
+  Sink stringSink;
   if (sink is IOSink) {
     stringSink = sink;
   } else {
@@ -103,13 +110,9 @@ void startChunkedConversion(Socket sink) {
 
 void onListen(Stream<int> stream) {
   StreamController controllerListen = new StreamController();
-  stream.listen(
-      (int event) {
+  stream.listen((int event) {
     event.toString();
-  },
-      onError: controllerListen.addError,
-      onDone: controllerListen.close
-  );
+  }, onError: controllerListen.addError, onDone: controllerListen.close);
 }
 
 void someFunctionClosing(StreamController controller) {}

@@ -6,21 +6,27 @@ library linter.src.util.leak_detector_visitor;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
+import 'package:meta/meta.dart';
 
 _PredicateBuilder _hasConstructorFieldInitializers = (VariableDeclaration v) =>
     (AstNode n) =>
         n is ConstructorFieldInitializer &&
-        n.fieldName.name == v.name.token.lexeme;
+        n.fieldName.bestElement == v.name.bestElement;
+
 _PredicateBuilder _hasFieldFormalParameter = (VariableDeclaration v) =>
     (AstNode n) =>
-        n is FieldFormalParameter && n.identifier.name == v.name.token.lexeme;
+        n is FieldFormalParameter &&
+        (n.identifier.bestElement as FieldFormalParameterElement).field ==
+            v.name.bestElement;
+
 _PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) =>
     n is ReturnStatement &&
     n.expression is SimpleIdentifier &&
-    (n.expression as SimpleIdentifier).token.lexeme == v.name.token.lexeme;
+    (n.expression as SimpleIdentifier).bestElement == v.name.bestElement;
 
 /// Builds a function that reports the variable node if the set of nodes
 /// inside the [container] node is empty for all the predicates resulting
@@ -59,8 +65,7 @@ _VisitVariableDeclaration _buildVariableReporter(
       validators.add(_findMethodInvocationsWithVariableAsArgument(
           containerNodes, variable));
 
-      // Read this as: validators.forAll((i) => i.isEmpty).
-      if (!validators.any((i) => i.isNotEmpty)) {
+      if (validators.every((i) => i.isEmpty)) {
         rule.reportLint(variable);
       }
     };
@@ -70,7 +75,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
   Iterable<PrefixedIdentifier> prefixedIdentifiers =
       containerNodes.where((n) => n is PrefixedIdentifier);
   return prefixedIdentifiers.where((n) =>
-      n.prefix.token.lexeme == variable.name.token.lexeme &&
+      n.prefix.bestElement == variable.name.bestElement &&
       _hasMatch(predicates, variable.element.type, n.identifier.token.lexeme));
 }
 
@@ -79,8 +84,9 @@ Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
   Iterable<MethodInvocation> prefixedIdentifiers =
       containerNodes.where((n) => n is MethodInvocation);
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
-      .map((e) => e is SimpleIdentifier ? e.name : '')
-      .contains(variable.name.token.lexeme));
+      .where((e) => e is SimpleIdentifier)
+      .map((e) => (e as SimpleIdentifier).bestElement)
+      .contains(variable.name.bestElement));
 }
 
 Iterable<AstNode> _findNodesInvokingMethodOnVariable(
@@ -90,8 +96,7 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
     classNodes.where((AstNode n) =>
         n is MethodInvocation &&
         _hasMatch(predicates, variable.element.type, n.methodName.name) &&
-        ((n.target is SimpleIdentifier &&
-                (n.target as SimpleIdentifier).name == variable.name.name) ||
+        (_isSimpleIdentifierElementEqualToVariable(n.target, variable) ||
             (n.getAncestor((a) => a == variable) != null)));
 
 Iterable<AstNode> _findVariableAssignments(
@@ -104,10 +109,7 @@ Iterable<AstNode> _findVariableAssignments(
 
   return containerNodes.where((n) =>
       n is AssignmentExpression &&
-      ((n.leftHandSide is SimpleIdentifier &&
-              // Assignment to VariableDeclaration as variable.
-              (n.leftHandSide as SimpleIdentifier).token.lexeme ==
-                  variable.name.token.lexeme) ||
+      (_isSimpleIdentifierElementEqualToVariable(n.leftHandSide, variable) ||
           // Assignment to VariableDeclaration as setter.
           (n.leftHandSide is PropertyAccess &&
               (n.leftHandSide as PropertyAccess).propertyName.token.lexeme ==
@@ -123,6 +125,15 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
         false,
         (bool previous, DartTypePredicate p) =>
             previous || p(type) && predicates[p] == methodName);
+
+bool _isSimpleIdentifierElementEqualToVariable(
+        AstNode n, VariableDeclaration variable) =>
+    (n is SimpleIdentifier &&
+        // Assignment to VariableDeclaration as variable.
+        (n.bestElement == variable.name.bestElement ||
+            (n.bestElement is PropertyAccessorElement &&
+                (n.bestElement as PropertyAccessorElement).variable ==
+                    variable.name.bestElement)));
 
 typedef bool DartTypePredicate(DartType type);
 
@@ -143,6 +154,7 @@ abstract class LeakDetectorVisitor extends SimpleAstVisitor {
 
   LeakDetectorVisitor(this.rule);
 
+  @protected
   Map<DartTypePredicate, String> get predicates;
 
   @override
