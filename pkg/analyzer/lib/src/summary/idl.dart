@@ -634,6 +634,7 @@ abstract class LinkedLibrary extends base.SummaryClass {
    * Indicates whether this library was summarized in "fallback mode".  If
    * true, all other fields in the data structure have their default values.
    */
+  @deprecated
   @Id(5)
   bool get fallbackMode;
 
@@ -2868,6 +2869,7 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    * When this field is non-empty, all other fields in the data structure have
    * their default values.
    */
+  @deprecated
   @Id(16)
   String get fallbackModePath;
 

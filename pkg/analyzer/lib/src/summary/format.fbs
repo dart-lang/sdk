@@ -1164,7 +1164,7 @@ table LinkedLibrary {
    * Indicates whether this library was summarized in "fallback mode".  If
    * true, all other fields in the data structure have their default values.
    */
-  fallbackMode:bool (id: 5);
+  fallbackMode:bool (id: 5, deprecated);
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -2500,7 +2500,7 @@ table UnlinkedUnit {
    * When this field is non-empty, all other fields in the data structure have
    * their default values.
    */
-  fallbackModePath:string (id: 16);
+  fallbackModePath:string (id: 16, deprecated);
 
   /**
    * Import declarations in the compilation unit.
