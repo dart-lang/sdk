@@ -632,6 +632,7 @@ not_enough_positional_arguments_test/02: MissingRuntimeError
 not_enough_positional_arguments_test/05: MissingRuntimeError
 null_test/none: RuntimeError
 number_identifier_test/05: RuntimeError
+parameter_initializer5_test: CompileTimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
