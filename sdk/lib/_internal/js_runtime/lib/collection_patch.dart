@@ -431,8 +431,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class _HashMapKeyIterable<E> extends Iterable<E>
-                             implements EfficientLength {
+class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
   final _map;
   _HashMapKeyIterable(this._map);
 
@@ -664,8 +663,7 @@ class _Es6LinkedIdentityHashMap<K, V>
   String toString() => Maps.mapToString(this);
 }
 
-class _Es6MapIterable<E> extends Iterable<E>
-                         implements EfficientLength {
+class _Es6MapIterable<E> extends EfficientLengthIterable<E> {
   final _map;
   final bool _isKeys;
 

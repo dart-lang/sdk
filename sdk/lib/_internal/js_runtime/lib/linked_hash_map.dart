@@ -380,8 +380,7 @@ class LinkedHashMapCell<K, V> {
   LinkedHashMapCell(this.hashMapCellKey, this.hashMapCellValue);
 }
 
-class LinkedHashMapKeyIterable<E> extends Iterable<E>
-    implements EfficientLength {
+class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
   final dynamic/*=JsLinkedHashMap<E, dynamic>*/ _map;
   LinkedHashMapKeyIterable(this._map);
 

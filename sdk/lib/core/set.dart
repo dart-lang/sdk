@@ -31,7 +31,7 @@ part of dart.core;
  * iterating either the set itself or any [Iterable] that is backed by the set,
  * such as the ones returned by methods like [where] and [map].
  */
-abstract class Set<E> extends Iterable<E> implements EfficientLength {
+abstract class Set<E> extends EfficientLengthIterable<E> {
   /**
    * Creates an empty [Set].
    *

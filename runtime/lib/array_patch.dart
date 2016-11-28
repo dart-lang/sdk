@@ -33,7 +33,7 @@ const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();
   }
 
   @patch factory List.from(Iterable elements, { bool growable: true }) {
-    if (elements is EfficientLength) {
+    if (elements is EfficientLengthIterable) {
       int length = elements.length;
       var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
       if (length > 0) {  // Avoid creating iterator unless necessary.

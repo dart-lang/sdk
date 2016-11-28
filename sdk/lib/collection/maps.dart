@@ -111,8 +111,7 @@ abstract class UnmodifiableMapBase<K, V> =
  * It accesses the values by iterating over the keys of the map, and using the
  * map's `operator[]` to lookup the keys.
  */
-class _MapBaseValueIterable<K, V> extends Iterable<V>
-                                  implements EfficientLength {
+class _MapBaseValueIterable<K, V> extends EfficientLengthIterable<V> {
   final Map<K, V> _map;
   _MapBaseValueIterable(this._map);
 
