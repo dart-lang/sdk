@@ -285,15 +285,17 @@ class FixProcessor {
                 .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS) {
       // make class abstract
       _addFix_makeEnclosingClassAbstract();
-      // implement methods
-      AnalysisErrorWithProperties errorWithProperties =
-          error as AnalysisErrorWithProperties;
-      Object property =
-          errorWithProperties.getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
-      List<ExecutableElement> missingOverrides =
-          property as List<ExecutableElement>;
-      _addFix_createMissingOverrides(missingOverrides);
       _addFix_createNoSuchMethod();
+      // implement methods
+      // TODO(scheglov) Fix another way to get unimplemented methods.
+      // AnalysisErrorWithProperties does not work with the new analysis driver.
+      if (error is AnalysisErrorWithProperties) {
+        AnalysisErrorWithProperties errorWithProperties =
+            error as AnalysisErrorWithProperties;
+        List<ExecutableElement> missingOverrides = errorWithProperties
+            .getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
+        _addFix_createMissingOverrides(missingOverrides);
+      }
     }
     if (errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
         errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
