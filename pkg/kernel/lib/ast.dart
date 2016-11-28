@@ -1306,6 +1306,8 @@ class VariableGet extends Expression {
 }
 
 /// Assign a local variable or function parameter.
+///
+/// Evaluates to the value of [value].
 class VariableSet extends Expression {
   VariableDeclaration variable;
   Expression value;
@@ -1387,6 +1389,8 @@ class PropertyGet extends Expression {
 /// Expression of form `x.field = value`.
 ///
 /// This may invoke a setter or assign a field.
+///
+/// Evaluates to the value of [value].
 class PropertySet extends Expression {
   Expression receiver;
   Name name;
@@ -1461,6 +1465,8 @@ class DirectPropertyGet extends Expression {
 }
 
 /// Directly assign a field, or call a setter.
+///
+/// Evaluates to the value of [value].
 class DirectPropertySet extends Expression {
   Expression receiver;
   Member target;
@@ -1580,6 +1586,8 @@ class SuperPropertyGet extends Expression {
 /// Expression of form `super.field = value`.
 ///
 /// This may invoke a setter or assign a field.
+///
+/// Evaluates to the value of [value].
 class SuperPropertySet extends Expression {
   Name name;
   Expression value;
@@ -1632,6 +1640,8 @@ class StaticGet extends Expression {
 }
 
 /// Assign a static field or call a static setter.
+///
+/// Evaluates to the value of [value].
 class StaticSet extends Expression {
   /// A mutable static field or a static setter.
   Member target;
