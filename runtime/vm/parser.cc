@@ -55,7 +55,7 @@ DEFINE_FLAG(bool,
 DEFINE_FLAG(bool, generic_method_syntax, true, "Enable generic functions.");
 DEFINE_FLAG(bool,
             initializing_formal_access,
-            false,
+            true,
             "Make initializing formal parameters visible in initializer list.");
 DEFINE_FLAG(bool,
             warn_super,
