@@ -10597,7 +10597,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf(uri as AstNodeImpl);
   }
 
-  @override
   UriValidationCode validate() {
     return validateUri(this is ImportDirective, uri, uriContent);
   }
@@ -10639,15 +10638,15 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 /**
  * Validation codes returned by [UriBasedDirective.validate].
  */
-class UriValidationCodeImpl implements UriValidationCode {
+class UriValidationCode {
   static const UriValidationCode INVALID_URI =
-      const UriValidationCodeImpl('INVALID_URI');
+      const UriValidationCode('INVALID_URI');
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
-      const UriValidationCodeImpl('URI_WITH_INTERPOLATION');
+      const UriValidationCode('URI_WITH_INTERPOLATION');
 
   static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      const UriValidationCodeImpl('URI_WITH_DART_EXT_SCHEME');
+      const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /**
    * The name of the validation code.
@@ -10657,7 +10656,7 @@ class UriValidationCodeImpl implements UriValidationCode {
   /**
    * Initialize a newly created validation code to have the given [name].
    */
-  const UriValidationCodeImpl(this.name);
+  const UriValidationCode(this.name);
 
   @override
   String toString() => name;

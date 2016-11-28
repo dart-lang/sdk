@@ -7960,28 +7960,6 @@ abstract class UriBasedDirective extends Directive {
    * Set the source to which the [uri] was resolved to the given [source].
    */
   void set uriSource(Source source);
-
-  /**
-   * Validate this directive, but do not check for existence. Return a code
-   * indicating the problem if there is one, or `null` no problem
-   */
-  UriValidationCode validate();
-}
-
-/**
- * Validation codes returned by [UriBasedDirective.validate].
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class UriValidationCode {
-  static const UriValidationCode INVALID_URI =
-      UriValidationCodeImpl.INVALID_URI;
-
-  static const UriValidationCode URI_WITH_INTERPOLATION =
-      UriValidationCodeImpl.URI_WITH_INTERPOLATION;
-
-  static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      UriValidationCodeImpl.URI_WITH_DART_EXT_SCHEME;
 }
 
 /**
