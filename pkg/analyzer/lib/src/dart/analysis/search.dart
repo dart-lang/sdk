@@ -70,13 +70,19 @@ class Search {
 
   Future<Null> _addResults(List<SearchResult> results, Element element,
       IndexRelationKind relationKind, SearchResultKind resultKind) async {
+    String path = element.source.fullName;
+
+    // If the file with the element is not known, then the element is not used.
+    if (!_driver.knownFiles.contains(path)) {
+      return;
+    }
+
     // TODO(scheglov) optimize for private elements
     String name = element.displayName;
 
     // Prepare the list of files that reference the element name.
     List<String> files = await _driver.getFilesReferencingName(name);
-    String path = element.source.fullName;
-    if (!files.contains(path)) {
+    if (!files.contains(path) && _driver.addedFiles.contains(path)) {
       files.add(path);
     }
 
