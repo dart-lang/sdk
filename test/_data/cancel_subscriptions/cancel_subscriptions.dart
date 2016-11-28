@@ -30,3 +30,18 @@ void someFunctionOK() {
   StreamSubscription _subscriptionB; // OK
   _subscriptionB.cancel();
 }
+
+class C {
+  StreamSubscription _subscriptionC; // OK
+  void init(Stream stream) {
+    _subscriptionC = stream.listen((_) {});
+  }
+}
+
+class C_What {
+  C c = new C();
+
+  C_What() {
+    c._subscriptionC.cancel();
+  }
+}
