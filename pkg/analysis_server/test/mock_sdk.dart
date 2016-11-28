@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
+import 'package:analyzer/src/summary/summary_file_builder.dart';
 
 class MockSdk implements DartSdk {
   static const MockSdkLibrary LIB_CORE = const MockSdkLibrary(
@@ -263,6 +264,11 @@ const Map<String, LibraryInfo> libraries = const {
    */
   InternalAnalysisContext _analysisContext;
 
+  /**
+   * The cached linked bundle of the SDK.
+   */
+  PackageBundle _bundle;
+
   MockSdk({resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
@@ -333,7 +339,18 @@ const Map<String, LibraryInfo> libraries = const {
   }
 
   @override
-  PackageBundle getLinkedBundle() => null;
+  PackageBundle getLinkedBundle() {
+    if (_bundle == null) {
+      List<Source> librarySources = sdkLibraries
+          .map((SdkLibrary library) => mapDartUri(library.shortName))
+          .toList();
+      List<int> bytes = new SummaryBuilder(
+              librarySources, context, context.analysisOptions.strongMode)
+          .build();
+      _bundle = new PackageBundle.fromBuffer(bytes);
+    }
+    return _bundle;
+  }
 
   @override
   SdkLibrary getSdkLibrary(String dartUri) {
