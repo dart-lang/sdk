@@ -8,9 +8,14 @@
 import "package:expect/expect.dart";
 
 class A {
-  int x;
-  String y;
-  A(this.x) : y = x { y = x; }
+  num x;
+  double y;
+  // Finding the type of an initializing formal: should cause a warning
+  // in the initializer but not the body, because the former has type
+  // `int` and the latter has type `num`.
+  A(int this.x) : y = x {
+    y = x;
+  }
 }
 
 main() {

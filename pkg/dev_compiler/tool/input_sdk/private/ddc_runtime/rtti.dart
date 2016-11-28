@@ -58,10 +58,8 @@ part of dart._runtime;
 fn(closure, t) {
   if (t == null) {
     // No type arguments, it's all dynamic
-    t = definiteFunctionType(
-        JS('', '#', dynamic),
-        JS('', 'Array(#.length).fill(#)', closure, dynamic),
-        JS('', 'void 0'));
+    t = definiteFunctionType(JS('', '#', dynamic),
+        JS('', 'Array(#.length).fill(#)', closure, dynamic), JS('', 'void 0'));
   }
   tag(closure, t);
   return closure;
@@ -161,6 +159,29 @@ wrapType(type) {
   return JS('', '#[#] = new #(#)', type, _typeObject, WrappedType, type);
 }
 
+var _lazyJSTypes = JS('', 'new Map()');
+
+lazyJSType(getJSTypeCallback, name) {
+  var key = JS('String', '#.toString()', getJSTypeCallback);
+  if (JS('bool', '#.has(#)', _lazyJSTypes, key)) {
+    return JS('', '#.get(#)', _lazyJSTypes, key);
+  }
+  var ret = JS('', 'new #(#, #)', LazyJSType, getJSTypeCallback, name);
+  JS('', '#.set(#, #)', _lazyJSTypes, key, ret);
+  return ret;
+}
+
+// TODO(jacobr): do not use the same LazyJSType object for anonymous JS types
+// from different libraries.
+lazyAnonymousJSType(name) {
+  if (JS('bool', '#.has(#)', _lazyJSTypes, name)) {
+    return JS('', '#.get(#)', _lazyJSTypes, name);
+  }
+  var ret = JS('', 'new #(null, #)', LazyJSType, name);
+  JS('', '#.set(#, #)', _lazyJSTypes, name, ret);
+  return ret;
+}
+
 /// Given a WrappedType, return the internal runtime type object.
 unwrapType(obj) => obj._wrappedType;
 
@@ -180,6 +201,6 @@ void tagComputed(value, compute) {
 }
 
 void tagLazy(value, compute) {
-  JS('', '#(#, #, { get: # })',
-      defineLazyProperty, value, _runtimeType, compute);
+  JS('', '#(#, #, { get: # })', defineLazyProperty, value, _runtimeType,
+      compute);
 }

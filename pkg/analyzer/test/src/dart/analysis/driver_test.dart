@@ -379,6 +379,61 @@ var A2 = B1;
     }
   }
 
+  test_getFilesReferencingName() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    var c = _p('/test/bin/c.dart');
+    var d = _p('/test/bin/d.dart');
+    var e = _p('/test/bin/e.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "import 'a.dart'; A a;");
+    provider.newFile(c, "import 'a.dart'; var a = new A();");
+    provider.newFile(d, "classs A{} A a;");
+    provider.newFile(e, "import 'a.dart'; main() {}");
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+    driver.addFile(e);
+
+    // 'b.dart' references an external 'A'.
+    // 'c.dart' references an external 'A'.
+    // 'd.dart' references the local 'A'.
+    // 'e.dart' does not reference 'A' at all.
+    List<String> files = await driver.getFilesReferencingName('A');
+    expect(files, unorderedEquals([b, c]));
+
+    // We get the same results second time.
+    List<String> files2 = await driver.getFilesReferencingName('A');
+    expect(files2, unorderedEquals([b, c]));
+  }
+
+  test_getIndex() async {
+    String content = r'''
+foo(int p) {}
+main() {
+  foo(42);
+}
+''';
+    addTestFile(content);
+
+    IndexResult result = await driver.getIndex(testFile);
+
+    CompilationUnitElement unitElement = result.unitElement;
+    expect(unitElement, isNotNull);
+    expect(unitElement.source.fullName, testFile);
+    expect(unitElement.functions.map((c) => c.name),
+        unorderedEquals(['foo', 'main']));
+
+    AnalysisDriverUnitIndex index = result.index;
+    int unitId = index.strings.indexOf('package:test/test.dart');
+    int fooId = index.strings.indexOf('foo');
+    expect(unitId, isNonNegative);
+    expect(fooId, isNonNegative);
+  }
+
   test_getResult() async {
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);
@@ -436,24 +491,6 @@ main() {
       expect(error.message, "The value of the local variable 'vv' isn't used.");
       expect(error.correction, "Try removing the variable, or using it.");
     }
-  }
-
-  test_getResult_hasIndex() async {
-    String content = r'''
-foo(int p) {}
-main() {
-  foo(42);
-}
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-
-    AnalysisDriverUnitIndex index = result.index;
-    int unitId = index.strings.indexOf('package:test/test.dart');
-    int fooId = index.strings.indexOf('foo');
-    expect(unitId, isNonNegative);
-    expect(fooId, isNonNegative);
   }
 
   test_getResult_inferTypes_finalField() async {
@@ -1087,7 +1124,6 @@ var A = B;
     expect(result.contentHash, _md5(content));
     expect(result.unit, isNull);
     expect(result.errors, hasLength(0));
-    expect(result.index, isNotNull);
   }
 
   test_results_status() async {

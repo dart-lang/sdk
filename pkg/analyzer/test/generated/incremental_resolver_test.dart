@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -2255,7 +2255,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
 
   void test_scopeFor_notInCompilationUnit() {
     try {
-      _scopeFor(AstFactory.identifier3("x"));
+      _scopeFor(AstTestFactory.identifier3("x"));
       fail("Expected AnalysisException");
     } on AnalysisException {
       // Expected
@@ -2273,7 +2273,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
 
   void test_scopeFor_unresolved() {
     try {
-      _scopeFor(AstFactory.compilationUnit());
+      _scopeFor(AstTestFactory.compilationUnit());
       fail("Expected AnalysisException");
     } on AnalysisException {
       // Expected
@@ -2283,8 +2283,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   ClassDeclaration _createResolvedClassDeclaration() {
     CompilationUnit unit = _createResolvedCompilationUnit();
     String className = "C";
-    ClassDeclaration classNode = AstFactory.classDeclaration(
-        null, className, AstFactory.typeParameterList(), null, null, null);
+    ClassDeclaration classNode = AstTestFactory.classDeclaration(
+        null, className, AstTestFactory.typeParameterList(), null, null, null);
     unit.declarations.add(classNode);
     ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
@@ -2297,8 +2297,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   ClassTypeAlias _createResolvedClassTypeAlias() {
     CompilationUnit unit = _createResolvedCompilationUnit();
     String className = "C";
-    ClassTypeAlias classNode = AstFactory.classTypeAlias(
-        className, AstFactory.typeParameterList(), null, null, null, null);
+    ClassTypeAlias classNode = AstTestFactory.classTypeAlias(
+        className, AstTestFactory.typeParameterList(), null, null, null, null);
     unit.declarations.add(classNode);
     ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
@@ -2309,7 +2309,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   }
 
   CompilationUnit _createResolvedCompilationUnit() {
-    CompilationUnit unit = AstFactory.compilationUnit();
+    CompilationUnit unit = AstTestFactory.compilationUnit();
     LibraryElementImpl library =
         ElementFactory.library(AnalysisContextFactory.contextWithCore(), "lib");
     unit.element = library.definingCompilationUnit;
@@ -2319,11 +2319,12 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   ConstructorDeclaration _createResolvedConstructorDeclaration() {
     ClassDeclaration classNode = _createResolvedClassDeclaration();
     String constructorName = "f";
-    ConstructorDeclaration constructorNode = AstFactory.constructorDeclaration(
-        AstFactory.identifier3(constructorName),
-        null,
-        AstFactory.formalParameterList(),
-        null);
+    ConstructorDeclaration constructorNode =
+        AstTestFactory.constructorDeclaration(
+            AstTestFactory.identifier3(constructorName),
+            null,
+            AstTestFactory.formalParameterList(),
+            null);
     classNode.members.add(constructorNode);
     ConstructorElement constructorElement =
         ElementFactory.constructorElement2(classNode.element, null);
@@ -2337,8 +2338,8 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   FunctionDeclaration _createResolvedFunctionDeclaration() {
     CompilationUnit unit = _createResolvedCompilationUnit();
     String functionName = "f";
-    FunctionDeclaration functionNode = AstFactory.functionDeclaration(
-        null, null, functionName, AstFactory.functionExpression());
+    FunctionDeclaration functionNode = AstTestFactory.functionDeclaration(
+        null, null, functionName, AstTestFactory.functionExpression());
     unit.declarations.add(functionNode);
     FunctionElement functionElement =
         ElementFactory.functionElement(functionName);
@@ -2351,11 +2352,11 @@ class ResolutionContextBuilderTest extends EngineTestCase {
 
   FunctionTypeAlias _createResolvedFunctionTypeAlias() {
     CompilationUnit unit = _createResolvedCompilationUnit();
-    FunctionTypeAlias aliasNode = AstFactory.typeAlias(
-        AstFactory.typeName4("A"),
+    FunctionTypeAlias aliasNode = AstTestFactory.typeAlias(
+        AstTestFactory.typeName4("A"),
         "F",
-        AstFactory.typeParameterList(),
-        AstFactory.formalParameterList());
+        AstTestFactory.typeParameterList(),
+        AstTestFactory.formalParameterList());
     unit.declarations.add(aliasNode);
     SimpleIdentifier aliasName = aliasNode.name;
     FunctionTypeAliasElement aliasElement =
@@ -2369,13 +2370,13 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   MethodDeclaration _createResolvedMethodDeclaration() {
     ClassDeclaration classNode = _createResolvedClassDeclaration();
     String methodName = "f";
-    MethodDeclaration methodNode = AstFactory.methodDeclaration(
+    MethodDeclaration methodNode = AstTestFactory.methodDeclaration(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList());
     classNode.members.add(methodNode);
     MethodElement methodElement =
         ElementFactory.methodElement(methodName, null);

@@ -2027,7 +2027,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   List<LinkedDependencyBuilder> _dependencies;
   List<int> _exportDependencies;
   List<LinkedExportNameBuilder> _exportNames;
-  bool _fallbackMode;
   List<int> _importDependencies;
   int _numPrelinkedDependencies;
   List<LinkedUnitBuilder> _units;
@@ -2082,15 +2081,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   }
 
   @override
-  bool get fallbackMode => _fallbackMode ??= false;
-
-  /**
-   * Indicates whether this library was summarized in "fallback mode".  If
-   * true, all other fields in the data structure have their default values.
-   */
-  void set fallbackMode(bool value) {
-    this._fallbackMode = value;
-  }
+  bool get fallbackMode => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<int> get importDependencies => _importDependencies ??= <int>[];
@@ -2130,11 +2121,10 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     this._units = value;
   }
 
-  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<int> exportDependencies, List<LinkedExportNameBuilder> exportNames, bool fallbackMode, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
+  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<int> exportDependencies, List<LinkedExportNameBuilder> exportNames, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
     : _dependencies = dependencies,
       _exportDependencies = exportDependencies,
       _exportNames = exportNames,
-      _fallbackMode = fallbackMode,
       _importDependencies = importDependencies,
       _numPrelinkedDependencies = numPrelinkedDependencies,
       _units = units;
@@ -2185,7 +2175,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
         x?.collectApiSignature(signature);
       }
     }
-    signature.addBool(this._fallbackMode == true);
     if (this._exportDependencies == null) {
       signature.addInt(0);
     } else {
@@ -2232,9 +2221,6 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     if (offset_exportNames != null) {
       fbBuilder.addOffset(4, offset_exportNames);
     }
-    if (_fallbackMode == true) {
-      fbBuilder.addBool(5, true);
-    }
     if (offset_importDependencies != null) {
       fbBuilder.addOffset(1, offset_importDependencies);
     }
@@ -2269,7 +2255,6 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
   List<idl.LinkedDependency> _dependencies;
   List<int> _exportDependencies;
   List<idl.LinkedExportName> _exportNames;
-  bool _fallbackMode;
   List<int> _importDependencies;
   int _numPrelinkedDependencies;
   List<idl.LinkedUnit> _units;
@@ -2293,10 +2278,7 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
   }
 
   @override
-  bool get fallbackMode {
-    _fallbackMode ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
-    return _fallbackMode;
-  }
+  bool get fallbackMode => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<int> get importDependencies {
@@ -2324,7 +2306,6 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
     if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
     if (exportDependencies.isNotEmpty) _result["exportDependencies"] = exportDependencies;
     if (exportNames.isNotEmpty) _result["exportNames"] = exportNames.map((_value) => _value.toJson()).toList();
-    if (fallbackMode != false) _result["fallbackMode"] = fallbackMode;
     if (importDependencies.isNotEmpty) _result["importDependencies"] = importDependencies;
     if (numPrelinkedDependencies != 0) _result["numPrelinkedDependencies"] = numPrelinkedDependencies;
     if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
@@ -2336,7 +2317,6 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
     "dependencies": dependencies,
     "exportDependencies": exportDependencies,
     "exportNames": exportNames,
-    "fallbackMode": fallbackMode,
     "importDependencies": importDependencies,
     "numPrelinkedDependencies": numPrelinkedDependencies,
     "units": units,
@@ -9563,7 +9543,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedEnumBuilder> _enums;
   List<UnlinkedExecutableBuilder> _executables;
   List<UnlinkedExportNonPublicBuilder> _exports;
-  String _fallbackModePath;
   List<UnlinkedImportBuilder> _imports;
   bool _isPartOf;
   List<UnlinkedExprBuilder> _libraryAnnotations;
@@ -9643,18 +9622,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  String get fallbackModePath => _fallbackModePath ??= '';
-
-  /**
-   * If this compilation unit was summarized in fallback mode, the path where
-   * the compilation unit may be found on disk.  Otherwise empty.
-   *
-   * When this field is non-empty, all other fields in the data structure have
-   * their default values.
-   */
-  void set fallbackModePath(String value) {
-    this._fallbackModePath = value;
-  }
+  String get fallbackModePath => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<UnlinkedImportBuilder> get imports => _imports ??= <UnlinkedImportBuilder>[];
@@ -9797,14 +9765,13 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     this._variables = value;
   }
 
-  UnlinkedUnitBuilder({List<int> apiSignature, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedExprBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<int> apiSignature, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedExprBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _apiSignature = apiSignature,
       _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
       _executables = executables,
       _exports = exports,
-      _fallbackModePath = fallbackModePath,
       _imports = imports,
       _isPartOf = isPartOf,
       _libraryAnnotations = libraryAnnotations,
@@ -9928,7 +9895,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
         x?.collectApiSignature(signature);
       }
     }
-    signature.addString(this._fallbackModePath ?? '');
     signature.addBool(this._isPartOf == true);
     if (this._apiSignature == null) {
       signature.addInt(0);
@@ -9952,7 +9918,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_enums;
     fb.Offset offset_executables;
     fb.Offset offset_exports;
-    fb.Offset offset_fallbackModePath;
     fb.Offset offset_imports;
     fb.Offset offset_libraryAnnotations;
     fb.Offset offset_libraryDocumentationComment;
@@ -9980,9 +9945,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder.writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
-    }
-    if (_fallbackModePath != null) {
-      offset_fallbackModePath = fbBuilder.writeString(_fallbackModePath);
     }
     if (!(_imports == null || _imports.isEmpty)) {
       offset_imports = fbBuilder.writeList(_imports.map((b) => b.finish(fbBuilder)).toList());
@@ -10032,9 +9994,6 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (offset_exports != null) {
       fbBuilder.addOffset(13, offset_exports);
-    }
-    if (offset_fallbackModePath != null) {
-      fbBuilder.addOffset(16, offset_fallbackModePath);
     }
     if (offset_imports != null) {
       fbBuilder.addOffset(5, offset_imports);
@@ -10103,7 +10062,6 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedEnum> _enums;
   List<idl.UnlinkedExecutable> _executables;
   List<idl.UnlinkedExportNonPublic> _exports;
-  String _fallbackModePath;
   List<idl.UnlinkedImport> _imports;
   bool _isPartOf;
   List<idl.UnlinkedExpr> _libraryAnnotations;
@@ -10155,10 +10113,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   }
 
   @override
-  String get fallbackModePath {
-    _fallbackModePath ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
-    return _fallbackModePath;
-  }
+  String get fallbackModePath => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.UnlinkedImport> get imports {
@@ -10249,7 +10204,6 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
     if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
     if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
-    if (fallbackModePath != '') _result["fallbackModePath"] = fallbackModePath;
     if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
     if (isPartOf != false) _result["isPartOf"] = isPartOf;
     if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
@@ -10274,7 +10228,6 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "enums": enums,
     "executables": executables,
     "exports": exports,
-    "fallbackModePath": fallbackModePath,
     "imports": imports,
     "isPartOf": isPartOf,
     "libraryAnnotations": libraryAnnotations,

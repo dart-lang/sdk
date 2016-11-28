@@ -4,6 +4,7 @@
 
 # Disable tests globally for kernel.
 [ $compiler == rasta || $compiler == rastap || $compiler == dartk || $compiler == dartkp ]
+Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 Language/Metadata/*: Skip # No support for metadata ATM.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/isolate/*: Skip # No support for isolates ATM.
@@ -33,14 +34,13 @@ Language/Classes/Setters/name_t12: CompileTimeError
 Language/Classes/Setters/name_t13: CompileTimeError
 Language/Classes/Setters/name_t14: CompileTimeError
 Language/Classes/Setters/name_t15: CompileTimeError
-Language/Classes/definition_t23: Crash
+Language/Classes/definition_t23: CompileTimeError
 Language/Enums/declaration_equivalent_t01: RuntimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError
 Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Constants/string_length_t01: Crash
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Function_Expression_Invocation/not_a_function_expression_t01: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t03: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t04: RuntimeError
@@ -81,9 +81,6 @@ Language/Expressions/Lookup/Method_Lookup/superclass_t08: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t05: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: CompileTimeError
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: CompileTimeError
@@ -222,9 +219,7 @@ Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_cl
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
-Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError
+Language/Functions/Formal_Parameters/syntax_t05: RuntimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass
@@ -233,11 +228,12 @@ Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01: RuntimeError
+Language/Libraries_and_Scripts/Parts/compilation_t02: Pass Crash
 Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t02: Crash
@@ -321,19 +317,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/05: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/03: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/02: Pass
-LibTest/core/Match/operator_subscript_A01_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A02_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: RuntimeError
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: RuntimeError
-LibTest/core/RegExp/firstMatch_A02_t01: RuntimeError
-LibTest/core/RegExp/hasMatch_A01_t02: RuntimeError
-LibTest/core/RegExp/stringMatch_A01_t01: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
@@ -367,23 +350,20 @@ Language/Classes/definition_t23: CompileTimeError
 Language/Enums/declaration_equivalent_t01: RuntimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
-Language/Expressions/Assignment/indexed_expression_super_t01: RuntimeError
-Language/Expressions/Assignment/indexed_expression_super_t02: RuntimeError
-Language/Expressions/Assignment/indexed_expression_super_t04: RuntimeError
-Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
-Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
-Language/Expressions/Assignment/super_assignment_t06: RuntimeError
-Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
 Language/Expressions/Constants/exception_t01: Crash
 Language/Expressions/Constants/exception_t02: Crash
 Language/Expressions/Constants/string_length_t01: Crash
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Function_Invocation/Function_Expression_Invocation/not_a_function_expression_t01: Crash
+Language/Expressions/Function_Invocation/Function_Expression_Invocation/not_a_function_expression_t01: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t03: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t04: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/static_method_invocation_t02: RuntimeError
+Language/Expressions/Function_Invocation/async_cleanup_t07: RuntimeError
+Language/Expressions/Function_Invocation/async_cleanup_t08: RuntimeError
+Language/Expressions/Function_Invocation/async_generator_invokation_t05: RuntimeError
+Language/Expressions/Function_Invocation/async_generator_invokation_t06: RuntimeError
+Language/Expressions/Function_Invocation/async_generator_invokation_t09: RuntimeError
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass
@@ -411,15 +391,6 @@ Language/Expressions/Lookup/Method_Lookup/superclass_t08: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t05: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: Crash
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t01: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Multiplicative_Expressions/syntax_t01: Crash
 Language/Expressions/Null/instance_of_class_null_t01: Crash
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: CompileTimeError
 Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: CompileTimeError
@@ -555,14 +526,9 @@ Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_cl
 Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t06: CompileTimeError
 Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t07: CompileTimeError
 Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t08: CompileTimeError
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: RuntimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError
-Language/Expressions/Unary_Expressions/syntax_t10: Crash
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
-Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError
+Language/Functions/Formal_Parameters/syntax_t05: RuntimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass
@@ -572,14 +538,12 @@ Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
-Language/Libraries_and_Scripts/Imports/static_type_t01: RuntimeError
-Language/Libraries_and_Scripts/Parts/compilation_t02: Crash
 Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t02: Crash
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -626,23 +590,20 @@ Language/Statements/Labels/syntax_t03: Pass
 Language/Statements/Rethrow/execution_t04: RuntimeError
 Language/Statements/Switch/syntax_t02: Pass
 Language/Statements/Try/catch_scope_t01: RuntimeError
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: Fail
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t05: Fail
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t06: Fail
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t01: RuntimeError
 Language/Types/Interface_Types/subtype_t44: RuntimeError
 Language/Types/Static_Types/deferred_type_t01: RuntimeError
 Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
+Language/Variables/final_t01/01: MissingRuntimeError
+Language/Variables/final_t02/01: MissingRuntimeError
 Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
-LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError
-LibTest/core/Invocation/isAccessor_A01_t02: Crash
-LibTest/core/Invocation/isGetter_A01_t01: RuntimeError
-LibTest/core/Invocation/isGetter_A01_t02: Crash
-LibTest/core/Invocation/isMethod_A01_t01: Crash
-LibTest/core/Invocation/isMethod_A01_t02: RuntimeError
-LibTest/core/Invocation/isSetter_A01_t01: RuntimeError
-LibTest/core/Invocation/isSetter_A01_t02: Crash
-LibTest/core/Invocation/memberName_A01_t01: RuntimeError
-LibTest/core/Invocation/namedArguments_A01_t01: Crash
-LibTest/core/Invocation/positionalArguments_A01_t01: Crash
+LibTest/core/StringBuffer/StringBuffer_A01_t02: RuntimeError
+LibTest/core/StringBuffer/write_A01_t02: RuntimeError

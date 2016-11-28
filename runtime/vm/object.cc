@@ -1136,14 +1136,12 @@ void Object::RegisterPrivateClass(const Class& cls,
 // A non-NULL kernel argument indicates (1).  A NULL kernel indicates (2) or
 // (3), depending on whether the VM is compiled with DART_NO_SNAPSHOT defined or
 // not.
-RawError* Object::Init(Isolate* isolate,
-                       const uint8_t* kernel_buffer,
-                       intptr_t kernel_buffer_length) {
+RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  const bool is_kernel = (kernel_buffer != NULL);
+  const bool is_kernel = (kernel_program != NULL);
 #endif
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
                                            "Object::Init");)
@@ -1619,8 +1617,8 @@ RawError* Object::Init(Isolate* isolate,
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
-    const Error& error = Error::Handle(
-        zone, Bootstrap::DoBootstrapping(kernel_buffer, kernel_buffer_length));
+    const Error& error =
+        Error::Handle(zone, Bootstrap::DoBootstrapping(kernel_program));
     if (!error.IsNull()) {
       return error.raw();
     }
@@ -7353,7 +7351,7 @@ void Field::set_name(const String& value) const {
 
 
 RawObject* Field::RawOwner() const {
-  if (Original()) {
+  if (IsOriginal()) {
     return raw_ptr()->owner_;
   } else {
     const Field& field = Field::Handle(Original());
@@ -14305,9 +14303,7 @@ const char* Code::Name() const {
     Zone* zone = thread->zone();
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     ASSERT(name != NULL);
-    char* stub_name =
-        OS::SCreate(zone, "%s%s", Symbols::StubPrefix().ToCString(), name);
-    return stub_name;
+    return OS::SCreate(zone, "[Stub] %s", name);
   } else if (obj.IsClass()) {
     // Allocation stub.
     Thread* thread = Thread::Current();
@@ -14315,10 +14311,7 @@ const char* Code::Name() const {
     const Class& cls = Class::Cast(obj);
     String& cls_name = String::Handle(zone, cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    char* stub_name =
-        OS::SCreate(zone, "%s%s", Symbols::AllocationStubFor().ToCString(),
-                    cls_name.ToCString());
-    return stub_name;
+    return OS::SCreate(zone, "[Stub] Allocate %s", cls_name.ToCString());
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.

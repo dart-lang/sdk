@@ -1241,13 +1241,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       if (parameter.isInitializingFormal) {
         InitializingFormalElement initializingFormal = parameter;
         updateFieldValue(node, initializingFormal.fieldElement, argument);
-        if (compiler.options.enableInitializingFormalAccess) {
-          definitions[parameter] = argument;
-        }
       } else {
         potentiallyCheckType(parameter, argument);
-        definitions[parameter] = argument;
       }
+      definitions[parameter] = argument;
     });
   }
 

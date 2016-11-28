@@ -155,7 +155,7 @@ abstract class _StringBase {
   static String _createStringFromIterable(Iterable<int> charCodes,
                                           int start, int end) {
     // Treat charCodes as Iterable.
-    if (charCodes is EfficientLength) {
+    if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
       end = RangeError.checkValidRange(start, end, length);
       List charCodeList = new List.from(charCodes.take(end).skip(start),

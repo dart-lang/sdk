@@ -215,9 +215,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
                      new (Z) LiteralNode(token_pos, Object::null_instance())),
       error_ne_null_branch, NULL));
 
-  LocalVariable* result = AddNewTempVarToPreamble(
-      new (Z) LoadLocalNode(token_pos, result_param), ST(node->token_pos()));
-  result_ = new (Z) LoadLocalNode(token_pos, result);
+  result_ = MakeName(new (Z) LoadLocalNode(token_pos, result_param));
 }
 
 

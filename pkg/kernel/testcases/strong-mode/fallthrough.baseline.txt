@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main(core::List<core::String> args) → void {
+  core::int x = args.{core::List::length};
+  #L1:
+  switch(x) {
+    #L2:
+    case 3:
+      {
+        x = 4;
+        throw new core::FallThroughError::•();
+      }
+    #L3:
+    case 5:
+      {
+        break #L1;
+      }
+    #L4:
+    case 6:
+    case 7:
+      {
+        if(args.{core::List::[]}(0).{core::String::==}("")) {
+          break #L1;
+        }
+        else {
+          return;
+        }
+        throw new core::FallThroughError::•();
+      }
+    #L5:
+    case 4:
+      {
+        break #L1;
+      }
+  }
+}

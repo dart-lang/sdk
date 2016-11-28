@@ -107,7 +107,9 @@ static const uword kZapUninitializedWord = 0xabababababababab;
   ;  // NOLINT
 // clang-format on
 #elif defined(HOST_ARCH_X64)
-#define COPY_FP_REGISTER(fp) UNIMPLEMENTED();
+// We don't have the asm equivalent to get at the frame pointer on
+// windows x64, return the stack pointer instead.
+#define COPY_FP_REGISTER(fp) fp = Thread::GetCurrentStackPointer();
 #else
 #error Unknown host architecture.
 #endif
@@ -135,6 +137,13 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 
 
 #endif  // !defined(TARGET_OS_WINDOWS))
+
+// Default value for flag --use-corelib-source-files.
+#if defined(TARGET_OS_WINDOWS)
+static const bool kDefaultCorelibSourceFlag = true;
+#else
+static const bool kDefaultCorelibSourceFlag = false;
+#endif  // defined(TARGET_OS_WINDOWS)
 
 }  // namespace dart
 

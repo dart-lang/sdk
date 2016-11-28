@@ -105,7 +105,7 @@ main() {
       }
 
       group('excluded', () {
-        test('excluded folder', () {
+        test('excluded folder', () async {
           String fileA = '/project/aaa/a.dart';
           String fileB = '/project/bbb/b.dart';
           resourceProvider.newFile(fileA, '// a');
@@ -115,10 +115,9 @@ main() {
           expect(response, isResponseSuccess('0'));
           // unit "a" is resolved eventually
           // unit "b" is not resolved
-          return server.onAnalysisComplete.then((_) {
-            expect(serverRef.getResolvedCompilationUnits(fileA), hasLength(1));
-            expect(serverRef.getResolvedCompilationUnits(fileB), isEmpty);
-          });
+          await server.onAnalysisComplete;
+          expect(await serverRef.getResolvedCompilationUnit(fileA), isNotNull);
+          expect(await serverRef.getResolvedCompilationUnit(fileB), isNull);
         });
 
         test('not absolute', () async {
@@ -139,7 +138,7 @@ main() {
       });
 
       group('included', () {
-        test('new folder', () {
+        test('new folder', () async {
           String file = '/project/bin/test.dart';
           resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
           resourceProvider.newFile(file, 'main() {}');
@@ -147,10 +146,9 @@ main() {
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
-          return server.onAnalysisComplete.then((_) {
-            var units = serverRef.getResolvedCompilationUnits(file);
-            expect(units, hasLength(1));
-          });
+          await server.onAnalysisComplete;
+          var unit = await serverRef.getResolvedCompilationUnit(file);
+          expect(unit, isNotNull);
         });
 
         test('nonexistent folder', () async {
@@ -162,7 +160,8 @@ main() {
           // Non-existence of /project_a should not prevent files in /project_b
           // from being analyzed.
           await server.onAnalysisComplete;
-          expect(serverRef.getResolvedCompilationUnits(fileB), hasLength(1));
+          var unit = await serverRef.getResolvedCompilationUnit(fileB);
+          expect(unit, isNotNull);
         });
 
         test('not absolute', () async {

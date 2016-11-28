@@ -18,6 +18,9 @@ class LocalHandle;
 class RawError;
 class ReadOnlyHandles;
 class ThreadPool;
+namespace kernel {
+class Program;
+}
 
 class Dart : public AllStatic {
  public:
@@ -44,7 +47,7 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_buffer,
                                      intptr_t snapshot_length,
-                                     bool from_kernel,
+                                     kernel::Program* kernel_program,
                                      void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);

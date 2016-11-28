@@ -28,7 +28,7 @@ vars = {
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
+  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
@@ -73,7 +73,6 @@ vars = {
   "isolate_tag": "@0.2.3",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
-  "kernel_rev": "@8e2b2c03c2a22d9fdf581a8e3ce798f189531081",
   "linter_tag": "@0.1.29",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.0",
@@ -235,8 +234,6 @@ deps = {
       (Var("github_dartlang") % "isolate") + Var("isolate_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
-  Var("dart_root") + "/third_party/pkg/kernel":
-      (Var("github_mirror") % "kernel") + Var("kernel_rev"),
   Var("dart_root") + "/third_party/pkg/linter":
       (Var("github_mirror") % "linter") + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":

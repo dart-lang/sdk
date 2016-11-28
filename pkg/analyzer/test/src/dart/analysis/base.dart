@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -16,6 +18,30 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
 import '../../context/mock_sdk.dart';
+
+/**
+ * Finds an [Element] with the given [name].
+ */
+Element findChildElement(Element root, String name, [ElementKind kind]) {
+  Element result = null;
+  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+    if (element.name != name) {
+      return;
+    }
+    if (kind != null && element.kind != kind) {
+      return;
+    }
+    result = element;
+  }));
+  return result;
+}
+
+typedef bool Predicate<E>(E argument);
+
+/**
+ * A function to be called for every [Element].
+ */
+typedef void _ElementVisitorFunction(Element element);
 
 class BaseAnalysisDriverTest {
   static final MockSdk sdk = new MockSdk();
@@ -106,6 +132,20 @@ class BaseAnalysisDriverTest {
   }
 
   String _p(String path) => provider.convertPath(path);
+}
+
+/**
+ * Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
+ */
+class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
+  final _ElementVisitorFunction function;
+
+  _ElementVisitorFunctionWrapper(this.function);
+
+  visitElement(Element element) {
+    function(element);
+    super.visitElement(element);
+  }
 }
 
 class _Monitor {

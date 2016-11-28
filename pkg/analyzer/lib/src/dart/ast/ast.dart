@@ -8174,7 +8174,13 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   Token ofKeyword;
 
   /**
-   * The name of the library that the containing compilation unit is part of.
+   * The URI of the library that the containing compilation unit is part of.
+   */
+  StringLiteralImpl _uri;
+
+  /**
+   * The name of the library that the containing compilation unit is part of, or
+   * `null` if no name was given (typically because a library URI was provided).
    */
   LibraryIdentifier _libraryName;
 
@@ -8194,9 +8200,11 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
       List<Annotation> metadata,
       this.partKeyword,
       this.ofKeyword,
+      StringLiteralImpl uri,
       LibraryIdentifierImpl libraryName,
       this.semicolon)
       : super(comment, metadata) {
+    _uri = _becomeParentOf(uri);
     _libraryName = _becomeParentOf(libraryName);
   }
 
@@ -8225,6 +8233,14 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 
   @override
+  StringLiteral get uri => _uri;
+
+  @override
+  void set uri(StringLiteral uri) {
+    _uri = _becomeParentOf(uri as AstNodeImpl);
+  }
+
+  @override
   dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
       visitor.visitPartOfDirective(this);
 
@@ -8232,6 +8248,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _libraryName?.accept(visitor);
+    _uri?.accept(visitor);
   }
 }
 
@@ -10668,7 +10685,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf(uri as AstNodeImpl);
   }
 
-  @override
   UriValidationCode validate() {
     return validateUri(this is ImportDirective, uri, uriContent);
   }
@@ -10710,15 +10726,15 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 /**
  * Validation codes returned by [UriBasedDirective.validate].
  */
-class UriValidationCodeImpl implements UriValidationCode {
+class UriValidationCode {
   static const UriValidationCode INVALID_URI =
-      const UriValidationCodeImpl('INVALID_URI');
+      const UriValidationCode('INVALID_URI');
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
-      const UriValidationCodeImpl('URI_WITH_INTERPOLATION');
+      const UriValidationCode('URI_WITH_INTERPOLATION');
 
   static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      const UriValidationCodeImpl('URI_WITH_DART_EXT_SCHEME');
+      const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /**
    * The name of the validation code.
@@ -10728,7 +10744,7 @@ class UriValidationCodeImpl implements UriValidationCode {
   /**
    * Initialize a newly created validation code to have the given [name].
    */
-  const UriValidationCodeImpl(this.name);
+  const UriValidationCode(this.name);
 
   @override
   String toString() => name;

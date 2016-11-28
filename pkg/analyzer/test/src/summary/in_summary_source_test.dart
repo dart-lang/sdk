@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,23 +20,6 @@ main() {
 
 @reflectiveTest
 class InSummarySourceTest extends ReflectiveTest {
-  test_fallbackPath() {
-    String fooFallbackPath = absolute('path', 'to', 'foo.dart');
-    var sourceFactory = new SourceFactory([
-      new InSummaryUriResolver(
-          PhysicalResourceProvider.INSTANCE,
-          new MockSummaryDataStore.fake({
-            'package:foo/foo.dart': 'foo.sum',
-          }, uriToFallbackModePath: {
-            'package:foo/foo.dart': fooFallbackPath
-          }))
-    ]);
-
-    InSummarySource source = sourceFactory.forUri('package:foo/foo.dart');
-    expect(source, isNotNull);
-    expect(source.fullName, fooFallbackPath);
-  }
-
   test_InSummarySource() {
     var sourceFactory = new SourceFactory([
       new InSummaryUriResolver(
@@ -70,14 +52,12 @@ class MockSummaryDataStore implements SummaryDataStore {
 
   MockSummaryDataStore(this.linkedMap, this.unlinkedMap, this.uriToSummaryPath);
 
-  factory MockSummaryDataStore.fake(Map<String, String> uriToSummary,
-      {Map<String, String> uriToFallbackModePath: const {}}) {
+  factory MockSummaryDataStore.fake(Map<String, String> uriToSummary) {
     // Create fake unlinked map.
     // We don't populate the values as it is not needed for the test.
     var unlinkedMap = new Map<String, UnlinkedUnit>.fromIterable(
         uriToSummary.keys,
-        value: (uri) => new UnlinkedUnitBuilder(
-            fallbackModePath: uriToFallbackModePath[uri]));
+        value: (uri) => new UnlinkedUnitBuilder());
     return new MockSummaryDataStore(null, unlinkedMap, uriToSummary);
   }
 

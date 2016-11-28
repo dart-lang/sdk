@@ -14,7 +14,7 @@ class TestClass {
   TestClass.named(num this.fld1)
     // Should cause a compilation error (for the spawned isolate). It is a
     // runtime error for the test.
-    : fld2 = fld1  /// 01: compile-time error
+    : fld2 = this.fld1  /// 01: compile-time error
   ;
   num fld1;
   num fld2;

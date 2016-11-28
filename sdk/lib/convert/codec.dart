@@ -13,8 +13,6 @@ part of dart.convert;
  *
  * Fused codecs generally attempt to optimize the operations and can be faster
  * than executing each step of an encoding separately.
- *
- * *Codecs are still experimental and are subject to change without notice.*
  */
 abstract class Codec<S, T> {
   const Codec();

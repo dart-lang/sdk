@@ -29,6 +29,10 @@
 namespace dart {
 
 // Forward declarations.
+namespace kernel {
+class Program;
+}
+
 #define DEFINE_FORWARD_DECLARATION(clazz) class clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
@@ -527,9 +531,7 @@ class Object {
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
-  static RawError* Init(Isolate* isolate,
-                        const uint8_t* kernel,
-                        intptr_t kernel_length);
+  static RawError* Init(Isolate* isolate, kernel::Program* program);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,

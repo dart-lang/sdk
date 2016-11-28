@@ -174,7 +174,7 @@ class _GrowableList<T> extends ListBase<T> {
         (cid == ClassID.cidArray) ||
         (cid == ClassID.cidGrowableObjectArray) ||
         (cid == ClassID.cidImmutableArray);
-    if (isVMList || (iterable is EfficientLength)) {
+    if (isVMList || (iterable is EfficientLengthIterable)) {
       var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;

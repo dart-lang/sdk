@@ -15,22 +15,9 @@
 # Tests that fail everywhere, including the analyzer.
 
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
-
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
-Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Fail # co19 issue 80
-
-[ $system == linux ]
-LibTest/collection/ListBase/ListBase_class_A01_t01: Fail # co19 issue 72
-LibTest/collection/ListBase/ListBase_class_A01_t02: Fail # co19 issue 72
-LibTest/collection/ListBase/listToString_A01_t01: Fail # co19 issue 72
-LibTest/collection/ListBase/listToString_A02_t01: Fail # co19 issue 72
-LibTest/collection/MapBase/MapBase_class_A01_t01: Fail # co19 issue 72
-LibTest/collection/MapMixin/MapMixin_class_A01_t01: Fail # co19 issue 72
-
 [ $compiler != dart2analyzer ]
-LibTest/isolate/ReceivePort/take_A01_t02: Fail # co19 issue 81
-LibTest/async/Stream/take_A01_t02: Fail # co19 issue 81
 # Tests that fail on every runtime, but not on the analyzer.
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
@@ -38,7 +25,6 @@ Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co
 Language/Expressions/Instance_Creation/Const/abstract_class_t03: Pass, Fail # co19 issue 66
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: RuntimeError # Issue 27183
-LibTest/collection/LinkedListEntry/unlink_A01_t02: Fail # co19 pull request 73
 LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t04: RuntimeError # Issue 17735
@@ -82,13 +68,7 @@ LibTest/math/log_A01_t01: PASS, FAIL, OK  # Issue 26261
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == drt || $runtime == dart_precompiled || $runtime == dart_app) ]
 # Optional trailing commas for argument and parameter lists added to language.
 # https://github.com/dart-lang/co19/issues/68
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: Fail, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: Fail, OK
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: Fail, OK
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: Fail, OK
-Language/Functions/Formal_Parameters/syntax_t04: Fail, OK
 Language/Functions/Formal_Parameters/syntax_t05: Fail, OK
-Language/Functions/Formal_Parameters/syntax_t12: Fail, OK

@@ -9,7 +9,12 @@ import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
-import '../constants/values.dart' show StringConstantValue;
+import '../constants/values.dart'
+    show
+        ConstantValue,
+        InterceptorConstantValue,
+        StringConstantValue,
+        TypeConstantValue;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
@@ -80,6 +85,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   KernelAstAdapter astAdapter;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
+
+  final Map<ir.VariableDeclaration, HInstruction> letBindings =
+      <ir.VariableDeclaration, HInstruction>{};
 
   KernelSsaBuilder(
       this.targetElement,
@@ -868,6 +876,24 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitTypeLiteral(ir.TypeLiteral typeLiteral) {
+    ir.DartType type = typeLiteral.type;
+    if (type is ir.InterfaceType) {
+      ConstantValue constant = astAdapter.getConstantForType(type);
+      stack.add(graph.addConstant(constant, compiler));
+      return;
+    }
+    if (type is ir.TypeParameterType) {
+      // TODO(27394): Load type parameter from current 'this' object.
+      defaultExpression(typeLiteral);
+      return;
+    }
+    // TODO(27394): 'dynamic' and function types observed. Where are they from?
+    defaultExpression(typeLiteral);
+    return;
+  }
+
+  @override
   void visitStaticGet(ir.StaticGet staticGet) {
     ir.Member staticTarget = staticGet.target;
     if (staticTarget is ir.Procedure &&
@@ -916,8 +942,29 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitVariableGet(ir.VariableGet variableGet) {
+    ir.VariableDeclaration variable = variableGet.variable;
+    HInstruction letBinding = letBindings[variable];
+    if (letBinding != null) {
+      stack.add(letBinding);
+      return;
+    }
+
     Local local = astAdapter.getLocal(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
+  }
+
+  @override
+  void visitPropertySet(ir.PropertySet propertySet) {
+    propertySet.receiver.accept(this);
+    HInstruction receiver = pop();
+    propertySet.value.accept(this);
+    HInstruction value = pop();
+
+    _pushDynamicInvocation(propertySet, astAdapter.typeOfSet(propertySet),
+        <HInstruction>[receiver, value]);
+
+    pop();
+    stack.add(value);
   }
 
   @override
@@ -959,6 +1006,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         local,
         typeBuilder.potentiallyCheckOrTrustType(
             value, astAdapter.getDartType(variable.type)));
+  }
+
+  @override
+  void visitLet(ir.Let let) {
+    ir.VariableDeclaration variable = let.variable;
+    variable.initializer.accept(this);
+    HInstruction initializedValue = pop();
+    // TODO(sra): Apply inferred type information.
+    letBindings[variable] = initializedValue;
+    let.body.accept(this);
   }
 
   // TODO(het): Also extract type arguments
@@ -1311,7 +1368,30 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void handleJsInterceptorConstant(ir.StaticInvocation invocation) {
-    unhandledForeign(invocation);
+    // Single argument must be a TypeConstant which is converted into a
+    // InterceptorConstant.
+    if (_unexpectedForeignArguments(invocation, 1, 1)) {
+      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      return;
+    }
+    ir.Expression argument = invocation.arguments.positional.single;
+    argument.accept(this);
+    HInstruction argumentInstruction = pop();
+    if (argumentInstruction is HConstant) {
+      ConstantValue argumentConstant = argumentInstruction.constant;
+      if (argumentConstant is TypeConstantValue) {
+        // TODO(sra): Check that type is a subclass of [Interceptor].
+        ConstantValue constant =
+            new InterceptorConstantValue(argumentConstant.representedType);
+        HInstruction instruction = graph.addConstant(constant, compiler);
+        stack.add(instruction);
+        return;
+      }
+    }
+
+    compiler.reporter.reportErrorMessage(astAdapter.getNode(invocation),
+        MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    stack.add(graph.addConstantNull(compiler));
   }
 
   void handleForeignJs(ir.StaticInvocation invocation) {

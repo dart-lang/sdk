@@ -22,6 +22,7 @@
 #include "bin/vmservice_impl.h"
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 #include "platform/hashmap.h"
 #include "platform/globals.h"
@@ -684,7 +685,8 @@ static const char StubNativeFunctionName[] = "StubNativeFunction";
 
 void StubNativeFunction(Dart_NativeArguments arguments) {
   // This is a stub function for the resolver
-  UNREACHABLE();
+  Dart_SetReturnValue(
+      arguments, Dart_NewApiError("<EMBEDDER DID NOT SETUP NATIVE RESOLVER>"));
 }
 
 
@@ -732,6 +734,27 @@ static void SetupStubNativeResolver(size_t lib_index,
   Dart_Handle result =
       Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
   DART_CHECK_VALID(result);
+}
+
+
+// Iterate over all libraries and setup the stub native lookup. This must be
+// run after |SetupStubNativeResolversForPrecompilation| because the former
+// loads some libraries.
+static void SetupStubNativeResolvers() {
+  Dart_Handle libraries = Dart_GetLoadedLibraries();
+  intptr_t libraries_length;
+  Dart_ListLength(libraries, &libraries_length);
+  for (intptr_t i = 0; i < libraries_length; i++) {
+    Dart_Handle library = Dart_ListGetAt(libraries, i);
+    DART_CHECK_VALID(library);
+    Dart_NativeEntryResolver old_resolver = NULL;
+    Dart_GetNativeResolver(library, &old_resolver);
+    if (old_resolver == NULL) {
+      Dart_Handle result =
+          Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
+      DART_CHECK_VALID(result);
+    }
+  }
 }
 
 
@@ -995,7 +1018,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
-    exit(255);
+    exit(kErrorExitCode);
   }
   return entries;
 }
@@ -1081,7 +1104,7 @@ static void SetupForUriResolution() {
     Log::PrintErr("%s", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    exit(255);
+    exit(kErrorExitCode);
   }
   // This is a generic dart snapshot which needs builtin library setup.
   Dart_Handle library =
@@ -1101,7 +1124,7 @@ static void SetupForGenericSnapshotCreation() {
     Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    exit(255);
+    exit(kErrorExitCode);
   }
 }
 
@@ -1166,7 +1189,7 @@ int main(int argc, char** argv) {
   // Parse command line arguments.
   if (ParseArguments(argc, argv, &vm_options, &app_script_name) < 0) {
     PrintUsage();
-    return 255;
+    return kErrorExitCode;
   }
 
   Thread::InitOnce();
@@ -1183,6 +1206,7 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
+    vm_options.AddArgument("--print_snapshot_sizes");
 #if TARGET_ARCH_ARM
     // This is for the iPod Touch 5th Generation (and maybe other older devices)
     vm_options.AddArgument("--no-use_integer_division");
@@ -1213,7 +1237,7 @@ int main(int argc, char** argv) {
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);
-    return 255;
+    return kErrorExitCode;
   }
 
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
@@ -1223,7 +1247,7 @@ int main(int argc, char** argv) {
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
-    exit(255);
+    exit(kErrorExitCode);
   }
 
   Dart_Handle result;
@@ -1270,15 +1294,22 @@ int main(int argc, char** argv) {
     intptr_t kernel_length = 0;
     const bool is_kernel_file =
         TryReadKernel(app_script_name, &kernel, &kernel_length);
+
+    void* kernel_program = NULL;
+    if (is_kernel_file) {
+      kernel_program = Dart_ReadKernelBinary(kernel, kernel_length);
+      free(const_cast<uint8_t*>(kernel));
+    }
+
     Dart_Isolate isolate =
         is_kernel_file
-            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel, kernel_length,
-                                           NULL, isolate_data, &error)
+            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
+                                           isolate_data, &error)
             : Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
     if (isolate == NULL) {
-      fprintf(stderr, "%s", error);
+      Log::PrintErr("%s", error);
       free(error);
-      exit(255);
+      exit(kErrorExitCode);
     }
     Dart_EnterScope();
     result = Dart_SetEnvironmentCallback(EnvironmentCallback);
@@ -1293,8 +1324,7 @@ int main(int argc, char** argv) {
         ParseEntryPointsManifestIfPresent();
 
     if (is_kernel_file) {
-      Dart_Handle library = Dart_LoadKernel(kernel, kernel_length);
-      free(const_cast<uint8_t*>(kernel));
+      Dart_Handle library = Dart_LoadKernel(kernel_program);
       if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
     } else {
       // Set up the library tag handler in such a manner that it will use the
@@ -1304,6 +1334,8 @@ int main(int argc, char** argv) {
     }
 
     SetupStubNativeResolversForPrecompilation(entry_points);
+
+    SetupStubNativeResolvers();
 
     if (!is_kernel_file) {
       // Load the specified script.

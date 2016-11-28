@@ -6,12 +6,10 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -57,12 +55,7 @@ class InSummaryPackageUriResolver extends UriResolver {
     UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
     if (unit != null) {
       String summaryPath = _dataStore.uriToSummaryPath[uriString];
-      if (unit.fallbackModePath.isNotEmpty) {
-        return new _InSummaryFallbackSource(
-            new JavaFile(unit.fallbackModePath), actualUri, summaryPath);
-      } else {
-        return new InSummarySource(actualUri, summaryPath);
-      }
+      return new InSummarySource(actualUri, summaryPath);
     }
     return null;
   }
@@ -134,14 +127,7 @@ class InSummaryUriResolver extends UriResolver {
     UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
     if (unit != null) {
       String summaryPath = _dataStore.uriToSummaryPath[uriString];
-      if (unit.fallbackModePath.isNotEmpty) {
-        return new _InSummaryFallbackFileSource(
-            resourceProvider.getFile(unit.fallbackModePath),
-            actualUri,
-            summaryPath);
-      } else {
-        return new InSummarySource(actualUri, summaryPath);
-      }
+      return new InSummarySource(actualUri, summaryPath);
     }
     return null;
   }
@@ -472,35 +458,6 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
   @override
   bool hasLibrarySummary(String uri) {
     LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
-    return linkedLibrary != null && !linkedLibrary.fallbackMode;
+    return linkedLibrary != null;
   }
-}
-
-/**
- * A source that is part of a package whose summary was generated in fallback
- * mode. This source behaves identically to a [FileSource] except that it also
- * provides [summaryPath].
- */
-class _InSummaryFallbackFileSource extends FileSource
-    implements InSummarySource {
-  @override
-  final String summaryPath;
-
-  _InSummaryFallbackFileSource(File file, Uri uri, this.summaryPath)
-      : super(file, uri);
-}
-
-/**
- * A source that is part of a package whose summary was generated in fallback
- * mode. This source behaves identically to a [FileBasedSource] except that it
- * also provides [summaryPath].
- */
-@deprecated
-class _InSummaryFallbackSource extends FileBasedSource
-    implements InSummarySource {
-  @override
-  final String summaryPath;
-
-  _InSummaryFallbackSource(JavaFile file, Uri uri, this.summaryPath)
-      : super(file, uri);
 }

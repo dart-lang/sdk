@@ -54,7 +54,8 @@ class Profiler : public AllStatic {
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
 
-  static void DumpStackTrace(bool native_stack_trace = true);
+  static void DumpStackTrace(void* context);
+  static void DumpStackTrace();
 
   static void SampleAllocation(Thread* thread, intptr_t cid);
 
@@ -74,6 +75,8 @@ class Profiler : public AllStatic {
   }
 
  private:
+  static void DumpStackTrace(uword sp, uword fp, uword pc);
+
   // Does not walk the thread's stack.
   static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
   static bool initialized_;

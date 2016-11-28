@@ -17,9 +17,6 @@ sample_extension: Crash # Unable to compile UnsupportedError.message.
 [ $compiler == dart2analyzer ]
 build_dart: Skip
 
-[ $arch == ia32 && $system == windows ]
-sample_extension/test/sample_extension_app_snapshot_test: RuntimeError # Issue 27786
-
 [ $arch == arm ]
 sample_extension/test/*: Skip # Issue 14705
 

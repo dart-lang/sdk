@@ -1230,6 +1230,7 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitCompoundIndexSet(SendSet node, Node receiver, Node index,
       AssignmentOperator operator, Node rhs, _) {
+    // TODO(sra): Find binary operator.
     return buildIndexAccessor(receiver, index).buildCompoundAssignment(
         kernel.irName(operator.selectorName, currentElement),
         visitForValue(rhs),
@@ -1289,7 +1290,8 @@ class KernelVisitor extends Object
         receiver == null ? new ir.ThisExpression() : visitForValue(receiver);
     ir.Expression compound = buildCompound(
         PropertyAccessor.make(receiverNode, nameToIrName(name), null, null),
-        rhs);
+        rhs,
+        node);
     if (compound is ir.VariableSet) {
       associateNode(compound.value, node);
     } else {
@@ -1720,19 +1722,32 @@ class KernelVisitor extends Object
     return buildLocalGet(element);
   }
 
-  ir.Expression buildCompound(Accessor accessor, CompoundRhs rhs) {
+  ir.Expression buildCompound(
+      Accessor accessor, CompoundRhs rhs, SendSet node) {
     ir.Name name = kernel.irName(rhs.operator.selectorName, currentElement);
+    ir.Expression result;
     switch (rhs.kind) {
       case CompoundKind.POSTFIX:
-        return accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
+        result =
+            accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
+        break;
 
       case CompoundKind.PREFIX:
-        return accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
+        result =
+            accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
+        break;
 
       case CompoundKind.ASSIGNMENT:
-        return accessor.buildCompoundAssignment(name, visitForValue(rhs.rhs),
+        result = accessor.buildCompoundAssignment(name, visitForValue(rhs.rhs),
             voidContext: isVoidContext);
+        break;
     }
+    assert(accessor.builtBinary != null);
+    kernel.nodeToAstOperator[accessor.builtBinary] = node;
+    if (accessor.builtGetter != null) {
+      kernel.nodeToAst[accessor.builtGetter] = node;
+    }
+    return result;
   }
 
   @override
@@ -1740,7 +1755,7 @@ class KernelVisitor extends Object
       SendSet node, LocalElement local, CompoundRhs rhs, _,
       {bool isSetterValid}) {
     ir.Expression compound =
-        buildCompound(new VariableAccessor(getLocal(local)), rhs);
+        buildCompound(new VariableAccessor(getLocal(local)), rhs, node);
     if (compound is ir.VariableSet) {
       associateNode(compound.value, node);
     } else {
@@ -1997,7 +2012,6 @@ class KernelVisitor extends Object
           positionalParameters.add(variable);
         }
       });
-      namedParameters.sort();
       signature.forEachParameter((ParameterElement parameter) {
         if (!parameter.isOptional) return;
         ir.Expression initializer = visitForValue(parameter.initializer);
@@ -2236,6 +2250,7 @@ class KernelVisitor extends Object
       AssignmentOperator operator,
       Node rhs,
       _) {
+    // TODO(sra): Find binary operator.
     return buildSuperIndexAccessor(index, getter, setter)
         .buildCompoundAssignment(
             kernel.irName(operator.selectorName, currentElement),
@@ -2287,7 +2302,7 @@ class KernelVisitor extends Object
     if (setterKind == CompoundSetter.INVALID) {
       setter = null;
     }
-    return buildCompound(buildSuperPropertyAccessor(getter, setter), rhs);
+    return buildCompound(buildSuperPropertyAccessor(getter, setter), rhs, node);
   }
 
   @override
@@ -2302,13 +2317,14 @@ class KernelVisitor extends Object
     if (setterKind == CompoundSetter.INVALID) {
       setter = null;
     }
-    return buildCompound(buildStaticAccessor(getter, setter), rhs);
+    return buildCompound(buildStaticAccessor(getter, setter), rhs, node);
   }
 
   @override
   ir.Expression handleTypeLiteralConstantCompounds(
       SendSet node, ConstantExpression constant, CompoundRhs rhs, _) {
-    return buildCompound(new ReadOnlyAccessor(buildTypeLiteral(constant)), rhs);
+    return buildCompound(
+        new ReadOnlyAccessor(buildTypeLiteral(constant)), rhs, node);
   }
 
   ir.TypeLiteral buildTypeVariable(TypeVariableElement element) {
@@ -2318,7 +2334,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression handleTypeVariableTypeLiteralCompounds(
       SendSet node, TypeVariableElement element, CompoundRhs rhs, _) {
-    return buildCompound(new ReadOnlyAccessor(buildTypeVariable(element)), rhs);
+    return buildCompound(
+        new ReadOnlyAccessor(buildTypeVariable(element)), rhs, node);
   }
 
   @override

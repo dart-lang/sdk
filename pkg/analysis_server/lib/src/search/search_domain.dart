@@ -49,51 +49,38 @@ class SearchDomainHandler implements protocol.RequestHandler {
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      String searchId = (_nextSearchId++).toString();
-      var result = new protocol.SearchFindElementReferencesResult();
-      result.id = searchId;
-      _sendSearchResult(request, result);
-      _sendSearchNotification(searchId, true, <protocol.SearchResult>[]);
-      return;
-    }
     var params =
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
-    await server.onAnalysisComplete;
-    // prepare elements
-    List<Element> elements =
-        server.getElementsAtOffset(params.file, params.offset);
-    elements = elements.map((Element element) {
-      if (element is ImportElement) {
-        return element.prefix;
-      }
-      if (element is FieldFormalParameterElement) {
-        return element.field;
-      }
-      if (element is PropertyAccessorElement) {
-        return element.variable;
-      }
-      return element;
-    }).where((Element element) {
-      return element != null;
-    }).toList();
+    String file = params.file;
+    // prepare element
+    if (!server.options.enableNewAnalysisDriver) {
+      await server.onAnalysisComplete;
+    }
+    Element element = await server.getElementAtOffset(file, params.offset);
+    if (element is ImportElement) {
+      element = (element as ImportElement).prefix;
+    }
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+    if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
     // respond
     String searchId = (_nextSearchId++).toString();
     var result = new protocol.SearchFindElementReferencesResult();
-    if (elements.isNotEmpty) {
+    if (element != null) {
       result.id = searchId;
-      result.element = protocol.convertElement(elements.first);
+      result.element = protocol.convertElement(element);
     }
     _sendSearchResult(request, result);
     // search elements
-    elements.forEach((Element element) async {
+    if (element != null) {
       var computer = new ElementReferencesComputer(searchEngine);
       List<protocol.SearchResult> results =
           await computer.compute(element, params.includePotential);
-      bool isLast = identical(element, elements.last);
-      _sendSearchNotification(searchId, isLast, results);
-    });
+      _sendSearchNotification(searchId, true, results);
+    }
   }
 
   Future findMemberDeclarations(protocol.Request request) async {
@@ -171,12 +158,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
       await server.onAnalysisComplete;
     }
     // prepare element
-    List<Element> elements = server.getElementsAtOffset(file, params.offset);
-    if (elements.isEmpty) {
+    Element element = await server.getElementAtOffset(file, params.offset);
+    if (element == null) {
       _sendTypeHierarchyNull(request);
       return;
     }
-    Element element = elements.first;
     // maybe supertype hierarchy only
     if (params.superOnly == true) {
       TypeHierarchyComputer computer =

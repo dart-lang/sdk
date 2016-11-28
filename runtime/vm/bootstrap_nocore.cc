@@ -55,18 +55,9 @@ void Finish(Thread* thread, bool from_kernel) {
 }
 
 
-RawError* BootstrapFromKernel(Thread* thread,
-                              const uint8_t* buffer,
-                              intptr_t buffer_length) {
+RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
-  kernel::KernelReader reader(buffer, buffer_length);
-  kernel::Program* program = reader.ReadPrecompiledProgram();
-  if (program == NULL) {
-    const String& message =
-        String::Handle(zone, String::New("Failed to read Kernel file"));
-    return ApiError::New(message);
-  }
-
+  kernel::KernelReader reader(program);
   Isolate* isolate = thread->isolate();
   // Mark the already-pending classes.  This mark bit will be used to avoid
   // adding classes to the list more than once.
@@ -102,8 +93,7 @@ RawError* BootstrapFromKernel(Thread* thread,
 }
 
 
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_length) {
+RawError* Bootstrap::DoBootstrapping(kernel::Program* program) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -126,12 +116,10 @@ RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
     }
   }
 
-  ASSERT(kernel_buffer != NULL);
-  return BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_length);
+  return BootstrapFromKernel(thread, program);
 }
 #else
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_length) {
+RawError* Bootstrap::DoBootstrapping(kernel::Program* program) {
   UNREACHABLE();
   return Error::null();
 }

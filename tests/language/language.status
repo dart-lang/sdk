@@ -91,7 +91,6 @@ vm/type_vm_test: Fail # Issue 14651.
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
-generic_methods_generic_function_parameter_test: RuntimeError # Issue 25869
 vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
 main_test/01: Fail # Issue 20028
 main_test/02: Fail # Issue 20028
@@ -106,8 +105,9 @@ vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 initializing_formal_access_test: Skip
 initializing_formal_capture_test: Skip
 initializing_formal_final_test: Skip
-initializing_formal_type_test: Skip
 initializing_formal_promotion_test: Skip
+initializing_formal_type_test: Skip
+parameter_initializer5_test: Skip
 
 # Experimental feature: Syntactic support for generic methods.
 # Skip these in dartium, because the test framework can't pass VM flags to

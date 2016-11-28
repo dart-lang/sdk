@@ -201,27 +201,25 @@ class EditDomainHandler implements RequestHandler {
         }
       }
     } else {
-      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-      for (CompilationUnit unit in units) {
-        engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-        if (errorInfo != null) {
-          LineInfo lineInfo = errorInfo.lineInfo;
-          int requestLine = lineInfo.getLocation(offset).lineNumber;
-          for (engine.AnalysisError error in errorInfo.errors) {
-            int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-            if (errorLine == requestLine) {
-              List<Fix> fixes = await computeFixes(server.serverPlugin,
-                  server.resourceProvider, unit.element.context, error);
-              if (fixes.isNotEmpty) {
-                AnalysisError serverError =
-                    newAnalysisError_fromEngine(lineInfo, error);
-                AnalysisErrorFixes errorFixes =
-                    new AnalysisErrorFixes(serverError);
-                errorFixesList.add(errorFixes);
-                fixes.forEach((fix) {
-                  errorFixes.fixes.add(fix.change);
-                });
-              }
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+      if (errorInfo != null) {
+        LineInfo lineInfo = errorInfo.lineInfo;
+        int requestLine = lineInfo.getLocation(offset).lineNumber;
+        for (engine.AnalysisError error in errorInfo.errors) {
+          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+          if (errorLine == requestLine) {
+            List<Fix> fixes = await computeFixes(server.serverPlugin,
+                server.resourceProvider, unit.element.context, error);
+            if (fixes.isNotEmpty) {
+              AnalysisError serverError =
+                  newAnalysisError_fromEngine(lineInfo, error);
+              AnalysisErrorFixes errorFixes =
+                  new AnalysisErrorFixes(serverError);
+              errorFixesList.add(errorFixes);
+              fixes.forEach((fix) {
+                errorFixes.fixes.add(fix.change);
+              });
             }
           }
         }
@@ -286,14 +284,13 @@ class EditDomainHandler implements RequestHandler {
       unit = result.unit;
       errors = result.errors;
     } else {
-      // prepare resolved units
-      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-      if (units.isEmpty) {
+      // prepare resolved unit
+      unit = await server.getResolvedCompilationUnit(file);
+      if (unit == null) {
         server.sendResponse(new Response.fileNotAnalyzed(request, file));
         return;
       }
       // prepare context
-      unit = units.first;
       engine.AnalysisContext context = unit.element.context;
       Source source = unit.element.source;
       errors = context.computeErrors(source);
@@ -400,9 +397,8 @@ class EditDomainHandler implements RequestHandler {
     }
     // check elements
     {
-      List<Element> elements = server.getElementsAtOffset(file, offset);
-      if (elements.isNotEmpty) {
-        Element element = elements[0];
+      Element element = await server.getElementAtOffset(file, offset);
+      if (element != null) {
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
           Refactoring refactoring =
@@ -708,9 +704,8 @@ class _RefactoringManager {
     }
     // create a new Refactoring instance
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
-      List<Element> elements = server.getElementsAtOffset(file, offset);
-      if (elements.isNotEmpty) {
-        Element element = elements[0];
+      Element element = await server.getElementAtOffset(file, offset);
+      if (element != null) {
         if (element is ExecutableElement) {
           _resetOnAnalysisStarted();
           refactoring =
@@ -719,9 +714,8 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
-      List<Element> elements = server.getElementsAtOffset(file, offset);
-      if (elements.isNotEmpty) {
-        Element element = elements[0];
+      Element element = await server.getElementAtOffset(file, offset);
+      if (element != null) {
         if (element is ExecutableElement) {
           _resetOnAnalysisStarted();
           refactoring =
@@ -730,10 +724,10 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-      if (units.isNotEmpty) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
         _resetOnFileResolutionChanged(file);
-        refactoring = new ExtractLocalRefactoring(units[0], offset, length);
+        refactoring = new ExtractLocalRefactoring(unit, offset, length);
         feedback = new ExtractLocalVariableFeedback(
             <String>[], <int>[], <int>[],
             coveringExpressionOffsets: <int>[],
@@ -741,29 +735,27 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
-      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-      if (units.isNotEmpty) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring = new ExtractMethodRefactoring(
-            searchEngine, units[0], offset, length);
+        refactoring =
+            new ExtractMethodRefactoring(searchEngine, unit, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-      if (units.isNotEmpty) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
         _resetOnFileResolutionChanged(file);
-        refactoring =
-            new InlineLocalRefactoring(searchEngine, units[0], offset);
+        refactoring = new InlineLocalRefactoring(searchEngine, unit, offset);
       }
     }
     if (kind == RefactoringKind.INLINE_METHOD) {
-      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-      if (units.isNotEmpty) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring =
-            new InlineMethodRefactoring(searchEngine, units[0], offset);
+        refactoring = new InlineMethodRefactoring(searchEngine, unit, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
@@ -775,11 +767,9 @@ class _RefactoringManager {
           server.resourceProvider, searchEngine, context, source, file);
     }
     if (kind == RefactoringKind.RENAME) {
-      List<AstNode> nodes = server.getNodesAtOffset(file, offset);
-      List<Element> elements = server.getElementsOfNodes(nodes);
-      if (nodes.isNotEmpty && elements.isNotEmpty) {
-        AstNode node = nodes[0];
-        Element element = elements[0];
+      AstNode node = await server.getNodeAtOffset(file, offset);
+      Element element = server.getElementOfNode(node);
+      if (node != null && element != null) {
         if (element is FieldFormalParameterElement) {
           element = (element as FieldFormalParameterElement).field;
         }

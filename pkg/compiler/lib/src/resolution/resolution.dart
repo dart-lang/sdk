@@ -247,9 +247,7 @@ class ResolverTask extends CompilerTask {
         // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver =
             new InitializerResolver(visitor, element, tree);
-        FunctionElement redirection = resolver.resolveInitializers(
-            enableInitializingFormalAccess:
-                options.enableInitializingFormalAccess);
+        FunctionElement redirection = resolver.resolveInitializers();
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }

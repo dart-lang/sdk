@@ -551,7 +551,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
     Dart_ListSetAt(entry, 1, Dart_NewStringFromCString(addr->as_string()));
 
     RawAddr raw = addr->addr();
-    intptr_t data_length = SocketAddress::GetAddrLength(raw);
+    intptr_t data_length = SocketAddress::GetInAddrLength(raw);
     Dart_Handle data = Dart_NewTypedData(Dart_TypedData_kUint8, data_length);
     Dart_ListSetAsBytes(data, 0, reinterpret_cast<uint8_t*>(&raw), data_length);
     Dart_ListSetAt(entry, 2, data);

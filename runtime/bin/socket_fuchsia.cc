@@ -95,39 +95,11 @@ static intptr_t Create(const RawAddr& addr) {
 }
 
 
-static intptr_t CheckConnect(intptr_t fd) {
-  int val;
-  socklen_t vallen = sizeof(val);
-  LOG_INFO("CheckConnect: calling getsockopt(%ld)\n", fd);
-  intptr_t result = getsockopt(fd, SOL_SOCKET, SO_ERROR, &val, &vallen);
-  if (result != 0) {
-    FATAL1("CheckConnect: getsockopt(%ld) failed\n", fd);
-  } else if (vallen != sizeof(val)) {
-    FATAL1("CheckConnect: getsockopt(%ld) vallen != sizeof(val)!?!?\n", fd);
-  } else if (val != 0) {
-    LOG_ERR("CheckConnect: getsockopt(%ld) val = %d\n", fd, val);
-    return val;
-  }
-  LOG_INFO("CheckConnect: getsockopt(%ld) connected\n", fd);
-  return 0;
-}
-
-
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   LOG_INFO("Connect: calling connect(%ld)\n", fd);
   intptr_t result = NO_RETRY_EXPECTED(
       connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
   if ((result == 0) || (errno == EINPROGRESS)) {
-    LOG_INFO("Connect: connect(%ld) succeeded\n", fd);
-    intptr_t error = 0;
-    // TODO(US-87): When the issue is resolved this check is no longer needed.
-    while ((error = CheckConnect(fd)) != 0) {
-      if (error != EINPROGRESS) {
-        errno = error;
-        FDUtils::SaveErrorAndClose(fd);
-        return -1;
-      }
-    }
     return fd;
   }
   LOG_ERR("Connect: connect(%ld) failed\n", fd);
@@ -242,9 +214,14 @@ intptr_t Socket::GetPort(intptr_t fd) {
 
 
 SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
-  LOG_ERR("Socket::GetRemotePeer is unimplemented\n");
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(fd >= 0);
+  RawAddr raw;
+  socklen_t size = sizeof(raw);
+  if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
+    return NULL;
+  }
+  *port = SocketAddress::GetAddrPort(raw);
+  return new SocketAddress(&raw.addr);
 }
 
 
@@ -324,9 +301,15 @@ bool Socket::ReverseLookup(const RawAddr& addr,
 
 
 bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
-  LOG_ERR("Socket::ParseAddress is unimplemented\n");
-  UNIMPLEMENTED();
-  return false;
+  int result;
+  if (type == SocketAddress::TYPE_IPV4) {
+    result = NO_RETRY_EXPECTED(inet_pton(AF_INET, address, &addr->in.sin_addr));
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    result =
+        NO_RETRY_EXPECTED(inet_pton(AF_INET6, address, &addr->in6.sin6_addr));
+  }
+  return (result == 1);
 }
 
 

@@ -71,8 +71,6 @@ bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
 
 
 intptr_t FDUtils::AvailableBytes(intptr_t fd) {
-// TODO(MG-364): Enable this code when it is supported.
-#if 0
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = NO_RETRY_EXPECTED(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
@@ -80,9 +78,6 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   }
   ASSERT(available >= 0);
   return static_cast<intptr_t>(available);
-#endif
-  errno = ENOTSUP;
-  return -1;
 }
 
 

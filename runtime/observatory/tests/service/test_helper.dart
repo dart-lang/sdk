@@ -281,7 +281,7 @@ class _ServiceTesteeLauncher {
 
 void setupAddresses(Uri serverAddress) {
   serviceWebsocketAddress =
-          'ws://${serverAddress.authority}${serverAddress.path}ws';
+      'ws://${serverAddress.authority}${serverAddress.path}ws';
   serviceHttpAddress =
       'http://${serverAddress.authority}${serverAddress.path}';
 }

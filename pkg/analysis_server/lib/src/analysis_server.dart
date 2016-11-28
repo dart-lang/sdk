@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -119,7 +120,7 @@ class AnalysisServer {
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
-  final SearchEngine searchEngine;
+  SearchEngine searchEngine;
 
   /**
    * The plugin associated with this analysis server.
@@ -346,7 +347,7 @@ class AnalysisServer {
       this.channel,
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
-      Index _index,
+      this.index,
       this.serverPlugin,
       this.options,
       this.sdkManager,
@@ -354,9 +355,7 @@ class AnalysisServer {
       {ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
-      this.rethrowExceptions: true})
-      : index = _index,
-        searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
+      this.rethrowExceptions: true}) {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -414,6 +413,11 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
+    if (options.enableNewAnalysisDriver) {
+      searchEngine = new SearchEngineImpl2(driverMap.values);
+    } else if (index != null) {
+      searchEngine = new SearchEngineImpl(index);
+    }
     pubSummaryManager =
         new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
@@ -584,14 +588,21 @@ class AnalysisServer {
   }
 
   /**
-   * Return the analysis driver to which the file with the given [path] is
-   * added if exists, otherwise the first driver, otherwise `null`.
+   * Return an analysis driver to which the file with the given [path] is
+   * added if one exists, otherwise a driver in which the file was analyzed if
+   * one exists, otherwise the first driver, otherwise `null`.
    */
   nd.AnalysisDriver getAnalysisDriver(String path) {
     Iterable<nd.AnalysisDriver> drivers = driverMap.values;
     if (drivers.isNotEmpty) {
-      return drivers.firstWhere((driver) => driver.knownFiles.contains(path),
-          orElse: () => drivers.first);
+      nd.AnalysisDriver driver = drivers.firstWhere(
+          (driver) => driver.addedFiles.contains(path),
+          orElse: () => null);
+      driver ??= drivers.firstWhere(
+          (driver) => driver.knownFiles.contains(path),
+          orElse: () => null);
+      driver ??= drivers.first;
+      return driver;
     }
     return null;
   }
@@ -706,41 +717,37 @@ class AnalysisServer {
   }
 
   /**
-   * Returns [Element]s at the given [offset] of the given [file].
-   *
-   * May be empty if cannot be resolved, but not `null`.
+   * Return a [Future] that completes with the [Element] at the given
+   * [offset] of the given [file], or with `null` if there is no node at the
+   * [offset] or the node does not have an element.
    */
-  List<Element> getElementsAtOffset(String file, int offset) {
-    List<AstNode> nodes = getNodesAtOffset(file, offset);
-    return getElementsOfNodes(nodes);
+  Future<Element> getElementAtOffset(String file, int offset) async {
+    AstNode node = await getNodeAtOffset(file, offset);
+    return getElementOfNode(node);
   }
 
   /**
-   * Returns [Element]s of the given [nodes].
-   *
-   * May be empty if not resolved, but not `null`.
+   * Return the [Element] of the given [node], or `null` if [node] is `null` or
+   * does not have an element.
    */
-  List<Element> getElementsOfNodes(List<AstNode> nodes) {
-    List<Element> elements = <Element>[];
-    for (AstNode node in nodes) {
-      if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-        node = node.parent;
-      }
-      if (node is LibraryIdentifier) {
-        node = node.parent;
-      }
-      if (node is StringLiteral && node.parent is UriBasedDirective) {
-        continue;
-      }
-      Element element = ElementLocator.locate(node);
-      if (node is SimpleIdentifier && element is PrefixElement) {
-        element = getImportElement(node);
-      }
-      if (element != null) {
-        elements.add(element);
-      }
+  Element getElementOfNode(AstNode node) {
+    if (node == null) {
+      return null;
     }
-    return elements;
+    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is StringLiteral && node.parent is UriBasedDirective) {
+      return null;
+    }
+    Element element = ElementLocator.locate(node);
+    if (node is SimpleIdentifier && element is PrefixElement) {
+      element = getImportElement(node);
+    }
+    return element;
   }
 
   /**
@@ -770,49 +777,43 @@ class AnalysisServer {
   }
 
   /**
-   * Returns resolved [AstNode]s at the given [offset] of the given [file].
-   *
-   * May be empty, but not `null`.
+   * Return a [Future] that completes with the resolved [AstNode] at the
+   * given [offset] of the given [file], or with `null` if there is no node as
+   * the [offset].
    */
-  List<AstNode> getNodesAtOffset(String file, int offset) {
-    List<CompilationUnit> units = getResolvedCompilationUnits(file);
-    List<AstNode> nodes = <AstNode>[];
-    for (CompilationUnit unit in units) {
-      AstNode node = new NodeLocator(offset).searchWithin(unit);
-      if (node != null) {
-        nodes.add(node);
-      }
+  Future<AstNode> getNodeAtOffset(String file, int offset) async {
+    CompilationUnit unit;
+    if (options.enableNewAnalysisDriver) {
+      nd.AnalysisResult result = await getAnalysisResult(file);
+      unit = result?.unit;
+    } else {
+      unit = await getResolvedCompilationUnit(file);
     }
-    return nodes;
+    if (unit != null) {
+      return new NodeLocator(offset).searchWithin(unit);
+    }
+    return null;
   }
 
   /**
-   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
-   *
-   * May be empty, but not `null`.
+   * Return a [Future] that completes with the resolved [CompilationUnit] for
+   * the Dart file with the given [path], or with `null` if the file is not a
+   * Dart file or cannot be resolved.
    */
-  List<CompilationUnit> getResolvedCompilationUnits(String path) {
-    List<CompilationUnit> units = <CompilationUnit>[];
+  Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
     ContextSourcePair contextSource = getContextSourcePair(path);
-    // prepare AnalysisContext
     AnalysisContext context = contextSource.context;
     if (context == null) {
-      return units;
+      return null;
     }
-    // add a unit for each unit/library combination
-    runWithActiveContext(context, () {
+    return runWithActiveContext(context, () {
       Source unitSource = contextSource.source;
       List<Source> librarySources = context.getLibrariesContaining(unitSource);
       for (Source librarySource in librarySources) {
-        CompilationUnit unit =
-            context.resolveCompilationUnit2(unitSource, librarySource);
-        if (unit != null) {
-          units.add(unit);
-        }
+        return context.resolveCompilationUnit2(unitSource, librarySource);
       }
+      return null;
     });
-    // done
-    return units;
   }
 
 // TODO(brianwilkerson) Add the following method after 'prioritySources' has

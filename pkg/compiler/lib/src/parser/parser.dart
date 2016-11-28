@@ -5,7 +5,6 @@
 library dart2js.parser;
 
 import '../common.dart';
-import '../options.dart' show ParserOptions;
 import '../tokens/keyword.dart' show Keyword;
 import '../tokens/precedence.dart' show PrecedenceInfo;
 import '../tokens/precedence_constants.dart'
@@ -96,16 +95,10 @@ class FormalParameterType {
  */
 class Parser {
   final Listener listener;
-  final ParserOptions parserOptions;
   bool mayParseFunctionExpressions = true;
   bool asyncAwaitKeywordsEnabled;
 
-  final bool enableGenericMethodSyntax;
-
-  Parser(this.listener, ParserOptions parserOptions,
-      {this.asyncAwaitKeywordsEnabled: false})
-      : parserOptions = parserOptions,
-        enableGenericMethodSyntax = parserOptions.enableGenericMethodSyntax;
+  Parser(this.listener, {this.asyncAwaitKeywordsEnabled: false});
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -466,7 +459,7 @@ class Parser {
       listener.handleNoTypeVariables(token);
       token = parseFormalParameters(token);
       listener.handleFunctionTypedFormalParameter(token);
-    } else if (enableGenericMethodSyntax && optional('<', token)) {
+    } else if (optional('<', token)) {
       token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token);
       listener.handleFunctionTypedFormalParameter(token);
@@ -783,8 +776,7 @@ class Parser {
     listener.beginTypeVariable(token);
     token = parseIdentifier(token);
     Token extendsOrSuper = null;
-    if (optional('extends', token) ||
-        (enableGenericMethodSyntax && optional('super', token))) {
+    if (optional('extends', token) || optional('super', token)) {
       extendsOrSuper = token;
       token = parseType(token.next);
     } else {
@@ -1099,7 +1091,7 @@ class Parser {
     }
     Token token = parseIdentifier(name);
 
-    if (enableGenericMethodSyntax && getOrSet == null) {
+    if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
       listener.handleNoTypeVariables(token);
@@ -1412,7 +1404,7 @@ class Parser {
           (identical(value, '.')) ||
           (identical(value, '{')) ||
           (identical(value, '=>')) ||
-          (enableGenericMethodSyntax && identical(value, '<'))) {
+          (identical(value, '<'))) {
         isField = false;
         break;
       } else if (identical(value, ';')) {
@@ -1507,7 +1499,7 @@ class Parser {
     }
 
     token = parseQualifiedRestOpt(token);
-    if (enableGenericMethodSyntax && getOrSet == null) {
+    if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
       listener.handleNoTypeVariables(token);
@@ -1598,7 +1590,7 @@ class Parser {
     }
     token = parseQualifiedRestOpt(token);
     listener.endFunctionName(token);
-    if (enableGenericMethodSyntax && getOrSet == null) {
+    if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
       listener.handleNoTypeVariables(token);
@@ -1643,11 +1635,7 @@ class Parser {
     listener.beginFunctionName(token);
     token = parseIdentifier(token);
     listener.endFunctionName(token);
-    if (enableGenericMethodSyntax) {
-      token = parseTypeVariablesOpt(token);
-    } else {
-      listener.handleNoTypeVariables(token);
-    }
+    token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
     bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
@@ -1879,8 +1867,7 @@ class Parser {
           // by '{', '=>', 'async', or 'sync'.
           return parseFunctionDeclaration(token);
         }
-      } else if (enableGenericMethodSyntax &&
-          identical(afterIdKind, LT_TOKEN)) {
+      } else if (identical(afterIdKind, LT_TOKEN)) {
         // We are looking at "type identifier '<'".
         BeginGroupToken beginAngle = afterId;
         Token endAngle = beginAngle.endGroup;
@@ -1915,7 +1902,7 @@ class Parser {
             identical(afterParens, 'sync')) {
           return parseFunctionDeclaration(token);
         }
-      } else if (enableGenericMethodSyntax && optional('<', token.next)) {
+      } else if (optional('<', token.next)) {
         BeginGroupToken beginAngle = token.next;
         Token endAngle = beginAngle.endGroup;
         if (endAngle != null &&
@@ -2360,8 +2347,7 @@ class Parser {
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
     assert(optional('<', token));
     BeginGroupToken begin = token;
-    if (enableGenericMethodSyntax &&
-        constKeyword == null &&
+    if (constKeyword == null &&
         begin.endGroup != null &&
         identical(begin.endGroup.next.kind, OPEN_PAREN_TOKEN)) {
       token = parseTypeVariablesOpt(token);
@@ -2404,7 +2390,7 @@ class Parser {
   }
 
   bool isFunctionDeclaration(Token token) {
-    if (enableGenericMethodSyntax && optional('<', token)) {
+    if (optional('<', token)) {
       BeginGroupToken begin = token;
       if (begin.endGroup == null) return false;
       token = begin.endGroup.next;
@@ -2553,7 +2539,7 @@ class Parser {
   Token parseSend(Token token) {
     listener.beginSend(token);
     token = parseIdentifier(token);
-    if (enableGenericMethodSyntax && isValidMethodTypeArguments(token)) {
+    if (isValidMethodTypeArguments(token)) {
       token = parseTypeArgumentsOpt(token);
     } else {
       listener.handleNoTypeArguments(token);

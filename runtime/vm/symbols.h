@@ -367,11 +367,9 @@ class ObjectPointerVisitor;
   V(hashCode, "get:hashCode")                                                  \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
-  V(AllocationStubFor, "[Stub] Allocate ")                                     \
   V(TempParam, ":temp_param")                                                  \
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \
-  V(StubPrefix, "[Stub] ")                                                     \
   V(ClassID, "ClassID")                                                        \
   V(DartIsVM, "dart.isVM")                                                     \
   V(stack, ":stack")                                                           \

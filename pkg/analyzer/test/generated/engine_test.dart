@@ -483,6 +483,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
 
+  @deprecated
   @override
   Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) {
     fail("Unexpected invocation of getConfigurationData");
@@ -685,6 +686,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of setChangedContents");
   }
 
+  @deprecated
   @override
   void setConfigurationData(ResultDescriptor key, Object data) {
     fail("Unexpected invocation of setConfigurationData");

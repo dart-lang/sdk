@@ -90,17 +90,17 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisGetHoverParams.fromRequest(request);
 
     // Prepare the resolved units.
-    List<CompilationUnit> units;
+    CompilationUnit unit;
     if (server.options.enableNewAnalysisDriver) {
       AnalysisResult result = await server.getAnalysisResult(params.file);
-      units = result != null ? [result.unit] : null;
+      unit = result?.unit;
     } else {
-      units = server.getResolvedCompilationUnits(params.file);
+      unit = await server.getResolvedCompilationUnit(params.file);
     }
 
     // Prepare the hovers.
     List<HoverInformation> hovers = <HoverInformation>[];
-    for (CompilationUnit unit in units) {
+    if (unit != null) {
       HoverInformation hoverInformation =
           new DartUnitHoverComputer(unit, params.offset).compute();
       if (hoverInformation != null) {
@@ -144,15 +144,14 @@ class AnalysisDomainHandler implements RequestHandler {
     if (analysisFuture == null) {
       return new Response.getNavigationInvalidFile(request);
     }
-    analysisFuture.then((AnalysisDoneReason reason) {
+    analysisFuture.then((AnalysisDoneReason reason) async {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
-          List<CompilationUnit> units =
-              server.getResolvedCompilationUnits(file);
-          if (units.isEmpty) {
+          CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+          if (unit == null) {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
-            CompilationUnitElement unitElement = units.first.element;
+            CompilationUnitElement unitElement = unit.element;
             NavigationCollectorImpl collector = computeNavigation(
                 server,
                 unitElement.context,

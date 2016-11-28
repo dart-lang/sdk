@@ -1154,8 +1154,9 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           }
           ASSERT((drop->value() != NULL) || !drop->HasTemp());
         } else {
-          ASSERT(definition->HasTemp());
-          result = GetConstant(constant->value());
+          if (definition->HasTemp()) {
+            result = GetConstant(constant->value());
+          }
         }
         // Update expression stack or remove from graph.
         if (definition->HasTemp()) {

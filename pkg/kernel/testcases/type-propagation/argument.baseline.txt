@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Foo extends self::Base {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+}
+class Bar extends self::Base {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+}
+class Baz extends self::Base {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+}
+static method foo(dynamic/self::Foo! {other} x) → void/Null {}
+static method bar(dynamic/self::Bar! {other} x) → void/Null {}
+static method foo_escaped(dynamic/core::Object+ {*} x) → void/Null {}
+static method bar_escaped(dynamic/core::Object+ {*} x) → void/Null {}
+static method escape(dynamic/core::Function* {other} fn) → void/Null {
+  fn.call(new self::Baz::•());
+}
+static method main() → dynamic/Null {
+  self::foo(new self::Foo::•());
+  self::bar(new self::Bar::•());
+  self::escape(self::foo_escaped);
+  self::escape(self::bar_escaped);
+}

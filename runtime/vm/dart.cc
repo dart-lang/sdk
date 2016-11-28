@@ -493,7 +493,7 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
                                   intptr_t snapshot_length,
-                                  bool from_kernel,
+                                  kernel::Program* kernel_program,
                                   void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
@@ -512,17 +512,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
   }
 
   Error& error = Error::Handle(T->zone());
-  if (from_kernel) {
-    ASSERT(snapshot_buffer != NULL);
-    ASSERT(snapshot_length > 0);
-    error = Object::Init(I, snapshot_buffer, snapshot_length);
-  } else {
-    error = Object::Init(I, NULL, -1);
-  }
+  error = Object::Init(I, kernel_program);
   if (!error.IsNull()) {
     return error.raw();
   }
-  if ((snapshot_buffer != NULL) && !from_kernel) {
+  if ((snapshot_buffer != NULL) && kernel_program == NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                                              "IsolateSnapshotReader"));
@@ -563,7 +557,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if ((snapshot_kind_ != Snapshot::kNone) && !from_kernel) {
+    if ((snapshot_kind_ != Snapshot::kNone) && kernel_program == NULL) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -591,7 +585,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);
 
-  if ((snapshot_buffer == NULL) || from_kernel) {
+  if ((snapshot_buffer == NULL) || (kernel_program != NULL)) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
     if (!error.IsNull()) {
       return error.raw();

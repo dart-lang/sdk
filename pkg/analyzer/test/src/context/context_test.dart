@@ -977,15 +977,6 @@ main() {}''');
         });
   }
 
-  void test_configurationData() {
-    var key = new ResultDescriptor('test_key', 'TEST_DEFAULT');
-    var testData = ['test', 'data'];
-    context.setConfigurationData(key, testData);
-    expect(context.getConfigurationData(key), testData);
-    var unusedKey = new ResultDescriptor('unused_key', 'UNUSED_DEFAULT');
-    expect(context.getConfigurationData(unusedKey), 'UNUSED_DEFAULT');
-  }
-
   void test_dispose() {
     expect(context.isDisposed, isFalse);
     context.dispose();
@@ -2543,9 +2534,7 @@ import 'package:crypto/crypto.dart';
   }
 
   void test_resolveCompilationUnit_existingElementModel() {
-    prepareAnalysisContext(new AnalysisOptionsImpl()
-      ..enableGenericMethods = true
-      ..strongMode = true);
+    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(
         '/test.dart',
         r'''

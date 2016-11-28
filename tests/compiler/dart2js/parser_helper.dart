@@ -105,7 +105,7 @@ Node parseBodyCode(String text, Function parseMethod,
       new ScannerOptions(canUseNative: true),
       reporter,
       library.entryCompilationUnit);
-  Parser parser = new Parser(listener, new MockParserOptions());
+  Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
@@ -150,7 +150,7 @@ Link<Element> parseUnit(String text, Compiler compiler, LibraryElement library,
       reporter,
       unit,
       new IdGenerator());
-  PartialParser parser = new PartialParser(listener, new MockParserOptions());
+  PartialParser parser = new PartialParser(listener);
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;
 }

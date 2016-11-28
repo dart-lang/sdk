@@ -268,7 +268,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
     SetReadException("Invalid object found in message.");
   }
   str_ ^= ReadObjectImpl(kAsInlinedObject);
-  cls = library_.LookupClass(str_);
+  cls = library_.LookupClassAllowPrivate(str_);
   if (cls.IsNull()) {
     SetReadException("Invalid object found in message.");
   }
@@ -299,7 +299,7 @@ RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
     str_ ^= ReadObjectImpl(kAsInlinedObject);
     func ^= library_.LookupLocalFunction(str_);
   } else {
-    cls_ = library_.LookupClass(str_);
+    cls_ = library_.LookupClassAllowPrivate(str_);
     if (cls_.IsNull()) {
       SetReadException("Expected a class name, but found an invalid name.");
     }

@@ -198,6 +198,12 @@ class Parser {
   bool _enableNnbd = false;
 
   /**
+   * A flag indicating whether the parser is to allow URI's in part-of
+   * directives.
+   */
+  bool _enableUriInPartOf = false;
+
+  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -238,6 +244,7 @@ class Parser {
   /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
+  @deprecated
   bool parseGenericMethods = false;
 
   /**
@@ -290,6 +297,19 @@ class Parser {
    */
   void set enableNnbd(bool enable) {
     _enableNnbd = enable;
+  }
+
+  /**
+   * Return `true` if the parser is to allow URI's in part-of directives.
+   */
+  bool get enableUriInPartOf => _enableUriInPartOf;
+
+  /**
+   * Set whether the parser is to allow URI's in part-of directives to the given
+   * [enable] flag.
+   */
+  void set enableUriInPartOf(bool enable) {
+    _enableUriInPartOf = enable;
   }
 
   /**
@@ -1401,7 +1421,7 @@ class Parser {
       // function type alias that was parsed.
       _parseFunctionTypeAlias(commentAndMetadata, getAndAdvance());
       return null;
-    } else if (parseGenericMethods) {
+    } else {
       Token token = _skipTypeParameterList(_peek());
       if (token != null && _tokenMatches(token, TokenType.OPEN_PAREN)) {
         return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
@@ -1490,7 +1510,7 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (parseGenericMethods && _tokenMatches(next, TokenType.LT)) {
+    } else if (_tokenMatches(next, TokenType.LT)) {
       return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type);
     } else if (_tokenMatches(next, TokenType.OPEN_CURLY_BRACKET)) {
@@ -4119,7 +4139,7 @@ class Parser {
         type == TokenType.PERIOD ||
         type == TokenType.QUESTION_PERIOD ||
         type == TokenType.OPEN_PAREN ||
-        (parseGenericMethods && type == TokenType.LT) ||
+        type == TokenType.LT ||
         type == TokenType.INDEX) {
       do {
         if (_isLikelyArgumentList()) {
@@ -5764,9 +5784,6 @@ class Parser {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = skipTypeArgumentList(_currentToken);
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -5825,9 +5842,6 @@ class Parser {
   }
 
   bool _isPeekGenericTypeParametersAndOpenParen() {
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -6617,8 +6631,7 @@ class Parser {
    * See [parseGenericMethodComments].
    */
   TypeParameterList _parseGenericMethodTypeParameters() {
-    if (parseGenericMethods && _matches(TokenType.LT) ||
-        _injectGenericCommentTypeList()) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return parseTypeParameterList();
     }
     return null;
@@ -6897,6 +6910,18 @@ class Parser {
   Directive _parsePartOfDirective(CommentAndMetadata commentAndMetadata) {
     Token partKeyword = getAndAdvance();
     Token ofKeyword = getAndAdvance();
+    if (enableUriInPartOf && _matches(TokenType.STRING)) {
+      StringLiteral libraryUri = _parseUri();
+      Token semicolon = _expect(TokenType.SEMICOLON);
+      return new PartOfDirective(
+          commentAndMetadata.comment,
+          commentAndMetadata.metadata,
+          partKeyword,
+          ofKeyword,
+          libraryUri,
+          null,
+          semicolon);
+    }
     LibraryIdentifier libraryName = _parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
     Token semicolon = _expect(TokenType.SEMICOLON);
@@ -6905,6 +6930,7 @@ class Parser {
         commentAndMetadata.metadata,
         partKeyword,
         ofKeyword,
+        null,
         libraryName,
         semicolon);
   }

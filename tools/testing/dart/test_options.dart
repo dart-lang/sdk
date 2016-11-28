@@ -287,6 +287,9 @@ class TestOptionsParser {
           'verbose', 'Verbose output', ['-v', '--verbose'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
+          'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
@@ -605,24 +608,28 @@ Note: currently only implemented for dart2js.''',
   // For printing out reproducing command lines, we don't want to add these
   // options.
   Set<String> _blacklistedOptions = new Set<String>.from([
-    'progress',
-    'failure-summary',
-    'step_name',
-    'report',
-    'tasks',
-    'verbose',
-    'time',
-    'dart',
-    'drt',
-    'dartium',
-    'firefox',
-    'chrome',
-    'safari',
-    'build_directory',
     'append_logs',
+    'build_directory',
+    'chrome',
+    'copy_coredumps',
+    'dart',
+    'dartium',
+    'drt',
+    'exclude_suite',
+    'failure-summary',
+    'firefox',
     'local_ip',
+    'progress',
+    'report',
+    'safari',
     'shard',
     'shards',
+    'step_name',
+    'tasks',
+    'time',
+    'verbose',
+    'write_debug_log',
+    'write_test_outcome_log',
   ]);
 
   List<String> _constructReproducingCommandArguments(Map config) {

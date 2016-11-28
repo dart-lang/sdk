@@ -12,7 +12,7 @@ import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
 import "process_test_util.dart";
 
-final DEFAULT_TIMEOUT = 10;
+final DEFAULT_TIMEOUT = 20;
 final LONG_TIMEOUT = 30;
 
 List<String> packageOptions() {

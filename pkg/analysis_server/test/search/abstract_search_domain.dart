@@ -78,6 +78,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
 
   @override
   void processNotification(Notification notification) {
+    super.processNotification(notification);
     if (notification.event == SEARCH_RESULTS) {
       var params = new SearchResultsParams.fromNotification(notification);
       String id = params.id;

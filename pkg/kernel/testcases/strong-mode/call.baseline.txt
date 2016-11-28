@@ -1,0 +1,53 @@
+// Too few positional arguments (call.dart:30:17)
+// Too few positional arguments (call.dart:31:25)
+// Too few positional arguments (call.dart:35:17)
+// Too few positional arguments (call.dart:36:26)
+// Too few positional arguments (call.dart:37:31)
+library;
+import self as self;
+import "dart:core" as core;
+
+class Callable extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(dynamic x) → dynamic {
+    return "string";
+  }
+}
+class CallableGetter extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get call() → dynamic
+    return new self::Callable::•();
+}
+static method main() → dynamic {
+  (dynamic) → dynamic closure = (dynamic x) → dynamic => x;
+  dynamic int1 = closure.call(1);
+  dynamic int2 = closure.call(1);
+  dynamic int3 = closure.call.call(1);
+  dynamic int4 = closure.call.call.call(1);
+  self::Callable callable = new self::Callable::•();
+  dynamic string1 = callable.{self::Callable::call}(1);
+  dynamic string2 = callable.{self::Callable::call}(1);
+  dynamic string3 = callable.{self::Callable::call}.call(1);
+  dynamic string4 = callable.{self::Callable::call}.call.call(1);
+  self::CallableGetter callableGetter = new self::CallableGetter::•();
+  dynamic string5 = callableGetter.call(1);
+  dynamic string6 = callableGetter.{self::CallableGetter::call}.call(1);
+  dynamic string7 = callableGetter.{self::CallableGetter::call}.call(1);
+  dynamic string8 = callableGetter.{self::CallableGetter::call}.call.call(1);
+  dynamic nothing1 = closure.call();
+  dynamic nothing2 = closure.call();
+  dynamic nothing3 = closure.call.call();
+  dynamic nothing4 = closure.call.call.call();
+  dynamic nothing5 = callable.{self::Callable::call}();
+  dynamic nothing6 = callable.{self::Callable::call}();
+  dynamic nothing7 = callable.{self::Callable::call}.call();
+  dynamic nothing8 = callable.{self::Callable::call}.call.call();
+  dynamic nothing9 = callableGetter.call();
+  dynamic nothing10 = callableGetter.{self::CallableGetter::call}.call();
+  dynamic nothing11 = callableGetter.{self::CallableGetter::call}.call();
+  dynamic nothing12 = callableGetter.{self::CallableGetter::call}.call.call();
+}

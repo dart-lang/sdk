@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 
 import '../memory_compiler.dart';
 
-const String TESTCASE_DIR = 'third_party/pkg/kernel/testcases/';
+const String TESTCASE_DIR = 'pkg/kernel/testcases/';
 
 const List<String> SKIP_TESTS = const <String>[
   /// The test expects an unpatched api.

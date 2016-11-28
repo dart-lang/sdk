@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 
@@ -544,7 +544,7 @@ class ResolverTestCase extends EngineTestCase {
       for (int i = 0; i < count; i++) {
         String typeName = typeNames[i];
         ClassElementImpl type =
-            new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+            new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
             new CompilationUnitElementImpl(fileName);
@@ -559,7 +559,7 @@ class ResolverTestCase extends EngineTestCase {
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, AstFactory.libraryIdentifier2([libraryName]));
+        context, AstTestFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;

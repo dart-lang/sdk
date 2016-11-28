@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -331,24 +331,24 @@ class _ConstExprBuilder {
 
   Expression build() {
     if (!uc.isValidConst) {
-      return AstFactory.identifier3(r'$$invalidConstExpr$$');
+      return AstTestFactory.identifier3(r'$$invalidConstExpr$$');
     }
     for (UnlinkedExprOperation operation in uc.operations) {
       switch (operation) {
         case UnlinkedExprOperation.pushNull:
-          _push(AstFactory.nullLiteral());
+          _push(AstTestFactory.nullLiteral());
           break;
         // bool
         case UnlinkedExprOperation.pushFalse:
-          _push(AstFactory.booleanLiteral(false));
+          _push(AstTestFactory.booleanLiteral(false));
           break;
         case UnlinkedExprOperation.pushTrue:
-          _push(AstFactory.booleanLiteral(true));
+          _push(AstTestFactory.booleanLiteral(true));
           break;
         // literals
         case UnlinkedExprOperation.pushInt:
           int value = uc.ints[intPtr++];
-          _push(AstFactory.integer(value));
+          _push(AstTestFactory.integer(value));
           break;
         case UnlinkedExprOperation.pushLongInt:
           int value = 0;
@@ -357,20 +357,20 @@ class _ConstExprBuilder {
             int next = uc.ints[intPtr++];
             value = value << 32 | next;
           }
-          _push(AstFactory.integer(value));
+          _push(AstTestFactory.integer(value));
           break;
         case UnlinkedExprOperation.pushDouble:
           double value = uc.doubles[doublePtr++];
-          _push(AstFactory.doubleLiteral(value));
+          _push(AstTestFactory.doubleLiteral(value));
           break;
         case UnlinkedExprOperation.makeSymbol:
           String component = uc.strings[stringPtr++];
-          _push(AstFactory.symbolLiteral([component]));
+          _push(AstTestFactory.symbolLiteral([component]));
           break;
         // String
         case UnlinkedExprOperation.pushString:
           String value = uc.strings[stringPtr++];
-          _push(AstFactory.string2(value));
+          _push(AstTestFactory.string2(value));
           break;
         case UnlinkedExprOperation.concatenate:
           int count = uc.ints[intPtr++];
@@ -380,7 +380,7 @@ class _ConstExprBuilder {
             InterpolationElement element = _newInterpolationElement(expr);
             elements.insert(0, element);
           }
-          _push(AstFactory.string(elements));
+          _push(AstTestFactory.string(elements));
           break;
         // binary
         case UnlinkedExprOperation.equal:
@@ -455,8 +455,8 @@ class _ConstExprBuilder {
           Expression elseExpr = _pop();
           Expression thenExpr = _pop();
           Expression condition = _pop();
-          _push(
-              AstFactory.conditionalExpression(condition, thenExpr, elseExpr));
+          _push(AstTestFactory.conditionalExpression(
+              condition, thenExpr, elseExpr));
           break;
         // invokeMethodRef
         case UnlinkedExprOperation.invokeMethodRef:
@@ -468,7 +468,7 @@ class _ConstExprBuilder {
           break;
         case UnlinkedExprOperation.makeTypedList:
           TypeName itemType = _newTypeName();
-          _pushList(AstFactory.typeArgumentList(<TypeName>[itemType]));
+          _pushList(AstTestFactory.typeArgumentList(<TypeName>[itemType]));
           break;
         case UnlinkedExprOperation.makeUntypedMap:
           _pushMap(null);
@@ -476,7 +476,8 @@ class _ConstExprBuilder {
         case UnlinkedExprOperation.makeTypedMap:
           TypeName keyType = _newTypeName();
           TypeName valueType = _newTypeName();
-          _pushMap(AstFactory.typeArgumentList(<TypeName>[keyType, valueType]));
+          _pushMap(
+              AstTestFactory.typeArgumentList(<TypeName>[keyType, valueType]));
           break;
         case UnlinkedExprOperation.pushReference:
           _pushReference();
@@ -489,12 +490,15 @@ class _ConstExprBuilder {
           break;
         case UnlinkedExprOperation.pushParameter:
           String name = uc.strings[stringPtr++];
-          SimpleIdentifier identifier = AstFactory.identifier3(name);
+          SimpleIdentifier identifier = AstTestFactory.identifier3(name);
           identifier.staticElement = _enclosingConstructor.parameters
               .firstWhere((parameter) => parameter.name == name,
                   orElse: () => throw new StateError(
                       'Unable to resolve constructor parameter: $name'));
           _push(identifier);
+          break;
+        case UnlinkedExprOperation.ifNull:
+          _pushBinary(TokenType.QUESTION_QUESTION);
           break;
         case UnlinkedExprOperation.assignToRef:
         case UnlinkedExprOperation.assignToProperty:
@@ -525,7 +529,8 @@ class _ConstExprBuilder {
       for (int i = 0; i < numNamedArgs; i++) {
         String name = uc.strings[stringPtr++];
         int index = numPositionalArgs + i;
-        arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
+        arguments[index] =
+            AstTestFactory.namedExpression2(name, arguments[index]);
       }
     }
     return arguments;
@@ -545,16 +550,16 @@ class _ConstExprBuilder {
       element = _getStringLengthElement();
     }
     if (enclosing == null) {
-      return AstFactory.identifier3(info.name)..staticElement = element;
+      return AstTestFactory.identifier3(info.name)..staticElement = element;
     }
     if (enclosing is SimpleIdentifier) {
-      SimpleIdentifier identifier = AstFactory.identifier3(info.name)
+      SimpleIdentifier identifier = AstTestFactory.identifier3(info.name)
         ..staticElement = element;
-      return AstFactory.identifier(enclosing, identifier);
+      return AstTestFactory.identifier(enclosing, identifier);
     }
-    SimpleIdentifier property = AstFactory.identifier3(info.name)
+    SimpleIdentifier property = AstTestFactory.identifier3(info.name)
       ..staticElement = element;
-    return AstFactory.propertyAccess(enclosing, property);
+    return AstTestFactory.propertyAccess(enclosing, property);
   }
 
   TypeName _buildTypeAst(DartType type) {
@@ -568,7 +573,7 @@ class _ConstExprBuilder {
             : typeArguments.map(_buildTypeAst).toList();
       }
     }
-    TypeName node = AstFactory.typeName4(type.name, argumentNodes);
+    TypeName node = AstTestFactory.typeName4(type.name, argumentNodes);
     node.type = type;
     (node.name as SimpleIdentifier).staticElement = type.element;
     return node;
@@ -608,18 +613,18 @@ class _ConstExprBuilder {
   void _pushBinary(TokenType operator) {
     Expression right = _pop();
     Expression left = _pop();
-    _push(AstFactory.binaryExpression(left, operator, right));
+    _push(AstTestFactory.binaryExpression(left, operator, right));
   }
 
   void _pushExtractProperty() {
     Expression target = _pop();
     String name = uc.strings[stringPtr++];
-    SimpleIdentifier propertyNode = AstFactory.identifier3(name);
+    SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
     // Only String.length property access can be potentially resolved.
     if (name == 'length') {
       propertyNode.staticElement = _getStringLengthElement();
     }
-    _push(AstFactory.propertyAccess(target, propertyNode));
+    _push(AstTestFactory.propertyAccess(target, propertyNode));
   }
 
   void _pushInstanceCreation() {
@@ -646,29 +651,29 @@ class _ConstExprBuilder {
     } else {
       if (info.enclosing != null) {
         if (info.enclosing.enclosing != null) {
-          PrefixedIdentifier typeName = AstFactory.identifier5(
+          PrefixedIdentifier typeName = AstTestFactory.identifier5(
               info.enclosing.enclosing.name, info.enclosing.name);
           typeName.prefix.staticElement = info.enclosing.enclosing.element;
           typeName.identifier.staticElement = info.enclosing.element;
           typeName.identifier.staticType = info.enclosing.type;
-          typeNode = AstFactory.typeName3(typeName);
+          typeNode = AstTestFactory.typeName3(typeName);
           typeNode.type = info.enclosing.type;
           constructorName = info.name;
         } else if (info.enclosing.element != null) {
           SimpleIdentifier typeName =
-              AstFactory.identifier3(info.enclosing.name);
+              AstTestFactory.identifier3(info.enclosing.name);
           typeName.staticElement = info.enclosing.element;
           typeName.staticType = info.enclosing.type;
-          typeNode = AstFactory.typeName3(typeName);
+          typeNode = AstTestFactory.typeName3(typeName);
           typeNode.type = info.enclosing.type;
           constructorName = info.name;
         } else {
-          typeNode = AstFactory.typeName3(
-              AstFactory.identifier5(info.enclosing.name, info.name));
+          typeNode = AstTestFactory.typeName3(
+              AstTestFactory.identifier5(info.enclosing.name, info.name));
           constructorName = null;
         }
       } else {
-        typeNode = AstFactory.typeName4(info.name);
+        typeNode = AstTestFactory.typeName4(info.name);
       }
     }
     // prepare arguments
@@ -676,14 +681,15 @@ class _ConstExprBuilder {
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
-      constructorNode = AstFactory.constructorName(typeNode, constructorName);
+      constructorNode =
+          AstTestFactory.constructorName(typeNode, constructorName);
       constructorNode.name.staticElement = constructorElement;
     } else {
-      constructorNode = AstFactory.constructorName(typeNode, null);
+      constructorNode = AstTestFactory.constructorName(typeNode, null);
     }
     constructorNode.staticElement = constructorElement;
     // create InstanceCreationExpression
-    InstanceCreationExpression instanceCreation = AstFactory
+    InstanceCreationExpression instanceCreation = AstTestFactory
         .instanceCreationExpression(Keyword.CONST, constructorNode, arguments);
     instanceCreation.staticElement = constructorElement;
     _push(instanceCreation);
@@ -701,7 +707,7 @@ class _ConstExprBuilder {
       for (int i = 0; i < numTypeArguments; i++) {
         typeNames[i] = _newTypeName();
       }
-      typeArguments = AstFactory.typeArgumentList(typeNames);
+      typeArguments = AstTestFactory.typeArgumentList(typeNames);
     }
     if (node is SimpleIdentifier) {
       _push(new MethodInvocation(
@@ -709,7 +715,7 @@ class _ConstExprBuilder {
           TokenFactory.tokenFromType(TokenType.PERIOD),
           node,
           typeArguments,
-          AstFactory.argumentList(arguments)));
+          AstTestFactory.argumentList(arguments)));
     } else {
       throw new UnimplementedError('For ${node?.runtimeType}: $node');
     }
@@ -721,7 +727,7 @@ class _ConstExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
-    _push(AstFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
+    _push(AstTestFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
   }
 
   void _pushMap(TypeArgumentList typeArguments) {
@@ -730,14 +736,14 @@ class _ConstExprBuilder {
     for (int i = 0; i < count; i++) {
       Expression value = _pop();
       Expression key = _pop();
-      entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
+      entries.insert(0, AstTestFactory.mapLiteralEntry2(key, value));
     }
-    _push(AstFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
+    _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
   }
 
   void _pushPrefix(TokenType operator) {
     Expression operand = _pop();
-    _push(AstFactory.prefixExpression(operator, operand));
+    _push(AstTestFactory.prefixExpression(operator, operand));
   }
 
   void _pushReference() {
@@ -1514,7 +1520,7 @@ class _UnitResynthesizer {
     Expression constExpr = _buildConstExpression(context, uc);
     if (constExpr is Identifier) {
       elementAnnotation.element = constExpr.staticElement;
-      elementAnnotation.annotationAst = AstFactory.annotation(constExpr);
+      elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
     } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
       Identifier typeName = constExpr.constructorName.type.name;
@@ -1522,10 +1528,10 @@ class _UnitResynthesizer {
       if (typeName is SimpleIdentifier && constructorName != null) {
         // E.g. `@cls.ctor()`.  Since `cls.ctor` would have been parsed as
         // a PrefixedIdentifier, we need to resynthesize it as one.
-        typeName = AstFactory.identifier(typeName, constructorName);
+        typeName = AstTestFactory.identifier(typeName, constructorName);
         constructorName = null;
       }
-      elementAnnotation.annotationAst = AstFactory.annotation2(
+      elementAnnotation.annotationAst = AstTestFactory.annotation2(
           typeName, constructorName, constExpr.argumentList)
         ..element = constExpr.staticElement;
     } else {

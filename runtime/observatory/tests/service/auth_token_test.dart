@@ -24,7 +24,7 @@ Future<Null> testeeBefore() async {
   // Try connecting to the server without the auth token, it should throw
   // an exception.
   var port = info.serverUri.port;
-  var url = Uri.parse('http://127.0.0.1:$port');
+  var url = Uri.parse('http://localhost:$port');
   var httpClient = new io.HttpClient();
   try {
     var request = await httpClient.getUrl(url);

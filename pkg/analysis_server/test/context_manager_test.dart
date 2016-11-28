@@ -20,8 +20,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
@@ -1747,8 +1745,8 @@ abstract class ContextManagerTest {
         .toList();
   }
 
-  List<ErrorProcessor> get errorProcessors => callbacks.currentContext
-      .getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+  List<ErrorProcessor> get errorProcessors =>
+      callbacks.currentContext.analysisOptions.errorProcessors;
 
   List<Linter> get lints => getLints(callbacks.currentContext);
 
@@ -1851,7 +1849,7 @@ embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   language:
-    enableGenericMethods: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1866,7 +1864,7 @@ linter:
     // Verify options were set.
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
-    expect(options.enableGenericMethods, isTrue);
+    expect(options.enableStrictCallChecks, isTrue);
 
     // Remove options.
     deleteFile([projPath, optionsFileName]);
@@ -1875,7 +1873,7 @@ linter:
     // Verify defaults restored.
     expect(errorProcessors, isEmpty);
     expect(lints, isEmpty);
-    expect(options.enableGenericMethods, isFalse);
+    expect(options.enableStrictCallChecks, isFalse);
   }
 
   test_analysis_options_file_delete_with_embedder() async {
@@ -1905,7 +1903,7 @@ test_pack:lib/''');
         r'''
 analyzer:
   language:
-    enableGenericMethods: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1918,7 +1916,7 @@ linter:
     await pumpEventQueue();
 
     // Verify options were set.
-    expect(options.enableGenericMethods, isTrue);
+    expect(options.enableStrictCallChecks, isTrue);
     expect(options.strongMode, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
@@ -1928,7 +1926,7 @@ linter:
     await pumpEventQueue();
 
     // Verify defaults restored.
-    expect(options.enableGenericMethods, isFalse);
+    expect(options.enableStrictCallChecks, isFalse);
     expect(lints, hasLength(1));
     expect(lints.first, new isInstanceOf<AvoidAs>());
     expect(errorProcessors, hasLength(1));
@@ -1954,7 +1952,7 @@ include: other_options.yaml
         r'''
 analyzer:
   language:
-    enableGenericMethods: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1964,9 +1962,8 @@ linter:
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
-
     // Verify options were set.
-    expect(options.enableGenericMethods, isTrue);
+    expect(options.enableStrictCallChecks, isTrue);
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(lints[0].name, 'camel_case_types');
@@ -2028,7 +2025,7 @@ analyzer:
   exclude:
     - 'test/**'
   language:
-    enableGenericMethods: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -2052,7 +2049,7 @@ linter:
     expect(context.analysisOptions.strongMode, isTrue);
     expect(context.analysisOptions.enableSuperMixins, isTrue);
     // * from analysis options:
-    expect(context.analysisOptions.enableGenericMethods, isTrue);
+    expect(context.analysisOptions.enableStrictCallChecks, isTrue);
 
     // * verify tests are excluded
     expect(

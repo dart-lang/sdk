@@ -93,63 +93,54 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
   return reader_->LookupClass(klass).raw();
 }
 
-Program* KernelReader::ReadPrecompiledProgram() {
-  Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
-  if (program == NULL) return NULL;
-  intptr_t source_file_count = program->line_starting_table().size();
+KernelReader::KernelReader(Program* program)
+    : program_(program),
+      thread_(dart::Thread::Current()),
+      zone_(thread_->zone()),
+      isolate_(thread_->isolate()),
+      scripts_(Array::ZoneHandle(zone_)),
+      translation_helper_(this, thread_, zone_, isolate_),
+      type_translator_(&translation_helper_,
+                       &active_class_,
+                       /*finalize=*/false) {
+  intptr_t source_file_count = program_->line_starting_table().size();
   scripts_ = Array::New(source_file_count);
-  program_ = program;
-  return program;
 }
 
 Object& KernelReader::ReadProgram() {
-  Program* program = ReadPrecompiledProgram();
-  if (program == NULL) {
-    const dart::String& error = H.DartString("Failed to read .kernell file");
-    return Object::Handle(Z, ApiError::New(error));
-  }
-
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Procedure* main = program->main_method();
+    Procedure* main = program_->main_method();
     Library* kernel_main_library = Library::Cast(main->parent());
 
-    intptr_t length = program->libraries().length();
+    intptr_t length = program_->libraries().length();
     for (intptr_t i = 0; i < length; i++) {
-      Library* kernel_library = program->libraries()[i];
+      Library* kernel_library = program_->libraries()[i];
       ReadLibrary(kernel_library);
     }
 
     for (intptr_t i = 0; i < length; i++) {
-      dart::Library& library = LookupLibrary(program->libraries()[i]);
+      dart::Library& library = LookupLibrary(program_->libraries()[i]);
       if (!library.Loaded()) library.SetLoaded();
     }
 
-    if (!ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      FATAL("Error in class finalization during bootstrapping.");
+    if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+      dart::Library& library = LookupLibrary(kernel_main_library);
+
+      // Sanity check that we can find the main entrypoint.
+      Object& main_obj = Object::Handle(
+          Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
+      ASSERT(!main_obj.IsNull());
+      return library;
     }
-
-    dart::Library& library = LookupLibrary(kernel_main_library);
-
-    // Sanity check that we can find the main entrypoint.
-    Object& main_obj = Object::Handle(
-        Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
-    ASSERT(!main_obj.IsNull());
-    return library;
-  } else {
-    // Everything else is a compile-time error. We don't use the [error] since
-    // it sometimes causes the higher-level error handling to try to read the
-    // script and token position (which we don't have) to produce a nice error
-    // message.
-    Error& error = Error::Handle(Z);
-    error = thread_->sticky_error();
-    thread_->clear_sticky_error();
-
-    // Instead we simply make a non-informative error message.
-    const dart::String& error_message =
-        H.DartString("Failed to read .kernell file => CompileTimeError.");
-    return Object::Handle(Z, LanguageError::New(error_message));
   }
+
+  // Either class finalization failed or we caught a compile error.
+  // In both cases sticky error would be set.
+  Error& error = Error::Handle(Z);
+  error = thread_->sticky_error();
+  thread_->clear_sticky_error();
+  return error;
 }
 
 
@@ -499,10 +490,6 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_native
           script_class, kernel_field->position()));
   klass.AddFunction(getter);
-  if (klass.IsTopLevel()) {
-    dart::Library& library = dart::Library::Handle(Z, klass.library());
-    library.AddObject(getter, getter_name);
-  }
   getter.set_kernel_function(kernel_field);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
   getter.set_is_debuggable(false);
@@ -706,7 +693,7 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Create a static initializer.
-  const dart::Class& owner = dart::Class::Handle(zone, field.Owner());
+  const Object& owner = Object::Handle(field.RawOwner());
   const Function& initializer_fun = Function::ZoneHandle(
       zone,
       dart::Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,

@@ -371,7 +371,12 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
         reload_extensions = true;
       } else if (payload_type == DartUtils::kKernelMagicNumber) {
-        dart_result = Dart_LoadKernel(payload, payload_length);
+        // TODO(27590): This code path is only hit when trying to spawn
+        // isolates. We currently do not have support for neither
+        // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
+        // frontend.
+        void* kernel_binary = Dart_ReadKernelBinary(payload, payload_length);
+        dart_result = Dart_LoadKernel(kernel_binary);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }

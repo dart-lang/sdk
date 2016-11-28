@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::String color = "brown";
+static field core::String thing = "lazy dog";
+static field core::String phrase = "The quick ${self::color} fox\njumped over the ${self::thing}.\n";
+static field core::String adjacent = "${self::color}${self::color}${self::color}";
+static field core::String linebreaks = "${self::color}\n${self::color}\n${self::color}";
+static field core::String other = "${self::color}\n is \n${self::color}";
+static method main() → dynamic {}

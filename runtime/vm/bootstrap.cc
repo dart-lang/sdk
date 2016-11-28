@@ -20,6 +20,11 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            use_corelib_source_files,
+            kDefaultCorelibSourceFlag,
+            "Attempt to use source files directly when loading in the core "
+            "libraries during the bootstrap process");
 
 struct BootstrapLibProps {
   ObjectStore::BootstrapLibraryId index;
@@ -82,15 +87,20 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  Dart_FileOpenCallback file_open = Dart::file_open_callback();
-  Dart_FileReadCallback file_read = Dart::file_read_callback();
-  Dart_FileCloseCallback file_close = Dart::file_close_callback();
-  if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
-    // Try to open and read the file.
-    void* stream = (*file_open)(source_path, false);
-    if (stream != NULL) {
-      (*file_read)(&utf8_array, &file_length, stream);
-      (*file_close)(stream);
+  // If flag to use the core library files directly is specified then try
+  // to read the file and extract it's contents otherwise just use the
+  // source data that has been backed into the binary.
+  if (FLAG_use_corelib_source_files) {
+    Dart_FileOpenCallback file_open = Dart::file_open_callback();
+    Dart_FileReadCallback file_read = Dart::file_read_callback();
+    Dart_FileCloseCallback file_close = Dart::file_close_callback();
+    if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
+      // Try to open and read the file.
+      void* stream = (*file_open)(source_path, false);
+      if (stream != NULL) {
+        (*file_read)(&utf8_array, &file_length, stream);
+        (*file_close)(stream);
+      }
     }
   }
   if (file_length == -1) {
@@ -317,17 +327,9 @@ static RawError* BootstrapFromSource(Thread* thread) {
 
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static RawError* BootstrapFromKernel(Thread* thread,
-                                     const uint8_t* buffer,
-                                     intptr_t buffer_size) {
+static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
-  kernel::KernelReader reader(buffer, buffer_size);
-  kernel::Program* program = reader.ReadPrecompiledProgram();
-  if (program == NULL) {
-    const String& message =
-        String::Handle(zone, String::New("Failed to read Kernel file"));
-    return ApiError::New(message);
-  }
+  kernel::KernelReader reader(program);
 
   Isolate* isolate = thread->isolate();
   // Mark the already-pending classes.  This mark bit will be used to avoid
@@ -363,17 +365,14 @@ static RawError* BootstrapFromKernel(Thread* thread,
   return Error::null();
 }
 #else
-static RawError* BootstrapFromKernel(Thread* thread,
-                                     const uint8_t* buffer,
-                                     intptr_t buffer_size) {
+static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   UNREACHABLE();
   return Error::null();
 }
 #endif
 
 
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_length) {
+RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -396,9 +395,8 @@ RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
     }
   }
 
-  return (kernel_buffer == NULL)
-             ? BootstrapFromSource(thread)
-             : BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_length);
+  return (kernel_program == NULL) ? BootstrapFromSource(thread)
+                                  : BootstrapFromKernel(thread, kernel_program);
 }
 
 }  // namespace dart

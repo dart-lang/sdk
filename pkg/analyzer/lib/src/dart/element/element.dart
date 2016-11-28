@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -1049,9 +1049,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_constructors, visitor);
+    safelyVisitChildren(constructors, visitor);
     safelyVisitChildren(methods, visitor);
-    safelyVisitChildren(_typeParameters, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 
   void _collectAllSupertypes(List<InterfaceType> supertypes) {
@@ -2217,7 +2217,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
             .buildExpression(this, serialized.arguments[i]);
         int nameIndex = numNames + i - numArguments;
         if (nameIndex >= 0) {
-          expression = AstFactory.namedExpression2(
+          expression = AstTestFactory.namedExpression2(
               serialized.argumentNames[nameIndex], expression);
         }
         arguments.add(expression);
@@ -2226,7 +2226,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     switch (kind) {
       case UnlinkedConstructorInitializerKind.field:
         ConstructorFieldInitializer initializer =
-            AstFactory.constructorFieldInitializer(
+            AstTestFactory.constructorFieldInitializer(
                 false,
                 name,
                 enclosingUnit.resynthesizerContext
@@ -2235,7 +2235,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
         return initializer;
       case UnlinkedConstructorInitializerKind.superInvocation:
         SuperConstructorInvocation initializer =
-            AstFactory.superConstructorInvocation2(
+            AstTestFactory.superConstructorInvocation2(
                 name.isNotEmpty ? name : null, arguments);
         ClassElement superElement = enclosingElement.supertype.element;
         ConstructorElement element = name.isEmpty
@@ -2246,7 +2246,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
         return initializer;
       case UnlinkedConstructorInitializerKind.thisInvocation:
         RedirectingConstructorInvocation initializer =
-            AstFactory.redirectingConstructorInvocation2(
+            AstTestFactory.redirectingConstructorInvocation2(
                 name.isNotEmpty ? name : null, arguments);
         ConstructorElement element = name.isEmpty
             ? enclosingElement.unnamedConstructor

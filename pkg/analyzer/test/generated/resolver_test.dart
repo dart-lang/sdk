@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -147,7 +147,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     Scope rootScope = new _RootScope();
     EnclosedScope scope = new EnclosedScope(rootScope);
-    SimpleIdentifier identifier = AstFactory.identifier3('v');
+    SimpleIdentifier identifier = AstTestFactory.identifier3('v');
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
@@ -224,13 +224,6 @@ class C {
  */
 @reflectiveTest
 class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
-  void setUp() {
-    super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    resetWithOptions(options);
-  }
-
   void test_genericMethod_propagatedType_promotion() {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25340
@@ -264,8 +257,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
   void test_creation_nonEmpty() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String importedTypeName = "A";
-    ClassElement importedType =
-        new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
+    ClassElement importedType = new ClassElementImpl.forNode(
+        AstTestFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
@@ -276,7 +269,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
     definingLibrary.imports = <ImportElement>[importElement];
     Scope scope = new LibraryImportScope(definingLibrary);
     expect(
-        scope.lookup(AstFactory.identifier3(importedTypeName), definingLibrary),
+        scope.lookup(
+            AstTestFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
   }
 
@@ -306,10 +300,10 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ];
     Scope scope = new LibraryImportScope(importingLibrary);
     Element prefixedElement = scope.lookup(
-        AstFactory.identifier5(prefixName, typeName), importingLibrary);
+        AstTestFactory.identifier5(prefixName, typeName), importingLibrary);
     expect(prefixedElement, same(prefixedType));
     Element nonPrefixedElement =
-        scope.lookup(AstFactory.identifier3(typeName), importingLibrary);
+        scope.lookup(AstTestFactory.identifier3(typeName), importingLibrary);
     expect(nonPrefixedElement, same(nonPrefixedType));
   }
 }
@@ -323,8 +317,8 @@ class LibraryScopeTest extends ResolverTestCase {
   void test_creation_nonEmpty() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String importedTypeName = "A";
-    ClassElement importedType =
-        new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
+    ClassElement importedType = new ClassElementImpl.forNode(
+        AstTestFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
@@ -335,7 +329,8 @@ class LibraryScopeTest extends ResolverTestCase {
     definingLibrary.imports = <ImportElement>[importElement];
     Scope scope = new LibraryScope(definingLibrary);
     expect(
-        scope.lookup(AstFactory.identifier3(importedTypeName), definingLibrary),
+        scope.lookup(
+            AstTestFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
   }
 }
@@ -373,7 +368,7 @@ class PrefixedNamespaceTest extends ResolverTestCase {
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     Scope scope = new _RootScope();
-    SimpleIdentifier identifier = AstFactory.identifier3('v');
+    SimpleIdentifier identifier = AstTestFactory.identifier3('v');
     VariableElement element1 = ElementFactory.localVariableElement(identifier);
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
@@ -2480,10 +2475,10 @@ class TypeProviderImplTest extends EngineTestCase {
     asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context, AstFactory.libraryIdentifier2(["dart.core"]));
+        context, AstTestFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        context, AstFactory.libraryIdentifier2(["dart.async"]));
+        context, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -2509,7 +2504,7 @@ class TypeProviderImplTest extends EngineTestCase {
   ClassElement _classElement(String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
-        new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+        new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
     element.supertype = superclassType;
     if (parameterNames != null) {
       int count = parameterNames.length;
@@ -2521,7 +2516,7 @@ class TypeProviderImplTest extends EngineTestCase {
         for (int i = 0; i < count; i++) {
           TypeParameterElementImpl typeParameter =
               new TypeParameterElementImpl.forNode(
-                  AstFactory.identifier3(parameterNames[i]));
+                  AstTestFactory.identifier3(parameterNames[i]));
           typeParameters[i] = typeParameter;
           typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
           typeParameter.type = typeArguments[i];
@@ -2568,8 +2563,9 @@ class TypeResolverVisitorTest {
   void fail_visitVariableDeclaration() {
     fail("Not yet tested");
     ClassElement type = ElementFactory.classElement2("A");
-    VariableDeclaration node = AstFactory.variableDeclaration("a");
-    AstFactory.variableDeclarationList(null, AstFactory.typeName(type), [node]);
+    VariableDeclaration node = AstTestFactory.variableDeclaration("a");
+    AstTestFactory
+        .variableDeclarationList(null, AstTestFactory.typeName(type), [node]);
     //resolve(node);
     expect(node.name.staticType, same(type.type));
     _listener.assertNoErrors();
@@ -2583,7 +2579,7 @@ class TypeResolverVisitorTest {
     Source librarySource =
         new FileSource(resourceProvider.getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        context, AstFactory.libraryIdentifier2(["lib"]));
+        context, AstTestFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
     _typeProvider = new TestTypeProvider();
@@ -2989,7 +2985,7 @@ A v = new A();
 
   void test_visitCatchClause_exception() {
     // catch (e)
-    CatchClause clause = AstFactory.catchClause("e");
+    CatchClause clause = AstTestFactory.catchClause("e");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement =
         new LocalVariableElementImpl.forNode(exceptionParameter);
@@ -2999,7 +2995,7 @@ A v = new A();
 
   void test_visitCatchClause_exception_stackTrace() {
     // catch (e, s)
-    CatchClause clause = AstFactory.catchClause2("e", "s");
+    CatchClause clause = AstTestFactory.catchClause2("e", "s");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement =
         new LocalVariableElementImpl.forNode(exceptionParameter);
@@ -3014,8 +3010,8 @@ A v = new A();
   void test_visitCatchClause_on_exception() {
     // on E catch (e)
     ClassElement exceptionElement = ElementFactory.classElement2("E");
-    TypeName exceptionType = AstFactory.typeName(exceptionElement);
-    CatchClause clause = AstFactory.catchClause4(exceptionType, "e");
+    TypeName exceptionType = AstTestFactory.typeName(exceptionElement);
+    CatchClause clause = AstTestFactory.catchClause4(exceptionType, "e");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement =
         new LocalVariableElementImpl.forNode(exceptionParameter);
@@ -3027,9 +3023,9 @@ A v = new A();
   void test_visitCatchClause_on_exception_stackTrace() {
     // on E catch (e, s)
     ClassElement exceptionElement = ElementFactory.classElement2("E");
-    TypeName exceptionType = AstFactory.typeName(exceptionElement);
+    TypeName exceptionType = AstTestFactory.typeName(exceptionElement);
     (exceptionType.name as SimpleIdentifier).staticElement = exceptionElement;
-    CatchClause clause = AstFactory.catchClause5(exceptionType, "e", "s");
+    CatchClause clause = AstTestFactory.catchClause5(exceptionType, "e", "s");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
     exceptionParameter.staticElement =
         new LocalVariableElementImpl.forNode(exceptionParameter);
@@ -3051,12 +3047,12 @@ A v = new A();
     ClassElement elementC = ElementFactory.classElement2("C");
     ClassElement elementD = ElementFactory.classElement2("D");
     ExtendsClause extendsClause =
-        AstFactory.extendsClause(AstFactory.typeName(elementB));
+        AstTestFactory.extendsClause(AstTestFactory.typeName(elementB));
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(elementC)]);
+        AstTestFactory.withClause([AstTestFactory.typeName(elementC)]);
     ImplementsClause implementsClause =
-        AstFactory.implementsClause([AstFactory.typeName(elementD)]);
-    ClassDeclaration declaration = AstFactory.classDeclaration(
+        AstTestFactory.implementsClause([AstTestFactory.typeName(elementD)]);
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
         null, "A", null, extendsClause, withClause, implementsClause);
     declaration.name.staticElement = elementA;
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
@@ -3081,9 +3077,9 @@ A v = new A();
       ElementFactory.methodElement("A", VoidTypeImpl.instance)
     ];
     ExtendsClause extendsClause =
-        AstFactory.extendsClause(AstFactory.typeName(elementA));
-    ClassDeclaration declaration =
-        AstFactory.classDeclaration(null, "B", null, extendsClause, null, null);
+        AstTestFactory.extendsClause(AstTestFactory.typeName(elementA));
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        null, "B", null, extendsClause, null, null);
     declaration.name.staticElement = elementB;
     _resolveNode(declaration, [elementA, elementB]);
     expect(elementB.supertype, same(elementA.type));
@@ -3097,11 +3093,11 @@ A v = new A();
     ClassElement elementC = ElementFactory.classElement2("C");
     ClassElement elementD = ElementFactory.classElement2("D");
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(elementC)]);
+        AstTestFactory.withClause([AstTestFactory.typeName(elementC)]);
     ImplementsClause implementsClause =
-        AstFactory.implementsClause([AstFactory.typeName(elementD)]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias("A", null, null,
-        AstFactory.typeName(elementB), withClause, implementsClause);
+        AstTestFactory.implementsClause([AstTestFactory.typeName(elementD)]);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias("A", null, null,
+        AstTestFactory.typeName(elementB), withClause, implementsClause);
     alias.name.staticElement = elementA;
     _resolveNode(alias, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
@@ -3138,10 +3134,10 @@ A v = new A();
     classB.constructors = [constructorBc1, constructorBc2, constructorBc3];
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
     ClassElement classC = ElementFactory.classTypeAlias2('C', []);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
+        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
     _resolveNode(alias, [classT, classB, classM, classC]);
     expect(classC.constructors, hasLength(1));
@@ -3169,10 +3165,10 @@ A v = new A();
     classB.constructors = [constructorB];
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
     ClassElement classC = ElementFactory.classTypeAlias2('C', []);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
+        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
     _resolveNode(alias, [classT, classB, classM, classC]);
     expect(classC.constructors, hasLength(1));
@@ -3200,10 +3196,10 @@ A v = new A();
     classB.constructors = [constructorB];
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
     ClassElement classC = ElementFactory.classTypeAlias2('C', []);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
+        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
     alias.name.staticElement = classC;
     _resolveNode(alias, [classB, classM, classC]);
     expect(classC.constructors, hasLength(1));
@@ -3219,15 +3215,18 @@ A v = new A();
 
   void test_visitFieldFormalParameter_functionType() {
     InterfaceType intType = _typeProvider.intType;
-    TypeName intTypeName = AstFactory.typeName4("int");
+    TypeName intTypeName = AstTestFactory.typeName4("int");
     String innerParameterName = "a";
     SimpleFormalParameter parameter =
-        AstFactory.simpleFormalParameter3(innerParameterName);
+        AstTestFactory.simpleFormalParameter3(innerParameterName);
     parameter.identifier.staticElement =
         ElementFactory.requiredParameter(innerParameterName);
     String outerParameterName = "p";
-    FormalParameter node = AstFactory.fieldFormalParameter(null, intTypeName,
-        outerParameterName, AstFactory.formalParameterList([parameter]));
+    FormalParameter node = AstTestFactory.fieldFormalParameter(
+        null,
+        intTypeName,
+        outerParameterName,
+        AstTestFactory.formalParameterList([parameter]));
     node.identifier.staticElement =
         ElementFactory.requiredParameter(outerParameterName);
     DartType parameterType = _resolveFormalParameter(node, [intType.element]);
@@ -3242,7 +3241,7 @@ A v = new A();
   void test_visitFieldFormalParameter_noType() {
     String parameterName = "p";
     FormalParameter node =
-        AstFactory.fieldFormalParameter(Keyword.VAR, null, parameterName);
+        AstTestFactory.fieldFormalParameter(Keyword.VAR, null, parameterName);
     node.identifier.staticElement =
         ElementFactory.requiredParameter(parameterName);
     expect(_resolveFormalParameter(node), same(_typeProvider.dynamicType));
@@ -3251,10 +3250,10 @@ A v = new A();
 
   void test_visitFieldFormalParameter_type() {
     InterfaceType intType = _typeProvider.intType;
-    TypeName intTypeName = AstFactory.typeName4("int");
+    TypeName intTypeName = AstTestFactory.typeName4("int");
     String parameterName = "p";
     FormalParameter node =
-        AstFactory.fieldFormalParameter(null, intTypeName, parameterName);
+        AstTestFactory.fieldFormalParameter(null, intTypeName, parameterName);
     node.identifier.staticElement =
         ElementFactory.requiredParameter(parameterName);
     expect(_resolveFormalParameter(node, [intType.element]), same(intType));
@@ -3268,13 +3267,14 @@ A v = new A();
     ClassElement elementR = ElementFactory.classElement2('R');
     ClassElement elementP = ElementFactory.classElement2('P');
     FunctionElement elementF = ElementFactory.functionElement('f');
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        AstFactory.typeName4('R'),
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+        AstTestFactory.typeName4('R'),
         null,
         'f',
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList([
-              AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+        AstTestFactory.functionExpression2(
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4('P'), 'p')
             ]),
             null));
     declaration.name.staticElement = elementF;
@@ -3291,13 +3291,14 @@ A v = new A();
     TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
     FunctionElementImpl elementF = ElementFactory.functionElement('f');
     elementF.typeParameters = <TypeParameterElement>[elementE];
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        AstFactory.typeName4('E'),
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+        AstTestFactory.typeName4('E'),
         null,
         'f',
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList([
-              AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+        AstTestFactory.functionExpression2(
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4('E'), 'e')
             ]),
             null));
     declaration.name.staticElement = elementF;
@@ -3318,17 +3319,17 @@ A v = new A();
     FunctionElement elementF = ElementFactory.functionElement('f');
     ParameterElementImpl requiredParameter =
         ElementFactory.requiredParameter('p');
-    FunctionTypedFormalParameter parameterDeclaration = AstFactory
-        .functionTypedFormalParameter(AstFactory.typeName4('R'), 'g', [
-      AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+    FunctionTypedFormalParameter parameterDeclaration = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4('R'), 'g', [
+      AstTestFactory.simpleFormalParameter4(AstTestFactory.typeName4('P'), 'p')
     ]);
     parameterDeclaration.identifier.staticElement = requiredParameter;
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        AstFactory.typeName4('R'),
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+        AstTestFactory.typeName4('R'),
         null,
         'f',
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList([parameterDeclaration]), null));
+        AstTestFactory.functionExpression2(
+            AstTestFactory.formalParameterList([parameterDeclaration]), null));
     declaration.name.staticElement = elementF;
     _resolveNode(declaration, [elementR, elementP]);
     expect(declaration.returnType.type, elementR.type);
@@ -3349,17 +3350,17 @@ A v = new A();
     ParameterElementImpl requiredParameter =
         ElementFactory.requiredParameter('g');
     requiredParameter.typeParameters = <TypeParameterElement>[elementE];
-    FunctionTypedFormalParameter parameterDeclaration = AstFactory
-        .functionTypedFormalParameter(AstFactory.typeName4('R'), 'g', [
-      AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+    FunctionTypedFormalParameter parameterDeclaration = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4('R'), 'g', [
+      AstTestFactory.simpleFormalParameter4(AstTestFactory.typeName4('E'), 'e')
     ]);
     parameterDeclaration.identifier.staticElement = requiredParameter;
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        AstFactory.typeName4('R'),
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+        AstTestFactory.typeName4('R'),
         null,
         'f',
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList([parameterDeclaration]), null));
+        AstTestFactory.functionExpression2(
+            AstTestFactory.formalParameterList([parameterDeclaration]), null));
     declaration.name.staticElement = elementF;
     _resolveNode(declaration, [elementR]);
     expect(declaration.returnType.type, elementR.type);
@@ -3382,14 +3383,15 @@ A v = new A();
     ClassElement elementP = ElementFactory.classElement2('P');
     MethodElement elementM = ElementFactory.methodElement('m', null);
     elementA.methods = <MethodElement>[elementM];
-    MethodDeclaration declaration = AstFactory.methodDeclaration(
+    MethodDeclaration declaration = AstTestFactory.methodDeclaration(
         null,
-        AstFactory.typeName4('R'),
+        AstTestFactory.typeName4('R'),
         null,
         null,
-        AstFactory.identifier3('m'),
-        AstFactory.formalParameterList([
-          AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+        AstTestFactory.identifier3('m'),
+        AstTestFactory.formalParameterList([
+          AstTestFactory.simpleFormalParameter4(
+              AstTestFactory.typeName4('P'), 'p')
         ]));
     declaration.name.staticElement = elementM;
     _resolveNode(declaration, [elementA, elementR, elementP]);
@@ -3408,14 +3410,15 @@ A v = new A();
     MethodElementImpl elementM = ElementFactory.methodElement('m', null);
     elementM.typeParameters = <TypeParameterElement>[elementE];
     elementA.methods = <MethodElement>[elementM];
-    MethodDeclaration declaration = AstFactory.methodDeclaration(
+    MethodDeclaration declaration = AstTestFactory.methodDeclaration(
         null,
-        AstFactory.typeName4('E'),
+        AstTestFactory.typeName4('E'),
         null,
         null,
-        AstFactory.identifier3('m'),
-        AstFactory.formalParameterList([
-          AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+        AstTestFactory.identifier3('m'),
+        AstTestFactory.formalParameterList([
+          AstTestFactory.simpleFormalParameter4(
+              AstTestFactory.typeName4('E'), 'e')
         ]));
     declaration.name.staticElement = elementM;
     _resolveNode(declaration, [elementA]);
@@ -3427,9 +3430,9 @@ A v = new A();
 
   void test_visitSimpleFormalParameter_noType() {
     // p
-    FormalParameter node = AstFactory.simpleFormalParameter3("p");
+    FormalParameter node = AstTestFactory.simpleFormalParameter3("p");
     node.identifier.staticElement =
-        new ParameterElementImpl.forNode(AstFactory.identifier3("p"));
+        new ParameterElementImpl.forNode(AstTestFactory.identifier3("p"));
     expect(_resolveFormalParameter(node), same(_typeProvider.dynamicType));
     _listener.assertNoErrors();
   }
@@ -3438,8 +3441,8 @@ A v = new A();
     // int p
     InterfaceType intType = _typeProvider.intType;
     ClassElement intElement = intType.element;
-    FormalParameter node =
-        AstFactory.simpleFormalParameter4(AstFactory.typeName(intElement), "p");
+    FormalParameter node = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName(intElement), "p");
     SimpleIdentifier identifier = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
     identifier.staticElement = element;
@@ -3449,7 +3452,7 @@ A v = new A();
 
   void test_visitTypeName_noParameters_noArguments() {
     ClassElement classA = ElementFactory.classElement2("A");
-    TypeName typeName = AstFactory.typeName(classA);
+    TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
     expect(typeName.type, same(classA.type));
@@ -3457,7 +3460,7 @@ A v = new A();
   }
 
   void test_visitTypeName_noParameters_noArguments_undefined() {
-    SimpleIdentifier id = AstFactory.identifier3("unknown")
+    SimpleIdentifier id = AstTestFactory.identifier3("unknown")
       ..staticElement = new _StaleElement();
     TypeName typeName = new TypeName(id, null);
     _resolveNode(typeName, []);
@@ -3470,7 +3473,7 @@ A v = new A();
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
     TypeName typeName =
-        AstFactory.typeName(classA, [AstFactory.typeName(classB)]);
+        AstTestFactory.typeName(classA, [AstTestFactory.typeName(classB)]);
     typeName.type = null;
     _resolveNode(typeName, [classA, classB]);
     InterfaceType resultType = typeName.type as InterfaceType;
@@ -3483,7 +3486,7 @@ A v = new A();
 
   void test_visitTypeName_parameters_noArguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    TypeName typeName = AstFactory.typeName(classA);
+    TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
     InterfaceType resultType = typeName.type as InterfaceType;
@@ -3495,12 +3498,12 @@ A v = new A();
   }
 
   void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
-    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
+    SimpleIdentifier prefix = AstTestFactory.identifier3("unknownPrefix")
       ..staticElement = new _StaleElement();
-    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
+    SimpleIdentifier suffix = AstTestFactory.identifier3("unknownSuffix")
       ..staticElement = new _StaleElement();
     TypeName typeName =
-        new TypeName(AstFactory.identifier(prefix, suffix), null);
+        new TypeName(AstTestFactory.identifier(prefix, suffix), null);
     _resolveNode(typeName, []);
     expect(typeName.type, UndefinedTypeImpl.instance);
     expect(prefix.staticElement, null);
@@ -3510,7 +3513,7 @@ A v = new A();
 
   void test_visitTypeName_void() {
     ClassElement classA = ElementFactory.classElement2("A");
-    TypeName typeName = AstFactory.typeName4("void");
+    TypeName typeName = AstTestFactory.typeName4("void");
     _resolveNode(typeName, [classA]);
     expect(typeName.type, same(VoidTypeImpl.instance));
     _listener.assertNoErrors();
@@ -3581,8 +3584,7 @@ A v = new A();
    */
   void _resolveTypeModeLocal(
       String code, AstNode getNodeToResolve(CompilationUnit unit)) {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit2(code, parseGenericMethods: true);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit2(code);
     var unitElement = new CompilationUnitElementImpl('/test.dart');
 
     // Build API elements.

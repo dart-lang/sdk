@@ -54,21 +54,7 @@ class Mapping {
 
 class KernelReader {
  public:
-  KernelReader(const uint8_t* buffer, intptr_t len)
-      : thread_(dart::Thread::Current()),
-        zone_(thread_->zone()),
-        isolate_(thread_->isolate()),
-        scripts_(Array::ZoneHandle(zone_)),
-        program_(NULL),
-        translation_helper_(this, thread_, zone_, isolate_),
-        type_translator_(&translation_helper_,
-                         &active_class_,
-                         /*finalize=*/false),
-        buffer_(buffer),
-        buffer_length_(len) {}
-
-  // Returns either pointer to a program or null.
-  Program* ReadPrecompiledProgram();
+  explicit KernelReader(Program* program);
 
   // Returns either a library or a failure object.
   dart::Object& ReadProgram();
@@ -112,17 +98,15 @@ class KernelReader {
 
   dart::RawFunction::Kind GetFunctionType(Procedure* kernel_procedure);
 
+  Program* program_;
+
   dart::Thread* thread_;
   dart::Zone* zone_;
   dart::Isolate* isolate_;
   Array& scripts_;
-  Program* program_;
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
   DartTypeTranslator type_translator_;
-
-  const uint8_t* buffer_;
-  intptr_t buffer_length_;
 
   Mapping<Library, dart::Library> libraries_;
   Mapping<Class, dart::Class> classes_;

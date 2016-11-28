@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -24,7 +25,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
+import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -69,7 +71,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 7;
+  static const int DATA_VERSION = 8;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -109,12 +111,12 @@ class AnalysisDriver {
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
-  final SourceFactory _sourceFactory;
+  final SourceFactory sourceFactory;
 
   /**
    * The analysis options to analyze with.
    */
-  final AnalysisOptions _analysisOptions;
+  final AnalysisOptions analysisOptions;
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
@@ -148,6 +150,17 @@ class AnalysisDriver {
    * [getResult] to the [Completer]s to report the result.
    */
   final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
+
+  /**
+   * The list of tasks to compute files referencing a name.
+   */
+  final _referencingNameTasks = <_FilesReferencingNameTask>[];
+
+  /**
+   * The mapping from the files for which the index was requested using
+   * [getIndex] to the [Completer]s to report the result.
+   */
+  final _indexRequestedFiles = <String, List<Completer<IndexResult>>>{};
 
   /**
    * The set of files were reported as changed through [changeFile] and not
@@ -200,8 +213,8 @@ class AnalysisDriver {
       this._byteStore,
       this._contentOverlay,
       SourceFactory sourceFactory,
-      this._analysisOptions)
-      : _sourceFactory = sourceFactory.clone() {
+      this.analysisOptions)
+      : sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(
@@ -209,8 +222,8 @@ class AnalysisDriver {
         _byteStore,
         _contentOverlay,
         _resourceProvider,
-        _sourceFactory,
-        _analysisOptions,
+        sourceFactory,
+        analysisOptions,
         _salt,
         _sdkBundle.apiSignature);
     _scheduler._add(this);
@@ -283,6 +296,12 @@ class AnalysisDriver {
   AnalysisDriverPriority get _workPriority {
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
+    }
+    if (_referencingNameTasks.isNotEmpty) {
+      return AnalysisDriverPriority.referencingName;
+    }
+    if (_indexRequestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.getIndex;
     }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
@@ -357,7 +376,36 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the [Future] that completes with a [AnalysisResult] for the Dart
+   * Return a [Future] that completes with the list of added files that
+   * reference the given external [name].
+   */
+  Future<List<String>> getFilesReferencingName(String name) {
+    var task = new _FilesReferencingNameTask(this, name);
+    _referencingNameTasks.add(task);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return task.completer.future;
+  }
+
+  /**
+   * Return a [Future] that completes with the [IndexResult] for the file with
+   * the given [path].
+   */
+  Future<IndexResult> getIndex(String path) {
+    if (AnalysisEngine.isDartFileName(path)) {
+      var completer = new Completer<IndexResult>();
+      _indexRequestedFiles
+          .putIfAbsent(path, () => <Completer<IndexResult>>[])
+          .add(completer);
+      _statusSupport.transitionToAnalyzing();
+      _scheduler._notify(this);
+      return completer.future;
+    }
+    return new Future.value();
+  }
+
+  /**
+   * Return a [Future] that completes with a [AnalysisResult] for the Dart
    * file with the given [path]. If the file is not a Dart file, the [Future]
    * completes with `null`.
    *
@@ -385,7 +433,7 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the [Future] that completes with a [ParseResult] for the file
+   * Return a [Future] that completes with a [ParseResult] for the file
    * with the given [path].
    *
    * The [path] must be absolute and normalized.
@@ -477,19 +525,11 @@ class AnalysisDriver {
         return null;
       }
 
-      // Prepare the key for the cached result.
-      String key = _getResolvedUnitKey(libraryFile, file);
-      if (key == null) {
-        _logger.run('Compute the dependency hash for $path', () {
-          _createLibraryContext(libraryFile);
-          key = _getResolvedUnitKey(libraryFile, file);
-        });
-      }
-
       // Check for the cached result.
+      String key = _getResolvedUnitKey(libraryFile, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
-        return _getAnalysisResultFromBytes(file, bytes);
+        return _getAnalysisResultFromBytes(libraryFile, file, bytes);
       }
     }
 
@@ -532,7 +572,7 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return _getAnalysisResultFromBytes(file, bytes,
+        return _getAnalysisResultFromBytes(libraryFile, file, bytes,
             content: withUnit ? file.content : null,
             resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
@@ -541,12 +581,31 @@ class AnalysisDriver {
     });
   }
 
+  IndexResult _computeIndexResult(String path) {
+    AnalysisResult analysisResult = _computeAnalysisResult(path,
+        withUnit: false, asIsIfPartWithoutLibrary: true);
+    FileState libraryFile = analysisResult._libraryFile;
+    FileState file = analysisResult._file;
+
+    // Create the AnalysisContext to resynthesize elements in.
+    _LibraryContext libraryContext = _createLibraryContext(libraryFile);
+    AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
+
+    // Resynthesize the CompilationUnitElement in the context.
+    CompilationUnitElement unitElement = analysisContext.computeResult(
+        new LibrarySpecificUnit(libraryFile.source, file.source),
+        COMPILATION_UNIT_ELEMENT);
+
+    // Return as IndexResult.
+    return new IndexResult(unitElement, analysisResult._index);
+  }
+
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.analysisOptions = analysisOptions;
 
-    analysisContext.sourceFactory = _sourceFactory.clone();
+    analysisContext.sourceFactory = sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, libraryContext.store);
     analysisContext
@@ -555,71 +614,58 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the context in which the library represented by the given
-   * [libraryFile] should be analyzed it.
-   *
-   * TODO(scheglov) We often don't need [SummaryDataStore], only dependency
-   * signature.
+   * Return the context in which the [library] should be analyzed it.
    */
-  _LibraryContext _createLibraryContext(FileState libraryFile) {
+  _LibraryContext _createLibraryContext(FileState library) {
     return _logger.run('Create library context', () {
-      Map<String, _LibraryNode> nodes = <String, _LibraryNode>{};
+      Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
       store.addBundle(null, _sdkBundle);
 
-      _LibraryNode createLibraryNodes(FileState libraryFile) {
-        Uri libraryUri = libraryFile.uri;
-
+      void appendLibraryFiles(FileState library) {
         // URIs with the 'dart:' scheme are served from the SDK bundle.
-        if (libraryUri.scheme == 'dart') {
+        if (library.uri.scheme == 'dart') {
           return null;
         }
 
-        String libraryUriStr = libraryUri.toString();
-        _LibraryNode node = nodes[libraryUriStr];
-        if (node == null) {
-          node = new _LibraryNode(this, libraryFile, libraryUri);
-          nodes[libraryUriStr] = node;
+        if (!libraries.containsKey(library.uriStr)) {
+          libraries[library.uriStr] = library;
 
           // Append the defining unit.
           {
-            UnlinkedUnit unlinked = libraryFile.unlinked;
-            _addToStoreUnlinked(store, libraryFile.uri, unlinked);
+            UnlinkedUnit unlinked = library.unlinked;
+            _addToStoreUnlinked(store, library.uri, unlinked);
           }
 
           // Append parts.
-          for (FileState part in libraryFile.partedFiles) {
+          for (FileState part in library.partedFiles) {
             UnlinkedUnit unlinked = part.unlinked;
             _addToStoreUnlinked(store, part.uri, unlinked);
           }
 
-          // Create nodes for referenced libraries.
-          libraryFile.importedFiles.forEach(createLibraryNodes);
-          libraryFile.exportedFiles.forEach(createLibraryNodes);
+          // Append referenced libraries.
+          library.importedFiles.forEach(appendLibraryFiles);
+          library.exportedFiles.forEach(appendLibraryFiles);
         }
-
-        // Done with this node.
-        return node;
       }
 
-      _LibraryNode libraryNode = _logger.run('Compute library nodes', () {
-        return createLibraryNodes(libraryFile);
+      _logger.run('Append library files', () {
+        return appendLibraryFiles(library);
       });
 
       Set<String> libraryUrisToLink = new Set<String>();
       _logger.run('Load linked bundles', () {
-        for (_LibraryNode node in nodes.values) {
-          String key = '${node.dependencySignature}.linked';
+        for (FileState library in libraries.values) {
+          String key = '${library.transitiveSignature}.linked';
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
-            PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-            _addToStoreLinked(
-                store, node.file.uri.toString(), linked.linkedLibraries.single);
+            LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
+            _addToStoreLinked(store, library.uriStr, linked);
           } else {
-            libraryUrisToLink.add(node.uri.toString());
+            libraryUrisToLink.add(library.uriStr);
           }
         }
-        int numOfLoaded = nodes.length - libraryUrisToLink.length;
+        int numOfLoaded = libraries.length - libraryUrisToLink.length;
         _logger.writeln('Loaded $numOfLoaded linked bundles.');
       });
 
@@ -631,25 +677,20 @@ class AnalysisDriver {
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, _analysisOptions.strongMode);
+        }, (_) => null, analysisOptions.strongMode);
         _logger.writeln('Linked ${linkedLibraries.length} bundles.');
       });
 
       linkedLibraries.forEach((uri, linkedBuilder) {
-        _LibraryNode node = nodes[uri];
-        String key = '${node.dependencySignature}.linked';
-        List<int> bytes;
-        {
-          PackageBundleAssembler assembler = new PackageBundleAssembler();
-          assembler.addLinkedLibrary(uri, linkedBuilder);
-          bytes = assembler.assemble().toBuffer();
-        }
-        PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-        _addToStoreLinked(store, uri, linked.linkedLibraries.single);
+        FileState library = libraries[uri];
+        String key = '${library.transitiveSignature}.linked';
+        List<int> bytes = linkedBuilder.toBuffer();
+        LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
+        _addToStoreLinked(store, uri, linked);
         _byteStore.put(key, bytes);
       });
 
-      return new _LibraryContext(libraryFile, libraryNode, store);
+      return new _LibraryContext(library, store);
     });
   }
 
@@ -658,8 +699,7 @@ class AnalysisDriver {
    */
   void _fillSalt() {
     _salt[0] = DATA_VERSION;
-    List<int> crossContextOptions =
-        _analysisOptions.encodeCrossContextOptions();
+    List<int> crossContextOptions = analysisOptions.encodeCrossContextOptions();
     assert(crossContextOptions.length ==
         AnalysisOptions.crossContextOptionsLength);
     for (int i = 0; i < crossContextOptions.length; i++) {
@@ -671,20 +711,31 @@ class AnalysisDriver {
    * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
    * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
+  AnalysisResult _getAnalysisResultFromBytes(
+      FileState libraryFile, FileState file, List<int> bytes,
       {String content, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    List<AnalysisError> errors = unit.errors
-        .map((error) => new AnalysisError.forValues(
-            file.source,
-            error.offset,
-            error.length,
-            errorCodeByUniqueName(error.uniqueName),
-            error.message,
-            error.correction))
-        .toList();
-    return new AnalysisResult(_sourceFactory, file.path, file.uri, content,
-        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
+    List<AnalysisError> errors = unit.errors.map((error) {
+      String errorName = error.uniqueName;
+      ErrorCode errorCode = errorCodeByUniqueName(errorName);
+      if (errorCode == null) {
+        throw new StateError('No ErrorCode for $errorName in $file');
+      }
+      return new AnalysisError.forValues(file.source, error.offset,
+          error.length, errorCode, error.message, error.correction);
+    }).toList();
+    return new AnalysisResult(
+        libraryFile,
+        file,
+        sourceFactory,
+        file.path,
+        file.uri,
+        content,
+        file.contentHash,
+        file.lineInfo,
+        resolvedUnit,
+        errors,
+        unit.index);
   }
 
   /**
@@ -729,6 +780,26 @@ class AnalysisDriver {
       // Remove from to be analyzed and produce it now.
       _filesToAnalyze.remove(path);
       _resultController.add(result);
+      return;
+    }
+
+    // Process an index request.
+    if (_indexRequestedFiles.isNotEmpty) {
+      String path = _indexRequestedFiles.keys.first;
+      IndexResult result = _computeIndexResult(path);
+      _indexRequestedFiles.remove(path).forEach((completer) {
+        completer.complete(result);
+      });
+      return;
+    }
+
+    // Compute files referencing a name.
+    if (_referencingNameTasks.isNotEmpty) {
+      _FilesReferencingNameTask task = _referencingNameTasks.first;
+      bool isDone = await task.perform();
+      if (isDone) {
+        _referencingNameTasks.remove(task);
+      }
       return;
     }
 
@@ -823,7 +894,14 @@ class AnalysisDriver {
  * of the list, the earlier the corresponding [AnalysisDriver] should be asked
  * to perform work.
  */
-enum AnalysisDriverPriority { nothing, general, priority, interactive }
+enum AnalysisDriverPriority {
+  nothing,
+  general,
+  priority,
+  referencingName,
+  getIndex,
+  interactive
+}
 
 /**
  * Instances of this class schedule work in multiple [AnalysisDriver]s so that
@@ -959,6 +1037,9 @@ class AnalysisDriverScheduler {
  * any previously returned result, even inside of the same library.
  */
 class AnalysisResult {
+  final FileState _libraryFile;
+  final FileState _file;
+
   /**
    * The [SourceFactory] with which the file was analyzed.
    */
@@ -1004,10 +1085,37 @@ class AnalysisResult {
   /**
    * The index of the unit.
    */
+  final AnalysisDriverUnitIndex _index;
+
+  AnalysisResult(
+      this._libraryFile,
+      this._file,
+      this.sourceFactory,
+      this.path,
+      this.uri,
+      this.content,
+      this.contentHash,
+      this.lineInfo,
+      this.unit,
+      this.errors,
+      this._index);
+}
+
+/**
+ * The result of indexing of a single file.
+ */
+class IndexResult {
+  /**
+   * The element of the file.
+   */
+  final CompilationUnitElement unitElement;
+
+  /**
+   * The index of the file.
+   */
   final AnalysisDriverUnitIndex index;
 
-  AnalysisResult(this.sourceFactory, this.path, this.uri, this.content,
-      this.contentHash, this.lineInfo, this.unit, this.errors, this.index);
+  IndexResult(this.unitElement, this.index);
 }
 
 /**
@@ -1132,33 +1240,64 @@ class PerformanceLogSection {
 }
 
 /**
+ * Task that computes the list of files that were added to the driver and
+ * have at least one reference to an identifier [name] defined outside of the
+ * file.
+ */
+class _FilesReferencingNameTask {
+  final AnalysisDriver driver;
+  final String name;
+  final Completer<List<String>> completer = new Completer<List<String>>();
+
+  final List<String> referencingFiles = <String>[];
+  final Set<String> checkedFiles = new Set<String>();
+  final List<String> filesToCheck = <String>[];
+
+  _FilesReferencingNameTask(this.driver, this.name);
+
+  /**
+   * Perform work for a fixed length of time, and either complete the
+   * [completer] and return `true` to indicate that the task is done, return
+   * `false` to indicate that the task should continue to be run.
+   *
+   * Relinquishing execution flow and running event loop after every file
+   * works, but has too much overhead. Instead we use a fixed length of time,
+   * so we can spend less time overall and keep quick enough response time.
+   */
+  Future<bool> perform() async {
+    Stopwatch timer = new Stopwatch()..start();
+    while (timer.elapsedMilliseconds < 5) {
+      // Prepare files to check.
+      if (filesToCheck.isEmpty) {
+        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        filesToCheck.addAll(newFiles);
+      }
+
+      // If no more files to check, complete and done.
+      if (filesToCheck.isEmpty) {
+        completer.complete(referencingFiles);
+        return true;
+      }
+
+      // Check the next file.
+      String path = filesToCheck.removeLast();
+      FileState file = driver._fsState.getFileForPath(path);
+      if (file.referencedNames.contains(name)) {
+        referencingFiles.add(path);
+      }
+      checkedFiles.add(path);
+    }
+
+    // We're not done yet.
+    return false;
+  }
+}
+
+/**
  * TODO(scheglov) document
  */
 class _LibraryContext {
   final FileState file;
-  final _LibraryNode node;
   final SummaryDataStore store;
-  _LibraryContext(this.file, this.node, this.store);
-}
-
-class _LibraryNode {
-  final AnalysisDriver driver;
-  final FileState file;
-  final Uri uri;
-
-  _LibraryNode(this.driver, this.file, this.uri);
-
-  String get dependencySignature {
-    return file.transitiveSignature;
-  }
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  bool operator ==(other) {
-    return other is _LibraryNode && other.uri == uri;
-  }
-
-  @override
-  String toString() => uri.toString();
+  _LibraryContext(this.file, this.store);
 }

@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
@@ -330,8 +330,8 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the exported library so that the identifier can be
     // resolved.
-    ExportDirective directive = AstFactory.exportDirective2(null, [
-      AstFactory.hideCombinator2(["A"])
+    ExportDirective directive = AstTestFactory.exportDirective2(null, [
+      AstTestFactory.hideCombinator2(["A"])
     ]);
     _resolveNode(directive);
     _listener.assertNoErrors();
@@ -346,8 +346,8 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be
     // resolved.
-    ImportDirective directive = AstFactory.importDirective3(null, null, [
-      AstFactory.showCombinator2(["A"])
+    ImportDirective directive = AstTestFactory.importDirective3(null, null, [
+      AstTestFactory.showCombinator2(["A"])
     ]);
     _resolveNode(directive);
     _listener.assertNoErrors();
@@ -361,9 +361,10 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.imports = <ImportElement>[
       ElementFactory.importFor(null, ElementFactory.prefix(prefixName))
     ];
-    ImportDirective directive = AstFactory.importDirective3(null, prefixName, [
-      AstFactory.showCombinator2(["A"]),
-      AstFactory.hideCombinator2(["B"])
+    ImportDirective directive =
+        AstTestFactory.importDirective3(null, prefixName, [
+      AstTestFactory.showCombinator2(["A"]),
+      AstTestFactory.hideCombinator2(["B"])
     ]);
     _resolveNode(directive);
     _listener.assertNoErrors();
@@ -409,20 +410,20 @@ class ElementResolverTest extends EngineTestCase {
     // D a;
     // a[i];
     //
-    SimpleIdentifier array = AstFactory.identifier3("a");
+    SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = classD.type;
     IndexExpression expression =
-        AstFactory.indexExpression(array, AstFactory.identifier3("i"));
+        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
     expect(_resolveIndexExpression(expression), same(operator));
     _listener.assertNoErrors();
   }
 
   void test_visitAssignmentExpression_compound() {
     InterfaceType intType = _typeProvider.intType;
-    SimpleIdentifier leftHandSide = AstFactory.identifier3("a");
+    SimpleIdentifier leftHandSide = AstTestFactory.identifier3("a");
     leftHandSide.staticType = intType;
-    AssignmentExpression assignment = AstFactory.assignmentExpression(
-        leftHandSide, TokenType.PLUS_EQ, AstFactory.integer(1));
+    AssignmentExpression assignment = AstTestFactory.assignmentExpression(
+        leftHandSide, TokenType.PLUS_EQ, AstTestFactory.integer(1));
     _resolveNode(assignment);
     expect(
         assignment.staticElement, same(getMethod(_typeProvider.numType, "+")));
@@ -430,8 +431,10 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitAssignmentExpression_simple() {
-    AssignmentExpression expression = AstFactory.assignmentExpression(
-        AstFactory.identifier3("x"), TokenType.EQ, AstFactory.integer(0));
+    AssignmentExpression expression = AstTestFactory.assignmentExpression(
+        AstTestFactory.identifier3("x"),
+        TokenType.EQ,
+        AstTestFactory.integer(0));
     _resolveNode(expression);
     expect(expression.staticElement, isNull);
     _listener.assertNoErrors();
@@ -442,10 +445,10 @@ class ElementResolverTest extends EngineTestCase {
     // var j;
     // i == j
     InterfaceType stringType = _typeProvider.stringType;
-    SimpleIdentifier left = AstFactory.identifier3("i");
+    SimpleIdentifier left = AstTestFactory.identifier3("i");
     left.staticType = stringType;
-    BinaryExpression expression = AstFactory.binaryExpression(
-        left, TokenType.BANG_EQ, AstFactory.identifier3("j"));
+    BinaryExpression expression = AstTestFactory.binaryExpression(
+        left, TokenType.BANG_EQ, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
     var stringElement = stringType.element;
     expect(expression.staticElement, isNotNull);
@@ -462,10 +465,10 @@ class ElementResolverTest extends EngineTestCase {
     // var j;
     // i == j
     InterfaceType stringType = _typeProvider.stringType;
-    SimpleIdentifier left = AstFactory.identifier3("i");
+    SimpleIdentifier left = AstTestFactory.identifier3("i");
     left.staticType = stringType;
-    BinaryExpression expression = AstFactory.binaryExpression(
-        left, TokenType.EQ_EQ, AstFactory.identifier3("j"));
+    BinaryExpression expression = AstTestFactory.binaryExpression(
+        left, TokenType.EQ_EQ, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
     var stringElement = stringType.element;
     expect(
@@ -481,10 +484,10 @@ class ElementResolverTest extends EngineTestCase {
     // var j;
     // i + j
     InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstFactory.identifier3("i");
+    SimpleIdentifier left = AstTestFactory.identifier3("i");
     left.staticType = numType;
-    BinaryExpression expression = AstFactory.binaryExpression(
-        left, TokenType.PLUS, AstFactory.identifier3("j"));
+    BinaryExpression expression = AstTestFactory.binaryExpression(
+        left, TokenType.PLUS, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     expect(expression.propagatedElement, isNull);
@@ -496,10 +499,10 @@ class ElementResolverTest extends EngineTestCase {
     // var j;
     // i + j
     InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstFactory.identifier3("i");
+    SimpleIdentifier left = AstTestFactory.identifier3("i");
     left.propagatedType = numType;
-    BinaryExpression expression = AstFactory.binaryExpression(
-        left, TokenType.PLUS, AstFactory.identifier3("j"));
+    BinaryExpression expression = AstTestFactory.binaryExpression(
+        left, TokenType.PLUS, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
     expect(expression.staticElement, isNull);
     expect(expression.propagatedElement, getMethod(numType, "+"));
@@ -512,11 +515,11 @@ class ElementResolverTest extends EngineTestCase {
     // }
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl.forNode(
-        AstFactory.identifier3(label), false, false);
-    BreakStatement breakStatement = AstFactory.breakStatement2(label);
-    Expression condition = AstFactory.booleanLiteral(true);
+        AstTestFactory.identifier3(label), false, false);
+    BreakStatement breakStatement = AstTestFactory.breakStatement2(label);
+    Expression condition = AstTestFactory.booleanLiteral(true);
     WhileStatement whileStatement =
-        AstFactory.whileStatement(condition, breakStatement);
+        AstTestFactory.whileStatement(condition, breakStatement);
     expect(_resolveBreak(breakStatement, labelElement, whileStatement),
         same(labelElement));
     expect(breakStatement.target, same(whileStatement));
@@ -524,7 +527,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitBreakStatement_withoutLabel() {
-    BreakStatement statement = AstFactory.breakStatement();
+    BreakStatement statement = AstTestFactory.breakStatement();
     _resolveStatement(statement, null, null);
     _listener.assertNoErrors();
   }
@@ -542,7 +545,7 @@ class ElementResolverTest extends EngineTestCase {
     _visitor.nameScope = new EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.p"
-    PrefixedIdentifier prefixed = AstFactory.identifier5('A', 'p');
+    PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
     CommentReference commentReference = new CommentReference(null, prefixed);
     // resolve
     _resolveNode(commentReference);
@@ -561,7 +564,7 @@ class ElementResolverTest extends EngineTestCase {
     _visitor.nameScope = new EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.m"
-    PrefixedIdentifier prefixed = AstFactory.identifier5('A', 'm');
+    PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
     CommentReference commentReference = new CommentReference(null, prefixed);
     // resolve
     _resolveNode(commentReference);
@@ -580,7 +583,7 @@ class ElementResolverTest extends EngineTestCase {
     _visitor.nameScope = new EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.=="
-    PrefixedIdentifier prefixed = AstFactory.identifier5('A', '==');
+    PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
     CommentReference commentReference = new CommentReference(null, prefixed);
     // resolve
     _resolveNode(commentReference);
@@ -595,8 +598,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstFactory.constructorName(
-        AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstTestFactory.constructorName(
+        AstTestFactory.typeName(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -608,8 +611,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstFactory.constructorName(
-        AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstTestFactory.constructorName(
+        AstTestFactory.typeName(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -621,11 +624,12 @@ class ElementResolverTest extends EngineTestCase {
     // }
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl.forNode(
-        AstFactory.identifier3(label), false, false);
-    ContinueStatement continueStatement = AstFactory.continueStatement(label);
-    Expression condition = AstFactory.booleanLiteral(true);
+        AstTestFactory.identifier3(label), false, false);
+    ContinueStatement continueStatement =
+        AstTestFactory.continueStatement(label);
+    Expression condition = AstTestFactory.booleanLiteral(true);
     WhileStatement whileStatement =
-        AstFactory.whileStatement(condition, continueStatement);
+        AstTestFactory.whileStatement(condition, continueStatement);
     expect(_resolveContinue(continueStatement, labelElement, whileStatement),
         same(labelElement));
     expect(continueStatement.target, same(whileStatement));
@@ -633,7 +637,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitContinueStatement_withoutLabel() {
-    ContinueStatement statement = AstFactory.continueStatement();
+    ContinueStatement statement = AstTestFactory.continueStatement();
     _resolveStatement(statement, null, null);
     _listener.assertNoErrors();
   }
@@ -644,9 +648,9 @@ class ElementResolverTest extends EngineTestCase {
     EnumElementImpl enumElement =
         ElementFactory.enumElement(_typeProvider, ('E'));
     compilationUnitElement.enums = <ClassElement>[enumElement];
-    EnumDeclaration enumNode = AstFactory.enumDeclaration2('E', []);
+    EnumDeclaration enumNode = AstTestFactory.enumDeclaration2('E', []);
     Annotation annotationNode =
-        AstFactory.annotation(AstFactory.identifier3('a'));
+        AstTestFactory.annotation(AstTestFactory.identifier3('a'));
     annotationNode.element = ElementFactory.classElement2('A');
     annotationNode.elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
@@ -660,7 +664,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitExportDirective_noCombinators() {
-    ExportDirective directive = AstFactory.exportDirective2(null);
+    ExportDirective directive = AstTestFactory.exportDirective2(null);
     directive.element = ElementFactory
         .exportFor(ElementFactory.library(_definingLibrary.context, "lib"));
     _resolveNode(directive);
@@ -675,7 +679,7 @@ class ElementResolverTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.fields = <FieldElement>[fieldElement];
     FieldFormalParameter parameter =
-        AstFactory.fieldFormalParameter2(fieldName);
+        AstTestFactory.fieldFormalParameter2(fieldName);
     FieldFormalParameterElementImpl parameterElement =
         ElementFactory.fieldFormalParameter(parameter.identifier);
     parameterElement.field = fieldElement;
@@ -686,7 +690,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitImportDirective_noCombinators_noPrefix() {
-    ImportDirective directive = AstFactory.importDirective3(null, null);
+    ImportDirective directive = AstTestFactory.importDirective3(null, null);
     directive.element = ElementFactory.importFor(
         ElementFactory.library(_definingLibrary.context, "lib"), null);
     _resolveNode(directive);
@@ -699,16 +703,17 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.library(_definingLibrary.context, "lib"),
         ElementFactory.prefix(prefixName));
     _definingLibrary.imports = <ImportElement>[importElement];
-    ImportDirective directive = AstFactory.importDirective3(null, prefixName);
+    ImportDirective directive =
+        AstTestFactory.importDirective3(null, prefixName);
     directive.element = importElement;
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
   void test_visitImportDirective_withCombinators() {
-    ShowCombinator combinator = AstFactory.showCombinator2(["A", "B", "C"]);
+    ShowCombinator combinator = AstTestFactory.showCombinator2(["A", "B", "C"]);
     ImportDirective directive =
-        AstFactory.importDirective3(null, null, [combinator]);
+        AstTestFactory.importDirective3(null, null, [combinator]);
     LibraryElementImpl library =
         ElementFactory.library(_definingLibrary.context, "lib");
     TopLevelVariableElementImpl varA =
@@ -740,10 +745,10 @@ class ElementResolverTest extends EngineTestCase {
     MethodElement getter =
         ElementFactory.methodElement("[]", intType, [intType]);
     classA.methods = <MethodElement>[getter];
-    SimpleIdentifier array = AstFactory.identifier3("a");
+    SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = classA.type;
     IndexExpression expression =
-        AstFactory.indexExpression(array, AstFactory.identifier3("i"));
+        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
     expect(_resolveIndexExpression(expression), same(getter));
     _listener.assertNoErrors();
   }
@@ -754,12 +759,12 @@ class ElementResolverTest extends EngineTestCase {
     MethodElement setter =
         ElementFactory.methodElement("[]=", intType, [intType]);
     classA.methods = <MethodElement>[setter];
-    SimpleIdentifier array = AstFactory.identifier3("a");
+    SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = classA.type;
     IndexExpression expression =
-        AstFactory.indexExpression(array, AstFactory.identifier3("i"));
-    AstFactory.assignmentExpression(
-        expression, TokenType.EQ, AstFactory.integer(0));
+        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
+    AstTestFactory.assignmentExpression(
+        expression, TokenType.EQ, AstTestFactory.integer(0));
     expect(_resolveIndexExpression(expression), same(setter));
     _listener.assertNoErrors();
   }
@@ -770,11 +775,11 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstFactory.constructorName(
-        AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstTestFactory.constructorName(
+        AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
-        AstFactory.instanceCreationExpression(Keyword.NEW, name);
+        AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
     _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -786,11 +791,11 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstFactory.constructorName(
-        AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstTestFactory.constructorName(
+        AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
-        AstFactory.instanceCreationExpression(Keyword.NEW, name);
+        AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
     _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -805,13 +810,13 @@ class ElementResolverTest extends EngineTestCase {
     ParameterElement parameter = ElementFactory.namedParameter(parameterName);
     constructor.parameters = <ParameterElement>[parameter];
     classA.constructors = <ConstructorElement>[constructor];
-    ConstructorName name = AstFactory.constructorName(
-        AstFactory.typeName(classA), constructorName);
+    ConstructorName name = AstTestFactory.constructorName(
+        AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
-    InstanceCreationExpression creation = AstFactory.instanceCreationExpression(
-        Keyword.NEW,
-        name,
-        [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
+    InstanceCreationExpression creation = AstTestFactory
+        .instanceCreationExpression(Keyword.NEW, name, [
+      AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
+    ]);
     _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
     expect(
@@ -825,10 +830,11 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitMethodInvocation() {
     InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstFactory.identifier3("i");
+    SimpleIdentifier left = AstTestFactory.identifier3("i");
     left.staticType = numType;
     String methodName = "abs";
-    MethodInvocation invocation = AstFactory.methodInvocation(left, methodName);
+    MethodInvocation invocation =
+        AstTestFactory.methodInvocation(left, methodName);
     _resolveNode(invocation);
     expect(invocation.methodName.staticElement,
         same(getMethod(numType, methodName)));
@@ -843,10 +849,12 @@ class ElementResolverTest extends EngineTestCase {
     ParameterElement parameter = ElementFactory.namedParameter(parameterName);
     method.parameters = <ParameterElement>[parameter];
     classA.methods = <MethodElement>[method];
-    SimpleIdentifier left = AstFactory.identifier3("i");
+    SimpleIdentifier left = AstTestFactory.identifier3("i");
     left.staticType = classA.type;
-    MethodInvocation invocation = AstFactory.methodInvocation(left, methodName,
-        [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
+    MethodInvocation invocation = AstTestFactory.methodInvocation(
+        left, methodName, [
+      AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
+    ]);
     _resolveNode(invocation);
     expect(invocation.methodName.staticElement, same(method));
     expect(
@@ -860,10 +868,10 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitPostfixExpression() {
     InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstFactory.identifier3("i");
+    SimpleIdentifier operand = AstTestFactory.identifier3("i");
     operand.staticType = numType;
     PostfixExpression expression =
-        AstFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
+        AstTestFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
@@ -871,13 +879,13 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitPrefixedIdentifier_dynamic() {
     DartType dynamicType = _typeProvider.dynamicType;
-    SimpleIdentifier target = AstFactory.identifier3("a");
+    SimpleIdentifier target = AstTestFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
     variable.type = dynamicType;
     target.staticElement = variable;
     target.staticType = dynamicType;
     PrefixedIdentifier identifier =
-        AstFactory.identifier(target, AstFactory.identifier3("b"));
+        AstTestFactory.identifier(target, AstTestFactory.identifier3("b"));
     _resolveNode(identifier);
     expect(identifier.staticElement, isNull);
     expect(identifier.identifier.staticElement, isNull);
@@ -890,13 +898,13 @@ class ElementResolverTest extends EngineTestCase {
     PropertyAccessorElement getter =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
-    SimpleIdentifier target = AstFactory.identifier3("a");
+    SimpleIdentifier target = AstTestFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
     variable.type = classA.type;
     target.staticElement = variable;
     target.staticType = classA.type;
-    PrefixedIdentifier identifier =
-        AstFactory.identifier(target, AstFactory.identifier3(getterName));
+    PrefixedIdentifier identifier = AstTestFactory.identifier(
+        target, AstTestFactory.identifier3(getterName));
     _resolveNode(identifier);
     expect(identifier.staticElement, same(getter));
     expect(identifier.identifier.staticElement, same(getter));
@@ -913,11 +921,11 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // prepare "A.m"
-    SimpleIdentifier target = AstFactory.identifier3("A");
+    SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
     target.staticType = classA.type;
     PrefixedIdentifier identifier =
-        AstFactory.identifier(target, AstFactory.identifier3(propName));
+        AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     // resolve
     _resolveNode(identifier);
     expect(identifier.staticElement, same(getter));
@@ -933,13 +941,13 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // prepare "A.m"
-    SimpleIdentifier target = AstFactory.identifier3("A");
+    SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
     target.staticType = classA.type;
     PrefixedIdentifier identifier =
-        AstFactory.identifier(target, AstFactory.identifier3(propName));
-    AstFactory.assignmentExpression(
-        identifier, TokenType.EQ, AstFactory.nullLiteral());
+        AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
+    AstTestFactory.assignmentExpression(
+        identifier, TokenType.EQ, AstTestFactory.nullLiteral());
     // resolve
     _resolveNode(identifier);
     expect(identifier.staticElement, same(method));
@@ -957,13 +965,13 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // prepare "A.b = null"
-    SimpleIdentifier target = AstFactory.identifier3("A");
+    SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
     target.staticType = classA.type;
     PrefixedIdentifier identifier =
-        AstFactory.identifier(target, AstFactory.identifier3(propName));
-    AstFactory.assignmentExpression(
-        identifier, TokenType.EQ, AstFactory.nullLiteral());
+        AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
+    AstTestFactory.assignmentExpression(
+        identifier, TokenType.EQ, AstTestFactory.nullLiteral());
     // resolve
     _resolveNode(identifier);
     expect(identifier.staticElement, same(setter));
@@ -973,10 +981,10 @@ class ElementResolverTest extends EngineTestCase {
 
   void test_visitPrefixExpression() {
     InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstFactory.identifier3("i");
+    SimpleIdentifier operand = AstTestFactory.identifier3("i");
     operand.staticType = numType;
     PrefixExpression expression =
-        AstFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
+        AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
     _listener.assertNoErrors();
@@ -988,9 +996,9 @@ class ElementResolverTest extends EngineTestCase {
     PropertyAccessorElement getter =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
-    SimpleIdentifier target = AstFactory.identifier3("a");
+    SimpleIdentifier target = AstTestFactory.identifier3("a");
     target.staticType = classA.type;
-    PropertyAccess access = AstFactory.propertyAccess2(target, getterName);
+    PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
     _listener.assertNoErrors();
@@ -1010,17 +1018,17 @@ class ElementResolverTest extends EngineTestCase {
     PropertyAccessorElement getter =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
-    SuperExpression target = AstFactory.superExpression();
+    SuperExpression target = AstTestFactory.superExpression();
     target.staticType = ElementFactory.classElement("B", classA.type).type;
-    PropertyAccess access = AstFactory.propertyAccess2(target, getterName);
-    AstFactory.methodDeclaration2(
+    PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
+    AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.expressionFunctionBody(access));
+        AstTestFactory.identifier3("m"),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.expressionFunctionBody(access));
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
     _listener.assertNoErrors();
@@ -1032,11 +1040,11 @@ class ElementResolverTest extends EngineTestCase {
     PropertyAccessorElement setter =
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setter];
-    ThisExpression target = AstFactory.thisExpression();
+    ThisExpression target = AstTestFactory.thisExpression();
     target.staticType = classA.type;
-    PropertyAccess access = AstFactory.propertyAccess2(target, setterName);
-    AstFactory.assignmentExpression(
-        access, TokenType.EQ, AstFactory.integer(0));
+    PropertyAccess access = AstTestFactory.propertyAccess2(target, setterName);
+    AstTestFactory.assignmentExpression(
+        access, TokenType.EQ, AstTestFactory.integer(0));
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(setter));
     _listener.assertNoErrors();
@@ -1045,14 +1053,14 @@ class ElementResolverTest extends EngineTestCase {
   void test_visitSimpleIdentifier_classScope() {
     InterfaceType doubleType = _typeProvider.doubleType;
     String fieldName = "NAN";
-    SimpleIdentifier node = AstFactory.identifier3(fieldName);
+    SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
     _resolveInClass(node, doubleType.element);
     expect(node.staticElement, getGetter(doubleType, fieldName));
     _listener.assertNoErrors();
   }
 
   void test_visitSimpleIdentifier_dynamic() {
-    SimpleIdentifier node = AstFactory.identifier3("dynamic");
+    SimpleIdentifier node = AstTestFactory.identifier3("dynamic");
     _resolveIdentifier(node);
     expect(node.staticElement, same(_typeProvider.dynamicType.element));
     expect(node.staticType, same(_typeProvider.typeType));
@@ -1060,7 +1068,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitSimpleIdentifier_lexicalScope() {
-    SimpleIdentifier node = AstFactory.identifier3("i");
+    SimpleIdentifier node = AstTestFactory.identifier3("i");
     VariableElementImpl element = ElementFactory.localVariableElement(node);
     expect(_resolveIdentifier(node, [element]), same(element));
     _listener.assertNoErrors();
@@ -1074,8 +1082,9 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.fieldElement(fieldName, false, false, false, intType);
     classA.fields = <FieldElement>[field];
     classA.accessors = <PropertyAccessorElement>[field.getter, field.setter];
-    SimpleIdentifier node = AstFactory.identifier3(fieldName);
-    AstFactory.assignmentExpression(node, TokenType.EQ, AstFactory.integer(0));
+    SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
+    AstTestFactory.assignmentExpression(
+        node, TokenType.EQ, AstTestFactory.integer(0));
     _resolveInClass(node, classA);
     Element element = node.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
@@ -1095,9 +1104,9 @@ class ElementResolverTest extends EngineTestCase {
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
     SuperConstructorInvocation invocation =
-        AstFactory.superConstructorInvocation();
-    AstFactory.classDeclaration(null, 'C', null, null, null, null, [
-      AstFactory.constructorDeclaration(null, 'C', null, [invocation])
+        AstTestFactory.superConstructorInvocation();
+    AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [
+      AstTestFactory.constructorDeclaration(null, 'C', null, [invocation])
     ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
@@ -1117,12 +1126,12 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
-    SuperConstructorInvocation invocation = AstFactory
+    SuperConstructorInvocation invocation = AstTestFactory
         .superConstructorInvocation([
-      AstFactory.namedExpression2(parameterName, AstFactory.integer(0))
+      AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
-    AstFactory.classDeclaration(null, 'C', null, null, null, null, [
-      AstFactory.constructorDeclaration(null, 'C', null, [invocation])
+    AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [
+      AstTestFactory.constructorDeclaration(null, 'C', null, [invocation])
     ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);

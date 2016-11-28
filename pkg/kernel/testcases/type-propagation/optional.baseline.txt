@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method method(dynamic/core::int* {int} x, [dynamic/core::int* {null,int} y, dynamic/core::int* {null,int} z]) → dynamic/core::String* {string} {
+    return "string";
+  }
+}
+abstract class External extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method externalMethod(core::int/<missing type> x, [core::int/<missing type> y, core::int/<missing type> z]) → core::String/<missing type>;
+  abstract method listen(self::Listener/<missing type> listener) → void/<missing type>;
+}
+abstract class Listener extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method event(core::String/<missing type> input, [core::int/<missing type> x, core::int/<missing type> y]) → void/<missing type>;
+}
+class TestListener extends self::Listener {
+  constructor •() → void
+    : super self::Listener::•()
+    ;
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y]) → void/Null {}
+}
+class ExtendedListener extends self::Listener {
+  constructor •() → void
+    : super self::Listener::•()
+    ;
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x, dynamic/core::int* {null,int} y, dynamic/Null z]) → void/Null {}
+}
+class InvalidListener extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method event(dynamic/core::String* {string} input, [dynamic/core::int* {null,int} x]) → void/Null {}
+}
+external static method createExternal() → self::External/self::External* {other};
+static method main() → dynamic/Null {
+  dynamic/self::Foo! {other} foo = new self::Foo::•();
+  dynamic/core::String* {string} string1 = foo.method(1);
+  dynamic/core::String* {string} string2 = foo.method(1, 2);
+  dynamic/core::String* {string} string3 = foo.method(1, 2, 3);
+  dynamic/self::External* {other} extern = self::createExternal();
+  dynamic/core::String* {string} string4 = extern.externalMethod(1);
+  dynamic/core::String* {string} string5 = extern.externalMethod(1, 2);
+  dynamic/core::String* {string} string6 = extern.externalMethod(1, 2, 3);
+  extern.listen(new self::TestListener::•());
+  extern.listen(new self::ExtendedListener::•());
+  extern.listen(new self::InvalidListener::•());
+  dynamic/Nothing nothing1 = foo.method();
+  dynamic/Nothing nothing2 = foo.method(1, 2, 3, 4);
+  dynamic/Nothing nothing3 = extern.externalMethod();
+  dynamic/Nothing nothing4 = extern.externalMethod(1, 2, 3, 4);
+}

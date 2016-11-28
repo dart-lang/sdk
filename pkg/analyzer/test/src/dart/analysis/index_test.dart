@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -22,28 +21,6 @@ main() {
     defineReflectiveTests(IndexTest);
   });
 }
-
-/**
- * Finds an [Element] with the given [name].
- */
-Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result = null;
-  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
-    if (element.name != name) {
-      return;
-    }
-    if (kind != null && element.kind != kind) {
-      return;
-    }
-    result = element;
-  }));
-  return result;
-}
-
-/**
- * A function to be called for every [Element].
- */
-typedef void _ElementVisitorFunction(Element element);
 
 class ExpectedLocation {
   final CompilationUnitElement unitElement;
@@ -816,6 +793,16 @@ class A {
       ..isReferencedAt('method); // nq', false);
   }
 
+  test_isReferencedBy_MultiplyDefinedElement() async {
+    provider.newFile(_p('$testProject/a1.dart'), 'class A {}');
+    provider.newFile(_p('$testProject/a2.dart'), 'class A {}');
+    await _indexTestUnit('''
+import 'a1.dart';
+import 'a2.dart';
+A v = null;
+''');
+  }
+
   test_isReferencedBy_ParameterElement() async {
     await _indexTestUnit('''
 foo({var p}) {}
@@ -1207,20 +1194,6 @@ class _ElementIndexAssert {
   void isWrittenAt(String search, bool isQualified, {int length}) {
     test._assertHasRelation(element, relations, IndexRelationKind.IS_WRITTEN_BY,
         test._expectedLocation(search, isQualified, length: length));
-  }
-}
-
-/**
- * Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
- */
-class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
-  final _ElementVisitorFunction function;
-
-  _ElementVisitorFunctionWrapper(this.function);
-
-  visitElement(Element element) {
-    function(element);
-    super.visitElement(element);
   }
 }
 

@@ -2265,6 +2265,9 @@ class ExprTypeComputer {
         case UnlinkedExprOperation.pushParameter:
           stack.add(_findParameterType(_getNextString()));
           break;
+        case UnlinkedExprOperation.ifNull:
+          _doIfNull();
+          break;
         default:
           // TODO(paulberry): implement.
           throw new UnimplementedError('$operation');
@@ -2402,6 +2405,14 @@ class ExprTypeComputer {
       }
       return DynamicTypeImpl.instance;
     }());
+  }
+
+  void _doIfNull() {
+    DartType secondType = stack.removeLast();
+    DartType firstType = stack.removeLast();
+    DartType type = _leastUpperBound(firstType, secondType);
+    type = _dynamicIfNull(type);
+    stack.add(type);
   }
 
   void _doInvokeConstructor() {
@@ -4340,6 +4351,9 @@ class PropertyAccessorElementForLink_Variable extends Object
   TypeInferenceNode get asTypeInferenceNode => variable._typeInferenceNode;
 
   @override
+  String get displayName => variable.displayName;
+
+  @override
   Element get enclosingElement => variable.enclosingElement;
 
   @override
@@ -4988,6 +5002,9 @@ abstract class VariableElementForLink
           unlinkedVariable.type, _typeParameterContext);
     }
   }
+
+  @override
+  String get displayName => unlinkedVariable.name;
 
   @override
   PropertyAccessorElementForLink_Variable get getter =>

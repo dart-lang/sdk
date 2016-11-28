@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -248,9 +248,9 @@ class C {
   }
 
   void test_visitCompilationUnit_codeRange() {
-    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
-        .topLevelVariableDeclaration(null, AstFactory.typeName4('int'),
-            [AstFactory.variableDeclaration('V')]);
+    TopLevelVariableDeclaration topLevelVariableDeclaration = AstTestFactory
+        .topLevelVariableDeclaration(null, AstTestFactory.typeName4('int'),
+            [AstTestFactory.variableDeclaration('V')]);
     CompilationUnit unit = new CompilationUnit(
         topLevelVariableDeclaration.beginToken,
         null,
@@ -305,9 +305,9 @@ class C {
     // p = 0
     String parameterName = 'p';
     DefaultFormalParameter formalParameter =
-        AstFactory.positionalFormalParameter(
-            AstFactory.simpleFormalParameter3(parameterName),
-            AstFactory.integer(0));
+        AstTestFactory.positionalFormalParameter(
+            AstTestFactory.simpleFormalParameter3(parameterName),
+            AstTestFactory.integer(0));
     formalParameter.beginToken.offset = 50;
     formalParameter.endToken.offset = 80;
 
@@ -334,10 +334,11 @@ class C {
   void test_visitDefaultFormalParameter_type() {
     // E p = 0
     String parameterName = 'p';
-    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter4(
-            AstFactory.typeName4('E'), parameterName),
-        AstFactory.integer(0));
+    DefaultFormalParameter formalParameter =
+        AstTestFactory.namedFormalParameter(
+            AstTestFactory.simpleFormalParameter4(
+                AstTestFactory.typeName4('E'), parameterName),
+            AstTestFactory.integer(0));
 
     ElementHolder holder = buildElementsForAst(formalParameter);
     List<ParameterElement> parameters = holder.parameters;
@@ -361,8 +362,9 @@ class C {
   void test_visitFunctionExpression() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
-    FunctionExpression expression = AstFactory.functionExpression2(
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    FunctionExpression expression = AstTestFactory.functionExpression2(
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
     expression.accept(builder);
     List<FunctionElement> functions = holder.functions;
     expect(functions, hasLength(1));
@@ -401,9 +403,9 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String aliasName = "F";
     String parameterName = "E";
-    FunctionTypeAlias aliasNode = AstFactory.typeAlias(
-        null, aliasName, AstFactory.typeParameterList([parameterName]), null);
-    aliasNode.documentationComment = AstFactory.documentationComment(
+    FunctionTypeAlias aliasNode = AstTestFactory.typeAlias(null, aliasName,
+        AstTestFactory.typeParameterList([parameterName]), null);
+    aliasNode.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     aliasNode.endToken.offset = 80;
     aliasNode.accept(builder);
@@ -428,7 +430,7 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
     FunctionTypedFormalParameter formalParameter =
-        AstFactory.functionTypedFormalParameter(null, parameterName);
+        AstTestFactory.functionTypedFormalParameter(null, parameterName);
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
@@ -449,8 +451,8 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
     FunctionTypedFormalParameter formalParameter =
-        AstFactory.functionTypedFormalParameter(null, parameterName);
-    formalParameter.typeParameters = AstFactory.typeParameterList(['F']);
+        AstTestFactory.functionTypedFormalParameter(null, parameterName);
+    formalParameter.typeParameters = AstTestFactory.typeParameterList(['F']);
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
@@ -523,9 +525,10 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
-    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3(parameterName),
-        AstFactory.identifier3("42"));
+    DefaultFormalParameter formalParameter =
+        AstTestFactory.namedFormalParameter(
+            AstTestFactory.simpleFormalParameter3(parameterName),
+            AstTestFactory.identifier3("42"));
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.beginToken.offset = 50;
     formalParameter.endToken.offset = 80;
@@ -554,7 +557,7 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
     SimpleFormalParameter formalParameter =
-        AstFactory.simpleFormalParameter3(parameterName);
+        AstTestFactory.simpleFormalParameter3(parameterName);
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
@@ -576,8 +579,8 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
-    SimpleFormalParameter formalParameter = AstFactory.simpleFormalParameter4(
-        AstFactory.typeName4('T'), parameterName);
+    SimpleFormalParameter formalParameter = AstTestFactory
+        .simpleFormalParameter4(AstTestFactory.typeName4('T'), parameterName);
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
@@ -617,19 +620,19 @@ class C {
     // m() { for (var v in []) }
     //
     String variableName = "v";
-    Statement statement = AstFactory.forEachStatement(
-        AstFactory.declaredIdentifier3('v'),
-        AstFactory.listLiteral(),
-        AstFactory.block());
+    Statement statement = AstTestFactory.forEachStatement(
+        AstTestFactory.declaredIdentifier3('v'),
+        AstTestFactory.listLiteral(),
+        AstTestFactory.block());
     _setNodeSourceRange(statement, 100, 110);
-    MethodDeclaration method = AstFactory.methodDeclaration2(
+    MethodDeclaration method = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2([statement]));
+        AstTestFactory.identifier3("m"),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2([statement]));
     _setBlockBodySourceRange(method.body, 200, 220);
     method.accept(builder);
 
@@ -649,21 +652,23 @@ class C {
     // m() { for (T v;;) }
     //
     String variableName = "v";
-    ForStatement statement = AstFactory.forStatement2(
-        AstFactory.variableDeclarationList(null, AstFactory.typeName4('T'),
-            [AstFactory.variableDeclaration('v')]),
+    ForStatement statement = AstTestFactory.forStatement2(
+        AstTestFactory.variableDeclarationList(
+            null,
+            AstTestFactory.typeName4('T'),
+            [AstTestFactory.variableDeclaration('v')]),
         null,
         null,
-        AstFactory.block());
+        AstTestFactory.block());
     _setNodeSourceRange(statement, 100, 110);
-    MethodDeclaration method = AstFactory.methodDeclaration2(
+    MethodDeclaration method = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2([statement]));
+        AstTestFactory.identifier3("m"),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2([statement]));
     _setBlockBodySourceRange(method.body, 200, 220);
     method.accept(builder);
 
@@ -684,17 +689,17 @@ class C {
     //
     String variableName = "v";
     VariableDeclaration variable =
-        AstFactory.variableDeclaration2(variableName, null);
-    Statement statement = AstFactory.variableDeclarationStatement(
-        null, AstFactory.typeName4('T'), [variable]);
-    MethodDeclaration method = AstFactory.methodDeclaration2(
+        AstTestFactory.variableDeclaration2(variableName, null);
+    Statement statement = AstTestFactory.variableDeclarationStatement(
+        null, AstTestFactory.typeName4('T'), [variable]);
+    MethodDeclaration method = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2([statement]));
+        AstTestFactory.identifier3("m"),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2([statement]));
     _setBlockBodySourceRange(method.body, 100, 110);
     method.accept(builder);
 
@@ -716,17 +721,17 @@ class C {
     //
     String variableName = "v";
     VariableDeclaration variable =
-        AstFactory.variableDeclaration2(variableName, null);
+        AstTestFactory.variableDeclaration2(variableName, null);
     Statement statement =
-        AstFactory.variableDeclarationStatement2(null, [variable]);
-    Expression initializer = AstFactory.functionExpression2(
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2([statement]));
+        AstTestFactory.variableDeclarationStatement2(null, [variable]);
+    Expression initializer = AstTestFactory.functionExpression2(
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2([statement]));
     String fieldName = "f";
     VariableDeclaration field =
-        AstFactory.variableDeclaration2(fieldName, initializer);
+        AstTestFactory.variableDeclaration2(fieldName, initializer);
     FieldDeclaration fieldDeclaration =
-        AstFactory.fieldDeclaration2(false, null, [field]);
+        AstTestFactory.fieldDeclaration2(false, null, [field]);
     fieldDeclaration.accept(builder);
 
     List<FieldElement> variables = holder.fields;
@@ -755,8 +760,8 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String variableName = "v";
     VariableDeclaration variableDeclaration =
-        AstFactory.variableDeclaration2(variableName, null);
-    AstFactory.variableDeclarationList2(null, [variableDeclaration]);
+        AstTestFactory.variableDeclaration2(variableName, null);
+    AstTestFactory.variableDeclarationList2(null, [variableDeclaration]);
     variableDeclaration.accept(builder);
 
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
@@ -778,13 +783,13 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     VariableDeclaration variableDeclaration1 =
-        AstFactory.variableDeclaration('a');
+        AstTestFactory.variableDeclaration('a');
     VariableDeclaration variableDeclaration2 =
-        AstFactory.variableDeclaration('b');
-    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
+        AstTestFactory.variableDeclaration('b');
+    TopLevelVariableDeclaration topLevelVariableDeclaration = AstTestFactory
         .topLevelVariableDeclaration(
             Keyword.FINAL, null, [variableDeclaration1, variableDeclaration2]);
-    topLevelVariableDeclaration.documentationComment = AstFactory
+    topLevelVariableDeclaration.documentationComment = AstTestFactory
         .documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
 
@@ -806,9 +811,10 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     String variableName = "v";
-    VariableDeclaration variableDeclaration =
-        AstFactory.variableDeclaration2(variableName, AstFactory.integer(42));
-    AstFactory.variableDeclarationList2(Keyword.CONST, [variableDeclaration]);
+    VariableDeclaration variableDeclaration = AstTestFactory
+        .variableDeclaration2(variableName, AstTestFactory.integer(42));
+    AstTestFactory
+        .variableDeclarationList2(Keyword.CONST, [variableDeclaration]);
     variableDeclaration.accept(builder);
 
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
@@ -833,8 +839,9 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String variableName = "v";
     VariableDeclaration variableDeclaration =
-        AstFactory.variableDeclaration2(variableName, null);
-    AstFactory.variableDeclarationList2(Keyword.FINAL, [variableDeclaration]);
+        AstTestFactory.variableDeclaration2(variableName, null);
+    AstTestFactory
+        .variableDeclarationList2(Keyword.FINAL, [variableDeclaration]);
     variableDeclaration.accept(builder);
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
     expect(variables, hasLength(1));
@@ -865,17 +872,17 @@ class C {
 
   void _useParameterInMethod(
       FormalParameter formalParameter, int blockOffset, int blockEnd) {
-    Block block = AstFactory.block();
+    Block block = AstTestFactory.block();
     block.leftBracket.offset = blockOffset;
     block.rightBracket.offset = blockEnd - 1;
-    BlockFunctionBody body = AstFactory.blockFunctionBody(block);
-    AstFactory.methodDeclaration2(
+    BlockFunctionBody body = AstTestFactory.blockFunctionBody(block);
+    AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3("main"),
-        AstFactory.formalParameterList([formalParameter]),
+        AstTestFactory.identifier3("main"),
+        AstTestFactory.formalParameterList([formalParameter]),
         body);
   }
 }
@@ -1262,9 +1269,9 @@ class C {
 
   void test_visitClassDeclaration_minimal() {
     String className = "C";
-    ClassDeclaration classDeclaration =
-        AstFactory.classDeclaration(null, className, null, null, null, null);
-    classDeclaration.documentationComment = AstFactory.documentationComment(
+    ClassDeclaration classDeclaration = AstTestFactory.classDeclaration(
+        null, className, null, null, null, null);
+    classDeclaration.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     classDeclaration.endToken.offset = 80;
 
@@ -1287,10 +1294,11 @@ class C {
     String className = "C";
     String firstVariableName = "E";
     String secondVariableName = "F";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
+    ClassDeclaration classDeclaration = AstTestFactory.classDeclaration(
         null,
         className,
-        AstFactory.typeParameterList([firstVariableName, secondVariableName]),
+        AstTestFactory
+            .typeParameterList([firstVariableName, secondVariableName]),
         null,
         null,
         null);
@@ -1315,23 +1323,23 @@ class C {
     String typeParameterName = "E";
     String fieldName = "f";
     String methodName = "m";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
+    ClassDeclaration classDeclaration = AstTestFactory.classDeclaration(
         null,
         className,
-        AstFactory.typeParameterList([typeParameterName]),
+        AstTestFactory.typeParameterList([typeParameterName]),
         null,
         null,
         null, [
-      AstFactory.fieldDeclaration2(
-          false, null, [AstFactory.variableDeclaration(fieldName)]),
-      AstFactory.methodDeclaration2(
+      AstTestFactory.fieldDeclaration2(
+          false, null, [AstTestFactory.variableDeclaration(fieldName)]),
+      AstTestFactory.methodDeclaration2(
           null,
           null,
           null,
           null,
-          AstFactory.identifier3(methodName),
-          AstFactory.formalParameterList(),
-          AstFactory.blockFunctionBody2())
+          AstTestFactory.identifier3(methodName),
+          AstTestFactory.formalParameterList(),
+          AstTestFactory.blockFunctionBody2())
     ]);
 
     ElementHolder holder = buildElementsForAst(classDeclaration);
@@ -1371,9 +1379,9 @@ class C {
     classB.constructors = [constructorB];
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
+        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
+        'C', null, null, AstTestFactory.typeName(classB, []), withClause, null);
 
     ElementHolder holder = buildElementsForAst(alias);
     List<ClassElement> types = holder.types;
@@ -1400,9 +1408,14 @@ class C {
     classB.constructors = [constructorB];
     ClassElement classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null,
-        Keyword.ABSTRACT, AstFactory.typeName(classB, []), withClause, null);
+        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
+        'C',
+        null,
+        Keyword.ABSTRACT,
+        AstTestFactory.typeName(classB, []),
+        withClause,
+        null);
 
     ElementHolder holder = buildElementsForAst(alias);
     List<ClassElement> types = holder.types;
@@ -1423,12 +1436,12 @@ class C {
     classB.constructors = [constructorB];
     ClassElementImpl classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
+        AstTestFactory.withClause([AstTestFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstTestFactory.classTypeAlias(
         'C',
-        AstFactory.typeParameterList(['T']),
+        AstTestFactory.typeParameterList(['T']),
         null,
-        AstFactory.typeName(classB, []),
+        AstTestFactory.typeName(classB, []),
         withClause,
         null);
 
@@ -1443,14 +1456,14 @@ class C {
   void test_visitConstructorDeclaration_external() {
     String className = "A";
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
+        AstTestFactory.constructorDeclaration2(
             null,
             null,
-            AstFactory.identifier3(className),
+            AstTestFactory.identifier3(className),
             null,
-            AstFactory.formalParameterList(),
+            AstTestFactory.formalParameterList(),
             null,
-            AstFactory.blockFunctionBody2());
+            AstTestFactory.blockFunctionBody2());
     constructorDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
 
@@ -1471,14 +1484,14 @@ class C {
   void test_visitConstructorDeclaration_factory() {
     String className = "A";
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
+        AstTestFactory.constructorDeclaration2(
             null,
             Keyword.FACTORY,
-            AstFactory.identifier3(className),
+            AstTestFactory.identifier3(className),
             null,
-            AstFactory.formalParameterList(),
+            AstTestFactory.formalParameterList(),
             null,
-            AstFactory.blockFunctionBody2());
+            AstTestFactory.blockFunctionBody2());
 
     ElementHolder holder = buildElementsForAst(constructorDeclaration);
     List<ConstructorElement> constructors = holder.constructors;
@@ -1497,15 +1510,15 @@ class C {
   void test_visitConstructorDeclaration_minimal() {
     String className = "A";
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
+        AstTestFactory.constructorDeclaration2(
             null,
             null,
-            AstFactory.identifier3(className),
+            AstTestFactory.identifier3(className),
             null,
-            AstFactory.formalParameterList(),
+            AstTestFactory.formalParameterList(),
             null,
-            AstFactory.blockFunctionBody2());
-    constructorDeclaration.documentationComment = AstFactory
+            AstTestFactory.blockFunctionBody2());
+    constructorDeclaration.documentationComment = AstTestFactory
         .documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     constructorDeclaration.endToken.offset = 80;
@@ -1530,14 +1543,14 @@ class C {
     String className = "A";
     String constructorName = "c";
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
+        AstTestFactory.constructorDeclaration2(
             null,
             null,
-            AstFactory.identifier3(className),
+            AstTestFactory.identifier3(className),
             constructorName,
-            AstFactory.formalParameterList(),
+            AstTestFactory.formalParameterList(),
             null,
-            AstFactory.blockFunctionBody2());
+            AstTestFactory.blockFunctionBody2());
 
     ElementHolder holder = buildElementsForAst(constructorDeclaration);
     List<ConstructorElement> constructors = holder.constructors;
@@ -1558,14 +1571,14 @@ class C {
   void test_visitConstructorDeclaration_unnamed() {
     String className = "A";
     ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
+        AstTestFactory.constructorDeclaration2(
             null,
             null,
-            AstFactory.identifier3(className),
+            AstTestFactory.identifier3(className),
             null,
-            AstFactory.formalParameterList(),
+            AstTestFactory.formalParameterList(),
             null,
-            AstFactory.blockFunctionBody2());
+            AstTestFactory.blockFunctionBody2());
 
     ElementHolder holder = buildElementsForAst(constructorDeclaration);
     List<ConstructorElement> constructors = holder.constructors;
@@ -1585,8 +1598,8 @@ class C {
   void test_visitEnumDeclaration() {
     String enumName = "E";
     EnumDeclaration enumDeclaration =
-        AstFactory.enumDeclaration2(enumName, ["ONE"]);
-    enumDeclaration.documentationComment = AstFactory.documentationComment(
+        AstTestFactory.enumDeclaration2(enumName, ["ONE"]);
+    enumDeclaration.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     enumDeclaration.endToken.offset = 80;
     ElementHolder holder = buildElementsForAst(enumDeclaration);
@@ -1603,11 +1616,11 @@ class C {
     String firstFieldName = "x";
     String secondFieldName = "y";
     FieldDeclaration fieldDeclaration =
-        AstFactory.fieldDeclaration2(false, null, [
-      AstFactory.variableDeclaration(firstFieldName),
-      AstFactory.variableDeclaration(secondFieldName)
+        AstTestFactory.fieldDeclaration2(false, null, [
+      AstTestFactory.variableDeclaration(firstFieldName),
+      AstTestFactory.variableDeclaration(secondFieldName)
     ]);
-    fieldDeclaration.documentationComment = AstFactory.documentationComment(
+    fieldDeclaration.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     fieldDeclaration.endToken.offset = 110;
 
@@ -1639,7 +1652,7 @@ class C {
   void test_visitFieldFormalParameter() {
     String parameterName = "p";
     FieldFormalParameter formalParameter =
-        AstFactory.fieldFormalParameter(null, null, parameterName);
+        AstTestFactory.fieldFormalParameter(null, null, parameterName);
     formalParameter.beginToken.offset = 50;
     formalParameter.endToken.offset = 80;
     ElementHolder holder = buildElementsForAst(formalParameter);
@@ -1659,12 +1672,12 @@ class C {
 
   void test_visitFieldFormalParameter_functionTyped() {
     String parameterName = "p";
-    FieldFormalParameter formalParameter = AstFactory.fieldFormalParameter(
+    FieldFormalParameter formalParameter = AstTestFactory.fieldFormalParameter(
         null,
         null,
         parameterName,
-        AstFactory
-            .formalParameterList([AstFactory.simpleFormalParameter3("a")]));
+        AstTestFactory
+            .formalParameterList([AstTestFactory.simpleFormalParameter3("a")]));
     ElementHolder holder = buildElementsForAst(formalParameter);
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
@@ -1682,9 +1695,9 @@ class C {
   void test_visitFormalParameterList() {
     String firstParameterName = "a";
     String secondParameterName = "b";
-    FormalParameterList parameterList = AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3(firstParameterName),
-      AstFactory.simpleFormalParameter3(secondParameterName)
+    FormalParameterList parameterList = AstTestFactory.formalParameterList([
+      AstTestFactory.simpleFormalParameter3(firstParameterName),
+      AstTestFactory.simpleFormalParameter3(secondParameterName)
     ]);
     ElementHolder holder = buildElementsForAst(parameterList);
     List<ParameterElement> parameters = holder.parameters;
@@ -1696,12 +1709,12 @@ class C {
   void test_visitFunctionDeclaration_external() {
     // external f();
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
         null,
         null,
         functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.emptyFunctionBody()));
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.emptyFunctionBody()));
     declaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
 
@@ -1722,13 +1735,13 @@ class C {
   void test_visitFunctionDeclaration_getter() {
     // get f() {}
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
         null,
         Keyword.GET,
         functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
-    declaration.documentationComment = AstFactory.documentationComment(
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     declaration.endToken.offset = 80;
 
@@ -1757,13 +1770,13 @@ class C {
   void test_visitFunctionDeclaration_plain() {
     // T f() {}
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        AstFactory.typeName4('T'),
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+        AstTestFactory.typeName4('T'),
         null,
         functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
-    declaration.documentationComment = AstFactory.documentationComment(
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     declaration.endToken.offset = 80;
 
@@ -1786,13 +1799,13 @@ class C {
   void test_visitFunctionDeclaration_setter() {
     // set f() {}
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
         null,
         Keyword.SET,
         functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
-    declaration.documentationComment = AstFactory.documentationComment(
+        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
+            AstTestFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstTestFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     declaration.endToken.offset = 80;
 
@@ -1822,12 +1835,12 @@ class C {
     // f<E>() {}
     String functionName = 'f';
     String typeParameterName = 'E';
-    FunctionExpression expression = AstFactory.functionExpression3(
-        AstFactory.typeParameterList([typeParameterName]),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    FunctionDeclaration declaration =
-        AstFactory.functionDeclaration(null, null, functionName, expression);
+    FunctionExpression expression = AstTestFactory.functionExpression3(
+        AstTestFactory.typeParameterList([typeParameterName]),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+        null, null, functionName, expression);
 
     ElementHolder holder = buildElementsForAst(declaration);
     List<FunctionElement> functions = holder.functions;
@@ -1850,14 +1863,14 @@ class C {
   void test_visitMethodDeclaration_abstract() {
     // m();
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.emptyFunctionBody());
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
     List<MethodElement> methods = holder.methods;
@@ -1917,14 +1930,14 @@ class A {
   void test_visitMethodDeclaration_external() {
     // external m();
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.emptyFunctionBody());
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
 
@@ -1949,16 +1962,17 @@ class A {
   void test_visitMethodDeclaration_getter() {
     // get m() {}
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         Keyword.GET,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstTestFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.endToken.offset = 80;
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
@@ -1989,14 +2003,14 @@ class A {
   void test_visitMethodDeclaration_getter_abstract() {
     // get m();
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         Keyword.GET,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.emptyFunctionBody());
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
     List<FieldElement> fields = holder.fields;
@@ -2024,13 +2038,13 @@ class A {
   void test_visitMethodDeclaration_getter_external() {
     // external get m();
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration(
         null,
         null,
         Keyword.GET,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList());
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
 
@@ -2060,16 +2074,17 @@ class A {
   void test_visitMethodDeclaration_minimal() {
     // T m() {}
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
-        AstFactory.typeName4('T'),
+        AstTestFactory.typeName4('T'),
         null,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstTestFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.endToken.offset = 80;
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
@@ -2095,15 +2110,15 @@ class A {
   void test_visitMethodDeclaration_operator() {
     // operator +(addend) {}
     String methodName = "+";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         Keyword.OPERATOR,
-        AstFactory.identifier3(methodName),
-        AstFactory
-            .formalParameterList([AstFactory.simpleFormalParameter3("addend")]),
-        AstFactory.blockFunctionBody2());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(
+            [AstTestFactory.simpleFormalParameter3("addend")]),
+        AstTestFactory.blockFunctionBody2());
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
     List<MethodElement> methods = holder.methods;
@@ -2126,16 +2141,17 @@ class A {
   void test_visitMethodDeclaration_setter() {
     // set m() {}
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         Keyword.SET,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstTestFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.endToken.offset = 80;
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
@@ -2168,14 +2184,14 @@ class A {
   void test_visitMethodDeclaration_setter_abstract() {
     // set m();
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         Keyword.SET,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.emptyFunctionBody());
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
     List<FieldElement> fields = holder.fields;
@@ -2204,13 +2220,13 @@ class A {
   void test_visitMethodDeclaration_setter_external() {
     // external m();
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration(
         null,
         null,
         Keyword.SET,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList());
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
 
@@ -2241,14 +2257,14 @@ class A {
   void test_visitMethodDeclaration_static() {
     // static m() {}
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         Keyword.STATIC,
         null,
         null,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
     ElementHolder holder = buildElementsForAst(methodDeclaration);
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
@@ -2270,15 +2286,15 @@ class A {
   void test_visitMethodDeclaration_typeParameters() {
     // m<E>() {}
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+    MethodDeclaration methodDeclaration = AstTestFactory.methodDeclaration2(
         null,
         null,
         null,
         null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
+        AstTestFactory.identifier3(methodName),
+        AstTestFactory.formalParameterList(),
+        AstTestFactory.blockFunctionBody2());
+    methodDeclaration.typeParameters = AstTestFactory.typeParameterList(['E']);
 
     ElementHolder holder = buildElementsForAst(methodDeclaration);
     List<MethodElement> methods = holder.methods;
@@ -2300,7 +2316,7 @@ class A {
 
   void test_visitTypeAlias_minimal() {
     String aliasName = "F";
-    TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, null, null);
+    TypeAlias typeAlias = AstTestFactory.typeAlias(null, aliasName, null, null);
     ElementHolder holder = buildElementsForAst(typeAlias);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
@@ -2315,13 +2331,13 @@ class A {
     String aliasName = "F";
     String firstParameterName = "x";
     String secondParameterName = "y";
-    TypeAlias typeAlias = AstFactory.typeAlias(
+    TypeAlias typeAlias = AstTestFactory.typeAlias(
         null,
         aliasName,
-        AstFactory.typeParameterList(),
-        AstFactory.formalParameterList([
-          AstFactory.simpleFormalParameter3(firstParameterName),
-          AstFactory.simpleFormalParameter3(secondParameterName)
+        AstTestFactory.typeParameterList(),
+        AstTestFactory.formalParameterList([
+          AstTestFactory.simpleFormalParameter3(firstParameterName),
+          AstTestFactory.simpleFormalParameter3(secondParameterName)
         ]));
     typeAlias.beginToken.offset = 50;
     typeAlias.endToken.offset = 80;
@@ -2347,12 +2363,12 @@ class A {
     String aliasName = "F";
     String firstTypeParameterName = "A";
     String secondTypeParameterName = "B";
-    TypeAlias typeAlias = AstFactory.typeAlias(
+    TypeAlias typeAlias = AstTestFactory.typeAlias(
         null,
         aliasName,
-        AstFactory.typeParameterList(
+        AstTestFactory.typeParameterList(
             [firstTypeParameterName, secondTypeParameterName]),
-        AstFactory.formalParameterList());
+        AstTestFactory.formalParameterList());
     ElementHolder holder = buildElementsForAst(typeAlias);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
@@ -2372,7 +2388,7 @@ class A {
 
   void test_visitTypeParameter() {
     String parameterName = "E";
-    TypeParameter typeParameter = AstFactory.typeParameter(parameterName);
+    TypeParameter typeParameter = AstTestFactory.typeParameter(parameterName);
     typeParameter.beginToken.offset = 50;
     ElementHolder holder = buildElementsForAst(typeParameter);
     List<TypeParameterElement> typeParameters = holder.typeParameters;

@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -559,12 +559,12 @@ void main() {
 
   void test_locate_InstanceCreationExpression_type_prefixedIdentifier() {
     // prepare: new pref.A()
-    SimpleIdentifier identifier = AstFactory.identifier3("A");
+    SimpleIdentifier identifier = AstTestFactory.identifier3("A");
     PrefixedIdentifier prefixedIdentifier =
-        AstFactory.identifier4("pref", identifier);
+        AstTestFactory.identifier4("pref", identifier);
     InstanceCreationExpression creation =
-        AstFactory.instanceCreationExpression2(
-            Keyword.NEW, AstFactory.typeName3(prefixedIdentifier));
+        AstTestFactory.instanceCreationExpression2(
+            Keyword.NEW, AstTestFactory.typeName3(prefixedIdentifier));
     // set ClassElement
     ClassElement classElement = ElementFactory.classElement2("A");
     identifier.staticElement = classElement;
@@ -579,10 +579,10 @@ void main() {
 
   void test_locate_InstanceCreationExpression_type_simpleIdentifier() {
     // prepare: new A()
-    SimpleIdentifier identifier = AstFactory.identifier3("A");
+    SimpleIdentifier identifier = AstTestFactory.identifier3("A");
     InstanceCreationExpression creation =
-        AstFactory.instanceCreationExpression2(
-            Keyword.NEW, AstFactory.typeName3(identifier));
+        AstTestFactory.instanceCreationExpression2(
+            Keyword.NEW, AstTestFactory.typeName3(identifier));
     // set ClassElement
     ClassElement classElement = ElementFactory.classElement2("A");
     identifier.staticElement = classElement;
@@ -797,8 +797,8 @@ class EnumMemberBuilderTest extends EngineTestCase {
     String firstName = "ONE";
     String secondName = "TWO";
     String thirdName = "THREE";
-    EnumDeclaration enumDeclaration =
-        AstFactory.enumDeclaration2("E", [firstName, secondName, thirdName]);
+    EnumDeclaration enumDeclaration = AstTestFactory
+        .enumDeclaration2("E", [firstName, secondName, thirdName]);
 
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
@@ -829,8 +829,8 @@ class EnumMemberBuilderTest extends EngineTestCase {
   void test_visitEnumDeclaration_single() {
     String firstName = "ONE";
     EnumDeclaration enumDeclaration =
-        AstFactory.enumDeclaration2("E", [firstName]);
-    enumDeclaration.constants[0].documentationComment = AstFactory
+        AstTestFactory.enumDeclaration2("E", [firstName]);
+    enumDeclaration.constants[0].documentationComment = AstTestFactory
         .documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
 
@@ -967,7 +967,7 @@ zap: baz
         new ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstFactory.identifier3("x"),
+        AstTestFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
     expect(error.message.indexOf("(") < 0, isTrue);
@@ -982,7 +982,7 @@ zap: baz
         new ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstFactory.identifier3("x"),
+        AstTestFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
     expect(error.message.indexOf("(") >= 0, isTrue);
