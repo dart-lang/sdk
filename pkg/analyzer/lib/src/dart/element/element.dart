@@ -1049,7 +1049,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_constructors, visitor);
+    safelyVisitChildren(constructors, visitor);
     safelyVisitChildren(methods, visitor);
     safelyVisitChildren(typeParameters, visitor);
   }

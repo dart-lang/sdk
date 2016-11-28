@@ -9,8 +9,18 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:collection/collection.dart';
+
+Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
+  var finder = new _ContainingElementFinder(offset);
+  unitElement.accept(finder);
+  return finder.containingElement;
+}
 
 /**
  * Search support for an [AnalysisDriver].
@@ -29,20 +39,112 @@ class Search {
     }
 
     ElementKind kind = element.kind;
-    if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
+    if (kind == ElementKind.CLASS ||
+        kind == ElementKind.COMPILATION_UNIT ||
+        kind == ElementKind.CONSTRUCTOR ||
+        kind == ElementKind.FUNCTION_TYPE_ALIAS ||
+        kind == ElementKind.SETTER) {
+      return _searchReferences(element);
+    } else if (kind == ElementKind.GETTER) {
+      return _searchReferences_Getter(element);
+    } else if (kind == ElementKind.FIELD ||
+        kind == ElementKind.TOP_LEVEL_VARIABLE) {
+      return _searchReferences_Field(element);
+    } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
       if (element.enclosingElement is ExecutableElement) {
         return _searchReferences_Local(element, (n) => n is Block);
       }
-//      return _searchReferences_Function(element);
+      return _searchReferences_Function(element);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block);
+    } else if (kind == ElementKind.PARAMETER) {
+      return _searchReferences_Parameter(element);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return _searchReferences_Local(
           element, (n) => n.parent is CompilationUnit);
     }
     // TODO(scheglov) support other kinds
     return const <SearchResult>[];
+  }
+
+  Future<Null> _addResults(List<SearchResult> results, Element element,
+      IndexRelationKind relationKind, SearchResultKind resultKind) async {
+    // TODO(scheglov) optimize for private elements
+    String name = element.displayName;
+
+    // Prepare the list of files that reference the element name.
+    List<String> files = await _driver.getFilesReferencingName(name);
+    String path = element.source.fullName;
+    if (!files.contains(path)) {
+      files.add(path);
+    }
+
+    // Check the index of every file that references the element name.
+    for (String file in files) {
+      IndexResult result = await _driver.getIndex(file);
+      _IndexRequest request = new _IndexRequest(result.index);
+      int elementId = request.findElementId(element);
+      if (elementId != -1) {
+        CompilationUnitElement unitElement = result.unitElement;
+        List<SearchResult> fileResults = request.getRelations(
+            elementId, relationKind, resultKind, unitElement);
+        results.addAll(fileResults);
+      }
+    }
+  }
+
+  Future<List<SearchResult>> _searchReferences(Element element) async {
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, element, IndexRelationKind.IS_REFERENCED_BY,
+        SearchResultKind.REFERENCE);
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Field(
+      PropertyInducingElement field) async {
+    List<SearchResult> results = <SearchResult>[];
+    PropertyAccessorElement getter = field.getter;
+    PropertyAccessorElement setter = field.setter;
+    if (!field.isSynthetic) {
+      await _addResults(results, field, IndexRelationKind.IS_WRITTEN_BY,
+          SearchResultKind.WRITE);
+      await _addResults(results, field, IndexRelationKind.IS_REFERENCED_BY,
+          SearchResultKind.REFERENCE);
+    }
+    if (getter != null) {
+      await _addResults(results, getter, IndexRelationKind.IS_REFERENCED_BY,
+          SearchResultKind.READ);
+      await _addResults(results, getter, IndexRelationKind.IS_INVOKED_BY,
+          SearchResultKind.INVOCATION);
+    }
+    if (setter != null) {
+      await _addResults(results, setter, IndexRelationKind.IS_REFERENCED_BY,
+          SearchResultKind.WRITE);
+    }
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Function(Element element) async {
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, element, IndexRelationKind.IS_REFERENCED_BY,
+        SearchResultKind.REFERENCE);
+    await _addResults(results, element, IndexRelationKind.IS_INVOKED_BY,
+        SearchResultKind.INVOCATION);
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Getter(
+      PropertyAccessorElement getter) async {
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, getter, IndexRelationKind.IS_REFERENCED_BY,
+        SearchResultKind.REFERENCE);
+    await _addResults(results, getter, IndexRelationKind.IS_INVOKED_BY,
+        SearchResultKind.INVOCATION);
+    return results;
   }
 
   Future<List<SearchResult>> _searchReferences_Local(
@@ -76,6 +178,17 @@ class Search {
         new _LocalReferencesVisitor(element, unit.element);
     enclosingNode.accept(visitor);
     return visitor.results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Parameter(
+      ParameterElement parameter) async {
+    List<SearchResult> results = <SearchResult>[];
+    results.addAll(await _searchReferences(parameter));
+    results.addAll(await _searchReferences_Local(parameter, (AstNode node) {
+      AstNode parent = node.parent;
+      return parent is ClassDeclaration || parent is CompilationUnit;
+    }));
+    return results;
   }
 }
 
@@ -126,6 +239,8 @@ class SearchResult {
     StringBuffer buffer = new StringBuffer();
     buffer.write("SearchResult(kind=");
     buffer.write(kind);
+    buffer.write(", enclosingElement=");
+    buffer.write(enclosingElement);
     buffer.write(", offset=");
     buffer.write(offset);
     buffer.write(", length=");
@@ -134,8 +249,6 @@ class SearchResult {
     buffer.write(isResolved);
     buffer.write(", isQualified=");
     buffer.write(isQualified);
-    buffer.write(", enclosingElement=");
-    buffer.write(enclosingElement);
     buffer.write(")");
     return buffer.toString();
   }
@@ -164,6 +277,189 @@ class _ContainingElementFinder extends GeneralizingElementVisitor {
         super.visitElement(element);
       }
     }
+  }
+}
+
+class _IndexRequest {
+  final AnalysisDriverUnitIndex index;
+
+  _IndexRequest(this.index);
+
+  /**
+   * Return the [element]'s identifier in the [index] or `-1` if the
+   * [element] is not referenced in the [index].
+   */
+  int findElementId(Element element) {
+    IndexElementInfo info = new IndexElementInfo(element);
+    element = info.element;
+    // Find the id of the element's unit.
+    int unitId = getUnitId(element);
+    if (unitId == -1) {
+      return -1;
+    }
+    // Prepare information about the element.
+    int unitMemberId = getElementUnitMemberId(element);
+    if (unitMemberId == -1) {
+      return -1;
+    }
+    int classMemberId = getElementClassMemberId(element);
+    if (classMemberId == -1) {
+      return -1;
+    }
+    int parameterId = getElementParameterId(element);
+    if (parameterId == -1) {
+      return -1;
+    }
+    // Try to find the element id using classMemberId, parameterId, and kind.
+    int elementId =
+        _findFirstOccurrence(index.elementNameUnitMemberIds, unitMemberId);
+    if (elementId == -1) {
+      return -1;
+    }
+    for (;
+        elementId < index.elementNameUnitMemberIds.length &&
+            index.elementNameUnitMemberIds[elementId] == unitMemberId;
+        elementId++) {
+      if (index.elementUnits[elementId] == unitId &&
+          index.elementNameClassMemberIds[elementId] == classMemberId &&
+          index.elementNameParameterIds[elementId] == parameterId &&
+          index.elementKinds[elementId] == info.kind) {
+        return elementId;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Return the [element]'s class member name identifier, `null` is not a class
+   * member, or `-1` if the [element] is not referenced in the [index].
+   */
+  int getElementClassMemberId(Element element) {
+    for (; element != null; element = element.enclosingElement) {
+      if (element.enclosingElement is ClassElement) {
+        return getStringId(element.name);
+      }
+    }
+    return index.nullStringId;
+  }
+
+  /**
+   * Return the [element]'s class member name identifier, `null` is not a class
+   * member, or `-1` if the [element] is not referenced in the [index].
+   */
+  int getElementParameterId(Element element) {
+    for (; element != null; element = element.enclosingElement) {
+      if (element is ParameterElement) {
+        return getStringId(element.name);
+      }
+    }
+    return index.nullStringId;
+  }
+
+  /**
+   * Return the [element]'s top-level name identifier, `0` is the unit, or
+   * `-1` if the [element] is not referenced in the [index].
+   */
+  int getElementUnitMemberId(Element element) {
+    for (; element != null; element = element.enclosingElement) {
+      if (element.enclosingElement is CompilationUnitElement) {
+        return getStringId(element.name);
+      }
+    }
+    return index.nullStringId;
+  }
+
+  /**
+   * Return a list of results where an element with the given [elementId] has
+   * relation of the given [indexKind].
+   */
+  List<SearchResult> getRelations(
+      int elementId,
+      IndexRelationKind indexKind,
+      SearchResultKind searchKind,
+      CompilationUnitElement enclosingUnitElement) {
+    // Find the first usage of the element.
+    int i = _findFirstOccurrence(index.usedElements, elementId);
+    if (i == -1) {
+      return const <SearchResult>[];
+    }
+    // Create locations for every usage of the element.
+    List<SearchResult> results = <SearchResult>[];
+    for (;
+        i < index.usedElements.length && index.usedElements[i] == elementId;
+        i++) {
+      if (index.usedElementKinds[i] == indexKind) {
+        int offset = index.usedElementOffsets[i];
+        Element enclosingElement =
+            _getEnclosingElement(enclosingUnitElement, offset);
+        results.add(new SearchResult._(
+            null,
+            enclosingElement,
+            searchKind,
+            offset,
+            index.usedElementLengths[i],
+            true,
+            index.usedElementIsQualifiedFlags[i]));
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return the identifier of [str] in the [index] or `-1` if [str] is not
+   * used in the [index].
+   */
+  int getStringId(String str) {
+    return binarySearch(index.strings, str);
+  }
+
+  /**
+   * Return the identifier of the [CompilationUnitElement] containing the
+   * [element] in the [index] or `-1` if not found.
+   */
+  int getUnitId(Element element) {
+    CompilationUnitElement unitElement = getUnitElement(element);
+    int libraryUriId = getUriId(unitElement.library.source.uri);
+    if (libraryUriId == -1) {
+      return -1;
+    }
+    int unitUriId = getUriId(unitElement.source.uri);
+    if (unitUriId == -1) {
+      return -1;
+    }
+    for (int i = 0; i < index.unitLibraryUris.length; i++) {
+      if (index.unitLibraryUris[i] == libraryUriId &&
+          index.unitUnitUris[i] == unitUriId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Return the identifier of the [uri] in the [index] or `-1` if the [uri] is
+   * not used in the [index].
+   */
+  int getUriId(Uri uri) {
+    String str = uri.toString();
+    return getStringId(str);
+  }
+
+  /**
+   * Return the index of the first occurrence of the [value] in the [sortedList],
+   * or `-1` if the [value] is not in the list.
+   */
+  int _findFirstOccurrence(List<int> sortedList, int value) {
+    // Find an occurrence.
+    int i = binarySearch(sortedList, value);
+    if (i == -1) {
+      return -1;
+    }
+    // Find the first occurrence.
+    while (i > 0 && sortedList[i - 1] == value) {
+      i--;
+    }
+    return i;
   }
 }
 
@@ -213,9 +509,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
 
   void _addResult(AstNode node, SearchResultKind kind) {
     bool isQualified = node.parent is Label;
-    var finder = new _ContainingElementFinder(node.offset);
-    enclosingUnitElement.accept(finder);
-    results.add(new SearchResult._(element, finder.containingElement, kind,
-        node.offset, node.length, true, isQualified));
+    Element enclosingElement =
+        _getEnclosingElement(enclosingUnitElement, node.offset);
+    results.add(new SearchResult._(element, enclosingElement, kind, node.offset,
+        node.length, true, isQualified));
   }
 }
