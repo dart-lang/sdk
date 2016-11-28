@@ -3817,6 +3817,7 @@ Fragment FlowGraphBuilder::TranslateStatement(Statement* statement) {
   intptr_t original_context_depth = context_depth_;
 #endif
   statement->AcceptStatementVisitor(this);
+  ASSERT(stack_ == NULL);
   DEBUG_ASSERT(context_depth_ == original_context_depth);
   return fragment_;
 }
@@ -4945,6 +4946,8 @@ void FlowGraphBuilder::VisitReturnStatement(ReturnStatement* node) {
     } else {
       instructions += Return();
     }
+  } else {
+    Pop();
   }
   fragment_ = instructions;
 }
