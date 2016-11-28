@@ -490,10 +490,6 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_native
           script_class, kernel_field->position()));
   klass.AddFunction(getter);
-  if (klass.IsTopLevel()) {
-    dart::Library& library = dart::Library::Handle(Z, klass.library());
-    library.AddObject(getter, getter_name);
-  }
   getter.set_kernel_function(kernel_field);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
   getter.set_is_debuggable(false);
