@@ -1,3 +1,7 @@
+## 0.29.1
+* Add new AstTestFactory class.  This will replace the existing AstFactory class in 0.30.
+* Add new AstFactory class.  This will replace explicit AST constructors in 0.30.
+
 ## 0.29.0-alpha.0
 * Removed `Element.docRange`.
 
