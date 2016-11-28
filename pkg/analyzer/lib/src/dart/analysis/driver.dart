@@ -1256,30 +1256,37 @@ class _FilesReferencingNameTask {
   _FilesReferencingNameTask(this.driver, this.name);
 
   /**
-   * Perform a single chunk of work, and either complete the [completer] and
-   * return `true` to indicate that the task is done, return `false` to
-   * indicate that the task should continue to be run.
+   * Perform work for a fixed length of time, and either complete the
+   * [completer] and return `true` to indicate that the task is done, return
+   * `false` to indicate that the task should continue to be run.
+   *
+   * Relinquishing execution flow and running event loop after every file
+   * works, but has too much overhead. Instead we use a fixed length of time,
+   * so we can spend less time overall and keep quick enough response time.
    */
   Future<bool> perform() async {
-    // Prepare files to check.
-    if (filesToCheck.isEmpty) {
-      Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
-      filesToCheck.addAll(newFiles);
-    }
+    Stopwatch timer = new Stopwatch()..start();
+    while (timer.elapsedMilliseconds < 5) {
+      // Prepare files to check.
+      if (filesToCheck.isEmpty) {
+        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        filesToCheck.addAll(newFiles);
+      }
 
-    // If no more files to check, complete and done.
-    if (filesToCheck.isEmpty) {
-      completer.complete(referencingFiles);
-      return true;
-    }
+      // If no more files to check, complete and done.
+      if (filesToCheck.isEmpty) {
+        completer.complete(referencingFiles);
+        return true;
+      }
 
-    // Check the next file.
-    String path = filesToCheck.removeLast();
-    FileState file = driver._fsState.getFileForPath(path);
-    if (file.referencedNames.contains(name)) {
-      referencingFiles.add(path);
+      // Check the next file.
+      String path = filesToCheck.removeLast();
+      FileState file = driver._fsState.getFileForPath(path);
+      if (file.referencedNames.contains(name)) {
+        referencingFiles.add(path);
+      }
+      checkedFiles.add(path);
     }
-    checkedFiles.add(path);
 
     // We're not done yet.
     return false;
