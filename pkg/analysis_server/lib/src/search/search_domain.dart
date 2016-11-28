@@ -75,10 +75,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }
     _sendSearchResult(request, result);
     // search elements
-    var computer = new ElementReferencesComputer(searchEngine);
-    List<protocol.SearchResult> results =
-        await computer.compute(element, params.includePotential);
-    _sendSearchNotification(searchId, true, results);
+    if (element != null) {
+      var computer = new ElementReferencesComputer(searchEngine);
+      List<protocol.SearchResult> results =
+          await computer.compute(element, params.includePotential);
+      _sendSearchNotification(searchId, true, results);
+    }
   }
 
   Future findMemberDeclarations(protocol.Request request) async {

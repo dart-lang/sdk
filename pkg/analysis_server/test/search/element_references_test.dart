@@ -29,7 +29,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     expect(result.isPotential, isPotential);
   }
 
-  Future findElementReferences(String search, bool includePotential) async {
+  Future<Null> findElementReferences(String search, bool includePotential) async {
     int offset = findOffset(search);
     await waitForTasksFinished();
     Request request = new SearchFindElementReferencesParams(
@@ -39,11 +39,10 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     var result = new SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
     searchElement = result.element;
-    if (searchId == null) {
-      return null;
-    } else {
-      return waitForSearchResults();
+    if (searchId != null) {
+      await waitForSearchResults();
     }
+    expect(serverErrors, isEmpty);
   }
 
   test_constructor_named() async {
