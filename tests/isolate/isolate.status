@@ -89,6 +89,7 @@ isolate_current_test: Fail  # please triage
 
 [ $csp ]
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
+browser/package_resolve_browser_hook_test: RuntimeError # CSP violation. Issue 27914
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
@@ -105,7 +106,7 @@ unresolved_ports_test: Pass, Timeout # Issue 15610
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
 [ ($compiler == none) && $runtime == dartium && $arch == x64 ]
-isolate/spawn_uri_multi_test/01: Skip # Times out. Issue 24795
+spawn_uri_multi_test/01: Skip # Times out. Issue 24795
 
 [ ($compiler == none) && ( $runtime == dartium || $runtime == drt) ]
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out. Issue 14463
@@ -228,9 +229,6 @@ unresolved_ports_test: Skip # Isolate.spawnUri
 
 [ $mode == product ]
 issue_24243_parent_isolate_test: Skip # Requires checked mode
-
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented
 
 [ $hot_reload || $hot_reload_rollback ]
 function_send_test: Pass, Fail # Closure identity
