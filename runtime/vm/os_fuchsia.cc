@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <magenta/syscalls.h>
 #include <magenta/types.h>
-#include <sys/time.h>
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -78,12 +77,7 @@ int64_t OS::GetCurrentTimeMillis() {
 
 
 int64_t OS::GetCurrentTimeMicros() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+  return mx_time_get(MX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
 }
 
 
