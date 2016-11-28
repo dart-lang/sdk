@@ -59,6 +59,16 @@ import 'package:plugin/plugin.dart';
  */
 typedef void HtmlGenerator(StringBuffer buffer);
 
+/**
+ * Instances of the class [AbstractGetHandler] handle GET requests.
+ */
+abstract class AbstractGetHandler {
+  /**
+   * Handle a GET request received by the HTTP server.
+   */
+  void handleGetRequest(HttpRequest request);
+}
+
 class ElementCounter extends RecursiveElementVisitor {
   Map<Type, int> counts = new HashMap<Type, int>();
   int elementsWithDocs = 0;
@@ -197,7 +207,7 @@ class ElementCounter extends RecursiveElementVisitor {
 /**
  * Instances of the class [GetHandler] handle GET requests.
  */
-class GetHandler {
+class GetHandler implements AbstractGetHandler {
   /**
    * The path used to request overall performance information.
    */
@@ -2506,6 +2516,9 @@ class GetHandler {
       }
       buffer.write('<p>');
       buffer.write('Status: Running<br>');
+      buffer.write('New analysis driver: ');
+      buffer.write(analysisServer.options.enableNewAnalysisDriver);
+      buffer.write('<br>');
       buffer.write('Instrumentation: ');
       if (AnalysisEngine.instance.instrumentationService.isActive) {
         buffer.write('<span style="color:red">Active</span>');

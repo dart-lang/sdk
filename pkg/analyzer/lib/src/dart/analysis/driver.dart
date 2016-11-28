@@ -111,12 +111,12 @@ class AnalysisDriver {
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
-  final SourceFactory _sourceFactory;
+  final SourceFactory sourceFactory;
 
   /**
    * The analysis options to analyze with.
    */
-  final AnalysisOptions _analysisOptions;
+  final AnalysisOptions analysisOptions;
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
@@ -213,8 +213,8 @@ class AnalysisDriver {
       this._byteStore,
       this._contentOverlay,
       SourceFactory sourceFactory,
-      this._analysisOptions)
-      : _sourceFactory = sourceFactory.clone() {
+      this.analysisOptions)
+      : sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(
@@ -222,8 +222,8 @@ class AnalysisDriver {
         _byteStore,
         _contentOverlay,
         _resourceProvider,
-        _sourceFactory,
-        _analysisOptions,
+        sourceFactory,
+        analysisOptions,
         _salt,
         _sdkBundle.apiSignature);
     _scheduler._add(this);
@@ -603,9 +603,9 @@ class AnalysisDriver {
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.analysisOptions = analysisOptions;
 
-    analysisContext.sourceFactory = _sourceFactory.clone();
+    analysisContext.sourceFactory = sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, libraryContext.store);
     analysisContext
@@ -677,7 +677,7 @@ class AnalysisDriver {
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, _analysisOptions.strongMode);
+        }, (_) => null, analysisOptions.strongMode);
         _logger.writeln('Linked ${linkedLibraries.length} bundles.');
       });
 
@@ -699,8 +699,7 @@ class AnalysisDriver {
    */
   void _fillSalt() {
     _salt[0] = DATA_VERSION;
-    List<int> crossContextOptions =
-        _analysisOptions.encodeCrossContextOptions();
+    List<int> crossContextOptions = analysisOptions.encodeCrossContextOptions();
     assert(crossContextOptions.length ==
         AnalysisOptions.crossContextOptionsLength);
     for (int i = 0; i < crossContextOptions.length; i++) {
@@ -728,7 +727,7 @@ class AnalysisDriver {
     return new AnalysisResult(
         libraryFile,
         file,
-        _sourceFactory,
+        sourceFactory,
         file.path,
         file.uri,
         content,
