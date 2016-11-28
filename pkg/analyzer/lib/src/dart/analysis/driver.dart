@@ -716,15 +716,15 @@ class AnalysisDriver {
       FileState libraryFile, FileState file, List<int> bytes,
       {String content, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    List<AnalysisError> errors = unit.errors
-        .map((error) => new AnalysisError.forValues(
-            file.source,
-            error.offset,
-            error.length,
-            errorCodeByUniqueName(error.uniqueName),
-            error.message,
-            error.correction))
-        .toList();
+    List<AnalysisError> errors = unit.errors.map((error) {
+      String errorName = error.uniqueName;
+      ErrorCode errorCode = errorCodeByUniqueName(errorName);
+      if (errorCode == null) {
+        throw new StateError('No ErrorCode for $errorName in $file');
+      }
+      return new AnalysisError.forValues(file.source, error.offset,
+          error.length, errorCode, error.message, error.correction);
+    }).toList();
     return new AnalysisResult(
         libraryFile,
         file,
