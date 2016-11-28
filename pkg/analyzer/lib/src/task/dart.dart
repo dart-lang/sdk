@@ -16,7 +16,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show NamespaceDirectiveImpl, UriBasedDirectiveImpl;
+    show NamespaceDirectiveImpl, UriBasedDirectiveImpl, UriValidationCode;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -6266,8 +6266,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * Check the given [directive] to see if the referenced source exists and
    * report an error if it does not.
    */
-  void validateReferencedSource(UriBasedDirective directive) {
-    if (directive is NamespaceDirective) {
+  void validateReferencedSource(UriBasedDirectiveImpl directive) {
+    if (directive is NamespaceDirectiveImpl) {
       for (Configuration configuration in directive.configurations) {
         Source source = configuration.uriSource;
         StringLiteral uriLiteral = configuration.uri;
