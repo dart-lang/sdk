@@ -157,8 +157,8 @@ class AnalysisDriver {
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
 
   /**
-   * The mapping from the files for which index was requested using
-   * [getIndex] to the [Completer] to report the result.
+   * The mapping from the files for which the index was requested using
+   * [getIndex] to the [Completer]s to report the result.
    */
   final _indexRequestedFiles = <String, List<Completer<IndexResult>>>{};
 
