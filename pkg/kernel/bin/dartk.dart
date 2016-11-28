@@ -10,7 +10,7 @@ import 'batch_util.dart';
 
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
-import 'package:kernel/checks.dart';
+import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
@@ -58,7 +58,7 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       negatable: false, help: 'Print performance metrics.')
   ..addOption('write-dependencies',
       help: 'Write all the .dart that were loaded to the given file.')
-  ..addFlag('sanity-check', help: 'Perform slow internal correctness checks.')
+  ..addFlag('verify-ir', help: 'Perform slow internal correctness checks.')
   ..addFlag('tolerant',
       help: 'Generate kernel even if there are compile-time errors.',
       defaultsTo: false)
@@ -328,14 +328,14 @@ Future<CompilerOutcome> batchMain(
     print('loader.time = $loadTime ms');
   }
 
-  void sanityCheck() {
-    if (options['sanity-check']) {
-      runSanityChecks(program);
+  void runVerifier() {
+    if (options['verify-ir']) {
+      verifyProgram(program);
     }
   }
 
   if (canContinueCompilation) {
-    sanityCheck();
+    runVerifier();
   }
 
   String outputDependencies = options['write-dependencies'];
@@ -346,7 +346,7 @@ Future<CompilerOutcome> batchMain(
   // Apply target-specific transformations.
   if (target != null && options['link'] && canContinueCompilation) {
     target.transformProgram(program);
-    sanityCheck();
+    runVerifier();
   }
 
   if (options['no-output']) {

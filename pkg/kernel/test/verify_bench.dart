@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:kernel/checks.dart';
+
 import 'package:kernel/kernel.dart';
+import 'package:kernel/verifier.dart';
 
 final String usage = '''
-Usage: check_bench FILE.dill
+Usage: verify_bench FILE.dill
 
-Measures the time it takes to run sanity checks on the given program.
+Measures the time it takes to run kernel verifier on the given program.
 ''';
 
 main(List<String> args) {
@@ -19,16 +20,16 @@ main(List<String> args) {
   }
   var program = loadProgramFromBinary(args[0]);
   var watch = new Stopwatch()..start();
-  runSanityChecks(program);
+  verifyProgram(program);
   print('Cold: ${watch.elapsedMilliseconds} ms');
   const int warmUpTrials = 20;
   for (int i = 0; i < warmUpTrials; ++i) {
-    runSanityChecks(program);
+    verifyProgram(program);
   }
   watch.reset();
   const int numberOfTrials = 100;
   for (int i = 0; i < numberOfTrials; ++i) {
-    runSanityChecks(program);
+    verifyProgram(program);
   }
   double millisecondsPerRun = watch.elapsedMilliseconds / numberOfTrials;
   print('Hot:  $millisecondsPerRun ms');

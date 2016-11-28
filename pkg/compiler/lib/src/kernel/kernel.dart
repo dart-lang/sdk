@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/checks.dart' show CheckParentPointers;
+import 'package:kernel/verifier.dart' show CheckParentPointers;
 
 import '../common.dart';
 import '../common/names.dart';

@@ -3012,6 +3012,7 @@ class VariableDeclaration extends Statement {
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
+  static const int FlagInScope = 1 << 2; // Temporary flag used by verifier.
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;

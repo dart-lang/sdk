@@ -92,6 +92,12 @@ String debugNodeToString(Node node) {
   return '$buffer';
 }
 
+String programToString(Program node) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: new NameSystem()).writeProgramFile(node);
+  return '$buffer';
+}
+
 class NameSystem {
   final Namer<VariableDeclaration> variables =
       new Namer<VariableDeclaration>('#t');

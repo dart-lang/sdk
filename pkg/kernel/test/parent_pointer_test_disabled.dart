@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'package:kernel/kernel.dart';
-import 'package:kernel/checks.dart';
+import 'package:kernel/verifier.dart';
 
 main() {
   Program program = loadProgramFromBinary('test/data/dart2js.dill');

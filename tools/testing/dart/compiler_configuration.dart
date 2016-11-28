@@ -58,6 +58,7 @@ abstract class CompilerConfiguration {
     bool hotReload = configuration['hot_reload'];
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
+    bool verifyKernel = configuration['verify-ir'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -92,14 +93,16 @@ abstract class CompilerConfiguration {
       case 'dartk':
         return ComposedCompilerConfiguration.createDartKConfiguration(
             isHostChecked: isHostChecked,
-            useSdk: useSdk);
+            useSdk: useSdk,
+            verify: verifyKernel);
       case 'dartkp':
         return ComposedCompilerConfiguration.createDartKPConfiguration(
             isHostChecked: isHostChecked,
             arch: configuration['arch'],
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android',
-            useSdk: useSdk);
+            useSdk: useSdk,
+            verify: verifyKernel);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -212,7 +215,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 /// The "dartk" compiler.
 class DartKCompilerConfiguration extends CompilerConfiguration {
-  DartKCompilerConfiguration({bool isHostChecked, bool useSdk})
+  final bool verify;
+
+  DartKCompilerConfiguration({bool isHostChecked, bool useSdk, this.verify})
       : super._subclass(isHostChecked: isHostChecked, useSdk: useSdk);
 
   @override
@@ -226,14 +231,15 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var extraArguments = [
+    Iterable<String> extraArguments = [
       '--sdk',
       '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
+      verify ? '--verify-ir' : null,
       '--out',
       outputFileName
-    ];
+    ].where((x) => x != null);
     return commandBuilder.getKernelCompilationCommand(
         'dartk',
         outputFileName,
@@ -361,13 +367,13 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKPConfiguration(
       {bool isHostChecked, String arch, bool useBlobs, bool isAndroid,
-       bool useSdk}) {
+       bool useSdk, bool verify}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isHostChecked: isHostChecked,
-            useSdk: useSdk)));
+            useSdk: useSdk, verify: verify)));
 
     // Run the normal precompiler.
     nested.add(new PipelineCommand.runWithPreviousKernelOutput(
@@ -378,13 +384,13 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   static ComposedCompilerConfiguration createDartKConfiguration(
-      {bool isHostChecked, bool useSdk}) {
+      {bool isHostChecked, bool useSdk, bool verify}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isHostChecked: isHostChecked,
-            useSdk: useSdk)));
+            useSdk: useSdk, verify: verify)));
 
     return new ComposedCompilerConfiguration(nested, isPrecompiler: false);
   }

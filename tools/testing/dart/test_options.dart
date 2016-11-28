@@ -287,6 +287,9 @@ class TestOptionsParser {
           'verbose', 'Verbose output', ['-v', '--verbose'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
+          'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(

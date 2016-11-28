@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:kernel/checks.dart';
+import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/infer_values.dart' as infer_values;
@@ -79,7 +79,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       throw 'Unknown transformation';
   }
 
-  runSanityChecks(program);
+  verifyProgram(program);
 
   if (format == 'text') {
     writeProgramToText(program, path: output);

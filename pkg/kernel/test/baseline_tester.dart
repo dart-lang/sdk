@@ -7,9 +7,9 @@ import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as pathlib;
 import 'package:test/test.dart';
-import 'package:kernel/checks.dart';
 
 final String testcaseDirectory = 'pkg/kernel/testcases';
 final String inputDirectory = 'pkg/kernel/testcases/input';
@@ -47,9 +47,9 @@ void runBaselineTests(String folderName, TestTarget target) {
                 sdk: sdkDirectory,
                 declaredVariables: target.extraDeclaredVariables));
         var program = loader.loadProgram(dartPath, target: target);
-        runSanityChecks(program);
+        verifyProgram(program);
         var errors = target.transformProgram(program);
-        runSanityChecks(program);
+        verifyProgram(program);
 
         var buffer = new StringBuffer();
         for (var error in errors) {
