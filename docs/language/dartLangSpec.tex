@@ -6593,19 +6593,24 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' expression `)' `{\escapegrammar ;}'
+   assert `(' expression ( `,` expression )? `)' `{\escapegrammar ;}'
       .
 \end{grammar}
 
 \LMHash{}
-The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($e$);} proceeds as follows:
+An assert statement on the form \code{\ASSERT($e$);)} is equivalent to a statment on the form \code{\ASSERT($e$, null);}.
 
 \LMHash{}
-The expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
-It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.  If $r$ is \FALSE{}, we say that the assertion failed. If $r$ is \TRUE{}, we say that the assertion succeeded. If the assertion succeeded, execution of the assert statement is complete. If the assertion failed, the execution throws (\ref{completion}) an \code{AssertionError} with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
+The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($c$, $e$);} proceeds as follows:
 
-%\Q{Might be cleaner to define it as \code{if (!$e$) \{\THROW{} \NEW{} AssertionError();\}} (in checked mode only).
-%What about an error message as part of the assert?}
+\LMHash{}
+The expression $c$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
+It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.
+If $r$ is \FALSE{}, we say that the assertion failed.
+If $r$ is \TRUE{}, we say that the assertion succeeded.
+If the assertion succeeded, execution of the assert statement completes normally (\ref{completion}).
+If the assertion failed, $e$ is evaluated to an object $m$.
+Then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
 
 \LMHash{}
  It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.
