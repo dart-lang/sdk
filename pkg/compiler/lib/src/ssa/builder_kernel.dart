@@ -1533,6 +1533,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   // TODO(het): Decide when to inline
   @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
+    // Handle `x == null` specially. When these come from null-aware operators,
+    // there is no mapping in the astAdapter.
+    if (_handleEqualsNull(invocation)) return;
     invocation.receiver.accept(this);
     HInstruction receiver = pop();
 
@@ -1541,6 +1544,27 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         astAdapter.typeOfInvocation(invocation),
         <HInstruction>[receiver]
           ..addAll(_visitArguments(invocation.arguments)));
+  }
+
+  bool _handleEqualsNull(ir.MethodInvocation invocation) {
+    if (invocation.name.name == '==') {
+      ir.Arguments arguments = invocation.arguments;
+      if (arguments.types.isEmpty &&
+          arguments.positional.length == 1 &&
+          arguments.named.isEmpty) {
+        bool finish(ir.Expression comparand) {
+          comparand.accept(this);
+          pushCheckNull(pop());
+          return true;
+        }
+
+        ir.Expression receiver = invocation.receiver;
+        ir.Expression argument = arguments.positional.first;
+        if (argument is ir.NullLiteral) return finish(receiver);
+        if (receiver is ir.NullLiteral) return finish(argument);
+      }
+    }
+    return false;
   }
 
   HInterceptor _interceptorFor(HInstruction intercepted) {
