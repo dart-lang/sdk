@@ -1569,6 +1569,7 @@ int printErrorCallback(const char* str, size_t len, void* ctx) {
   return 1;
 }
 
+
 void SSLFilter::Handshake() {
   // Try and push handshake along.
   int status;
@@ -1609,6 +1610,7 @@ void SSLFilter::Handshake() {
     in_handshake_ = false;
   }
 }
+
 
 void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
   const uint8_t* protocol;
