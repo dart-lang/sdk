@@ -592,9 +592,14 @@ class AnalysisDriver {
     AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
 
     // Resynthesize the CompilationUnitElement in the context.
-    CompilationUnitElement unitElement = analysisContext.computeResult(
-        new LibrarySpecificUnit(libraryFile.source, file.source),
-        COMPILATION_UNIT_ELEMENT);
+    CompilationUnitElement unitElement;
+    try {
+      unitElement = analysisContext.computeResult(
+          new LibrarySpecificUnit(libraryFile.source, file.source),
+          COMPILATION_UNIT_ELEMENT);
+    } finally {
+      analysisContext.dispose();
+    }
 
     // Return as IndexResult.
     return new IndexResult(unitElement, analysisResult._index);
