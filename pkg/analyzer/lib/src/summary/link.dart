@@ -3551,9 +3551,15 @@ class LibraryElementInBuildUnit
       }
     }
     int result = _linkedLibrary.dependencies.length;
+    Uri libraryUri = library._absoluteUri;
+    List<String> partsRelativeToDependency =
+        library.definingUnlinkedUnit.publicNamespace.parts;
+    List<String> partsRelativeToLibraryBeingLinked = partsRelativeToDependency
+        .map((partUri) =>
+            resolveRelativeUri(libraryUri, Uri.parse(partUri)).toString())
+        .toList();
     _linkedLibrary.dependencies.add(new LinkedDependencyBuilder(
-        parts: library.definingUnlinkedUnit.publicNamespace.parts,
-        uri: library._absoluteUri.toString()));
+        parts: partsRelativeToLibraryBeingLinked, uri: libraryUri.toString()));
     _dependencies.add(library);
     return result;
   }

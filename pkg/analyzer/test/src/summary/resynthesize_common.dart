@@ -3617,6 +3617,32 @@ var v = f(g: (x, y) {});
         ' abstract class D { void set f(int g(String s)); }');
   }
 
+  void test_inferredType_definedInSdkLibraryPart() {
+    addSource(
+        '/a.dart',
+        r'''
+import 'dart:async';
+class A {
+  m(Stream p) {}
+}
+''');
+    LibraryElement library = checkLibrary(r'''
+import 'a.dart';
+class B extends A {
+  m(p) {}
+}
+  ''');
+    ClassElement b = library.definingCompilationUnit.types[0];
+    ParameterElement p = b.methods[0].parameters[0];
+    // This test should verify that we correctly record inferred types,
+    // when the type is defined in a part of an SDK library. So, test that
+    // the type is actually in a part.
+    Element streamElement = p.type.element;
+    if (streamElement is ClassElement) {
+      expect(streamElement.source, isNot(streamElement.library.source));
+    }
+  }
+
   void test_inferredType_usesSyntheticFunctionType_functionTypedParam() {
     checkLibrary('''
 int f(int x(String y)) => null;
