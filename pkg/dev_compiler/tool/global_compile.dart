@@ -14,6 +14,7 @@ import 'package:analyzer/analyzer.dart'
         StringLiteral,
         UriBasedDirective,
         parseDirectives;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:args/args.dart' show ArgParser;
 import 'package:path/path.dart' as path;
 
@@ -257,7 +258,9 @@ String _resolveDirective(UriBasedDirective directive) {
     uriContent = uriContent.trim();
     directive.uriContent = uriContent;
   }
-  return directive.validate() == null ? uriContent : null;
+  return (directive as UriBasedDirectiveImpl).validate() == null
+      ? uriContent
+      : null;
 }
 
 String _loadFile(String uri, String packageRoot) {
