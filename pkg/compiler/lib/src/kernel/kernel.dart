@@ -409,7 +409,7 @@ class Kernel {
     }
     function = function.declaration;
     return functions.putIfAbsent(function, () {
-      compiler.analyzeElement(function);
+      compiler.resolution.ensureResolved(function);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       function = function.implementation;
       ir.Member member;
@@ -507,7 +507,7 @@ class Kernel {
     }
     field = field.declaration;
     return fields.putIfAbsent(field, () {
-      compiler.analyzeElement(field);
+      compiler.resolution.ensureResolved(field);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       field = field.implementation;
       ir.DartType type =

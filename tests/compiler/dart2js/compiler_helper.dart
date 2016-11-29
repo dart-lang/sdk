@@ -77,11 +77,12 @@ Future<String> compile(String code,
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.openWorld.closeWorld(compiler.reporter);
     compiler.backend.onResolutionComplete();
-    ResolutionWorkItem resolutionWork = new ResolutionWorkItem(element);
-    resolutionWork.run(compiler, compiler.enqueuer.resolution);
-    CodegenWorkItem work = new CodegenWorkItem(compiler, element);
+    ResolutionWorkItem resolutionWork =
+        new ResolutionWorkItem(compiler.resolution, element);
+    resolutionWork.run();
+    CodegenWorkItem work = new CodegenWorkItem(compiler.backend, element);
     compiler.phase = Compiler.PHASE_COMPILING;
-    work.run(compiler, compiler.enqueuer.codegen);
+    work.run();
     js.JavaScriptBackend backend = compiler.backend;
     String generated = backend.getGeneratedCode(element);
     if (check != null) {

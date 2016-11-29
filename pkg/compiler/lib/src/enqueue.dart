@@ -545,7 +545,11 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     do {
       while (queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
-        strategy.processWorkItem(f, queue.removeLast());
+        WorkItem work = queue.removeLast();
+        if (!isProcessed(work.element)) {
+          strategy.processWorkItem(f, work);
+          registerProcessedElement(work.element);
+        }
       }
       List recents = recentClasses.toList(growable: false);
       recentClasses.clear();

@@ -93,7 +93,7 @@ abstract class Compiler implements LibraryLoaderListener {
   Types types;
   _CompilerCoreTypes _coreTypes;
   CompilerDiagnosticReporter _reporter;
-  _CompilerResolution _resolution;
+  CompilerResolution _resolution;
   ParsingContext _parsingContext;
 
   final CacheStrategy cacheStrategy;
@@ -215,7 +215,7 @@ abstract class Compiler implements LibraryLoaderListener {
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    _resolution = new _CompilerResolution(this);
+    _resolution = createResolution();
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
     _coreTypes = new _CompilerCoreTypes(_resolution, reporter);
@@ -233,13 +233,7 @@ abstract class Compiler implements LibraryLoaderListener {
     if (makeBackend != null) {
       backend = makeBackend(this);
     } else {
-      js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
-          this,
-          generateSourceMap: options.generateSourceMap,
-          useStartupEmitter: options.useStartupEmitter,
-          useNewSourceInfo: options.useNewSourceInfo,
-          useKernel: options.useKernel);
-      backend = jsBackend;
+      backend = createBackend();
     }
     enqueuer = backend.makeEnqueuer();
 
@@ -302,12 +296,28 @@ abstract class Compiler implements LibraryLoaderListener {
     return _world;
   }
 
+  /// Creates the backend.
+  ///
+  /// Override this to mock the backend for testing.
+  Backend createBackend() {
+    return new js_backend.JavaScriptBackend(this,
+        generateSourceMap: options.generateSourceMap,
+        useStartupEmitter: options.useStartupEmitter,
+        useNewSourceInfo: options.useNewSourceInfo,
+        useKernel: options.useKernel);
+  }
+
   /// Creates the scanner task.
   ///
   /// Override this to mock the scanner for testing.
   ScannerTask createScannerTask() =>
       new ScannerTask(dietParser, reporter, measurer,
           preserveComments: options.preserveComments, commentMap: commentMap);
+
+  /// Creates the resolution object.
+  ///
+  /// Override this to mock resolution for testing.
+  Resolution createResolution() => new CompilerResolution(this);
 
   /// Creates the resolver task.
   ///
@@ -625,7 +635,7 @@ abstract class Compiler implements LibraryLoaderListener {
         .then((LibraryElement library) {
       if (library == null) return null;
       enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
-      emptyQueue(enqueuer.resolution);
+      emptyQueue(enqueuer.resolution, onProgress: showResolutionProgress);
       enqueuer.resolution.logSummary(reporter.log);
       return library;
     });
@@ -686,7 +696,8 @@ abstract class Compiler implements LibraryLoaderListener {
           mainFunction.computeType(resolution);
         }
 
-        processQueue(enqueuer.resolution, mainFunction);
+        processQueue(enqueuer.resolution, mainFunction,
+            onProgress: showResolutionProgress);
         enqueuer.resolution.logSummary(reporter.log);
 
         _reporter.reportSuppressedMessagesSummary();
@@ -743,7 +754,8 @@ abstract class Compiler implements LibraryLoaderListener {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(enqueuer.codegen, mainFunction);
+        processQueue(enqueuer.codegen, mainFunction,
+            onProgress: showCodegenProgress);
         enqueuer.codegen.logSummary(reporter.log);
 
         int programSize = backend.assembleProgram();
@@ -841,22 +853,25 @@ abstract class Compiler implements LibraryLoaderListener {
   /**
    * Empty the [enqueuer] queue.
    */
-  void emptyQueue(Enqueuer enqueuer) {
+  void emptyQueue(Enqueuer enqueuer, {void onProgress()}) {
     selfTask.measureSubtask("Compiler.emptyQueue", () {
       enqueuer.forEach((WorkItem work) {
+        if (onProgress != null) {
+          onProgress();
+        }
         reporter.withCurrentElement(
             work.element,
             () => selfTask.measureSubtask("world.applyImpact", () {
                   enqueuer.applyImpact(
-                      selfTask.measureSubtask(
-                          "work.run", () => work.run(this, enqueuer)),
+                      selfTask.measureSubtask("work.run", () => work.run()),
                       impactSource: work.element);
                 }));
       });
     });
   }
 
-  void processQueue(Enqueuer enqueuer, MethodElement mainMethod) {
+  void processQueue(Enqueuer enqueuer, MethodElement mainMethod,
+      {void onProgress()}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       enqueuer.open(impactStrategy);
       enqueuer.applyImpact(enqueuer.nativeEnqueuer
@@ -868,7 +883,7 @@ abstract class Compiler implements LibraryLoaderListener {
       if (options.verbose) {
         progress.reset();
       }
-      emptyQueue(enqueuer);
+      emptyQueue(enqueuer, onProgress: onProgress);
       enqueuer.queueIsClosed = true;
       enqueuer.close();
       // Notify the impact strategy impacts are no longer needed for this
@@ -919,49 +934,18 @@ abstract class Compiler implements LibraryLoaderListener {
     }
   }
 
-  WorldImpact analyzeElement(Element element) =>
-      selfTask.measureSubtask("Compiler.analyzeElement", () {
-        assert(invariant(
-            element,
-            element.impliesType ||
-                element.isField ||
-                element.isFunction ||
-                element.isConstructor ||
-                element.isGetter ||
-                element.isSetter,
-            message: 'Unexpected element kind: ${element.kind}'));
-        assert(invariant(element, element is AnalyzableElement,
-            message: 'Element $element is not analyzable.'));
-        assert(invariant(element, element.isDeclaration));
-        return resolution.computeWorldImpact(element);
-      });
+  void showResolutionProgress() {
+    if (shouldPrintProgress) {
+      // TODO(ahe): Add structured diagnostics to the compiler API and
+      // use it to separate this from the --verbose option.
+      assert(phase == PHASE_RESOLVING);
+      reporter.log('Resolved ${enqueuer.resolution.processedElements.length} '
+          'elements.');
+      progress.reset();
+    }
+  }
 
-  WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) =>
-      selfTask.measureSubtask("Compiler.analyze", () {
-        assert(invariant(work.element, identical(world, enqueuer.resolution)));
-        assert(invariant(work.element, !work.isAnalyzed,
-            message: 'Element ${work.element} has already been analyzed'));
-        if (shouldPrintProgress) {
-          // TODO(ahe): Add structured diagnostics to the compiler API and
-          // use it to separate this from the --verbose option.
-          if (phase == PHASE_RESOLVING) {
-            reporter
-                .log('Resolved ${enqueuer.resolution.processedElements.length} '
-                    'elements.');
-            progress.reset();
-          }
-        }
-        AstElement element = work.element;
-        if (world.hasBeenProcessed(element)) {
-          return const WorldImpact();
-        }
-        WorldImpact worldImpact = analyzeElement(element);
-        world.registerProcessedElement(element);
-        return worldImpact;
-      });
-
-  WorldImpact codegen(CodegenWorkItem work, Enqueuer world) {
-    assert(invariant(work.element, identical(world, enqueuer.codegen)));
+  void showCodegenProgress() {
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
@@ -969,7 +953,6 @@ abstract class Compiler implements LibraryLoaderListener {
           'Compiled ${enqueuer.codegen.processedEntities.length} methods.');
       progress.reset();
     }
-    return backend.codegen(work);
   }
 
   void reportDiagnostic(DiagnosticMessage message,
@@ -1945,94 +1928,94 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 }
 
 // TODO(johnniwinther): Move [ResolverTask] here.
-class _CompilerResolution implements Resolution {
-  final Compiler compiler;
+class CompilerResolution implements Resolution {
+  final Compiler _compiler;
   final Map<Element, ResolutionImpact> _resolutionImpactCache =
       <Element, ResolutionImpact>{};
   final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
   bool retainCachesForTesting = false;
 
-  _CompilerResolution(this.compiler);
+  CompilerResolution(this._compiler);
 
   @override
-  DiagnosticReporter get reporter => compiler.reporter;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   @override
-  ParsingContext get parsingContext => compiler.parsingContext;
+  ParsingContext get parsingContext => _compiler.parsingContext;
 
   @override
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CoreClasses get coreClasses => _compiler.coreClasses;
 
   @override
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CoreTypes get coreTypes => _compiler.coreTypes;
 
   @override
-  CommonElements get commonElements => compiler.commonElements;
+  CommonElements get commonElements => _compiler.commonElements;
 
   @override
-  Types get types => compiler.types;
+  Types get types => _compiler.types;
 
   @override
-  Target get target => compiler.backend;
+  Target get target => _compiler.backend;
 
   @override
-  ResolverTask get resolver => compiler.resolver;
+  ResolverTask get resolver => _compiler.resolver;
 
   @override
-  ResolutionEnqueuer get enqueuer => compiler.enqueuer.resolution;
+  ResolutionEnqueuer get enqueuer => _compiler.enqueuer.resolution;
 
   @override
-  CompilerOptions get options => compiler.options;
+  CompilerOptions get options => _compiler.options;
 
   @override
-  IdGenerator get idGenerator => compiler.idGenerator;
+  IdGenerator get idGenerator => _compiler.idGenerator;
 
   @override
-  ConstantEnvironment get constants => compiler.constants;
+  ConstantEnvironment get constants => _compiler.constants;
 
   @override
   MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
-      compiler.mirrorUsageAnalyzerTask;
+      _compiler.mirrorUsageAnalyzerTask;
 
   @override
-  LibraryElement get coreLibrary => compiler._coreTypes.coreLibrary;
+  LibraryElement get coreLibrary => _compiler._coreTypes.coreLibrary;
 
   @override
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
 
   @override
   void registerClass(ClassElement cls) {
-    compiler.openWorld.registerClass(cls);
+    _compiler.openWorld.registerClass(cls);
   }
 
   @override
   void resolveClass(ClassElement cls) {
-    compiler.resolver.resolveClass(cls);
+    _compiler.resolver.resolveClass(cls);
   }
 
   @override
   void resolveTypedef(TypedefElement typdef) {
-    compiler.resolver.resolve(typdef);
+    _compiler.resolver.resolve(typdef);
   }
 
   @override
   void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation) {
-    compiler.resolver.resolveMetadataAnnotation(metadataAnnotation);
+    _compiler.resolver.resolveMetadataAnnotation(metadataAnnotation);
   }
 
   @override
   FunctionSignature resolveSignature(FunctionElement function) {
-    return compiler.resolver.resolveSignature(function);
+    return _compiler.resolver.resolveSignature(function);
   }
 
   @override
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node) {
-    return compiler.resolver.resolveTypeAnnotation(element, node);
+    return _compiler.resolver.resolveTypeAnnotation(element, node);
   }
 
   @override
   void ensureResolved(Element element) {
-    if (compiler.serialization.isDeserialized(element)) {
+    if (_compiler.serialization.isDeserialized(element)) {
       return;
     }
     computeWorldImpact(element);
@@ -2040,21 +2023,21 @@ class _CompilerResolution implements Resolution {
 
   @override
   void ensureClassMembers(ClassElement element) {
-    if (!compiler.serialization.isDeserialized(element)) {
-      compiler.resolver.checkClass(element);
+    if (!_compiler.serialization.isDeserialized(element)) {
+      _compiler.resolver.checkClass(element);
     }
   }
 
   @override
   void registerCompileTimeError(Element element, DiagnosticMessage message) =>
-      compiler.registerCompileTimeError(element, message);
+      _compiler.registerCompileTimeError(element, message);
 
   @override
   bool hasResolvedAst(ExecutableElement element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
-    if (compiler.serialization.isDeserialized(element)) {
-      return compiler.serialization.hasResolvedAst(element);
+    if (_compiler.serialization.isDeserialized(element)) {
+      return _compiler.serialization.hasResolvedAst(element);
     }
     return hasBeenResolved(element.memberContext.declaration) &&
         element.hasResolvedAst;
@@ -2066,8 +2049,8 @@ class _CompilerResolution implements Resolution {
         message: "Element $element must be the declaration."));
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));
-    if (compiler.serialization.isDeserialized(element)) {
-      return compiler.serialization.getResolvedAst(element);
+    if (_compiler.serialization.isDeserialized(element)) {
+      return _compiler.serialization.getResolvedAst(element);
     }
     return element.resolvedAst;
   }
@@ -2082,8 +2065,8 @@ class _CompilerResolution implements Resolution {
   bool hasResolutionImpact(Element element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
-    if (compiler.serialization.isDeserialized(element)) {
-      return compiler.serialization.hasResolutionImpact(element);
+    if (_compiler.serialization.isDeserialized(element)) {
+      return _compiler.serialization.hasResolutionImpact(element);
     }
     return _resolutionImpactCache.containsKey(element);
   }
@@ -2093,8 +2076,8 @@ class _CompilerResolution implements Resolution {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
     ResolutionImpact resolutionImpact;
-    if (compiler.serialization.isDeserialized(element)) {
-      resolutionImpact = compiler.serialization.getResolutionImpact(element);
+    if (_compiler.serialization.isDeserialized(element)) {
+      resolutionImpact = _compiler.serialization.getResolutionImpact(element);
     } else {
       resolutionImpact = _resolutionImpactCache[element];
     }
@@ -2115,39 +2098,53 @@ class _CompilerResolution implements Resolution {
 
   @override
   WorldImpact computeWorldImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
-    return _worldImpactCache.putIfAbsent(element, () {
-      assert(compiler.parser != null);
-      Node tree = compiler.parser.parse(element);
-      assert(invariant(element, !element.isSynthesized || tree == null));
-      ResolutionImpact resolutionImpact = compiler.resolver.resolve(element);
+    return _compiler.selfTask.measureSubtask("Resolution.computeWorldImpact",
+        () {
+      assert(invariant(
+          element,
+          element.impliesType ||
+              element.isField ||
+              element.isFunction ||
+              element.isConstructor ||
+              element.isGetter ||
+              element.isSetter,
+          message: 'Unexpected element kind: ${element.kind}'));
+      assert(invariant(element, element is AnalyzableElement,
+          message: 'Element $element is not analyzable.'));
+      assert(invariant(element, element.isDeclaration,
+          message: "Element $element must be the declaration."));
+      return _worldImpactCache.putIfAbsent(element, () {
+        assert(_compiler.parser != null);
+        Node tree = _compiler.parser.parse(element);
+        assert(invariant(element, !element.isSynthesized || tree == null));
+        ResolutionImpact resolutionImpact = _compiler.resolver.resolve(element);
 
-      if (compiler.serialization.supportSerialization ||
-          retainCachesForTesting) {
-        // [ResolutionImpact] is currently only used by serialization. The
-        // enqueuer uses the [WorldImpact] which is always cached.
-        // TODO(johnniwinther): Align these use cases better; maybe only
-        // cache [ResolutionImpact] and let the enqueuer transform it into
-        // a [WorldImpact].
-        _resolutionImpactCache[element] = resolutionImpact;
-      }
-      if (tree != null && !compiler.options.analyzeSignaturesOnly) {
-        // TODO(het): don't do this if suppressWarnings is on, currently we have
-        // to do it because the typechecker also sets types
-        // Only analyze nodes with a corresponding [TreeElements].
-        compiler.checker.check(element);
-      }
-      return transformResolutionImpact(element, resolutionImpact);
+        if (_compiler.serialization.supportSerialization ||
+            retainCachesForTesting) {
+          // [ResolutionImpact] is currently only used by serialization. The
+          // enqueuer uses the [WorldImpact] which is always cached.
+          // TODO(johnniwinther): Align these use cases better; maybe only
+          // cache [ResolutionImpact] and let the enqueuer transform it into
+          // a [WorldImpact].
+          _resolutionImpactCache[element] = resolutionImpact;
+        }
+        if (tree != null && !_compiler.options.analyzeSignaturesOnly) {
+          // TODO(het): don't do this if suppressWarnings is on, currently we
+          // have to do it because the typechecker also sets types
+          // Only analyze nodes with a corresponding [TreeElements].
+          _compiler.checker.check(element);
+        }
+        return transformResolutionImpact(element, resolutionImpact);
+      });
     });
   }
 
   @override
   WorldImpact transformResolutionImpact(
       Element element, ResolutionImpact resolutionImpact) {
-    WorldImpact worldImpact = compiler.backend.impactTransformer
+    WorldImpact worldImpact = _compiler.backend.impactTransformer
         .transformResolutionImpact(
-            compiler.enqueuer.resolution, resolutionImpact);
+            _compiler.enqueuer.resolution, resolutionImpact);
     _worldImpactCache[element] = worldImpact;
     return worldImpact;
   }
@@ -2157,7 +2154,7 @@ class _CompilerResolution implements Resolution {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
-    if (compiler.serialization.isDeserialized(element)) return;
+    if (_compiler.serialization.isDeserialized(element)) return;
     assert(invariant(element, _worldImpactCache[element] != null,
         message: "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
@@ -2180,10 +2177,10 @@ class _CompilerResolution implements Resolution {
 
   @override
   ResolutionWorkItem createWorkItem(Element element) {
-    if (compiler.serialization.isDeserialized(element)) {
-      return compiler.serialization.createResolutionWorkItem(element);
+    if (_compiler.serialization.isDeserialized(element)) {
+      return _compiler.serialization.createResolutionWorkItem(element);
     } else {
-      return new ResolutionWorkItem(element);
+      return new ResolutionWorkItem(this, element);
     }
   }
 

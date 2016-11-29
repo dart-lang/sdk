@@ -114,7 +114,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
       throw new SpannableAssertionFailure(
           element, "Codegen work list is closed. Trying to add $element");
     }
-    queue.add(new CodegenWorkItem(_compiler, element));
+    queue.add(new CodegenWorkItem(backend, element));
     // TODO(sigmund): add other missing dependencies (internals, selectors
     // enqueued after allocations).
     _compiler.dumpInfoTask
@@ -447,7 +447,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
     do {
       while (queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
-        strategy.processWorkItem(f, queue.removeLast());
+        WorkItem work = queue.removeLast();
+        if (!isProcessed(work.element)) {
+          strategy.processWorkItem(f, work);
+          // TODO(johnniwinther): Register the processed element here. This
+          // is currently a side-effect of calling `work.run`.
+        }
       }
       List recents = recentClasses.toList(growable: false);
       recentClasses.clear();
