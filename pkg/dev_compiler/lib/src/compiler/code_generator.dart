@@ -324,11 +324,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       elementJSName = getAnnotationName(e, isPublicJSAnnotation) ?? '';
     }
 
-    if (e is TopLevelVariableElement &&
-        e.getter != null &&
-        (e.getter.isExternal ||
-            findAnnotation(e.getter, isPublicJSAnnotation) != null)) {
-      elementJSName = getAnnotationName(e.getter, isPublicJSAnnotation) ?? '';
+    if (e is TopLevelVariableElement) {
+      elementJSName = _jsInteropStaticMemberName(e);
     }
     if (elementJSName == null) return null;
 
@@ -351,6 +348,38 @@ class CodeGenerator extends GeneralizingAstVisitor
       access = new JS.PropertyAccess(access, js.string(part));
     }
     return access;
+  }
+
+  String _jsInteropStaticMemberName(Element e, {String name}) {
+    if (e == null ||
+        e.library == null ||
+        findAnnotation(e.library, isPublicJSAnnotation) == null) {
+      return null;
+    }
+    if (e is PropertyInducingElement) {
+      // Assume properties have consistent JS names for getters and setters.
+      return _jsInteropStaticMemberName(e.getter, name: e.name) ??
+          _jsInteropStaticMemberName(e.setter, name: e.name);
+    }
+    if (e is ExecutableElement &&
+        e.isExternal &&
+        findAnnotation(e, isPublicJSAnnotation) != null) {
+      return getAnnotationName(e, isPublicJSAnnotation) ?? name ?? e.name;
+    }
+    return null;
+  }
+
+  JS.Expression _emitJSInteropStaticMemberName(Element e) {
+    var name = _jsInteropStaticMemberName(e);
+    if (name == null) return null;
+    // We do not support statics names with JS annotations containing dots.
+    // See https://github.com/dart-lang/sdk/issues/27926
+    if (name.contains('.')) {
+      throw new UnimplementedError(
+          'We do not support JS annotations containing dots on static members. '
+          'See https://github.com/dart-lang/sdk/issues/27926');
+    }
+    return js.string(name);
   }
 
   /// Flattens blocks in [items] to a single list.
@@ -2705,7 +2734,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (element is ClassMemberElement && element is! ConstructorElement) {
       bool isStatic = element.isStatic;
       var type = element.enclosingElement.type;
-      var member = _emitMemberName(name, isStatic: isStatic, type: type);
+      var member = _emitMemberName(name,
+          isStatic: isStatic, type: type, element: element);
 
       if (isStatic) {
         var dynType = _emitStaticAccess(type);
@@ -3271,7 +3301,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     ClassElement classElement = element.enclosingElement;
     var type = classElement.type;
     var dynType = _emitStaticAccess(type);
-    var member = _emitMemberName(element.name, isStatic: true, type: type);
+    var member = _emitMemberName(element.name,
+        isStatic: true, type: type, element: element);
     return _visit(rhs).toAssignExpression(
         annotate(new JS.PropertyAccess(dynType, member), lhs));
   }
@@ -3282,7 +3313,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       JS.Expression jsTarget, Element element, JS.Expression value) {
     String memberName = element.name;
     var type = (element.enclosingElement as ClassElement).type;
-    var name = _emitMemberName(memberName, type: type);
+    var name = _emitMemberName(memberName, type: type, element: element);
     return value.toAssignExpression(
         annotate(new JS.PropertyAccess(jsTarget, name), lhs));
   }
@@ -3430,21 +3461,25 @@ class CodeGenerator extends GeneralizingAstVisitor
         return _emitStaticAccess(
             (element.enclosingElement as ClassElement).type);
       }
+      if (element is FieldElement) {
+        return _emitStaticAccess(element.enclosingElement.type);
+      }
     }
     return _visit(target);
   }
 
-  /// Emits a (possibly generic) instance method call.
+  /// Emits a (possibly generic) instance, or static method call.
   JS.Expression _emitMethodCallInternal(
       Expression target,
       MethodInvocation node,
       List<JS.Expression> args,
       List<JS.Expression> typeArgs) {
     var type = getStaticType(target);
-    var name = node.methodName.name;
     var element = node.methodName.staticElement;
     bool isStatic = element is ExecutableElement && element.isStatic;
-    var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
+    var name = node.methodName.name;
+    var memberName =
+        _emitMemberName(name, type: type, isStatic: isStatic, element: element);
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
@@ -4807,7 +4842,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       String memberName, List<JS.Expression> typeArgs) {
     bool isStatic = member is ClassMemberElement && member.isStatic;
     var name = _emitMemberName(memberName,
-        type: getStaticType(target), isStatic: isStatic);
+        type: getStaticType(target), isStatic: isStatic, element: member);
     if (isDynamicInvoke(target)) {
       if (_inWhitelistCode(target)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
@@ -5426,9 +5461,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// helper, that checks for null. The user defined method is called '=='.
   ///
   JS.Expression _emitMemberName(String name,
-      {DartType type, bool isStatic: false, bool useExtension}) {
-    // Static members skip the rename steps.
-    if (isStatic) return _propertyName(name);
+      {DartType type,
+      bool isStatic: false,
+      bool useExtension,
+      Element element}) {
+    // Static members skip the rename steps and may require JS interop renames.
+    if (isStatic) {
+      return _emitJSInteropStaticMemberName(element) ?? _propertyName(name);
+    }
 
     if (name.startsWith('_')) {
       return _emitPrivateNameSymbol(currentLibrary, name);
