@@ -43,7 +43,7 @@ import '../util/util.dart' show Setlet;
 import '../world.dart';
 
 /// [Enqueuer] which is specific to code generation.
-class CodegenEnqueuer implements Enqueuer {
+class CodegenEnqueuer extends Enqueuer {
   final String name;
   @deprecated
   final Compiler _compiler; // TODO(ahe): Remove this dependency.
@@ -123,8 +123,8 @@ class CodegenEnqueuer implements Enqueuer {
         .registerDependency(_compiler.currentElement, element);
   }
 
-  void applyImpact(ImpactStrategy impactStrategy, WorldImpact worldImpact,
-      {Element impactSource}) {
+  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
+    if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
         impactSource, worldImpact, impactVisitor, impactUse);
   }
@@ -141,7 +141,8 @@ class CodegenEnqueuer implements Enqueuer {
       _universe.registerTypeInstantiation(type,
           isNative: isNative,
           byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
-        backend.registerImplementedClass(cls, this);
+        applyImpact(
+            backend.registerImplementedClass(cls, forResolution: false));
       });
       if (nativeUsage) {
         nativeEnqueuer.onInstantiatedType(type);
@@ -272,7 +273,8 @@ class CodegenEnqueuer implements Enqueuer {
         // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
         // dependencies.
-        backend.registerInstantiatedClass(superclass, this);
+        applyImpact(backend.registerInstantiatedClass(superclass,
+            forResolution: false));
       }
 
       ClassElement superclass = cls;
@@ -356,11 +358,11 @@ class CodegenEnqueuer implements Enqueuer {
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    backend.registerStaticUse(this, element);
+    applyImpact(backend.registerStaticUse(element, forResolution: false));
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        backend.registerGetOfStaticFunction(this);
+        applyImpact(backend.registerGetOfStaticFunction());
         break;
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.FIELD_SET:
@@ -425,15 +427,17 @@ class CodegenEnqueuer implements Enqueuer {
   }
 
   void registerCallMethodWithFreeTypeVariables(Element element) {
-    backend.registerCallMethodWithFreeTypeVariables(element, this);
+    applyImpact(backend.registerCallMethodWithFreeTypeVariables(element,
+        forResolution: false));
   }
 
   void registerClosurizedMember(TypedElement element) {
     assert(element.isInstanceMember);
     if (element.type.containsTypeVariables) {
-      backend.registerClosureWithFreeTypeVariables(element, this);
+      applyImpact(backend.registerClosureWithFreeTypeVariables(element,
+          forResolution: false));
     }
-    backend.registerBoundClosure(this);
+    applyImpact(backend.registerBoundClosure());
   }
 
   void forEach(void f(WorkItem work)) {
@@ -491,7 +495,7 @@ class CodegenEnqueuer implements Enqueuer {
 
   void registerNoSuchMethod(Element element) {
     if (!enabledNoSuchMethod && backend.enabledNoSuchMethod) {
-      backend.enableNoSuchMethod(this);
+      applyImpact(backend.enableNoSuchMethod());
       enabledNoSuchMethod = true;
     }
   }

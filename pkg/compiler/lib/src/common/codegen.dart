@@ -159,6 +159,11 @@ class CodegenRegistry {
 
   String toString() => 'CodegenRegistry for $currentElement';
 
+  /// Add the uses in [impact] to the impact of this registry.
+  void addImpact(WorldImpact impact) {
+    worldImpact.addImpact(impact);
+  }
+
   @deprecated
   void registerInstantiatedClass(ClassElement element) {
     registerInstantiation(element.rawType);

@@ -843,8 +843,8 @@ class DeferredLoadTask extends CompilerTask {
       });
     }
     if (isProgramSplit) {
-      isProgramSplit = compiler.backend.enableDeferredLoadingIfSupported(
-          compiler.enqueuer.resolution, lastDeferred);
+      isProgramSplit =
+          compiler.backend.enableDeferredLoadingIfSupported(lastDeferred);
     }
   }
 

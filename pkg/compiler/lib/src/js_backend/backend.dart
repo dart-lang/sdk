@@ -335,7 +335,6 @@ class JavaScriptBackend extends Backend {
   static const String TRACE_METHOD = const String.fromEnvironment('traceCalls');
   static const bool TRACE_CALLS =
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
-  MethodElement traceHelper;
 
   TypeMask get stringType => compiler.closedWorld.commonMasks.stringType;
   TypeMask get doubleType => compiler.closedWorld.commonMasks.doubleType;
@@ -1036,9 +1035,9 @@ class JavaScriptBackend extends Backend {
     });
   }
 
-  void addInterceptorsForNativeClassMembers(
-      ClassElement cls, Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) {
+  void addInterceptorsForNativeClassMembers(ClassElement cls,
+      {bool forResolution}) {
+    if (forResolution) {
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
@@ -1062,20 +1061,22 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void addInterceptors(ClassElement cls, Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) {
+  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder,
+      {bool forResolution}) {
+    if (forResolution) {
+      if (_interceptedClasses.add(cls)) {
+        cls.ensureResolved(resolution);
+        cls.forEachMember((ClassElement classElement, Element member) {
+          // All methods on [Object] are shadowed by [Interceptor].
+          if (classElement == coreClasses.objectClass) return;
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
+          set.add(member);
+        }, includeSuperAndInjectedMembers: true);
+      }
       _interceptedClasses.add(helpers.jsInterceptorClass);
-      _interceptedClasses.add(cls);
-      cls.ensureResolved(resolution);
-      cls.forEachMember((ClassElement classElement, Element member) {
-        // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == coreClasses.objectClass) return;
-        Set<Element> set = interceptedElements.putIfAbsent(
-            member.name, () => new Set<Element>());
-        set.add(member);
-      }, includeSuperAndInjectedMembers: true);
     }
-    enqueueClass(enqueuer, cls);
+    impactTransformer.registerBackendInstantiation(impactBuilder, cls);
   }
 
   Set<ClassElement> get interceptedClasses {
@@ -1168,190 +1169,168 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
-    _processClass(cls, enqueuer);
+  WorldImpact registerInstantiatedClass(ClassElement cls,
+      {bool forResolution}) {
+    return _processClass(cls, forResolution: forResolution);
   }
 
-  void registerImplementedClass(ClassElement cls, Enqueuer enqueuer) {
-    _processClass(cls, enqueuer);
+  WorldImpact registerImplementedClass(ClassElement cls, {bool forResolution}) {
+    return _processClass(cls, forResolution: forResolution);
   }
 
-  void _processClass(ClassElement cls, Enqueuer enqueuer) {
+  WorldImpact _processClass(ClassElement cls, {bool forResolution}) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls, enqueuer);
+      typeVariableHandler.registerClassWithTypeVariables(cls,
+          forResolution: forResolution);
     }
 
     // Register any helper that will be needed by the backend.
-    if (enqueuer.isResolutionQueue) {
+    if (forResolution) {
       if (cls == coreClasses.intClass ||
           cls == coreClasses.doubleClass ||
           cls == coreClasses.numClass) {
-        // The backend will try to optimize number operations and use the
-        // `iae` helper directly.
-        enqueue(enqueuer, helpers.throwIllegalArgumentException);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.numClasses);
       } else if (cls == coreClasses.listClass ||
           cls == coreClasses.stringClass) {
-        // The backend will try to optimize array and string access and use the
-        // `ioore` and `iae` helpers directly.
-        enqueue(enqueuer, helpers.throwIndexOutOfRangeException);
-        enqueue(enqueuer, helpers.throwIllegalArgumentException);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.listOrStringClasses);
       } else if (cls == coreClasses.functionClass) {
-        enqueueClass(enqueuer, helpers.closureClass);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.functionClass);
       } else if (cls == coreClasses.mapClass) {
-        // The backend will use a literal list to initialize the entries
-        // of the map.
-        enqueueClass(enqueuer, coreClasses.listClass);
-        enqueueClass(enqueuer, helpers.mapLiteralClass);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.mapClass);
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
         rti.registerRtiDependency(helpers.mapLiteralClass, cls);
       } else if (cls == helpers.boundClosureClass) {
-        // TODO(johnniwinther): Is this a noop?
-        enqueueClass(enqueuer, helpers.boundClosureClass);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.boundClosureClass);
       } else if (isNativeOrExtendsNative(cls)) {
-        enqueue(enqueuer, helpers.getNativeInterceptorMethod);
-        enqueueClass(enqueuer, helpers.jsInterceptorClass);
-        enqueueClass(enqueuer, helpers.jsJavaScriptObjectClass);
-        enqueueClass(enqueuer, helpers.jsPlainJavaScriptObjectClass);
-        enqueueClass(enqueuer, helpers.jsJavaScriptFunctionClass);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.nativeOrExtendsClass);
       } else if (cls == helpers.mapLiteralClass) {
-        // For map literals, the dependency between the implementation class
-        // and [Map] is not visible, so we have to add it manually.
-        Element getFactory(String name, int arity) {
-          // The constructor is on the patch class, but dart2js unit tests don't
-          // have a patch class.
-          ClassElement implementation = cls.implementation;
-          ConstructorElement ctor = implementation.lookupConstructor(name);
-          if (ctor == null ||
-              (Name.isPrivateName(name) &&
-                  ctor.library != helpers.mapLiteralClass.library)) {
-            reporter.internalError(
-                helpers.mapLiteralClass,
-                "Map literal class ${helpers.mapLiteralClass} missing "
-                "'$name' constructor"
-                "  ${helpers.mapLiteralClass.constructors}");
-          }
-          return ctor;
-        }
-
-        Element getMember(String name) {
-          // The constructor is on the patch class, but dart2js unit tests don't
-          // have a patch class.
-          ClassElement implementation = cls.implementation;
-          Element element = implementation.lookupLocalMember(name);
-          if (element == null || !element.isFunction || !element.isStatic) {
-            reporter.internalError(
-                helpers.mapLiteralClass,
-                "Map literal class ${helpers.mapLiteralClass} missing "
-                "'$name' static member function");
-          }
-          return element;
-        }
-
-        helpers.mapLiteralConstructor = getFactory('_literal', 1);
-        helpers.mapLiteralConstructorEmpty = getFactory('_empty', 0);
-        enqueue(enqueuer, helpers.mapLiteralConstructor);
-        enqueue(enqueuer, helpers.mapLiteralConstructorEmpty);
-
-        helpers.mapLiteralUntypedMaker = getMember('_makeLiteral');
-        helpers.mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
-        enqueue(enqueuer, helpers.mapLiteralUntypedMaker);
-        enqueue(enqueuer, helpers.mapLiteralUntypedEmptyMaker);
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.mapLiteralClass);
       }
     }
     if (cls == helpers.closureClass) {
-      enqueue(enqueuer, helpers.closureFromTearOff);
+      impactTransformer.registerBackendImpact(
+          impactBuilder, impacts.closureClass);
     }
     if (cls == coreClasses.stringClass || cls == helpers.jsStringClass) {
-      addInterceptors(helpers.jsStringClass, enqueuer);
+      addInterceptors(helpers.jsStringClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == coreClasses.listClass ||
         cls == helpers.jsArrayClass ||
         cls == helpers.jsFixedArrayClass ||
         cls == helpers.jsExtendableArrayClass ||
         cls == helpers.jsUnmodifiableArrayClass) {
-      addInterceptors(helpers.jsArrayClass, enqueuer);
-      addInterceptors(helpers.jsMutableArrayClass, enqueuer);
-      addInterceptors(helpers.jsFixedArrayClass, enqueuer);
-      addInterceptors(helpers.jsExtendableArrayClass, enqueuer);
-      addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer);
-      if (enqueuer.isResolutionQueue) {
-        // Literal lists can be translated into calls to these functions:
-        enqueue(enqueuer, helpers.jsArrayTypedConstructor);
-        enqueue(enqueuer, helpers.setRuntimeTypeInfo);
-        enqueue(enqueuer, helpers.getTypeArgumentByIndex);
+      addInterceptors(helpers.jsArrayClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsMutableArrayClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsFixedArrayClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsExtendableArrayClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsUnmodifiableArrayClass, impactBuilder,
+          forResolution: forResolution);
+      if (forResolution) {
+        impactTransformer.registerBackendImpact(
+            impactBuilder, impacts.listClasses);
       }
     } else if (cls == coreClasses.intClass || cls == helpers.jsIntClass) {
-      addInterceptors(helpers.jsIntClass, enqueuer);
-      addInterceptors(helpers.jsPositiveIntClass, enqueuer);
-      addInterceptors(helpers.jsUInt32Class, enqueuer);
-      addInterceptors(helpers.jsUInt31Class, enqueuer);
-      addInterceptors(helpers.jsNumberClass, enqueuer);
+      addInterceptors(helpers.jsIntClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsUInt32Class, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsUInt31Class, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsNumberClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == coreClasses.doubleClass || cls == helpers.jsDoubleClass) {
-      addInterceptors(helpers.jsDoubleClass, enqueuer);
-      addInterceptors(helpers.jsNumberClass, enqueuer);
+      addInterceptors(helpers.jsDoubleClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsNumberClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == coreClasses.boolClass || cls == helpers.jsBoolClass) {
-      addInterceptors(helpers.jsBoolClass, enqueuer);
+      addInterceptors(helpers.jsBoolClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == coreClasses.nullClass || cls == helpers.jsNullClass) {
-      addInterceptors(helpers.jsNullClass, enqueuer);
+      addInterceptors(helpers.jsNullClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == coreClasses.numClass || cls == helpers.jsNumberClass) {
-      addInterceptors(helpers.jsIntClass, enqueuer);
-      addInterceptors(helpers.jsPositiveIntClass, enqueuer);
-      addInterceptors(helpers.jsUInt32Class, enqueuer);
-      addInterceptors(helpers.jsUInt31Class, enqueuer);
-      addInterceptors(helpers.jsDoubleClass, enqueuer);
-      addInterceptors(helpers.jsNumberClass, enqueuer);
+      addInterceptors(helpers.jsIntClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsUInt32Class, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsUInt31Class, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsDoubleClass, impactBuilder,
+          forResolution: forResolution);
+      addInterceptors(helpers.jsNumberClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == helpers.jsJavaScriptObjectClass) {
-      addInterceptors(helpers.jsJavaScriptObjectClass, enqueuer);
+      addInterceptors(helpers.jsJavaScriptObjectClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
-      addInterceptors(helpers.jsPlainJavaScriptObjectClass, enqueuer);
+      addInterceptors(helpers.jsPlainJavaScriptObjectClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
-      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, enqueuer);
+      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, impactBuilder,
+          forResolution: forResolution);
     } else if (cls == helpers.jsJavaScriptFunctionClass) {
-      addInterceptors(helpers.jsJavaScriptFunctionClass, enqueuer);
+      addInterceptors(helpers.jsJavaScriptFunctionClass, impactBuilder,
+          forResolution: forResolution);
     } else if (isNativeOrExtendsNative(cls)) {
-      addInterceptorsForNativeClassMembers(cls, enqueuer);
+      addInterceptorsForNativeClassMembers(cls, forResolution: forResolution);
     } else if (cls == helpers.jsIndexingBehaviorInterface) {
-      // These two helpers are used by the emitter and the codegen.
-      // Because we cannot enqueue elements at the time of emission,
-      // we make sure they are always generated.
-      enqueue(enqueuer, helpers.isJsIndexable);
+      impactTransformer.registerBackendImpact(
+          impactBuilder, impacts.jsIndexingBehavior);
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls,
-        forResolution: enqueuer.isResolutionQueue);
-    if (!enqueuer.isResolutionQueue) {
+        forResolution: forResolution);
+    if (!forResolution) {
       lookupMapAnalysis.registerInstantiatedClass(cls);
     }
+
+    return impactBuilder;
   }
 
   void registerInstantiatedType(InterfaceType type) {
     lookupMapAnalysis.registerInstantiatedType(type);
   }
 
-  void enqueueHelpers(ResolutionEnqueuer enqueuer) {
+  @override
+  WorldImpact computeHelpersImpact() {
     assert(helpers.interceptorsLibrary != null);
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
-    addInterceptors(helpers.jsBoolClass, enqueuer);
-    addInterceptors(helpers.jsNullClass, enqueuer);
+    addInterceptors(helpers.jsBoolClass, impactBuilder, forResolution: true);
+    addInterceptors(helpers.jsNullClass, impactBuilder, forResolution: true);
     if (compiler.options.enableTypeAssertions) {
-      // Unconditionally register the helper that checks if the
-      // expression in an if/while/for is a boolean.
-      // TODO(ngeoffray): Should we have the resolver register those instead?
-      Element e = helpers.boolConversionCheck;
-      if (e != null) enqueue(enqueuer, e);
+      impactTransformer.registerBackendImpact(
+          impactBuilder, impacts.enableTypeAssertions);
     }
 
     if (TRACE_CALLS) {
-      traceHelper = TRACE_METHOD == 'console'
-          ? helpers.consoleTraceHelper
-          : helpers.postTraceHelper;
-      assert(traceHelper != null);
-      enqueue(enqueuer, traceHelper);
+      impactTransformer.registerBackendImpact(
+          impactBuilder, impacts.traceHelper);
     }
-    enqueue(enqueuer, helpers.assertUnreachableMethod);
-    registerCheckedModeHelpers(enqueuer);
+    impactTransformer.registerBackendImpact(
+        impactBuilder, impacts.assertUnreachable);
+    _registerCheckedModeHelpers(impactBuilder);
+    return impactBuilder;
   }
 
   onResolutionComplete() {
@@ -1366,47 +1345,36 @@ class JavaScriptBackend extends Backend {
     noSuchMethodRegistry.onTypeInferenceComplete();
   }
 
-  void registerGetRuntimeTypeArgument() {
-    enqueueImpact(compiler.enqueuer.resolution, impacts.getRuntimeTypeArgument);
-  }
-
-  void registerCallMethodWithFreeTypeVariables(
-      Element callMethod, Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue || methodNeedsRti(callMethod)) {
-      registerComputeSignature(enqueuer);
+  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
+      {bool forResolution}) {
+    if (forResolution || methodNeedsRti(callMethod)) {
+      return _registerComputeSignature();
     }
+    return const WorldImpact();
   }
 
-  void registerClosureWithFreeTypeVariables(
-      Element closure, Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
-      registerComputeSignature(enqueuer);
+  WorldImpact registerClosureWithFreeTypeVariables(Element closure,
+      {bool forResolution}) {
+    if (forResolution || methodNeedsRti(closure)) {
+      return _registerComputeSignature();
     }
+    return const WorldImpact();
   }
 
-  void registerBoundClosure(Enqueuer enqueuer) {
-    helpers.boundClosureClass.ensureResolved(resolution);
-    enqueuer.registerInstantiatedType(helpers.boundClosureClass.rawType);
+  WorldImpact registerBoundClosure() {
+    return impactTransformer.createImpactFor(impacts.memberClosure);
   }
 
-  void registerGetOfStaticFunction(Enqueuer enqueuer) {
-    helpers.closureClass.ensureResolved(resolution);
-    enqueuer.registerInstantiatedType(helpers.closureClass.rawType);
+  WorldImpact registerGetOfStaticFunction() {
+    return impactTransformer.createImpactFor(impacts.staticClosure);
   }
 
-  void registerComputeSignature(Enqueuer enqueuer) {
-    // Calls to [:computeSignature:] are generated by the emitter and we
-    // therefore need to enqueue the used elements in the codegen enqueuer as
-    // well as in the resolution enqueuer.
-    enqueueImpact(enqueuer, impacts.computeSignature);
+  WorldImpact _registerComputeSignature() {
+    return impactTransformer.createImpactFor(impacts.computeSignature);
   }
 
-  void registerRuntimeType(ResolutionEnqueuer enqueuer) {
-    registerComputeSignature(enqueuer);
-    enqueue(enqueuer, helpers.setRuntimeTypeInfo);
-    registerGetRuntimeTypeArgument();
-    enqueue(enqueuer, helpers.getRuntimeTypeInfo);
-    enqueueClass(enqueuer, coreClasses.listClass);
+  WorldImpact registerRuntimeType() {
+    return impactTransformer.createImpactFor(impacts.runtimeTypeSupport);
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
@@ -1414,10 +1382,8 @@ class JavaScriptBackend extends Backend {
     rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
   }
 
-  void registerCheckDeferredIsLoaded(ResolutionEnqueuer enqueuer) {
-    enqueue(enqueuer, helpers.checkDeferredIsLoaded);
-    // Also register the types of the arguments passed to this method.
-    enqueueClass(enqueuer, coreClasses.stringClass);
+  WorldImpact computeDeferredLoadingImpact() {
+    return impactTransformer.createImpactFor(impacts.deferredLoading);
   }
 
   void registerNoSuchMethod(FunctionElement noSuchMethod) {
@@ -1458,12 +1424,12 @@ class JavaScriptBackend extends Backend {
     return null;
   }
 
-  void enableNoSuchMethod(Enqueuer world) {
-    enqueue(world, helpers.createInvocationMirror);
-    world.registerDynamicUse(new DynamicUse(Selectors.noSuchMethod_, null));
+  WorldImpact enableNoSuchMethod() {
+    return impactTransformer.createImpactFor(impacts.noSuchMethodSupport);
   }
 
-  void enableIsolateSupport(Enqueuer enqueuer) {
+  WorldImpact enableIsolateSupport({bool forResolution}) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     // TODO(floitsch): We should also ensure that the class IsolateMessage is
     // instantiated. Currently, just enabling isolate support works.
     if (compiler.mainFunction != null) {
@@ -1474,22 +1440,16 @@ class JavaScriptBackend extends Backend {
       // The JavaScript backend of [Isolate.spawnUri] uses the same internal
       // implementation as [Isolate.spawn], and fails if it cannot look main up
       // by name.
-      enqueuer.registerStaticUse(
+      impactBuilder.registerStaticUse(
           new StaticUse.staticTearOff(compiler.mainFunction));
     }
-    if (enqueuer.isResolutionQueue) {
-      void enqueue(Element element) {
-        enqueuer.addToWorkList(element);
-        compiler.globalDependencies.registerDependency(element);
-        helpersUsed.add(element.declaration);
-      }
-
-      enqueue(helpers.startRootIsolate);
-      enqueue(helpers.currentIsolate);
-      enqueue(helpers.callInIsolate);
-    } else {
-      enqueuer.addToWorkList(helpers.startRootIsolate);
+    impactTransformer.registerBackendImpact(
+        impactBuilder, impacts.isolateSupport);
+    if (forResolution) {
+      impactTransformer.registerBackendImpact(
+          impactBuilder, impacts.isolateSupportForResolution);
     }
+    return impactBuilder;
   }
 
   bool classNeedsRti(ClassElement cls) {
@@ -1517,60 +1477,6 @@ class JavaScriptBackend extends Backend {
   bool methodNeedsRti(FunctionElement function) {
     return rti.methodsNeedingRti.contains(function) ||
         compiler.resolverWorld.hasRuntimeTypeSupport;
-  }
-
-  /// Enqueue [e] in [enqueuer].
-  ///
-  /// This method calls [registerBackendUse].
-  void enqueue(Enqueuer enqueuer, Element e) {
-    if (e == null) return;
-    registerBackendUse(e);
-    enqueuer.addToWorkList(e);
-    compiler.globalDependencies.registerDependency(e);
-  }
-
-  /// Register instantiation of [cls] in [enqueuer].
-  ///
-  /// This method calls [registerBackendUse].
-  void enqueueClass(Enqueuer enqueuer, ClassElement cls) {
-    if (cls == null) return;
-    registerBackendUse(cls);
-    helpersUsed.add(cls.declaration);
-    if (cls.declaration != cls.implementation) {
-      helpersUsed.add(cls.implementation);
-    }
-    cls.ensureResolved(resolution);
-    enqueuer.registerInstantiatedType(cls.rawType);
-  }
-
-  /// Register instantiation of [type] in [enqueuer].
-  ///
-  /// This method calls [registerBackendUse].
-  void enqueueType(Enqueuer enqueuer, InterfaceType type) {
-    if (type == null) return;
-    ClassElement cls = type.element;
-    registerBackendUse(cls);
-    helpersUsed.add(cls.declaration);
-    if (cls.declaration != cls.implementation) {
-      helpersUsed.add(cls.implementation);
-    }
-    cls.ensureResolved(resolution);
-    enqueuer.registerInstantiatedType(type);
-  }
-
-  void enqueueImpact(Enqueuer enqueuer, BackendImpact impact) {
-    for (Element staticUse in impact.staticUses) {
-      enqueue(enqueuer, staticUse);
-    }
-    for (InterfaceType type in impact.instantiatedTypes) {
-      enqueueType(enqueuer, type);
-    }
-    for (ClassElement cls in impact.instantiatedClasses) {
-      enqueueClass(enqueuer, cls);
-    }
-    for (BackendImpact otherImpact in impact.otherImpacts) {
-      enqueueImpact(enqueuer, otherImpact);
-    }
   }
 
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
@@ -1634,7 +1540,7 @@ class JavaScriptBackend extends Backend {
         // go through the builder (below) to generate the lazy initializer for
         // the static variable.
         // We also need to register the use of the cyclic-error helper.
-        compiler.enqueuer.codegen.registerStaticUse(new StaticUse.staticInvoke(
+        work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
             helpers.cyclicThrowHelper, CallStructure.ONE_ARG));
       }
     }
@@ -1856,12 +1762,15 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCheckedModeHelpers(ResolutionEnqueuer enqueuer) {
+  void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the helpers in the resolution queue.
     // TODO(13155): Find a way to register fewer helpers.
+    List<Element> staticUses = <Element>[];
     for (CheckedModeHelper helper in checkedModeHelpers) {
-      enqueue(enqueuer, helper.getStaticUse(compiler).element);
+      staticUses.add(helper.getStaticUse(compiler).element);
     }
+    impactTransformer.registerBackendImpact(
+        impactBuilder, new BackendImpact(globalUses: staticUses));
   }
 
   /**
@@ -1892,7 +1801,8 @@ class JavaScriptBackend extends Backend {
     return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
-  void registerStaticUse(Enqueuer enqueuer, Element element) {
+  WorldImpact registerStaticUse(Element element, {bool forResolution}) {
+    WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
@@ -1909,15 +1819,17 @@ class JavaScriptBackend extends Backend {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!isLoadLibraryFunctionResolved) {
         isLoadLibraryFunctionResolved = true;
-        if (enqueuer.isResolutionQueue) {
-          enqueue(enqueuer, helpers.loadLibraryWrapper);
+        if (forResolution) {
+          impactTransformer.registerBackendImpact(
+              worldImpact, impacts.loadLibrary);
         }
       }
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
     }
     customElementsAnalysis.registerStaticUse(element,
-        forResolution: enqueuer.isResolutionQueue);
+        forResolution: forResolution);
+    return worldImpact;
   }
 
   /// Called when [:const Symbol(name):] is seen.
@@ -2344,13 +2256,11 @@ class JavaScriptBackend extends Backend {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
+    enqueuer.applyImpact(customElementsAnalysis.flush(
+        forResolution: enqueuer.isResolutionQueue));
     enqueuer.applyImpact(
-        compiler.impactStrategy,
-        customElementsAnalysis.flush(
-            forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(compiler.impactStrategy,
         lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(compiler.impactStrategy,
+    enqueuer.applyImpact(
         typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
 
     if (!enqueuer.queueIsEmpty) return false;
@@ -2359,7 +2269,7 @@ class JavaScriptBackend extends Backend {
     if (!enabledNoSuchMethod &&
         (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
             noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-      enableNoSuchMethod(enqueuer);
+      enqueuer.applyImpact(enableNoSuchMethod());
       enabledNoSuchMethod = true;
     }
 
@@ -2369,10 +2279,10 @@ class JavaScriptBackend extends Backend {
 
     if (compiler.options.hasIncrementalSupport) {
       // Always enable tear-off closures during incremental compilation.
-      Element e = helpers.closureFromTearOff;
-      if (e != null && !enqueuer.isProcessed(e)) {
-        registerBackendUse(e);
-        enqueuer.addToWorkList(e);
+      Element element = helpers.closureFromTearOff;
+      if (element != null && !enqueuer.isProcessed(element)) {
+        enqueuer.applyImpact(
+            impactTransformer.createImpactFor(impacts.closureClass));
       }
     }
 
@@ -2381,19 +2291,17 @@ class JavaScriptBackend extends Backend {
     }
 
     if (isTreeShakingDisabled) {
-      enqueuer.applyImpact(
-          compiler.impactStrategy,
-          mirrorsAnalysis.computeImpactForReflectiveElements(recentClasses,
-              enqueuer.processedClasses, compiler.libraryLoader.libraries,
-              forResolution: enqueuer.isResolutionQueue));
+      enqueuer.applyImpact(mirrorsAnalysis.computeImpactForReflectiveElements(
+          recentClasses,
+          enqueuer.processedClasses,
+          compiler.libraryLoader.libraries,
+          forResolution: enqueuer.isResolutionQueue));
     } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
       // necessary, but the backend relies on them being resolved.
-      enqueuer.applyImpact(
-          compiler.impactStrategy,
-          mirrorsAnalysis.computeImpactForReflectiveStaticFields(
-              _findStaticFieldTargets(),
+      enqueuer.applyImpact(mirrorsAnalysis
+          .computeImpactForReflectiveStaticFields(_findStaticFieldTargets(),
               forResolution: enqueuer.isResolutionQueue));
     }
 
@@ -2430,7 +2338,7 @@ class JavaScriptBackend extends Backend {
         }
         metadataConstants.clear();
       }
-      enqueuer.applyImpact(compiler.impactStrategy, impactBuilder.flush());
+      enqueuer.applyImpact(impactBuilder.flush());
     }
     return true;
   }
@@ -2579,7 +2487,8 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  WorldImpact computeMainImpact(Enqueuer enqueuer, MethodElement mainMethod) {
+  WorldImpact computeMainImpact(MethodElement mainMethod,
+      {bool forResolution}) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
     if (mainMethod.parameters.isNotEmpty) {
       impactTransformer.registerBackendImpact(
@@ -2590,7 +2499,7 @@ class JavaScriptBackend extends Backend {
       // target of Isolate.spawnUri. Strictly speaking, that can happen also if
       // main takes no arguments, but in this case the spawned isolate can't
       // communicate with the spawning isolate.
-      enqueuer.enableIsolateSupport();
+      mainImpact.addImpact(enableIsolateSupport(forResolution: forResolution));
     }
     mainImpact.registerStaticUse(
         new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
@@ -2612,11 +2521,7 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  bool enableDeferredLoadingIfSupported(
-      ResolutionEnqueuer enqueuer, Spannable node) {
-    registerCheckDeferredIsLoaded(enqueuer);
-    return true;
-  }
+  bool enableDeferredLoadingIfSupported(Spannable node) => true;
 
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
@@ -3011,14 +2916,44 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     return transformed;
   }
 
+  WorldImpact createImpactFor(BackendImpact impact) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    registerBackendImpact(impactBuilder, impact);
+    return impactBuilder;
+  }
+
+  void registerBackendStaticUse(
+      WorldImpactBuilder worldImpact, MethodElement element,
+      {bool isGlobal: false}) {
+    backend.registerBackendUse(element);
+    worldImpact.registerStaticUse(
+        // TODO(johnniwinther): Store the correct use in impacts.
+        new StaticUse.foreignUse(element));
+    if (isGlobal) {
+      backend.compiler.globalDependencies.registerDependency(element);
+    }
+  }
+
+  void registerBackendInstantiation(
+      WorldImpactBuilder worldImpact, ClassElement cls,
+      {bool isGlobal: false}) {
+    cls.ensureResolved(backend.resolution);
+    backend.registerBackendUse(cls);
+    worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+    if (isGlobal) {
+      backend.compiler.globalDependencies.registerDependency(cls);
+    }
+  }
+
   void registerBackendImpact(
       WorldImpactBuilder worldImpact, BackendImpact backendImpact) {
     for (Element staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
-      backend.registerBackendUse(staticUse);
-      worldImpact.registerStaticUse(
-          // TODO(johnniwinther): Store the correct use in impacts.
-          new StaticUse.foreignUse(staticUse));
+      registerBackendStaticUse(worldImpact, staticUse);
+    }
+    for (Element staticUse in backendImpact.globalUses) {
+      assert(staticUse != null);
+      registerBackendStaticUse(worldImpact, staticUse, isGlobal: true);
     }
     for (Selector selector in backendImpact.dynamicUses) {
       assert(selector != null);
@@ -3029,9 +2964,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
     }
     for (ClassElement cls in backendImpact.instantiatedClasses) {
-      cls.ensureResolved(backend.resolution);
-      backend.registerBackendUse(cls);
-      worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+      registerBackendInstantiation(worldImpact, cls);
+    }
+    for (ClassElement cls in backendImpact.globalClasses) {
+      registerBackendInstantiation(worldImpact, cls, isGlobal: true);
     }
     for (BackendImpact otherImpact in backendImpact.otherImpacts) {
       registerBackendImpact(worldImpact, otherImpact);

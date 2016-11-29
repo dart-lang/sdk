@@ -101,21 +101,21 @@ main(List<String> args) {
     // enqueuing twice.
     backend.typeVariableHandler = new TypeVariableHandler(compiler);
 
-    backend.enqueueHelpers(enqueuer);
+    if (compiler.deferredLoadTask.isProgramSplit) {
+      enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
+    }
+    enqueuer.applyImpact(backend.computeHelpersImpact());
+    enqueuer.applyImpact(enqueuer.nativeEnqueuer
+        .processNativeClasses(compiler.libraryLoader.libraries));
     enqueuer.applyImpact(
-        compiler.impactStrategy,
-        enqueuer.nativeEnqueuer
-            .processNativeClasses(compiler.libraryLoader.libraries));
-    enqueuer.applyImpact(compiler.impactStrategy,
-        backend.computeMainImpact(enqueuer, compiler.mainFunction));
+        backend.computeMainImpact(compiler.mainFunction, forResolution: true));
     enqueuer.forEach((work) {
       AstElement element = work.element;
       ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
       WorldImpact worldImpact = compiler.backend.impactTransformer
           .transformResolutionImpact(enqueuer, resolutionImpact);
       enqueuer.registerProcessedElement(element);
-      enqueuer.applyImpact(compiler.impactStrategy, worldImpact,
-          impactSource: element);
+      enqueuer.applyImpact(worldImpact, impactSource: element);
     });
     ClosedWorld closedWorld =
         enqueuer.universe.openWorld.closeWorld(compiler.reporter);

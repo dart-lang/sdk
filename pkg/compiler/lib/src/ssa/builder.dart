@@ -407,10 +407,8 @@ class SsaBuilder extends ast.Visitor
   bool tryInlineMethod(Element element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
       {InterfaceType instanceType}) {
-    // TODO(johnniwinther): Register this on the [registry]. Currently the
-    // [CodegenRegistry] calls the enqueuer, but [element] should _not_ be
-    // enqueued.
-    backend.registerStaticUse(compiler.enqueuer.codegen, element);
+    registry
+        .addImpact(backend.registerStaticUse(element, forResolution: false));
 
     if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
@@ -1497,23 +1495,23 @@ class SsaBuilder extends ast.Visitor
 
   insertTraceCall(Element element) {
     if (JavaScriptBackend.TRACE_METHOD == 'console') {
-      if (element == backend.traceHelper) return;
+      if (element == backend.helpers.traceHelper) return;
       n(e) => e == null ? '' : e.name;
       String name = "${n(element.library)}:${n(element.enclosingClass)}."
           "${n(element)}";
       HConstant nameConstant = addConstantString(name);
-      add(new HInvokeStatic(backend.traceHelper, <HInstruction>[nameConstant],
-          backend.dynamicType));
+      add(new HInvokeStatic(backend.helpers.traceHelper,
+          <HInstruction>[nameConstant], backend.dynamicType));
     }
   }
 
   insertCoverageCall(Element element) {
     if (JavaScriptBackend.TRACE_METHOD == 'post') {
-      if (element == backend.traceHelper) return;
+      if (element == backend.helpers.traceHelper) return;
       // TODO(sigmund): create a better uuid for elements.
       HConstant idConstant = graph.addConstantInt(element.hashCode, compiler);
       HConstant nameConstant = addConstantString(element.name);
-      add(new HInvokeStatic(backend.traceHelper,
+      add(new HInvokeStatic(backend.helpers.traceHelper,
           <HInstruction>[idConstant, nameConstant], backend.dynamicType));
     }
   }

@@ -79,6 +79,22 @@ abstract class Enqueuer {
   WorldBuilder get universe;
   native.NativeEnqueuer get nativeEnqueuer;
   void forgetElement(Element element, Compiler compiler);
+
+  // TODO(johnniwinther): Initialize [_impactStrategy] to `null`.
+  ImpactStrategy _impactStrategy = const ImpactStrategy();
+
+  ImpactStrategy get impactStrategy => _impactStrategy;
+
+  void open(ImpactStrategy impactStrategy) {
+    _impactStrategy = impactStrategy;
+  }
+
+  void close() {
+    // TODO(johnniwinther): Set [_impactStrategy] to `null` and [queueIsClosed]
+    // to `true` here.
+    _impactStrategy = const ImpactStrategy();
+  }
+
   void processInstantiatedClassMembers(ClassElement cls);
   void processInstantiatedClassMember(ClassElement cls, Element member);
   void handleUnseenSelectorInternal(DynamicUse dynamicUse);
@@ -110,8 +126,7 @@ abstract class Enqueuer {
   /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is provided
   /// the impact strategy will remove it from the element impact cache, if it is
   /// no longer needed.
-  void applyImpact(ImpactStrategy impactStrategy, WorldImpact worldImpact,
-      {Element impactSource});
+  void applyImpact(WorldImpact worldImpact, {Element impactSource});
   bool checkNoEnqueuedInvokedInstanceMethods();
   void logSummary(log(message));
 
@@ -147,8 +162,6 @@ class ResolutionEnqueuer extends Enqueuer {
   bool queueIsClosed = false;
 
   WorldImpactVisitor impactVisitor;
-
-  ImpactStrategy impactStrategy;
 
   ResolutionEnqueuer(
       this.task,
@@ -194,8 +207,8 @@ class ResolutionEnqueuer extends Enqueuer {
     internalAddToWorkList(element);
   }
 
-  void applyImpact(ImpactStrategy impactStrategy, WorldImpact worldImpact,
-      {Element impactSource}) {
+  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
+    if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
         impactSource, worldImpact, impactVisitor, impactUse);
   }
@@ -219,7 +232,7 @@ class ResolutionEnqueuer extends Enqueuer {
           isNative: isNative,
           byMirrors: mirrorUsage,
           isRedirection: isRedirection, onImplemented: (ClassElement cls) {
-        backend.registerImplementedClass(cls, this);
+        applyImpact(backend.registerImplementedClass(cls, forResolution: true));
       });
       if (globalDependency && !mirrorUsage) {
         globalDependencies.registerDependency(type.element);
@@ -284,7 +297,7 @@ class ResolutionEnqueuer extends Enqueuer {
         registerNoSuchMethod(function);
       }
       if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
-        registerCallMethodWithFreeTypeVariables(function);
+        _registerCallMethodWithFreeTypeVariables(function);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
@@ -349,7 +362,8 @@ class ResolutionEnqueuer extends Enqueuer {
         // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
         // dependencies.
-        backend.registerInstantiatedClass(superclass, this);
+        applyImpact(
+            backend.registerInstantiatedClass(superclass, forResolution: true));
       }
 
       ClassElement superclass = cls;
@@ -433,11 +447,11 @@ class ResolutionEnqueuer extends Enqueuer {
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    backend.registerStaticUse(this, element);
+    applyImpact(backend.registerStaticUse(element, forResolution: true));
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        backend.registerGetOfStaticFunction(this);
+        applyImpact(backend.registerGetOfStaticFunction());
         break;
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.FIELD_SET:
@@ -514,18 +528,20 @@ class ResolutionEnqueuer extends Enqueuer {
     assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
   }
 
-  void registerCallMethodWithFreeTypeVariables(Element element) {
-    backend.registerCallMethodWithFreeTypeVariables(element, this);
+  void _registerCallMethodWithFreeTypeVariables(Element element) {
+    applyImpact(backend.registerCallMethodWithFreeTypeVariables(element,
+        forResolution: true));
     _universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
   void registerClosurizedMember(TypedElement element) {
     assert(element.isInstanceMember);
     if (element.computeType(resolution).containsTypeVariables) {
-      backend.registerClosureWithFreeTypeVariables(element, this);
+      applyImpact(backend.registerClosureWithFreeTypeVariables(element,
+          forResolution: true));
       _universe.closuresWithFreeTypeVariables.add(element);
     }
-    backend.registerBoundClosure(this);
+    applyImpact(backend.registerBoundClosure());
     _universe.closurizedMembers.add(element);
   }
 
@@ -625,7 +641,7 @@ class ResolutionEnqueuer extends Enqueuer {
       // runtime type.
       _universe.hasRuntimeTypeSupport = true;
       // TODO(ahe): Record precise dependency here.
-      backend.registerRuntimeType(this);
+      applyImpact(backend.registerRuntimeType());
     } else if (commonElements.isFunctionApplyMethod(element)) {
       _universe.hasFunctionApplySupport = true;
     }
@@ -639,7 +655,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   void enableIsolateSupport() {
     _universe.hasIsolateSupport = true;
-    backend.enableIsolateSupport(this);
+    applyImpact(backend.enableIsolateSupport(forResolution: true));
   }
 
   /**

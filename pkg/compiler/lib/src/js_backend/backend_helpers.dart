@@ -21,6 +21,7 @@ import '../elements/elements.dart'
         LibraryElement,
         MemberElement,
         MethodElement,
+        Name,
         PublicName;
 import '../library_loader.dart' show LoadedLibraries;
 import '../universe/call_structure.dart' show CallStructure;
@@ -120,10 +121,6 @@ class BackendHelpers {
   ClassElement mapLiteralClass;
   ClassElement constMapLiteralClass;
   ClassElement typeVariableClass;
-  ConstructorElement mapLiteralConstructor;
-  ConstructorElement mapLiteralConstructorEmpty;
-  Element mapLiteralUntypedMaker;
-  Element mapLiteralUntypedEmptyMaker;
 
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;
@@ -396,6 +393,73 @@ class BackendHelpers {
     objectEquals = compiler.lookupElementIn(coreClasses.objectClass, '==');
   }
 
+  ConstructorElement _mapLiteralConstructor;
+  ConstructorElement _mapLiteralConstructorEmpty;
+  Element _mapLiteralUntypedMaker;
+  Element _mapLiteralUntypedEmptyMaker;
+
+  ConstructorElement get mapLiteralConstructor {
+    _ensureMapLiteralHelpers();
+    return _mapLiteralConstructor;
+  }
+
+  ConstructorElement get mapLiteralConstructorEmpty {
+    _ensureMapLiteralHelpers();
+    return _mapLiteralConstructorEmpty;
+  }
+
+  Element get mapLiteralUntypedMaker {
+    _ensureMapLiteralHelpers();
+    return _mapLiteralUntypedMaker;
+  }
+
+  Element get mapLiteralUntypedEmptyMaker {
+    _ensureMapLiteralHelpers();
+    return _mapLiteralUntypedEmptyMaker;
+  }
+
+  void _ensureMapLiteralHelpers() {
+    if (_mapLiteralConstructor != null) return;
+
+    // For map literals, the dependency between the implementation class
+    // and [Map] is not visible, so we have to add it manually.
+    Element getFactory(String name, int arity) {
+      // The constructor is on the patch class, but dart2js unit tests don't
+      // have a patch class.
+      ClassElement implementation = mapLiteralClass.implementation;
+      ConstructorElement ctor = implementation.lookupConstructor(name);
+      if (ctor == null ||
+          (Name.isPrivateName(name) &&
+              ctor.library != mapLiteralClass.library)) {
+        reporter.internalError(
+            mapLiteralClass,
+            "Map literal class ${mapLiteralClass} missing "
+            "'$name' constructor"
+            "  ${mapLiteralClass.constructors}");
+      }
+      return ctor;
+    }
+
+    Element getMember(String name) {
+      // The constructor is on the patch class, but dart2js unit tests don't
+      // have a patch class.
+      ClassElement implementation = mapLiteralClass.implementation;
+      Element element = implementation.lookupLocalMember(name);
+      if (element == null || !element.isFunction || !element.isStatic) {
+        reporter.internalError(
+            mapLiteralClass,
+            "Map literal class ${mapLiteralClass} missing "
+            "'$name' static member function");
+      }
+      return element;
+    }
+
+    _mapLiteralConstructor = getFactory('_literal', 1);
+    _mapLiteralConstructorEmpty = getFactory('_empty', 0);
+    _mapLiteralUntypedMaker = getMember('_makeLiteral');
+    _mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
+  }
+
   Element get badMain {
     return findHelper('badMain');
   }
@@ -416,11 +480,19 @@ class BackendHelpers {
     return findHelper('boolConversionCheck');
   }
 
-  Element get consoleTraceHelper {
+  MethodElement _traceHelper;
+
+  MethodElement get traceHelper {
+    return _traceHelper ??= JavaScriptBackend.TRACE_METHOD == 'console'
+        ? _consoleTraceHelper
+        : _postTraceHelper;
+  }
+
+  MethodElement get _consoleTraceHelper {
     return findHelper('consoleTraceHelper');
   }
 
-  Element get postTraceHelper {
+  MethodElement get _postTraceHelper {
     return findHelper('postTraceHelper');
   }
 

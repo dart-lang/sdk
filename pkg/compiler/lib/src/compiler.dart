@@ -256,8 +256,7 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     tasks = [
-      dietParser =
-          new DietParserTask(idGenerator, backend, reporter, measurer),
+      dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
@@ -553,9 +552,10 @@ abstract class Compiler implements LibraryLoaderListener {
     });
   }
 
-  void computeMain() {
-    if (mainApp == null) return;
+  WorldImpact computeMain() {
+    if (mainApp == null) return const WorldImpact();
 
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     Element main = mainApp.findExported(Identifiers.main);
     ErroneousElement errorElement = null;
     if (main == null) {
@@ -596,7 +596,7 @@ abstract class Compiler implements LibraryLoaderListener {
               parameter);
           mainFunction = backend.helperForMainArity();
           // Don't warn about main not being used:
-          enqueuer.resolution.registerStaticUse(new StaticUse.foreignUse(main));
+          impactBuilder.registerStaticUse(new StaticUse.foreignUse(main));
         });
       }
     }
@@ -613,6 +613,7 @@ abstract class Compiler implements LibraryLoaderListener {
       reporter.reportWarningMessage(errorElement, errorElement.messageKind,
           errorElement.messageArguments);
     }
+    return impactBuilder;
   }
 
   /// Analyze all members of the library in [libraryUri].
@@ -640,7 +641,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
-        computeMain();
+        WorldImpact mainImpact = computeMain();
 
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
@@ -649,12 +650,13 @@ abstract class Compiler implements LibraryLoaderListener {
         // something to the resolution queue.  So we cannot wait with
         // this until after the resolution queue is processed.
         deferredLoadTask.beforeResolution(this);
-        ImpactStrategy impactStrategy = backend.createImpactStrategy(
+        impactStrategy = backend.createImpactStrategy(
             supportDeferredLoad: deferredLoadTask.isProgramSplit,
             supportDumpInfo: options.dumpInfo,
             supportSerialization: serialization.supportSerialization);
 
         phase = PHASE_RESOLVING;
+        enqueuer.resolution.applyImpact(mainImpact);
         if (options.resolveOnly) {
           libraryLoader.libraries.where((LibraryElement library) {
             return !serialization.isDeserialized(library);
@@ -678,9 +680,13 @@ abstract class Compiler implements LibraryLoaderListener {
             }
           }
         }
+        if (deferredLoadTask.isProgramSplit) {
+          enqueuer.resolution
+              .applyImpact(backend.computeDeferredLoadingImpact());
+        }
         // Elements required by enqueueHelpers are global dependencies
         // that are not pulled in by a particular element.
-        backend.enqueueHelpers(enqueuer.resolution);
+        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         if (mainFunction != null && !mainFunction.isMalformed) {
@@ -735,7 +741,8 @@ abstract class Compiler implements LibraryLoaderListener {
         phase = PHASE_COMPILING;
         backend.onCodegenStart();
         if (hasIsolateSupport) {
-          backend.enableIsolateSupport(enqueuer.codegen);
+          enqueuer.codegen
+              .applyImpact(backend.enableIsolateSupport(forResolution: false));
         }
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
@@ -842,7 +849,6 @@ abstract class Compiler implements LibraryLoaderListener {
             work.element,
             () => selfTask.measureSubtask("world.applyImpact", () {
                   enqueuer.applyImpact(
-                      impactStrategy,
                       selfTask.measureSubtask(
                           "work.run", () => work.run(this, enqueuer)),
                       impactSource: work.element);
@@ -853,19 +859,19 @@ abstract class Compiler implements LibraryLoaderListener {
 
   void processQueue(Enqueuer enqueuer, MethodElement mainMethod) {
     selfTask.measureSubtask("Compiler.processQueue", () {
-      enqueuer.applyImpact(
-          impactStrategy,
-          enqueuer.nativeEnqueuer
-              .processNativeClasses(libraryLoader.libraries));
+      enqueuer.open(impactStrategy);
+      enqueuer.applyImpact(enqueuer.nativeEnqueuer
+          .processNativeClasses(libraryLoader.libraries));
       if (mainMethod != null && !mainMethod.isMalformed) {
-        enqueuer.applyImpact(
-            impactStrategy, backend.computeMainImpact(enqueuer, mainMethod));
+        enqueuer.applyImpact(backend.computeMainImpact(mainMethod,
+            forResolution: enqueuer.isResolutionQueue));
       }
       if (options.verbose) {
         progress.reset();
       }
       emptyQueue(enqueuer);
       enqueuer.queueIsClosed = true;
+      enqueuer.close();
       // Notify the impact strategy impacts are no longer needed for this
       // enqueuer.
       impactStrategy.onImpactUsed(enqueuer.impactUse);
