@@ -56,8 +56,8 @@ def BuildDartdocAPIDocs(dirname):
   url = 'https://api.dartlang.org/stable'
   with bot.BuildStep('Build API docs by dartdoc'):
     bot_utils.run([dart_exe, dartdoc_dart,
-                  '--sdk-docs','--output', dirname, '--dart-sdk', dart_sdk, 
-                  '--footer' , footer_file, '--rel-canonical-prefix=' + url])
+                  '--sdk-docs','--output', dirname, '--footer' , footer_file,
+                  '--rel-canonical-prefix=' + url])
 
 def CreateUploadVersionFile():
   file_path = os.path.join(bot_utils.DART_DIR,
