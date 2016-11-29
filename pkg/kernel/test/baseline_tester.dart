@@ -4,7 +4,6 @@
 import 'dart:io';
 
 import 'package:kernel/analyzer/loader.dart';
-import 'package:kernel/application_root.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -31,7 +30,6 @@ void runBaselineTests(String folderName, TestTarget target) {
   String outputDirectory = '$testcaseDirectory/$folderName';
   var batch = new DartLoaderBatch();
   Directory directory = new Directory(inputDirectory);
-  var applicationRoot = new ApplicationRoot(directory.absolute.path);
   for (FileSystemEntity file in directory.listSync()) {
     if (file is File && file.path.endsWith('.dart')) {
       String name = pathlib.basename(file.path);
@@ -47,8 +45,7 @@ void runBaselineTests(String folderName, TestTarget target) {
             new DartOptions(
                 strongMode: target.strongMode,
                 sdk: sdkDirectory,
-                declaredVariables: target.extraDeclaredVariables,
-                applicationRoot: applicationRoot));
+                declaredVariables: target.extraDeclaredVariables));
         var program = loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
         var errors = target.transformProgram(program);
