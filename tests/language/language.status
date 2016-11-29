@@ -199,7 +199,7 @@ deferred_load_constants_test/05: Fail
 tearoff_basic_test: Fail
 regress_22443_test: Fail
 deferred_not_loaded_check_test: Fail
-regress_27201_test: Fail
+vm/regress_27201_test: Fail
 
 [ $mode == product || $compiler == dart2appjit || $compiler == dart2app || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
@@ -210,12 +210,12 @@ deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 tearoff_basic_test: Fail
 deferred_not_loaded_check_test: Fail
-regress_27201_test: Fail
+vm/regress_27201_test: Fail
 
 [ $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 deferred_global_test: Fail
-regress_27201_test: Fail
+vm/regress_27201_test: Fail
 
 [ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
