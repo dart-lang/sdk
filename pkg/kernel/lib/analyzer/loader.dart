@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:kernel/application_root.dart';
 import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 
@@ -35,6 +36,7 @@ class DartOptions {
   bool strongModeSdk;
   String sdk;
   String packagePath;
+  ApplicationRoot applicationRoot;
   Map<Uri, Uri> customUriMappings;
   Map<String, String> declaredVariables;
 
@@ -43,6 +45,7 @@ class DartOptions {
       bool strongModeSdk,
       this.sdk,
       this.packagePath,
+      this.applicationRoot,
       Map<Uri, Uri> customUriMappings,
       Map<String, String> declaredVariables})
       : this.customUriMappings = customUriMappings ?? <Uri, Uri>{},
@@ -68,6 +71,7 @@ abstract class ReferenceLevelLoader {
 
 class DartLoader implements ReferenceLevelLoader {
   final Repository repository;
+  final ApplicationRoot applicationRoot;
   final Bimap<ClassElement, ast.Class> _classes =
       new Bimap<ClassElement, ast.Class>();
   final Bimap<Element, ast.Member> _members = new Bimap<Element, ast.Member>();
@@ -90,19 +94,16 @@ class DartLoader implements ReferenceLevelLoader {
 
   DartLoader(this.repository, DartOptions options, Packages packages,
       {DartSdk dartSdk})
-      : this.context = createContext(options, packages, dartSdk: dartSdk);
-
-  LibraryElement getLibraryElement(ast.Library node) {
-    return context
-        .getLibraryElement(context.sourceFactory.forUri2(node.importUri));
-  }
+      : this.context = createContext(options, packages, dartSdk: dartSdk),
+        this.applicationRoot = options.applicationRoot;
 
   String getLibraryName(LibraryElement element) {
     return element.name.isEmpty ? null : element.name;
   }
 
   ast.Library getLibraryReference(LibraryElement element) {
-    return repository.getLibraryReference(element.source.uri)
+    var uri = applicationRoot.relativeUri(element.source.uri);
+    return repository.getLibraryReference(uri)
       ..name ??= getLibraryName(element)
       ..fileUri = "file://${element.source.fullName}";
   }
@@ -579,7 +580,8 @@ class DartLoader implements ReferenceLevelLoader {
   void ensureLibraryIsLoaded(ast.Library node) {
     if (!node.isExternal) return;
     node.isExternal = false;
-    var source = context.sourceFactory.forUri2(node.importUri);
+    var source = context.sourceFactory
+        .forUri2(applicationRoot.absoluteUri(node.importUri));
     assert(source != null);
     var element = context.computeLibraryElement(source);
     context.resolveCompilationUnit(source, element);
@@ -623,8 +625,9 @@ class DartLoader implements ReferenceLevelLoader {
   List<String> getLoadedFileNames() {
     var list = <String>[];
     for (var library in repository.libraries) {
-      LibraryElement element = context.computeLibraryElement(
-          context.sourceFactory.forUri2(library.importUri));
+      LibraryElement element = context.computeLibraryElement(context
+          .sourceFactory
+          .forUri2(applicationRoot.absoluteUri(library.importUri)));
       for (var unit in element.units) {
         list.add(unit.source.fullName);
       }
@@ -640,7 +643,8 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Program loadProgram(String mainLibrary, {Target target}) {
-    ast.Library library = repository.getLibrary(mainLibrary);
+    ast.Library library =
+        repository.getLibraryReference(applicationRoot.resolve(mainLibrary));
     ensureLibraryIsLoaded(library);
     loadEverything(target: target);
     var program = new ast.Program(repository.libraries);
@@ -662,7 +666,8 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Library loadLibrary(String mainLibrary) {
-    ast.Library library = repository.getLibrary(mainLibrary);
+    ast.Library library =
+        repository.getLibraryReference(applicationRoot.resolve(mainLibrary));
     ensureLibraryIsLoaded(library);
     return library;
   }
