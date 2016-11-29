@@ -95,7 +95,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
   Code code;
-  code = LookupDartCode();
+  code = GetCodeObject();
   if (!code.IsNull()) {
     // Visit the code object.
     RawObject* raw_code = code.raw();
