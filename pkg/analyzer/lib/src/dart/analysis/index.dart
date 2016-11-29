@@ -440,6 +440,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
         false) {
       return;
     }
+    // Ignore named parameters of synthetic functions, e.g. created for LUB.
+    // These functions are not bound to a source, we cannot index them.
+    if (elementKind == ElementKind.PARAMETER &&
+        element is ParameterElement &&
+        element.enclosingElement.isSynthetic) {
+      return;
+    }
     // Add the relation.
     assembler.addElementRelation(element, kind, offset, length, isQualified);
   }
