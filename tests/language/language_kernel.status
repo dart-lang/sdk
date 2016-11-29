@@ -189,11 +189,7 @@ generic_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError
 getter_setter_in_lib_test: RuntimeError
 inferrer_closure_test: RuntimeError
-initializing_formal_access_test: CompileTimeError
-initializing_formal_capture_test: CompileTimeError
-initializing_formal_final_test: CompileTimeError
-initializing_formal_promotion_test: CompileTimeError
-initializing_formal_type_test: CompileTimeError
+initializing_formal_final_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 is_not_class2_test: RuntimeError
 issue13474_test: RuntimeError
@@ -292,7 +288,6 @@ not_enough_positional_arguments_test/02: MissingRuntimeError
 not_enough_positional_arguments_test/05: MissingRuntimeError
 null_test/none: RuntimeError
 number_identifier_test/05: RuntimeError
-parameter_initializer5_test: CompileTimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
@@ -526,11 +521,7 @@ getter_closure_execution_order_test: RuntimeError
 getter_setter_in_lib_test: RuntimeError
 if_null_assignment_static_test/35: Crash
 inferrer_closure_test: RuntimeError
-initializing_formal_access_test: CompileTimeError
-initializing_formal_capture_test: CompileTimeError
-initializing_formal_final_test: CompileTimeError
-initializing_formal_promotion_test: CompileTimeError
-initializing_formal_type_test: CompileTimeError
+initializing_formal_final_test: RuntimeError
 instance_creation_in_function_annotation_test: Crash
 invocation_mirror_invoke_on2_test: Crash
 is_not_class2_test: RuntimeError
@@ -632,7 +623,6 @@ not_enough_positional_arguments_test/02: MissingRuntimeError
 not_enough_positional_arguments_test/05: MissingRuntimeError
 null_test/none: RuntimeError
 number_identifier_test/05: RuntimeError
-parameter_initializer5_test: CompileTimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
