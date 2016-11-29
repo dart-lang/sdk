@@ -205,21 +205,23 @@ class EditDomainHandler implements RequestHandler {
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
       if (errorInfo != null) {
         LineInfo lineInfo = errorInfo.lineInfo;
-        int requestLine = lineInfo.getLocation(offset).lineNumber;
-        for (engine.AnalysisError error in errorInfo.errors) {
-          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-          if (errorLine == requestLine) {
-            List<Fix> fixes = await computeFixes(server.serverPlugin,
-                server.resourceProvider, unit.element.context, error);
-            if (fixes.isNotEmpty) {
-              AnalysisError serverError =
-                  newAnalysisError_fromEngine(lineInfo, error);
-              AnalysisErrorFixes errorFixes =
-                  new AnalysisErrorFixes(serverError);
-              errorFixesList.add(errorFixes);
-              fixes.forEach((fix) {
-                errorFixes.fixes.add(fix.change);
-              });
+        if (lineInfo != null) {
+          int requestLine = lineInfo.getLocation(offset).lineNumber;
+          for (engine.AnalysisError error in errorInfo.errors) {
+            int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+            if (errorLine == requestLine) {
+              List<Fix> fixes = await computeFixes(server.serverPlugin,
+                  server.resourceProvider, unit.element.context, error);
+              if (fixes.isNotEmpty) {
+                AnalysisError serverError =
+                    newAnalysisError_fromEngine(lineInfo, error);
+                AnalysisErrorFixes errorFixes =
+                    new AnalysisErrorFixes(serverError);
+                errorFixesList.add(errorFixes);
+                fixes.forEach((fix) {
+                  errorFixes.fixes.add(fix.change);
+                });
+              }
             }
           }
         }
