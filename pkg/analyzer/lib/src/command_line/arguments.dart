@@ -46,8 +46,6 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   // Analysis options.
   //
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-  defaultOptions.enableInitializingFormalAccess =
-      args[enableInitializingFormalAccessFlag];
   defaultOptions.enableStrictCallChecks = args[enableStrictCallChecksFlag];
   defaultOptions.enableSuperMixins = args[enableSuperInMixinFlag];
   defaultOptions.implicitCasts = !args[noImplicitCastsFlag];

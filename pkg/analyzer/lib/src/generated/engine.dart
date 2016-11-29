@@ -1129,6 +1129,7 @@ abstract class AnalysisOptions {
    * Return `true` if access to field formal parameters should be allowed in a
    * constructor's initializer list.
    */
+  @deprecated
   bool get enableInitializingFormalAccess;
 
   /**
@@ -1330,9 +1331,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAssertMessage = false;
 
   @override
-  bool enableInitializingFormalAccess = false;
-
-  @override
   bool enableLazyAssignmentOperators = false;
 
   @override
@@ -1453,7 +1451,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
-    enableInitializingFormalAccess = options.enableInitializingFormalAccess;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
@@ -1532,6 +1529,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @deprecated
   void set enableGenericMethods(bool enable) {}
+
+  @deprecated
+  @override
+  bool get enableInitializingFormalAccess => true;
+
+  @deprecated
+  void set enableInitializingFormalAccess(bool enable) {}
 
   @override
   List<ErrorProcessor> get errorProcessors =>

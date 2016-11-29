@@ -7169,12 +7169,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   LabelScope labelScope;
 
   /**
-   * A flag indicating whether to enable support for allowing access to field
-   * formal parameters in a constructor's initializer list.
-   */
-  bool enableInitializingFormalAccess = false;
-
-  /**
    * The class containing the AST nodes being visited,
    * or `null` if we are not in the scope of a class.
    */
@@ -7205,8 +7199,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     } else {
       this.nameScope = nameScope;
     }
-    enableInitializingFormalAccess =
-        definingLibrary.context.analysisOptions.enableInitializingFormalAccess;
   }
 
   /**
@@ -7368,7 +7360,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       node.parameters?.accept(this);
       Scope functionScope = nameScope;
       try {
-        if (constructorElement != null && enableInitializingFormalAccess) {
+        if (constructorElement != null) {
           nameScope =
               new ConstructorInitializerScope(nameScope, constructorElement);
         }

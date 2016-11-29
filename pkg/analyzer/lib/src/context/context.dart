@@ -283,8 +283,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableAssertInitializer !=
             options.enableAssertInitializer ||
         this._options.enableAssertMessage != options.enableAssertMessage ||
-        this._options.enableInitializingFormalAccess !=
-            options.enableInitializingFormalAccess ||
         this._options.enableLazyAssignmentOperators !=
             options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
@@ -311,8 +309,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
-    this._options.enableInitializingFormalAccess =
-        options.enableInitializingFormalAccess;
     this._options.enableLazyAssignmentOperators =
         options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
