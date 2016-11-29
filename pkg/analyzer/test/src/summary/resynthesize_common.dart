@@ -3625,6 +3625,24 @@ var v = [f, g];
 ''');
   }
 
+  test_inheritance_errors() {
+    checkLibrary('''
+abstract class A {
+  int m();
+}
+
+abstract class B {
+  String m();
+}
+
+abstract class C implements A, B {}
+
+abstract class D extends C {
+  var f;
+}
+''');
+  }
+
   test_initializer_executable_with_return_type_from_closure() {
     checkLibrary('var v = () => 0;');
   }
