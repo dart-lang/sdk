@@ -89,7 +89,6 @@ main(List<String> args) {
         compiler.enqueuer,
         compiler.options,
         compiler.resolution,
-        compiler.enqueuerFilter,
         const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
         backend,

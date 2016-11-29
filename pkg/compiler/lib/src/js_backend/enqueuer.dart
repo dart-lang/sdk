@@ -86,8 +86,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
-  QueueFilter get filter => _compiler.enqueuerFilter;
-
   DiagnosticReporter get reporter => _compiler.reporter;
 
   /**
@@ -156,7 +154,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
-    return filter.checkNoEnqueuedInvokedInstanceMethods(this);
+    return strategy.checkEnqueuerConsistency(this);
   }
 
   void processInstantiatedClassMembers(ClassElement cls) {
@@ -449,7 +447,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     do {
       while (queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
-        filter.processWorkItem(f, queue.removeLast());
+        strategy.processWorkItem(f, queue.removeLast());
       }
       List recents = recentClasses.toList(growable: false);
       recentClasses.clear();

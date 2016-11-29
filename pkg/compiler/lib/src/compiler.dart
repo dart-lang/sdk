@@ -35,8 +35,7 @@ import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show ErroneousElementX;
-import 'enqueue.dart'
-    show Enqueuer, EnqueueTask, ResolutionEnqueuer, QueueFilter;
+import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
@@ -180,9 +179,6 @@ abstract class Compiler implements LibraryLoaderListener {
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   DumpInfoTask dumpInfoTask;
-
-  /// A customizable filter that is applied to enqueued work items.
-  QueueFilter enqueuerFilter = new QueueFilter();
 
   bool get hasFunctionApplySupport => resolverWorld.hasFunctionApplySupport;
   bool get hasIsolateSupport => resolverWorld.hasIsolateSupport;

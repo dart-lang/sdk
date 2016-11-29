@@ -54,7 +54,6 @@ class EnqueueTask extends CompilerTask {
         this,
         compiler.options,
         compiler.resolution,
-        compiler.enqueuerFilter,
         compiler.options.analyzeOnly && compiler.options.analyzeMain
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
@@ -137,7 +136,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final CompilerTask task;
   final String name;
   final Resolution resolution;
-  final QueueFilter filter;
   final CompilerOptions options;
   final Backend backend;
   final GlobalDependencyRegistry globalDependencies;
@@ -161,7 +159,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       this.task,
       this.options,
       this.resolution,
-      this.filter,
       this.strategy,
       this.globalDependencies,
       Backend backend,
@@ -243,7 +240,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
-    return filter.checkNoEnqueuedInvokedInstanceMethods(this);
+    return strategy.checkEnqueuerConsistency(this);
   }
 
   void processInstantiatedClassMembers(ClassElement cls) {
@@ -548,7 +545,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     do {
       while (queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
-        filter.processWorkItem(f, queue.removeLast());
+        strategy.processWorkItem(f, queue.removeLast());
       }
       List recents = recentClasses.toList(growable: false);
       recentClasses.clear();
@@ -705,28 +702,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 }
 
-/// Parameterizes filtering of which work items are enqueued.
-class QueueFilter {
-  bool checkNoEnqueuedInvokedInstanceMethods(EnqueuerImpl enqueuer) {
-    enqueuer.task.measure(() {
-      // Run through the classes and see if we need to compile methods.
-      for (ClassElement classElement
-          in enqueuer.universe.directlyInstantiatedClasses) {
-        for (ClassElement currentClass = classElement;
-            currentClass != null;
-            currentClass = currentClass.superclass) {
-          enqueuer.processInstantiatedClassMembers(currentClass);
-        }
-      }
-    });
-    return true;
-  }
-
-  void processWorkItem(void f(WorkItem work), WorkItem work) {
-    f(work);
-  }
-}
-
 void removeFromSet(Map<String, Set<Element>> map, Element element) {
   Set<Element> set = map[element.name];
   if (set == null) return;
@@ -734,7 +709,6 @@ void removeFromSet(Map<String, Set<Element>> map, Element element) {
 }
 
 /// Strategy used by the enqueuer to populate the world.
-// TODO(johnniwinther): Merge this interface with [QueueFilter].
 class EnqueuerStrategy {
   const EnqueuerStrategy();
 
@@ -749,6 +723,27 @@ class EnqueuerStrategy {
 
   /// Process a dynamic use for a call site in live code.
   void processDynamicUse(EnqueuerImpl enqueuer, DynamicUse dynamicUse) {}
+
+  /// Check enqueuer consistency after the queue has been closed.
+  bool checkEnqueuerConsistency(EnqueuerImpl enqueuer) {
+    enqueuer.task.measure(() {
+      // Run through the classes and see if we need to enqueue more methods.
+      for (ClassElement classElement
+          in enqueuer.universe.directlyInstantiatedClasses) {
+        for (ClassElement currentClass = classElement;
+            currentClass != null;
+            currentClass = currentClass.superclass) {
+          enqueuer.processInstantiatedClassMembers(currentClass);
+        }
+      }
+    });
+    return true;
+  }
+
+  /// Process [work] using [f].
+  void processWorkItem(void f(WorkItem work), WorkItem work) {
+    f(work);
+  }
 }
 
 /// Strategy that only enqueues directly used elements.
@@ -762,7 +757,7 @@ class DirectEnqueuerStrategy extends EnqueuerStrategy {
 }
 
 /// Strategy used for tree-shaking.
-class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
+class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
   const TreeShakingEnqueuerStrategy();
 
   @override
