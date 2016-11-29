@@ -669,11 +669,8 @@ class InheritanceManager {
     if (ignoreErrors) {
       return;
     }
-    HashSet<AnalysisError> errorSet = _errorsInClassElement[classElt];
-    if (errorSet == null) {
-      errorSet = new HashSet<AnalysisError>();
-      _errorsInClassElement[classElt] = errorSet;
-    }
+    HashSet<AnalysisError> errorSet = _errorsInClassElement.putIfAbsent(
+        classElt, () => new HashSet<AnalysisError>());
     errorSet.add(new AnalysisError(classElt.source, classElt.nameOffset,
         classElt.nameLength, errorCode, arguments));
   }
