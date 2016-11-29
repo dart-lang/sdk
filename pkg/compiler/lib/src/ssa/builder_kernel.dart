@@ -671,6 +671,41 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitAsExpression(ir.AsExpression asExpression) {
+    asExpression.operand.accept(this);
+    HInstruction expressionInstruction = pop();
+    DartType type = astAdapter.getDartType(asExpression.type);
+    if (type.isMalformed) {
+      if (type is MalformedType) {
+        ErroneousElement element = type.element;
+        generateTypeError(asExpression, element.message);
+      } else {
+        assert(type is MethodTypeVariableType);
+        stack.add(expressionInstruction);
+      }
+    } else {
+      HInstruction converted = typeBuilder.buildTypeConversion(
+          expressionInstruction,
+          localsHandler.substInContext(type),
+          HTypeConversion.CAST_TYPE_CHECK);
+      if (converted != expressionInstruction) {
+        add(converted);
+      }
+      stack.add(converted);
+    }
+  }
+
+  void generateError(ir.Node node, String message, TypeMask typeMask) {
+    HInstruction errorMessage =
+        graph.addConstantString(new DartString.literal(message), compiler);
+    _pushStaticInvocation(node, [errorMessage], typeMask);
+  }
+
+  void generateTypeError(ir.Node node, String message) {
+    generateError(node, message, astAdapter.throwTypeErrorType);
+  }
+
+  @override
   void visitAssertStatement(ir.AssertStatement assertStatement) {
     if (!compiler.options.enableUserAssertions) return;
     if (assertStatement.message == null) {
