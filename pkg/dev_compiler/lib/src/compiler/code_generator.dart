@@ -124,6 +124,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   final ClassElement numClass;
   final ClassElement objectClass;
   final ClassElement stringClass;
+  final ClassElement symbolClass;
 
   ConstFieldVisitor _constants;
 
@@ -164,6 +165,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         nullClass = _getLibrary(c, 'dart:core').getType('Null'),
         objectClass = _getLibrary(c, 'dart:core').getType('Object'),
         stringClass = _getLibrary(c, 'dart:core').getType('String'),
+        symbolClass = _getLibrary(c, 'dart:_internal').getType('Symbol'),
         dartJSLibrary = _getLibrary(c, 'dart:js');
 
   LibraryElement get currentLibrary => _loader.currentElement.library;
@@ -5227,11 +5229,17 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   visitSymbolLiteral(SymbolLiteral node) {
     JS.Expression emitSymbol() {
-      // TODO(vsm): When we canonicalize, we need to treat private symbols
-      // correctly.
+      // TODO(vsm): Handle qualified symbols correctly.
+      var last = node.components.last.toString();
       var name = js.string(node.components.join('.'), "'");
-      return js
-          .call('#.new(#)', [_emitConstructorAccess(types.symbolType), name]);
+      if (last.startsWith('_')) {
+        var nativeSymbol = _emitPrivateNameSymbol(currentLibrary, last);
+        return js.call('new #.es6(#, #)',
+            [_emitConstructorAccess(symbolClass.type), name, nativeSymbol]);
+      } else {
+        return js
+            .call('#.new(#)', [_emitConstructorAccess(types.symbolType), name]);
+      }
     }
 
     return _emitConst(emitSymbol);

@@ -64,12 +64,12 @@ mixin(base, @rest mixins) => JS(
 /// The Symbol for storing type arguments on a specialized generic type.
 final _mixins = JS('', 'Symbol("mixins")');
 
-getMixins(clazz) => JS('', '$clazz[$_mixins]');
+getMixins(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null', clazz, _mixins, clazz, _mixins);
 
 @JSExportName('implements')
 final _implements = JS('', 'Symbol("implements")');
 
-getImplements(clazz) => JS('', '#[#]', clazz, _implements);
+getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null', clazz, _implements, clazz, _implements);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
