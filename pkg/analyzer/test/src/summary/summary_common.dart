@@ -1843,6 +1843,26 @@ class C<T> {
         operators: [UnlinkedExprOperation.pushParameter], strings: ['T']);
   }
 
+  test_constExpr_functionExpression() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+import 'dart:async';
+const v = (f) async => await f;
+''');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.await
+        ],
+        strings: [
+          'f'
+        ],
+        ints: []);
+  }
+
   test_constExpr_functionExpression_asArgument() {
     // Even though function expressions are not allowed in constant
     // declarations, they might occur due to erroneous code, so make sure they

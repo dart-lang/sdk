@@ -3673,6 +3673,31 @@ abstract class D extends C {
     checkLibrary('var v = () => 0;');
   }
 
+  test_initializer_executable_with_return_type_from_closure_await_dynamic() {
+    checkLibrary('var v = (f) async => await f;');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_future3_int() {
+    checkLibrary(r'''
+import 'dart:async';
+var v = (Future<Future<Future<int>>> f) async => await f;
+''');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_future_int() {
+    checkLibrary(r'''
+import 'dart:async';
+var v = (Future<int> f) async => await f;
+''');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_future_noArg() {
+    checkLibrary(r'''
+import 'dart:async';
+var v = (Future f) async => await f;
+''');
+  }
+
   test_initializer_executable_with_return_type_from_closure_field() {
     checkLibrary('''
 class C {

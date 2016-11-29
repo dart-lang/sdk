@@ -765,7 +765,13 @@ enum UnlinkedExprOperation : byte {
    * keep it and discard the second.  Otherwise, keep the second and discard the
    * first.
    */
-  ifNull
+  ifNull,
+
+  /**
+   * Pop the top value from the stack.  Treat it as a Future and await its
+   * completion.  Then push the awaited value onto the stack.
+   */
+  await
 }
 
 /**

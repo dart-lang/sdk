@@ -500,6 +500,10 @@ class _ConstExprBuilder {
         case UnlinkedExprOperation.ifNull:
           _pushBinary(TokenType.QUESTION_QUESTION);
           break;
+        case UnlinkedExprOperation.await:
+          Expression expression = _pop();
+          _push(AstTestFactory.awaitExpression(expression));
+          break;
         case UnlinkedExprOperation.assignToRef:
         case UnlinkedExprOperation.assignToProperty:
         case UnlinkedExprOperation.assignToIndex:

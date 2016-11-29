@@ -2228,6 +2228,9 @@ class ExprTypeComputer {
         case UnlinkedExprOperation.assignToIndex:
           _doAssignToIndex();
           break;
+        case UnlinkedExprOperation.await:
+          _doAwait();
+          break;
         case UnlinkedExprOperation.extractIndex:
           _doExtractIndex();
           break;
@@ -2361,6 +2364,13 @@ class ExprTypeComputer {
       // TODO(scheglov) implement
       stack.add(DynamicTypeImpl.instance);
     }
+  }
+
+  void _doAwait() {
+    DartType type = stack.removeLast();
+    DartType typeArgument = type?.flattenFutures(linker.typeSystem);
+    typeArgument = _dynamicIfNull(typeArgument);
+    stack.add(typeArgument);
   }
 
   void _doConditional() {
@@ -3413,10 +3423,10 @@ abstract class LibraryElementForLink<
       _linkedLibrary.importDependencies.map(_getDependency).toList();
 
   @override
-  bool get isDartAsync => _absoluteUri == 'dart:async';
+  bool get isDartAsync => _absoluteUri.toString() == 'dart:async';
 
   @override
-  bool get isDartCore => _absoluteUri == 'dart:core';
+  bool get isDartCore => _absoluteUri.toString() == 'dart:core';
 
   /**
    * If this library is part of the build unit being linked, return the library
