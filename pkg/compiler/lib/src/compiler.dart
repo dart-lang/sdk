@@ -56,9 +56,7 @@ import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'parser/diet_parser_task.dart' show DietParserTask;
 import 'parser/parser_task.dart' show ParserTask;
 import 'patch_parser.dart' show PatchParserTask;
-import 'resolution/registry.dart' show ResolutionRegistry;
 import 'resolution/resolution.dart' show ResolverTask;
-import 'resolution/tree_elements.dart' show TreeElementMapping;
 import 'resolved_uri_translator.dart';
 import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
@@ -70,11 +68,10 @@ import 'tracer.dart' show Tracer;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
-import 'types/masks.dart' show CommonMasks;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
-import 'universe/use.dart' show StaticUse;
+import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
     show
         ImpactStrategy,
@@ -631,7 +628,7 @@ abstract class Compiler implements LibraryLoaderListener {
         .loadLibrary(libraryUri, skipFileWithPartOfTag: true)
         .then((LibraryElement library) {
       if (library == null) return null;
-      fullyEnqueueLibrary(library, enqueuer.resolution);
+      enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
       emptyQueue(enqueuer.resolution);
       enqueuer.resolution.logSummary(reporter.log);
       return library;
@@ -662,21 +659,21 @@ abstract class Compiler implements LibraryLoaderListener {
             return !serialization.isDeserialized(library);
           }).forEach((LibraryElement library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
-            fullyEnqueueLibrary(library, enqueuer.resolution);
+            enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
           });
         } else if (analyzeAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
-            fullyEnqueueLibrary(library, enqueuer.resolution);
+            enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
           });
         } else if (options.analyzeMain) {
           if (mainApp != null) {
-            fullyEnqueueLibrary(mainApp, enqueuer.resolution);
+            enqueuer.resolution.applyImpact(computeImpactForLibrary(mainApp));
           }
           if (librariesToAnalyzeWhenRun != null) {
             for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-              fullyEnqueueLibrary(
-                  libraryLoader.lookupLibrary(libraryUri), enqueuer.resolution);
+              enqueuer.resolution.applyImpact(computeImpactForLibrary(
+                  libraryLoader.lookupLibrary(libraryUri)));
             }
           }
         }
@@ -739,6 +736,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
+
         backend.onCodegenStart();
         if (hasIsolateSupport) {
           enqueuer.codegen
@@ -746,7 +744,7 @@ abstract class Compiler implements LibraryLoaderListener {
         }
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
-            fullyEnqueueLibrary(library, enqueuer.codegen);
+            enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
           });
         }
         processQueue(enqueuer.codegen, mainFunction);
@@ -780,19 +778,34 @@ abstract class Compiler implements LibraryLoaderListener {
     closureToClassMapper.createClosureClasses();
   }
 
-  void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
-    void enqueueAll(Element element) {
-      fullyEnqueueTopLevelElement(element, world);
+  /// Compute the [WorldImpact] for accessing all elements in [library].
+  WorldImpact computeImpactForLibrary(LibraryElement library) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+
+    void registerStaticUse(Element element) {
+      impactBuilder.registerStaticUse(new StaticUse.directUse(element));
     }
 
-    library.implementation.forEachLocalMember(enqueueAll);
+    void registerElement(Element element) {
+      if (element.isClass) {
+        ClassElement cls = element;
+        cls.ensureResolved(resolution);
+        cls.forEachLocalMember(registerStaticUse);
+        impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+      } else {
+        registerStaticUse(element);
+      }
+    }
+
+    library.implementation.forEachLocalMember(registerElement);
+
     library.imports.forEach((ImportElement import) {
       if (import.isDeferred) {
         // `import.prefix` and `loadLibrary` may be `null` when the deferred
         // import has compile-time errors.
         GetterElement loadLibrary = import.prefix?.loadLibrary;
         if (loadLibrary != null) {
-          world.addToWorkList(loadLibrary);
+          registerStaticUse(loadLibrary);
         }
       }
       if (serialization.supportSerialization) {
@@ -813,17 +826,7 @@ abstract class Compiler implements LibraryLoaderListener {
         }
       });
     }
-  }
-
-  void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {
-    if (element.isClass) {
-      ClassElement cls = element;
-      cls.ensureResolved(resolution);
-      cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      world.registerInstantiatedType(cls.rawType);
-    } else {
-      world.addToWorkList(element);
-    }
+    return impactBuilder;
   }
 
   // Resolves metadata on library elements.  This is necessary in order to

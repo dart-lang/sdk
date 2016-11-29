@@ -373,7 +373,7 @@ class MyCompiler extends CompilerImpl {
         // Note: we enqueue everything in the program so we measure generating
         // kernel for the entire code, not just what's reachable from main.
         libraryLoader.libraries.forEach((LibraryElement library) {
-          fullyEnqueueLibrary(library, enqueuer.resolution);
+          enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
         });
 
         if (deferredLoadTask.isProgramSplit) {

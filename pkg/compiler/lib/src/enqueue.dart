@@ -56,7 +56,7 @@ class EnqueueTask extends CompilerTask {
         compiler.resolution,
         compiler.enqueuerFilter,
         compiler.options.analyzeOnly && compiler.options.analyzeMain
-            ? const EnqueuerStrategy()
+            ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
         compiler.backend,
@@ -75,7 +75,6 @@ class EnqueueTask extends CompilerTask {
 }
 
 abstract class Enqueuer {
-  CompilerTask get task;
   WorldBuilder get universe;
   native.NativeEnqueuer get nativeEnqueuer;
   void forgetElement(Element element, Compiler compiler);
@@ -95,13 +94,6 @@ abstract class Enqueuer {
     _impactStrategy = const ImpactStrategy();
   }
 
-  void processInstantiatedClassMembers(ClassElement cls);
-  void processInstantiatedClassMember(ClassElement cls, Element member);
-  void handleUnseenSelectorInternal(DynamicUse dynamicUse);
-  void registerStaticUse(StaticUse staticUse);
-  void registerStaticUseInternal(StaticUse staticUse);
-  void registerDynamicUse(DynamicUse dynamicUse);
-
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue;
 
@@ -111,21 +103,11 @@ abstract class Enqueuer {
 
   ImpactUseCase get impactUse;
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  void addToWorkList(Element element);
-
-  void enableIsolateSupport();
-
-  void registerInstantiatedType(InterfaceType type);
   void forEach(void f(WorkItem work));
 
-  /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is provided
-  /// the impact strategy will remove it from the element impact cache, if it is
-  /// no longer needed.
+  /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is
+  /// provided the impact strategy will remove it from the element impact cache,
+  /// if it is no longer needed.
   void applyImpact(WorldImpact worldImpact, {Element impactSource});
   bool checkNoEnqueuedInvokedInstanceMethods();
   void logSummary(log(message));
@@ -138,8 +120,20 @@ abstract class Enqueuer {
   Iterable<ClassElement> get processedClasses;
 }
 
+abstract class EnqueuerImpl extends Enqueuer {
+  CompilerTask get task;
+  void processInstantiatedClassMembers(ClassElement cls);
+  void processInstantiatedClassMember(ClassElement cls, Element member);
+  void registerStaticUse(StaticUse staticUse);
+  void registerStaticUseInternal(StaticUse staticUse);
+  void registerTypeUse(TypeUse typeUse);
+  void registerTypeUseInternal(TypeUse typeUse);
+  void registerDynamicUse(DynamicUse dynamicUse);
+  void handleUnseenSelectorInternal(DynamicUse dynamicUse);
+}
+
 /// [Enqueuer] which is specific to resolution.
-class ResolutionEnqueuer extends Enqueuer {
+class ResolutionEnqueuer extends EnqueuerImpl {
   final CompilerTask task;
   final String name;
   final Resolution resolution;
@@ -182,7 +176,7 @@ class ResolutionEnqueuer extends Enqueuer {
         deferredQueue = new Queue<_DeferredAction>(),
         _universe = new ResolutionWorldBuilderImpl(
             backend, commonElements, cacheStrategy, const TypeMaskStrategy()) {
-    impactVisitor = new _EnqueuerImpactVisitor(this);
+    impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
   ResolutionWorldBuilder get universe => _universe;
@@ -469,6 +463,7 @@ class ResolutionEnqueuer extends Enqueuer {
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.SUPER_TEAR_OFF:
       case StaticUseKind.GENERAL:
+      case StaticUseKind.DIRECT_USE:
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
@@ -491,7 +486,11 @@ class ResolutionEnqueuer extends Enqueuer {
     }
   }
 
-  void _registerTypeUse(TypeUse typeUse) {
+  void registerTypeUse(TypeUse typeUse) {
+    strategy.processTypeUse(this, typeUse);
+  }
+
+  void registerTypeUseInternal(TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
@@ -708,7 +707,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
 /// Parameterizes filtering of which work items are enqueued.
 class QueueFilter {
-  bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) {
+  bool checkNoEnqueuedInvokedInstanceMethods(EnqueuerImpl enqueuer) {
     enqueuer.task.measure(() {
       // Run through the classes and see if we need to compile methods.
       for (ClassElement classElement
@@ -740,38 +739,57 @@ class EnqueuerStrategy {
   const EnqueuerStrategy();
 
   /// Process a class instantiated in live code.
-  void processInstantiatedClass(Enqueuer enqueuer, ClassElement cls) {}
+  void processInstantiatedClass(EnqueuerImpl enqueuer, ClassElement cls) {}
 
   /// Process a static use of and element in live code.
-  void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {}
+  void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {}
+
+  /// Process a type use in live code.
+  void processTypeUse(EnqueuerImpl enqueuer, TypeUse typeUse) {}
 
   /// Process a dynamic use for a call site in live code.
-  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {}
+  void processDynamicUse(EnqueuerImpl enqueuer, DynamicUse dynamicUse) {}
 }
 
+/// Strategy that only enqueues directly used elements.
+class DirectEnqueuerStrategy extends EnqueuerStrategy {
+  const DirectEnqueuerStrategy();
+  void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {
+    if (staticUse.kind == StaticUseKind.DIRECT_USE) {
+      enqueuer.registerStaticUseInternal(staticUse);
+    }
+  }
+}
+
+/// Strategy used for tree-shaking.
 class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
   const TreeShakingEnqueuerStrategy();
 
   @override
-  void processInstantiatedClass(Enqueuer enqueuer, ClassElement cls) {
+  void processInstantiatedClass(EnqueuerImpl enqueuer, ClassElement cls) {
     cls.implementation.forEachMember(enqueuer.processInstantiatedClassMember);
   }
 
   @override
-  void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {
+  void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {
     enqueuer.registerStaticUseInternal(staticUse);
   }
 
   @override
-  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {
+  void processTypeUse(EnqueuerImpl enqueuer, TypeUse typeUse) {
+    enqueuer.registerTypeUseInternal(typeUse);
+  }
+
+  @override
+  void processDynamicUse(EnqueuerImpl enqueuer, DynamicUse dynamicUse) {
     enqueuer.handleUnseenSelectorInternal(dynamicUse);
   }
 }
 
-class _EnqueuerImpactVisitor implements WorldImpactVisitor {
-  final ResolutionEnqueuer enqueuer;
+class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
+  final EnqueuerImpl enqueuer;
 
-  _EnqueuerImpactVisitor(this.enqueuer);
+  EnqueuerImplImpactVisitor(this.enqueuer);
 
   @override
   void visitDynamicUse(DynamicUse dynamicUse) {
@@ -785,7 +803,7 @@ class _EnqueuerImpactVisitor implements WorldImpactVisitor {
 
   @override
   void visitTypeUse(TypeUse typeUse) {
-    enqueuer._registerTypeUse(typeUse);
+    enqueuer.registerTypeUse(typeUse);
   }
 }
 

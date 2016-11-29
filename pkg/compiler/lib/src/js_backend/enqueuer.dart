@@ -43,7 +43,7 @@ import '../util/util.dart' show Setlet;
 import '../world.dart';
 
 /// [Enqueuer] which is specific to code generation.
-class CodegenEnqueuer extends Enqueuer {
+class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
   @deprecated
   final Compiler _compiler; // TODO(ahe): Remove this dependency.
@@ -70,7 +70,7 @@ class CodegenEnqueuer extends Enqueuer {
         nativeEnqueuer = compiler.backend.nativeCodegenEnqueuer(),
         this.name = 'codegen enqueuer',
         this._compiler = compiler {
-    impactVisitor = new _EnqueuerImpactVisitor(this);
+    impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
   CodegenWorldBuilder get universe => _universe;
@@ -376,11 +376,12 @@ class CodegenEnqueuer extends Enqueuer {
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.SUPER_TEAR_OFF:
       case StaticUseKind.GENERAL:
+      case StaticUseKind.DIRECT_USE:
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
-        registerTypeUse(new TypeUse.instantiation(staticUse.type));
+        registerTypeUseInternal(new TypeUse.instantiation(staticUse.type));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         _registerInstanceMethod(staticUse.element);
@@ -392,6 +393,10 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   void registerTypeUse(TypeUse typeUse) {
+    strategy.processTypeUse(this, typeUse);
+  }
+
+  void registerTypeUseInternal(TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
@@ -534,25 +539,4 @@ void removeFromSet(Map<String, Set<Element>> map, Element element) {
   Set<Element> set = map[element.name];
   if (set == null) return;
   set.remove(element);
-}
-
-class _EnqueuerImpactVisitor implements WorldImpactVisitor {
-  final CodegenEnqueuer enqueuer;
-
-  _EnqueuerImpactVisitor(this.enqueuer);
-
-  @override
-  void visitDynamicUse(DynamicUse dynamicUse) {
-    enqueuer.registerDynamicUse(dynamicUse);
-  }
-
-  @override
-  void visitStaticUse(StaticUse staticUse) {
-    enqueuer.registerStaticUse(staticUse);
-  }
-
-  @override
-  void visitTypeUse(TypeUse typeUse) {
-    enqueuer.registerTypeUse(typeUse);
-  }
 }

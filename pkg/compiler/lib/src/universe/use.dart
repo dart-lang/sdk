@@ -75,6 +75,7 @@ enum StaticUseKind {
   CONST_CONSTRUCTOR_INVOKE,
   REDIRECTION,
   DIRECT_INVOKE,
+  DIRECT_USE,
 }
 
 /// Statically known use of an [Element].
@@ -309,6 +310,11 @@ class StaticUse {
   @deprecated
   factory StaticUse.foreignUse(Element element) {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
+  factory StaticUse.directUse(Element element) {
+    return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
   }
 
   bool operator ==(other) {
