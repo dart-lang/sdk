@@ -157,11 +157,9 @@ abstract class TreeNode extends Node {
 // ------------------------------------------------------------------------
 
 class Library extends TreeNode implements Comparable<Library> {
-  /// An import path to this library.
+  /// An absolute import path to this library.
   ///
-  /// The [Uri] should have the `dart`, `package`, or `app` scheme.
-  ///
-  /// If the URI has the `app` scheme, it is relative to the application root.
+  /// The [Uri] should have the `dart`, `package`, or `file` scheme.
   Uri importUri;
 
   /// The uri of the source file this library was loaded from.
