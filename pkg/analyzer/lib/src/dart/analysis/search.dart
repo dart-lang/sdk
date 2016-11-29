@@ -60,6 +60,8 @@ class Search {
       return _searchReferences_Local(element, (n) => n is Block);
     } else if (kind == ElementKind.PARAMETER) {
       return _searchReferences_Parameter(element);
+    } else if (kind == ElementKind.PREFIX) {
+      return _searchReferences_Prefix(element);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return _searchReferences_Local(
           element, (n) => n.parent is CompilationUnit);
@@ -194,6 +196,27 @@ class Search {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Prefix(
+      PrefixElement element) async {
+    // Search only in drivers to which the library with the prefix was added.
+    String path = element.source.fullName;
+    if (!_driver.addedFiles.contains(path)) {
+      return const <SearchResult>[];
+    }
+
+    List<SearchResult> results = <SearchResult>[];
+    LibraryElement libraryElement = element.library;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      String unitPath = unitElement.source.fullName;
+      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      _LocalReferencesVisitor visitor =
+          new _LocalReferencesVisitor(element, unitElement);
+      unitAnalysisResult.unit.accept(visitor);
+      results.addAll(visitor.results);
+    }
     return results;
   }
 }
