@@ -182,9 +182,10 @@ class _ContradictionReportRule extends LintRule {
 }
 
 TestedExpressions _findPreviousTestedExpressions(BinaryExpression node) {
-  Block block = node
-      .getAncestor((a) => a is Block && a.parent is BlockFunctionBody);
-  Iterable<AstNode> nodesInDFS = DartTypeUtilities.traverseNodesInDFS(block);
+  Block block =
+      node.getAncestor((a) => a is Block && a.parent is FunctionBody);
+  Iterable<AstNode> nodesInDFS = DartTypeUtilities.traverseNodesInDFS(block,
+      excludeCriteria: (n) => n is FunctionDeclarationStatement);
   Iterable<Expression> conjunctions =
   _findConditionsOfIfStatementAncestor(node.parent, nodesInDFS).toSet();
   Iterable<Expression> negations =

@@ -49,10 +49,15 @@ class DartTypeUtilities {
   }
 
   /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself.
-  static Iterable<AstNode> traverseNodesInDFS(AstNode node) {
+  /// include the node itself, it excludes the nodes for which the exclusion
+  /// predicate returns true, if not provided, all is included.
+  static Iterable<AstNode> traverseNodesInDFS(AstNode node,
+      {AstNodePredicate excludeCriteria}) {
     LinkedHashSet<AstNode> nodes = new LinkedHashSet();
-    node.childEntities.where((c) => c is AstNode).forEach((c) {
+    node.childEntities
+        .where((c) =>
+            c is AstNode && (excludeCriteria == null || !excludeCriteria(c)))
+        .forEach((c) {
       nodes.add(c);
       nodes.addAll(traverseNodesInDFS(c));
     });

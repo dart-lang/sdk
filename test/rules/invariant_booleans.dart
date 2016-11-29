@@ -44,6 +44,7 @@ void bad() {
   if (foo > bar && bar < foo) {} // LINT
   if (foo == bar && bar == foo) {} // LINT
 }
+
 void nestedBad1() {
   if (foo == bar) {
     if (foo != bar) {} // LINT
@@ -163,4 +164,20 @@ class A {
 class B {
   bool bar;
   int barNumber;
+}
+
+someFunction() {
+  int a = new DateTime.now().millisecondsSinceEpoch;
+
+  innerFunction() {
+    if (a > 0) {
+      return false;
+    }
+  }
+
+  otherInnerFunction() => a > 0 ? false : null;
+
+  if (a > 0) { // OK
+    print('bla');
+  }
 }
