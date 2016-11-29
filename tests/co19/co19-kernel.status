@@ -607,3 +607,7 @@ Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
 LibTest/core/StringBuffer/StringBuffer_A01_t02: RuntimeError
 LibTest/core/StringBuffer/write_A01_t02: RuntimeError
+
+# dartk: precompilation failures (debug)
+[ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash  # !main_obj.IsNull()
