@@ -636,6 +636,9 @@ class _RefactoringManager {
    * [kind] in the given [file].
    */
   Future<Null> _analyzeForRefactoring(String file, RefactoringKind kind) async {
+    if (server.options.enableNewAnalysisDriver) {
+      return;
+    }
     // "Extract Local" and "Inline Local" refactorings need only local analysis.
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE ||
         kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
@@ -865,6 +868,9 @@ class _RefactoringManager {
    * But when any other file is changed or analyzed, we can continue.
    */
   void _resetOnFileResolutionChanged(String file) {
+    if (server.options.enableNewAnalysisDriver) {
+      return;
+    }
     subscriptionToReset?.cancel();
     subscriptionToReset = server
         .getAnalysisContext(file)
