@@ -1792,6 +1792,13 @@ void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
+void Isolate::IterateStackPointers(ObjectPointerVisitor* visitor,
+                                   bool validate_frames) {
+  HeapIterationScope heap_iteration_scope;
+  VisitStackPointers(visitor, validate_frames);
+}
+
+
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool validate_frames) {
   ASSERT(visitor != NULL);
@@ -1863,6 +1870,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 
+  VisitStackPointers(visitor, validate_frames);
+}
+
+
+void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
+                                 bool validate_frames) {
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
   thread_registry()->VisitObjectPointers(visitor, validate_frames);
 }

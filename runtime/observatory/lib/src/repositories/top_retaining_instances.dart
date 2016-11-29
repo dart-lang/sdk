@@ -11,7 +11,8 @@ class TopRetainingInstancesRepository
     S.Class cls = c as S.Class;
     assert(isolate != null);
     assert(cls != null);
-    final raw = await isolate.fetchHeapSnapshot(true).last;
+    final raw =
+        await isolate.fetchHeapSnapshot(M.HeapSnapshotRoots.vm, true).last;
     final snapshot = new HeapSnapshot();
     await snapshot.loadProgress(isolate, raw).last;
     return (await Future.wait(

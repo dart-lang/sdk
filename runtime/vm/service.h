@@ -8,6 +8,7 @@
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
+#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 
@@ -107,7 +108,9 @@ class Service : public AllStatic {
       Dart_GetVMServiceAssetsArchive get_service_assets);
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
-  static void SendGraphEvent(Thread* thread, bool collect_garbage);
+  static void SendGraphEvent(Thread* thread,
+                             ObjectGraph::SnapshotRoots roots,
+                             bool collect_garbage);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
   static void SendEmbedderEvent(Isolate* isolate,

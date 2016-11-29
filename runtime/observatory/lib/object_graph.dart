@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
+
 class _JenkinsSmiHash {
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
@@ -227,6 +229,7 @@ class ObjectVertex {
   ObjectVertex._(this._id, this._graph);
 
   bool get isRoot => ROOT == _id;
+  bool get isStack => vmCid == _graph._kStackCid;
 
   bool operator ==(other) => _id == other._id && _graph == other._graph;
   int get hashCode => _id;
@@ -300,6 +303,7 @@ class MergedObjectVertex {
   MergedObjectVertex._(this._id, this._graph);
 
   bool get isRoot => ROOT == _id;
+  bool get isStack => vmCid == _graph._kStackCid;
 
   bool operator ==(other) => _id == other._id && _graph == other._graph;
   int get hashCode => _id;
@@ -497,8 +501,10 @@ class ObjectGraph {
   List<ByteData> _chunks;
 
   int _kObjectAlignment;
-  int _N;
-  int _E;
+  int _kStackCid;
+  int _N;  // Objects in the snapshot.
+  int _Nconnected;  // Objects reachable from root.
+  int _E;  // References in the snapshot.
   int _size;
 
   // Indexed by node id, with id 0 representing invalid/uninitialized.
@@ -537,6 +543,8 @@ class ObjectGraph {
     var stream = new ReadStream(_chunks);
     stream.readUnsigned();
     _kObjectAlignment = stream.clampedUint32;
+    stream.readUnsigned();
+    _kStackCid = stream.clampedUint32;
 
     var id = ROOT;
     while (stream.pendingBytes > 0) {
@@ -577,7 +585,8 @@ class ObjectGraph {
     var succs = new Uint32List(E);
 
     var stream = new ReadStream(_chunks);
-    stream.skipUnsigned(); // addr alignment
+    stream.skipUnsigned(); // kObjectAlignment
+    stream.skipUnsigned(); // kStackCid
 
     var id = 1, edge = 0;
     while (stream.pendingBytes > 0) {
@@ -660,15 +669,40 @@ class ObjectGraph {
       }
     }
 
-    assert(dfsNumber == N);
-    for (var i = ROOT; i <= N; i++) {
-      assert(semi[i] != SENTINEL);
-    }
-    assert(parent[ROOT] == SENTINEL);
-    for (var i = ROOT + 1; i <= N; i++) {
-      assert(parent[i] != SENTINEL);
+    if (dfsNumber != N) {
+      // This may happen in filtered snapshots.
+      Logger.root.warning('Heap snapshot contains unreachable nodes.');
     }
 
+    assert(() {
+      for (var i = 1; i <= dfsNumber; i++) {
+        var v = vertex[i];
+        assert(semi[v] != SENTINEL);
+      }
+      assert(parent[1] == SENTINEL);
+      for (var i = 2; i <= dfsNumber; i++) {
+        var v = vertex[i];
+        assert(parent[v] != SENTINEL);
+      }
+      return true;
+    });
+
+    if (dfsNumber != N) {
+      // Remove successors of unconnected nodes
+      for (var i = ROOT + 1; i <= N; i++) {
+        if (parent[i] == SENTINEL) {
+          var startSuccIndex = firstSuccs[i];
+          var limitSuccIndex = firstSuccs[i + 1];
+          for (var succIndex = startSuccIndex;
+               succIndex < limitSuccIndex;
+               succIndex++) {
+            succs[succIndex] = SENTINEL;
+          }
+        }
+      }
+    }
+
+    _Nconnected = dfsNumber;
     _vertex = vertex;
     _semi = semi;
     _parent = parent;
@@ -676,6 +710,7 @@ class ObjectGraph {
 
   void _buildPredecessors() {
     var N = _N;
+    var Nconnected = _Nconnected;
     var E = _E;
     var firstSuccs = _firstSuccs;
     var succs = _succs;
@@ -691,7 +726,9 @@ class ObjectGraph {
     // Count predecessors of each node.
     for (var succIndex = 0; succIndex < E; succIndex++) {
       var succId = succs[succIndex];
-      numPreds[succId]++;
+      if (succId != SENTINEL) {
+        numPreds[succId]++;
+      }
     }
 
     // Assign indices into predecessors array.
@@ -704,8 +741,10 @@ class ObjectGraph {
       firstPreds[i] = thisPredIndex;
       nextPreds[i] = thisPredIndex;
     }
-    assert(predIndex == E);
-    firstPreds[N + 1] = E; // Extra entry for cheap boundary detection.
+    if (N == Nconnected) {
+      assert(predIndex == E);
+    }
+    firstPreds[N + 1] = predIndex; // Extra entry for cheap boundary detection.
 
     // Fill predecessors array.
     for (var i = 1; i <= N; i++) {
@@ -715,8 +754,10 @@ class ObjectGraph {
           succIndex < limitSuccIndex;
           succIndex++) {
         var succId = succs[succIndex];
-        var predIndex = nextPreds[succId]++;
-        preds[predIndex] = i;
+        if (succId != SENTINEL) {
+          var predIndex = nextPreds[succId]++;
+          preds[predIndex] = i;
+        }
       }
     }
 
@@ -802,6 +843,7 @@ class ObjectGraph {
   // in a Flowgraph."
   void _buildDominators() {
     var N = _N;
+    var Nconnected = _Nconnected;
 
     var vertex = _vertex;
     var semi = _semi;
@@ -825,7 +867,7 @@ class ObjectGraph {
     var stackNode = new Uint32List(N + 1);
     var stackState = new Uint8List(N + 1);
 
-    for (var i = N; i > 1; i--) {
+    for (var i = Nconnected; i > 1; i--) {
       var w = vertex[i];
       assert(w != ROOT);
 
@@ -864,7 +906,7 @@ class ObjectGraph {
       assert(buckets[i] == null);
     }
     // Lengauer & Tarjan Step 4.
-    for (var i = 2; i <= N; i++) {
+    for (var i = 2; i <= Nconnected; i++) {
       var w = vertex[i];
       if (dom[w] != vertex[semi[w]]) {
         dom[w] = dom[dom[w]];
@@ -876,6 +918,7 @@ class ObjectGraph {
 
   void _calculateRetainedSizes() {
     var N = _N;
+    var Nconnected = _Nconnected;
 
     var size = 0;
     var shallowSizes = _shallowSizes;
@@ -883,8 +926,9 @@ class ObjectGraph {
     var doms = _doms;
 
     // Sum shallow sizes.
-    for (var i = ROOT; i < N; i++) {
-      size += shallowSizes[i];
+    for (var i = 1; i <= Nconnected; i++) {
+      var v = vertex[i];
+      size += shallowSizes[v];
     }
 
     // Start with retained size as shallow size.
@@ -892,11 +936,13 @@ class ObjectGraph {
 
     // In post order (bottom up), add retained size to dominator's retained
     // size, skipping root.
-    for (var i = N; i > 1; i--) {
+    for (var i = Nconnected; i > 1; i--) {
       var v = vertex[i];
       assert(v != ROOT);
-      retainedSizes[doms[i]] += retainedSizes[i];
+      retainedSizes[doms[v]] += retainedSizes[v];
     }
+
+    assert(retainedSizes[ROOT] == size);  // Root retains everything.
 
     _retainedSizes = retainedSizes;
     _size = size;

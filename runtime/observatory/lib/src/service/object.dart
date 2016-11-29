@@ -1531,12 +1531,21 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
   }
 
-  Stream fetchHeapSnapshot(collectGarbage) {
+  static String _rootsToString(M.HeapSnapshotRoots roots) {
+    switch (roots) {
+      case M.HeapSnapshotRoots.user: return "User";
+      case M.HeapSnapshotRoots.vm: return "VM";
+    }
+    return null;
+  }
+
+  Stream fetchHeapSnapshot(M.HeapSnapshotRoots roots, bool collectGarbage) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       _snapshotFetch = new StreamController.broadcast();
       // isolate.vm.streamListen('_Graph');
-      isolate.invokeRpcNoUpgrade(
-          '_requestHeapSnapshot', {'collectGarbage': collectGarbage});
+      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
+                                 {'roots': _rootsToString(roots),
+                                  'collectGarbage': collectGarbage});
     }
     return _snapshotFetch.stream;
   }

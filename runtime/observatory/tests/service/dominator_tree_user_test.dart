@@ -4,6 +4,7 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/heap_snapshot.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -58,7 +59,8 @@ buildGraph() {
 var tests = [
 (Isolate isolate) async {
   final rootLib = await isolate.rootLibrary.load();
-  final raw = await isolate.fetchHeapSnapshot(false).last;
+  final raw =
+      await isolate.fetchHeapSnapshot(M.HeapSnapshotRoots.user, false).last;
   final snapshot = new HeapSnapshot();
   await snapshot.loadProgress(isolate, raw).last;
 

@@ -16,6 +16,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   Stream<HeapSnapshotLoadingProgressEvent> get onProgress => _onProgress.stream;
 
   final S.Isolate isolate;
+  final M.HeapSnapshotRoots roots;
   final bool gc;
 
   M.HeapSnapshotLoadingStatus _status = M.HeapSnapshotLoadingStatus.fetching;
@@ -32,7 +33,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   Duration get loadingTime => _loadingTime.elapsed;
   HeapSnapshot get snapshot => _snapshot;
 
-  HeapSnapshotLoadingProgress(this.isolate, this.gc) {
+  HeapSnapshotLoadingProgress(this.isolate, this.roots, this.gc) {
     _run();
   }
 
@@ -44,7 +45,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
 
       await isolate.getClassRefs();
 
-      final stream = isolate.fetchHeapSnapshot(gc);
+      final stream = isolate.fetchHeapSnapshot(roots, gc);
 
       stream.listen((status) {
         if (status is List) {
@@ -99,11 +100,13 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
 }
 
 class HeapSnapshotRepository implements M.HeapSnapshotRepository {
-  Stream<HeapSnapshotLoadingProgressEvent> get(M.IsolateRef i,
-      {bool gc: false}) {
+  Stream<HeapSnapshotLoadingProgressEvent> get(
+      M.IsolateRef i,
+      {M.HeapSnapshotRoots roots: M.HeapSnapshotRoots.vm,
+      bool gc: false}) {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     assert(gc != null);
-    return new HeapSnapshotLoadingProgress(isolate, gc).onProgress;
+    return new HeapSnapshotLoadingProgress(isolate, roots, gc).onProgress;
   }
 }
