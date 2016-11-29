@@ -92,6 +92,19 @@ class VerifyingVisitor extends RecursiveVisitor {
     variable.flags &= ~VariableDeclaration.FlagInScope;
   }
 
+  void declareTypeParameters(List<TypeParameter> parameters) {
+    for (int i = 0; i < parameters.length; ++i) {
+      var parameter = parameters[i];
+      if (!typeParameters.add(parameter)) {
+        throw 'Type parameter $parameter redeclared in $context';
+      }
+    }
+  }
+
+  void undeclareTypeParameters(List<TypeParameter> parameters) {
+    typeParameters.removeAll(parameters);
+  }
+
   void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
     if (variable.flags & VariableDeclaration.FlagInScope == 0) {
       throw 'Variable $variable used out of scope in $context '
@@ -101,7 +114,11 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   visitProgram(Program program) {
     for (var library in program.libraries) {
-      classes.addAll(library.classes);
+      for (var class_ in library.classes) {
+        if (!classes.add(class_)) {
+          throw 'Class $class_ declared more than once';
+        }
+      }
       library.members.forEach(declareMember);
       for (var class_ in library.classes) {
         class_.members.forEach(declareMember);
@@ -157,7 +174,7 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   visitClass(Class node) {
     currentClass = node;
-    typeParameters.addAll(node.typeParameters);
+    declareTypeParameters(node.typeParameters);
     var oldParent = enterParent(node);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
@@ -167,14 +184,14 @@ class VerifyingVisitor extends RecursiveVisitor {
     visitList(node.constructors, this);
     visitList(node.procedures, this);
     exitParent(oldParent);
-    typeParameters.removeAll(node.typeParameters);
+    undeclareTypeParameters(node.typeParameters);
     currentClass = null;
   }
 
   visitFunctionNode(FunctionNode node) {
-    typeParameters.addAll(node.typeParameters);
+    declareTypeParameters(node.typeParameters);
     visitWithLocalScope(node);
-    typeParameters.removeAll(node.typeParameters);
+    undeclareTypeParameters(node.typeParameters);
   }
 
   visitFunctionType(FunctionType node) {
@@ -184,14 +201,14 @@ class VerifyingVisitor extends RecursiveVisitor {
             '$context';
       }
     }
-    typeParameters.addAll(node.typeParameters);
+    declareTypeParameters(node.typeParameters);
     for (var typeParameter in node.typeParameters) {
       typeParameter.bound?.accept(this);
     }
     visitList(node.positionalParameters, this);
     visitList(node.namedParameters, this);
     node.returnType.accept(this);
-    typeParameters.removeAll(node.typeParameters);
+    undeclareTypeParameters(node.typeParameters);
   }
 
   visitBlock(Block node) {

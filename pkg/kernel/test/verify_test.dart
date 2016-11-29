@@ -6,14 +6,17 @@ import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 
-/// Checks that the sanity checks correctly find errors in invalid programs.
+/// Checks that the verifier correctly find errors in invalid programs.
 ///
 /// The frontend should never generate invalid programs, so we have to test
 /// these by manually constructing invalid ASTs.
 ///
-/// We only test negative cases here, as we get plenty of positive cases by
-/// compiling the Dart test suite with sanity checks enabled.
+/// We mostly test negative cases here, as we get plenty of positive cases by
+/// compiling the Dart test suite with the verifier enabled.
 main() {
+  positiveTest('Test harness has no errors', () {
+    return new NullLiteral();
+  });
   negativeTest('VariableGet out of scope', () {
     return new VariableGet(makeVariable());
   });
@@ -42,6 +45,24 @@ main() {
         name: 'Test',
         supertype: objectClass.asRawSupertype,
         fields: [field, field]);
+  });
+  negativeTest('Class redeclared', () {
+    return otherClass; // Test harness also adds otherClass to program.
+  });
+  negativeTest('Class type parameter redeclared', () {
+    var parameter = makeTypeParameter();
+    return new Class(
+        name: 'Test',
+        supertype: objectClass.asRawSupertype,
+        typeParameters: [parameter, parameter]);
+  });
+  negativeTest('Member type parameter redeclared', () {
+    var parameter = makeTypeParameter();
+    return new Procedure(
+        new Name('test'),
+        ProcedureKind.Method,
+        new FunctionNode(new ReturnStatement(new NullLiteral()),
+            typeParameters: [parameter, parameter]));
   });
   negativeTest('Type parameter out of scope', () {
     var parameter = makeTypeParameter();
@@ -129,33 +150,43 @@ Class otherClass = new Class(
     typeParameters: [makeTypeParameter('OtherT')],
     supertype: objectClass.asRawSupertype);
 
+Program makeProgram(TreeNode makeBody()) {
+  var node = makeBody();
+  if (node is Expression) {
+    node = new ReturnStatement(node);
+  }
+  if (node is Statement) {
+    node = new FunctionNode(node);
+  }
+  if (node is FunctionNode) {
+    node = new Procedure(new Name('test'), ProcedureKind.Method, node);
+  }
+  if (node is Member) {
+    node = new Class(
+        name: 'Test',
+        typeParameters: [classTypeParameter],
+        supertype: objectClass.asRawSupertype)..addMember(node);
+  }
+  if (node is Class) {
+    node =
+        new Library(Uri.parse('test.dart'), classes: <Class>[node, otherClass]);
+  }
+  if (node is Library) {
+    node = new Program(<Library>[node, stubLibrary]);
+  }
+  assert(node is Program);
+  return node;
+}
+
 negativeTest(String name, TreeNode makeBody()) {
   test(name, () {
-    var node = makeBody();
-    if (node is Expression) {
-      node = new ReturnStatement(node);
-    }
-    if (node is Statement) {
-      node = new FunctionNode(node);
-    }
-    if (node is FunctionNode) {
-      node = new Procedure(new Name('test'), ProcedureKind.Method, node);
-    }
-    if (node is Member) {
-      node = new Class(
-          name: 'Test',
-          typeParameters: [classTypeParameter],
-          supertype: objectClass.asRawSupertype)..addMember(node);
-    }
-    if (node is Class) {
-      node = new Library(Uri.parse('test.dart'),
-          classes: <Class>[node, otherClass]);
-    }
-    if (node is Library) {
-      node = new Program(<Library>[node, stubLibrary]);
-    }
-    assert(node is Program);
-    checkHasError(node);
+    checkHasError(makeProgram(makeBody));
+  });
+}
+
+positiveTest(String name, TreeNode makeBody()) {
+  test(name, () {
+    verifyProgram(makeProgram(makeBody));
   });
 }
 
