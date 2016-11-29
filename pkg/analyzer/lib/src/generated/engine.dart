@@ -1260,6 +1260,11 @@ abstract class AnalysisOptions {
   List<int> encodeCrossContextOptions();
 
   /**
+   * Reset the state of this set of analysis options to its original state.
+   */
+  void resetToDefaults();
+
+  /**
    * Set the values of the cross-context options to match those in the given set
    * of [options].
    */
@@ -1580,6 +1585,38 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
         (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
     return <int>[flags, patchPlatform];
+  }
+
+  @override
+  void resetToDefaults() {
+    dart2jsHint = false;
+    disableCacheFlushing = false;
+    enableAssertInitializer = false;
+    enableAssertMessage = false;
+    enableLazyAssignmentOperators = false;
+    enableStrictCallChecks = false;
+    enableSuperMixins = false;
+    enableTiming = false;
+    enableUriInPartOf = false;
+    _errorProcessors = null;
+    _excludePatterns = null;
+    finerGrainedInvalidation = false;
+    generateImplicitErrors = true;
+    generateSdkErrors = false;
+    hint = true;
+    implicitCasts = true;
+    implicitDynamic = true;
+    incremental = false;
+    incrementalApi = false;
+    incrementalValidation = false;
+    lint = false;
+    _lintRules = null;
+    nonnullableTypes = NONNULLABLE_TYPES;
+    patchPlatform = 0;
+    preserveComments = true;
+    strongMode = false;
+    strongModeHints = false;
+    trackCacheDependencies = true;
   }
 
   @override
