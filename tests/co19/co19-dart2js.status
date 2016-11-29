@@ -2681,9 +2681,6 @@ LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-star
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == drt && ($fast_startup != true || $checked != true) ]
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
-
 [ $compiler == dart2js && $runtime == drt && $fast_startup && $checked ]
 LayoutTests/fast/css-grid-layout/auto-content-resolution-rows_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-grid-layout/breadth-size-resolution-grid_t01: RuntimeError # Please triage this failure
@@ -10524,6 +10521,11 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data_t01: Ru
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-cube-maps_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == ie11 && $builder_tag == win8]
+LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/XMLSerializer-attribute-entities_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/serialize-attribute_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
 Language/Types/Interface_Types/subtype_t09: Crash # Pending static: JSArray
