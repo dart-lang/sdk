@@ -88,6 +88,12 @@ abstract class CompletionRequest {
   Source get source;
 
   /**
+   * Return the content of the [source] in which the completion is being
+   * requested, or `null` if the content could not be accessed.
+   */
+  String get sourceContents;
+
+  /**
    * Throw [AbortCompletion] if the completion request has been aborted.
    */
   void checkAborted();

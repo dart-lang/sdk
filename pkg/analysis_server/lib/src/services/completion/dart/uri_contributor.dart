@@ -66,7 +66,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
             // Quoted empty string
             visitSimpleStringLiteral(uri);
           } else {
-            String data = request.source.contents.data;
+            String data = request.sourceContents;
             if (end == data.length) {
               String ch = data[end - 1];
               if (ch != '"' && ch != "'") {
@@ -78,7 +78,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
           }
         }
       } else if (offset == start && offset == end) {
-        String data = request.source.contents.data;
+        String data = request.sourceContents;
         if (end == data.length) {
           String ch = data[end - 1];
           if (ch == '"' || ch == "'") {
