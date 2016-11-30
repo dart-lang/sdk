@@ -139,7 +139,7 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// variables.
   ///
   /// A live function is one whose enclosing member function has been enqueued.
-  Set<Element> get closuresWithFreeTypeVariables;
+  Iterable<Element> get closuresWithFreeTypeVariables;
 
   /// Set of (live) `call` methods whose signatures reference type variables.
   ///

@@ -48,12 +48,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
   @deprecated
   final Compiler _compiler; // TODO(ahe): Remove this dependency.
   final EnqueuerStrategy strategy;
-  final Map<String, Set<Element>> instanceMembersByName =
+  final Map<String, Set<Element>> _instanceMembersByName =
       new Map<String, Set<Element>>();
-  final Map<String, Set<Element>> instanceFunctionsByName =
+  final Map<String, Set<Element>> _instanceFunctionsByName =
       new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
-  Set<ClassElement> recentClasses = new Setlet<ClassElement>();
+  Set<ClassElement> _recentClasses = new Setlet<ClassElement>();
   final CodegenWorldBuilderImpl _universe =
       new CodegenWorldBuilderImpl(const TypeMaskStrategy());
 
@@ -61,23 +61,34 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final CompilerTask task;
   final native.NativeEnqueuer nativeEnqueuer;
 
-  WorldImpactVisitor impactVisitor;
+  WorldImpactVisitor _impactVisitor;
+
+  final Queue<WorkItem> queue = new Queue<WorkItem>();
+  final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
+
+  final Set<Element> newlyEnqueuedElements;
+
+  final Set<DynamicUse> newlySeenSelectors;
+
+  bool _enabledNoSuchMethod = false;
+
+  static const ImpactUseCase IMPACT_USE =
+      const ImpactUseCase('CodegenEnqueuer');
 
   CodegenEnqueuer(this.task, Compiler compiler, this.strategy)
-      : queue = new Queue<CodegenWorkItem>(),
-        newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
+      : newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
         newlySeenSelectors = compiler.cacheStrategy.newSet(),
         nativeEnqueuer = compiler.backend.nativeCodegenEnqueuer(),
         this.name = 'codegen enqueuer',
         this._compiler = compiler {
-    impactVisitor = new EnqueuerImplImpactVisitor(this);
+    _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
   CodegenWorldBuilder get universe => _universe;
 
-  Backend get backend => _compiler.backend;
+  Backend get _backend => _compiler.backend;
 
-  CompilerOptions get options => _compiler.options;
+  CompilerOptions get _options => _compiler.options;
 
   ClosedWorld get _world => _compiler.closedWorld;
 
@@ -86,27 +97,26 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
-  DiagnosticReporter get reporter => _compiler.reporter;
-
   /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: [element] must be a declaration element.
    */
-  void addToWorkList(Element element) {
+  void _addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
     // Don't generate code for foreign elements.
-    if (backend.isForeign(element)) return;
+    if (_backend.isForeign(element)) return;
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (element.isField && element.isInstanceMember) {
-      if (!options.enableTypeAssertions || element.enclosingElement.isClosure) {
+      if (!_options.enableTypeAssertions ||
+          element.enclosingElement.isClosure) {
         return;
       }
     }
 
-    if (options.hasIncrementalSupport && !isProcessed(element)) {
+    if (_options.hasIncrementalSupport && !isProcessed(element)) {
       newlyEnqueuedElements.add(element);
     }
 
@@ -114,7 +124,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
       throw new SpannableAssertionFailure(
           element, "Codegen work list is closed. Trying to add $element");
     }
-    queue.add(new CodegenWorkItem(backend, element));
+    queue.add(new CodegenWorkItem(_backend, element));
     // TODO(sigmund): add other missing dependencies (internals, selectors
     // enqueued after allocations).
     _compiler.dumpInfoTask
@@ -124,31 +134,27 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
     if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
-        impactSource, worldImpact, impactVisitor, impactUse);
-  }
-
-  void registerInstantiatedType(InterfaceType type) {
-    _registerInstantiatedType(type);
+        impactSource, worldImpact, _impactVisitor, impactUse);
   }
 
   void _registerInstantiatedType(InterfaceType type,
       {bool mirrorUsage: false, bool nativeUsage: false}) {
     task.measure(() {
       ClassElement cls = type.element;
-      bool isNative = backend.isNative(cls);
+      bool isNative = _backend.isNative(cls);
       _universe.registerTypeInstantiation(type,
           isNative: isNative,
           byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
         applyImpact(
-            backend.registerImplementedClass(cls, forResolution: false));
+            _backend.registerImplementedClass(cls, forResolution: false));
       });
       if (nativeUsage) {
         nativeEnqueuer.onInstantiatedType(type);
       }
-      backend.registerInstantiatedType(type);
+      _backend.registerInstantiatedType(type);
       // TODO(johnniwinther): Share this reasoning with [Universe].
       if (!cls.isAbstract || isNative || mirrorUsage) {
-        processInstantiatedClass(cls);
+        _processInstantiatedClass(cls);
       }
     });
   }
@@ -175,13 +181,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
       // its metadata parsed and analyzed.
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
-      if (backend.isNative(cls)) {
+      if (_backend.isNative(cls)) {
         if (_universe.hasInvokedGetter(member, _world) ||
             _universe.hasInvocation(member, _world)) {
-          addToWorkList(member);
+          _addToWorkList(member);
           return;
         } else if (universe.hasInvokedSetter(member, _world)) {
-          addToWorkList(member);
+          _addToWorkList(member);
           return;
         }
         // Native fields need to go into instanceMembersByName as they
@@ -190,52 +196,52 @@ class CodegenEnqueuer extends EnqueuerImpl {
         // All field initializers must be resolved as they could
         // have an observable side-effect (and cannot be tree-shaken
         // away).
-        addToWorkList(member);
+        _addToWorkList(member);
         return;
       }
     } else if (member.isFunction) {
       FunctionElement function = member;
       if (function.name == Identifiers.noSuchMethod_) {
-        registerNoSuchMethod(function);
+        _registerNoSuchMethod(function);
       }
       if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
-        registerCallMethodWithFreeTypeVariables(function);
+        _registerCallMethodWithFreeTypeVariables(function);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (_universe.hasInvokedGetter(function, _world)) {
-        registerClosurizedMember(function);
-        addToWorkList(function);
+        _registerClosurizedMember(function);
+        _addToWorkList(function);
         return;
       }
       _registerInstanceMethod(function);
       if (_universe.hasInvocation(function, _world)) {
-        addToWorkList(function);
+        _addToWorkList(function);
         return;
       }
     } else if (member.isGetter) {
       FunctionElement getter = member;
       if (_universe.hasInvokedGetter(getter, _world)) {
-        addToWorkList(getter);
+        _addToWorkList(getter);
         return;
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
       if (_universe.hasInvocation(getter, _world)) {
-        addToWorkList(getter);
+        _addToWorkList(getter);
         return;
       }
     } else if (member.isSetter) {
       FunctionElement setter = member;
       if (_universe.hasInvokedSetter(setter, _world)) {
-        addToWorkList(setter);
+        _addToWorkList(setter);
         return;
       }
     }
 
     // The element is not yet used. Add it to the list of instance
     // members to still be processed.
-    instanceMembersByName
+    _instanceMembersByName
         .putIfAbsent(memberName, () => new Set<Element>())
         .add(member);
   }
@@ -243,14 +249,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
   // Store the member in [instanceFunctionsByName] to catch
   // getters on the function.
   void _registerInstanceMethod(MethodElement element) {
-    instanceFunctionsByName
+    _instanceFunctionsByName
         .putIfAbsent(element.name, () => new Set<Element>())
         .add(element);
   }
 
-  void enableIsolateSupport() {}
-
-  void processInstantiatedClass(ClassElement cls) {
+  void _processInstantiatedClass(ClassElement cls) {
     task.measure(() {
       if (_processedClasses.contains(cls)) return;
 
@@ -266,12 +270,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
         */
 
         _processedClasses.add(superclass);
-        recentClasses.add(superclass);
+        _recentClasses.add(superclass);
         superclass.implementation.forEachMember(processInstantiatedClassMember);
         // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
         // dependencies.
-        applyImpact(backend.registerInstantiatedClass(superclass,
+        applyImpact(_backend.registerInstantiatedClass(superclass,
             forResolution: false));
       }
 
@@ -283,15 +287,15 @@ class CodegenEnqueuer extends EnqueuerImpl {
     });
   }
 
-  void registerDynamicUse(DynamicUse dynamicUse) {
+  void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
       if (_universe.registerDynamicUse(dynamicUse)) {
-        handleUnseenSelector(dynamicUse);
+        _handleUnseenSelector(dynamicUse);
       }
     });
   }
 
-  void processSet(
+  void _processSet(
       Map<String, Set<Element>> map, String memberName, bool f(Element e)) {
     Set<Element> members = map[memberName];
     if (members == null) return;
@@ -306,35 +310,34 @@ class CodegenEnqueuer extends EnqueuerImpl {
     map[memberName].addAll(remaining);
   }
 
-  processInstanceMembers(String n, bool f(Element e)) {
-    processSet(instanceMembersByName, n, f);
+  void _processInstanceMembers(String n, bool f(Element e)) {
+    _processSet(_instanceMembersByName, n, f);
   }
 
-  processInstanceFunctions(String n, bool f(Element e)) {
-    processSet(instanceFunctionsByName, n, f);
+  void _processInstanceFunctions(String n, bool f(Element e)) {
+    _processSet(_instanceFunctionsByName, n, f);
   }
 
-  void _handleUnseenSelector(DynamicUse universeSelector) {
-    strategy.processDynamicUse(this, universeSelector);
-  }
-
-  void handleUnseenSelectorInternal(DynamicUse dynamicUse) {
+  void _handleUnseenSelector(DynamicUse dynamicUse) {
+    if (_options.hasIncrementalSupport) {
+      newlySeenSelectors.add(dynamicUse);
+    }
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
-    processInstanceMembers(methodName, (Element member) {
+    _processInstanceMembers(methodName, (Element member) {
       if (dynamicUse.appliesUnnamed(member, _world)) {
         if (member.isFunction && selector.isGetter) {
-          registerClosurizedMember(member);
+          _registerClosurizedMember(member);
         }
-        addToWorkList(member);
+        _addToWorkList(member);
         return true;
       }
       return false;
     });
     if (selector.isGetter) {
-      processInstanceFunctions(methodName, (Element member) {
+      _processInstanceFunctions(methodName, (Element member) {
         if (dynamicUse.appliesUnnamed(member, _world)) {
-          registerClosurizedMember(member);
+          _registerClosurizedMember(member);
           return true;
         }
         return false;
@@ -342,25 +345,16 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  void registerStaticUse(StaticUse staticUse) {
-    strategy.processStaticUse(this, staticUse);
-  }
-
-  void registerStaticUseInternal(StaticUse staticUse) {
+  void processStaticUse(StaticUse staticUse) {
     Element element = staticUse.element;
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    applyImpact(backend.registerStaticUse(element, forResolution: false));
+    applyImpact(_backend.registerStaticUse(element, forResolution: false));
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        applyImpact(backend.registerGetOfStaticFunction());
+        applyImpact(_backend.registerGetOfStaticFunction());
         break;
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.FIELD_SET:
@@ -379,22 +373,18 @@ class CodegenEnqueuer extends EnqueuerImpl {
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
-        registerTypeUseInternal(new TypeUse.instantiation(staticUse.type));
+        processTypeUse(new TypeUse.instantiation(staticUse.type));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         _registerInstanceMethod(staticUse.element);
         break;
     }
     if (addElement) {
-      addToWorkList(element);
+      _addToWorkList(element);
     }
   }
 
-  void registerTypeUse(TypeUse typeUse) {
-    strategy.processTypeUse(this, typeUse);
-  }
-
-  void registerTypeUseInternal(TypeUse typeUse) {
+  void processTypeUse(TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
@@ -412,7 +402,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         _registerIsCheck(type);
         break;
       case TypeUseKind.CHECKED_MODE_CHECK:
-        if (options.enableTypeAssertions) {
+        if (_options.enableTypeAssertions) {
           _registerIsCheck(type);
         }
         break;
@@ -429,18 +419,18 @@ class CodegenEnqueuer extends EnqueuerImpl {
     assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
   }
 
-  void registerCallMethodWithFreeTypeVariables(Element element) {
-    applyImpact(backend.registerCallMethodWithFreeTypeVariables(element,
+  void _registerCallMethodWithFreeTypeVariables(Element element) {
+    applyImpact(_backend.registerCallMethodWithFreeTypeVariables(element,
         forResolution: false));
   }
 
-  void registerClosurizedMember(TypedElement element) {
+  void _registerClosurizedMember(TypedElement element) {
     assert(element.isInstanceMember);
     if (element.type.containsTypeVariables) {
-      applyImpact(backend.registerClosureWithFreeTypeVariables(element,
+      applyImpact(_backend.registerClosureWithFreeTypeVariables(element,
           forResolution: false));
     }
-    applyImpact(backend.registerBoundClosure());
+    applyImpact(_backend.registerBoundClosure());
   }
 
   void forEach(void f(WorkItem work)) {
@@ -454,24 +444,24 @@ class CodegenEnqueuer extends EnqueuerImpl {
           // is currently a side-effect of calling `work.run`.
         }
       }
-      List recents = recentClasses.toList(growable: false);
-      recentClasses.clear();
-      if (!onQueueEmpty(recents)) recentClasses.addAll(recents);
-    } while (queue.isNotEmpty || recentClasses.isNotEmpty);
+      List recents = _recentClasses.toList(growable: false);
+      _recentClasses.clear();
+      if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
+    } while (queue.isNotEmpty || _recentClasses.isNotEmpty);
   }
 
-  /// [onQueueEmpty] is called whenever the queue is drained. [recentClasses]
+  /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
   /// contains the set of all classes seen for the first time since
-  /// [onQueueEmpty] was called last. A return value of [true] indicates that
+  /// [_onQueueEmpty] was called last. A return value of [true] indicates that
   /// the [recentClasses] have been processed and may be cleared. If [false] is
-  /// returned, [onQueueEmpty] will be called once the queue is empty again (or
+  /// returned, [_onQueueEmpty] will be called once the queue is empty again (or
   /// still empty) and [recentClasses] will be a superset of the current value.
-  bool onQueueEmpty(Iterable<ClassElement> recentClasses) {
-    return backend.onQueueEmpty(this, recentClasses);
+  bool _onQueueEmpty(Iterable<ClassElement> recentClasses) {
+    return _backend.onQueueEmpty(this, recentClasses);
   }
 
   void logSummary(log(message)) {
-    _logSpecificSummary(log);
+    log('Compiled ${generatedCode.length} methods.');
     nativeEnqueuer.logSummary(log);
   }
 
@@ -480,36 +470,20 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _forgetElement(Element element) {
     _universe.forgetElement(element, _compiler);
     _processedClasses.remove(element);
-    instanceMembersByName[element.name]?.remove(element);
-    instanceFunctionsByName[element.name]?.remove(element);
+    _instanceMembersByName[element.name]?.remove(element);
+    _instanceFunctionsByName[element.name]?.remove(element);
   }
-
-  final Queue<CodegenWorkItem> queue;
-  final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
-
-  final Set<Element> newlyEnqueuedElements;
-
-  final Set<DynamicUse> newlySeenSelectors;
-
-  bool enabledNoSuchMethod = false;
-
-  static const ImpactUseCase IMPACT_USE =
-      const ImpactUseCase('CodegenEnqueuer');
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);
 
-  void registerNoSuchMethod(Element element) {
-    if (!enabledNoSuchMethod && backend.enabledNoSuchMethod) {
-      applyImpact(backend.enableNoSuchMethod());
-      enabledNoSuchMethod = true;
+  void _registerNoSuchMethod(Element element) {
+    if (!_enabledNoSuchMethod && _backend.enabledNoSuchMethod) {
+      applyImpact(_backend.enableNoSuchMethod());
+      _enabledNoSuchMethod = true;
     }
-  }
-
-  void _logSpecificSummary(log(message)) {
-    log('Compiled ${generatedCode.length} methods.');
   }
 
   void forgetElement(Element element, Compiler compiler) {
@@ -518,17 +492,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
         generatedCode.remove(closure);
-        removeFromSet(instanceMembersByName, closure);
-        removeFromSet(instanceFunctionsByName, closure);
+        removeFromSet(_instanceMembersByName, closure);
+        removeFromSet(_instanceFunctionsByName, closure);
       }
     }
-  }
-
-  void handleUnseenSelector(DynamicUse dynamicUse) {
-    if (options.hasIncrementalSupport) {
-      newlySeenSelectors.add(dynamicUse);
-    }
-    _handleUnseenSelector(dynamicUse);
   }
 
   @override
