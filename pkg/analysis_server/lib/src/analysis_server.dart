@@ -366,7 +366,20 @@ class AnalysisServer {
         options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
-    _analysisPerformanceLogger = new nd.PerformanceLog(io.stdout);
+
+    {
+      String name = options.newAnalysisDriverLog;
+      StringSink sink = new _NullStringSink();
+      if (name != null) {
+        if (name == 'stdout') {
+          sink = io.stdout;
+        } else if (name.startsWith('file:')) {
+          String path = name.substring('file:'.length);
+          sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
+        }
+      }
+      _analysisPerformanceLogger = new nd.PerformanceLog(sink);
+    }
     if (resourceProvider is PhysicalResourceProvider) {
       byteStore = new MemoryCachingByteStore(
           new FileByteStore(
@@ -380,6 +393,7 @@ class AnalysisServer {
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
+
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
           packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
@@ -1732,6 +1746,7 @@ class AnalysisServerOptions {
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
+  String newAnalysisDriverLog;
 }
 
 /**
@@ -2067,4 +2082,11 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in split store microtasks.
    */
   static PerformanceTag splitStore = new PerformanceTag('splitStore');
+}
+
+class _NullStringSink implements StringSink {
+  void write(Object obj) {}
+  void writeAll(Iterable objects, [String separator = ""]) {}
+  void writeCharCode(int charCode) {}
+  void writeln([Object obj = ""]) {}
 }
