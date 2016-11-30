@@ -42,43 +42,41 @@ type UInt30 extends UInt {
 
 type MagicWord = big endian 32-bit unsigned integer
 
-type String {
-  UInt num_bytes;
-  Byte[num_bytes] utf8_bytes;
-}
-
-type StringTable {
-  UInt num_strings;
-  String[num_strings] strings;
-}
-
-type StringReference {
-  UInt index; // Index into the StringTable.
-}
-
-type LineStarts {
-  UInt lineCount;
-  // Delta encoded, e.g. 0, 10, 15, 7, 10 means 0, 10, 25, 32, 42.
-  UInt[lineCount] lineStarts;
-}
-
-type UriLineStarts {
-  StringTable uris;
-  LineStarts[uris.num_strings] lineStarts;
-}
-
-type UriReference {
-  UInt index; // Index into the URIs StringTable.
-}
-
-type FileOffset {
-  // Saved as number+1 to accommodate literal "-1".
-  UInt fileOffset;
-}
-
 type List<T> {
   UInt length;
   T[length] items;
+}
+
+type String {
+  List<Byte> utf8Bytes;
+}
+
+type StringTable {
+  List<String> strings;
+}
+
+type StringReference {
+  UInt index; // Index into the StringTable strings.
+}
+
+type LineStarts {
+  // Line starts are delta-encoded (they are encoded as line lengths).  The list
+  // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
+  List<Uint> lineStarts;
+}
+
+type UriLineStarts {
+  List<String> uris;
+  LineStarts[uris.length] lineStarts;
+}
+
+type UriReference {
+  UInt index; // Index into the UriLineStarts uris.
+}
+
+type FileOffset {
+  // Encoded as offset + 1 to accommodate -1 indicating no offset.
+  UInt fileOffset;
 }
 
 type Option<T> {
@@ -96,13 +94,12 @@ type ProgramFile {
   MagicWord magic = 0x90ABCDEF;
   StringTable strings;
   UriLineStarts lineStartsMap;
-  List<Library> library;
+  List<Library> libraries;
   LibraryProcedureReference mainMethod;
 }
 
 type LibraryReference {
-  // For library files, this is an index into the import table.
-  // For program files, this is an index into the list of libaries.
+  // Index into the ProgramFile libraries.
   UInt index;
 }
 
@@ -169,8 +166,11 @@ type Name {
 type Library {
   Byte flags (isExternal);
   StringReference name;
-  // A URI with the dart, package, or file scheme.  For file URIs, the path
-  // is an absolute path to the .dart file from which the library was created.
+  // A URI from which the library was created.  The URI has the dart, package,
+  // file, or app scheme.  For file URIs, the path is an absolute path to the
+  // .dart file from which the library was created.  For app URIs, the path is
+  // relative to an application root that was specified when the binary was
+  // generated.
   StringReference importUri;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
