@@ -303,6 +303,7 @@ override_field_method1_negative_test: Pass, Crash # Issue 27835
 override_field_method2_negative_test: Pass, Crash # Issue 27835
 override_field_method4_negative_test: Pass, Crash # Issue 27835
 override_field_method5_negative_test: Pass, Crash # Issue 27835
+vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 
 [$runtime != vm || $compiler != none]
 assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
@@ -318,3 +319,6 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
 [$runtime == vm && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
+
+[$compiler == dart2analyzer]
+vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
