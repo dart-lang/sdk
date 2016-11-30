@@ -306,6 +306,25 @@ linter:
 
       createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
       createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+
+      test('include directive', () {
+        String testDir = path.join(
+            testDirectory, 'data', 'options_include_directive_tests_project');
+        drive(
+          path.join(testDir, 'lib', 'test_file.dart'),
+          args: [
+            '--fatal-warnings',
+            '--packages',
+            path.join(testDir, '_packages'),
+          ],
+          options: path.join(testDir, '.analysis_options'),
+        );
+        expect(exitCode, 3);
+        expect(outSink.toString(),
+            contains('but doesn\'t end with a return statement.'));
+        expect(outSink.toString(), contains('isn\'t defined'));
+        expect(outSink.toString(), contains('Avoid empty else statements.'));
+      });
     });
 
     void createTests(String designator, String optionsFileName) {

@@ -270,7 +270,8 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(resourceProvider, context, options,
+    Driver.setAnalysisContextOptions(
+        resourceProvider, context.sourceFactory, context, options,
         (AnalysisOptionsImpl contextOptions) {
       if (options.buildSummaryOnlyDiet) {
         contextOptions.analyzeFunctionBodies = false;
