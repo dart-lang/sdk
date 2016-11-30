@@ -941,9 +941,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       stack.add(graph.addConstant(
           astAdapter.getConstantFor(staticTarget.initializer), compiler));
     } else {
-      push(new HStatic(astAdapter.getMember(staticTarget),
-          astAdapter.inferredTypeOf(staticTarget)));
+      if (_isLazyStatic(staticTarget)) {
+        push(new HLazyStatic(astAdapter.getField(staticTarget),
+                             astAdapter.inferredTypeOf(staticTarget)));
+      } else {
+        push(new HStatic(astAdapter.getMember(staticTarget),
+                         astAdapter.inferredTypeOf(staticTarget)));
+      }
     }
+  }
+
+  bool _isLazyStatic(ir.Member target) {
+    return astAdapter.isLazyStatic(target);
   }
 
   @override

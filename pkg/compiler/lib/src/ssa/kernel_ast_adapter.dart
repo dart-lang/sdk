@@ -92,6 +92,8 @@ class KernelAstAdapter {
 
   MethodElement getMethod(ir.Node node) => getElement(node).declaration;
 
+  FieldElement getField(ir.Node node) => getElement(node).declaration;
+
   ClassElement getClass(ir.Node node) => getElement(node).declaration;
 
   ast.Node getNode(ir.Node node) {
@@ -284,6 +286,15 @@ class KernelAstAdapter {
 
   bool isInterceptedSelector(Selector selector) {
     return _backend.isInterceptedSelector(selector);
+  }
+
+  // Is the member a lazy initialized static or top-level member?
+  bool isLazyStatic(ir.Member member) {
+    if (member is ir.Field) {
+      FieldElement field = _nodeToElement[member];
+      return field.constant == null;
+    }
+    return false;
   }
 
   LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
