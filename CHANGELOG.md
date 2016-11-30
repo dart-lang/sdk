@@ -2,6 +2,11 @@
 
 ### Language
 
+* Support access to initializing formals, e.g., the use of `x` to initialize
+ `y` in `class C { var x, y; C(this.x): y = x; }`.
+  Please check the
+  [informal specification](https://gist.github.com/eernstg/cff159be9e34d5ea295d8c24b1a3e594)
+  for details.
 * Don't warn about switch case fallthrough if the case ends in a `rethrow`
   statement.
 * Also don't warn if the entire switch case is wrapped in braces - as long as
