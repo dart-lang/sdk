@@ -1,5 +1,3 @@
-// ({alpha: dynamic, beta: dynamic}) → dynamic is not a subtype of ({beta: dynamic, alpha: dynamic}) → dynamic (no location)
-// ({beta: dynamic, alpha: dynamic}) → dynamic is not a subtype of ({alpha: dynamic, beta: dynamic}) → dynamic (no location)
 library;
 import self as self;
 import "dart:core" as core;
