@@ -17,6 +17,7 @@
   const collection = Object.create(null);
   const convert = Object.create(null);
   const core = Object.create(null);
+  const developer = Object.create(null);
   const isolate = Object.create(null);
   const js = Object.create(null);
   const js_util = Object.create(null);
@@ -376,6 +377,12 @@
   let MapOfString$String = () => (MapOfString$String = dart.constFn(core.Map$(core.String, core.String)))();
   let IterableOfString = () => (IterableOfString = dart.constFn(core.Iterable$(core.String)))();
   let MapOfString$dynamic = () => (MapOfString$dynamic = dart.constFn(core.Map$(core.String, dart.dynamic)))();
+  let MapOfString$ServiceExtensionHandler = () => (MapOfString$ServiceExtensionHandler = dart.constFn(core.Map$(core.String, developer.ServiceExtensionHandler)))();
+  let MapOfString$Metric = () => (MapOfString$Metric = dart.constFn(core.Map$(core.String, developer.Metric)))();
+  let ListOf_SyncBlock = () => (ListOf_SyncBlock = dart.constFn(core.List$(developer._SyncBlock)))();
+  let JSArrayOf_AsyncBlock = () => (JSArrayOf_AsyncBlock = dart.constFn(_interceptors.JSArray$(developer._AsyncBlock)))();
+  let ListOf_AsyncBlock = () => (ListOf_AsyncBlock = dart.constFn(core.List$(developer._AsyncBlock)))();
+  let CompleterOfUri = () => (CompleterOfUri = dart.constFn(async.Completer$(core.Uri)))();
   let FutureOfIsolate = () => (FutureOfIsolate = dart.constFn(async.Future$(isolate.Isolate)))();
   let JsArray = () => (JsArray = dart.constFn(js.JsArray$()))();
   let ExpandoOfFunction = () => (ExpandoOfFunction = dart.constFn(core.Expando$(core.Function)))();
@@ -683,6 +690,20 @@
   let MapOfString$StringAndStringToMapOfString$String = () => (MapOfString$StringAndStringToMapOfString$String = dart.constFn(dart.definiteFunctionType(MapOfString$String(), [MapOfString$String(), core.String])))();
   let intAndintAndintTovoid = () => (intAndintAndintTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, core.int, core.int])))();
   let String__Tovoid = () => (String__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String], [dart.dynamic])))();
+  let __Tobool = () => (__Tobool = dart.constFn(dart.definiteFunctionType(core.bool, [], {when: core.bool, message: core.String})))();
+  let String__Tovoid$ = () => (String__Tovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [core.String], {time: core.DateTime, sequenceNumber: core.int, level: core.int, name: core.String, zone: async.Zone, error: core.Object, stackTrace: core.StackTrace})))();
+  let StringAndServiceExtensionHandlerTovoid = () => (StringAndServiceExtensionHandlerTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, developer.ServiceExtensionHandler])))();
+  let StringAndMapTovoid = () => (StringAndMapTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, core.Map])))();
+  let StringToServiceExtensionHandler = () => (StringToServiceExtensionHandler = dart.constFn(dart.definiteFunctionType(developer.ServiceExtensionHandler, [core.String])))();
+  let StringAndServiceExtensionHandlerTodynamic = () => (StringAndServiceExtensionHandlerTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.String, developer.ServiceExtensionHandler])))();
+  let VoidToUserTag = () => (VoidToUserTag = dart.constFn(dart.definiteFunctionType(developer.UserTag, [])))();
+  let MapToString = () => (MapToString = dart.constFn(dart.definiteFunctionType(core.String, [core.Map])))();
+  let intAndintAndString__Tovoid = () => (intAndintAndString__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, core.int, core.String, core.String, core.String, core.String])))();
+  let intAndintAndString__Tovoid$ = () => (intAndintAndString__Tovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, core.int, core.String, core.String, core.String])))();
+  let intAndStringAndString__Tovoid = () => (intAndStringAndString__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.int, core.String, core.String, core.String])))();
+  let UriTovoid = () => (UriTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Uri])))();
+  let SendPortTovoid = () => (SendPortTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [isolate.SendPort])))();
+  let SendPortAndboolTovoid = () => (SendPortAndboolTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [isolate.SendPort, core.bool])))();
   let ListToIsolate = () => (ListToIsolate = dart.constFn(dart.definiteFunctionType(isolate.Isolate, [core.List])))();
   let dynamicTo_DartObject = () => (dynamicTo_DartObject = dart.constFn(dart.definiteFunctionType(js._DartObject, [dart.dynamic])))();
   let dynamicToJsObject = () => (dynamicToJsObject = dart.constFn(dart.definiteFunctionType(js.JsObject, [dart.dynamic])))();
@@ -36446,6 +36467,741 @@
   core.UriData._noScheme = -1;
   core.UriData._tokenCharTable = dart.constList([0, 0, 27858, 1023, 65534, 51199, 65535, 32767], core.int);
   core.UriData._uricTable = core.Uri._queryCharTable;
+  developer.debugger = function(opts) {
+    let when = opts && 'when' in opts ? opts.when : true;
+    let message = opts && 'message' in opts ? opts.message : null;
+    if (dart.test(when)) {
+      debugger;
+    }
+    return when;
+  };
+  dart.fn(developer.debugger, __Tobool());
+  developer.inspect = function(object) {
+    return object;
+  };
+  dart.fn(developer.inspect, ObjectToObject());
+  developer.log = function(message, opts) {
+    let time = opts && 'time' in opts ? opts.time : null;
+    let sequenceNumber = opts && 'sequenceNumber' in opts ? opts.sequenceNumber : null;
+    let level = opts && 'level' in opts ? opts.level : 0;
+    let name = opts && 'name' in opts ? opts.name : '';
+    let zone = opts && 'zone' in opts ? opts.zone : null;
+    let error = opts && 'error' in opts ? opts.error : null;
+    let stackTrace = opts && 'stackTrace' in opts ? opts.stackTrace : null;
+  };
+  dart.fn(developer.log, String__Tovoid$());
+  dart.defineLazy(developer, {
+    get _extensions() {
+      return MapOfString$ServiceExtensionHandler().new();
+    }
+  });
+  developer._clockValue = 0;
+  const _result = Symbol('_result');
+  const _errorCode = Symbol('_errorCode');
+  const _errorDetail = Symbol('_errorDetail');
+  const _isError = Symbol('_isError');
+  const _toString = Symbol('_toString');
+  developer.ServiceExtensionResponse = class ServiceExtensionResponse extends core.Object {
+    result(result) {
+      this[_result] = result;
+      this[_errorCode] = null;
+      this[_errorDetail] = null;
+      if (!(typeof this[_result] == 'string')) {
+        dart.throw(new core.ArgumentError.value(this[_result], "result", "Must be a String"));
+      }
+    }
+    error(errorCode, errorDetail) {
+      this[_result] = null;
+      this[_errorCode] = errorCode;
+      this[_errorDetail] = errorDetail;
+      developer.ServiceExtensionResponse._validateErrorCode(this[_errorCode]);
+      if (!(typeof this[_errorDetail] == 'string')) {
+        dart.throw(new core.ArgumentError.value(this[_errorDetail], "errorDetail", "Must be a String"));
+      }
+    }
+    static _errorCodeMessage(errorCode) {
+      developer.ServiceExtensionResponse._validateErrorCode(errorCode);
+      if (errorCode == developer.ServiceExtensionResponse.kInvalidParams) {
+        return "Invalid params";
+      }
+      return "Server error";
+    }
+    static _validateErrorCode(errorCode) {
+      if (!(typeof errorCode == 'number')) {
+        dart.throw(new core.ArgumentError.value(errorCode, "errorCode", "Must be an int"));
+      }
+      if (errorCode == developer.ServiceExtensionResponse.invalidParams) {
+        return;
+      }
+      if (dart.notNull(errorCode) >= developer.ServiceExtensionResponse.extensionErrorMin && dart.notNull(errorCode) <= developer.ServiceExtensionResponse.extensionErrorMax) {
+        return;
+      }
+      dart.throw(new core.ArgumentError.value(errorCode, "errorCode", "Out of range"));
+    }
+    [_isError]() {
+      return this[_errorCode] != null && this[_errorDetail] != null;
+    }
+    [_toString]() {
+      if (this[_result] != null) {
+        return this[_result];
+      } else {
+        dart.assert(this[_errorCode] != null);
+        dart.assert(this[_errorDetail] != null);
+        return convert.JSON.encode(dart.map({code: this[_errorCode], message: developer.ServiceExtensionResponse._errorCodeMessage(this[_errorCode]), data: dart.map({details: this[_errorDetail]}, core.String, core.String)}, core.String, core.Object));
+      }
+    }
+  };
+  dart.defineNamedConstructor(developer.ServiceExtensionResponse, 'result');
+  dart.defineNamedConstructor(developer.ServiceExtensionResponse, 'error');
+  dart.setSignature(developer.ServiceExtensionResponse, {
+    constructors: () => ({
+      result: dart.definiteFunctionType(developer.ServiceExtensionResponse, [core.String]),
+      error: dart.definiteFunctionType(developer.ServiceExtensionResponse, [core.int, core.String])
+    }),
+    fields: () => ({
+      [_result]: core.String,
+      [_errorCode]: core.int,
+      [_errorDetail]: core.String
+    }),
+    methods: () => ({
+      [_isError]: dart.definiteFunctionType(core.bool, []),
+      [_toString]: dart.definiteFunctionType(core.String, [])
+    }),
+    sfields: () => ({
+      kInvalidParams: core.int,
+      kExtensionError: core.int,
+      kExtensionErrorMax: core.int,
+      kExtensionErrorMin: core.int,
+      invalidParams: core.int,
+      extensionError: core.int,
+      extensionErrorMax: core.int,
+      extensionErrorMin: core.int
+    }),
+    statics: () => ({
+      _errorCodeMessage: dart.definiteFunctionType(core.String, [core.int]),
+      _validateErrorCode: dart.definiteFunctionType(dart.dynamic, [core.int])
+    }),
+    names: ['_errorCodeMessage', '_validateErrorCode']
+  });
+  developer.ServiceExtensionResponse.invalidParams = -32602;
+  developer.ServiceExtensionResponse.extensionError = -32000;
+  developer.ServiceExtensionResponse.extensionErrorMax = -32000;
+  developer.ServiceExtensionResponse.extensionErrorMin = -32016;
+  dart.defineLazy(developer.ServiceExtensionResponse, {
+    get kInvalidParams() {
+      return developer.ServiceExtensionResponse.invalidParams;
+    },
+    get kExtensionError() {
+      return developer.ServiceExtensionResponse.extensionError;
+    },
+    get kExtensionErrorMax() {
+      return developer.ServiceExtensionResponse.extensionErrorMax;
+    },
+    get kExtensionErrorMin() {
+      return developer.ServiceExtensionResponse.extensionErrorMin;
+    }
+  });
+  developer.ServiceExtensionHandler = dart.typedef('ServiceExtensionHandler', () => dart.functionType(async.Future$(developer.ServiceExtensionResponse), [core.String, MapOfString$String()]));
+  developer.registerExtension = function(method, handler) {
+    if (!(typeof method == 'string')) {
+      dart.throw(new core.ArgumentError.value(method, 'method', 'Must be a String'));
+    }
+    if (!dart.test(method[dartx.startsWith]('ext.'))) {
+      dart.throw(new core.ArgumentError.value(method, 'method', 'Must begin with ext.'));
+    }
+    if (developer._lookupExtension(method) != null) {
+      dart.throw(new core.ArgumentError(dart.str`Extension already registered: ${method}`));
+    }
+    if (!developer.ServiceExtensionHandler.is(handler)) {
+      dart.throw(new core.ArgumentError.value(handler, 'handler', 'Must be a ServiceExtensionHandler'));
+    }
+    developer._registerExtension(method, handler);
+  };
+  dart.fn(developer.registerExtension, StringAndServiceExtensionHandlerTovoid());
+  developer.postEvent = function(eventKind, eventData) {
+    if (!(typeof eventKind == 'string')) {
+      dart.throw(new core.ArgumentError.value(eventKind, 'eventKind', 'Must be a String'));
+    }
+    if (!core.Map.is(eventData)) {
+      dart.throw(new core.ArgumentError.value(eventData, 'eventData', 'Must be a Map'));
+    }
+    let eventDataAsString = convert.JSON.encode(eventData);
+    developer._postEvent(eventKind, eventDataAsString);
+  };
+  dart.fn(developer.postEvent, StringAndMapTovoid());
+  developer._postEvent = function(eventKind, eventData) {
+  };
+  dart.fn(developer._postEvent, StringAndStringTodynamic());
+  developer._lookupExtension = function(method) {
+    return developer._extensions[dartx._get](method);
+  };
+  dart.fn(developer._lookupExtension, StringToServiceExtensionHandler());
+  developer._registerExtension = function(method, handler) {
+    developer._extensions[dartx._set](method, handler);
+  };
+  dart.fn(developer._registerExtension, StringAndServiceExtensionHandlerTodynamic());
+  developer.UserTag = class UserTag extends core.Object {
+    static new(label) {
+      return developer._FakeUserTag.new(label);
+    }
+    static get defaultTag() {
+      return developer._FakeUserTag._defaultTag;
+    }
+  };
+  dart.setSignature(developer.UserTag, {
+    constructors: () => ({new: dart.definiteFunctionType(developer.UserTag, [core.String])}),
+    sfields: () => ({MAX_USER_TAGS: core.int}),
+    sgetters: () => ({defaultTag: dart.definiteFunctionType(developer.UserTag, [])})
+  });
+  developer.UserTag.MAX_USER_TAGS = 64;
+  developer._FakeUserTag = class _FakeUserTag extends core.Object {
+    real(label) {
+      this.label = label;
+    }
+    static new(label) {
+      let existingTag = developer._FakeUserTag._instances[dartx._get](label);
+      if (existingTag != null) {
+        return developer._FakeUserTag._check(existingTag);
+      }
+      if (developer._FakeUserTag._instances[dartx.length] == developer.UserTag.MAX_USER_TAGS) {
+        dart.throw(new core.UnsupportedError(dart.str`UserTag instance limit (${developer.UserTag.MAX_USER_TAGS}) reached.`));
+      }
+      let instance = new developer._FakeUserTag.real(label);
+      developer._FakeUserTag._instances[dartx._set](label, instance);
+      return instance;
+    }
+    makeCurrent() {
+      let old = developer._currentTag;
+      developer._currentTag = this;
+      return old;
+    }
+  };
+  dart.defineNamedConstructor(developer._FakeUserTag, 'real');
+  developer._FakeUserTag[dart.implements] = () => [developer.UserTag];
+  dart.setSignature(developer._FakeUserTag, {
+    constructors: () => ({
+      real: dart.definiteFunctionType(developer._FakeUserTag, [core.String]),
+      new: dart.definiteFunctionType(developer._FakeUserTag, [core.String])
+    }),
+    fields: () => ({label: core.String}),
+    methods: () => ({makeCurrent: dart.definiteFunctionType(developer.UserTag, [])}),
+    sfields: () => ({
+      _instances: core.Map,
+      _defaultTag: developer.UserTag
+    })
+  });
+  dart.defineLazy(developer._FakeUserTag, {
+    get _instances() {
+      return dart.map();
+    },
+    set _instances(_) {},
+    get _defaultTag() {
+      return developer._FakeUserTag.new('Default');
+    }
+  });
+  dart.defineLazy(developer, {
+    get _currentTag() {
+      return developer._FakeUserTag._defaultTag;
+    },
+    set _currentTag(_) {}
+  });
+  developer.getCurrentTag = function() {
+    return developer._currentTag;
+  };
+  dart.fn(developer.getCurrentTag, VoidToUserTag());
+  developer.Metric = class Metric extends core.Object {
+    new(name, description) {
+      this.name = name;
+      this.description = description;
+      if (this.name == 'vm' || dart.test(this.name[dartx.contains]('/'))) {
+        dart.throw(new core.ArgumentError('Invalid Metric name.'));
+      }
+    }
+  };
+  dart.setSignature(developer.Metric, {
+    constructors: () => ({new: dart.definiteFunctionType(developer.Metric, [core.String, core.String])}),
+    fields: () => ({
+      name: core.String,
+      description: core.String
+    })
+  });
+  const _value$0 = Symbol('_value');
+  const _toJSON = Symbol('_toJSON');
+  developer.Gauge = class Gauge extends developer.Metric {
+    get value() {
+      return this[_value$0];
+    }
+    set value(v) {
+      if (dart.notNull(v) < dart.notNull(this.min)) {
+        v = this.min;
+      } else if (dart.notNull(v) > dart.notNull(this.max)) {
+        v = this.max;
+      }
+      this[_value$0] = v;
+    }
+    new(name, description, min, max) {
+      this.min = min;
+      this.max = max;
+      this[_value$0] = null;
+      super.new(name, description);
+      if (!(typeof this.min == 'number')) {
+        dart.throw(new core.ArgumentError('min must be a double'));
+      }
+      if (!(typeof this.max == 'number')) {
+        dart.throw(new core.ArgumentError('max must be a double'));
+      }
+      if (!(dart.notNull(this.min) < dart.notNull(this.max))) {
+        dart.throw(new core.ArgumentError('min must be less than max'));
+      }
+      this[_value$0] = this.min;
+    }
+    [_toJSON]() {
+      let map = dart.map({type: 'Gauge', id: dart.str`metrics/${this.name}`, name: this.name, description: this.description, value: this.value, min: this.min, max: this.max}, core.String, core.Object);
+      return map;
+    }
+  };
+  dart.setSignature(developer.Gauge, {
+    constructors: () => ({new: dart.definiteFunctionType(developer.Gauge, [core.String, core.String, core.double, core.double])}),
+    fields: () => ({
+      min: core.double,
+      max: core.double,
+      [_value$0]: core.double
+    }),
+    getters: () => ({value: dart.definiteFunctionType(core.double, [])}),
+    setters: () => ({value: dart.definiteFunctionType(dart.void, [core.double])}),
+    methods: () => ({[_toJSON]: dart.definiteFunctionType(core.Map, [])})
+  });
+  developer.Counter = class Counter extends developer.Metric {
+    new(name, description) {
+      this[_value$0] = 0.0;
+      super.new(name, description);
+    }
+    get value() {
+      return this[_value$0];
+    }
+    set value(v) {
+      this[_value$0] = v;
+    }
+    [_toJSON]() {
+      let map = dart.map({type: 'Counter', id: dart.str`metrics/${this.name}`, name: this.name, description: this.description, value: this.value}, core.String, core.Object);
+      return map;
+    }
+  };
+  dart.setSignature(developer.Counter, {
+    constructors: () => ({new: dart.definiteFunctionType(developer.Counter, [core.String, core.String])}),
+    fields: () => ({[_value$0]: core.double}),
+    getters: () => ({value: dart.definiteFunctionType(core.double, [])}),
+    setters: () => ({value: dart.definiteFunctionType(dart.void, [core.double])}),
+    methods: () => ({[_toJSON]: dart.definiteFunctionType(core.Map, [])})
+  });
+  developer.Metrics = class Metrics extends core.Object {
+    static register(metric) {
+      if (!developer.Metric.is(metric)) {
+        dart.throw(new core.ArgumentError('metric must be a Metric'));
+      }
+      if (developer.Metrics._metrics[dartx._get](metric.name) != null) {
+        dart.throw(new core.ArgumentError('Registered metrics have unique names'));
+      }
+      developer.Metrics._metrics[dartx._set](metric.name, metric);
+    }
+    static deregister(metric) {
+      if (!developer.Metric.is(metric)) {
+        dart.throw(new core.ArgumentError('metric must be a Metric'));
+      }
+      developer.Metrics._metrics[dartx.remove](metric.name);
+    }
+    static _printMetric(id) {
+      let metric = developer.Metrics._metrics[dartx._get](id);
+      if (metric == null) {
+        return null;
+      }
+      return convert.JSON.encode(metric[_toJSON]());
+    }
+    static _printMetrics() {
+      let metrics = [];
+      for (let metric of developer.Metrics._metrics[dartx.values]) {
+        metrics[dartx.add](metric[_toJSON]());
+      }
+      let map = dart.map({type: 'MetricList', metrics: metrics}, core.String, core.Object);
+      return convert.JSON.encode(map);
+    }
+  };
+  dart.setSignature(developer.Metrics, {
+    sfields: () => ({_metrics: MapOfString$Metric()}),
+    statics: () => ({
+      register: dart.definiteFunctionType(dart.void, [developer.Metric]),
+      deregister: dart.definiteFunctionType(dart.void, [developer.Metric]),
+      _printMetric: dart.definiteFunctionType(core.String, [core.String]),
+      _printMetrics: dart.definiteFunctionType(core.String, [])
+    }),
+    names: ['register', 'deregister', '_printMetric', '_printMetrics']
+  });
+  dart.defineLazy(developer.Metrics, {
+    get _metrics() {
+      return MapOfString$Metric().new();
+    }
+  });
+  developer._isProduct = false;
+  developer.TimelineSyncFunction = dart.typedef('TimelineSyncFunction', () => dart.functionType(dart.dynamic, []));
+  developer.TimelineAsyncFunction = dart.typedef('TimelineAsyncFunction', () => dart.functionType(async.Future, []));
+  const _appendArguments = Symbol('_appendArguments');
+  developer.Timeline = class Timeline extends core.Object {
+    static startSync(name, opts) {
+      let arguments$ = opts && 'arguments' in opts ? opts.arguments : null;
+      if (developer._isProduct) {
+        return;
+      }
+      if (!(typeof name == 'string')) {
+        dart.throw(new core.ArgumentError.value(name, 'name', 'Must be a String'));
+      }
+      if (!dart.test(developer._isDartStreamEnabled())) {
+        developer.Timeline._stack[dartx.add](null);
+        return;
+      }
+      let block = new developer._SyncBlock._(name, developer._getTraceClock(), developer._getThreadCpuClock());
+      if (core.Map.is(arguments$)) {
+        block[_appendArguments](arguments$);
+      }
+      developer.Timeline._stack[dartx.add](block);
+    }
+    static finishSync() {
+      if (developer._isProduct) {
+        return;
+      }
+      if (developer.Timeline._stack[dartx.length] == 0) {
+        dart.throw(new core.StateError('Uneven calls to startSync and finishSync'));
+      }
+      let block = developer.Timeline._stack[dartx.removeLast]();
+      if (block == null) {
+        return;
+      }
+      block.finish();
+    }
+    static instantSync(name, opts) {
+      let arguments$ = opts && 'arguments' in opts ? opts.arguments : null;
+      if (developer._isProduct) {
+        return;
+      }
+      if (!(typeof name == 'string')) {
+        dart.throw(new core.ArgumentError.value(name, 'name', 'Must be a String'));
+      }
+      if (!dart.test(developer._isDartStreamEnabled())) {
+        return;
+      }
+      let instantArguments = null;
+      if (core.Map.is(arguments$)) {
+        instantArguments = core.Map.from(arguments$);
+      }
+      developer._reportInstantEvent(developer._getTraceClock(), 'Dart', name, developer._argumentsAsJson(instantArguments));
+    }
+    static timeSync(name, func, opts) {
+      let arguments$ = opts && 'arguments' in opts ? opts.arguments : null;
+      developer.Timeline.startSync(name, {arguments: arguments$});
+      try {
+        return func();
+      } finally {
+        developer.Timeline.finishSync();
+      }
+    }
+    static get now() {
+      return developer._getTraceClock();
+    }
+  };
+  dart.setSignature(developer.Timeline, {
+    sfields: () => ({
+      _stack: ListOf_SyncBlock(),
+      _isolateId: core.int,
+      _isolateIdString: core.String
+    }),
+    sgetters: () => ({now: dart.definiteFunctionType(core.int, [])}),
+    statics: () => ({
+      startSync: dart.definiteFunctionType(dart.void, [core.String], {arguments: core.Map}),
+      finishSync: dart.definiteFunctionType(dart.void, []),
+      instantSync: dart.definiteFunctionType(dart.void, [core.String], {arguments: core.Map}),
+      timeSync: dart.definiteFunctionType(dart.dynamic, [core.String, developer.TimelineSyncFunction], {arguments: core.Map})
+    }),
+    names: ['startSync', 'finishSync', 'instantSync', 'timeSync']
+  });
+  dart.defineLazy(developer.Timeline, {
+    get _stack() {
+      return ListOf_SyncBlock().new();
+    },
+    get _isolateId() {
+      return developer._getIsolateNum();
+    },
+    get _isolateIdString() {
+      return dart.toString(developer.Timeline._isolateId);
+    }
+  });
+  const _stack = Symbol('_stack');
+  const _taskId = Symbol('_taskId');
+  const _start$1 = Symbol('_start');
+  const _finish = Symbol('_finish');
+  developer.TimelineTask = class TimelineTask extends core.Object {
+    new() {
+      this[_stack] = JSArrayOf_AsyncBlock().of([]);
+      this[_taskId] = developer._getNextAsyncId();
+    }
+    withTaskId(taskId) {
+      this[_stack] = JSArrayOf_AsyncBlock().of([]);
+      this[_taskId] = taskId;
+      if (!(typeof taskId == 'number')) {
+        dart.throw(new core.ArgumentError.value(taskId, 'taskId', 'Must be an int'));
+      }
+    }
+    start(name, opts) {
+      let arguments$ = opts && 'arguments' in opts ? opts.arguments : null;
+      if (developer._isProduct) {
+        return;
+      }
+      if (!(typeof name == 'string')) {
+        dart.throw(new core.ArgumentError.value(name, 'name', 'Must be a String'));
+      }
+      let block = new developer._AsyncBlock._(name, this[_taskId]);
+      if (core.Map.is(arguments$)) {
+        block[_appendArguments](arguments$);
+      }
+      this[_stack][dartx.add](block);
+      block[_start$1]();
+    }
+    instant(name, opts) {
+      let arguments$ = opts && 'arguments' in opts ? opts.arguments : null;
+      if (developer._isProduct) {
+        return;
+      }
+      if (!(typeof name == 'string')) {
+        dart.throw(new core.ArgumentError.value(name, 'name', 'Must be a String'));
+      }
+      let instantArguments = null;
+      if (core.Map.is(arguments$)) {
+        instantArguments = core.Map.from(arguments$);
+      }
+      developer._reportTaskEvent(developer._getTraceClock(), this[_taskId], 'n', 'Dart', name, developer._argumentsAsJson(instantArguments));
+    }
+    finish() {
+      if (developer._isProduct) {
+        return;
+      }
+      if (this[_stack][dartx.length] == 0) {
+        dart.throw(new core.StateError('Uneven calls to start and finish'));
+      }
+      let block = this[_stack][dartx.removeLast]();
+      block[_finish]();
+    }
+    pass() {
+      if (dart.notNull(this[_stack][dartx.length]) > 0) {
+        dart.throw(new core.StateError('You cannot pass a TimelineTask without finishing all started ' + 'operations'));
+      }
+      let r = this[_taskId];
+      return r;
+    }
+  };
+  dart.defineNamedConstructor(developer.TimelineTask, 'withTaskId');
+  dart.setSignature(developer.TimelineTask, {
+    constructors: () => ({
+      new: dart.definiteFunctionType(developer.TimelineTask, []),
+      withTaskId: dart.definiteFunctionType(developer.TimelineTask, [core.int])
+    }),
+    fields: () => ({
+      [_taskId]: core.int,
+      [_stack]: ListOf_AsyncBlock()
+    }),
+    methods: () => ({
+      start: dart.definiteFunctionType(dart.void, [core.String], {arguments: core.Map}),
+      instant: dart.definiteFunctionType(dart.void, [core.String], {arguments: core.Map}),
+      finish: dart.definiteFunctionType(dart.void, []),
+      pass: dart.definiteFunctionType(core.int, [])
+    })
+  });
+  const _arguments$ = Symbol('_arguments');
+  developer._AsyncBlock = class _AsyncBlock extends core.Object {
+    _(name, taskId) {
+      this.name = name;
+      this[_taskId] = taskId;
+      this.category = 'Dart';
+      this[_arguments$] = null;
+    }
+    [_start$1]() {
+      developer._reportTaskEvent(developer._getTraceClock(), this[_taskId], 'b', this.category, this.name, developer._argumentsAsJson(this[_arguments$]));
+    }
+    [_finish]() {
+      developer._reportTaskEvent(developer._getTraceClock(), this[_taskId], 'e', this.category, this.name, developer._argumentsAsJson(null));
+    }
+    [_appendArguments](arguments$) {
+      if (this[_arguments$] == null) {
+        this[_arguments$] = dart.map();
+      }
+      this[_arguments$][dartx.addAll](arguments$);
+    }
+  };
+  dart.defineNamedConstructor(developer._AsyncBlock, '_');
+  dart.setSignature(developer._AsyncBlock, {
+    constructors: () => ({_: dart.definiteFunctionType(developer._AsyncBlock, [core.String, core.int])}),
+    fields: () => ({
+      category: core.String,
+      name: core.String,
+      [_taskId]: core.int,
+      [_arguments$]: core.Map
+    }),
+    methods: () => ({
+      [_start$1]: dart.definiteFunctionType(dart.void, []),
+      [_finish]: dart.definiteFunctionType(dart.void, []),
+      [_appendArguments]: dart.definiteFunctionType(dart.void, [core.Map])
+    })
+  });
+  const _startCpu = Symbol('_startCpu');
+  developer._SyncBlock = class _SyncBlock extends core.Object {
+    _(name, start, startCpu) {
+      this.name = name;
+      this[_start$1] = start;
+      this[_startCpu] = startCpu;
+      this.category = 'Dart';
+      this[_arguments$] = null;
+    }
+    finish() {
+      developer._reportCompleteEvent(this[_start$1], this[_startCpu], this.category, this.name, developer._argumentsAsJson(this[_arguments$]));
+    }
+    [_appendArguments](arguments$) {
+      if (arguments$ == null) {
+        return;
+      }
+      if (this[_arguments$] == null) {
+        this[_arguments$] = dart.map();
+      }
+      this[_arguments$][dartx.addAll](arguments$);
+    }
+  };
+  dart.defineNamedConstructor(developer._SyncBlock, '_');
+  dart.setSignature(developer._SyncBlock, {
+    constructors: () => ({_: dart.definiteFunctionType(developer._SyncBlock, [core.String, core.int, core.int])}),
+    fields: () => ({
+      category: core.String,
+      name: core.String,
+      [_arguments$]: core.Map,
+      [_start$1]: core.int,
+      [_startCpu]: core.int
+    }),
+    methods: () => ({
+      finish: dart.definiteFunctionType(dart.void, []),
+      [_appendArguments]: dart.definiteFunctionType(dart.void, [core.Map])
+    })
+  });
+  developer._fastPathArguments = null;
+  developer._argumentsAsJson = function(arguments$) {
+    if (arguments$ == null || arguments$[dartx.length] == 0) {
+      if (developer._fastPathArguments == null) {
+        developer._fastPathArguments = dart.str`{"isolateNumber":"${developer.Timeline._isolateId}"}`;
+      }
+      return developer._fastPathArguments;
+    }
+    arguments$[dartx._set]('isolateNumber', developer.Timeline._isolateIdString);
+    return convert.JSON.encode(arguments$);
+  };
+  dart.fn(developer._argumentsAsJson, MapToString());
+  developer._isDartStreamEnabled = function() {
+    return false;
+  };
+  dart.fn(developer._isDartStreamEnabled, VoidTobool());
+  developer._getNextAsyncId = function() {
+    return 0;
+  };
+  dart.fn(developer._getNextAsyncId, VoidToint());
+  developer._getTraceClock = function() {
+    let x = developer._clockValue;
+    developer._clockValue = dart.notNull(x) + 1;
+    return x;
+  };
+  dart.fn(developer._getTraceClock, VoidToint());
+  developer._getThreadCpuClock = function() {
+    return -1;
+  };
+  dart.fn(developer._getThreadCpuClock, VoidToint());
+  developer._getIsolateNum = function() {
+    return 0;
+  };
+  dart.fn(developer._getIsolateNum, VoidToint());
+  developer._reportTaskEvent = function(start, taskId, phase, category, name, argumentsAsJson) {
+  };
+  dart.fn(developer._reportTaskEvent, intAndintAndString__Tovoid());
+  developer._reportCompleteEvent = function(start, startCpu, category, name, argumentsAsJson) {
+  };
+  dart.fn(developer._reportCompleteEvent, intAndintAndString__Tovoid$());
+  developer._reportInstantEvent = function(start, category, name, argumentsAsJson) {
+  };
+  dart.fn(developer._reportInstantEvent, intAndStringAndString__Tovoid());
+  developer.ServiceProtocolInfo = class ServiceProtocolInfo extends core.Object {
+    new(serverUri) {
+      this.majorVersion = developer._getServiceMajorVersion();
+      this.minorVersion = developer._getServiceMinorVersion();
+      this.serverUri = serverUri;
+    }
+    toString() {
+      if (this.serverUri != null) {
+        return dart.str`Dart VM Service Protocol v${this.majorVersion}.${this.minorVersion} ` + dart.str`listening on ${this.serverUri}`;
+      } else {
+        return dart.str`Dart VM Service Protocol v${this.majorVersion}.${this.minorVersion}`;
+      }
+    }
+  };
+  dart.setSignature(developer.ServiceProtocolInfo, {
+    constructors: () => ({new: dart.definiteFunctionType(developer.ServiceProtocolInfo, [core.Uri])}),
+    fields: () => ({
+      majorVersion: core.int,
+      minorVersion: core.int,
+      serverUri: core.Uri
+    })
+  });
+  developer.Service = class Service extends core.Object {
+    static getInfo() {
+      return dart.async(function*() {
+        let receivePort = isolate.RawReceivePort.new();
+        let uriCompleter = CompleterOfUri().new();
+        receivePort.handler = dart.fn(uri => uriCompleter.complete(uri), UriTovoid());
+        developer._getServerInfo(receivePort.sendPort);
+        let uri = (yield uriCompleter.future);
+        receivePort.close();
+        return new developer.ServiceProtocolInfo(uri);
+      }, developer.ServiceProtocolInfo);
+    }
+    static controlWebServer(opts) {
+      return dart.async(function*(opts) {
+        let enable = opts && 'enable' in opts ? opts.enable : false;
+        if (!(typeof enable == 'boolean')) {
+          dart.throw(new core.ArgumentError.value(enable, 'enable', 'Must be a bool'));
+        }
+        let receivePort = isolate.RawReceivePort.new();
+        let uriCompleter = CompleterOfUri().new();
+        receivePort.handler = dart.fn(uri => uriCompleter.complete(uri), UriTovoid());
+        developer._webServerControl(receivePort.sendPort, enable);
+        let uri = (yield uriCompleter.future);
+        receivePort.close();
+        return new developer.ServiceProtocolInfo(uri);
+      }, developer.ServiceProtocolInfo, opts);
+    }
+  };
+  dart.setSignature(developer.Service, {
+    statics: () => ({
+      getInfo: dart.definiteFunctionType(async.Future$(developer.ServiceProtocolInfo), []),
+      controlWebServer: dart.definiteFunctionType(async.Future$(developer.ServiceProtocolInfo), [], {enable: core.bool})
+    }),
+    names: ['getInfo', 'controlWebServer']
+  });
+  developer._getServerInfo = function(sp) {
+    sp.send(null);
+  };
+  dart.lazyFn(developer._getServerInfo, () => SendPortTovoid());
+  developer._webServerControl = function(sp, enable) {
+    sp.send(null);
+  };
+  dart.lazyFn(developer._webServerControl, () => SendPortAndboolTovoid());
+  developer._getServiceMajorVersion = function() {
+    return 0;
+  };
+  dart.fn(developer._getServiceMajorVersion, VoidToint());
+  developer._getServiceMinorVersion = function() {
+    return 0;
+  };
+  dart.fn(developer._getServiceMinorVersion, VoidToint());
   isolate.IsolateSpawnException = class IsolateSpawnException extends core.Object {
     new(message) {
       this.message = message;
@@ -56952,19 +57708,19 @@
     statics: () => ({createElement_tag: dart.definiteFunctionType(dart.dynamic, [core.String, core.String])}),
     names: ['createElement_tag']
   });
-  const _value$0 = Symbol('_value');
+  const _value$1 = Symbol('_value');
   html$.ScrollAlignment = class ScrollAlignment extends core.Object {
     _internal(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
     }
     toString() {
-      return dart.str`ScrollAlignment.${this[_value$0]}`;
+      return dart.str`ScrollAlignment.${this[_value$1]}`;
     }
   };
   dart.defineNamedConstructor(html$.ScrollAlignment, '_internal');
   dart.setSignature(html$.ScrollAlignment, {
     constructors: () => ({_internal: dart.definiteFunctionType(html$.ScrollAlignment, [dart.dynamic])}),
-    fields: () => ({[_value$0]: dart.dynamic}),
+    fields: () => ({[_value$1]: dart.dynamic}),
     sfields: () => ({
       TOP: html$.ScrollAlignment,
       CENTER: html$.ScrollAlignment,
@@ -80225,43 +80981,43 @@
   const _unit = Symbol('_unit');
   html$.Dimension = class Dimension extends core.Object {
     percent(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = '%';
     }
     px(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'px';
     }
     pc(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'pc';
     }
     pt(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'pt';
     }
     inch(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'in';
     }
     cm(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'cm';
     }
     mm(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'mm';
     }
     em(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'em';
     }
     ex(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'ex';
     }
     css(cssValue) {
-      this[_value$0] = null;
+      this[_value$1] = null;
       this[_unit] = null;
       if (cssValue == '') cssValue = '0px';
       if (dart.test(cssValue[dartx.endsWith]('%'))) {
@@ -80270,16 +81026,16 @@
         this[_unit] = cssValue[dartx.substring](dart.notNull(cssValue[dartx.length]) - 2);
       }
       if (dart.test(cssValue[dartx.contains]('.'))) {
-        this[_value$0] = core.double.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
+        this[_value$1] = core.double.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
       } else {
-        this[_value$0] = core.int.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
+        this[_value$1] = core.int.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
       }
     }
     toString() {
-      return dart.str`${this[_value$0]}${this[_unit]}`;
+      return dart.str`${this[_value$1]}${this[_unit]}`;
     }
     get value() {
-      return this[_value$0];
+      return this[_value$1];
     }
   };
   dart.defineNamedConstructor(html$.Dimension, 'percent');
@@ -80306,7 +81062,7 @@
       css: dart.definiteFunctionType(html$.Dimension, [core.String])
     }),
     fields: () => ({
-      [_value$0]: core.num,
+      [_value$1]: core.num,
       [_unit]: core.String
     }),
     getters: () => ({value: dart.definiteFunctionType(core.num, [])})
@@ -94920,6 +95676,7 @@
   exports.collection = collection;
   exports.convert = convert;
   exports.core = core;
+  exports.developer = developer;
   exports.isolate = isolate;
   exports.js = js;
   exports.js_util = js_util;
