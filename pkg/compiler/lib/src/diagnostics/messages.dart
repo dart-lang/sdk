@@ -385,6 +385,7 @@ enum MessageKind {
   PATCH_POINT_TO_SETTER,
   PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
   PATCH_RETURN_TYPE_MISMATCH,
+  PATCH_TYPE_VARIABLES_MISMATCH,
   PLEASE_REPORT_THE_CRASH,
   POSITIONAL_PARAMETER_WITH_EQUALS,
   POTENTIAL_MUTATION,
@@ -1239,12 +1240,14 @@ main() => f<int>(42);
           ]),
 
       MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC:
-      const MessageTemplate(
-          MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
-          "Method type variables are treated as `dynamic` in `as` expressions.",
-          howToFix: "Try using the upper bound of the type variable, or check "
-              "that the blind success of the test does not introduce bugs.",
-          examples: const [
+          const MessageTemplate(
+              MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
+              "Method type variables are treated as `dynamic` in `as` "
+              "expressions.",
+              howToFix:
+                  "Try using the upper bound of the type variable, or check "
+                  "that the blind success of the test does not introduce bugs.",
+              examples: const [
             """
 // Method type variables are not reified, so they cannot be tested dynamically.
 bool f<T>(Object o) => o as T;
@@ -3529,6 +3532,11 @@ part of test.main;
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors start.
       //////////////////////////////////////////////////////////////////////////////
+
+      MessageKind.PATCH_TYPE_VARIABLES_MISMATCH: const MessageTemplate(
+          MessageKind.PATCH_TYPE_VARIABLES_MISMATCH,
+          "Patch type variables do not match "
+          "type variables on origin method '#{methodName}'."),
 
       MessageKind.PATCH_RETURN_TYPE_MISMATCH: const MessageTemplate(
           MessageKind.PATCH_RETURN_TYPE_MISMATCH,

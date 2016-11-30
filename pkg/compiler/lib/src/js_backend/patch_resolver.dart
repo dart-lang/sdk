@@ -106,10 +106,24 @@ class PatchResolverTask extends CompilerTask {
   void checkMatchingPatchSignatures(
       FunctionElement origin, FunctionElement patch) {
     // TODO(johnniwinther): Show both origin and patch locations on errors.
+    FunctionExpression originTree = origin.node;
     FunctionSignature originSignature = origin.functionSignature;
     FunctionExpression patchTree = patch.node;
     FunctionSignature patchSignature = patch.functionSignature;
 
+    if ('${originTree.typeVariables}' != '${patchTree.typeVariables}') {
+      reporter.withCurrentElement(patch, () {
+        Node errorNode = patchTree.typeVariables != null
+            ? patchTree.typeVariables
+            : patchTree;
+        reporter.reportError(
+            reporter.createMessage(
+                errorNode,
+                MessageKind.PATCH_TYPE_VARIABLES_MISMATCH,
+                {'methodName': origin.name}),
+            [reporter.createMessage(origin, MessageKind.THIS_IS_THE_METHOD)]);
+      });
+    }
     if (originSignature.type.returnType != patchSignature.type.returnType) {
       reporter.withCurrentElement(patch, () {
         Node errorNode =

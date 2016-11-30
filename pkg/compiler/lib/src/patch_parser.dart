@@ -149,7 +149,8 @@ class PatchParserTask extends CompilerTask {
   DiagnosticReporter get reporter => compiler.reporter;
 
   PatchParserTask(Compiler compiler)
-      : compiler = compiler, super(compiler.measurer);
+      : compiler = compiler,
+        super(compiler.measurer);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -248,7 +249,7 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener): super(listener);
+  PatchClassElementParser(Listener listener) : super(listener);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }

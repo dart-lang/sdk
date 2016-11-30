@@ -307,6 +307,11 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     DiagnosticReporter reporter = resolution.reporter;
 
     List<DartType> createTypeVariables(NodeList typeVariableNodes) {
+      if (element.isPatch) {
+        FunctionTypedElement origin = element.origin;
+        origin.computeType(resolution);
+        return origin.typeVariables;
+      }
       if (typeVariableNodes == null) return const <DartType>[];
 
       // Create the types and elements corresponding to [typeVariableNodes].
