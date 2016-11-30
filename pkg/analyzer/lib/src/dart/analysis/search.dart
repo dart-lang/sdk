@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart' show NamespaceBuilder;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
@@ -55,6 +56,8 @@ class Search {
         return _searchReferences_Local(element, (n) => n is Block);
       }
       return _searchReferences_Function(element);
+    } else if (kind == ElementKind.IMPORT) {
+      return _searchReferences_Import(element);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block);
@@ -152,6 +155,27 @@ class Search {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Import(
+      ImportElement element) async {
+    // Search only in drivers to which the library was added.
+    String path = element.source.fullName;
+    if (!_driver.addedFiles.contains(path)) {
+      return const <SearchResult>[];
+    }
+
+    List<SearchResult> results = <SearchResult>[];
+    LibraryElement libraryElement = element.library;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      String unitPath = unitElement.source.fullName;
+      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      _ImportElementReferencesVisitor visitor =
+          new _ImportElementReferencesVisitor(element, unitElement);
+      unitAnalysisResult.unit.accept(visitor);
+      results.addAll(visitor.results);
+    }
     return results;
   }
 
@@ -306,6 +330,72 @@ class _ContainingElementFinder extends GeneralizingElementVisitor {
         super.visitElement(element);
       }
     }
+  }
+}
+
+/**
+ * Visitor that adds [SearchResult]s for references to the [importElement].
+ */
+class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
+  final List<SearchResult> results = <SearchResult>[];
+
+  final ImportElement importElement;
+  final CompilationUnitElement enclosingUnitElement;
+
+  Set<Element> importedElements;
+
+  _ImportElementReferencesVisitor(
+      ImportElement element, this.enclosingUnitElement)
+      : importElement = element {
+    importedElements = new NamespaceBuilder()
+        .createImportNamespaceForDirective(element)
+        .definedNames
+        .values
+        .toSet();
+  }
+
+  @override
+  visitExportDirective(ExportDirective node) {}
+
+  @override
+  visitImportDirective(ImportDirective node) {}
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    if (importElement.prefix != null) {
+      if (node.staticElement == importElement.prefix) {
+        AstNode parent = node.parent;
+        if (parent is PrefixedIdentifier && parent.prefix == node) {
+          if (importedElements.contains(parent.staticElement)) {
+            _addResultForPrefix(node, parent.identifier);
+          }
+        }
+        if (parent is MethodInvocation && parent.target == node) {
+          if (importedElements.contains(parent.methodName.staticElement)) {
+            _addResultForPrefix(node, parent.methodName);
+          }
+        }
+      }
+    } else {
+      if (importedElements.contains(node.staticElement)) {
+        _addResult(node.offset, 0);
+      }
+    }
+  }
+
+  void _addResult(int offset, int length) {
+    Element enclosingElement =
+        _getEnclosingElement(enclosingUnitElement, offset);
+    results.add(new SearchResult._(importElement, enclosingElement,
+        SearchResultKind.REFERENCE, offset, length, true, false));
+  }
+
+  void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
+    int prefixOffset = prefixNode.offset;
+    _addResult(prefixOffset, nextNode.offset - prefixOffset);
   }
 }
 

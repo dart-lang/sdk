@@ -300,6 +300,83 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ImportElement_noPrefix() async {
+    await _resolveTestUnit('''
+import 'dart:math' show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  print(PI);
+  print(new Random());
+  print(max(1, 2));
+}
+Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = await _findElement('main');
+    Element barElement = await _findElement('bar');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'PI);', length: 0),
+      _expectId(mainElement, kind, 'Random()', length: 0),
+      _expectId(mainElement, kind, 'max(', length: 0),
+      _expectId(barElement, kind, 'Random bar()', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix() async {
+    await _resolveTestUnit('''
+import 'dart:math' as math show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  print(math.PI);
+  print(new math.Random());
+  print(math.max(1, 2));
+}
+math.Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = await _findElement('main');
+    Element barElement = await _findElement('bar');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'math.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'math.PI);', length: length),
+      _expectId(mainElement, kind, 'math.Random()', length: length),
+      _expectId(mainElement, kind, 'math.max(', length: length),
+      _expectId(barElement, kind, 'math.Random bar()', length: length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix_forMultipleImports() async {
+    await _resolveTestUnit('''
+import 'dart:async' as p;
+import 'dart:math' as p;
+main() {
+  p.Random;
+  p.Future;
+}
+''');
+    Element mainElement = await _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'p.'.length;
+    {
+      ImportElement element = testLibraryElement.imports[0];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Future;', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+    {
+      ImportElement element = testLibraryElement.imports[1];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Random', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+  }
+
   test_searchReferences_LabelElement() async {
     await _resolveTestUnit('''
 main() {
