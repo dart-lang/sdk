@@ -327,6 +327,7 @@ type_variable_function_type_test: RuntimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
+vm/regress_27201_test: CompileTimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
 
