@@ -403,8 +403,8 @@ class EditDomainHandler implements RequestHandler {
       if (element != null) {
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
-          Refactoring refactoring =
-              new ConvertMethodToGetterRefactoring(searchEngine, element);
+          Refactoring refactoring = new ConvertMethodToGetterRefactoring(
+              searchEngine, _getResolvedUnit, element);
           RefactoringStatus status = await refactoring.checkInitialConditions();
           if (!status.hasFatalError) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
@@ -437,11 +437,17 @@ class EditDomainHandler implements RequestHandler {
     return Response.DELAYED_RESPONSE;
   }
 
+  Future<CompilationUnit> _getResolvedUnit(Element element) {
+    String path = element.source.fullName;
+    return server.getResolvedCompilationUnit(path);
+  }
+
   /**
    * Initializes [refactoringManager] with a new instance.
    */
   void _newRefactoringManager() {
-    refactoringManager = new _RefactoringManager(server, searchEngine);
+    refactoringManager =
+        new _RefactoringManager(server, _getResolvedUnit, searchEngine);
   }
 
   static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
@@ -515,6 +521,7 @@ class _RefactoringManager {
       const <RefactoringProblem>[];
 
   final AnalysisServer server;
+  final GetResolvedUnit getResolvedUnit;
   final SearchEngine searchEngine;
   StreamSubscription subscriptionToReset;
 
@@ -531,7 +538,7 @@ class _RefactoringManager {
   Request request;
   EditGetRefactoringResult result;
 
-  _RefactoringManager(this.server, this.searchEngine) {
+  _RefactoringManager(this.server, this.getResolvedUnit, this.searchEngine) {
     _reset();
   }
 
@@ -723,8 +730,8 @@ class _RefactoringManager {
       if (element != null) {
         if (element is ExecutableElement) {
           _resetOnAnalysisStarted();
-          refactoring =
-              new ConvertMethodToGetterRefactoring(searchEngine, element);
+          refactoring = new ConvertMethodToGetterRefactoring(
+              searchEngine, getResolvedUnit, element);
         }
       }
     }
@@ -760,11 +767,8 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring =
-            new InlineMethodRefactoring(searchEngine, (Element element) async {
-          String elementPath = element.source.fullName;
-          return await server.getResolvedCompilationUnit(elementPath);
-        }, unit, offset);
+        refactoring = new InlineMethodRefactoring(
+            searchEngine, getResolvedUnit, unit, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {

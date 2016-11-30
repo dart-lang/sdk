@@ -6,12 +6,19 @@ library test.services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    show
+        RefactoringProblem,
+        RefactoringProblemSeverity,
+        SourceChange,
+        SourceEdit,
+        SourceFileEdit;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -143,6 +150,14 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     // validate resulting code
     String actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(actualCode, expectedCode);
+  }
+
+  /**
+   * Completes with a fully resolved unit that contains the [element].
+   */
+  Future<CompilationUnit> getResolvedUnitWithElement(Element element) async {
+    return element.context
+        .resolveCompilationUnit(element.source, element.library);
   }
 
   void indexTestUnit(String code) {
