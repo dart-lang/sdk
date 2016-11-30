@@ -7,6 +7,7 @@ library analyzer.test.generated.resolver_test;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -3462,7 +3463,7 @@ A v = new A();
   void test_visitTypeName_noParameters_noArguments_undefined() {
     SimpleIdentifier id = AstTestFactory.identifier3("unknown")
       ..staticElement = new _StaleElement();
-    TypeName typeName = new TypeName(id, null);
+    TypeName typeName = astFactory.typeName(id, null);
     _resolveNode(typeName, []);
     expect(typeName.type, UndefinedTypeImpl.instance);
     expect(typeName.name.staticElement, null);
@@ -3503,7 +3504,7 @@ A v = new A();
     SimpleIdentifier suffix = AstTestFactory.identifier3("unknownSuffix")
       ..staticElement = new _StaleElement();
     TypeName typeName =
-        new TypeName(AstTestFactory.identifier(prefix, suffix), null);
+        astFactory.typeName(AstTestFactory.identifier(prefix, suffix), null);
     _resolveNode(typeName, []);
     expect(typeName.type, UndefinedTypeImpl.instance);
     expect(prefix.staticElement, null);

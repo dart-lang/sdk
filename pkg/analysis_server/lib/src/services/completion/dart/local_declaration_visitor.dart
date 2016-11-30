@@ -5,6 +5,7 @@
 library services.completion.dart.local.declaration.visitor;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -15,8 +16,8 @@ import 'package:analyzer/src/dart/ast/token.dart';
  * which catches the exception thrown by [finished()].
  */
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
-  static final TypeName STACKTRACE_TYPE = new TypeName(
-      new SimpleIdentifier(
+  static final TypeName STACKTRACE_TYPE = astFactory.typeName(
+      astFactory.simpleIdentifier(
           new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
       null);
 
