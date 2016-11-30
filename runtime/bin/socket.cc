@@ -101,44 +101,48 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
                                                       intptr_t backlog,
                                                       bool v6_only,
                                                       bool shared) {
-  MutexLocker ml(ListeningSocketRegistry::mutex_);
+  MutexLocker ml(mutex_);
 
+  OSSocket* first_os_socket = NULL;
   intptr_t port = SocketAddress::GetAddrPort(addr);
-  OSSocket* first_os_socket = LookupByPort(port);
-  if (first_os_socket != NULL) {
-    // There is already a socket listening on this port. We need to ensure
-    // that if there is one also listening on the same address, it was created
-    // with `shared = true`, ...
-    OSSocket* os_socket = first_os_socket;
-    OSSocket* os_socket_same_addr = findOSSocketWithAddress(os_socket, addr);
+  if (port > 0) {
+    first_os_socket = LookupByPort(port);
+    if (first_os_socket != NULL) {
+      // There is already a socket listening on this port. We need to ensure
+      // that if there is one also listening on the same address, it was created
+      // with `shared = true`, ...
+      OSSocket* os_socket = first_os_socket;
+      OSSocket* os_socket_same_addr = findOSSocketWithAddress(os_socket, addr);
 
-    if (os_socket_same_addr != NULL) {
-      if (!os_socket_same_addr->shared || !shared) {
-        OSError os_error(-1,
-                         "The shared flag to bind() needs to be `true` if "
-                         "binding multiple times on the same (address, port) "
-                         "combination.",
-                         OSError::kUnknown);
-        return DartUtils::NewDartOSError(&os_error);
+      if (os_socket_same_addr != NULL) {
+        if (!os_socket_same_addr->shared || !shared) {
+          OSError os_error(-1,
+                           "The shared flag to bind() needs to be `true` if "
+                           "binding multiple times on the same (address, port) "
+                           "combination.",
+                           OSError::kUnknown);
+          return DartUtils::NewDartOSError(&os_error);
+        }
+        if (os_socket_same_addr->v6_only != v6_only) {
+          OSError os_error(-1,
+                           "The v6Only flag to bind() needs to be the same if "
+                           "binding multiple times on the same (address, port) "
+                           "combination.",
+                           OSError::kUnknown);
+          return DartUtils::NewDartOSError(&os_error);
+        }
+
+        // This socket creation is the exact same as the one which originally
+        // created the socket. We therefore increment the refcount and reuse
+        // the file descriptor.
+        os_socket->ref_count++;
+
+        // We set as a side-effect the file descriptor on the dart
+        // socket_object.
+        Socket::SetSocketIdNativeField(socket_object, os_socket->socketfd);
+
+        return Dart_True();
       }
-      if (os_socket_same_addr->v6_only != v6_only) {
-        OSError os_error(-1,
-                         "The v6Only flag to bind() needs to be the same if "
-                         "binding multiple times on the same (address, port) "
-                         "combination.",
-                         OSError::kUnknown);
-        return DartUtils::NewDartOSError(&os_error);
-      }
-
-      // This socket creation is the exact same as the one which originally
-      // created the socket. We therefore increment the refcount and reuse
-      // the file descriptor.
-      os_socket->ref_count++;
-
-      // We set as a side-effect the file descriptor on the dart socket_object.
-      Socket::SetSocketIdNativeField(socket_object, os_socket->socketfd);
-
-      return Dart_True();
     }
   }
 
@@ -158,6 +162,24 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
   }
   intptr_t allocated_port = Socket::GetPort(socketfd);
   ASSERT(allocated_port > 0);
+
+  if (allocated_port != port) {
+    // There are two cases to consider:
+    //
+    //   a) The user requested (address, port) where port != 0 which means
+    //      we re-use an existing socket if available (and it is shared) or we
+    //      create a new one. The new socket is guaranteed to have that
+    //      selected port.
+    //
+    //   b) The user requested (address, 0). This will make us *always* create a
+    //      new socket. The OS will assign it a new `allocated_port` and we will
+    //      insert into our data structures. *BUT* There might already be an
+    //      existing (address2, `allocated_port`) where address != address2. So
+    //      we need to do another `LookupByPort(allocated_port)` and link them
+    //      via `OSSocket->next`.
+    ASSERT(port == 0);
+    first_os_socket = LookupByPort(allocated_port);
+  }
 
   OSSocket* os_socket =
       new OSSocket(addr, allocated_port, v6_only, shared, socketfd);
