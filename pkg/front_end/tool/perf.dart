@@ -241,7 +241,7 @@ Future<Program> generateKernel(Uri entryUri) async {
   var repository = new Repository();
   DartLoader loader = new DartLoader(repository, options, packages);
 
-  Program program = loader.loadProgram(entryUri.path);
+  Program program = loader.loadProgram(entryUri);
   List errors = loader.errors;
   if (errors.isNotEmpty) {
     const int errorLimit = 100;
