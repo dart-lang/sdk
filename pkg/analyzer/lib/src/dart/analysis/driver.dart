@@ -241,6 +241,11 @@ class AnalysisDriver {
   Set<String> get knownFiles => _fsState.knownFiles;
 
   /**
+   * Return the list of files that the driver should try to analyze sooner.
+   */
+  List<String> get priorityFiles => _priorityFiles.toList(growable: false);
+
+  /**
    * Set the list of files that the driver should try to analyze sooner.
    *
    * Every path in the list must be absolute and normalized.
