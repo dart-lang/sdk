@@ -2848,7 +2848,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: 
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
@@ -4186,6 +4185,7 @@ WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
 
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 
@@ -8102,7 +8102,7 @@ LayoutTests/fast/xsl/xslt-fragment-in-empty-doc_t01: RuntimeError # Please triag
 LayoutTests/fast/xsl/xslt-string-parameters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please triage this failure
 LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
-LibTest/async/Future/forEach_A04_t02: RuntimeError # Please triage this failure
+LibTest/async/Future/forEach_A04_t02: Pass, RuntimeError # Sometimes passes on windows 7 and windows 8. Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
 LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
