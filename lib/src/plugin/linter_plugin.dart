@@ -60,7 +60,7 @@ class LinterPlugin implements Plugin {
   /// By default this list includes all [contributedRules].  Specific lints
   /// can be enabled/disabled (and in the future further configured) through
   /// a specified analysis options file.
-  @deprecated // Use context.getConfigurationData(..)
+  @deprecated // Use context.analysisOptions.lintRules
   List<LintRule> get lintRules => _getRules(_config);
 
   @override

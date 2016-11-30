@@ -57,6 +57,9 @@ class AnalysisOptionsProcessor extends OptionsProcessor {
 abstract class LintConfig {
   factory LintConfig.parse(String source, {String sourceUrl}) =>
       new _LintConfig().._parse(source, sourceUrl: sourceUrl);
+
+  factory LintConfig.parseMap(Map map) => new _LintConfig().._parseMap(map);
+
   List<String> get fileExcludes;
   List<String> get fileIncludes;
   List<RuleConfig> get ruleConfigs;
