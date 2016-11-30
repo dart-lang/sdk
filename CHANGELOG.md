@@ -2,6 +2,9 @@
 
 ### Language
 
+* Support generic method syntax. Type arguments are not available at
+  runtime. For details, check the
+  [informal specification](https://gist.github.com/eernstg/4353d7b4f669745bed3a5423e04a453c).
 * Support access to initializing formals, e.g., the use of `x` to initialize
  `y` in `class C { var x, y; C(this.x): y = x; }`.
   Please check the
