@@ -249,8 +249,12 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * Returns a new [InlineMethodRefactoring] instance.
    */
   factory InlineMethodRefactoring(
-      SearchEngine searchEngine, CompilationUnit unit, int offset) {
-    return new InlineMethodRefactoringImpl(searchEngine, unit, offset);
+      SearchEngine searchEngine,
+      GetResolvedUnitContainingElement getResolvedUnit,
+      CompilationUnit unit,
+      int offset) {
+    return new InlineMethodRefactoringImpl(
+        searchEngine, getResolvedUnit, unit, offset);
   }
 
   /**

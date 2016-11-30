@@ -760,7 +760,11 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring = new InlineMethodRefactoring(searchEngine, unit, offset);
+        refactoring =
+            new InlineMethodRefactoring(searchEngine, (Element element) async {
+          String elementPath = element.source.fullName;
+          return await server.getResolvedCompilationUnit(elementPath);
+        }, unit, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
