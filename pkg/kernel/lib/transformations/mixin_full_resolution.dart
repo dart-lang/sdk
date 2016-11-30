@@ -311,7 +311,8 @@ class SuperCallResolutionTransformer extends Transformer {
     return new StaticInvocation(
         _listFrom,
         new Arguments([new ListLiteral(list)],
-            named: [new NamedExpression("growable", new BoolLiteral(false))]));
+            named: [new NamedExpression("growable", new BoolLiteral(false))],
+            types: [const DynamicType()]));
   }
 
   /// Check that a call to the targetFunction is legal given the arguments.

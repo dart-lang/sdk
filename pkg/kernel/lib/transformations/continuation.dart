@@ -528,7 +528,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var iteratorVariable = new VariableDeclaration(':for-iterator',
           initializer: new ConstructorInvocation(
               helper.streamIteratorConstructor,
-              new Arguments(<Expression>[stmt.iterable])));
+              new Arguments(<Expression>[stmt.iterable],
+                  types: [const DynamicType()])));
 
       // await iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
@@ -733,8 +734,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
 
     // var :completer = new Completer.sync();
     completerVariable = new VariableDeclaration(":completer",
-        initializer: new StaticInvocation(
-            helper.completerConstructor, new Arguments([])),
+        initializer: new StaticInvocation(helper.completerConstructor,
+            new Arguments([], types: [const DynamicType()])),
         isFinal: true);
     statements.add(completerVariable);
 
@@ -746,7 +747,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // new Future.microtask(:async_op);
     var newMicrotaskStatement = new ExpressionStatement(new StaticInvocation(
         helper.futureMicrotaskConstructor,
-        new Arguments([new VariableGet(nestedClosureVariable)])));
+        new Arguments([new VariableGet(nestedClosureVariable)],
+            types: [const DynamicType()])));
     statements.add(newMicrotaskStatement);
 
     // return :completer.future;

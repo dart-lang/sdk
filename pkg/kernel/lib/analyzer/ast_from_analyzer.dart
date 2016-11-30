@@ -1677,6 +1677,15 @@ class ExpressionBuilder
     return element;
   }
 
+  /// Forces the list of type arguments to have the specified length. If the
+  /// length was changed, all type arguments are changed to `dynamic`.
+  void _coerceTypeArgumentArity(List<ast.DartType> typeArguments, int arity) {
+    if (typeArguments.length != arity) {
+      typeArguments.length = arity;
+      typeArguments.fillRange(0, arity, const ast.DynamicType());
+    }
+  }
+
   ast.Expression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     ConstructorElement element = node.staticElement;
@@ -1729,6 +1738,8 @@ class ExpressionBuilder
     if (classElement.isEnum) {
       return scope.emitCompileTimeError(CompileTimeErrorCode.INSTANTIATE_ENUM);
     }
+    _coerceTypeArgumentArity(
+        arguments.types, classElement.typeParameters.length);
     if (element.isFactory) {
       ast.Member target = scope.resolveConcreteMethod(element);
       if (target is ast.Procedure &&
