@@ -577,7 +577,7 @@ class Parser {
   /// Returns token after match if [token] matches identifier ('.' identifier)?,
   /// and otherwise returns null. Does not produce listener events.
   Token tryParseQualified(Token token) {
-    if (!identical(token.kind, IDENTIFIER_TOKEN)) return null;
+    if (!isValidTypeReference(token)) return null;
     token = token.next;
     if (!identical(token.kind, PERIOD_TOKEN)) return token;
     token = token.next;
