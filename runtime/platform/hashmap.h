@@ -61,7 +61,27 @@ class HashMap {
   Entry* Lookup(void* key, uint32_t hash, bool insert);
 
   // Removes the entry with matching key.
+  //
+  // WARNING: This method cannot be called while iterating a `HashMap`
+  // otherwise the iteration might step over elements!
   void Remove(void* key, uint32_t hash);
+
+  // Removes the entry and returns the next entry (in iteration order) after
+  // this one.
+  //
+  // Usage instructions for removing elements during iteration:
+  //
+  //    HashMap::Entry* current = map.Start();
+  //    while (current != NULL) {
+  //       ...
+  //      if (condition) {
+  //        current = map.Remove(current);
+  //      } else {
+  //        current = map.Next(current);
+  //      }
+  //    }
+  //
+  Entry* Remove(Entry* entry);
 
   // Empties the hash map (occupancy() == 0), and calls the function 'clear' on
   // each of the values if given.
