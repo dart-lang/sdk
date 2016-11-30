@@ -29,8 +29,8 @@ class KernelTask extends CompilerTask {
   ///
   /// May enqueue more elements to the resolution queue.
   void buildKernelIr() => measure(() {
-    program = buildProgram(_compiler.mainApp);
-  });
+        program = buildProgram(_compiler.mainApp);
+      });
 
   /// Builds the kernel IR program for the main function exported from
   /// [library].

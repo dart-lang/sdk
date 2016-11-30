@@ -457,6 +457,7 @@ class Unparser extends Indentation implements Visitor {
       visit(argNode.receiver);
     } else {
       if (spacesNeeded) write(' ');
+      visit(node.typeArgumentsNode);
       visit(node.argumentsNode);
     }
   }

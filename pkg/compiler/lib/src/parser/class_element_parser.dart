@@ -9,7 +9,7 @@ import 'listener.dart' show Listener;
 import 'partial_parser.dart' show PartialParser;
 
 class ClassElementParser extends PartialParser {
-  ClassElementParser(Listener listener): super(listener);
+  ClassElementParser(Listener listener) : super(listener);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }

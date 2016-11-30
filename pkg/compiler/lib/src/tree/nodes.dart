@@ -593,6 +593,7 @@ class Send extends Expression with StoredTreeElementMixin {
   final Node receiver;
   final Node selector;
   final NodeList argumentsNode;
+  final NodeList typeArgumentsNode;
 
   /// Whether this is a conditional send of the form `a?.b`.
   final bool isConditional;
@@ -603,16 +604,19 @@ class Send extends Expression with StoredTreeElementMixin {
       [this.receiver,
       this.selector,
       this.argumentsNode,
+      this.typeArgumentsNode,
       this.isConditional = false]);
   Send.postfix(this.receiver, this.selector,
       [Node argument = null, this.isConditional = false])
       : argumentsNode = (argument == null)
             ? new Postfix()
-            : new Postfix.singleton(argument);
+            : new Postfix.singleton(argument),
+        typeArgumentsNode = null;
   Send.prefix(this.receiver, this.selector,
       [Node argument = null, this.isConditional = false])
       : argumentsNode =
-            (argument == null) ? new Prefix() : new Prefix.singleton(argument);
+            (argument == null) ? new Prefix() : new Prefix.singleton(argument),
+        typeArgumentsNode = null;
 
   Send asSend() => this;
 
@@ -695,7 +699,8 @@ class Send extends Expression with StoredTreeElementMixin {
 
   Send copyWithReceiver(Node newReceiver, bool isConditional) {
     assert(receiver == null);
-    return new Send(newReceiver, selector, argumentsNode, isConditional);
+    return new Send(
+        newReceiver, selector, argumentsNode, typeArgumentsNode, isConditional);
   }
 }
 
@@ -713,7 +718,7 @@ class SendSet extends Send {
   final Operator assignmentOperator;
   SendSet(receiver, selector, this.assignmentOperator, argumentsNode,
       [bool isConditional = false])
-      : super(receiver, selector, argumentsNode, isConditional);
+      : super(receiver, selector, argumentsNode, null, isConditional);
   SendSet.postfix(receiver, selector, this.assignmentOperator,
       [Node argument = null, bool isConditional = false])
       : super.postfix(receiver, selector, argument, isConditional);

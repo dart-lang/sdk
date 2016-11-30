@@ -685,8 +685,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       assert(invariant(node, element != null,
           message: 'Missing element for identifier'));
       assert(invariant(
-          node,
-          element.isVariable || element.isParameter || element.isField,
+          node, element.isVariable || element.isParameter || element.isField,
           message: 'Unexpected context element ${element}'));
       return element.computeType(resolution);
     }
