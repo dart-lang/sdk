@@ -764,10 +764,15 @@ action("generate_snapshot_test_dat_file") {
 }
 
 executable("run_vm_tests") {
+  if (defined(is_fuchsia) && is_fuchsia) {
+    testonly = true
+  }
+
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
   ]
+
   deps = [
     ":dart_snapshot_cc",
     ":generate_snapshot_test_dat_file",
