@@ -4601,8 +4601,7 @@ class A<T> {
 }
 
 class B {
-  void process(Map items) {
-  }
+  void process(Map items) {}
 }
 ''');
   }
@@ -4628,8 +4627,7 @@ class A<T> {
 }
 
 class B {
-  dynamic compute() {
-  }
+  dynamic compute() {}
 }
 ''');
   }
@@ -4644,8 +4642,7 @@ class A {
   }
 }
 
-class B {
-}
+class B {}
 ''');
     await assertHasFix(
         DartFixKind.CREATE_METHOD,
@@ -4659,8 +4656,7 @@ class A {
 }
 
 class B {
-  void process(List<int> items) {
-  }
+  void process(List<int> items) {}
 }
 ''');
   }
@@ -4683,8 +4679,26 @@ class A<T> {
     process(items);
   }
 
-  void process(List<T> items) {
+  void process(List<T> items) {}
+}
+''');
   }
+
+  test_undefinedMethod_createQualified_emptyClassBody() async {
+    resolveTestUnit('''
+class A {}
+main() {
+  A.myUndefinedMethod();
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_METHOD,
+        '''
+class A {
+  static void myUndefinedMethod() {}
+}
+main() {
+  A.myUndefinedMethod();
 }
 ''');
   }
@@ -4701,8 +4715,7 @@ main() {
         DartFixKind.CREATE_METHOD,
         '''
 class A {
-  static void myUndefinedMethod() {
-  }
+  static void myUndefinedMethod() {}
 }
 main() {
   A.myUndefinedMethod();
@@ -4725,8 +4738,7 @@ main() {
 class A {
   foo() {}
 
-  static void myUndefinedMethod() {
-  }
+  static void myUndefinedMethod() {}
 }
 main() {
   A.myUndefinedMethod();
@@ -4746,8 +4758,7 @@ main(A a) {
         DartFixKind.CREATE_METHOD,
         '''
 class A {
-  void myUndefinedMethod() {
-  }
+  void myUndefinedMethod() {}
 }
 main(A a) {
   a.myUndefinedMethod();
@@ -4797,8 +4808,7 @@ class D {
     bar(c1.x, c2.x);
   }
 
-  void bar(int x, int x2) {
-  }
+  void bar(int x, int x2) {}
 }''');
   }
 
@@ -4818,8 +4828,7 @@ class A {
     myUndefinedMethod(0, 1.0, '3');
   }
 
-  void myUndefinedMethod(int i, double d, String s) {
-  }
+  void myUndefinedMethod(int i, double d, String s) {}
 }
 ''');
     // linked positions
@@ -4864,8 +4873,7 @@ class A {
     myUndefinedMethod(0, bbb: 1.0, ccc: '2');
   }
 
-  void myUndefinedMethod(int i, {double bbb, String ccc}) {
-  }
+  void myUndefinedMethod(int i, {double bbb, String ccc}) {}
 }
 ''');
     // linked positions
@@ -4908,8 +4916,7 @@ class A {
     int v = myUndefinedMethod();
   }
 
-  int myUndefinedMethod() {
-  }
+  int myUndefinedMethod() {}
 }
 ''');
     // linked positions
@@ -4930,8 +4937,7 @@ class A {
 class A {
   static var f = myUndefinedMethod();
 
-  static myUndefinedMethod() {
-  }
+  static myUndefinedMethod() {}
 }
 ''');
   }
@@ -4952,8 +4958,7 @@ class A {
     myUndefinedMethod();
   }
 
-  static void myUndefinedMethod() {
-  }
+  static void myUndefinedMethod() {}
 }
 ''');
   }
@@ -4971,8 +4976,7 @@ main() {
         DartFixKind.CREATE_METHOD,
         '''
 class A {
-  void myUndefinedMethod() {
-  }
+  void myUndefinedMethod() {}
 }
 main() {
   var a = new A();
@@ -5018,8 +5022,7 @@ library test2;
 import 'test3.dart' as bbb;
 export 'test3.dart';
 class D {
-  void foo(bbb.E e) {
-  }
+  void foo(bbb.E e) {}
 }
 ''');
   }
@@ -5052,8 +5055,7 @@ main(test2.D d, test2.E e) {
         r'''
 library test2;
 class D {
-  void foo(E e) {
-  }
+  void foo(E e) {}
 }
 class E {}
 ''');

@@ -2036,23 +2036,17 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       // prepare environment
       Element targetElement;
-      String prefix;
-      int insertOffset;
-      String sourcePrefix;
-      String sourceSuffix;
       bool staticModifier = false;
+
+      ClassDeclaration targetClassNode;
       Expression target = invocation.realTarget;
       if (target == null) {
         targetElement = unitElement;
         ClassMember enclosingMember =
             node.getAncestor((node) => node is ClassMember);
-        ClassDeclaration enclosingClass = enclosingMember.parent;
-        utils.targetClassElement = enclosingClass.element;
+        targetClassNode = enclosingMember.parent;
+        utils.targetClassElement = targetClassNode.element;
         staticModifier = _inStaticContext();
-        prefix = utils.getNodePrefix(enclosingMember);
-        insertOffset = enclosingMember.end;
-        sourcePrefix = '$eol$eol';
-        sourceSuffix = '';
       } else {
         // prepare target interface type
         DartType targetType = target.bestType;
@@ -2066,32 +2060,24 @@ class FixProcessor {
         if (targetTypeNode is! ClassDeclaration) {
           return;
         }
-        ClassDeclaration targetClassNode = targetTypeNode;
+        targetClassNode = targetTypeNode;
         // maybe static
         if (target is Identifier) {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
-        // prepare insert offset
-        prefix = '  ';
-        insertOffset = targetClassNode.end - 1;
-        if (targetClassNode.members.isEmpty) {
-          sourcePrefix = '';
-        } else {
-          sourcePrefix = eol;
-        }
-        sourceSuffix = eol;
         // use different utils
         CompilationUnitElement targetUnitElement =
             getCompilationUnitElement(targetClassElement);
         CompilationUnit targetUnit = getParsedUnit(targetUnitElement);
         utils = new CorrectionUtils(targetUnit);
       }
+      ClassMemberLocation targetLocation =
+          utils.prepareNewMethodLocation(targetClassNode);
       String targetFile = targetElement.source.fullName;
       // build method source
-      SourceBuilder sb = new SourceBuilder(targetFile, insertOffset);
+      SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
       {
-        sb.append(sourcePrefix);
-        sb.append(prefix);
+        sb.append(targetLocation.prefix);
         // maybe "static"
         if (staticModifier) {
           sb.append('static ');
@@ -2108,8 +2094,8 @@ class FixProcessor {
           sb.endPosition();
         }
         _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
-        sb.append(') {$eol$prefix}');
-        sb.append(sourceSuffix);
+        sb.append(') {}');
+        sb.append(targetLocation.suffix);
       }
       // insert source
       _insertBuilder(sb, targetElement);

@@ -1317,6 +1317,16 @@ class CorrectionUtils {
             member is MethodDeclaration && member.isGetter);
   }
 
+  ClassMemberLocation prepareNewMethodLocation(
+      ClassDeclaration classDeclaration) {
+    return prepareNewClassMemberLocation(
+        classDeclaration,
+        (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration);
+  }
+
   /**
    * Returns the source with indentation changed from [oldIndent] to
    * [newIndent], keeping indentation of lines relative to each other.
