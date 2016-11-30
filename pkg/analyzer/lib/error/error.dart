@@ -872,17 +872,9 @@ class ErrorProperty<V> implements Comparable<ErrorProperty> {
   static const ErrorProperty<String> PARTS_LIBRARY_NAME =
       const ErrorProperty<String>('PARTS_LIBRARY_NAME', 1);
 
-  /**
-   * A property whose value is a list of [ExecutableElement] that should
-   * be but are not implemented by a concrete class.
-   */
-  static const ErrorProperty<List<ExecutableElement>> UNIMPLEMENTED_METHODS =
-      const ErrorProperty<List<ExecutableElement>>('UNIMPLEMENTED_METHODS', 2);
-
   static const List<ErrorProperty> values = const [
     NOT_INITIALIZED_FIELDS,
     PARTS_LIBRARY_NAME,
-    UNIMPLEMENTED_METHODS
   ];
 
   /**

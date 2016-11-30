@@ -4989,104 +4989,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (_enclosingClass.hasNoSuchMethod) {
       return;
     }
-    //
-    // Store in local sets the set of all method and accessor names
-    //
-    HashSet<ExecutableElement> missingOverrides =
-        new HashSet<ExecutableElement>();
-    //
-    // Loop through the set of all executable elements declared in the implicit
-    // interface.
-    //
-    Map<String, ExecutableElement> membersInheritedFromInterfaces =
-        _inheritanceManager.getMembersInheritedFromInterfaces(_enclosingClass);
-    Map<String, ExecutableElement> membersInheritedFromSuperclasses =
-        _inheritanceManager.getMembersInheritedFromClasses(_enclosingClass);
-    for (String memberName in membersInheritedFromInterfaces.keys) {
-      ExecutableElement executableElt =
-          membersInheritedFromInterfaces[memberName];
-      if (memberName == null) {
-        break;
-      }
-      // If the element is not synthetic and can be determined to be defined in
-      // Object, skip it.
-      if (executableElt.enclosingElement != null &&
-          (executableElt.enclosingElement as ClassElement).type.isObject) {
-        continue;
-      }
-      // Check to see if some element is in local enclosing class that matches
-      // the name of the required member.
-      if (_isMemberInClassOrMixin(executableElt, _enclosingClass)) {
-        // We do not have to verify that this implementation of the found method
-        // matches the required function type: the set of
-        // StaticWarningCode.INVALID_METHOD_OVERRIDE_* warnings break out the
-        // different specific situations.
-        continue;
-      }
-      // First check to see if this element was declared in the superclass
-      // chain, in which case there is already a concrete implementation.
-      ExecutableElement elt = membersInheritedFromSuperclasses[memberName];
-      // Check to see if an element was found in the superclass chain with the
-      // correct name.
-      if (elt != null) {
-        // Reference the types, if any are null then continue.
-        InterfaceType enclosingType = _enclosingClass.type;
-        FunctionType concreteType = elt.type;
-        FunctionType requiredMemberType = executableElt.type;
-        if (enclosingType == null ||
-            concreteType == null ||
-            requiredMemberType == null) {
-          continue;
-        }
-        // Some element was found in the superclass chain that matches the name
-        // of the required member.
-        // If it is not abstract and it is the correct one (types match- the
-        // version of this method that we have has the correct number of
-        // parameters, etc), then this class has a valid implementation of this
-        // method, so skip it.
-        if ((elt is MethodElement && !elt.isAbstract) ||
-            (elt is PropertyAccessorElement && !elt.isAbstract)) {
-          // Since we are comparing two function types, we need to do the
-          // appropriate type substitutions first ().
-          FunctionType foundConcreteFT = _inheritanceManager
-              .substituteTypeArgumentsInMemberFromInheritance(
-                  concreteType, memberName, enclosingType);
-          FunctionType requiredMemberFT = _inheritanceManager
-              .substituteTypeArgumentsInMemberFromInheritance(
-                  requiredMemberType, memberName, enclosingType);
-          foundConcreteFT = _typeSystem.functionTypeToConcreteType(
-              _typeProvider, foundConcreteFT);
-          requiredMemberFT = _typeSystem.functionTypeToConcreteType(
-              _typeProvider, requiredMemberFT);
 
-          // Strong mode does override checking for types in CodeChecker, so
-          // we can skip it here. Doing it here leads to unnecessary duplicate
-          // error messages in subclasses that inherit from one that has an
-          // override error.
-          //
-          // See: https://github.com/dart-lang/sdk/issues/25232
-          if (_options.strongMode ||
-              _typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
-            continue;
-          }
-        }
-      }
-      // The not qualifying concrete executable element was found, add it to the
-      // list.
-      missingOverrides.add(executableElt);
-    }
-    // Now that we have the set of missing overrides, generate a warning on this
-    // class.
-    int missingOverridesSize = missingOverrides.length;
-    if (missingOverridesSize == 0) {
+    Set<ExecutableElement> missingOverrides = computeMissingOverrides(
+        _options.strongMode,
+        _typeProvider,
+        _typeSystem,
+        _inheritanceManager,
+        _enclosingClass);
+    if (missingOverrides.isEmpty) {
       return;
     }
-    List<ExecutableElement> missingOverridesArray =
-        new List.from(missingOverrides);
-    List<String> stringMembersArrayListSet = new List<String>();
-    for (int i = 0; i < missingOverridesArray.length; i++) {
-      String newStrMember;
-      ExecutableElement element = missingOverridesArray[i];
+
+    List<String> missingOverrideNames = <String>[];
+    for (ExecutableElement element in missingOverrides) {
       Element enclosingElement = element.enclosingElement;
       String prefix = StringUtilities.EMPTY;
       if (element is PropertyAccessorElement) {
@@ -5098,60 +5013,57 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           // "setter "
         }
       }
+      String newStrMember;
       if (enclosingElement != null) {
         newStrMember =
             "$prefix'${enclosingElement.displayName}.${element.displayName}'";
       } else {
         newStrMember = "$prefix'${element.displayName}'";
       }
-      stringMembersArrayListSet.add(newStrMember);
+      missingOverrideNames.add(newStrMember);
     }
-    List<String> stringMembersArray = new List.from(stringMembersArrayListSet);
-    stringMembersArray.sort();
-    AnalysisErrorWithProperties analysisError;
-    if (stringMembersArray.length == 1) {
-      analysisError = _errorReporter.newErrorWithProperties(
+    missingOverrideNames.sort();
+
+    if (missingOverrideNames.length == 1) {
+      _errorReporter.reportErrorForNode(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           classNameNode,
-          [stringMembersArray[0]]);
-    } else if (stringMembersArray.length == 2) {
-      analysisError = _errorReporter.newErrorWithProperties(
+          [missingOverrideNames[0]]);
+    } else if (missingOverrideNames.length == 2) {
+      _errorReporter.reportErrorForNode(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           classNameNode,
-          [stringMembersArray[0], stringMembersArray[1]]);
-    } else if (stringMembersArray.length == 3) {
-      analysisError = _errorReporter.newErrorWithProperties(
+          [missingOverrideNames[0], missingOverrideNames[1]]);
+    } else if (missingOverrideNames.length == 3) {
+      _errorReporter.reportErrorForNode(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
           classNameNode, [
-        stringMembersArray[0],
-        stringMembersArray[1],
-        stringMembersArray[2]
+        missingOverrideNames[0],
+        missingOverrideNames[1],
+        missingOverrideNames[2]
       ]);
-    } else if (stringMembersArray.length == 4) {
-      analysisError = _errorReporter.newErrorWithProperties(
+    } else if (missingOverrideNames.length == 4) {
+      _errorReporter.reportErrorForNode(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
           classNameNode, [
-        stringMembersArray[0],
-        stringMembersArray[1],
-        stringMembersArray[2],
-        stringMembersArray[3]
+        missingOverrideNames[0],
+        missingOverrideNames[1],
+        missingOverrideNames[2],
+        missingOverrideNames[3]
       ]);
     } else {
-      analysisError = _errorReporter.newErrorWithProperties(
+      _errorReporter.reportErrorForNode(
           StaticWarningCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           classNameNode,
           [
-            stringMembersArray[0],
-            stringMembersArray[1],
-            stringMembersArray[2],
-            stringMembersArray[3],
-            stringMembersArray.length - 4
+            missingOverrideNames[0],
+            missingOverrideNames[1],
+            missingOverrideNames[2],
+            missingOverrideNames[3],
+            missingOverrideNames.length - 4
           ]);
     }
-    analysisError.setProperty(
-        ErrorProperty.UNIMPLEMENTED_METHODS, missingOverridesArray);
-    _errorReporter.reportError(analysisError);
   }
 
   /**
@@ -6537,57 +6449,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return `true` iff the given [classElement] has a concrete method, getter or
-   * setter that matches the name of the given [executableElement] in either the
-   * class itself, or one of its' mixins.
-   *
-   * By "match", only the name of the member is tested to match, it does not
-   * have to equal or be a subtype of the given executable element, this is due
-   * to the specific use where this method is used in
-   * [_checkForNonAbstractClassInheritsAbstractMember].
-   */
-  bool _isMemberInClassOrMixin(
-      ExecutableElement executableElement, ClassElement classElement) {
-    ExecutableElement foundElt = null;
-    String executableName = executableElement.name;
-    if (executableElement is MethodElement) {
-      foundElt = classElement.getMethod(executableName);
-      if (foundElt != null && !foundElt.isAbstract) {
-        return true;
-      }
-      List<InterfaceType> mixins = classElement.mixins;
-      for (int i = 0; i < mixins.length && foundElt == null; i++) {
-        foundElt = mixins[i].getMethod(executableName);
-      }
-      if (foundElt != null && !foundElt.isAbstract) {
-        return true;
-      }
-    } else if (executableElement is PropertyAccessorElement) {
-      if (executableElement.isGetter) {
-        foundElt = classElement.getGetter(executableName);
-      }
-      if (foundElt == null && executableElement.isSetter) {
-        foundElt = classElement.getSetter(executableName);
-      }
-      if (foundElt != null &&
-          !(foundElt as PropertyAccessorElement).isAbstract) {
-        return true;
-      }
-      List<InterfaceType> mixins = classElement.mixins;
-      for (int i = 0; i < mixins.length && foundElt == null; i++) {
-        foundElt = mixins[i].getGetter(executableName);
-        if (foundElt == null) {
-          foundElt = mixins[i].getSetter(executableName);
-        }
-      }
-      if (foundElt != null && !foundElt.isAbstract) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Return `true` if the given 'this' [expression] is in a valid context.
    */
   bool _isThisInValidContext(ThisExpression expression) {
@@ -6712,6 +6573,106 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Returns [ExecutableElement]s that are declared in interfaces implemented
+   * by the [classElement], but not implemented by the [classElement] or its
+   * superclasses.
+   */
+  static Set<ExecutableElement> computeMissingOverrides(
+      bool strongMode,
+      TypeProvider typeProvider,
+      TypeSystem typeSystem,
+      InheritanceManager inheritanceManager,
+      ClassElement classElement) {
+    //
+    // Store in local sets the set of all method and accessor names
+    //
+    HashSet<ExecutableElement> missingOverrides =
+        new HashSet<ExecutableElement>();
+    //
+    // Loop through the set of all executable elements declared in the implicit
+    // interface.
+    //
+    Map<String, ExecutableElement> membersInheritedFromInterfaces =
+        inheritanceManager.getMembersInheritedFromInterfaces(classElement);
+    Map<String, ExecutableElement> membersInheritedFromSuperclasses =
+        inheritanceManager.getMembersInheritedFromClasses(classElement);
+    for (String memberName in membersInheritedFromInterfaces.keys) {
+      ExecutableElement executableElt =
+          membersInheritedFromInterfaces[memberName];
+      if (memberName == null) {
+        break;
+      }
+      // If the element is not synthetic and can be determined to be defined in
+      // Object, skip it.
+      if (executableElt.enclosingElement != null &&
+          (executableElt.enclosingElement as ClassElement).type.isObject) {
+        continue;
+      }
+      // Check to see if some element is in local enclosing class that matches
+      // the name of the required member.
+      if (_isMemberInClassOrMixin(executableElt, classElement)) {
+        // We do not have to verify that this implementation of the found method
+        // matches the required function type: the set of
+        // StaticWarningCode.INVALID_METHOD_OVERRIDE_* warnings break out the
+        // different specific situations.
+        continue;
+      }
+      // First check to see if this element was declared in the superclass
+      // chain, in which case there is already a concrete implementation.
+      ExecutableElement elt = membersInheritedFromSuperclasses[memberName];
+      // Check to see if an element was found in the superclass chain with the
+      // correct name.
+      if (elt != null) {
+        // Reference the types, if any are null then continue.
+        InterfaceType enclosingType = classElement.type;
+        FunctionType concreteType = elt.type;
+        FunctionType requiredMemberType = executableElt.type;
+        if (enclosingType == null ||
+            concreteType == null ||
+            requiredMemberType == null) {
+          continue;
+        }
+        // Some element was found in the superclass chain that matches the name
+        // of the required member.
+        // If it is not abstract and it is the correct one (types match- the
+        // version of this method that we have has the correct number of
+        // parameters, etc), then this class has a valid implementation of this
+        // method, so skip it.
+        if ((elt is MethodElement && !elt.isAbstract) ||
+            (elt is PropertyAccessorElement && !elt.isAbstract)) {
+          // Since we are comparing two function types, we need to do the
+          // appropriate type substitutions first ().
+          FunctionType foundConcreteFT =
+              inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+                  concreteType, memberName, enclosingType);
+          FunctionType requiredMemberFT =
+              inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+                  requiredMemberType, memberName, enclosingType);
+          foundConcreteFT = typeSystem.functionTypeToConcreteType(
+              typeProvider, foundConcreteFT);
+          requiredMemberFT = typeSystem.functionTypeToConcreteType(
+              typeProvider, requiredMemberFT);
+
+          // Strong mode does override checking for types in CodeChecker, so
+          // we can skip it here. Doing it here leads to unnecessary duplicate
+          // error messages in subclasses that inherit from one that has an
+          // override error.
+          //
+          // See: https://github.com/dart-lang/sdk/issues/25232
+          if (strongMode ||
+              typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
+            continue;
+          }
+        }
+      }
+      // The not qualifying concrete executable element was found, add it to the
+      // list.
+      missingOverrides.add(executableElt);
+    }
+    return missingOverrides;
+  }
+
+  /**
    * Return the static type of the given [expression] that is to be used for
    * type analysis.
    */
@@ -6736,6 +6697,57 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  /**
+   * Return `true` iff the given [classElement] has a concrete method, getter or
+   * setter that matches the name of the given [executableElement] in either the
+   * class itself, or one of its' mixins.
+   *
+   * By "match", only the name of the member is tested to match, it does not
+   * have to equal or be a subtype of the given executable element, this is due
+   * to the specific use where this method is used in
+   * [_checkForNonAbstractClassInheritsAbstractMember].
+   */
+  static bool _isMemberInClassOrMixin(
+      ExecutableElement executableElement, ClassElement classElement) {
+    ExecutableElement foundElt = null;
+    String executableName = executableElement.name;
+    if (executableElement is MethodElement) {
+      foundElt = classElement.getMethod(executableName);
+      if (foundElt != null && !foundElt.isAbstract) {
+        return true;
+      }
+      List<InterfaceType> mixins = classElement.mixins;
+      for (int i = 0; i < mixins.length && foundElt == null; i++) {
+        foundElt = mixins[i].getMethod(executableName);
+      }
+      if (foundElt != null && !foundElt.isAbstract) {
+        return true;
+      }
+    } else if (executableElement is PropertyAccessorElement) {
+      if (executableElement.isGetter) {
+        foundElt = classElement.getGetter(executableName);
+      }
+      if (foundElt == null && executableElement.isSetter) {
+        foundElt = classElement.getSetter(executableName);
+      }
+      if (foundElt != null &&
+          !(foundElt as PropertyAccessorElement).isAbstract) {
+        return true;
+      }
+      List<InterfaceType> mixins = classElement.mixins;
+      for (int i = 0; i < mixins.length && foundElt == null; i++) {
+        foundElt = mixins[i].getGetter(executableName);
+        if (foundElt == null) {
+          foundElt = mixins[i].getSetter(executableName);
+        }
+      }
+      if (foundElt != null && !foundElt.isAbstract) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

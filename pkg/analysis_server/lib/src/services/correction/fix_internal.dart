@@ -35,8 +35,10 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -287,15 +289,7 @@ class FixProcessor {
       _addFix_makeEnclosingClassAbstract();
       _addFix_createNoSuchMethod();
       // implement methods
-      // TODO(scheglov) Fix another way to get unimplemented methods.
-      // AnalysisErrorWithProperties does not work with the new analysis driver.
-      if (error is AnalysisErrorWithProperties) {
-        AnalysisErrorWithProperties errorWithProperties =
-            error as AnalysisErrorWithProperties;
-        List<ExecutableElement> missingOverrides = errorWithProperties
-            .getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
-        _addFix_createMissingOverrides(missingOverrides);
-      }
+      _addFix_createMissingOverrides();
     }
     if (errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
         errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
@@ -1279,9 +1273,19 @@ class FixProcessor {
     _addFix(DartFixKind.CREATE_LOCAL_VARIABLE, [name]);
   }
 
-  void _addFix_createMissingOverrides(List<ExecutableElement> elements) {
-    elements = elements.toList();
-    int numElements = elements.length;
+  void _addFix_createMissingOverrides() {
+    // prepare target
+    ClassDeclaration targetClass = node.parent as ClassDeclaration;
+    ClassElement targetClassElement = targetClass.element;
+    utils.targetClassElement = targetClassElement;
+    List<ExecutableElement> elements = ErrorVerifier
+        .computeMissingOverrides(
+            context.analysisOptions.strongMode,
+            context.typeProvider,
+            context.typeSystem,
+            new InheritanceManager(unitLibraryElement),
+            targetClassElement)
+        .toList();
     // sort by name, getters before setters
     elements.sort((Element a, Element b) {
       int names = compareStrings(a.displayName, b.displayName);
@@ -1293,9 +1297,6 @@ class FixProcessor {
       }
       return 1;
     });
-    // prepare target
-    ClassDeclaration targetClass = node.parent as ClassDeclaration;
-    utils.targetClassElement = targetClass.element;
     // prepare SourceBuilder
     int insertOffset = targetClass.end - 1;
     SourceBuilder sb = new SourceBuilder(file, insertOffset);
@@ -1310,6 +1311,7 @@ class FixProcessor {
 
     // merge getter/setter pairs into fields
     String prefix = utils.getIndent(1);
+    int numElements = elements.length;
     for (int i = 0; i < elements.length; i++) {
       ExecutableElement element = elements[i];
       if (element.kind == ElementKind.GETTER && i + 1 < elements.length) {
