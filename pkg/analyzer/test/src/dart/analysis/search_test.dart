@@ -141,7 +141,52 @@ part 'my_part.dart';
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ConstructorElement() async {
+  test_searchReferences_ConstructorElement_default() async {
+    await _resolveTestUnit('''
+class A {
+  A() {}
+}
+main() {
+  new A();
+}
+''');
+    ConstructorElement element = _findElementAtString('A() {}');
+    Element mainElement = _findElement('main');
+    var expected = [
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '();', length: 0)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ConstructorElement_default_otherFile() async {
+    String other = _p('$testProject/other.dart');
+    String otherCode = '''
+import 'test.dart';
+main() {
+  new A(); // in other
+}
+''';
+    provider.newFile(other, otherCode);
+    driver.addFile(other);
+
+    await _resolveTestUnit('''
+class A {
+  A() {}
+}
+''');
+    ConstructorElement element = _findElementAtString('A() {}');
+
+    CompilationUnit otherUnit = (await driver.getResult(other)).unit;
+    Element main = otherUnit.element.functions[0];
+    var expected = [
+      new ExpectedResult(main, SearchResultKind.REFERENCE,
+          otherCode.indexOf('(); // in other'), 0,
+          isResolved: true, isQualified: true)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ConstructorElement_named() async {
     await _resolveTestUnit('''
 class A {
   A.named() {}
@@ -154,7 +199,7 @@ main() {
     Element mainElement = _findElement('main');
     var expected = [
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, '.named();',
-          length: 6)
+          length: '.named'.length)
     ];
     await _verifyReferences(element, expected);
   }

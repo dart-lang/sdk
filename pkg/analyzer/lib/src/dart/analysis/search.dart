@@ -84,6 +84,9 @@ class Search {
 
     // TODO(scheglov) optimize for private elements
     String name = element.displayName;
+    if (element is ConstructorElement) {
+      name = element.enclosingElement.displayName;
+    }
 
     // Prepare the list of files that reference the element name.
     List<String> files = await _driver.getFilesReferencingName(name);
