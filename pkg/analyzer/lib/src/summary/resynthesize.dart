@@ -7,7 +7,6 @@ library summary_resynthesizer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -589,9 +588,9 @@ class _ConstExprBuilder {
 
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
-      return astFactory.interpolationString(expr.literal, expr.value);
+      return new InterpolationString(expr.literal, expr.value);
     } else {
-      return astFactory.interpolationExpression(
+      return new InterpolationExpression(
           TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
           expr,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
@@ -715,7 +714,7 @@ class _ConstExprBuilder {
       typeArguments = AstTestFactory.typeArgumentList(typeNames);
     }
     if (node is SimpleIdentifier) {
-      _push(astFactory.methodInvocation(
+      _push(new MethodInvocation(
           null,
           TokenFactory.tokenFromType(TokenType.PERIOD),
           node,

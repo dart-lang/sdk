@@ -8,7 +8,6 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -394,15 +393,14 @@ class Parser {
     } else {
       syntheticToken = _createSyntheticToken(TokenType.IDENTIFIER);
     }
-    return astFactory.simpleIdentifier(syntheticToken,
-        isDeclaration: isDeclaration);
+    return new SimpleIdentifier(syntheticToken, isDeclaration: isDeclaration);
   }
 
   /**
    * Return a synthetic string literal.
    */
-  SimpleStringLiteral createSyntheticStringLiteral() => astFactory
-      .simpleStringLiteral(_createSyntheticToken(TokenType.STRING), "");
+  SimpleStringLiteral createSyntheticStringLiteral() =>
+      new SimpleStringLiteral(_createSyntheticToken(TokenType.STRING), "");
 
   /**
    * Advance to the next token in the token stream, making it the new current
@@ -601,12 +599,12 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isAdditiveOperator) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseMultiplicativeExpression();
     }
     while (_currentToken.type.isAdditiveOperator) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseMultiplicativeExpression());
     }
     return expression;
@@ -633,8 +631,7 @@ class Parser {
     if (_matches(TokenType.OPEN_PAREN)) {
       arguments = parseArgumentList();
     }
-    return astFactory.annotation(
-        atSign, name, period, constructorName, arguments);
+    return new Annotation(atSign, name, period, constructorName, arguments);
   }
 
   /**
@@ -656,7 +653,7 @@ class Parser {
     // namedArgument can have an identifier followed by a colon.
     //
     if (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      return astFactory.namedExpression(parseLabel(), parseExpression2());
+      return new NamedExpression(parseLabel(), parseExpression2());
     } else {
       return parseExpression2();
     }
@@ -677,7 +674,7 @@ class Parser {
   ArgumentList parseArgumentList() {
     Token leftParenthesis = getAndAdvance();
     if (_matches(TokenType.CLOSE_PAREN)) {
-      return astFactory.argumentList(leftParenthesis, null, getAndAdvance());
+      return new ArgumentList(leftParenthesis, null, getAndAdvance());
     }
     //
     // Even though unnamed arguments must all appear before any named arguments,
@@ -715,8 +712,7 @@ class Parser {
       // If there is, then we're more likely missing a comma and should go back
       // to parsing arguments.
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
-      return astFactory.argumentList(
-          leftParenthesis, arguments, rightParenthesis);
+      return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
     } finally {
       _inInitializer = wasInInitializer;
     }
@@ -742,7 +738,7 @@ class Parser {
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.assertStatement(
+    return new AssertStatement(
         keyword, leftParen, expression, comma, message, rightParen, semicolon);
   }
 
@@ -759,7 +755,7 @@ class Parser {
   Expression parseAssignableExpression(bool primaryAllowed) {
     if (_matchesKeyword(Keyword.SUPER)) {
       return parseAssignableSelector(
-          astFactory.superExpression(getAndAdvance()), false,
+          new SuperExpression(getAndAdvance()), false,
           allowConditional: false);
     }
     return _parseAssignableExpressionNotStartingWithSuper(primaryAllowed);
@@ -790,7 +786,7 @@ class Parser {
       try {
         Expression index = parseExpression2();
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-        return astFactory.indexExpressionForTarget(
+        return new IndexExpression.forTarget(
             prefix, leftBracket, index, rightBracket);
       } finally {
         _inInitializer = wasInInitializer;
@@ -804,14 +800,13 @@ class Parser {
               [_currentToken.lexeme]);
         }
         Token operator = getAndAdvance();
-        return astFactory.propertyAccess(
-            prefix, operator, parseSimpleIdentifier());
+        return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
       } else if (type == TokenType.INDEX) {
         _splitIndex();
         Token leftBracket = getAndAdvance();
         Expression index = parseSimpleIdentifier();
         Token rightBracket = getAndAdvance();
-        return astFactory.indexExpressionForTarget(
+        return new IndexExpression.forTarget(
             prefix, leftBracket, index, rightBracket);
       } else {
         if (!optional) {
@@ -835,7 +830,7 @@ class Parser {
   AwaitExpression parseAwaitExpression() {
     Token awaitToken = getAndAdvance();
     Expression expression = parseUnaryExpression();
-    return astFactory.awaitExpression(awaitToken, expression);
+    return new AwaitExpression(awaitToken, expression);
   }
 
   /**
@@ -850,12 +845,12 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type == TokenType.AMPERSAND) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseShiftExpression();
     }
     while (_currentToken.type == TokenType.AMPERSAND) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseShiftExpression());
     }
     return expression;
@@ -873,12 +868,12 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type == TokenType.BAR) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseBitwiseXorExpression();
     }
     while (_currentToken.type == TokenType.BAR) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseBitwiseXorExpression());
     }
     return expression;
@@ -896,12 +891,12 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type == TokenType.CARET) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseBitwiseAndExpression();
     }
     while (_currentToken.type == TokenType.CARET) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseBitwiseAndExpression());
     }
     return expression;
@@ -942,7 +937,7 @@ class Parser {
     // there is, then we're more likely missing a semi-colon and should go back
     // to parsing statements.
     Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-    return astFactory.block(leftBracket, statements, rightBracket);
+    return new Block(leftBracket, statements, rightBracket);
   }
 
   /**
@@ -963,7 +958,7 @@ class Parser {
       _reportErrorForToken(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword);
     }
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.breakStatement(breakKeyword, label, semicolon);
+    return new BreakStatement(breakKeyword, label, semicolon);
   }
 
   /**
@@ -997,7 +992,7 @@ class Parser {
       try {
         Expression index = parseExpression2();
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-        expression = astFactory.indexExpressionForCascade(
+        expression = new IndexExpression.forCascade(
             period, leftBracket, index, rightBracket);
         period = null;
       } finally {
@@ -1014,21 +1009,21 @@ class Parser {
       do {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         if (functionName != null) {
-          expression = astFactory.methodInvocation(expression, period,
-              functionName, typeArguments, parseArgumentList());
+          expression = new MethodInvocation(expression, period, functionName,
+              typeArguments, parseArgumentList());
           period = null;
           functionName = null;
         } else if (expression == null) {
           // It should not be possible to get here.
-          expression = astFactory.methodInvocation(expression, period,
+          expression = new MethodInvocation(expression, period,
               createSyntheticIdentifier(), typeArguments, parseArgumentList());
         } else {
-          expression = astFactory.functionExpressionInvocation(
+          expression = new FunctionExpressionInvocation(
               expression, typeArguments, parseArgumentList());
         }
       } while (_isLikelyArgumentList());
     } else if (functionName != null) {
-      expression = astFactory.propertyAccess(expression, period, functionName);
+      expression = new PropertyAccess(expression, period, functionName);
       period = null;
     }
     assert(expression != null);
@@ -1043,14 +1038,14 @@ class Parser {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           Expression currentExpression = expression;
           if (currentExpression is PropertyAccess) {
-            expression = astFactory.methodInvocation(
+            expression = new MethodInvocation(
                 currentExpression.target,
                 currentExpression.operator,
                 currentExpression.propertyName,
                 typeArguments,
                 parseArgumentList());
           } else {
-            expression = astFactory.functionExpressionInvocation(
+            expression = new FunctionExpressionInvocation(
                 expression, typeArguments, parseArgumentList());
           }
         }
@@ -1059,7 +1054,7 @@ class Parser {
     if (_currentToken.type.isAssignmentOperator) {
       Token operator = getAndAdvance();
       _ensureAssignable(expression);
-      expression = astFactory.assignmentExpression(
+      expression = new AssignmentExpression(
           expression, operator, parseExpressionWithoutCascade());
     }
     return expression;
@@ -1181,7 +1176,7 @@ class Parser {
       rightBracket = _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_CLASS_BODY);
     }
-    ClassDeclaration classDeclaration = astFactory.classDeclaration(
+    ClassDeclaration classDeclaration = new ClassDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         abstractKeyword,
@@ -1212,8 +1207,8 @@ class Parser {
     Modifiers modifiers = parseModifiers();
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.VOID) {
-      TypeName returnType = astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+      TypeName returnType =
+          new TypeName(new SimpleIdentifier(getAndAdvance()), null);
       keyword = _currentToken.keyword;
       Token next = _peek();
       bool isFollowedByIdentifier = _tokenMatchesIdentifier(next);
@@ -1332,15 +1327,14 @@ class Parser {
         // We appear to have found an incomplete field declaration.
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-        VariableDeclaration variable = astFactory.variableDeclaration(
-            createSyntheticIdentifier(), null, null);
+        VariableDeclaration variable =
+            new VariableDeclaration(createSyntheticIdentifier(), null, null);
         List<VariableDeclaration> variables = <VariableDeclaration>[variable];
-        return astFactory.fieldDeclaration(
+        return new FieldDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             null,
-            astFactory.variableDeclarationList(
-                null, null, keyword, null, variables),
+            new VariableDeclarationList(null, null, keyword, null, variables),
             _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(
@@ -1353,7 +1347,7 @@ class Parser {
         // to loose, so we'll treat it as a method declaration with a missing
         // name, parameters and empty body.
         //
-        return astFactory.methodDeclaration(
+        return new MethodDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             null,
@@ -1363,10 +1357,9 @@ class Parser {
             null,
             createSyntheticIdentifier(isDeclaration: true),
             null,
-            astFactory.formalParameterList(
+            new FormalParameterList(
                 null, <FormalParameter>[], null, null, null),
-            astFactory
-                .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
+            new EmptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
     } else if (_tokenMatches(next, TokenType.PERIOD) &&
@@ -1394,7 +1387,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            astFactory.simpleIdentifier(methodName.token, isDeclaration: false),
+            new SimpleIdentifier(methodName.token, isDeclaration: false),
             null,
             null,
             parameters);
@@ -1502,7 +1495,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            astFactory.simpleIdentifier(methodName.token, isDeclaration: true),
+            new SimpleIdentifier(methodName.token, isDeclaration: true),
             null,
             null,
             parameters);
@@ -1570,9 +1563,9 @@ class Parser {
    */
   Combinator parseCombinator() {
     if (_matchesString(_SHOW)) {
-      return astFactory.showCombinator(getAndAdvance(), parseIdentifierList());
+      return new ShowCombinator(getAndAdvance(), parseIdentifierList());
     } else if (_matchesString(_HIDE)) {
-      return astFactory.hideCombinator(getAndAdvance(), parseIdentifierList());
+      return new HideCombinator(getAndAdvance(), parseIdentifierList());
     }
     return null;
   }
@@ -1652,8 +1645,7 @@ class Parser {
         Token syntheticToken =
             new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
         syntheticToken.setNext(firstToken);
-        return astFactory.commentReference(
-            null, astFactory.simpleIdentifier(syntheticToken));
+        return new CommentReference(null, new SimpleIdentifier(syntheticToken));
       }
       Token newKeyword = null;
       if (_tokenMatchesKeyword(firstToken, Keyword.NEW)) {
@@ -1664,16 +1656,16 @@ class Parser {
         if (firstToken.next.type != TokenType.EOF) {
           return null;
         }
-        Identifier identifier = astFactory.simpleIdentifier(firstToken);
-        return astFactory.commentReference(null, identifier);
+        Identifier identifier = new SimpleIdentifier(firstToken);
+        return new CommentReference(null, identifier);
       } else if (_tokenMatchesKeyword(firstToken, Keyword.OPERATOR)) {
         Token secondToken = firstToken.next;
         if (secondToken.isUserDefinableOperator) {
           if (secondToken.next.type != TokenType.EOF) {
             return null;
           }
-          Identifier identifier = astFactory.simpleIdentifier(secondToken);
-          return astFactory.commentReference(null, identifier);
+          Identifier identifier = new SimpleIdentifier(secondToken);
+          return new CommentReference(null, identifier);
         }
         return null;
       } else if (_tokenMatchesIdentifier(firstToken)) {
@@ -1683,37 +1675,37 @@ class Parser {
         Identifier identifier;
         if (_tokenMatches(secondToken, TokenType.PERIOD)) {
           if (thirdToken.isUserDefinableOperator) {
-            identifier = astFactory.prefixedIdentifier(
-                astFactory.simpleIdentifier(firstToken),
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
                 secondToken,
-                astFactory.simpleIdentifier(thirdToken));
+                new SimpleIdentifier(thirdToken));
             nextToken = thirdToken.next;
           } else if (_tokenMatchesKeyword(thirdToken, Keyword.OPERATOR)) {
             Token fourthToken = thirdToken.next;
             if (fourthToken.isUserDefinableOperator) {
-              identifier = astFactory.prefixedIdentifier(
-                  astFactory.simpleIdentifier(firstToken),
+              identifier = new PrefixedIdentifier(
+                  new SimpleIdentifier(firstToken),
                   secondToken,
-                  astFactory.simpleIdentifier(fourthToken));
+                  new SimpleIdentifier(fourthToken));
               nextToken = fourthToken.next;
             } else {
               return null;
             }
           } else if (_tokenMatchesIdentifier(thirdToken)) {
-            identifier = astFactory.prefixedIdentifier(
-                astFactory.simpleIdentifier(firstToken),
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
                 secondToken,
-                astFactory.simpleIdentifier(thirdToken));
+                new SimpleIdentifier(thirdToken));
             nextToken = thirdToken.next;
           }
         } else {
-          identifier = astFactory.simpleIdentifier(firstToken);
+          identifier = new SimpleIdentifier(firstToken);
           nextToken = firstToken.next;
         }
         if (nextToken.type != TokenType.EOF) {
           return null;
         }
-        return astFactory.commentReference(newKeyword, identifier);
+        return new CommentReference(newKeyword, identifier);
       } else {
         Keyword keyword = firstToken.keyword;
         if (keyword == Keyword.THIS ||
@@ -1803,8 +1795,8 @@ class Parser {
                   TokenType.IDENTIFIER, '', nameOffset);
             }
             nameToken.setNext(new SimpleToken(TokenType.EOF, nameToken.end));
-            references.add(astFactory.commentReference(
-                null, astFactory.simpleIdentifier(nameToken)));
+            references.add(
+                new CommentReference(null, new SimpleIdentifier(nameToken)));
             token.references.add(nameToken);
             // next character
             rightIndex = leftIndex + 1;
@@ -1848,7 +1840,7 @@ class Parser {
     Token firstToken = _currentToken;
     ScriptTag scriptTag = null;
     if (_matches(TokenType.SCRIPT_TAG)) {
-      scriptTag = astFactory.scriptTag(getAndAdvance());
+      scriptTag = new ScriptTag(getAndAdvance());
     }
     //
     // Even though all directives must appear before declarations and must occur
@@ -1979,7 +1971,7 @@ class Parser {
 //        }
       }
     }
-    return astFactory.compilationUnit(
+    return new CompilationUnit(
         firstToken, scriptTag, directives, declarations, _currentToken);
   }
 
@@ -2020,8 +2012,8 @@ class Parser {
       _validateModifiersForEnum(modifiers);
       return parseEnumDeclaration(commentAndMetadata);
     } else if (keyword == Keyword.VOID) {
-      TypeName returnType = astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+      TypeName returnType =
+          new TypeName(new SimpleIdentifier(getAndAdvance()), null);
       keyword = _currentToken.keyword;
       next = _peek();
       if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
@@ -2060,7 +2052,7 @@ class Parser {
             // We appear to have a variable declaration with a type of "void".
             //
             _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
-            return astFactory.topLevelVariableDeclaration(
+            return new TopLevelVariableDeclaration(
                 commentAndMetadata.comment,
                 commentAndMetadata.metadata,
                 parseVariableDeclarationListAfterType(null,
@@ -2097,14 +2089,13 @@ class Parser {
         // We appear to have found an incomplete top-level variable declaration.
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-        VariableDeclaration variable = astFactory.variableDeclaration(
-            createSyntheticIdentifier(), null, null);
+        VariableDeclaration variable =
+            new VariableDeclaration(createSyntheticIdentifier(), null, null);
         List<VariableDeclaration> variables = <VariableDeclaration>[variable];
-        return astFactory.topLevelVariableDeclaration(
+        return new TopLevelVariableDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
-            astFactory.variableDeclarationList(
-                null, null, keyword, null, variables),
+            new VariableDeclarationList(null, null, keyword, null, variables),
             _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
@@ -2128,7 +2119,7 @@ class Parser {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
       }
-      return astFactory.topLevelVariableDeclaration(
+      return new TopLevelVariableDeclaration(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           parseVariableDeclarationListAfterType(
@@ -2151,7 +2142,7 @@ class Parser {
           returnType,
           getAndAdvance()));
     } else if (_matches(TokenType.AT)) {
-      return astFactory.topLevelVariableDeclaration(
+      return new TopLevelVariableDeclaration(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           parseVariableDeclarationListAfterType(null,
@@ -2167,14 +2158,13 @@ class Parser {
       } else {
         semicolon = _createSyntheticToken(TokenType.SEMICOLON);
       }
-      VariableDeclaration variable = astFactory.variableDeclaration(
-          createSyntheticIdentifier(), null, null);
+      VariableDeclaration variable =
+          new VariableDeclaration(createSyntheticIdentifier(), null, null);
       List<VariableDeclaration> variables = <VariableDeclaration>[variable];
-      return astFactory.topLevelVariableDeclaration(
+      return new TopLevelVariableDeclaration(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
-          astFactory.variableDeclarationList(
-              null, null, null, returnType, variables),
+          new VariableDeclarationList(null, null, null, returnType, variables),
           semicolon);
     } else if (next.matchesAny(const <TokenType>[
       TokenType.OPEN_PAREN,
@@ -2186,7 +2176,7 @@ class Parser {
       return parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, returnType);
     }
-    return astFactory.topLevelVariableDeclaration(
+    return new TopLevelVariableDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         parseVariableDeclarationListAfterType(
@@ -2210,7 +2200,7 @@ class Parser {
     Expression thenExpression = parseExpressionWithoutCascade();
     Token colon = _expect(TokenType.COLON);
     Expression elseExpression = parseExpressionWithoutCascade();
-    return astFactory.conditionalExpression(
+    return new ConditionalExpression(
         condition, question, thenExpression, colon, elseExpression);
   }
 
@@ -2244,8 +2234,8 @@ class Parser {
     }
     Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
     StringLiteral libraryUri = _parseUri();
-    return astFactory.configuration(ifKeyword, leftParenthesis, name,
-        equalToken, value, rightParenthesis, libraryUri);
+    return new Configuration(ifKeyword, leftParenthesis, name, equalToken,
+        value, rightParenthesis, libraryUri);
   }
 
   /**
@@ -2302,12 +2292,8 @@ class Parser {
           type != TokenType.FUNCTION) {
         equals = _createSyntheticToken(TokenType.EQ);
       } else {
-        return astFactory.constructorFieldInitializer(
-            keywordToken,
-            period,
-            fieldName,
-            _createSyntheticToken(TokenType.EQ),
-            createSyntheticIdentifier());
+        return new ConstructorFieldInitializer(keywordToken, period, fieldName,
+            _createSyntheticToken(TokenType.EQ), createSyntheticIdentifier());
       }
     }
     bool wasInInitializer = _inInitializer;
@@ -2322,9 +2308,9 @@ class Parser {
             cascadeSections.add(section);
           }
         } while (_matches(TokenType.PERIOD_PERIOD));
-        expression = astFactory.cascadeExpression(expression, cascadeSections);
+        expression = new CascadeExpression(expression, cascadeSections);
       }
-      return astFactory.constructorFieldInitializer(
+      return new ConstructorFieldInitializer(
           keywordToken, period, fieldName, equals, expression);
     } finally {
       _inInitializer = wasInInitializer;
@@ -2346,7 +2332,7 @@ class Parser {
       period = getAndAdvance();
       name = parseSimpleIdentifier();
     }
-    return astFactory.constructorName(type, period, name);
+    return new ConstructorName(type, period, name);
   }
 
   /**
@@ -2372,7 +2358,7 @@ class Parser {
           ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword);
     }
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.continueStatement(continueKeyword, label, semicolon);
+    return new ContinueStatement(continueKeyword, label, semicolon);
   }
 
   /**
@@ -2425,7 +2411,7 @@ class Parser {
     Token firstToken = _currentToken;
     ScriptTag scriptTag = null;
     if (_matches(TokenType.SCRIPT_TAG)) {
-      scriptTag = astFactory.scriptTag(getAndAdvance());
+      scriptTag = new ScriptTag(getAndAdvance());
     }
     List<Directive> directives = <Directive>[];
     while (!_matches(TokenType.EOF)) {
@@ -2446,11 +2432,11 @@ class Parser {
         while (!_matches(TokenType.EOF)) {
           _advance();
         }
-        return astFactory.compilationUnit(
+        return new CompilationUnit(
             firstToken, scriptTag, directives, null, _currentToken);
       }
     }
-    return astFactory.compilationUnit(
+    return new CompilationUnit(
         firstToken, scriptTag, directives, null, _currentToken);
   }
 
@@ -2468,7 +2454,7 @@ class Parser {
       return null;
     }
     List<CommentReference> references = parseCommentReferences(tokens);
-    return astFactory.documentationComment(tokens, references);
+    return Comment.createDocumentationCommentWithReferences(tokens, references);
   }
 
   /**
@@ -2519,8 +2505,8 @@ class Parser {
       Expression condition = parseExpression2();
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Token semicolon = _expect(TokenType.SEMICOLON);
-      return astFactory.doStatement(doKeyword, body, whileKeyword,
-          leftParenthesis, condition, rightParenthesis, semicolon);
+      return new DoStatement(doKeyword, body, whileKeyword, leftParenthesis,
+          condition, rightParenthesis, semicolon);
     } finally {
       _inLoop = wasInLoop;
     }
@@ -2539,7 +2525,7 @@ class Parser {
     while (_optional(TokenType.PERIOD)) {
       components.add(parseSimpleIdentifier());
     }
-    return astFactory.dottedName(components);
+    return new DottedName(components);
   }
 
   /**
@@ -2550,7 +2536,7 @@ class Parser {
    *     emptyStatement ::=
    *         ';'
    */
-  Statement parseEmptyStatement() => astFactory.emptyStatement(getAndAdvance());
+  Statement parseEmptyStatement() => new EmptyStatement(getAndAdvance());
 
   /**
    * Parse an enum declaration. The [commentAndMetadata] is the metadata to be
@@ -2591,7 +2577,7 @@ class Parser {
       rightBracket = _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_ENUM_BODY);
     }
-    return astFactory.enumDeclaration(
+    return new EnumDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         keyword,
@@ -2613,7 +2599,7 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isEqualityOperator) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseRelationalExpression();
     }
@@ -2623,7 +2609,7 @@ class Parser {
         _reportErrorForNode(
             ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression);
       }
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseRelationalExpression());
       leftEqualityExpression = true;
     }
@@ -2645,7 +2631,7 @@ class Parser {
     List<Configuration> configurations = _parseConfigurations();
     List<Combinator> combinators = parseCombinators();
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.exportDirective(
+    return new ExportDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         exportKeyword,
@@ -2698,12 +2684,11 @@ class Parser {
           cascadeSections.add(section);
         }
       } while (_currentToken.type == TokenType.PERIOD_PERIOD);
-      return astFactory.cascadeExpression(expression, cascadeSections);
+      return new CascadeExpression(expression, cascadeSections);
     } else if (type.isAssignmentOperator) {
       Token operator = getAndAdvance();
       _ensureAssignable(expression);
-      return astFactory.assignmentExpression(
-          expression, operator, parseExpression2());
+      return new AssignmentExpression(expression, operator, parseExpression2());
     }
     return expression;
   }
@@ -2747,7 +2732,7 @@ class Parser {
     if (_currentToken.type.isAssignmentOperator) {
       Token operator = getAndAdvance();
       _ensureAssignable(expression);
-      expression = astFactory.assignmentExpression(
+      expression = new AssignmentExpression(
           expression, operator, parseExpressionWithoutCascade());
     }
     return expression;
@@ -2766,7 +2751,7 @@ class Parser {
     Token keyword = getAndAdvance();
     TypeName superclass = parseTypeName(false);
     _mustNotBeNullable(superclass, ParserErrorCode.NULLABLE_TYPE_IN_EXTENDS);
-    return astFactory.extendsClause(keyword, superclass);
+    return new ExtendsClause(keyword, superclass);
   }
 
   /**
@@ -2837,7 +2822,7 @@ class Parser {
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
         kind = ParameterKind.POSITIONAL;
       }
-      return astFactory.defaultFormalParameter(
+      return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
     } else if (type == TokenType.COLON) {
       Token separator = getAndAdvance();
@@ -2851,10 +2836,10 @@ class Parser {
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
         kind = ParameterKind.NAMED;
       }
-      return astFactory.defaultFormalParameter(
+      return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
     } else if (kind != ParameterKind.REQUIRED) {
-      return astFactory.defaultFormalParameter(parameter, kind, null, null);
+      return new DefaultFormalParameter(parameter, kind, null, null);
     }
     return parameter;
   }
@@ -2927,12 +2912,9 @@ class Parser {
             (_tokenMatchesKeyword(_peek(), Keyword.IN) ||
                 _tokenMatches(_peek(), TokenType.COLON))) {
           SimpleIdentifier variableName = _parseSimpleIdentifierUnchecked();
-          variableList = astFactory.variableDeclarationList(
-              commentAndMetadata.comment,
-              commentAndMetadata.metadata,
-              null,
-              null, <VariableDeclaration>[
-            astFactory.variableDeclaration(variableName, null, null)
+          variableList = new VariableDeclarationList(commentAndMetadata.comment,
+              commentAndMetadata.metadata, null, null, <VariableDeclaration>[
+            new VariableDeclaration(variableName, null, null)
           ]);
         } else if (isInitializedVariableDeclaration()) {
           variableList =
@@ -2966,12 +2948,12 @@ class Parser {
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
             if (keyword != null || type != null) {
-              loopVariable = astFactory.declaredIdentifier(
+              loopVariable = new DeclaredIdentifier(
                   commentAndMetadata.comment,
                   commentAndMetadata.metadata,
                   keyword,
                   type,
-                  astFactory.simpleIdentifier(variable.name.token,
+                  new SimpleIdentifier(variable.name.token,
                       isDeclaration: true));
             } else {
               if (commentAndMetadata.hasMetadata) {
@@ -2987,7 +2969,7 @@ class Parser {
           Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
           if (loopVariable == null) {
-            return astFactory.forEachStatementWithReference(
+            return new ForEachStatement.withReference(
                 awaitKeyword,
                 forKeyword,
                 leftParenthesis,
@@ -2997,7 +2979,7 @@ class Parser {
                 rightParenthesis,
                 body);
           }
-          return astFactory.forEachStatementWithDeclaration(
+          return new ForEachStatement.withDeclaration(
               awaitKeyword,
               forKeyword,
               leftParenthesis,
@@ -3024,7 +3006,7 @@ class Parser {
       }
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return astFactory.forStatement(
+      return new ForStatement(
           forKeyword,
           leftParenthesis,
           variableList,
@@ -3071,7 +3053,7 @@ class Parser {
         if (!mayBeEmpty) {
           _reportErrorForCurrentToken(emptyErrorCode);
         }
-        return astFactory.emptyFunctionBody(getAndAdvance());
+        return new EmptyFunctionBody(getAndAdvance());
       }
       Token keyword = null;
       Token star = null;
@@ -3120,10 +3102,10 @@ class Parser {
           semicolon = _expect(TokenType.SEMICOLON);
         }
         if (!_parseFunctionBodies) {
-          return astFactory
-              .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON));
+          return new EmptyFunctionBody(
+              _createSyntheticToken(TokenType.SEMICOLON));
         }
-        return astFactory.expressionFunctionBody(
+        return new ExpressionFunctionBody(
             keyword, functionDefinition, expression, semicolon);
       } else if (type == TokenType.OPEN_CURLY_BRACKET) {
         if (keyword != null) {
@@ -3134,23 +3116,23 @@ class Parser {
         }
         if (!_parseFunctionBodies) {
           _skipBlock();
-          return astFactory
-              .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON));
+          return new EmptyFunctionBody(
+              _createSyntheticToken(TokenType.SEMICOLON));
         }
-        return astFactory.blockFunctionBody(keyword, star, parseBlock());
+        return new BlockFunctionBody(keyword, star, parseBlock());
       } else if (_matchesString(_NATIVE)) {
         Token nativeToken = getAndAdvance();
         StringLiteral stringLiteral = null;
         if (_matches(TokenType.STRING)) {
           stringLiteral = _parseStringLiteralUnchecked();
         }
-        return astFactory.nativeFunctionBody(
+        return new NativeFunctionBody(
             nativeToken, stringLiteral, _expect(TokenType.SEMICOLON));
       } else {
         // Invalid function body
         _reportErrorForCurrentToken(emptyErrorCode);
-        return astFactory
-            .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON));
+        return new EmptyFunctionBody(
+            _createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
       _inAsync = wasInAsync;
@@ -3188,7 +3170,7 @@ class Parser {
       keywordToken = getAndAdvance();
     }
     if (keywordToken != null && _matches(TokenType.OPEN_PAREN)) {
-      name = astFactory.simpleIdentifier(keywordToken, isDeclaration: true);
+      name = new SimpleIdentifier(keywordToken, isDeclaration: true);
       keywordToken = null;
       isGetter = false;
     } else {
@@ -3203,7 +3185,7 @@ class Parser {
       } else {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
-        parameters = astFactory.formalParameterList(
+        parameters = new FormalParameterList(
             _createSyntheticToken(TokenType.OPEN_PAREN),
             null,
             null,
@@ -3219,21 +3201,21 @@ class Parser {
       body = parseFunctionBody(
           false, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     } else {
-      body = astFactory.emptyFunctionBody(_expect(TokenType.SEMICOLON));
+      body = new EmptyFunctionBody(_expect(TokenType.SEMICOLON));
     }
 //        if (!isStatement && matches(TokenType.SEMICOLON)) {
 //          // TODO(brianwilkerson) Improve this error message.
 //          reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
 //          advance();
 //        }
-    return astFactory.functionDeclaration(
+    return new FunctionDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         externalKeyword,
         returnType,
         keywordToken,
         name,
-        astFactory.functionExpression(typeParameters, parameters, body));
+        new FunctionExpression(typeParameters, parameters, body));
   }
 
   /**
@@ -3263,7 +3245,7 @@ class Parser {
     _validateFormalParameterList(parameters);
     FunctionBody body =
         parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
-    return astFactory.functionExpression(typeParameters, parameters, body);
+    return new FunctionExpression(typeParameters, parameters, body);
   }
 
   /**
@@ -3299,7 +3281,7 @@ class Parser {
     if (externalKeyword != null && body is! EmptyFunctionBody) {
       _reportErrorForCurrentToken(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY);
     }
-    return astFactory.methodDeclaration(
+    return new MethodDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         externalKeyword,
@@ -3339,7 +3321,7 @@ class Parser {
   Expression parseIfNullExpression() {
     Expression expression = parseLogicalOrExpression();
     while (_currentToken.type == TokenType.QUESTION_QUESTION) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseLogicalOrExpression());
     }
     return expression;
@@ -3365,7 +3347,7 @@ class Parser {
       elseKeyword = getAndAdvance();
       elseStatement = parseStatement2();
     }
-    return astFactory.ifStatement(ifKeyword, leftParenthesis, condition,
+    return new IfStatement(ifKeyword, leftParenthesis, condition,
         rightParenthesis, thenStatement, elseKeyword, elseStatement);
   }
 
@@ -3385,7 +3367,7 @@ class Parser {
       _mustNotBeNullable(typeName, ParserErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS);
       interfaces.add(typeName);
     } while (_optional(TokenType.COMMA));
-    return astFactory.implementsClause(keyword, interfaces);
+    return new ImplementsClause(keyword, interfaces);
   }
 
   /**
@@ -3431,7 +3413,7 @@ class Parser {
     }
     List<Combinator> combinators = parseCombinators();
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.importDirective(
+    return new ImportDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         importKeyword,
@@ -3470,7 +3452,7 @@ class Parser {
       TypeName type) {
     VariableDeclarationList fieldList =
         parseVariableDeclarationListAfterType(null, keyword, type);
-    return astFactory.fieldDeclaration(
+    return new FieldDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         staticKeyword,
@@ -3489,7 +3471,7 @@ class Parser {
   InstanceCreationExpression parseInstanceCreationExpression(Token keyword) {
     ConstructorName constructorName = parseConstructorName();
     ArgumentList argumentList = _parseArgumentListChecked();
-    return astFactory.instanceCreationExpression(
+    return new InstanceCreationExpression(
         keyword, constructorName, argumentList);
   }
 
@@ -3506,7 +3488,7 @@ class Parser {
     SimpleIdentifier label =
         _parseSimpleIdentifierUnchecked(isDeclaration: isDeclaration);
     Token colon = getAndAdvance();
-    return astFactory.label(label, colon);
+    return new Label(label, colon);
   }
 
   /**
@@ -3525,7 +3507,7 @@ class Parser {
     LibraryIdentifier libraryName = _parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, keyword);
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.libraryDirective(commentAndMetadata.comment,
+    return new LibraryDirective(commentAndMetadata.comment,
         commentAndMetadata.metadata, keyword, libraryName, semicolon);
   }
 
@@ -3541,7 +3523,7 @@ class Parser {
     while (_optional(TokenType.PERIOD)) {
       components.add(parseSimpleIdentifier());
     }
-    return astFactory.libraryIdentifier(components);
+    return new LibraryIdentifier(components);
   }
 
   /**
@@ -3559,12 +3541,12 @@ class Parser {
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     if (_matches(TokenType.INDEX)) {
       _splitIndex();
-      return astFactory.listLiteral(
+      return new ListLiteral(
           modifier, typeArguments, getAndAdvance(), null, getAndAdvance());
     }
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-      return astFactory.listLiteral(
+      return new ListLiteral(
           modifier, typeArguments, leftBracket, null, getAndAdvance());
     }
     bool wasInInitializer = _inInitializer;
@@ -3573,13 +3555,13 @@ class Parser {
       List<Expression> elements = <Expression>[parseExpression2()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-          return astFactory.listLiteral(
+          return new ListLiteral(
               modifier, typeArguments, leftBracket, elements, getAndAdvance());
         }
         elements.add(parseExpression2());
       }
       Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-      return astFactory.listLiteral(
+      return new ListLiteral(
           modifier, typeArguments, leftBracket, elements, rightBracket);
     } finally {
       _inInitializer = wasInInitializer;
@@ -3604,7 +3586,7 @@ class Parser {
       return parseListLiteral(modifier, typeArguments);
     }
     _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL);
-    return astFactory.listLiteral(
+    return new ListLiteral(
         modifier,
         typeArguments,
         _createSyntheticToken(TokenType.OPEN_SQUARE_BRACKET),
@@ -3622,7 +3604,7 @@ class Parser {
   Expression parseLogicalAndExpression() {
     Expression expression = parseEqualityExpression();
     while (_currentToken.type == TokenType.AMPERSAND_AMPERSAND) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseEqualityExpression());
     }
     return expression;
@@ -3638,7 +3620,7 @@ class Parser {
   Expression parseLogicalOrExpression() {
     Expression expression = parseLogicalAndExpression();
     while (_currentToken.type == TokenType.BAR_BAR) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseLogicalAndExpression());
     }
     return expression;
@@ -3659,7 +3641,7 @@ class Parser {
   MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      return astFactory.mapLiteral(
+      return new MapLiteral(
           modifier, typeArguments, leftBracket, null, getAndAdvance());
     }
     bool wasInInitializer = _inInitializer;
@@ -3668,13 +3650,13 @@ class Parser {
       List<MapLiteralEntry> entries = <MapLiteralEntry>[parseMapLiteralEntry()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-          return astFactory.mapLiteral(
+          return new MapLiteral(
               modifier, typeArguments, leftBracket, entries, getAndAdvance());
         }
         entries.add(parseMapLiteralEntry());
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-      return astFactory.mapLiteral(
+      return new MapLiteral(
           modifier, typeArguments, leftBracket, entries, rightBracket);
     } finally {
       _inInitializer = wasInInitializer;
@@ -3691,7 +3673,7 @@ class Parser {
     Expression key = parseExpression2();
     Token separator = _expect(TokenType.COLON);
     Expression value = parseExpression2();
-    return astFactory.mapLiteralEntry(key, separator, value);
+    return new MapLiteralEntry(key, separator, value);
   }
 
   /**
@@ -3791,12 +3773,12 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isMultiplicativeOperator) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseUnaryExpression();
     }
     while (_currentToken.type.isMultiplicativeOperator) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseUnaryExpression());
     }
     return expression;
@@ -3841,7 +3823,7 @@ class Parser {
       if (_tokenMatches(_peek(), TokenType.STRING)) {
         Token afterString = skipStringLiteral(_currentToken.next);
         if (afterString != null && afterString.type == TokenType.COLON) {
-          return astFactory.expressionStatement(
+          return new ExpressionStatement(
               parseExpression2(), _expect(TokenType.SEMICOLON));
         }
       }
@@ -3864,14 +3846,14 @@ class Parser {
       } else if (keyword == Keyword.IF) {
         return parseIfStatement();
       } else if (keyword == Keyword.RETHROW) {
-        return astFactory.expressionStatement(
+        return new ExpressionStatement(
             parseRethrowExpression(), _expect(TokenType.SEMICOLON));
       } else if (keyword == Keyword.RETURN) {
         return parseReturnStatement();
       } else if (keyword == Keyword.SWITCH) {
         return parseSwitchStatement();
       } else if (keyword == Keyword.THROW) {
-        return astFactory.expressionStatement(
+        return new ExpressionStatement(
             parseThrowExpression(), _expect(TokenType.SEMICOLON));
       } else if (keyword == Keyword.TRY) {
         return parseTryStatement();
@@ -3881,8 +3863,8 @@ class Parser {
         return parseVariableDeclarationStatementAfterMetadata(
             commentAndMetadata);
       } else if (keyword == Keyword.VOID) {
-        TypeName returnType = astFactory.typeName(
-            astFactory.simpleIdentifier(getAndAdvance()), null);
+        TypeName returnType =
+            new TypeName(new SimpleIdentifier(getAndAdvance()), null);
         Token next = _currentToken.next;
         if (_matchesIdentifier() &&
             next.matchesAny(const <TokenType>[
@@ -3920,8 +3902,7 @@ class Parser {
           }
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
           // TODO(brianwilkerson) Recover from this error.
-          return astFactory
-              .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
+          return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (keyword == Keyword.CONST) {
         Token next = _currentToken.next;
@@ -3931,7 +3912,7 @@ class Parser {
           TokenType.OPEN_SQUARE_BRACKET,
           TokenType.INDEX
         ])) {
-          return astFactory.expressionStatement(
+          return new ExpressionStatement(
               parseExpression2(), _expect(TokenType.SEMICOLON));
         } else if (_tokenMatches(next, TokenType.IDENTIFIER)) {
           Token afterType = skipTypeName(next);
@@ -3940,7 +3921,7 @@ class Parser {
                 (_tokenMatches(afterType, TokenType.PERIOD) &&
                     _tokenMatches(afterType.next, TokenType.IDENTIFIER) &&
                     _tokenMatches(afterType.next.next, TokenType.OPEN_PAREN))) {
-              return astFactory.expressionStatement(
+              return new ExpressionStatement(
                   parseExpression2(), _expect(TokenType.SEMICOLON));
             }
           }
@@ -3953,15 +3934,14 @@ class Parser {
           keyword == Keyword.NULL ||
           keyword == Keyword.SUPER ||
           keyword == Keyword.THIS) {
-        return astFactory.expressionStatement(
+        return new ExpressionStatement(
             parseExpression2(), _expect(TokenType.SEMICOLON));
       } else {
         //
         // We have found an error of some kind. Try to recover.
         //
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
-        return astFactory
-            .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
+        return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
       }
     } else if (_inGenerator && _matchesString(_YIELD)) {
       return parseYieldStatement();
@@ -3969,7 +3949,7 @@ class Parser {
       if (_tokenMatchesKeyword(_peek(), Keyword.FOR)) {
         return parseForStatement();
       }
-      return astFactory.expressionStatement(
+      return new ExpressionStatement(
           parseExpression2(), _expect(TokenType.SEMICOLON));
     } else if (_matchesString(_AWAIT) &&
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
@@ -3988,10 +3968,9 @@ class Parser {
       return parseFunctionDeclarationStatement();
     } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
-      return astFactory
-          .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
+      return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
     } else {
-      return astFactory.expressionStatement(
+      return new ExpressionStatement(
           parseExpression2(), _expect(TokenType.SEMICOLON));
     }
   }
@@ -4037,16 +4016,16 @@ class Parser {
         if (enableNnbd && _matches(TokenType.QUESTION)) {
           question = getAndAdvance();
         }
-        return astFactory.functionTypedFormalParameter(
+        return new FunctionTypedFormalParameter(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.type,
-            astFactory.simpleIdentifier(identifier.token, isDeclaration: true),
+            new SimpleIdentifier(identifier.token, isDeclaration: true),
             typeParameters,
             parameters,
             question: question);
       } else {
-        return astFactory.fieldFormalParameter(
+        return new FieldFormalParameter(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.keyword,
@@ -4076,7 +4055,7 @@ class Parser {
       // TODO(brianwilkerson) If there are type parameters but no parameters,
       // should we create a synthetic empty parameter list here so we can
       // capture the type parameters?
-      return astFactory.fieldFormalParameter(
+      return new FieldFormalParameter(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           holder.keyword,
@@ -4087,12 +4066,12 @@ class Parser {
           null,
           null);
     }
-    return astFactory.simpleFormalParameter(
+    return new SimpleFormalParameter(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         holder.keyword,
         holder.type,
-        astFactory.simpleIdentifier(identifier.token, isDeclaration: true));
+        new SimpleIdentifier(identifier.token, isDeclaration: true));
   }
 
   /**
@@ -4168,14 +4147,14 @@ class Parser {
           ArgumentList argumentList = parseArgumentList();
           Expression currentOperand = operand;
           if (currentOperand is PropertyAccess) {
-            operand = astFactory.methodInvocation(
+            operand = new MethodInvocation(
                 currentOperand.target,
                 currentOperand.operator,
                 currentOperand.propertyName,
                 typeArguments,
                 argumentList);
           } else {
-            operand = astFactory.functionExpressionInvocation(
+            operand = new FunctionExpressionInvocation(
                 operand, typeArguments, argumentList);
           }
         } else {
@@ -4194,7 +4173,7 @@ class Parser {
     }
     _ensureAssignable(operand);
     Token operator = getAndAdvance();
-    return astFactory.postfixExpression(operand, operator);
+    return new PostfixExpression(operand, operator);
   }
 
   /**
@@ -4257,25 +4236,25 @@ class Parser {
       } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
-      return astFactory.integerLiteral(token, value);
+      return new IntegerLiteral(token, value);
     }
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.NULL) {
-      return astFactory.nullLiteral(getAndAdvance());
+      return new NullLiteral(getAndAdvance());
     } else if (keyword == Keyword.NEW) {
       return parseNewExpression();
     } else if (keyword == Keyword.THIS) {
-      return astFactory.thisExpression(getAndAdvance());
+      return new ThisExpression(getAndAdvance());
     } else if (keyword == Keyword.SUPER) {
       // TODO(paulberry): verify with Gilad that "super" must be followed by
       // unconditionalAssignableSelector in this case.
       return parseAssignableSelector(
-          astFactory.superExpression(getAndAdvance()), false,
+          new SuperExpression(getAndAdvance()), false,
           allowConditional: false);
     } else if (keyword == Keyword.FALSE) {
-      return astFactory.booleanLiteral(getAndAdvance(), false);
+      return new BooleanLiteral(getAndAdvance(), false);
     } else if (keyword == Keyword.TRUE) {
-      return astFactory.booleanLiteral(getAndAdvance(), true);
+      return new BooleanLiteral(getAndAdvance(), true);
     }
     if (type == TokenType.DOUBLE) {
       Token token = getAndAdvance();
@@ -4285,7 +4264,7 @@ class Parser {
       } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
-      return astFactory.doubleLiteral(token, value);
+      return new DoubleLiteral(token, value);
     } else if (type == TokenType.HEXADECIMAL) {
       Token token = getAndAdvance();
       int value = null;
@@ -4294,7 +4273,7 @@ class Parser {
       } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
-      return astFactory.integerLiteral(token, value);
+      return new IntegerLiteral(token, value);
     } else if (keyword == Keyword.CONST) {
       return parseConstExpression();
     } else if (type == TokenType.OPEN_PAREN) {
@@ -4307,7 +4286,7 @@ class Parser {
       try {
         Expression expression = parseExpression2();
         Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
-        return astFactory.parenthesizedExpression(
+        return new ParenthesizedExpression(
             leftParenthesis, expression, rightParenthesis);
       } finally {
         _inInitializer = wasInInitializer;
@@ -4372,7 +4351,7 @@ class Parser {
       }
     }
     ArgumentList argumentList = _parseArgumentListChecked();
-    return astFactory.redirectingConstructorInvocation(
+    return new RedirectingConstructorInvocation(
         keyword, period, constructorName, argumentList);
   }
 
@@ -4387,28 +4366,27 @@ class Parser {
   Expression parseRelationalExpression() {
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isRelationalOperator) {
-      Expression expression = astFactory.superExpression(getAndAdvance());
+      Expression expression = new SuperExpression(getAndAdvance());
       Token operator = getAndAdvance();
-      return astFactory.binaryExpression(
+      return new BinaryExpression(
           expression, operator, parseBitwiseOrExpression());
     }
     Expression expression = parseBitwiseOrExpression();
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.AS) {
       Token asOperator = getAndAdvance();
-      return astFactory.asExpression(
-          expression, asOperator, parseTypeName(true));
+      return new AsExpression(expression, asOperator, parseTypeName(true));
     } else if (keyword == Keyword.IS) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;
       if (_matches(TokenType.BANG)) {
         notOperator = getAndAdvance();
       }
-      return astFactory.isExpression(
+      return new IsExpression(
           expression, isOperator, notOperator, parseTypeName(true));
     } else if (_currentToken.type.isRelationalOperator) {
       Token operator = getAndAdvance();
-      return astFactory.binaryExpression(
+      return new BinaryExpression(
           expression, operator, parseBitwiseOrExpression());
     }
     return expression;
@@ -4422,8 +4400,7 @@ class Parser {
    *     rethrowExpression ::=
    *         'rethrow'
    */
-  Expression parseRethrowExpression() =>
-      astFactory.rethrowExpression(getAndAdvance());
+  Expression parseRethrowExpression() => new RethrowExpression(getAndAdvance());
 
   /**
    * Parse a return statement. Return the return statement that was parsed.
@@ -4436,11 +4413,11 @@ class Parser {
   Statement parseReturnStatement() {
     Token returnKeyword = getAndAdvance();
     if (_matches(TokenType.SEMICOLON)) {
-      return astFactory.returnStatement(returnKeyword, null, getAndAdvance());
+      return new ReturnStatement(returnKeyword, null, getAndAdvance());
     }
     Expression expression = parseExpression2();
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.returnStatement(returnKeyword, expression, semicolon);
+    return new ReturnStatement(returnKeyword, expression, semicolon);
   }
 
   /**
@@ -4452,8 +4429,7 @@ class Parser {
    */
   TypeName parseReturnType() {
     if (_currentToken.keyword == Keyword.VOID) {
-      return astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+      return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
     } else {
       return parseTypeName(false);
     }
@@ -4488,7 +4464,7 @@ class Parser {
     if (externalKeyword != null && body is! EmptyFunctionBody) {
       _reportErrorForCurrentToken(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
     }
-    return astFactory.methodDeclaration(
+    return new MethodDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         externalKeyword,
@@ -4513,12 +4489,12 @@ class Parser {
     Expression expression;
     if (_currentToken.keyword == Keyword.SUPER &&
         _currentToken.next.type.isShiftOperator) {
-      expression = astFactory.superExpression(getAndAdvance());
+      expression = new SuperExpression(getAndAdvance());
     } else {
       expression = parseAdditiveExpression();
     }
     while (_currentToken.type.isShiftOperator) {
-      expression = astFactory.binaryExpression(
+      expression = new BinaryExpression(
           expression, getAndAdvance(), parseAdditiveExpression());
     }
     return expression;
@@ -4568,7 +4544,7 @@ class Parser {
     if (labels == null) {
       return statement;
     }
-    return astFactory.labeledStatement(labels, statement);
+    return new LabeledStatement(labels, statement);
   }
 
   /**
@@ -4614,7 +4590,7 @@ class Parser {
       constructorName = parseSimpleIdentifier();
     }
     ArgumentList argumentList = _parseArgumentListChecked();
-    return astFactory.superConstructorInvocation(
+    return new SuperConstructorInvocation(
         keyword, period, constructorName, argumentList);
   }
 
@@ -4659,15 +4635,15 @@ class Parser {
             definedLabels.add(label);
           }
           Token colon = getAndAdvance();
-          labels.add(astFactory.label(identifier, colon));
+          labels.add(new Label(identifier, colon));
         }
         Keyword keyword = _currentToken.keyword;
         if (keyword == Keyword.CASE) {
           Token caseKeyword = getAndAdvance();
           Expression caseExpression = parseExpression2();
           Token colon = _expect(TokenType.COLON);
-          members.add(astFactory.switchCase(labels, caseKeyword, caseExpression,
-              colon, _parseStatementList()));
+          members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon,
+              _parseStatementList()));
           if (defaultKeyword != null) {
             _reportErrorForToken(
                 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
@@ -4680,7 +4656,7 @@ class Parser {
           }
           defaultKeyword = getAndAdvance();
           Token colon = _expect(TokenType.COLON);
-          members.add(astFactory.switchDefault(
+          members.add(new SwitchDefault(
               labels, defaultKeyword, colon, _parseStatementList()));
         } else {
           // We need to advance, otherwise we could end up in an infinite loop,
@@ -4703,7 +4679,7 @@ class Parser {
         type = _currentToken.type;
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-      return astFactory.switchStatement(keyword, leftParenthesis, expression,
+      return new SwitchStatement(keyword, leftParenthesis, expression,
           rightParenthesis, leftBracket, members, rightBracket);
     } finally {
       _inSwitch = wasInSwitch;
@@ -4740,7 +4716,7 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       components.add(_createSyntheticToken(TokenType.IDENTIFIER));
     }
-    return astFactory.symbolLiteral(poundSign, components);
+    return new SymbolLiteral(poundSign, components);
   }
 
   /**
@@ -4757,10 +4733,10 @@ class Parser {
     if (type == TokenType.SEMICOLON || type == TokenType.CLOSE_PAREN) {
       _reportErrorForToken(
           ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken);
-      return astFactory.throwExpression(keyword, createSyntheticIdentifier());
+      return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpression2();
-    return astFactory.throwExpression(keyword, expression);
+    return new ThrowExpression(keyword, expression);
   }
 
   /**
@@ -4777,10 +4753,10 @@ class Parser {
     if (type == TokenType.SEMICOLON || type == TokenType.CLOSE_PAREN) {
       _reportErrorForToken(
           ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken);
-      return astFactory.throwExpression(keyword, createSyntheticIdentifier());
+      return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpressionWithoutCascade();
-    return astFactory.throwExpression(keyword, expression);
+    return new ThrowExpression(keyword, expression);
   }
 
   /**
@@ -4830,7 +4806,7 @@ class Parser {
         rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       }
       Block catchBody = _parseBlockChecked();
-      catchClauses.add(astFactory.catchClause(
+      catchClauses.add(new CatchClause(
           onKeyword,
           exceptionType,
           catchKeyword,
@@ -4848,7 +4824,7 @@ class Parser {
     } else if (catchClauses.isEmpty) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_CATCH_OR_FINALLY);
     }
-    return astFactory.tryStatement(
+    return new TryStatement(
         tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
   }
 
@@ -4920,7 +4896,7 @@ class Parser {
       arguments.add(parseTypeName(false));
     }
     Token rightBracket = _expectGt();
-    return astFactory.typeArgumentList(leftBracket, arguments, rightBracket);
+    return new TypeArgumentList(leftBracket, arguments, rightBracket);
   }
 
   /**
@@ -4955,10 +4931,10 @@ class Parser {
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName(false);
-      return astFactory.typeParameter(commentAndMetadata.comment,
+      return new TypeParameter(commentAndMetadata.comment,
           commentAndMetadata.metadata, name, keyword, bound);
     }
-    return astFactory.typeParameter(commentAndMetadata.comment,
+    return new TypeParameter(commentAndMetadata.comment,
         commentAndMetadata.metadata, name, null, null);
   }
 
@@ -4978,8 +4954,7 @@ class Parser {
       typeParameters.add(parseTypeParameter());
     }
     Token rightBracket = _expectGt();
-    return astFactory.typeParameterList(
-        leftBracket, typeParameters, rightBracket);
+    return new TypeParameterList(leftBracket, typeParameters, rightBracket);
   }
 
   /**
@@ -5007,12 +4982,12 @@ class Parser {
           // --> "prefixOperator postfixExpression"
           // --> "prefixOperator primary                    selector*"
           // --> "prefixOperator 'super' assignableSelector selector*"
-          return astFactory.prefixExpression(operator, parseUnaryExpression());
+          return new PrefixExpression(operator, parseUnaryExpression());
         }
-        return astFactory.prefixExpression(
-            operator, astFactory.superExpression(getAndAdvance()));
+        return new PrefixExpression(
+            operator, new SuperExpression(getAndAdvance()));
       }
-      return astFactory.prefixExpression(operator, parseUnaryExpression());
+      return new PrefixExpression(operator, parseUnaryExpression());
     } else if (_currentToken.type.isIncrementOperator) {
       Token operator = getAndAdvance();
       if (_matchesKeyword(Keyword.SUPER)) {
@@ -5020,7 +4995,7 @@ class Parser {
         if (nextType == TokenType.OPEN_SQUARE_BRACKET ||
             nextType == TokenType.PERIOD) {
           // --> "prefixOperator 'super' assignableSelector selector*"
-          return astFactory.prefixExpression(operator, parseUnaryExpression());
+          return new PrefixExpression(operator, parseUnaryExpression());
         }
         //
         // Even though it is not valid to use an incrementing operator
@@ -5036,18 +5011,18 @@ class Parser {
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
-          return astFactory.prefixExpression(
+          return new PrefixExpression(
               firstOperator,
-              astFactory.prefixExpression(
-                  secondOperator, astFactory.superExpression(getAndAdvance())));
+              new PrefixExpression(
+                  secondOperator, new SuperExpression(getAndAdvance())));
         }
         // Invalid operator before 'super'
         _reportErrorForCurrentToken(
             ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
-        return astFactory.prefixExpression(
-            operator, astFactory.superExpression(getAndAdvance()));
+        return new PrefixExpression(
+            operator, new SuperExpression(getAndAdvance()));
       }
-      return astFactory.prefixExpression(
+      return new PrefixExpression(
           operator, _parseAssignableExpressionNotStartingWithSuper(false));
     } else if (type == TokenType.PLUS) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
@@ -5082,7 +5057,7 @@ class Parser {
       equals = getAndAdvance();
       initializer = parseExpression2();
     }
-    return astFactory.variableDeclaration(name, equals, initializer);
+    return new VariableDeclaration(name, equals, initializer);
   }
 
   /**
@@ -5124,7 +5099,7 @@ class Parser {
     while (_optional(TokenType.COMMA)) {
       variables.add(parseVariableDeclaration());
     }
-    return astFactory.variableDeclarationList(commentAndMetadata?.comment,
+    return new VariableDeclarationList(commentAndMetadata?.comment,
         commentAndMetadata?.metadata, keyword, type, variables);
   }
 
@@ -5149,7 +5124,7 @@ class Parser {
 //          }
 //        }
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.variableDeclarationStatement(variableList, semicolon);
+    return new VariableDeclarationStatement(variableList, semicolon);
   }
 
   /**
@@ -5169,7 +5144,7 @@ class Parser {
       Expression condition = parseExpression2();
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return astFactory.whileStatement(
+      return new WhileStatement(
           keyword, leftParenthesis, condition, rightParenthesis, body);
     } finally {
       _inLoop = wasInLoop;
@@ -5192,7 +5167,7 @@ class Parser {
       _mustNotBeNullable(typeName, ParserErrorCode.NULLABLE_TYPE_IN_WITH);
       types.add(typeName);
     } while (_optional(TokenType.COMMA));
-    return astFactory.withClause(withKeyword, types);
+    return new WithClause(withKeyword, types);
   }
 
   /**
@@ -5211,7 +5186,7 @@ class Parser {
     }
     Expression expression = parseExpression2();
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.yieldStatement(yieldToken, star, expression, semicolon);
+    return new YieldStatement(yieldToken, star, expression, semicolon);
   }
 
   /**
@@ -5441,14 +5416,14 @@ class Parser {
    * captures the components of the given method declaration).
    */
   FunctionDeclaration _convertToFunctionDeclaration(MethodDeclaration method) =>
-      astFactory.functionDeclaration(
+      new FunctionDeclaration(
           method.documentationComment,
           method.metadata,
           method.externalKeyword,
           method.returnType,
           method.propertyKeyword,
           method.name,
-          astFactory.functionExpression(
+          new FunctionExpression(
               method.typeParameters, method.parameters, method.body));
 
   /**
@@ -6009,8 +5984,8 @@ class Parser {
         ParserErrorCode.EXPECTED_TOKEN, [TokenType.OPEN_PAREN.lexeme]);
     // Recovery: Look to see whether there is a close paren that isn't matched
     // to an open paren and if so parse the list of arguments as normal.
-    return astFactory.argumentList(_createSyntheticToken(TokenType.OPEN_PAREN),
-        null, _createSyntheticToken(TokenType.CLOSE_PAREN));
+    return new ArgumentList(_createSyntheticToken(TokenType.OPEN_PAREN), null,
+        _createSyntheticToken(TokenType.CLOSE_PAREN));
   }
 
   /**
@@ -6032,7 +6007,7 @@ class Parser {
       message = parseExpression2();
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
-    return astFactory.assertInitializer(
+    return new AssertInitializer(
         keyword, leftParen, expression, comma, message, rightParen);
   }
 
@@ -6057,24 +6032,24 @@ class Parser {
         ArgumentList argumentList = parseArgumentList();
         Expression currentExpression = expression;
         if (currentExpression is SimpleIdentifier) {
-          expression = astFactory.methodInvocation(
+          expression = new MethodInvocation(
               null, null, currentExpression, typeArguments, argumentList);
         } else if (currentExpression is PrefixedIdentifier) {
-          expression = astFactory.methodInvocation(
+          expression = new MethodInvocation(
               currentExpression.prefix,
               currentExpression.period,
               currentExpression.identifier,
               typeArguments,
               argumentList);
         } else if (currentExpression is PropertyAccess) {
-          expression = astFactory.methodInvocation(
+          expression = new MethodInvocation(
               currentExpression.target,
               currentExpression.operator,
               currentExpression.propertyName,
               typeArguments,
               argumentList);
         } else {
-          expression = astFactory.functionExpressionInvocation(
+          expression = new FunctionExpressionInvocation(
               expression, typeArguments, argumentList);
         }
         if (!primaryAllowed) {
@@ -6086,7 +6061,7 @@ class Parser {
       if (identical(selectorExpression, expression)) {
         if (!isOptional && (expression is PrefixedIdentifier)) {
           PrefixedIdentifier identifier = expression as PrefixedIdentifier;
-          expression = astFactory.propertyAccess(
+          expression = new PropertyAccess(
               identifier.prefix, identifier.period, identifier.identifier);
         }
         return expression;
@@ -6112,8 +6087,8 @@ class Parser {
         ParserErrorCode.EXPECTED_TOKEN, [TokenType.OPEN_CURLY_BRACKET.lexeme]);
     // Recovery: Check for an unmatched closing curly bracket and parse
     // statements until it is reached.
-    return astFactory.block(_createSyntheticToken(TokenType.OPEN_CURLY_BRACKET),
-        null, _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET));
+    return new Block(_createSyntheticToken(TokenType.OPEN_CURLY_BRACKET), null,
+        _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   /**
@@ -6205,7 +6180,7 @@ class Parser {
       }
       semicolon = _createSyntheticToken(TokenType.SEMICOLON);
     }
-    return astFactory.classTypeAlias(
+    return new ClassTypeAlias(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         classKeyword,
@@ -6283,7 +6258,7 @@ class Parser {
     if (_matches(TokenType.EQ)) {
       separator = getAndAdvance();
       redirectedConstructor = parseConstructorName();
-      body = astFactory.emptyFunctionBody(_expect(TokenType.SEMICOLON));
+      body = new EmptyFunctionBody(_expect(TokenType.SEMICOLON));
       if (factoryKeyword == null) {
         _reportErrorForNode(
             ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
@@ -6317,7 +6292,7 @@ class Parser {
         }
       }
     }
-    return astFactory.constructorDeclaration(
+    return new ConstructorDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         externalKeyword,
@@ -6359,7 +6334,7 @@ class Parser {
       _reportErrorForNode(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
           commentAndMetadata.metadata[0]);
     }
-    return astFactory.enumConstantDeclaration(
+    return new EnumConstantDeclaration(
         commentAndMetadata.comment, commentAndMetadata.metadata, name);
   }
 
@@ -6370,7 +6345,7 @@ class Parser {
   FormalParameterList _parseFormalParameterListAfterParen(
       Token leftParenthesis) {
     if (_matches(TokenType.CLOSE_PAREN)) {
-      return astFactory.formalParameterList(
+      return new FormalParameterList(
           leftParenthesis, null, null, null, getAndAdvance());
     }
     //
@@ -6520,7 +6495,7 @@ class Parser {
     //
     leftSquareBracket ??= leftCurlyBracket;
     rightSquareBracket ??= rightCurlyBracket;
-    return astFactory.formalParameterList(leftParenthesis, parameters,
+    return new FormalParameterList(leftParenthesis, parameters,
         leftSquareBracket, rightSquareBracket, rightParenthesis);
   }
 
@@ -6557,7 +6532,7 @@ class Parser {
             ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword);
       }
     }
-    return astFactory.functionDeclarationStatement(declaration);
+    return new FunctionDeclarationStatement(declaration);
   }
 
   /**
@@ -6585,14 +6560,14 @@ class Parser {
     TokenType type = _currentToken.type;
     if (type == TokenType.SEMICOLON || type == TokenType.EOF) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
-      FormalParameterList parameters = astFactory.formalParameterList(
+      FormalParameterList parameters = new FormalParameterList(
           _createSyntheticToken(TokenType.OPEN_PAREN),
           null,
           null,
           null,
           _createSyntheticToken(TokenType.CLOSE_PAREN));
       Token semicolon = _expect(TokenType.SEMICOLON);
-      return astFactory.functionTypeAlias(
+      return new FunctionTypeAlias(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           keyword,
@@ -6605,7 +6580,7 @@ class Parser {
       FormalParameterList parameters = _parseFormalParameterListUnchecked();
       _validateFormalParameterList(parameters);
       Token semicolon = _expect(TokenType.SEMICOLON);
-      return astFactory.functionTypeAlias(
+      return new FunctionTypeAlias(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           keyword,
@@ -6619,19 +6594,15 @@ class Parser {
       // Recovery: At the very least we should skip to the start of the next
       // valid compilation unit member, allowing for the possibility of finding
       // the typedef parameters before that point.
-      return astFactory.functionTypeAlias(
+      return new FunctionTypeAlias(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           keyword,
           returnType,
           name,
           typeParameters,
-          astFactory.formalParameterList(
-              _createSyntheticToken(TokenType.OPEN_PAREN),
-              null,
-              null,
-              null,
-              _createSyntheticToken(TokenType.CLOSE_PAREN)),
+          new FormalParameterList(_createSyntheticToken(TokenType.OPEN_PAREN),
+              null, null, null, _createSyntheticToken(TokenType.CLOSE_PAREN)),
           _createSyntheticToken(TokenType.SEMICOLON));
     }
   }
@@ -6687,8 +6658,8 @@ class Parser {
     } else {
       _reportErrorForToken(missingNameError, missingNameToken);
     }
-    return astFactory
-        .libraryIdentifier(<SimpleIdentifier>[createSyntheticIdentifier()]);
+    return new LibraryIdentifier(
+        <SimpleIdentifier>[createSyntheticIdentifier()]);
   }
 
   /**
@@ -6725,7 +6696,7 @@ class Parser {
         _reportErrorForNode(ParserErrorCode.ABSTRACT_STATIC_METHOD, body);
       }
     }
-    return astFactory.methodDeclaration(
+    return new MethodDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         externalKeyword,
@@ -6766,7 +6737,7 @@ class Parser {
         (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.FUNCTION)) {
       _reportErrorForToken(
           ParserErrorCode.MISSING_METHOD_PARAMETERS, _currentToken.previous);
-      parameters = astFactory.formalParameterList(
+      parameters = new FormalParameterList(
           _createSyntheticToken(TokenType.OPEN_PAREN),
           null,
           null,
@@ -6797,7 +6768,7 @@ class Parser {
   NativeClause _parseNativeClause() {
     Token keyword = getAndAdvance();
     StringLiteral name = parseStringLiteral();
-    return astFactory.nativeClause(keyword, name);
+    return new NativeClause(keyword, name);
   }
 
   /**
@@ -6824,7 +6795,7 @@ class Parser {
           ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name =
-        astFactory.simpleIdentifier(getAndAdvance(), isDeclaration: true);
+        new SimpleIdentifier(getAndAdvance(), isDeclaration: true);
     if (_matches(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((_tokenMatches(previous, TokenType.EQ_EQ) ||
@@ -6842,7 +6813,7 @@ class Parser {
     if (externalKeyword != null && body is! EmptyFunctionBody) {
       _reportErrorForCurrentToken(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY);
     }
-    return astFactory.methodDeclaration(
+    return new MethodDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         externalKeyword,
@@ -6867,8 +6838,7 @@ class Parser {
     }
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.VOID) {
-      return astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+      return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
     } else if (_matchesIdentifier()) {
       Token next = _peek();
       if (keyword != Keyword.GET &&
@@ -6922,7 +6892,7 @@ class Parser {
     Token partKeyword = getAndAdvance();
     StringLiteral partUri = _parseUri();
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.partDirective(commentAndMetadata.comment,
+    return new PartDirective(commentAndMetadata.comment,
         commentAndMetadata.metadata, partKeyword, partUri, semicolon);
   }
 
@@ -6943,7 +6913,7 @@ class Parser {
     if (enableUriInPartOf && _matches(TokenType.STRING)) {
       StringLiteral libraryUri = _parseUri();
       Token semicolon = _expect(TokenType.SEMICOLON);
-      return astFactory.partOfDirective(
+      return new PartOfDirective(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           partKeyword,
@@ -6955,7 +6925,7 @@ class Parser {
     LibraryIdentifier libraryName = _parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.partOfDirective(
+    return new PartOfDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         partKeyword,
@@ -6979,7 +6949,7 @@ class Parser {
     }
     Token period = getAndAdvance();
     SimpleIdentifier qualified = parseSimpleIdentifier();
-    return astFactory.prefixedIdentifier(qualifier, period, qualified);
+    return new PrefixedIdentifier(qualifier, period, qualified);
   }
 
   /**
@@ -7012,8 +6982,7 @@ class Parser {
       _reportErrorForCurrentToken(
           ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
     }
-    return astFactory.simpleIdentifier(getAndAdvance(),
-        isDeclaration: isDeclaration);
+    return new SimpleIdentifier(getAndAdvance(), isDeclaration: isDeclaration);
   }
 
   /**
@@ -7052,7 +7021,7 @@ class Parser {
    */
   StringInterpolation _parseStringInterpolation(Token string) {
     List<InterpolationElement> elements = <InterpolationElement>[
-      astFactory.interpolationString(
+      new InterpolationString(
           string, computeStringValue(string.lexeme, true, false))
     ];
     bool hasMore = true;
@@ -7065,8 +7034,8 @@ class Parser {
         try {
           Expression expression = parseExpression2();
           Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-          elements.add(astFactory.interpolationExpression(
-              openToken, expression, rightBracket));
+          elements.add(
+              new InterpolationExpression(openToken, expression, rightBracket));
         } finally {
           _inInitializer = wasInInitializer;
         }
@@ -7074,25 +7043,24 @@ class Parser {
         Token openToken = getAndAdvance();
         Expression expression = null;
         if (_matchesKeyword(Keyword.THIS)) {
-          expression = astFactory.thisExpression(getAndAdvance());
+          expression = new ThisExpression(getAndAdvance());
         } else {
           expression = parseSimpleIdentifier();
         }
-        elements.add(
-            astFactory.interpolationExpression(openToken, expression, null));
+        elements.add(new InterpolationExpression(openToken, expression, null));
       }
       if (_matches(TokenType.STRING)) {
         string = getAndAdvance();
         isExpression = _matches(TokenType.STRING_INTERPOLATION_EXPRESSION);
         hasMore =
             isExpression || _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
-        elements.add(astFactory.interpolationString(
+        elements.add(new InterpolationString(
             string, computeStringValue(string.lexeme, false, !hasMore)));
       } else {
         hasMore = false;
       }
     }
-    return astFactory.stringInterpolation(elements);
+    return new StringInterpolation(elements);
   }
 
   /**
@@ -7112,13 +7080,11 @@ class Parser {
           _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         strings.add(_parseStringInterpolation(string));
       } else {
-        strings.add(astFactory.simpleStringLiteral(
+        strings.add(new SimpleStringLiteral(
             string, computeStringValue(string.lexeme, true, true)));
       }
     } while (_matches(TokenType.STRING));
-    return strings.length == 1
-        ? strings[0]
-        : astFactory.adjacentStrings(strings);
+    return strings.length == 1 ? strings[0] : new AdjacentStrings(strings);
   }
 
   TypeName _parseTypeName(bool inExpression) {
@@ -7127,7 +7093,7 @@ class Parser {
       typeName = _parsePrefixedIdentifierUnchecked();
     } else if (_matchesKeyword(Keyword.VAR)) {
       _reportErrorForCurrentToken(ParserErrorCode.VAR_AS_TYPE_NAME);
-      typeName = astFactory.simpleIdentifier(getAndAdvance());
+      typeName = new SimpleIdentifier(getAndAdvance());
     } else {
       typeName = createSyntheticIdentifier();
       _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME);
@@ -7139,7 +7105,7 @@ class Parser {
         question = getAndAdvance();
       }
     }
-    return astFactory.typeName(typeName, typeArguments, question: question);
+    return new TypeName(typeName, typeArguments, question: question);
   }
 
   /**
@@ -7158,7 +7124,7 @@ class Parser {
     // TODO(jmesserly): this feels like a big hammer. Can we restrict it to
     // only work inside generic methods?
     TypeName typeFromComment = _parseOptionalTypeNameComment();
-    return typeFromComment ?? astFactory.typeName(typeName, typeArguments);
+    return typeFromComment ?? new TypeName(typeName, typeArguments);
   }
 
   /**
@@ -7215,7 +7181,7 @@ class Parser {
         _reportErrorForToken(
             ParserErrorCode.NON_STRING_LITERAL_AS_URI, newToken);
         _currentToken = endToken.next;
-        return astFactory.simpleStringLiteral(newToken, value);
+        return new SimpleStringLiteral(newToken, value);
       }
     }
     return parseStringLiteral();
@@ -7238,7 +7204,7 @@ class Parser {
         parseVariableDeclarationListAfterType(
             commentAndMetadata, keyword, type);
     Token semicolon = _expect(TokenType.SEMICOLON);
-    return astFactory.variableDeclarationStatement(variableList, semicolon);
+    return new VariableDeclarationStatement(variableList, semicolon);
   }
 
   /**

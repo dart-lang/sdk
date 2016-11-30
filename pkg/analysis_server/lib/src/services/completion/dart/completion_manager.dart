@@ -19,7 +19,6 @@ import 'package:analysis_server/src/services/completion/dart/contribution_sorter
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -517,8 +516,7 @@ class ReplacementRange {
         }
       }
       if (token is StringToken) {
-        SimpleStringLiteral uri =
-            astFactory.simpleStringLiteral(token, token.lexeme);
+        SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
         Keyword keyword = token.previous?.keyword;
         if (keyword == Keyword.IMPORT ||
             keyword == Keyword.EXPORT ||

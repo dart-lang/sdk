@@ -5,7 +5,6 @@
 library analyzer.test.generated.element_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -547,8 +546,7 @@ class ElementResolverTest extends EngineTestCase {
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
-    CommentReference commentReference =
-        astFactory.commentReference(null, prefixed);
+    CommentReference commentReference = new CommentReference(null, prefixed);
     // resolve
     _resolveNode(commentReference);
     expect(prefixed.prefix.staticElement, classA);
@@ -567,8 +565,7 @@ class ElementResolverTest extends EngineTestCase {
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
-    CommentReference commentReference =
-        astFactory.commentReference(null, prefixed);
+    CommentReference commentReference = new CommentReference(null, prefixed);
     // resolve
     _resolveNode(commentReference);
     expect(prefixed.prefix.staticElement, classA);
@@ -587,8 +584,7 @@ class ElementResolverTest extends EngineTestCase {
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
-    CommentReference commentReference =
-        astFactory.commentReference(null, prefixed);
+    CommentReference commentReference = new CommentReference(null, prefixed);
     // resolve
     _resolveNode(commentReference);
     expect(prefixed.prefix.staticElement, classA);

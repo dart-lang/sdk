@@ -5,7 +5,6 @@
 library analyzer.test.dart.ast.ast_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -366,7 +365,7 @@ class NodeListTest extends EngineTestCase {
     AstNode parent = AstTestFactory.argumentList();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(parent);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.insert(0, secondNode);
     list.insert(0, firstNode);
     expect(list, hasLength(2));
@@ -387,7 +386,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_add_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.insert(-1, AstTestFactory.booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -398,7 +397,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_add_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.insert(1, AstTestFactory.booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -414,7 +413,7 @@ class NodeListTest extends EngineTestCase {
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     firstNodes.add(firstNode);
     firstNodes.add(secondNode);
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(parent);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.addAll(firstNodes);
     expect(list, hasLength(2));
     expect(list[0], same(firstNode));
@@ -440,7 +439,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_creation() {
     AstNode owner = AstTestFactory.argumentList();
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(owner);
+    NodeList<AstNode> list = new NodeList<AstNode>(owner);
     expect(list, isNotNull);
     expect(list, hasLength(0));
     expect(list.owner, same(owner));
@@ -448,7 +447,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_get_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1];
       fail("Expected IndexOutOfBoundsException");
@@ -459,7 +458,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_get_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1];
       fail("Expected IndexOutOfBoundsException");
@@ -470,13 +469,13 @@ class NodeListTest extends EngineTestCase {
 
   void test_getBeginToken_empty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     expect(list.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     AstNode node = AstTestFactory
         .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
     list.add(node);
@@ -485,13 +484,13 @@ class NodeListTest extends EngineTestCase {
 
   void test_getEndToken_empty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     expect(list.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     AstNode node = AstTestFactory
         .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
     list.add(node);
@@ -508,7 +507,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     expect(list.indexOf(firstNode), 0);
@@ -527,7 +526,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     expect(list.removeAt(1), same(secondNode));
@@ -538,7 +537,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_remove_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.removeAt(-1);
       fail("Expected IndexOutOfBoundsException");
@@ -549,7 +548,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_remove_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.removeAt(1);
       fail("Expected IndexOutOfBoundsException");
@@ -567,7 +566,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstTestFactory.integer(0);
@@ -581,7 +580,7 @@ class NodeListTest extends EngineTestCase {
   void test_set_negative() {
     AstNode node = AstTestFactory.booleanLiteral(true);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -593,7 +592,7 @@ class NodeListTest extends EngineTestCase {
   void test_set_tooBig() {
     AstNode node = AstTestFactory.booleanLiteral(true);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        new NodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -796,57 +795,47 @@ class SimpleIdentifierTest extends ParserTestCase {
 class SimpleStringLiteralTest extends ParserTestCase {
   void test_contentsEnd() {
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
             .contentsEnd,
         2);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('"X"'), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString('"X"'), "X")
             .contentsEnd,
         2);
 
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('"""X"""'), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString('"""X"""'), "X")
             .contentsEnd,
         4);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
             .contentsEnd,
         4);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("'''  \nX'''"), "X")
             .contentsEnd,
         7);
 
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
             .contentsEnd,
         3);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('r"X"'), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString('r"X"'), "X")
             .contentsEnd,
         3);
 
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString('r"""X"""'), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString('r"""X"""'), "X")
             .contentsEnd,
         5);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
             .contentsEnd,
         5);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("r'''  \nX'''"), "X")
             .contentsEnd,
         8);
@@ -854,57 +843,47 @@ class SimpleStringLiteralTest extends ParserTestCase {
 
   void test_contentsOffset() {
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
             .contentsOffset,
         1);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
             .contentsOffset,
         1);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X")
             .contentsOffset,
         3);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
             .contentsOffset,
         3);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
             .contentsOffset,
         2);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
             .contentsOffset,
         2);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X")
             .contentsOffset,
         4);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
             .contentsOffset,
         4);
     // leading whitespace
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("''' \ \nX''"), "X")
             .contentsOffset,
         6);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString('r""" \ \nX"""'), "X")
             .contentsOffset,
         7);
@@ -912,44 +891,36 @@ class SimpleStringLiteralTest extends ParserTestCase {
 
   void test_isMultiline() {
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
             .isMultiline,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
             .isMultiline,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
             .isMultiline,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
             .isMultiline,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
             .isMultiline,
         isTrue);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
             .isMultiline,
         isTrue);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X")
             .isMultiline,
         isTrue);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X")
             .isMultiline,
         isTrue);
@@ -957,45 +928,36 @@ class SimpleStringLiteralTest extends ParserTestCase {
 
   void test_isRaw() {
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isRaw,
+        isFalse);
+    expect(
+        new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
             .isRaw,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X")
-            .isRaw,
-        isFalse);
-    expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X")
             .isRaw,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X")
             .isRaw,
         isFalse);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X")
             .isRaw,
         isTrue);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X")
             .isRaw,
         isTrue);
     expect(
-        astFactory
-            .simpleStringLiteral(
+        new SimpleStringLiteral(
                 TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X")
             .isRaw,
         isTrue);
     expect(
-        astFactory
-            .simpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
+        new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X")
             .isRaw,
         isTrue);
   }
@@ -1004,25 +966,25 @@ class SimpleStringLiteralTest extends ParserTestCase {
     // '
     {
       var token = TokenFactory.tokenFromString("'X'");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isTrue);
     }
     // '''
     {
       var token = TokenFactory.tokenFromString("'''X'''");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isTrue);
     }
     // "
     {
       var token = TokenFactory.tokenFromString('"X"');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isFalse);
     }
     // """
     {
       var token = TokenFactory.tokenFromString('"""X"""');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isFalse);
     }
   }
@@ -1031,33 +993,32 @@ class SimpleStringLiteralTest extends ParserTestCase {
     // r'
     {
       var token = TokenFactory.tokenFromString("r'X'");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isTrue);
     }
     // r'''
     {
       var token = TokenFactory.tokenFromString("r'''X'''");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isTrue);
     }
     // r"
     {
       var token = TokenFactory.tokenFromString('r"X"');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isFalse);
     }
     // r"""
     {
       var token = TokenFactory.tokenFromString('r"""X"""');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = new SimpleStringLiteral(token, null);
       expect(node.isSingleQuoted, isFalse);
     }
   }
 
   void test_simple() {
     Token token = TokenFactory.tokenFromString("'value'");
-    SimpleStringLiteral stringLiteral =
-        astFactory.simpleStringLiteral(token, "value");
+    SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
     expect(stringLiteral.literal, same(token));
     expect(stringLiteral.beginToken, same(token));
     expect(stringLiteral.endToken, same(token));
@@ -1073,7 +1034,7 @@ class StringInterpolationTest extends ParserTestCase {
     {
       var ae = AstTestFactory.interpolationString("'a", "a");
       var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
+      var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 1);
       expect(node.contentsEnd, 10 + 4 - 1);
@@ -1082,7 +1043,7 @@ class StringInterpolationTest extends ParserTestCase {
     {
       var ae = AstTestFactory.interpolationString("'''a", "a");
       var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
+      var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 3);
       expect(node.contentsEnd, 10 + 4 - 1);
@@ -1091,7 +1052,7 @@ class StringInterpolationTest extends ParserTestCase {
     {
       var ae = AstTestFactory.interpolationString('"""a', "a");
       var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
+      var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 3);
       expect(node.contentsEnd, 10 + 4 - 1);
@@ -1100,7 +1061,7 @@ class StringInterpolationTest extends ParserTestCase {
     {
       var ae = AstTestFactory.interpolationString("r'a", "a");
       var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
+      var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 2);
       expect(node.contentsEnd, 10 + 4 - 1);
@@ -1109,7 +1070,7 @@ class StringInterpolationTest extends ParserTestCase {
     {
       var ae = AstTestFactory.interpolationString("r'''a", "a");
       var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
+      var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 4);
       expect(node.contentsEnd, 10 + 4 - 1);
@@ -1118,7 +1079,7 @@ class StringInterpolationTest extends ParserTestCase {
     {
       var ae = AstTestFactory.interpolationString('r"""a', "a");
       var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
+      var cElement = new InterpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 4);
       expect(node.contentsEnd, 10 + 4 - 1);
@@ -1203,7 +1164,7 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1212,7 +1173,7 @@ class VariableDeclarationTest extends ParserTestCase {
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }

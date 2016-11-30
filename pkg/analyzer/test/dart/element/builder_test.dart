@@ -5,7 +5,6 @@
 library analyzer.test.dart.element.builder_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -252,7 +251,7 @@ class C {
     TopLevelVariableDeclaration topLevelVariableDeclaration = AstTestFactory
         .topLevelVariableDeclaration(null, AstTestFactory.typeName4('int'),
             [AstTestFactory.variableDeclaration('V')]);
-    CompilationUnit unit = astFactory.compilationUnit(
+    CompilationUnit unit = new CompilationUnit(
         topLevelVariableDeclaration.beginToken,
         null,
         [],
