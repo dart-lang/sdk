@@ -161,6 +161,8 @@ class Isolate : public BaseIsolate {
   // Visit all object pointers.
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
                              bool validate_frames);
+  void IterateStackPointers(ObjectPointerVisitor* visitor,
+                            bool validate_frames);
 
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
@@ -667,6 +669,7 @@ class Isolate : public BaseIsolate {
   // Visit all object pointers. Caller must ensure concurrent sweeper is not
   // running, and the visitor must not allocate.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitStackPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   void set_user_tag(uword tag) { user_tag_ = tag; }
 

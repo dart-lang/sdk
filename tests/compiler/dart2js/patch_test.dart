@@ -200,7 +200,7 @@ Future testPatchVersioned() async {
         Expect.equals(patchText, patch.node.toString());
       }
 
-      compiler.analyzeElement(origin);
+      compiler.resolution.computeWorldImpact(origin);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
 
       DiagnosticCollector collector = compiler.diagnosticCollector;

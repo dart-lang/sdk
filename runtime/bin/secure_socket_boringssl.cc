@@ -1505,6 +1505,10 @@ void SSLFilter::Connect(const char* hostname,
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
 
+#if defined(TARGET_OS_FUCHSIA)
+  // Temporary workaround until we isolate the memory leak issue.
+  SSL_set_verify(ssl_, SSL_VERIFY_NONE, NULL);
+#else
   if (is_server_) {
     int certificate_mode =
         request_client_certificate ? SSL_VERIFY_PEER : SSL_VERIFY_NONE;
@@ -1529,6 +1533,7 @@ void SSLFilter::Connect(const char* hostname,
     CheckStatus(status, "TlsException",
                 "Set hostname for certificate checking");
   }
+#endif  // defined(TARGET_OS_FUCHSIA)
   // Make the connection:
   if (is_server_) {
     status = SSL_accept(ssl_);
@@ -1563,6 +1568,7 @@ int printErrorCallback(const char* str, size_t len, void* ctx) {
   Log::PrintErr("%.*s\n", static_cast<int>(len), str);
   return 1;
 }
+
 
 void SSLFilter::Handshake() {
   // Try and push handshake along.
@@ -1604,6 +1610,7 @@ void SSLFilter::Handshake() {
     in_handshake_ = false;
   }
 }
+
 
 void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
   const uint8_t* protocol;

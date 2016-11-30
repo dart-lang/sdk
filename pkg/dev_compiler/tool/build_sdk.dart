@@ -35,6 +35,7 @@ main(List<String> arguments) {
     'dart:collection',
     'dart:convert',
     'dart:core',
+    'dart:developer',
     'dart:isolate',
     'dart:js',
     'dart:js_util',

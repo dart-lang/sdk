@@ -150,6 +150,10 @@ enum ClassId {
   // Illegal class id.
   kIllegalCid = 0,
 
+  // A sentinel used by the vm service's heap snapshots to represent references
+  // from the stack.
+  kStackCid = 1,
+
   // The following entries describes classes for pseudo-objects in the heap
   // that should never be reachable from live objects. Free list elements
   // maintain the free list for old space, and forwarding corpses are used to
@@ -179,7 +183,7 @@ enum ClassId {
       kByteBufferCid,
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instance (Null, dynamic and Void).
+  // are class indexes for pre-allocated instances (Null, dynamic and Void).
   kNullCid,
   kDynamicCid,
   kVoidCid,
@@ -618,6 +622,7 @@ class RawObject {
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
   friend class NativeEntry;             // GetClassId
+  friend class WritePointerVisitor;     // GetClassId
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;

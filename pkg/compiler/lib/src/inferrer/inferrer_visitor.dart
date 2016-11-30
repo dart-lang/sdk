@@ -763,9 +763,22 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
 
   T visitAssert(Assert node) {
     // Avoid pollution from assert statement unless enabled.
-    if (compiler.options.enableUserAssertions) {
-      super.visitAssert(node);
+    if (!compiler.options.enableUserAssertions) {
+      return null;
     }
+    List<Send> tests = <Send>[];
+    bool simpleCondition = handleCondition(node.condition, tests);
+    LocalsHandler<T> saved = locals;
+    locals = new LocalsHandler<T>.from(locals, node);
+    updateIsChecks(tests, usePositive: true);
+
+    LocalsHandler<T> thenLocals = locals;
+    locals = new LocalsHandler<T>.from(saved, node);
+    if (simpleCondition) updateIsChecks(tests, usePositive: false);
+    visit(node.message);
+    locals.seenReturnOrThrow = true;
+    saved.mergeDiamondFlow(thenLocals, locals);
+    locals = saved;
     return null;
   }
 

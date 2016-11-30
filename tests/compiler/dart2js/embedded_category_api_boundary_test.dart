@@ -23,7 +23,8 @@ main() async {
     }
   });
   asyncTest(() async {
-    analyze(uriList, {}, checkResults: checkResults, mode: AnalysisMode.MAIN);
+    await analyze(uriList, {},
+        checkResults: checkResults, mode: AnalysisMode.MAIN);
   });
 }
 
@@ -42,6 +43,10 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
     LibraryInfo info = libraries[element.library.canonicalUri.path];
     bool isAllowedInEmbedded =
         info.isInternal || info.categories.contains(Category.embedded);
+    if (!isAllowedInEmbedded) {
+      print(
+          'Disallowed element: $element from ${element.library.canonicalUri}');
+    }
     return isAllowedInEmbedded;
   });
 }

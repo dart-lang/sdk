@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/kernel/task.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -28,6 +27,7 @@ import 'package:compiler/src/platform_configuration.dart' as platform;
 import 'package:compiler/src/scanner/scanner.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/tokens/token.dart' show Token;
+import 'package:compiler/src/universe/world_impact.dart' show WorldImpact;
 import 'package:package_config/discovery.dart' show findPackages;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/src/util.dart' show checkValidPackageUri;
@@ -359,7 +359,7 @@ class MyCompiler extends CompilerImpl {
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
       selfTask.measureSubtask("KernelCompiler.compileLoadedLibraries", () {
-        computeMain();
+        WorldImpact mainImpact = computeMain();
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
         deferredLoadTask.beforeResolution(this);
@@ -369,14 +369,18 @@ class MyCompiler extends CompilerImpl {
             supportSerialization: serialization.supportSerialization);
 
         phase = Compiler.PHASE_RESOLVING;
-
+        enqueuer.resolution.applyImpact(mainImpact);
         // Note: we enqueue everything in the program so we measure generating
         // kernel for the entire code, not just what's reachable from main.
         libraryLoader.libraries.forEach((LibraryElement library) {
-          fullyEnqueueLibrary(library, enqueuer.resolution);
+          enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
         });
 
-        backend.enqueueHelpers(enqueuer.resolution);
+        if (deferredLoadTask.isProgramSplit) {
+          enqueuer.resolution.applyImpact(
+              backend.computeDeferredLoadingImpact());
+        }
+        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(enqueuer.resolution, mainFunction);

@@ -124,6 +124,8 @@ class HeapSnapshotDominatorNode implements M.HeapSnapshotDominatorNode {
   final S.Isolate isolate;
   S.HeapObject _preloaded;
 
+  bool get isStack => v.isStack;
+
   Future<S.HeapObject> get object {
     if (_preloaded != null) {
       return new Future.value(_preloaded);
@@ -158,6 +160,8 @@ class HeapSnapshotMergedDominatorNode
     implements M.HeapSnapshotMergedDominatorNode {
   final MergedObjectVertex v;
   final S.Isolate isolate;
+
+  bool get isStack => v.isStack;
 
   Future<S.HeapObject> get klass {
     return new Future.value(isolate.getClassByCid(v.vmCid));

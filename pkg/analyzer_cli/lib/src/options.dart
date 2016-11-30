@@ -85,10 +85,6 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
-  /// A flag indicating whether access to field formal parameters should be
-  /// allowed in a constructor's initializer list.
-  final bool enableInitializingFormalAccess;
-
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
 
@@ -179,7 +175,6 @@ class CommandLineOptions {
         disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableInitializingFormalAccess = args['initializing-formal-access'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableSuperMixins = args['supermixin'],

@@ -4,6 +4,7 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/heap_snapshot.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -43,7 +44,8 @@ var tests = [
   Class fooClass = lib.classes.first;
   fooId = fooClass.vmCid;
 
-  RawHeapSnapshot raw = await isolate.fetchHeapSnapshot(false).last;
+  RawHeapSnapshot raw =
+      await isolate.fetchHeapSnapshot(M.HeapSnapshotRoots.user, false).last;
   HeapSnapshot snapshot = new HeapSnapshot();
   await snapshot.loadProgress(isolate, raw).last;
   ObjectGraph graph = snapshot.graph;

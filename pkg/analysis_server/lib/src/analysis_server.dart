@@ -801,6 +801,10 @@ class AnalysisServer {
    * Dart file or cannot be resolved.
    */
   Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
+    if (options.enableNewAnalysisDriver) {
+      nd.AnalysisResult result = await getAnalysisResult(path);
+      return result?.unit;
+    }
     ContextSourcePair contextSource = getContextSourcePair(path);
     AnalysisContext context = contextSource.context;
     if (context == null) {

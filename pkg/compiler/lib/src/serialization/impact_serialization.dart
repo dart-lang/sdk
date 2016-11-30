@@ -116,6 +116,9 @@ class DeserializedResolutionImpact extends WorldImpact
       this.nativeData: const <dynamic>[]})
       : this._features = features;
 
+  @override
+  bool get isEmpty => false;
+
   Iterable<Feature> get features {
     return _features != null
         ? _features.iterable(Feature.values)

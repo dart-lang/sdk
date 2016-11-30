@@ -2341,6 +2341,12 @@ enum UnlinkedExprOperation {
    * first.
    */
   ifNull,
+
+  /**
+   * Pop the top value from the stack.  Treat it as a Future and await its
+   * completion.  Then push the awaited value onto the stack.
+   */
+  await,
 }
 
 /**

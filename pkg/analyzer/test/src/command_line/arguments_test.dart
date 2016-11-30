@@ -35,7 +35,6 @@ class ArgumentsTest {
       '-Dfoo=1',
       '-Dbar=2',
       '--enable-strict-call-checks',
-      '--initializing-formal-access',
       '--no-implicit-casts',
       '--no-implicit-dynamic',
       '--options=$defaultAnalysisOptionsFilePath',
@@ -58,7 +57,6 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, defaultPackagesDirectoryPath);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.enableInitializingFormalAccess, true);
     expect(defaultOptions.enableStrictCallChecks, true);
     expect(defaultOptions.strongMode, true);
     expect(defaultOptions.implicitCasts, false);
@@ -81,7 +79,6 @@ class ArgumentsTest {
     expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.enableInitializingFormalAccess, false);
     expect(defaultOptions.enableStrictCallChecks, false);
     expect(defaultOptions.strongMode, false);
     expect(defaultOptions.implicitCasts, true);

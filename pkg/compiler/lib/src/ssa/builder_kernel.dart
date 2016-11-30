@@ -28,7 +28,7 @@ import '../tree/nodes.dart' show FunctionExpression, Node;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
-import '../universe/use.dart' show TypeUse;
+import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/side_effects.dart' show SideEffects;
 import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
@@ -671,6 +671,41 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitAsExpression(ir.AsExpression asExpression) {
+    asExpression.operand.accept(this);
+    HInstruction expressionInstruction = pop();
+    DartType type = astAdapter.getDartType(asExpression.type);
+    if (type.isMalformed) {
+      if (type is MalformedType) {
+        ErroneousElement element = type.element;
+        generateTypeError(asExpression, element.message);
+      } else {
+        assert(type is MethodTypeVariableType);
+        stack.add(expressionInstruction);
+      }
+    } else {
+      HInstruction converted = typeBuilder.buildTypeConversion(
+          expressionInstruction,
+          localsHandler.substInContext(type),
+          HTypeConversion.CAST_TYPE_CHECK);
+      if (converted != expressionInstruction) {
+        add(converted);
+      }
+      stack.add(converted);
+    }
+  }
+
+  void generateError(ir.Node node, String message, TypeMask typeMask) {
+    HInstruction errorMessage =
+        graph.addConstantString(new DartString.literal(message), compiler);
+    _pushStaticInvocation(node, [errorMessage], typeMask);
+  }
+
+  void generateTypeError(ir.Node node, String message) {
+    generateError(node, message, astAdapter.throwTypeErrorType);
+  }
+
+  @override
   void visitAssertStatement(ir.AssertStatement assertStatement) {
     if (!compiler.options.enableUserAssertions) return;
     if (assertStatement.message == null) {
@@ -1191,31 +1226,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
       _pushStaticInvocation(target, <HInstruction>[], backend.dynamicType);
     }
-
-    /*
-    if (!node.arguments.isEmpty) {
-      reporter.internalError(
-          node, 'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
-    }
-
-    if (!compiler.hasIsolateSupport) {
-      // If the isolate library is not used, we just generate code
-      // to fetch the static state.
-      String name = backend.namer.staticStateHolder;
-      push(new HForeignCode(
-          js.js.parseForeignJS(name), backend.dynamicType, <HInstruction>[],
-          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
-    } else {
-      // Call a helper method from the isolate library. The isolate
-      // library uses its own isolate structure, that encapsulates
-      // Leg's isolate.
-      Element element = helpers.currentIsolate;
-      if (element == null) {
-        reporter.internalError(node, 'Isolate library and compiler mismatch.');
-      }
-      pushInvokeStatic(null, element, [], typeMask: backend.dynamicType);
-    }
-    */
   }
 
   void handleForeignJsCallInIsolate(ir.StaticInvocation invocation) {
@@ -1224,12 +1234,48 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void handleForeignDartClosureToJs(
       ir.StaticInvocation invocation, String name) {
-    unhandledForeign(invocation);
+    // TODO(sra): Do we need to wrap the closure in something that saves the
+    // current isolate?
+    handleForeignRawFunctionRef(invocation, name);
   }
 
   void handleForeignRawFunctionRef(
       ir.StaticInvocation invocation, String name) {
-    unhandledForeign(invocation);
+    if (_unexpectedForeignArguments(invocation, 1, 1)) {
+      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      return;
+    }
+
+    ir.Expression closure = invocation.arguments.positional.single;
+    String problem = 'requires a static method or top-level method';
+    if (closure is ir.StaticGet) {
+      ir.Member staticTarget = closure.target;
+      if (staticTarget is ir.Procedure) {
+        if (staticTarget.kind == ir.ProcedureKind.Method) {
+          ir.FunctionNode function = staticTarget.function;
+          if (function != null &&
+              function.requiredParameterCount ==
+                  function.positionalParameters.length &&
+              function.namedParameters.isEmpty) {
+            registry?.registerStaticUse(
+                new StaticUse.foreignUse(astAdapter.getMember(staticTarget)));
+            push(new HForeignCode(
+                js.js.expressionTemplateYielding(backend.emitter
+                    .staticFunctionAccess(astAdapter.getMember(staticTarget))),
+                backend.dynamicType,
+                <HInstruction>[],
+                nativeBehavior: native.NativeBehavior.PURE));
+            return;
+          }
+          problem = 'does not handle a closure with optional parameters';
+        }
+      }
+    }
+
+    compiler.reporter.reportErrorMessage(astAdapter.getNode(invocation),
+        MessageKind.GENERIC, {'text': "'$name' $problem."});
+    stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+    return;
   }
 
   void handleForeignJsSetStaticState(ir.StaticInvocation invocation) {
@@ -1487,6 +1533,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   // TODO(het): Decide when to inline
   @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
+    // Handle `x == null` specially. When these come from null-aware operators,
+    // there is no mapping in the astAdapter.
+    if (_handleEqualsNull(invocation)) return;
     invocation.receiver.accept(this);
     HInstruction receiver = pop();
 
@@ -1495,6 +1544,27 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         astAdapter.typeOfInvocation(invocation),
         <HInstruction>[receiver]
           ..addAll(_visitArguments(invocation.arguments)));
+  }
+
+  bool _handleEqualsNull(ir.MethodInvocation invocation) {
+    if (invocation.name.name == '==') {
+      ir.Arguments arguments = invocation.arguments;
+      if (arguments.types.isEmpty &&
+          arguments.positional.length == 1 &&
+          arguments.named.isEmpty) {
+        bool finish(ir.Expression comparand) {
+          comparand.accept(this);
+          pushCheckNull(pop());
+          return true;
+        }
+
+        ir.Expression receiver = invocation.receiver;
+        ir.Expression argument = arguments.positional.first;
+        if (argument is ir.NullLiteral) return finish(receiver);
+        if (receiver is ir.NullLiteral) return finish(argument);
+      }
+    }
+    return false;
   }
 
   HInterceptor _interceptorFor(HInstruction intercepted) {

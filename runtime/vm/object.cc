@@ -11008,8 +11008,8 @@ bool LibraryPrefix::LoadLibrary() const {
       Exceptions::PropagateError(Error::Cast(obj));
     }
   } else {
-    // Another load request is in flight.
-    ASSERT(deferred_lib.LoadRequested());
+    // Another load request is in flight or previously failed.
+    ASSERT(deferred_lib.LoadRequested() || deferred_lib.LoadFailed());
   }
   return false;  // Load request not yet completed.
 }

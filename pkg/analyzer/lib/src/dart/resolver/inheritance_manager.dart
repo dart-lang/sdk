@@ -54,12 +54,22 @@ class InheritanceManager {
       new HashMap<ClassElement, Set<AnalysisError>>();
 
   /**
+   * Indicates whether errors should be ignored.
+   *
+   * When this bool is `true`, we skip the logic that figures out which error
+   * to report; this avoids a crash when the inheritance manager is used in the
+   * context of summary linking (where there is not enough information available
+   * to determine error locations).
+   */
+  final bool ignoreErrors;
+
+  /**
    * Initialize a newly created inheritance manager.
    *
    * @param library the library element context that the inheritance mappings are being generated
    */
   InheritanceManager(LibraryElement library,
-      {bool includeAbstractFromSuperclasses: false}) {
+      {bool includeAbstractFromSuperclasses: false, this.ignoreErrors: false}) {
     this._library = library;
     _includeAbstractFromSuperclasses = includeAbstractFromSuperclasses;
     _classLookup = new HashMap<ClassElement, Map<String, ExecutableElement>>();
@@ -654,15 +664,15 @@ class InheritanceManager {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  void _reportError(ClassElement classElt, int offset, int length,
-      ErrorCode errorCode, List<Object> arguments) {
-    HashSet<AnalysisError> errorSet = _errorsInClassElement[classElt];
-    if (errorSet == null) {
-      errorSet = new HashSet<AnalysisError>();
-      _errorsInClassElement[classElt] = errorSet;
+  void _reportError(
+      ClassElement classElt, ErrorCode errorCode, List<Object> arguments) {
+    if (ignoreErrors) {
+      return;
     }
-    errorSet.add(new AnalysisError(
-        classElt.source, offset, length, errorCode, arguments));
+    HashSet<AnalysisError> errorSet = _errorsInClassElement.putIfAbsent(
+        classElt, () => new HashSet<AnalysisError>());
+    errorSet.add(new AnalysisError(classElt.source, classElt.nameOffset,
+        classElt.nameLength, errorCode, arguments));
   }
 
   /**
@@ -793,8 +803,6 @@ class InheritanceManager {
                     "${executableElementTypes[0]}, ${executableElementTypes[1]}";
                 _reportError(
                     classElt,
-                    classElt.nameOffset,
-                    classElt.nameLength,
                     StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
                     [key, firstTwoFuntionTypesStr]);
               }
@@ -823,8 +831,6 @@ class InheritanceManager {
         } else {
           _reportError(
               classElt,
-              classElt.nameOffset,
-              classElt.nameLength,
               StaticWarningCode
                   .INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
               [key]);

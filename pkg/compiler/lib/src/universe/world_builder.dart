@@ -636,6 +636,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         methodsNeedingSuperGetter.add(element);
         break;
       case StaticUseKind.GENERAL:
+      case StaticUseKind.DIRECT_USE:
       case StaticUseKind.STATIC_TEAR_OFF:
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -911,6 +912,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.FIELD_SET:
       case StaticUseKind.GENERAL:
+      case StaticUseKind.DIRECT_USE:
       case StaticUseKind.CLOSURE:
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:

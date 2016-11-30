@@ -635,8 +635,6 @@ class _OptionsProcessor {
     if (boolValue != null) {
       if (feature == AnalyzerOptions.enableAssertInitializer) {
         options.enableAssertInitializer = boolValue;
-      } else if (feature == AnalyzerOptions.enableInitializingFormalAccess) {
-        options.enableInitializingFormalAccess = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
       }

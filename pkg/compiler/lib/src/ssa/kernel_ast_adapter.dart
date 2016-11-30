@@ -318,6 +318,9 @@ class KernelAstAdapter {
   ir.Procedure get assertHelper =>
       kernel.functions[_backend.helpers.assertHelper];
 
+  TypeMask get throwTypeErrorType => TypeMaskFactory
+      .inferredReturnTypeForElement(_backend.helpers.throwTypeError, _compiler);
+
   TypeMask get assertHelperReturnType => TypeMaskFactory
       .inferredReturnTypeForElement(_backend.helpers.assertHelper, _compiler);
 

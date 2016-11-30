@@ -71,7 +71,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 8;
+  static const int DATA_VERSION = 9;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -592,9 +592,14 @@ class AnalysisDriver {
     AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
 
     // Resynthesize the CompilationUnitElement in the context.
-    CompilationUnitElement unitElement = analysisContext.computeResult(
-        new LibrarySpecificUnit(libraryFile.source, file.source),
-        COMPILATION_UNIT_ELEMENT);
+    CompilationUnitElement unitElement;
+    try {
+      unitElement = analysisContext.computeResult(
+          new LibrarySpecificUnit(libraryFile.source, file.source),
+          COMPILATION_UNIT_ELEMENT);
+    } finally {
+      analysisContext.dispose();
+    }
 
     // Return as IndexResult.
     return new IndexResult(unitElement, analysisResult._index);

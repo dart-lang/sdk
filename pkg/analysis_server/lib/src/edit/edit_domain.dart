@@ -205,21 +205,23 @@ class EditDomainHandler implements RequestHandler {
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
       if (errorInfo != null) {
         LineInfo lineInfo = errorInfo.lineInfo;
-        int requestLine = lineInfo.getLocation(offset).lineNumber;
-        for (engine.AnalysisError error in errorInfo.errors) {
-          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-          if (errorLine == requestLine) {
-            List<Fix> fixes = await computeFixes(server.serverPlugin,
-                server.resourceProvider, unit.element.context, error);
-            if (fixes.isNotEmpty) {
-              AnalysisError serverError =
-                  newAnalysisError_fromEngine(lineInfo, error);
-              AnalysisErrorFixes errorFixes =
-                  new AnalysisErrorFixes(serverError);
-              errorFixesList.add(errorFixes);
-              fixes.forEach((fix) {
-                errorFixes.fixes.add(fix.change);
-              });
+        if (lineInfo != null) {
+          int requestLine = lineInfo.getLocation(offset).lineNumber;
+          for (engine.AnalysisError error in errorInfo.errors) {
+            int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+            if (errorLine == requestLine) {
+              List<Fix> fixes = await computeFixes(server.serverPlugin,
+                  server.resourceProvider, unit.element.context, error);
+              if (fixes.isNotEmpty) {
+                AnalysisError serverError =
+                    newAnalysisError_fromEngine(lineInfo, error);
+                AnalysisErrorFixes errorFixes =
+                    new AnalysisErrorFixes(serverError);
+                errorFixesList.add(errorFixes);
+                fixes.forEach((fix) {
+                  errorFixes.fixes.add(fix.change);
+                });
+              }
             }
           }
         }
@@ -634,6 +636,9 @@ class _RefactoringManager {
    * [kind] in the given [file].
    */
   Future<Null> _analyzeForRefactoring(String file, RefactoringKind kind) async {
+    if (server.options.enableNewAnalysisDriver) {
+      return;
+    }
     // "Extract Local" and "Inline Local" refactorings need only local analysis.
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE ||
         kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
@@ -755,7 +760,11 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring = new InlineMethodRefactoring(searchEngine, unit, offset);
+        refactoring =
+            new InlineMethodRefactoring(searchEngine, (Element element) async {
+          String elementPath = element.source.fullName;
+          return await server.getResolvedCompilationUnit(elementPath);
+        }, unit, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
@@ -863,6 +872,9 @@ class _RefactoringManager {
    * But when any other file is changed or analyzed, we can continue.
    */
   void _resetOnFileResolutionChanged(String file) {
+    if (server.options.enableNewAnalysisDriver) {
+      return;
+    }
     subscriptionToReset?.cancel();
     subscriptionToReset = server
         .getAnalysisContext(file)

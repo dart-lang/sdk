@@ -814,6 +814,18 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
+  test_isReferencedBy_synthetic_leastUpperBound() async {
+    await _indexTestUnit('''
+int f1({int p}) => 1;
+int f2({int p}) => 2;
+main(bool b) {
+  var f = b ? f1 : f2;
+  f(p: 0);
+}''');
+    // We should not crash because of reference to "p" - a named parameter
+    // of a synthetic LUB FunctionElement created for "f".
+  }
+
   test_isReferencedBy_TopLevelVariableElement() async {
     provider.newFile(
         _p('$testProject/lib.dart'),

@@ -60,6 +60,8 @@ class Search {
       return _searchReferences_Local(element, (n) => n is Block);
     } else if (kind == ElementKind.PARAMETER) {
       return _searchReferences_Parameter(element);
+    } else if (kind == ElementKind.PREFIX) {
+      return _searchReferences_Prefix(element);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return _searchReferences_Local(
           element, (n) => n.parent is CompilationUnit);
@@ -69,7 +71,7 @@ class Search {
   }
 
   Future<Null> _addResults(List<SearchResult> results, Element element,
-      IndexRelationKind relationKind, SearchResultKind resultKind) async {
+      Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
     String path = element.source.fullName;
 
     // If the file with the element is not known, then the element is not used.
@@ -93,8 +95,8 @@ class Search {
       int elementId = request.findElementId(element);
       if (elementId != -1) {
         CompilationUnitElement unitElement = result.unitElement;
-        List<SearchResult> fileResults = request.getRelations(
-            elementId, relationKind, resultKind, unitElement);
+        List<SearchResult> fileResults =
+            request.getRelations(elementId, relationToResultKind, unitElement);
         results.addAll(fileResults);
       }
     }
@@ -102,8 +104,8 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences(Element element) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element, IndexRelationKind.IS_REFERENCED_BY,
-        SearchResultKind.REFERENCE);
+    await _addResults(results, element,
+        {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
     return results;
   }
 
@@ -113,20 +115,20 @@ class Search {
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     if (!field.isSynthetic) {
-      await _addResults(results, field, IndexRelationKind.IS_WRITTEN_BY,
-          SearchResultKind.WRITE);
-      await _addResults(results, field, IndexRelationKind.IS_REFERENCED_BY,
-          SearchResultKind.REFERENCE);
+      await _addResults(results, field, {
+        IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
+      });
     }
     if (getter != null) {
-      await _addResults(results, getter, IndexRelationKind.IS_REFERENCED_BY,
-          SearchResultKind.READ);
-      await _addResults(results, getter, IndexRelationKind.IS_INVOKED_BY,
-          SearchResultKind.INVOCATION);
+      await _addResults(results, getter, {
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+      });
     }
     if (setter != null) {
-      await _addResults(results, setter, IndexRelationKind.IS_REFERENCED_BY,
-          SearchResultKind.WRITE);
+      await _addResults(results, setter,
+          {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE});
     }
     return results;
   }
@@ -136,20 +138,20 @@ class Search {
       element = (element as Member).baseElement;
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element, IndexRelationKind.IS_REFERENCED_BY,
-        SearchResultKind.REFERENCE);
-    await _addResults(results, element, IndexRelationKind.IS_INVOKED_BY,
-        SearchResultKind.INVOCATION);
+    await _addResults(results, element, {
+      IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+    });
     return results;
   }
 
   Future<List<SearchResult>> _searchReferences_Getter(
       PropertyAccessorElement getter) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, getter, IndexRelationKind.IS_REFERENCED_BY,
-        SearchResultKind.REFERENCE);
-    await _addResults(results, getter, IndexRelationKind.IS_INVOKED_BY,
-        SearchResultKind.INVOCATION);
+    await _addResults(results, getter, {
+      IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+    });
     return results;
   }
 
@@ -194,6 +196,27 @@ class Search {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Prefix(
+      PrefixElement element) async {
+    // Search only in drivers to which the library with the prefix was added.
+    String path = element.source.fullName;
+    if (!_driver.addedFiles.contains(path)) {
+      return const <SearchResult>[];
+    }
+
+    List<SearchResult> results = <SearchResult>[];
+    LibraryElement libraryElement = element.library;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      String unitPath = unitElement.source.fullName;
+      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      _LocalReferencesVisitor visitor =
+          new _LocalReferencesVisitor(element, unitElement);
+      unitAnalysisResult.unit.accept(visitor);
+      results.addAll(visitor.results);
+    }
     return results;
   }
 }
@@ -377,12 +400,11 @@ class _IndexRequest {
 
   /**
    * Return a list of results where an element with the given [elementId] has
-   * relation of the given [indexKind].
+   * a relation with the kind from [relationToResultKind].
    */
   List<SearchResult> getRelations(
       int elementId,
-      IndexRelationKind indexKind,
-      SearchResultKind searchKind,
+      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       CompilationUnitElement enclosingUnitElement) {
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
@@ -394,14 +416,16 @@ class _IndexRequest {
     for (;
         i < index.usedElements.length && index.usedElements[i] == elementId;
         i++) {
-      if (index.usedElementKinds[i] == indexKind) {
+      IndexRelationKind relationKind = index.usedElementKinds[i];
+      SearchResultKind resultKind = relationToResultKind[relationKind];
+      if (resultKind != null) {
         int offset = index.usedElementOffsets[i];
         Element enclosingElement =
             _getEnclosingElement(enclosingUnitElement, offset);
         results.add(new SearchResult._(
             null,
             enclosingElement,
-            searchKind,
+            resultKind,
             offset,
             index.usedElementLengths[i],
             true,

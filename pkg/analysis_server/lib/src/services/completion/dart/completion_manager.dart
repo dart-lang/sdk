@@ -226,6 +226,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
+  String get sourceContents => context.getContents(source)?.data;
+
+  @override
   SourceFactory get sourceFactory {
     return context?.sourceFactory ?? result.sourceFactory;
   }

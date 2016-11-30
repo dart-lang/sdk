@@ -87,11 +87,11 @@ class CompletionRequestImpl implements CompletionRequest {
    * that can be used to filter the suggestions on the server side.
    */
   String get filterText {
-    return context
-        .getContents(source)
-        .data
-        .substring(replacementOffset, offset);
+    return sourceContents.substring(replacementOffset, offset);
   }
+
+  @override
+  String get sourceContents => context.getContents(source)?.data;
 
   /**
    * Abort the current completion request.

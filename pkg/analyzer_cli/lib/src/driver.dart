@@ -280,10 +280,6 @@ class Driver implements CommandLineStarter {
     if (options.disableHints != _previousOptions.disableHints) {
       return false;
     }
-    if (options.enableInitializingFormalAccess !=
-        _previousOptions.enableInitializingFormalAccess) {
-      return false;
-    }
     if (options.enableStrictCallChecks !=
         _previousOptions.enableStrictCallChecks) {
       return false;
@@ -671,8 +667,6 @@ class Driver implements CommandLineStarter {
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = options.disableCacheFlushing;
     contextOptions.hint = !options.disableHints;
-    contextOptions.enableInitializingFormalAccess =
-        options.enableInitializingFormalAccess;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;

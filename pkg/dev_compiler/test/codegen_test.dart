@@ -20,6 +20,7 @@ import 'package:analyzer/analyzer.dart'
         StringLiteral,
         UriBasedDirective,
         parseDirectives;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:dev_compiler/src/analyzer/context.dart'
@@ -351,5 +352,7 @@ String _resolveDirective(UriBasedDirective directive) {
     uriContent = uriContent.trim();
     directive.uriContent = uriContent;
   }
-  return directive.validate() == null ? uriContent : null;
+  return (directive as UriBasedDirectiveImpl).validate() == null
+      ? uriContent
+      : null;
 }

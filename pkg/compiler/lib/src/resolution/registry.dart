@@ -36,6 +36,9 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
 
   ResolutionWorldImpactBuilder(this.name);
 
+  @override
+  bool get isEmpty => false;
+
   void registerMapLiteral(MapLiteralUse mapLiteralUse) {
     assert(mapLiteralUse != null);
     if (_mapLiterals == null) {

@@ -11,7 +11,9 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_new.dart' as api;
+import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/codegen.dart';
+import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
@@ -20,8 +22,8 @@ import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
-import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
@@ -52,7 +54,15 @@ class TestCompiler extends apiimpl.CompilerImpl {
   }
 
   @override
+  Backend createBackend() {
+    return new TestBackend(this);
+  }
+
+  @override
   ScannerTask createScannerTask() => new TestScanner(this);
+
+  @override
+  Resolution createResolution() => new TestResolution(this);
 
   @override
   ResolverTask createResolverTask() {
@@ -72,16 +82,6 @@ class TestCompiler extends apiimpl.CompilerImpl {
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     test('Compiler.onLibrariesLoaded');
     return super.onLibrariesLoaded(loadedLibraries);
-  }
-
-  WorldImpact analyzeElement(Element element) {
-    test('Compiler.analyzeElement');
-    return super.analyzeElement(element);
-  }
-
-  WorldImpact codegen(CodegenWorkItem work, Enqueuer world) {
-    test('Compiler.codegen');
-    return super.codegen(work, world);
   }
 
   test(String marker) {
@@ -118,6 +118,23 @@ class TestCompiler extends apiimpl.CompilerImpl {
           break;
       }
     }
+  }
+}
+
+class TestBackend extends JavaScriptBackend {
+  final TestCompiler compiler;
+  TestBackend(TestCompiler compiler)
+      : this.compiler = compiler,
+        super(compiler,
+            generateSourceMap: compiler.options.generateSourceMap,
+            useStartupEmitter: compiler.options.useStartupEmitter,
+            useNewSourceInfo: compiler.options.useNewSourceInfo,
+            useKernel: compiler.options.useKernel);
+
+  @override
+  WorldImpact codegen(CodegenWorkItem work) {
+    compiler.test('Compiler.codegen');
+    return super.codegen(work);
   }
 }
 
@@ -158,6 +175,20 @@ class TestResolver extends ResolverTask {
   void computeClassMembers(ClassElement element) {
     compiler.test('ResolverTask.computeClassMembers');
     super.computeClassMembers(element);
+  }
+}
+
+class TestResolution extends CompilerResolution {
+  TestCompiler compiler;
+
+  TestResolution(TestCompiler compiler)
+      : this.compiler = compiler,
+        super(compiler);
+
+  @override
+  WorldImpact computeWorldImpact(Element element) {
+    compiler.test('Compiler.analyzeElement');
+    return super.computeWorldImpact(element);
   }
 }
 

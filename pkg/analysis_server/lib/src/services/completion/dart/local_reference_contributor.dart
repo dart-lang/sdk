@@ -211,7 +211,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     // then do not suppress the relevance of private members
     var data = request.result != null
         ? request.result.content
-        : request.context.getContents(request.source)?.data;
+        : request.sourceContents;
     int offset = request.offset;
     if (data != null && 0 < offset && offset <= data.length) {
       bool isIdentifierChar(int index) {

@@ -84,7 +84,7 @@ double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. 
 list_test/none: RuntimeError # Issue 27871
 list_test/01: RuntimeError # Issue 27871
 
-[ $compiler == dart2js && $runtime == drt && $csp && $minimized ]
+[ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
 [ $compiler == dart2js ]

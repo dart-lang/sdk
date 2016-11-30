@@ -656,9 +656,6 @@ class A {
   }
 
   void test_fieldFormalParameter() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableInitializingFormalAccess = true;
-    resetWithOptions(options);
     Source source = addSource(r'''
 class A {
   int x;

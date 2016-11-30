@@ -2345,7 +2345,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/parameter_initializer2_negative_test',
   'language/parameter_initializer3_negative_test',
   'language/parameter_initializer4_negative_test',
-  'language/parameter_initializer5_negative_test',
   'language/parameter_initializer6_negative_test',
   'language/prefix11_negative_test',
   'language/prefix12_negative_test',

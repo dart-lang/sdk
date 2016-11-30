@@ -397,19 +397,17 @@ main() async {
   await testSimpleReadWriteClose();
   print("testSimpleReadWriteClose done");
 
-  // TODO(US-81): Enable.
-  // print("testSimpleReadWriteShutdown");
-  // await testSimpleReadWriteShutdown(dropReads: false);
-  // print("testSimpleReadWriteShutdown done");
+  print("testSimpleReadWriteShutdown");
+  await testSimpleReadWriteShutdown(dropReads: false);
+  print("testSimpleReadWriteShutdown done");
 
   print("testGoogleHttp");
   await testGoogleHttp(null, 'pass');
   print("testGoogleHttp done");
 
-  // TODO(US-96)
-  // print("testGoogleHttps");
-  // await testGoogleHttps(null, 'pass');
-  // print("testGoogleHttps done");
+  print("testGoogleHttps");
+  await testGoogleHttps(null, 'pass');
+  print("testGoogleHttps done");
 
   print("Goodbyte, Fuchsia!");
 }

@@ -6,11 +6,14 @@
 #define RUNTIME_VM_OBJECT_GRAPH_H_
 
 #include "vm/allocation.h"
-#include "vm/object.h"
 
 namespace dart {
 
+class Array;
 class Isolate;
+class Object;
+class RawObject;
+class WriteStream;
 
 // Utility to traverse the object graph in an ordered fashion.
 // Example uses:
@@ -93,12 +96,16 @@ class ObjectGraph : public StackResource {
   // be live due to references from the stack or embedder handles.
   intptr_t InboundReferences(Object* obj, const Array& references);
 
+  enum SnapshotRoots { kVM, kUser };
+
   // Write the isolate's object graph to 'stream'. Smis and nulls are omitted.
   // Returns the number of nodes in the stream, including the root.
   // If collect_garabage is false, the graph will include weakly-reachable
   // objects.
   // TODO(koda): Document format; support streaming/chunking.
-  intptr_t Serialize(WriteStream* stream, bool collect_garbage);
+  intptr_t Serialize(WriteStream* stream,
+                     SnapshotRoots roots,
+                     bool collect_garbage);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);

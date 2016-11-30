@@ -38,6 +38,7 @@ class ExpectedResult {
         result.isResolved == this.isResolved &&
         result.isQualified == this.isQualified &&
         result.offset == this.offset &&
+        result.length == this.length &&
         result.enclosingElement == this.enclosingElement;
   }
 
@@ -506,6 +507,34 @@ main() {
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
       _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PrefixElement() async {
+    String partCode = r'''
+part of my_lib;
+ppp.Future c;
+''';
+    provider.newFile(_p('$testProject/my_part.dart'), partCode);
+    await _resolveTestUnit('''
+library my_lib;
+import 'dart:async' as ppp;
+part 'my_part.dart';
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    PrefixElement element = _findElementAtString('ppp;');
+    Element a = _findElement('a');
+    Element b = _findElement('b');
+    Element c = findChildElement(testLibraryElement, 'c');
+    var expected = [
+      _expectId(a, SearchResultKind.REFERENCE, 'ppp.Future'),
+      _expectId(b, SearchResultKind.REFERENCE, 'ppp.Stream'),
+      new ExpectedResult(c, SearchResultKind.REFERENCE,
+          partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];
     await _verifyReferences(element, expected);
   }

@@ -676,6 +676,65 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
+   * Process [options] for the given context [info].
+   */
+  void processOptionsForDriver(ContextInfo info, Map<String, Object> options,
+      {bool optionsRemoved: false}) {
+    if (options == null && !optionsRemoved) {
+      return;
+    }
+    AnalysisOptions analysisOptions = info.analysisDriver.analysisOptions;
+
+    // In case options files are removed, revert to defaults.
+    if (optionsRemoved) {
+      // Start with defaults.
+      analysisOptions.resetToDefaults();
+
+      // Apply inherited options.
+      options = _toStringMap(_getEmbeddedOptions(info));
+      if (options != null) {
+        applyToAnalysisOptions(analysisOptions, options);
+      }
+    } else {
+      // Check for embedded options.
+      Map embeddedOptions = _getEmbeddedOptions(info);
+      if (embeddedOptions != null) {
+        options = _toStringMap(new Merger().merge(embeddedOptions, options));
+      }
+    }
+
+    // TODO(brianwilkerson) Figure out what to do here.
+//    // Notify options processors.
+//    AnalysisEngine.instance.optionsPlugin.optionsProcessors
+//        .forEach((OptionsProcessor p) {
+//      try {
+//        p.optionsProcessed(info.context, options);
+//      } catch (e, stacktrace) {
+//        AnalysisEngine.instance.logger.logError(
+//            'Error processing analysis options',
+//            new CaughtException(e, stacktrace));
+//      }
+//    });
+
+    applyToAnalysisOptions(analysisOptions, options);
+
+    // Nothing more to do.
+    if (options == null) {
+      return;
+    }
+
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is Map) {
+      // Set ignore patterns.
+      YamlList exclude = analyzer[AnalyzerOptions.exclude];
+      List<String> excludeList = toStringList(exclude);
+      if (excludeList != null) {
+        setIgnorePatternsForContext(info, excludeList);
+      }
+    }
+  }
+
+  /**
    * Return the options from the analysis options file in the given [folder]
    * if exists, or in one of the parent folders, or `null` if no analysis
    * options file is found or if the contents of the file are not valid YAML.
@@ -1105,7 +1164,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     if (enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
+      processOptionsForDriver(info, optionMap);
     } else {
       processOptionsForContext(info, optionMap);
     }

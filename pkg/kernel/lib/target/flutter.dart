@@ -17,7 +17,7 @@ class FlutterTarget extends Target {
   FlutterTarget(this.flags);
 
   bool get strongMode => flags.strongMode;
-  
+
   bool get strongModeSdk => false;
 
   String get name => 'flutter';
@@ -47,7 +47,6 @@ class FlutterTarget extends Target {
         // Required for flutter.
         'dart:ui',
         'dart:jni',
-        'dart:mojo.internal',
         'dart:vmservice_sky',
       ];
 

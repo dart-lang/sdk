@@ -8,6 +8,7 @@
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
 #include "vm/visitor.h"
@@ -487,8 +488,13 @@ static void WritePtr(RawObject* raw, WriteStream* stream) {
 
 class WritePointerVisitor : public ObjectPointerVisitor {
  public:
-  WritePointerVisitor(Isolate* isolate, WriteStream* stream)
-      : ObjectPointerVisitor(isolate), stream_(stream), count_(0) {}
+  WritePointerVisitor(Isolate* isolate,
+                      WriteStream* stream,
+                      bool only_instances)
+      : ObjectPointerVisitor(isolate),
+        stream_(stream),
+        only_instances_(only_instances),
+        count_(0) {}
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
       RawObject* object = *current;
@@ -496,6 +502,9 @@ class WritePointerVisitor : public ObjectPointerVisitor {
         // Ignore smis and objects in the VM isolate for now.
         // TODO(koda): To track which field each pointer corresponds to,
         // we'll need to encode which fields were omitted here.
+        continue;
+      }
+      if (only_instances_ && (object->GetClassId() < kInstanceCid)) {
         continue;
       }
       WritePtr(object, stream_);
@@ -507,6 +516,7 @@ class WritePointerVisitor : public ObjectPointerVisitor {
 
  private:
   WriteStream* stream_;
+  bool only_instances_;
   intptr_t count_;
 };
 
@@ -524,8 +534,13 @@ static void WriteHeader(RawObject* raw,
 
 class WriteGraphVisitor : public ObjectGraph::Visitor {
  public:
-  WriteGraphVisitor(Isolate* isolate, WriteStream* stream)
-      : stream_(stream), ptr_writer_(isolate, stream), count_(0) {}
+  WriteGraphVisitor(Isolate* isolate,
+                    WriteStream* stream,
+                    ObjectGraph::SnapshotRoots roots)
+      : stream_(stream),
+        ptr_writer_(isolate, stream, roots == ObjectGraph::kUser),
+        roots_(roots),
+        count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
@@ -533,11 +548,13 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
     REUSABLE_OBJECT_HANDLESCOPE(thread);
     Object& obj = thread->ObjectHandle();
     obj = raw_obj;
-    // Each object is a header + a zero-terminated list of its neighbors.
-    WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);
-    raw_obj->VisitPointers(&ptr_writer_);
-    stream_->WriteUnsigned(0);
-    ++count_;
+    if ((roots_ == ObjectGraph::kVM) || obj.IsField() || obj.IsInstance()) {
+      // Each object is a header + a zero-terminated list of its neighbors.
+      WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);
+      raw_obj->VisitPointers(&ptr_writer_);
+      stream_->WriteUnsigned(0);
+      ++count_;
+    }
     return kProceed;
   }
 
@@ -546,29 +563,98 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
  private:
   WriteStream* stream_;
   WritePointerVisitor ptr_writer_;
+  ObjectGraph::SnapshotRoots roots_;
   intptr_t count_;
 };
 
 
-intptr_t ObjectGraph::Serialize(WriteStream* stream, bool collect_garbage) {
+static void IterateUserFields(ObjectPointerVisitor* visitor) {
+  Thread* thread = Thread::Current();
+  // Scope to prevent handles create here from appearing as stack references.
+  HANDLESCOPE(thread);
+  Zone* zone = thread->zone();
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      zone, thread->isolate()->object_store()->libraries());
+  Library& library = Library::Handle(zone);
+  Object& entry = Object::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  for (intptr_t i = 0; i < libraries.Length(); i++) {
+    library ^= libraries.At(i);
+    DictionaryIterator entries(library);
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsClass()) {
+        cls ^= entry.raw();
+        fields = cls.fields();
+        for (intptr_t j = 0; j < fields.Length(); j++) {
+          field ^= fields.At(j);
+          RawObject* ptr = field.raw();
+          visitor->VisitPointer(&ptr);
+        }
+      } else if (entry.IsField()) {
+        field ^= entry.raw();
+        RawObject* ptr = field.raw();
+        visitor->VisitPointer(&ptr);
+      }
+    }
+  }
+}
+
+
+intptr_t ObjectGraph::Serialize(WriteStream* stream,
+                                SnapshotRoots roots,
+                                bool collect_garbage) {
   if (collect_garbage) {
     isolate()->heap()->CollectAllGarbage();
   }
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
 
-  WriteGraphVisitor visitor(isolate(), stream);
+  RawObject* kRootAddress = reinterpret_cast<RawObject*>(kHeapObjectTag);
+  const intptr_t kRootCid = kIllegalCid;
+  RawObject* kStackAddress =
+      reinterpret_cast<RawObject*>(kObjectAlignment + kHeapObjectTag);
+
   stream->WriteUnsigned(kObjectAlignment);
-  stream->WriteUnsigned(0);
-  stream->WriteUnsigned(0);
-  stream->WriteUnsigned(0);
-  {
-    WritePointerVisitor ptr_writer(isolate(), stream);
+  stream->WriteUnsigned(kStackCid);
+
+  if (roots == kVM) {
+    // Write root "object".
+    WriteHeader(kRootAddress, 0, kRootCid, stream);
+    WritePointerVisitor ptr_writer(isolate(), stream, false);
     isolate()->IterateObjectPointers(&ptr_writer, false);
+    stream->WriteUnsigned(0);
+  } else {
+    {
+      // Write root "object".
+      WriteHeader(kRootAddress, 0, kRootCid, stream);
+      WritePointerVisitor ptr_writer(isolate(), stream, false);
+      IterateUserFields(&ptr_writer);
+      WritePtr(kStackAddress, stream);
+      stream->WriteUnsigned(0);
+    }
+
+    {
+      // Write stack "object".
+      WriteHeader(kStackAddress, 0, kStackCid, stream);
+      WritePointerVisitor ptr_writer(isolate(), stream, true);
+      isolate()->IterateStackPointers(&ptr_writer, false);
+      stream->WriteUnsigned(0);
+    }
   }
-  stream->WriteUnsigned(0);
+
+  WriteGraphVisitor visitor(isolate(), stream, roots);
   IterateObjects(&visitor);
-  return visitor.count() + 1;  // + root
+
+  intptr_t object_count = visitor.count();
+  if (roots == kVM) {
+    object_count += 1;  // root
+  } else {
+    object_count += 2;  // root and stack
+  }
+  return object_count;
 }
 
 }  // namespace dart
