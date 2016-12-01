@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/type_system.dart'
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 
 /**
  * Helper class encapsulating the methods for evaluating constants and
@@ -717,7 +718,7 @@ class ConstantEvaluationEngine {
           superclass.lookUpConstructor(superName, constructor.library);
       if (superConstructor != null) {
         if (superArguments == null) {
-          superArguments = new NodeList<Expression>(null);
+          superArguments = astFactory.nodeList/*<Expression>*/(null);
         }
 
         evaluateSuperConstructorCall(node, fieldMap, superConstructor,

@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/completion/dart/local_declaration_v
     show LocalDeclarationVisitor;
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -24,8 +25,9 @@ import '../../../protocol_server.dart'
 
 const DYNAMIC = 'dynamic';
 
-final TypeName NO_RETURN_TYPE = new TypeName(
-    new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)), null);
+final TypeName NO_RETURN_TYPE = astFactory.typeName(
+    astFactory.simpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
+    null);
 
 /**
 * Create a new protocol Element for inclusion in a completion suggestion.
