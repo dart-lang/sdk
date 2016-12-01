@@ -19,6 +19,8 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:package_config/discovery.dart';
@@ -69,6 +71,11 @@ main(List<String> args) async {
       // are leaking memory?). That's why we run it twice and not 10 times.
       for (int i = 0; i < 2; i++) await generateKernel(entryUri);
     },
+    'unlinked_summarize': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) unlinkedSummarizeFiles(files);
+    }
   };
 
   var handler = handlers[bench];
@@ -173,6 +180,29 @@ void parseFiles(Set<Source> files) {
   report("parse", pTime);
 }
 
+/// Produces unlinked summaries for every file in [files] and reports the time
+/// spent doing so.
+void unlinkedSummarizeFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  var summarizeTimer = new Stopwatch()..start();
+  for (var source in files) {
+    unlinkedSummarize(source);
+  }
+  summarizeTimer.stop();
+
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+
+  // TODO(paulberry): subtract out scan/parse time?
+  var summarizeTime = summarizeTimer.elapsedMicroseconds;
+  report('unlinked summarize', summarizeTime);
+}
+
 /// Add to [files] all sources reachable from [start].
 void collectSources(Source start, Set<Source> files) {
   if (!files.add(start)) return;
@@ -197,6 +227,11 @@ CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
   var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
   return parser.parseCompilationUnit(token);
+}
+
+UnlinkedUnitBuilder unlinkedSummarize(Source source) {
+  var unit = parseFull(source);
+  return serializeAstUnlinked(unit);
 }
 
 /// Scan [source] and return the first token produced by the scanner.
