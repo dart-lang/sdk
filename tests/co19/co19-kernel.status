@@ -248,6 +248,80 @@ Language/Mixins/Mixin_Application/error_t01: DartkMissingCompileTimeError
 Language/Mixins/Mixin_Application/error_t02: DartkMissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
+# dartk: precompilation failures
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+Language/Enums/syntax_t08: MissingCompileTimeError
+Language/Enums/syntax_t09: MissingCompileTimeError
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t17: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t18: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t21: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t22: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t23: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t24: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t25: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t26: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t27: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t28: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t29: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t30: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t31: MissingCompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t32: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t06: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t07: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t08: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t09: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t10: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t15: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t17: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t18: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t19: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t20: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t21: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t22: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t23: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t24: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t25: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t26: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t27: MissingCompileTimeError
+Language/Libraries_and_Scripts/definition_syntax_t29: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/syntax_t01: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t02: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t03: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t04: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t05: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t06: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t07: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t08: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t09: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t10: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t11: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t12: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t13: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t14: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t15: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t16: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t17: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t18: MissingCompileTimeError
+Language/Libraries_and_Scripts/top_level_syntax_t19: MissingCompileTimeError
+Language/Statements/Break/label_t03: MissingCompileTimeError
+Language/Statements/Break/label_t04: MissingCompileTimeError
+Language/Statements/Continue/label_t07: MissingCompileTimeError
+Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError
+Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
+Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
+Language/Variables/final_t04: MissingCompileTimeError
+Language/Variables/final_t05: MissingCompileTimeError
+Language/Variables/final_t06: MissingCompileTimeError
+Language/Variables/final_t07: MissingCompileTimeError
+
 ###############################################################################
 # VM Entries
 ###############################################################################
