@@ -331,8 +331,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
 Language/Expressions/Shift/syntax_t15: Crash  # Invalid class id during isolate shutdown Heap::VerifyGC
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Crash  # Class finalization issue
 Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash  # !main_obj.IsNull()
-LibTest/typed_data/ByteBuffer/runtimeType_A01_t02: Pass, Crash  # Out of memory
-LibTest/collection/DoubleLinkedQueue/every_A01_t02: Pass, Crash  # Out of memory
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]

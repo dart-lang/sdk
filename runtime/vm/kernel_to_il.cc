@@ -1273,7 +1273,7 @@ const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
   if (named->length() == 0) return Array::ZoneHandle(Z);
 
   const Array& names =
-      Array::ZoneHandle(Z, Array::New(named->length(), allocation_space_));
+      Array::ZoneHandle(Z, Array::New(named->length(), Heap::kOld));
   for (intptr_t i = 0; i < named->length(); ++i) {
     names.SetAt(i, DartSymbol((*named)[i]->name()));
   }
