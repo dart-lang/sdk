@@ -1974,7 +1974,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
-  jsobj.AddFixedServiceId("isolates/%" Pd64 "",
+  jsobj.AddFixedServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
                           static_cast<int64_t>(main_port()));
 
   jsobj.AddProperty("name", debugger_name());
