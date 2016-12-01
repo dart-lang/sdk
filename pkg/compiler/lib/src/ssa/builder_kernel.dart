@@ -385,11 +385,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction nullValue = graph.addConstantNull(compiler);
     HInstruction errorMessage =
         graph.addConstantString(new DartString.literal(message), compiler);
-    HInstruction trap = new HForeignCode(
-        js.js.parseForeignJS("#.#"),
-        backend.dynamicType,
-        <HInstruction>[nullValue, errorMessage]);
-    trap.sideEffects..setAllSideEffects()..setDependsOnSomething();
+    HInstruction trap = new HForeignCode(js.js.parseForeignJS("#.#"),
+        backend.dynamicType, <HInstruction>[nullValue, errorMessage]);
+    trap.sideEffects
+      ..setAllSideEffects()
+      ..setDependsOnSomething();
     push(trap);
   }
 
@@ -952,10 +952,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else {
       if (_isLazyStatic(staticTarget)) {
         push(new HLazyStatic(astAdapter.getField(staticTarget),
-                             astAdapter.inferredTypeOf(staticTarget)));
+            astAdapter.inferredTypeOf(staticTarget)));
       } else {
         push(new HStatic(astAdapter.getMember(staticTarget),
-                         astAdapter.inferredTypeOf(staticTarget)));
+            astAdapter.inferredTypeOf(staticTarget)));
       }
     }
   }
@@ -1641,7 +1641,43 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     isExpression.operand.accept(this);
     HInstruction expression = pop();
 
+    // TODO(sra): Convert the type testing logic here to use ir.DartType.
     DartType type = astAdapter.getDartType(isExpression.type);
+
+    type = localsHandler.substInContext(type).unaliased;
+
+    if (type is MethodTypeVariableType) {
+      push(graph.addConstantBool(true, compiler));
+      return;
+    }
+
+    if (type is MalformedType) {
+      ErroneousElement element = type.element;
+      generateTypeError(isExpression, element.message);
+      push(new HIs.compound(type, expression, pop(), backend.boolType));
+      return;
+    }
+
+    if (type.isFunctionType) {
+      List arguments = <HInstruction>[buildFunctionType(type), expression];
+      _pushDynamicInvocation(isExpression, backend.boolType, arguments,
+          selector: new Selector.call(
+              new PrivateName('_isTest', astAdapter.jsHelperLibrary),
+              CallStructure.ONE_ARG));
+      push(new HIs.compound(type, expression, pop(), backend.boolType));
+      return;
+    }
+
+    if (type.isTypeVariable) {
+      HInstruction runtimeType =
+          typeBuilder.addTypeVariableReference(type, sourceElement);
+      _pushStaticInvocation(astAdapter.checkSubtypeOfRuntimeType,
+          <HInstruction>[expression, runtimeType], backend.boolType);
+      push(new HIs.variable(type, expression, pop(), backend.boolType));
+      return;
+    }
+
+    // TODO(sra): Type with type parameters.
 
     if (backend.hasDirectCheckFor(type)) {
       push(new HIs.direct(type, expression, backend.boolType));

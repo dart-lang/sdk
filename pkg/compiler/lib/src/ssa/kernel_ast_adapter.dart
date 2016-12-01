@@ -326,6 +326,12 @@ class KernelAstAdapter {
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.checkConcurrentModificationError, _compiler);
 
+  ir.Procedure get checkSubtype =>
+      kernel.functions[_backend.helpers.checkSubtype];
+
+  ir.Procedure get checkSubtypeOfRuntimeType =>
+      kernel.functions[_backend.helpers.checkSubtypeOfRuntimeType];
+
   ir.Procedure get assertHelper =>
       kernel.functions[_backend.helpers.assertHelper];
 
