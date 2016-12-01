@@ -132,6 +132,9 @@ def main(args):
             continue
         files.append(src_path)
 
+    # Ensure consistent file ordering for reproducible builds.
+    files.sort()
+
     # Write out archive.
     makeArchive(options.tar_output,
                 options.client_root,
