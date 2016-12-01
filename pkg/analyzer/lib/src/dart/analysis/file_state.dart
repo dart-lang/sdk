@@ -102,6 +102,7 @@ class FileState {
   String _transitiveSignature;
 
   List<TopLevelDeclaration> _topLevelDeclarations;
+  List<TopLevelDeclaration> _exportedTopLevelDeclarations;
 
   FileState._(this._fsState, this.path, this.uri, this.source);
 
@@ -130,6 +131,55 @@ class FileState {
    * The list of files this file exports.
    */
   List<FileState> get exportedFiles => _exportedFiles;
+
+  /**
+   * Return [TopLevelDeclaration]s exported from the this library file.
+   */
+  List<TopLevelDeclaration> get exportedTopLevelDeclarations {
+    if (_exportedTopLevelDeclarations == null) {
+      _exportedTopLevelDeclarations = <TopLevelDeclaration>[];
+
+      Set<FileState> seenLibraries = new Set<FileState>();
+
+      /**
+       * Compute [TopLevelDeclaration]s exported from the [library].
+       */
+      List<TopLevelDeclaration> computeExported(FileState library) {
+        var declarations = <String, TopLevelDeclaration>{};
+        if (seenLibraries.add(library)) {
+          // Append the library declarations.
+          for (TopLevelDeclaration t in library.topLevelDeclarations) {
+            declarations[t.name] = t;
+          }
+          for (FileState part in library.partedFiles) {
+            for (TopLevelDeclaration t in part.topLevelDeclarations) {
+              declarations[t.name] = t;
+            }
+          }
+
+          // Append the exported declarations.
+          for (int i = 0; i < library._exportedFiles.length; i++) {
+            List<TopLevelDeclaration> exported =
+                computeExported(library._exportedFiles[i]);
+            for (TopLevelDeclaration t in exported) {
+              if (!declarations.containsKey(t.name) &&
+                  library._exportFilters[i].accepts(t.name)) {
+                declarations[t.name] = t;
+              }
+            }
+          }
+
+          // We're done with this library.
+          seenLibraries.remove(library);
+        }
+
+        return declarations.values.toList();
+      }
+
+      _exportedTopLevelDeclarations = computeExported(this);
+    }
+    return _exportedTopLevelDeclarations;
+  }
 
   @override
   int get hashCode => uri.hashCode;
@@ -353,18 +403,24 @@ class FileState {
     _referencedNames = new Set<String>.from(driverUnlinkedUnit.referencedNames);
     _unlinked = driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
+    _topLevelDeclarations = null;
+
+    // Prepare API signature.
     List<int> newApiSignature = _unlinked.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
 
-    // If the API signature changed, flush transitive signatures.
+    // The API signature changed.
+    //   Flush transitive signatures of affected files.
+    //   Flush exported top-level declarations of all files.
     if (apiSignatureChanged) {
       for (FileState file in _fsState._uriToFile.values) {
         if (file._transitiveFiles != null &&
             file._transitiveFiles.contains(this)) {
           file._transitiveSignature = null;
         }
+        file._exportedTopLevelDeclarations = null;
       }
     }
 
