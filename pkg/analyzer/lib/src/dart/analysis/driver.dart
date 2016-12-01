@@ -918,6 +918,27 @@ enum AnalysisDriverPriority {
  * work with the highest priority is performed first.
  */
 class AnalysisDriverScheduler {
+  /**
+   * Time interval in milliseconds before pumping the event queue.
+   *
+   * Relinquishing execution flow and running the event loop after every task
+   * has too much overhead. Instead we use a fixed length of time, so we can
+   * spend less time overall and still respond quickly enough.
+   */
+  static const int _MS_BEFORE_PUMPING_EVENT_QUEUE = 2;
+
+  /**
+   * Event queue pumping is required to allow IO and other asynchronous data
+   * processing while analysis is active. For example Analysis Server needs to
+   * be able to process `updateContent` or `setPriorityFiles` requests while
+   * background analysis is in progress.
+   *
+   * The number of pumpings is arbitrary, might be changed if we see that
+   * analysis or other data processing tasks are starving. Ideally we would
+   * need to run all asynchronous operations using a single global scheduler.
+   */
+  static const int _NUMBER_OF_EVENT_QUEUE_PUMPINGS = 128;
+
   final PerformanceLog _logger;
   final List<AnalysisDriver> _drivers = [];
   final Monitor _hasWork = new Monitor();
@@ -977,18 +998,14 @@ class AnalysisDriverScheduler {
    * priority first.
    */
   Future<Null> _run() async {
+    Stopwatch timer = new Stopwatch()..start();
     PerformanceLogSection analysisSection;
     while (true) {
-      // Pump the event queue to allow IO and other asynchronous data
-      // processing while analysis is active. For example Analysis Server
-      // needs to be able to process `updateContent` or `setPriorityFiles`
-      // requests while background analysis is in progress.
-      //
-      // The number of pumpings is arbitrary, might be changed if we see that
-      // analysis or other data processing tasks are starving. Ideally we
-      // would need to be able to set priority of (continuous) asynchronous
-      // tasks.
-      await _pumpEventQueue(128);
+      // Pump the event queue.
+      if (timer.elapsedMilliseconds > _MS_BEFORE_PUMPING_EVENT_QUEUE) {
+        await _pumpEventQueue(_NUMBER_OF_EVENT_QUEUE_PUMPINGS);
+        timer.reset();
+      }
 
       await _hasWork.signal;
 
@@ -1266,37 +1283,30 @@ class _FilesReferencingNameTask {
   _FilesReferencingNameTask(this.driver, this.name);
 
   /**
-   * Perform work for a fixed length of time, and either complete the
-   * [completer] and return `true` to indicate that the task is done, return
-   * `false` to indicate that the task should continue to be run.
-   *
-   * Relinquishing execution flow and running event loop after every file
-   * works, but has too much overhead. Instead we use a fixed length of time,
-   * so we can spend less time overall and keep quick enough response time.
+   * Perform a single piece of work, and either complete the [completer] and
+   * return `true` to indicate that the task is done, return `false` to indicate
+   * that the task should continue to be run.
    */
   Future<bool> perform() async {
-    Stopwatch timer = new Stopwatch()..start();
-    while (timer.elapsedMilliseconds < 5) {
-      // Prepare files to check.
-      if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
-        filesToCheck.addAll(newFiles);
-      }
-
-      // If no more files to check, complete and done.
-      if (filesToCheck.isEmpty) {
-        completer.complete(referencingFiles);
-        return true;
-      }
-
-      // Check the next file.
-      String path = filesToCheck.removeLast();
-      FileState file = driver._fsState.getFileForPath(path);
-      if (file.referencedNames.contains(name)) {
-        referencingFiles.add(path);
-      }
-      checkedFiles.add(path);
+    // Prepare files to check.
+    if (filesToCheck.isEmpty) {
+      Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+      filesToCheck.addAll(newFiles);
     }
+
+    // If no more files to check, complete and done.
+    if (filesToCheck.isEmpty) {
+      completer.complete(referencingFiles);
+      return true;
+    }
+
+    // Check the next file.
+    String path = filesToCheck.removeLast();
+    FileState file = driver._fsState.getFileForPath(path);
+    if (file.referencedNames.contains(name)) {
+      referencingFiles.add(path);
+    }
+    checkedFiles.add(path);
 
     // We're not done yet.
     return false;
