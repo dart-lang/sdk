@@ -552,25 +552,20 @@ assert_(condition) => JS(
   if (!$condition) $throwAssertionError();
 })()''');
 
-final _stack = JS('', 'new WeakMap()');
+var _stack = null;
 @JSExportName('throw')
 throw_(obj) => JS(
     '',
     '''(() => {
-  if ($obj != null && (typeof $obj == 'object' || typeof $obj == 'function')) {
-    // TODO(jmesserly): couldn't we store the most recent stack in a single
-    // variable? There should only be one active stack trace. That would
-    // allow it to work for things like strings and numbers.
-    $_stack.set($obj, new Error());
-  }
-  throw $obj;
+    $_stack = new Error();
+    throw $obj;
 })()''');
 
 getError(exception) => JS(
     '',
     '''(() => {
-  var stack = $_stack.get($exception);
-  return stack !== void 0 ? stack : $exception;
+  var stack = $_stack;
+  return stack !== null ? stack : $exception;
 })()''');
 
 // This is a utility function: it is only intended to be called from dev

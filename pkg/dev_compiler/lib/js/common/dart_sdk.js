@@ -1899,14 +1899,12 @@
     if (!condition) dart.throwAssertionError();
   };
   dart.throw = function(obj) {
-    if (obj != null && (typeof obj == 'object' || typeof obj == 'function')) {
-      dart._stack.set(obj, new Error());
-    }
+    dart._stack = new Error();
     throw obj;
   };
   dart.getError = function(exception) {
-    var stack = dart._stack.get(exception);
-    return stack !== void 0 ? stack : exception;
+    var stack = dart._stack;
+    return stack !== null ? stack : exception;
   };
   dart.stackPrint = function(exception) {
     var error = dart.getError(exception);
@@ -2664,7 +2662,7 @@
       return false;
     });
   })();
-  dart._stack = new WeakMap();
+  dart._stack = null;
   dart._value = Symbol("_value");
   dart.constants = new Map();
   dart.constantLists = new Map();
