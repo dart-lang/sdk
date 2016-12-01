@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
@@ -93,9 +95,13 @@ class FileState {
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
+  List<NameFilter> _exportFilters;
+
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   Set<FileState> _transitiveFiles;
   String _transitiveSignature;
+
+  List<TopLevelDeclaration> _topLevelDeclarations;
 
   FileState._(this._fsState, this.path, this.uri, this.source);
 
@@ -166,6 +172,54 @@ class FileState {
    * The external names referenced by the file.
    */
   Set<String> get referencedNames => _referencedNames;
+
+  /**
+   * Return top-level declarations declared in the file.
+   */
+  List<TopLevelDeclaration> get topLevelDeclarations {
+    if (_topLevelDeclarations == null) {
+      _topLevelDeclarations = <TopLevelDeclaration>[];
+      // Add types.
+      for (UnlinkedClass type in unlinked.classes) {
+        _topLevelDeclarations.add(
+            new TopLevelDeclaration(TopLevelDeclarationKind.type, type.name));
+      }
+      for (UnlinkedEnum type in unlinked.enums) {
+        _topLevelDeclarations.add(
+            new TopLevelDeclaration(TopLevelDeclarationKind.type, type.name));
+      }
+      for (UnlinkedTypedef type in unlinked.typedefs) {
+        _topLevelDeclarations.add(
+            new TopLevelDeclaration(TopLevelDeclarationKind.type, type.name));
+      }
+      // Add functions and variables.
+      Set<String> addedVariableNames = new Set<String>();
+      for (UnlinkedExecutable executable in unlinked.executables) {
+        String name = executable.name;
+        if (executable.kind == UnlinkedExecutableKind.functionOrMethod) {
+          _topLevelDeclarations.add(
+              new TopLevelDeclaration(TopLevelDeclarationKind.function, name));
+        } else if (executable.kind == UnlinkedExecutableKind.getter ||
+            executable.kind == UnlinkedExecutableKind.setter) {
+          if (executable.kind == UnlinkedExecutableKind.setter) {
+            name = name.substring(0, name.length - 1);
+          }
+          if (addedVariableNames.add(name)) {
+            _topLevelDeclarations.add(new TopLevelDeclaration(
+                TopLevelDeclarationKind.variable, name));
+          }
+        }
+      }
+      for (UnlinkedVariable variable in unlinked.variables) {
+        String name = variable.name;
+        if (addedVariableNames.add(name)) {
+          _topLevelDeclarations.add(
+              new TopLevelDeclaration(TopLevelDeclarationKind.variable, name));
+        }
+      }
+    }
+    return _topLevelDeclarations;
+  }
 
   /**
    * Return the set of transitive files - the file itself and all of the
@@ -324,6 +378,7 @@ class FileState {
     _importedFiles = <FileState>[];
     _exportedFiles = <FileState>[];
     _partedFiles = <FileState>[];
+    _exportFilters = <NameFilter>[];
     for (UnlinkedImport import in _unlinked.imports) {
       if (!import.isImplicit) {
         String uri = import.uri;
@@ -341,6 +396,8 @@ class FileState {
         FileState file = _fileForRelativeUri(uri);
         if (file != null) {
           _exportedFiles.add(file);
+          _exportFilters
+              .add(new NameFilter.forUnlinkedCombinators(export.combinators));
         }
       }
     }

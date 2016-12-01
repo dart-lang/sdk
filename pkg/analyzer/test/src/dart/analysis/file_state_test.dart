@@ -11,6 +11,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -278,6 +279,44 @@ class C {
     expect(apiSignatureChanged, isFalse);
 
     expect(file.apiSignature, signature);
+  }
+
+  test_topLevelDeclarations() {
+    String path = _p('/aaa/lib/a.dart');
+    provider.newFile(
+        path,
+        r'''
+class C {}
+typedef F();
+enum E {E1, E2}
+void f() {}
+var V1;
+get V2 => null;
+set V3(_) {}
+get V4 => null;
+set V4(_) {}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+
+    List<TopLevelDeclaration> topLevelDeclarations = file.topLevelDeclarations;
+
+    void assertHas(String name, TopLevelDeclarationKind kind) {
+      expect(
+          topLevelDeclarations,
+          contains(predicate(
+              (TopLevelDeclaration t) => t.name == name && t.kind == kind)));
+    }
+
+    expect(topLevelDeclarations.map((t) => t.name),
+        unorderedEquals(['C', 'F', 'E', 'f', 'V1', 'V2', 'V3', 'V4']));
+    assertHas('C', TopLevelDeclarationKind.type);
+    assertHas('F', TopLevelDeclarationKind.type);
+    assertHas('E', TopLevelDeclarationKind.type);
+    assertHas('f', TopLevelDeclarationKind.function);
+    assertHas('V1', TopLevelDeclarationKind.variable);
+    assertHas('V2', TopLevelDeclarationKind.variable);
+    assertHas('V3', TopLevelDeclarationKind.variable);
+    assertHas('V4', TopLevelDeclarationKind.variable);
   }
 
   test_transitiveFiles() {
