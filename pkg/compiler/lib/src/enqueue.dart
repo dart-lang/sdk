@@ -122,7 +122,6 @@ abstract class Enqueuer {
 abstract class EnqueuerImpl extends Enqueuer {
   CompilerTask get task;
   EnqueuerStrategy get strategy;
-  void processInstantiatedClassMembers(ClassElement cls);
   void processInstantiatedClassMember(ClassElement cls, Element member);
   void processStaticUse(StaticUse staticUse);
   void processTypeUse(TypeUse typeUse);
@@ -232,10 +231,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
     return strategy.checkEnqueuerConsistency(this);
-  }
-
-  void processInstantiatedClassMembers(ClassElement cls) {
-    strategy.processInstantiatedClass(this, cls);
   }
 
   void processInstantiatedClassMember(ClassElement cls, Element member) {
@@ -677,9 +672,6 @@ void removeFromSet(Map<String, Set<Element>> map, Element element) {
 class EnqueuerStrategy {
   const EnqueuerStrategy();
 
-  /// Process a class instantiated in live code.
-  void processInstantiatedClass(EnqueuerImpl enqueuer, ClassElement cls) {}
-
   /// Process a static use of and element in live code.
   void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {}
 
@@ -690,20 +682,7 @@ class EnqueuerStrategy {
   void processDynamicUse(EnqueuerImpl enqueuer, DynamicUse dynamicUse) {}
 
   /// Check enqueuer consistency after the queue has been closed.
-  bool checkEnqueuerConsistency(EnqueuerImpl enqueuer) {
-    enqueuer.task.measure(() {
-      // Run through the classes and see if we need to enqueue more methods.
-      for (ClassElement classElement
-          in enqueuer.universe.directlyInstantiatedClasses) {
-        for (ClassElement currentClass = classElement;
-            currentClass != null;
-            currentClass = currentClass.superclass) {
-          enqueuer.processInstantiatedClassMembers(currentClass);
-        }
-      }
-    });
-    return true;
-  }
+  bool checkEnqueuerConsistency(EnqueuerImpl enqueuer) => true;
 
   /// Process [work] using [f].
   void processWorkItem(void f(WorkItem work), WorkItem work) {
@@ -726,11 +705,6 @@ class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
   const TreeShakingEnqueuerStrategy();
 
   @override
-  void processInstantiatedClass(EnqueuerImpl enqueuer, ClassElement cls) {
-    cls.implementation.forEachMember(enqueuer.processInstantiatedClassMember);
-  }
-
-  @override
   void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {
     enqueuer.processStaticUse(staticUse);
   }
@@ -743,6 +717,23 @@ class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
   @override
   void processDynamicUse(EnqueuerImpl enqueuer, DynamicUse dynamicUse) {
     enqueuer.processDynamicUse(dynamicUse);
+  }
+
+  /// Check enqueuer consistency after the queue has been closed.
+  bool checkEnqueuerConsistency(EnqueuerImpl enqueuer) {
+    enqueuer.task.measure(() {
+      // Run through the classes and see if we need to enqueue more methods.
+      for (ClassElement classElement
+          in enqueuer.universe.directlyInstantiatedClasses) {
+        for (ClassElement currentClass = classElement;
+            currentClass != null;
+            currentClass = currentClass.superclass) {
+          currentClass.implementation
+              .forEachMember(enqueuer.processInstantiatedClassMember);
+        }
+      }
+    });
+    return true;
   }
 }
 

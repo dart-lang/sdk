@@ -163,10 +163,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
     return strategy.checkEnqueuerConsistency(this);
   }
 
-  void processInstantiatedClassMembers(ClassElement cls) {
-    strategy.processInstantiatedClass(this, cls);
-  }
-
   void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
     if (isProcessed(member)) return;
