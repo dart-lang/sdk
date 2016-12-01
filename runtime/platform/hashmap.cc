@@ -110,23 +110,6 @@ void HashMap::Remove(void* key, uint32_t hash) {
 }
 
 
-HashMap::Entry* HashMap::Remove(Entry* entry) {
-  Remove(entry->key, entry->hash);
-
-  // A key can only exist once in the map and we just removed `key`. This means
-  // that either a left-rotation has happened (in which case `entry` points
-  // already to the next element (in terms of iteration order)) or alternatively
-  // we can use the normal `Next()` call to move in iteration order.
-  if (entry->key != NULL) {
-    // A left-rotation happened. `entry` points already to the next element in
-    // iteration order.
-    return entry;
-  } else {
-    return Next(entry);
-  }
-}
-
-
 void HashMap::Clear(ClearFun clear) {
   // Mark all entries as empty.
   const Entry* end = map_end();

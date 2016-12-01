@@ -180,47 +180,4 @@ UNIT_TEST_CASE(HashMap_Basic) {
   TestSet(CollisionHash4, 50);
 }
 
-
-UNIT_TEST_CASE(HashMap_RemoveDuringIteration) {
-  class Utils {
-   public:
-    static bool MatchFun(void* key1, void* key2) { return key1 == key2; }
-    static void* Key(intptr_t i) { return reinterpret_cast<void*>(i); }
-    static void* Value(intptr_t i) { return reinterpret_cast<void*>(i); }
-    static uint32_t HashCode(intptr_t key) { return 1; }
-  };
-
-  HashMap map(Utils::MatchFun, 8);
-
-  // Add 6 (1, 1), ..., (6, 60) entries to the map all with a hashcode of 1
-  // (i.e. have all keys have collinding hashcode).
-  //
-  // This causes the probing position in the hashmap to be 1 and open-addressing
-  // with linear probing will fill in the slots towards the right
-  // (i.e. from 1..6).
-  for (intptr_t i = 1; i <= 6 /* avoid rehash at 7 */; i++) {
-    HashMap::Entry* entry = map.Lookup(Utils::Key(i), Utils::HashCode(i), true);
-    entry->value = Utils::Value(10 * i);
-  }
-
-  // Now we iterate over all elements and delete the current element. Since all
-  // our entries have a colliding hashcode of 1, each deletion will cause all
-  // following elements to be left-rotated by 1.
-  intptr_t i = 0;
-  HashMap::Entry* current = map.Start();
-  while (current != NULL) {
-    i++;
-    EXPECT_EQ(Utils::Key(i), current->key);
-    EXPECT_EQ(Utils::Value(10 * i), current->value);
-
-    // Every 2nd element we keep to hit the left-rotation case only sometimes.
-    if (i % 2 == 0) {
-      current = map.Remove(current);
-    } else {
-      current = map.Next(current);
-    }
-  }
-  EXPECT_EQ(6, i);
-}
-
 }  // namespace dart
