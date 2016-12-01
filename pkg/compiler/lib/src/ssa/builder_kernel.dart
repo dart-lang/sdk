@@ -380,8 +380,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void defaultExpression(ir.Expression expression) {
-    // TODO(het): This is only to get tests working
-    stack.add(graph.addConstantNull(compiler));
+    // TODO(het): This is only to get tests working.
+    String message = 'Unhandled ir.${expression.runtimeType}  $expression';
+    HInstruction nullValue = graph.addConstantNull(compiler);
+    HInstruction errorMessage =
+        graph.addConstantString(new DartString.literal(message), compiler);
+    HInstruction trap = new HForeignCode(
+        js.js.parseForeignJS("#.#"),
+        backend.dynamicType,
+        <HInstruction>[nullValue, errorMessage]);
+    trap.sideEffects..setAllSideEffects()..setDependsOnSomething();
+    push(trap);
   }
 
   /// Returns the current source element.
