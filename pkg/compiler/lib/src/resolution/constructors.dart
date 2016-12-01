@@ -345,7 +345,7 @@ class InitializerResolver {
         if (!field.isMalformed) {
           registry.registerStaticUse(new StaticUse.fieldInit(field));
         }
-        checkForDuplicateInitializers(field, element.initializer);
+        checkForDuplicateInitializers(field, parameterNode);
         visitor.defineLocalVariable(parameterNode, initializingFormal);
         visitor.addToScope(initializingFormal);
         if (isConst) {

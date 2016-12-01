@@ -482,12 +482,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (interfaceType != null) {
         if (interfaceType.isMalformed) {
           reporter.reportErrorMessage(
-              superclass,
+              link.head,
               MessageKind.CANNOT_IMPLEMENT_MALFORMED,
               {'className': element.name, 'malformedType': interfaceType});
         } else if (interfaceType.isEnumType) {
           reporter.reportErrorMessage(
-              superclass,
+              link.head,
               MessageKind.CANNOT_IMPLEMENT_ENUM,
               {'className': element.name, 'enumType': interfaceType});
         } else if (!interfaceType.isInterfaceType) {

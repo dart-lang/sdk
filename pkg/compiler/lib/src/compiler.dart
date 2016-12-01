@@ -1792,8 +1792,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 
   SourceSpan spanFromSpannable(Spannable node) {
-    // TODO(johnniwinther): Disallow `node == null` ?
-    if (node == null) return null;
     if (node == CURRENT_ELEMENT_SPANNABLE) {
       node = currentElement;
     } else if (node == NO_LOCATION_SPANNABLE) {
