@@ -295,19 +295,27 @@ get V2 => null;
 set V3(_) {}
 get V4 => null;
 set V4(_) {}
+
+class _C {}
+typedef _F();
+enum _E {E1, E2}
+void _f() {}
+var _V1;
+get _V2 => null;
+set _V3(_) {}
 ''');
     FileState file = fileSystemState.getFileForPath(path);
 
-    List<TopLevelDeclaration> topLevelDeclarations = file.topLevelDeclarations;
+    List<TopLevelDeclaration> declarations = file.topLevelDeclarations;
 
     void assertHas(String name, TopLevelDeclarationKind kind) {
       expect(
-          topLevelDeclarations,
+          declarations,
           contains(predicate(
               (TopLevelDeclaration t) => t.name == name && t.kind == kind)));
     }
 
-    expect(topLevelDeclarations.map((t) => t.name),
+    expect(declarations.map((t) => t.name),
         unorderedEquals(['C', 'F', 'E', 'f', 'V1', 'V2', 'V3', 'V4']));
     assertHas('C', TopLevelDeclarationKind.type);
     assertHas('F', TopLevelDeclarationKind.type);

@@ -174,47 +174,48 @@ class FileState {
   Set<String> get referencedNames => _referencedNames;
 
   /**
-   * Return top-level declarations declared in the file.
+   * Return public top-level declarations declared in the file.
    */
   List<TopLevelDeclaration> get topLevelDeclarations {
     if (_topLevelDeclarations == null) {
       _topLevelDeclarations = <TopLevelDeclaration>[];
+
+      void addDeclaration(TopLevelDeclarationKind kind, String name) {
+        if (!name.startsWith('_')) {
+          _topLevelDeclarations.add(new TopLevelDeclaration(kind, name));
+        }
+      }
+
       // Add types.
       for (UnlinkedClass type in unlinked.classes) {
-        _topLevelDeclarations.add(
-            new TopLevelDeclaration(TopLevelDeclarationKind.type, type.name));
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
       for (UnlinkedEnum type in unlinked.enums) {
-        _topLevelDeclarations.add(
-            new TopLevelDeclaration(TopLevelDeclarationKind.type, type.name));
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
       for (UnlinkedTypedef type in unlinked.typedefs) {
-        _topLevelDeclarations.add(
-            new TopLevelDeclaration(TopLevelDeclarationKind.type, type.name));
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
       // Add functions and variables.
       Set<String> addedVariableNames = new Set<String>();
       for (UnlinkedExecutable executable in unlinked.executables) {
         String name = executable.name;
         if (executable.kind == UnlinkedExecutableKind.functionOrMethod) {
-          _topLevelDeclarations.add(
-              new TopLevelDeclaration(TopLevelDeclarationKind.function, name));
+          addDeclaration(TopLevelDeclarationKind.function, name);
         } else if (executable.kind == UnlinkedExecutableKind.getter ||
             executable.kind == UnlinkedExecutableKind.setter) {
           if (executable.kind == UnlinkedExecutableKind.setter) {
             name = name.substring(0, name.length - 1);
           }
           if (addedVariableNames.add(name)) {
-            _topLevelDeclarations.add(new TopLevelDeclaration(
-                TopLevelDeclarationKind.variable, name));
+            addDeclaration(TopLevelDeclarationKind.variable, name);
           }
         }
       }
       for (UnlinkedVariable variable in unlinked.variables) {
         String name = variable.name;
         if (addedVariableNames.add(name)) {
-          _topLevelDeclarations.add(
-              new TopLevelDeclaration(TopLevelDeclarationKind.variable, name));
+          addDeclaration(TopLevelDeclarationKind.variable, name);
         }
       }
     }
