@@ -77,8 +77,19 @@ class LazyJSType implements Type {
   toString() => _jsTypeCallback != null ? typeName(_rawJSType) : _dartName;
 }
 
+void _warn(arg) {
+  JS('void', 'console.warn(#)', arg);
+}
+
 _isInstanceOfLazyJSType(o, LazyJSType t) {
   if (t._jsTypeCallback != null) {
+    if (t._rawJSType == null) {
+      var expected = t._dartName;
+      var actual = typeName(getReifiedType(o));
+      _warn('Cannot find native JavaScript type ($expected) '
+          'to type check $actual');
+      return true;
+    }
     return JS('bool', 'dart.is(#, #)', o, t._rawJSType);
   }
   if (o == null) return false;
@@ -88,6 +99,13 @@ _isInstanceOfLazyJSType(o, LazyJSType t) {
 
 _asInstanceOfLazyJSType(o, LazyJSType t) {
   if (t._jsTypeCallback != null) {
+    if (t._rawJSType == null) {
+      var expected = t._dartName;
+      var actual = typeName(getReifiedType(o));
+      _warn('Cannot find native JavaScript type ($expected) '
+          'to type check $actual');
+      return o;
+    }
     return JS('bool', 'dart.as(#, #)', o, t._rawJSType);
   }
   // Anonymous case: allow any JS type.
@@ -132,6 +150,9 @@ _initialize2() => JS(
     return $_isInstanceOfLazyJSType(object, this);
   };
   $LazyJSType.prototype.as = function as_T(object) {
+    return $_asInstanceOfLazyJSType(object, this);
+  };
+  $LazyJSType.prototype._check = function check_T(object) {
     return $_asInstanceOfLazyJSType(object, this);
   };
 })()''');

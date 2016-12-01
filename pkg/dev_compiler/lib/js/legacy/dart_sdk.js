@@ -1210,10 +1210,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.tagLazy = function(value, compute) {
     dart.defineLazyProperty(value, dart._runtimeType, {get: compute});
   };
+  dart._warn = function(arg) {
+    console.warn(arg);
+  };
   const _jsTypeCallback = Symbol('_jsTypeCallback');
   const _rawJSType = Symbol('_rawJSType');
+  const _dartName = Symbol('_dartName');
   dart._isInstanceOfLazyJSType = function(o, t) {
     if (t[_jsTypeCallback] != null) {
+      if (t[_rawJSType] == null) {
+        let expected = t[_dartName];
+        let actual = dart.typeName(dart.getReifiedType(o));
+        dart._warn(dart.str`Cannot find native JavaScript type (${expected}) ` + dart.str`to type check ${actual}`);
+        return true;
+      }
       return dart.is(o, t[_rawJSType]);
     }
     if (o == null) return false;
@@ -1221,6 +1231,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart._asInstanceOfLazyJSType = function(o, t) {
     if (t[_jsTypeCallback] != null) {
+      if (t[_rawJSType] == null) {
+        let expected = t[_dartName];
+        let actual = dart.typeName(dart.getReifiedType(o));
+        dart._warn(dart.str`Cannot find native JavaScript type (${expected}) ` + dart.str`to type check ${actual}`);
+        return o;
+      }
       return dart.as(o, t[_rawJSType]);
     }
     if (o == null) return null;
@@ -1253,6 +1269,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart._isInstanceOfLazyJSType(object, this);
     };
     dart.LazyJSType.prototype.as = function as_T(object) {
+      return dart._asInstanceOfLazyJSType(object, this);
+    };
+    dart.LazyJSType.prototype._check = function check_T(object) {
       return dart._asInstanceOfLazyJSType(object, this);
     };
   };
@@ -2217,7 +2236,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return 'dynamic';
     }
   };
-  const _dartName = Symbol('_dartName');
   dart.LazyJSType = class LazyJSType extends core.Object {
     new(jsTypeCallback, dartName) {
       this[_jsTypeCallback] = jsTypeCallback;
