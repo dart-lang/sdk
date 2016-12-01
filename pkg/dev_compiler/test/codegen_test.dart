@@ -85,6 +85,7 @@ main(List<String> arguments) {
     'language',
     'corelib',
     path.join('corelib', 'regexp'),
+    path.join('lib', 'collection'),
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
     // TODO(vsm): Fix these - they import files from a different directory
