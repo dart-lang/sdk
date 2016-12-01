@@ -1314,7 +1314,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       jsMethods.add(new JS.Method(
           _propertyName('constructor'),
           js.call('function(...args) { return this.new.apply(this, args); }')
-          as JS.Fun));
+              as JS.Fun));
     } else if (ctors.isEmpty) {
       jsMethods.add(_emitImplicitConstructor(node, fields, virtualFields));
     }
@@ -3967,7 +3967,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           new JS.Method(
               access,
               js.call('function() { return #; }', _visitInitializer(node))
-              as JS.Fun,
+                  as JS.Fun,
               isGetter: true),
           node,
           _findAccessor(element, getter: true)));
@@ -4527,7 +4527,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       result = new PrefixedIdentifier(
           _bindValue(scope, 'o', ident.prefix, context: context)
-          as SimpleIdentifier,
+              as SimpleIdentifier,
           ident.period,
           ident.identifier);
     } else {

@@ -644,7 +644,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamic__Todynamic = () => (dynamic__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic], [dart.dynamic])))();
   let dynamicTo_Future = () => (dynamicTo_Future = dart.constFn(dart.definiteFunctionType(async._Future, [dart.dynamic])))();
   let _AsyncCallbackTovoid = () => (_AsyncCallbackTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [async._AsyncCallback])))();
-  let FnTodynamic = () => (FnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [VoidTovoid()])))();
   let _NotificationHandlerToFuture = () => (_NotificationHandlerToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [async._NotificationHandler])))();
   let dynamicAndStackTraceTodynamic = () => (dynamicAndStackTraceTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.StackTrace])))();
   let dynamic__Tovoid = () => (dynamic__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic], [core.StackTrace])))();
@@ -1191,7 +1190,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   const _wrappedType = Symbol('_wrappedType');
   dart.unwrapType = function(obj) {
-    return dart.dload(obj, _wrappedType);
+    return obj[_wrappedType];
   };
   dart._getRuntimeType = function(value) {
     return value[dart._runtimeType];
@@ -17281,6 +17280,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return end;
   };
   dart.fn(_native_typed_data._checkValidRange, intAndintAndintToint());
+  async._Callback = dart.typedef('_Callback', () => dart.functionType(dart.void, []));
+  async._TakeCallback = dart.typedef('_TakeCallback', () => dart.functionType(dart.void, [async._Callback]));
   async._invokeErrorHandler = function(errorHandler, error, stackTrace) {
     if (async.ZoneBinaryCallback.is(errorHandler)) {
       return dart.dcall(errorHandler, error, stackTrace);
@@ -17718,7 +17719,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.assert(!dart.test(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
         this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
-        dart.dcall(callback);
+        callback();
         this[_state] = (dart.notNull(this[_state]) & ~async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
         this[_checkState](wasInputPaused);
       }
@@ -17799,7 +17800,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         [_sendData]: dart.definiteFunctionType(dart.void, [T]),
         [_sendError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace]),
         [_sendDone]: dart.definiteFunctionType(dart.void, []),
-        [_guardCallback]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
+        [_guardCallback]: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
         [_checkState]: dart.definiteFunctionType(dart.void, [core.bool])
       }),
       sfields: () => ({
@@ -19618,7 +19619,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(async.scheduleMicrotask, _AsyncCallbackTovoid());
   async._AsyncRun = class _AsyncRun extends core.Object {
     static _scheduleImmediate(callback) {
-      dart.dcall(async._AsyncRun._scheduleImmediateClosure, callback);
+      async._AsyncRun._scheduleImmediateClosure(callback);
     }
     static _initializeScheduleImmediate() {
       if (self.scheduleImmediate != null) {
@@ -19632,7 +19633,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           _isolate_helper.leaveJsAsync();
           let f = storedCallback;
           storedCallback = null;
-          dart.dcall(f);
+          f();
         }
         dart.fn(internalCallback, dynamicTodynamic$());
         ;
@@ -19643,7 +19644,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           _isolate_helper.enterJsAsync();
           storedCallback = callback;
           div.firstChild ? div.removeChild(span) : div.appendChild(span);
-        }, FnTodynamic());
+        }, _AsyncCallbackTovoid());
       } else if (self.setImmediate != null) {
         return async._AsyncRun._scheduleImmediateWithSetImmediate;
       }
@@ -19674,10 +19675,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(async._AsyncRun, {
-    sfields: () => ({_scheduleImmediateClosure: core.Function}),
+    sfields: () => ({_scheduleImmediateClosure: async._TakeCallback}),
     statics: () => ({
       _scheduleImmediate: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
-      _initializeScheduleImmediate: dart.definiteFunctionType(core.Function, []),
+      _initializeScheduleImmediate: dart.definiteFunctionType(async._TakeCallback, []),
       _scheduleImmediateJsOverride: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
       _scheduleImmediateWithSetImmediate: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
       _scheduleImmediateWithTimer: dart.definiteFunctionType(dart.void, [VoidTovoid()])
@@ -20081,7 +20082,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         subscription[_setPendingEvents](pendingEvents);
         subscription[_guardCallback](dart.fn(() => {
           async._runGuarded(this.onListen);
-        }, VoidTodynamic$()));
+        }, VoidTovoid$()));
         return subscription;
       }
       [_recordCancel](subscription) {
