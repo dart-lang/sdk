@@ -73,13 +73,26 @@ class Service {
     receivePort.close();
     return new ServiceProtocolInfo(uri);
   }
+
+  /// Returns a [String] token representing the ID of [isolate].
+  ///
+  /// Returns null if the running Dart environment does not support the service
+  /// protocol.
+  static String getIsolateID(Isolate isolate) {
+    if (isolate is! Isolate) {
+      throw new ArgumentError.value(isolate,
+                                    'isolate',
+                                    'Must be an Isolate');
+    }
+    return _getIsolateIDFromSendPort(isolate.controlPort);
+  }
 }
 
-/// [sp] will receive a Uri or null.
-external void _getServerInfo(SendPort sp);
+/// [sendPort] will receive a Uri or null.
+external void _getServerInfo(SendPort sendPort);
 
-/// [sp] will receive a Uri or null.
-external void _webServerControl(SendPort sp, bool enable);
+/// [sendPort] will receive a Uri or null.
+external void _webServerControl(SendPort sendPort, bool enable);
 
 /// Returns the major version of the service protocol.
 external int _getServiceMajorVersion();
@@ -87,3 +100,5 @@ external int _getServiceMajorVersion();
 /// Returns the minor version of the service protocol.
 external int _getServiceMinorVersion();
 
+/// Returns the service id for the isolate that owns [sendPort].
+external String _getIsolateIDFromSendPort(SendPort sendPort);

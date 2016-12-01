@@ -41,6 +41,7 @@ class ServiceIdZone {
  private:
 };
 
+#define ISOLATE_SERVICE_ID_FORMAT_STRING "isolates/%" Pd64 ""
 
 class RingServiceIdZone : public ServiceIdZone {
  public:
