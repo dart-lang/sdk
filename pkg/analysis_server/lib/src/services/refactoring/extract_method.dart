@@ -81,7 +81,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   LibraryElement libraryElement;
   SourceRange selectionRange;
   CorrectionUtils utils;
-  Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+  Set<Source> librariesToImport = new Set<Source>();
 
   String returnType = '';
   String variableType;

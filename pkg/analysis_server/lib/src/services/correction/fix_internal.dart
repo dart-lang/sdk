@@ -105,7 +105,7 @@ class FixProcessor {
   final LinkedHashMap<String, LinkedEditGroup> linkedPositionGroups =
       new LinkedHashMap<String, LinkedEditGroup>();
   Position exitPosition = null;
-  Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+  Set<Source> librariesToImport = new Set<Source>();
 
   CorrectionUtils utils;
   int errorOffset;
@@ -1453,10 +1453,9 @@ class FixProcessor {
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
 
-  void _addFix_importLibrary(FixKind kind, LibraryElement libraryElement) {
-    librariesToImport.add(libraryElement);
-    Source librarySource = libraryElement.source;
-    String libraryUri = getLibrarySourceUri(unitLibraryElement, librarySource);
+  void _addFix_importLibrary(FixKind kind, Source library) {
+    librariesToImport.add(library);
+    String libraryUri = getLibrarySourceUri(unitLibraryElement, library);
     _addFix(kind, [libraryUri], importsOnly: true);
   }
 
@@ -1544,7 +1543,8 @@ class FixProcessor {
           continue;
         }
         // add import
-        _addFix_importLibrary(DartFixKind.IMPORT_LIBRARY_SDK, libraryElement);
+        _addFix_importLibrary(
+            DartFixKind.IMPORT_LIBRARY_SDK, libraryElement.source);
       }
     }
     // check project libraries
@@ -1591,7 +1591,7 @@ class FixProcessor {
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
         }
         // Add the fix.
-        _addFix_importLibrary(fixKind, libraryElement);
+        _addFix_importLibrary(fixKind, libraryElement.source);
       }
     }
   }
