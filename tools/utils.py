@@ -316,8 +316,8 @@ def GetSemanticSDKVersion(ignore_svn_revision=False):
 
   return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
 
-def GetVersion():
-  return GetSemanticSDKVersion()
+def GetVersion(ignore_svn_revision=False):
+  return GetSemanticSDKVersion(ignore_svn_revision)
 
 # The editor used to produce the VERSION file put on gcs. We now produce this
 # in the bots archiving the sdk.
