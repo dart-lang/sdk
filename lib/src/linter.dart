@@ -242,6 +242,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       this.details,
       this.maturity: Maturity.stable});
 
+  LintCode get lintCode => new _LintCode(name, description);
+
   @override
   int compareTo(LintRule other) {
     var g = group.compareTo(other.group);
@@ -265,13 +267,13 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   void reportLint(AstNode node, {bool ignoreSyntheticNodes: true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(new _LintCode(name, description), node, []);
+      reporter.reportErrorForNode(lintCode, node, []);
     }
   }
 
   void reportLintForToken(Token token, {bool ignoreSyntheticTokens: true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(new _LintCode(name, description), token, []);
+      reporter.reportErrorForToken(lintCode, token, []);
     }
   }
 
@@ -280,8 +282,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
     // Cache error and location info for creating AnalysisErrorInfos
     // Note that error columns are 1-based
-    AnalysisError error = new AnalysisError(source, node.span.start.column + 1,
-        node.span.length, new _LintCode(name, description));
+    AnalysisError error = new AnalysisError(
+        source, node.span.start.column + 1, node.span.length, lintCode);
     LineInfo lineInfo = new LineInfo.fromContent(source.contents.data);
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], lineInfo));
