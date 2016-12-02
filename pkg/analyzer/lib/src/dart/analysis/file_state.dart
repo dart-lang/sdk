@@ -101,8 +101,8 @@ class FileState {
   Set<FileState> _transitiveFiles;
   String _transitiveSignature;
 
-  List<TopLevelDeclaration> _topLevelDeclarations;
-  List<TopLevelDeclaration> _exportedTopLevelDeclarations;
+  Map<String, TopLevelDeclaration> _topLevelDeclarations;
+  Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
 
   FileState._(this._fsState, this.path, this.uri, this.source);
 
@@ -133,47 +133,43 @@ class FileState {
   List<FileState> get exportedFiles => _exportedFiles;
 
   /**
-   * Return [TopLevelDeclaration]s exported from the this library file.
+   * Return [TopLevelDeclaration]s exported from the this library file. The
+   * keys to the map are names of declarations.
    */
-  List<TopLevelDeclaration> get exportedTopLevelDeclarations {
+  Map<String, TopLevelDeclaration> get exportedTopLevelDeclarations {
     if (_exportedTopLevelDeclarations == null) {
-      _exportedTopLevelDeclarations = <TopLevelDeclaration>[];
+      _exportedTopLevelDeclarations = <String, TopLevelDeclaration>{};
 
       Set<FileState> seenLibraries = new Set<FileState>();
 
       /**
        * Compute [TopLevelDeclaration]s exported from the [library].
        */
-      List<TopLevelDeclaration> computeExported(FileState library) {
+      Map<String, TopLevelDeclaration> computeExported(FileState library) {
         var declarations = <String, TopLevelDeclaration>{};
         if (seenLibraries.add(library)) {
-          // Append the library declarations.
-          for (TopLevelDeclaration t in library.topLevelDeclarations) {
-            declarations[t.name] = t;
-          }
-          for (FileState part in library.partedFiles) {
-            for (TopLevelDeclaration t in part.topLevelDeclarations) {
-              declarations[t.name] = t;
-            }
-          }
-
           // Append the exported declarations.
           for (int i = 0; i < library._exportedFiles.length; i++) {
-            List<TopLevelDeclaration> exported =
+            Map<String, TopLevelDeclaration> exported =
                 computeExported(library._exportedFiles[i]);
-            for (TopLevelDeclaration t in exported) {
-              if (!declarations.containsKey(t.name) &&
-                  library._exportFilters[i].accepts(t.name)) {
+            for (TopLevelDeclaration t in exported.values) {
+              if (library._exportFilters[i].accepts(t.name)) {
                 declarations[t.name] = t;
               }
             }
+          }
+
+          // Append the library declarations.
+          declarations.addAll(library.topLevelDeclarations);
+          for (FileState part in library.partedFiles) {
+            declarations.addAll(part.topLevelDeclarations);
           }
 
           // We're done with this library.
           seenLibraries.remove(library);
         }
 
-        return declarations.values.toList();
+        return declarations;
       }
 
       _exportedTopLevelDeclarations = computeExported(this);
@@ -224,15 +220,16 @@ class FileState {
   Set<String> get referencedNames => _referencedNames;
 
   /**
-   * Return public top-level declarations declared in the file.
+   * Return public top-level declarations declared in the file. The keys to the
+   * map are names of declarations.
    */
-  List<TopLevelDeclaration> get topLevelDeclarations {
+  Map<String, TopLevelDeclaration> get topLevelDeclarations {
     if (_topLevelDeclarations == null) {
-      _topLevelDeclarations = <TopLevelDeclaration>[];
+      _topLevelDeclarations = <String, TopLevelDeclaration>{};
 
       void addDeclaration(TopLevelDeclarationKind kind, String name) {
         if (!name.startsWith('_')) {
-          _topLevelDeclarations.add(new TopLevelDeclaration(kind, name));
+          _topLevelDeclarations[name] = new TopLevelDeclaration(kind, name);
         }
       }
 
