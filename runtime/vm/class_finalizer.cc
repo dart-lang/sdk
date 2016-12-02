@@ -2774,12 +2774,17 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   // a BoundedType itself.
   CollectTypeArguments(cls, Type::Cast(mixin_super_type), type_args);
   AbstractType& mixin_type = AbstractType::Handle(zone);
-  Class& mixin_type_class = Class::Handle(zone);
   Class& mixin_app_class = Class::Handle(zone);
+  Class& mixin_super_type_class = Class::Handle(zone);
+  Class& mixin_type_class = Class::Handle(zone);
+  Library& mixin_super_type_library = Library::Handle(zone);
+  Library& mixin_type_library = Library::Handle(zone);
   String& mixin_app_class_name = String::Handle(zone);
   String& mixin_type_class_name = String::Handle(zone);
   AbstractType& super_type_arg = AbstractType::Handle(zone);
   AbstractType& mixin_type_arg = AbstractType::Handle(zone);
+  Type& generic_mixin_type = Type::Handle(zone);
+  Array& interfaces = Array::Handle(zone);
   const intptr_t depth = mixin_app_type.Depth();
   for (intptr_t i = 0; i < depth; i++) {
     mixin_type = mixin_app_type.MixinTypeAt(i);
@@ -2787,6 +2792,13 @@ RawType* ClassFinalizer::ResolveMixinAppType(
     ResolveType(cls, mixin_type);
     ASSERT(mixin_type.HasResolvedTypeClass());  // Even if malformed.
     ASSERT(mixin_type.IsType());
+    if (mixin_type.IsMalformedOrMalbounded()) {
+      ReportError(Error::Handle(zone, mixin_type.error()));
+    }
+    if (mixin_type.IsDynamicType()) {
+      ReportError(cls, cls.token_pos(), "class '%s' may not mixin 'dynamic'",
+                  String::Handle(zone, cls.Name()).ToCString());
+    }
     const intptr_t num_super_type_args = type_args.Length();
     CollectTypeArguments(cls, Type::Cast(mixin_type), type_args);
 
@@ -2812,8 +2824,19 @@ RawType* ClassFinalizer::ResolveMixinAppType(
     }
 
     // The name of the mixin application class is a combination of
-    // the super class name and mixin class name.
+    // the super class name and mixin class name, as well as their respective
+    // library private keys if their library is different than the library of
+    // the mixin application class.
+    // Note that appending the library url would break naming conventions (e.g.
+    // no period in the class name).
     mixin_app_class_name = mixin_super_type.ClassName();
+    mixin_super_type_class = mixin_super_type.type_class();
+    mixin_super_type_library = mixin_super_type_class.library();
+    if (mixin_super_type_library.raw() != library.raw()) {
+      mixin_app_class_name = String::Concat(
+          mixin_app_class_name,
+          String::Handle(zone, mixin_super_type_library.private_key()));
+    }
     mixin_app_class_name =
         String::Concat(mixin_app_class_name, Symbols::Ampersand());
     // If the type parameters are shared between the super type and the mixin
@@ -2824,6 +2847,13 @@ RawType* ClassFinalizer::ResolveMixinAppType(
           String::Concat(mixin_app_class_name, Symbols::Ampersand());
     }
     mixin_type_class_name = mixin_type.ClassName();
+    mixin_type_class = mixin_type.type_class();
+    mixin_type_library = mixin_type_class.library();
+    if (mixin_type_library.raw() != library.raw()) {
+      mixin_type_class_name = String::Concat(
+          mixin_type_class_name,
+          String::Handle(zone, mixin_type_library.private_key()));
+    }
     mixin_app_class_name =
         String::Concat(mixin_app_class_name, mixin_type_class_name);
     mixin_app_class = library.LookupLocalClass(mixin_app_class_name);
@@ -2832,15 +2862,14 @@ RawType* ClassFinalizer::ResolveMixinAppType(
       mixin_app_class = Class::New(library, mixin_app_class_name, script,
                                    mixin_type.token_pos());
       mixin_app_class.set_super_type(mixin_super_type);
-      mixin_type_class = mixin_type.type_class();
-      const Type& generic_mixin_type = Type::Handle(
-          zone, Type::New(mixin_type_class, Object::null_type_arguments(),
-                          mixin_type.token_pos()));
+      generic_mixin_type =
+          Type::New(mixin_type_class, Object::null_type_arguments(),
+                    mixin_type.token_pos());
       mixin_app_class.set_mixin(generic_mixin_type);
       // Add the mixin type to the list of interfaces that the mixin application
       // class implements. This is necessary so that cycle check work at
       // compile time (type arguments are ignored by that check).
-      const Array& interfaces = Array::Handle(zone, Array::New(1));
+      interfaces = Array::New(1);
       interfaces.SetAt(0, generic_mixin_type);
       ASSERT(mixin_app_class.interfaces() == Object::empty_array().raw());
       mixin_app_class.set_interfaces(interfaces);
