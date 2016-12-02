@@ -1919,13 +1919,6 @@ class Foo {
         [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
   }
 
-  void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() {
-    createParser('A<T> () {}');
-    Statement statement = parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
-  }
-
   void test_missingIdentifier_inEnum() {
     createParser('enum E {, TWO}');
     EnumDeclaration declaration =
@@ -9559,6 +9552,17 @@ void''');
         isNotNull);
   }
 
+  void test_parseFunctionDeclarationStatement_typeParameters_noReturnType() {
+    createParser('f<E>(E p) => p * 2;');
+    FunctionDeclarationStatement statement =
+        parser.parseFunctionDeclarationStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+    expect(statement.functionDeclaration, isNotNull);
+    expect(statement.functionDeclaration.functionExpression.typeParameters,
+        isNotNull);
+  }
+
   void test_parseFunctionExpression_body_inExpression() {
     createParser('(int i) => i++');
     FunctionExpression expression = parser.parseFunctionExpression();
@@ -11867,7 +11871,6 @@ void''');
         isNotNull);
   }
 
-  @failingTest
   void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
     createParser('f<E>(a, b) {};');
     Statement statement = parser.parseStatement2();
