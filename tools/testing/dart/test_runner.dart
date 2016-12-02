@@ -1768,7 +1768,7 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
-        command.displayName == 'dart2snapshot') {
+        command.displayName == 'app_jit') {
       return new VmCommandOutputImpl(
           command, exitCode, timedOut, stdout, stderr, time, pid);
     }

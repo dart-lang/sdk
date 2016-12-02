@@ -88,8 +88,9 @@ class TestOptionsParser {
             'precompiler',
             'dart2js',
             'dart2analyzer',
-            'dart2app',
-            'dart2appjit',
+            'app_jit',
+            'dart2app',  // TODO(rmacnak): Remove after updating bots.
+            'dart2appjit',  // TODO(rmacnak): Remove after updating bots.
             'dartk',
             'dartkp'
           ],
@@ -102,8 +103,6 @@ class TestOptionsParser {
 
     dart_precompiled: Run a precompiled snapshot on a variant of the standalone
                       dart vm lacking a JIT.
-
-    dart_app: Run a full app snapshot, with or without cached unoptimized code.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -128,7 +127,7 @@ class TestOptionsParser {
           [
             'vm',
             'dart_precompiled',
-            'dart_app',
+            'dart_app',  // TODO(rmacnak): Remove after updating bots.
             'd8',
             'jsshell',
             'drt',
@@ -696,16 +695,11 @@ Note: currently only implemented for dart2js.''',
       case 'dart2analyzer':
         validRuntimes = const ['none'];
         break;
-      case 'dart2app':
-      case 'dart2appjit':
-        validRuntimes = const ['dart_app'];
-        break;
-      case 'precompiler':
-        validRuntimes = const ['dart_precompiled'];
-        break;
+      case 'app_jit':
       case 'dartk':
         validRuntimes = const ['vm'];
         break;
+      case 'precompiler':
       case 'dartkp':
         validRuntimes = const ['dart_precompiled'];
         break;
@@ -750,6 +744,15 @@ Note: currently only implemented for dart2js.''',
    * into a list of configurations with exactly one value per key.
    */
   List<Map> _expandConfigurations(Map configuration) {
+    // TODO(rmacnak): Remove after updating bots.
+    if (configuration['runtime'] == 'dart_app') {
+      configuration['runtime'] = 'vm';
+    }
+    if (configuration['compiler'] == 'dart2app' ||
+        configuration['compiler'] == 'dart2appjit') {
+      configuration['compiler'] = 'app_jit';
+    }
+
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
       configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc64';

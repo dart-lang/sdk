@@ -133,6 +133,9 @@ cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 [ $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
 
+[ $compiler == app_jit ]
+dart/snapshot_version_test: Fail,OK # Expects to find script snapshot relative to Dart source.
+
 [ $runtime != vm ]
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
@@ -159,7 +162,7 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
 
-[ $runtime == dart_app || $runtime == dart_precompiled ]
+[ $compiler == app_jit || $compiler == precompiler ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 

@@ -218,7 +218,9 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides) {
     String script = artifact.filename;
     String type = artifact.mimeType;
-    if (script != null && type != 'application/dart') {
+    if (script != null &&
+        type != 'application/dart' &&
+        type != 'application/dart-snapshot') {
       throw "Dart VM cannot run files of type '$type'.";
     }
     String executable = suite.configuration['noopt']
@@ -226,37 +228,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
         : suite.dartVmBinaryFileName;
     return <Command>[
       commandBuilder.getVmCommand(executable, arguments, environmentOverrides)
-    ];
-  }
-}
-
-class DartAppRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  final bool useBlobs;
-  DartAppRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
-
-  List<Command> computeRuntimeCommands(
-      TestSuite suite,
-      CommandBuilder commandBuilder,
-      CommandArtifact artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    String script = artifact.filename;
-    String type = artifact.mimeType;
-    if (script != null && type != 'application/dart-snapshot') {
-      throw "dart_app cannot run files of type '$type'.";
-    }
-
-    var args = new List();
-    args.addAll(arguments);
-    for (var i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".dart")) {
-        args[i] = "${artifact.filename}/out.jitsnapshot";
-      }
-    }
-
-    return <Command>[
-      commandBuilder.getVmCommand(suite.dartVmBinaryFileName,
-          args, environmentOverrides)
     ];
   }
 }
