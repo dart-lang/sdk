@@ -12,6 +12,29 @@ class TopLevelDeclaration {
   final String name;
 
   TopLevelDeclaration(this.kind, this.name);
+
+  @override
+  String toString() => '($kind, $name)';
+}
+
+/**
+ * A declaration in a source.
+ */
+class TopLevelDeclarationInSource {
+  /**
+   * The declaring source.
+   */
+  final Source source;
+
+  /**
+   * The declaration.
+   */
+  final TopLevelDeclaration declaration;
+
+  TopLevelDeclarationInSource(this.source, this.declaration);
+
+  @override
+  String toString() => '($source, $declaration)';
 }
 
 /**
@@ -20,20 +43,3 @@ class TopLevelDeclaration {
  * We don't need it to be precise, just enough to support quick fixes.
  */
 enum TopLevelDeclarationKind { type, function, variable }
-
-/**
- * Top-level declarations in the export namespace of a library.
- */
-class TopLevelLibraryDeclarations {
-  /**
-   * The source of the library.
-   */
-  final Source source;
-
-  /**
-   * Top-level declarations in the export namespace of the library.
-   */
-  final List<TopLevelDeclaration> declarations = [];
-
-  TopLevelLibraryDeclarations(this.source);
-}

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
 import 'package:analyzer/src/generated/source.dart';
@@ -155,6 +156,11 @@ class AnalysisDriver {
    * The list of tasks to compute files referencing a name.
    */
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
+
+  /**
+   * The list of tasks to compute top-level declarations of a name.
+   */
+  final _topLevelNameDeclarationsTasks = <_TopLevelNameDeclarationsTask>[];
 
   /**
    * The mapping from the files for which the index was requested using
@@ -303,10 +309,13 @@ class AnalysisDriver {
       return AnalysisDriverPriority.interactive;
     }
     if (_referencingNameTasks.isNotEmpty) {
-      return AnalysisDriverPriority.referencingName;
+      return AnalysisDriverPriority.interactive;
     }
     if (_indexRequestedFiles.isNotEmpty) {
-      return AnalysisDriverPriority.getIndex;
+      return AnalysisDriverPriority.interactive;
+    }
+    if (_topLevelNameDeclarationsTasks.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
     }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
@@ -435,6 +444,19 @@ class AnalysisDriver {
       return completer.future;
     }
     return new Future.value();
+  }
+
+  /**
+   * Return a [Future] that completes with top-level declarations with the
+   * given [name] in all known libraries.
+   */
+  Future<List<TopLevelDeclarationInSource>> getTopLevelNameDeclarations(
+      String name) {
+    var task = new _TopLevelNameDeclarationsTask(this, name);
+    _topLevelNameDeclarationsTasks.add(task);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return task.completer.future;
   }
 
   /**
@@ -813,6 +835,16 @@ class AnalysisDriver {
       return;
     }
 
+    // Compute top-level declarations.
+    if (_topLevelNameDeclarationsTasks.isNotEmpty) {
+      _TopLevelNameDeclarationsTask task = _topLevelNameDeclarationsTasks.first;
+      bool isDone = await task.perform();
+      if (isDone) {
+        _topLevelNameDeclarationsTasks.remove(task);
+      }
+      return;
+    }
+
     // Analyze a priority file.
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
@@ -904,14 +936,7 @@ class AnalysisDriver {
  * of the list, the earlier the corresponding [AnalysisDriver] should be asked
  * to perform work.
  */
-enum AnalysisDriverPriority {
-  nothing,
-  general,
-  priority,
-  referencingName,
-  getIndex,
-  interactive
-}
+enum AnalysisDriverPriority { nothing, general, priority, interactive }
 
 /**
  * Instances of this class schedule work in multiple [AnalysisDriver]s so that
@@ -1320,4 +1345,58 @@ class _LibraryContext {
   final FileState file;
   final SummaryDataStore store;
   _LibraryContext(this.file, this.store);
+}
+
+/**
+ * Task that computes top-level declarations for a certain name in all
+ * known libraries.
+ */
+class _TopLevelNameDeclarationsTask {
+  final AnalysisDriver driver;
+  final String name;
+  final Completer<List<TopLevelDeclarationInSource>> completer =
+      new Completer<List<TopLevelDeclarationInSource>>();
+
+  final List<TopLevelDeclarationInSource> libraryDeclarations =
+      <TopLevelDeclarationInSource>[];
+  final Set<String> checkedFiles = new Set<String>();
+  final List<String> filesToCheck = <String>[];
+
+  _TopLevelNameDeclarationsTask(this.driver, this.name);
+
+  /**
+   * Perform a single piece of work, and either complete the [completer] and
+   * return `true` to indicate that the task is done, return `false` to indicate
+   * that the task should continue to be run.
+   */
+  Future<bool> perform() async {
+    // Prepare files to check.
+    if (filesToCheck.isEmpty) {
+      filesToCheck.addAll(driver.addedFiles.difference(checkedFiles));
+      filesToCheck.addAll(driver.knownFiles.difference(checkedFiles));
+    }
+
+    // If no more files to check, complete and done.
+    if (filesToCheck.isEmpty) {
+      completer.complete(libraryDeclarations);
+      return true;
+    }
+
+    // Check the next file.
+    String path = filesToCheck.removeLast();
+    if (checkedFiles.add(path)) {
+      FileState file = driver._fsState.getFileForPath(path);
+      if (!file.isPart) {
+        TopLevelDeclaration declaration =
+            file.exportedTopLevelDeclarations[name];
+        if (declaration != null) {
+          libraryDeclarations
+              .add(new TopLevelDeclarationInSource(file.source, declaration));
+        }
+      }
+    }
+
+    // We're not done yet.
+    return false;
+  }
 }

@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -731,6 +732,39 @@ var A2 = B1;
     expect(result2, same(result1));
     expect(result1.path, testFile);
     expect(result1.unit, isNotNull);
+  }
+
+  test_getTopLevelNameDeclarations() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    var d = _p('/test/lib/d.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'export "a.dart", class B {}');
+    provider.newFile(c, 'import "d.dart"; class C {}');
+    provider.newFile(d, 'class D {}');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    // Don't add d.dart, it is referenced implicitly.
+
+    void assertLibraryPaths(
+        List<TopLevelDeclarationInSource> declarations, List<String> expected) {
+      expect(declarations.map((l) => l.source.fullName),
+          unorderedEquals(expected));
+    }
+
+    assertLibraryPaths(await driver.getTopLevelNameDeclarations('A'), [a, b]);
+
+    assertLibraryPaths(await driver.getTopLevelNameDeclarations('B'), [b]);
+
+    assertLibraryPaths(await driver.getTopLevelNameDeclarations('C'), [c]);
+
+    assertLibraryPaths(await driver.getTopLevelNameDeclarations('D'), [d]);
+
+    assertLibraryPaths(await driver.getTopLevelNameDeclarations('X'), []);
   }
 
   test_knownFiles() async {
