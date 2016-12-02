@@ -172,4 +172,16 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 2) {
 #endif
 }
 
+
+DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 1) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  int64_t port_id = port.Id();
+  return String::NewFormatted(ISOLATE_SERVICE_ID_FORMAT_STRING, port_id);
+#endif
+}
+
+
 }  // namespace dart

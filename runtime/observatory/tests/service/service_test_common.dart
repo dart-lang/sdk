@@ -157,7 +157,7 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == kind) {
+        if ((isolate == event.isolate) && (event.kind == kind)) {
           if (completer != null) {
             // Reload to update isolate.pauseEvent.
             print('Paused with $kind');

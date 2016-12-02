@@ -17,7 +17,7 @@ library dart.developer;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate' show RawReceivePort, SendPort;
+import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 
 part 'extension.dart';
 part 'profiler.dart';

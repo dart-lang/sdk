@@ -117,11 +117,16 @@ int _getServiceMinorVersion() {
 }
 
 @patch
-void _getServerInfo(SendPort sp) {
-  sp.send(null);
+void _getServerInfo(SendPort sendPort) {
+  sendPort.send(null);
 }
 
 @patch
-void _webServerControl(SendPort sp, bool enable) {
-  sp.send(null);
+void _webServerControl(SendPort sendPort, bool enable) {
+  sendPort.send(null);
+}
+
+@patch
+String _getIsolateIDFromSendPort(SendPort sendPort) {
+  return null;
 }
