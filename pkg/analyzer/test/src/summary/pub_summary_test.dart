@@ -254,7 +254,8 @@ A b;
     // Use DartSdk with a different API signature.
     // Different linked bundles should be created.
     {
-      MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+      MockSdk sdk = new MockSdk(
+          buildSummaries: false, resourceProvider: resourceProvider);
       sdk.updateUriFile('dart:math', (String content) {
         return content + '  class NewMathClass {}';
       });

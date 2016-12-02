@@ -274,8 +274,15 @@ const Map<String, LibraryInfo> libraries = const {
     LIBRARIES.forEach((SdkLibrary library) {
       provider.newFile(library.path, (library as MockSdkLibrary).content);
     });
-    provider.newFile('/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+    provider.newFile(
+        provider.convertPath(
+            '/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
+    List<int> bytes = _computeLinkedBundleBytes();
+    provider.newFileWithBytes(
+        provider.convertPath('/lib/_internal/spec.sum'), bytes);
+    provider.newFileWithBytes(
+        provider.convertPath('/lib/_internal/strong.sum'), bytes);
   }
 
   @override
@@ -341,13 +348,7 @@ const Map<String, LibraryInfo> libraries = const {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      List<Source> librarySources = sdkLibraries
-          .map((SdkLibrary library) => mapDartUri(library.shortName))
-          .toList();
-      List<int> bytes = new SummaryBuilder(
-              librarySources, context, context.analysisOptions.strongMode)
-          .build();
-      _bundle = new PackageBundle.fromBuffer(bytes);
+      _bundle = new PackageBundle.fromBuffer(_computeLinkedBundleBytes());
     }
     return _bundle;
   }
@@ -382,6 +383,18 @@ const Map<String, LibraryInfo> libraries = const {
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
     return null;
+  }
+
+  /**
+   * Compute the bytes of the linked bundle associated with this SDK.
+   */
+  List<int> _computeLinkedBundleBytes() {
+    List<Source> librarySources = sdkLibraries
+        .map((SdkLibrary library) => mapDartUri(library.shortName))
+        .toList();
+    return new SummaryBuilder(
+            librarySources, context, context.analysisOptions.strongMode)
+        .build();
   }
 }
 
