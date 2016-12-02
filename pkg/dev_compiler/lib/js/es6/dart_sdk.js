@@ -1208,10 +1208,20 @@ dart.tagComputed = function(value, compute) {
 dart.tagLazy = function(value, compute) {
   dart.defineLazyProperty(value, dart._runtimeType, {get: compute});
 };
+dart._warn = function(arg) {
+  console.warn(arg);
+};
 const _jsTypeCallback = Symbol('_jsTypeCallback');
 const _rawJSType = Symbol('_rawJSType');
+const _dartName = Symbol('_dartName');
 dart._isInstanceOfLazyJSType = function(o, t) {
   if (t[_jsTypeCallback] != null) {
+    if (t[_rawJSType] == null) {
+      let expected = t[_dartName];
+      let actual = dart.typeName(dart.getReifiedType(o));
+      dart._warn(dart.str`Cannot find native JavaScript type (${expected}) ` + dart.str`to type check ${actual}`);
+      return true;
+    }
     return dart.is(o, t[_rawJSType]);
   }
   if (o == null) return false;
@@ -1219,6 +1229,12 @@ dart._isInstanceOfLazyJSType = function(o, t) {
 };
 dart._asInstanceOfLazyJSType = function(o, t) {
   if (t[_jsTypeCallback] != null) {
+    if (t[_rawJSType] == null) {
+      let expected = t[_dartName];
+      let actual = dart.typeName(dart.getReifiedType(o));
+      dart._warn(dart.str`Cannot find native JavaScript type (${expected}) ` + dart.str`to type check ${actual}`);
+      return o;
+    }
     return dart.as(o, t[_rawJSType]);
   }
   if (o == null) return null;
@@ -1251,6 +1267,9 @@ dart._initialize2 = function() {
     return dart._isInstanceOfLazyJSType(object, this);
   };
   dart.LazyJSType.prototype.as = function as_T(object) {
+    return dart._asInstanceOfLazyJSType(object, this);
+  };
+  dart.LazyJSType.prototype._check = function check_T(object) {
     return dart._asInstanceOfLazyJSType(object, this);
   };
 };
@@ -2215,7 +2234,6 @@ dart.Dynamic = class Dynamic extends dart.TypeRep {
     return 'dynamic';
   }
 };
-const _dartName = Symbol('_dartName');
 dart.LazyJSType = class LazyJSType extends core.Object {
   new(jsTypeCallback, dartName) {
     this[_jsTypeCallback] = jsTypeCallback;
@@ -5625,6 +5643,7 @@ dart.defineLazy(core.double, {
 });
 _internal.POWERS_OF_TEN = dart.constList([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double);
 const _string = Symbol('_string');
+const _filter = Symbol('_filter');
 collection.ListMixin$ = dart.generic(E => {
   let ListIteratorOfE = () => (ListIteratorOfE = dart.constFn(_internal.ListIterator$(E)))();
   let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
@@ -5636,6 +5655,7 @@ collection.ListMixin$ = dart.generic(E => {
   let ListOfE = () => (ListOfE = dart.constFn(core.List$(E)))();
   let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
+  let JSArrayOfE = () => (JSArrayOfE = dart.constFn(_interceptors.JSArray$(E)))();
   let ListMapViewOfE = () => (ListMapViewOfE = dart.constFn(_internal.ListMapView$(E)))();
   let ReversedListIterableOfE = () => (ReversedListIterableOfE = dart.constFn(_internal.ReversedListIterable$(E)))();
   let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
@@ -5917,13 +5937,14 @@ collection.ListMixin$ = dart.generic(E => {
       return false;
     }
     removeWhere(test) {
-      collection.ListMixin._filter(this, test, false);
+      this[_filter](test, false);
     }
     retainWhere(test) {
-      collection.ListMixin._filter(this, test, true);
+      this[_filter](test, true);
     }
-    static _filter(source, test, retainMatching) {
-      let retained = [];
+    [_filter](test, retainMatching) {
+      let source = this;
+      let retained = JSArrayOfE().of([]);
       let length = source[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
         let element = source[dartx._get](i);
@@ -6185,6 +6206,7 @@ collection.ListMixin$ = dart.generic(E => {
       remove: dart.definiteFunctionType(core.bool, [core.Object]),
       removeWhere: dart.definiteFunctionType(dart.void, [ETobool()]),
       retainWhere: dart.definiteFunctionType(dart.void, [ETobool()]),
+      [_filter]: dart.definiteFunctionType(dart.void, [dynamicTobool(), core.bool]),
       clear: dart.definiteFunctionType(dart.void, []),
       removeLast: dart.definiteFunctionType(E, []),
       sort: dart.definiteFunctionType(dart.void, [], [EAndEToint()]),
@@ -6202,9 +6224,7 @@ collection.ListMixin$ = dart.generic(E => {
       removeAt: dart.definiteFunctionType(E, [core.int]),
       insertAll: dart.definiteFunctionType(dart.void, [core.int, IterableOfE()]),
       setAll: dart.definiteFunctionType(dart.void, [core.int, IterableOfE()])
-    }),
-    statics: () => ({_filter: dart.definiteFunctionType(dart.void, [core.List, dynamicTobool(), core.bool])}),
-    names: ['_filter']
+    })
   });
   dart.defineExtensionMembers(ListMixin, [
     'elementAt',
@@ -27088,7 +27108,6 @@ collection._DoubleLinkedQueueSentinel$ = dart.generic(E => {
 });
 collection._DoubleLinkedQueueSentinel = _DoubleLinkedQueueSentinel();
 const _sentinel = Symbol('_sentinel');
-const _filter = Symbol('_filter');
 collection.DoubleLinkedQueue$ = dart.generic(E => {
   let _DoubleLinkedQueueSentinelOfE = () => (_DoubleLinkedQueueSentinelOfE = dart.constFn(collection._DoubleLinkedQueueSentinel$(E)))();
   let DoubleLinkedQueueOfE = () => (DoubleLinkedQueueOfE = dart.constFn(collection.DoubleLinkedQueue$(E)))();

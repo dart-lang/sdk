@@ -402,6 +402,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'UC16_test': firefox_fail,
     },
 
+    'lib/collection': {
+    },
+
     'lib/convert': {
       'encoding_test': skip_timeout,
 

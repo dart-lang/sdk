@@ -267,17 +267,16 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void removeWhere(bool test(E element)) {
-    _filter(this, test, false);
+    _filter(test, false);
   }
 
   void retainWhere(bool test(E element)) {
-    _filter(this, test, true);
+    _filter(test, true);
   }
 
-  static void _filter(List source,
-                      bool test(var element),
-                      bool retainMatching) {
-    List retained = [];
+  void _filter(bool test(var element), bool retainMatching) {
+    var source = this;
+    var retained = <E>[];
     int length = source.length;
     for (int i = 0; i < length; i++) {
       var element = source[i];
