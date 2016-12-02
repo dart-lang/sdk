@@ -52,5 +52,6 @@ hasStoppedAtBreakpoint,
 
 main(args) => runIsolateTests(args, tests,
                               testeeConcurrent: testMain,
-                              trace_service: true,
-                              verbose_vm: true);
+                              verbose_vm: true,
+                              extraArgs: [ '--trace-service',
+                                           '--trace-service-verbose' ]);

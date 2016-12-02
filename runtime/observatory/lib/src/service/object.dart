@@ -42,11 +42,13 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kStreamNotSubscribed = 104;
   static const kIsolateMustBeRunnable = 105;
   static const kIsolateMustBePaused = 106;
+  static const kCannotResume = 107;
   static const kIsolateIsReloading = 1000;
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
   static const kFileDoesNotExist = 1003;
   static const kIsolateReloadFailed = 1004;
+  static const kIsolateReloadBarred = 1005;
 
   int code;
   Map data;
@@ -1279,7 +1281,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   bool loading = true;
   bool runnable = false;
   bool ioEnabled = false;
-  bool reloading = false;
   M.IsolateStatus get status {
     if (paused) {
       return M.IsolateStatus.paused;
@@ -1344,13 +1345,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       params['pause'] = pause;
     }
     return invokeRpc('reloadSources', params).then((result) {
-      reloading = true;
+      _cache.clear();
       return result;
     });
   }
 
   void _handleIsolateReloadEvent(ServiceEvent event) {
-    reloading = false;
     if (event.reloadError != null) {
       // Failure.
       print('Reload failed: ${event.reloadError}');
@@ -1775,6 +1775,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future stepOut() {
     return invokeRpc('resume', {'step': 'Out'});
+  }
+
+  Future rewind(int count) {
+    return invokeRpc('resume', {'step': 'Rewind', 'frameIndex': count});
   }
 
   Future setName(String newName) {

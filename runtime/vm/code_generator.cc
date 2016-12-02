@@ -2215,6 +2215,15 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 }
 
 
+DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
+  isolate->debugger()->RewindPostDeopt();
+#endif  // !PRODUCT
+#endif  // !DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+}
+
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           BigintCompare,
                           2,

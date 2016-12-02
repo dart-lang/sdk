@@ -53,6 +53,7 @@ enum JSONRpcErrorCode {
   kStreamNotSubscribed = 104,
   kIsolateMustBeRunnable = 105,
   kIsolateMustBePaused = 106,
+  kCannotResume = 107,
 
   // Experimental (used in private rpcs).
   kIsolateIsReloading = 1000,
