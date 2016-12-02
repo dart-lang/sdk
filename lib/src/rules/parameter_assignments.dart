@@ -94,9 +94,11 @@ bool _isFormalParameterReassigned(
         parameter.element;
 
 bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) {
-  return n is PrefixExpression && n.operand is SimpleIdentifier &&
+  return n is PrefixExpression &&
+          n.operand is SimpleIdentifier &&
           (n.operand as SimpleIdentifier).staticElement == parameter.element ||
-      n is PostfixExpression && n.operand is SimpleIdentifier &&
+      n is PostfixExpression &&
+          n.operand is SimpleIdentifier &&
           (n.operand as SimpleIdentifier).staticElement == parameter.element;
 }
 
@@ -137,7 +139,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    FormalParameterList parameterList = node.parameters;
+    FormalParameterList parameterList = node?.parameters;
     if (parameterList != null) {
       // Getters don't have parameters.
       parameterList.parameters.forEach((e) {
