@@ -2263,26 +2263,8 @@ class C {
   dynamic g(int x) => x;
 }
 class D extends C {
-  T m<T>(T x) => x;
-  T g<T>(T x) => x;
-}
-main() {
-  int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
-  print(y);
-}
-  ''');
-  }
-
-  void test_genericMethods_handleOverrideOfNonGenericWithGeneric_comment() {
-    // Regression test for crash when adding genericity
-    checkFile('''
-class C {
-  m(x) => x;
-  dynamic g(int x) => x;
-}
-class D extends C {
-  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
-  /*=T*/ g/*<T>*/(/*=T*/ x) => x;
+  /*error:INVALID_METHOD_OVERRIDE*/T m<T>(T x) => x;
+  /*error:INVALID_METHOD_OVERRIDE*/T g<T>(T x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);

@@ -1026,16 +1026,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // This type cast is safe, because we checked it above.
     FunctionType s = other as FunctionType;
     if (t.typeFormals.isNotEmpty) {
-      if (s.typeFormals.isEmpty) {
-        t = instantiateToBounds(t);
-      } else {
-        List<DartType> freshVariables = relateTypeFormals(t, s, returnRelation);
-        if (freshVariables == null) {
-          return false;
-        }
-        t = t.instantiate(freshVariables);
-        s = s.instantiate(freshVariables);
+      List<DartType> freshVariables = relateTypeFormals(t, s, returnRelation);
+      if (freshVariables == null) {
+        return false;
       }
+      t = t.instantiate(freshVariables);
+      s = s.instantiate(freshVariables);
     } else if (s.typeFormals.isNotEmpty) {
       return false;
     }

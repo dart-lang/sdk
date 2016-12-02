@@ -1434,15 +1434,7 @@ class _OverrideChecker {
         ]);
       }
     }
-    FunctionType concreteSubType = subType;
-    FunctionType concreteBaseType = baseType;
-    if (concreteSubType.typeFormals.isNotEmpty) {
-      if (concreteBaseType.typeFormals.isEmpty) {
-        concreteSubType = rules.instantiateToBounds(concreteSubType);
-      }
-    }
-
-    if (!rules.isOverrideSubtypeOf(concreteSubType, concreteBaseType)) {
+    if (!rules.isOverrideSubtypeOf(subType, baseType)) {
       ErrorCode errorCode;
       if (errorLocation is ExtendsClause) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;

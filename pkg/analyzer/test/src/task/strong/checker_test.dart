@@ -3991,6 +3991,27 @@ void main() {
 ''');
   }
 
+  void test_universalFunctionSubtyping() {
+    checkFile(r'''
+dynamic foo<T>(dynamic x) => x;
+
+void takesDtoD(dynamic f(dynamic x)) {}
+
+void test() {
+  // here we currently infer an instantiation.
+  takesDtoD(/*pass should be error:INVALID_ASSIGNMENT*/foo);
+}
+
+class A {
+  dynamic method(dynamic x) => x;
+}
+
+class B extends A {
+  /*error:INVALID_METHOD_OVERRIDE*/T method<T>(T x) => x;
+}
+    ''');
+  }
+
   void test_voidSubtyping() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25069
     checkFile('''
