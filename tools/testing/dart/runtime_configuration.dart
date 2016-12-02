@@ -4,8 +4,6 @@
 
 library runtime_configuration;
 
-import 'dart:io' show Platform;
-
 import 'compiler_configuration.dart' show CommandArtifact;
 
 // TODO(ahe): Remove this import, we can precompute all the values required
@@ -51,9 +49,6 @@ class RuntimeConfiguration {
 
       case 'vm':
         return new StandaloneDartRuntimeConfiguration();
-
-      case 'dart_app':
-        return new DartAppRuntimeConfiguration(useBlobs: useBlobs);
 
       case 'dart_precompiled':
         if (configuration['system'] == 'android') {
