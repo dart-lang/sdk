@@ -351,7 +351,7 @@ class MockSdk implements DartSdk {
   PackageBundle _bundle;
 
   MockSdk(
-      {bool buildSummaries: true,
+      {bool generateSummaryFiles: false,
       bool dartAsync: true,
       resource.MemoryResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
@@ -367,7 +367,7 @@ class MockSdk implements DartSdk {
         provider.convertPath(
             '$sdkRoot/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
-    if (buildSummaries) {
+    if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
       provider.newFileWithBytes(
           provider.convertPath('/lib/_internal/spec.sum'), bytes);
@@ -431,7 +431,15 @@ class MockSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      _bundle = new PackageBundle.fromBuffer(_computeLinkedBundleBytes());
+      resource.File summaryFile =
+          provider.getFile(provider.convertPath('/lib/_internal/spec.sum'));
+      List<int> bytes;
+      if (summaryFile.exists) {
+        bytes = summaryFile.readAsBytesSync();
+      } else {
+        bytes = _computeLinkedBundleBytes();
+      }
+      _bundle = new PackageBundle.fromBuffer(bytes);
     }
     return _bundle;
   }

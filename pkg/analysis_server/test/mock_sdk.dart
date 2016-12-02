@@ -269,7 +269,9 @@ const Map<String, LibraryInfo> libraries = const {
    */
   PackageBundle _bundle;
 
-  MockSdk({resource.ResourceProvider resourceProvider})
+  MockSdk(
+      {bool generateSummaryFiles: false,
+      resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
       provider.newFile(library.path, (library as MockSdkLibrary).content);
@@ -278,11 +280,13 @@ const Map<String, LibraryInfo> libraries = const {
         provider.convertPath(
             '/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
-    List<int> bytes = _computeLinkedBundleBytes();
-    provider.newFileWithBytes(
-        provider.convertPath('/lib/_internal/spec.sum'), bytes);
-    provider.newFileWithBytes(
-        provider.convertPath('/lib/_internal/strong.sum'), bytes);
+    if (generateSummaryFiles) {
+      List<int> bytes = _computeLinkedBundleBytes();
+      provider.newFileWithBytes(
+          provider.convertPath('/lib/_internal/spec.sum'), bytes);
+      provider.newFileWithBytes(
+          provider.convertPath('/lib/_internal/strong.sum'), bytes);
+    }
   }
 
   @override
@@ -348,7 +352,15 @@ const Map<String, LibraryInfo> libraries = const {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      _bundle = new PackageBundle.fromBuffer(_computeLinkedBundleBytes());
+      resource.File summaryFile =
+          provider.getFile(provider.convertPath('/lib/_internal/spec.sum'));
+      List<int> bytes;
+      if (summaryFile.exists) {
+        bytes = summaryFile.readAsBytesSync();
+      } else {
+        bytes = _computeLinkedBundleBytes();
+      }
+      _bundle = new PackageBundle.fromBuffer(bytes);
     }
     return _bundle;
   }
