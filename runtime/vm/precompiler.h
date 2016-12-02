@@ -368,7 +368,7 @@ class Precompiler : public ValueObject {
   void AddTypeArguments(const TypeArguments& args);
   void AddCalleesOf(const Function& function);
   void AddConstObject(const Instance& instance);
-  void AddClosureCall(const ICData& call_site);
+  void AddClosureCall(const Array& arguments_descriptor);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
   void AddInstantiatedClass(const Class& cls);

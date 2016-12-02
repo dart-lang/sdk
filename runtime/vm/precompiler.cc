@@ -841,31 +841,28 @@ void Precompiler::AddCalleesOf(const Function& function) {
     if (pool.InfoAt(i) == ObjectPool::kTaggedObject) {
       entry = pool.ObjectAt(i);
       if (entry.IsICData()) {
+        // A dynamic call.
         call_site ^= entry.raw();
-        for (intptr_t j = 0; j < call_site.NumberOfChecks(); j++) {
-          target = call_site.GetTargetAt(j);
-          AddFunction(target);
-          if (!target.is_static()) {
-            // Super call (should not enqueue selector) or dynamic call with a
-            // CHA prediction (should enqueue selector).
-            selector = call_site.target_name();
-            AddSelector(selector);
-          }
-        }
-        if (call_site.NumberOfChecks() == 0) {
-          // A dynamic call.
-          selector = call_site.target_name();
-          AddSelector(selector);
-          if (selector.raw() == Symbols::Call().raw()) {
-            // Potential closure call.
-            AddClosureCall(call_site);
-          }
+        ASSERT(!call_site.is_static_call());
+        selector = call_site.target_name();
+        AddSelector(selector);
+        if (selector.raw() == Symbols::Call().raw()) {
+          // Potential closure call.
+          const Array& arguments_descriptor =
+              Array::Handle(Z, call_site.arguments_descriptor());
+          AddClosureCall(arguments_descriptor);
         }
       } else if (entry.IsMegamorphicCache()) {
         // A dynamic call.
         cache ^= entry.raw();
         selector = cache.target_name();
         AddSelector(selector);
+        if (selector.raw() == Symbols::Call().raw()) {
+          // Potential closure call.
+          const Array& arguments_descriptor =
+              Array::Handle(Z, cache.arguments_descriptor());
+          AddClosureCall(arguments_descriptor);
+        }
       } else if (entry.IsField()) {
         // Potential need for field initializer.
         field ^= entry.raw();
@@ -1068,9 +1065,7 @@ void Precompiler::AddConstObject(const Instance& instance) {
 }
 
 
-void Precompiler::AddClosureCall(const ICData& call_site) {
-  const Array& arguments_descriptor =
-      Array::Handle(Z, call_site.arguments_descriptor());
+void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
   const Class& cache_class =
       Class::Handle(Z, I->object_store()->closure_class());
   const Function& dispatcher = Function::Handle(
