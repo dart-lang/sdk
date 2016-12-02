@@ -632,8 +632,14 @@ class AnalysisServer {
     if (result != null) {
       return result;
     }
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    return driver?.getResult(path);
+    try {
+      nd.AnalysisDriver driver = getAnalysisDriver(path);
+      return await driver?.getResult(path);
+    } catch (e) {
+      // Ignore the exception.
+      // We don't want to log the same exception again and again.
+      return null;
+    }
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -1211,7 +1217,7 @@ class AnalysisServer {
           // The result will be produced by the "results" stream with
           // the fully resolved unit, and processed with sending analysis
           // notifications as it happens after content changes.
-          driver.getResult(file);
+          driver.getResult(file).catchError((exception, stackTrace) {});
         }
       }
       return;
@@ -1847,6 +1853,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // IMPLEMENTED
       // OCCURRENCES (not used in IDEA)
       // OUTLINE (not used in IDEA)
+    });
+    analysisDriver.exceptions.listen((nd.ExceptionResult result) {
+      AnalysisEngine.instance.logger
+          .logError('Analysis failed: ${result.path}', result.exception);
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;

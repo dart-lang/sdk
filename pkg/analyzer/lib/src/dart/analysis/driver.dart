@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -202,6 +203,12 @@ class AnalysisDriver {
   final StatusSupport _statusSupport = new StatusSupport();
 
   /**
+   * The controller for the [exceptions] stream.
+   */
+  final StreamController<ExceptionResult> _exceptionController =
+      new StreamController<ExceptionResult>();
+
+  /**
    * The instance of the [Search] helper.
    */
   Search _search;
@@ -240,6 +247,11 @@ class AnalysisDriver {
    * Return the set of files added to analysis using [addFile].
    */
   Set<String> get addedFiles => _explicitFiles;
+
+  /**
+   * Return the stream that produces [ExceptionResult]s.
+   */
+  Stream<ExceptionResult> get exceptions => _exceptionController.stream;
 
   /**
    * Return the set of files that are known, i.e. added or used implicitly.
@@ -797,21 +809,28 @@ class AnalysisDriver {
     // Analyze a requested file.
     if (_requestedFiles.isNotEmpty) {
       String path = _requestedFiles.keys.first;
-      AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
-      // If a part without a library, delay its analysis.
-      if (result == null) {
-        _requestedParts
-            .putIfAbsent(path, () => [])
-            .addAll(_requestedFiles.remove(path));
-        return;
+      try {
+        AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
+        // If a part without a library, delay its analysis.
+        if (result == null) {
+          _requestedParts
+              .putIfAbsent(path, () => [])
+              .addAll(_requestedFiles.remove(path));
+          return;
+        }
+        // Notify the completers.
+        _requestedFiles.remove(path).forEach((completer) {
+          completer.complete(result);
+        });
+        // Remove from to be analyzed and produce it now.
+        _filesToAnalyze.remove(path);
+        _resultController.add(result);
+      } catch (exception, stackTrace) {
+        _filesToAnalyze.remove(path);
+        _requestedFiles.remove(path).forEach((completer) {
+          completer.completeError(exception, stackTrace);
+        });
       }
-      // Notify the completers.
-      _requestedFiles.remove(path).forEach((completer) {
-        completer.complete(result);
-      });
-      // Remove from to be analyzed and produce it now.
-      _filesToAnalyze.remove(path);
-      _resultController.add(result);
       return;
     }
 
@@ -849,11 +868,16 @@ class AnalysisDriver {
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
         if (_filesToAnalyze.remove(path)) {
-          AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
-          if (result == null) {
-            _partsToAnalyze.add(path);
-          } else {
-            _resultController.add(result);
+          try {
+            AnalysisResult result =
+                _computeAnalysisResult(path, withUnit: true);
+            if (result == null) {
+              _partsToAnalyze.add(path);
+            } else {
+              _resultController.add(result);
+            }
+          } catch (exception, stackTrace) {
+            _reportError(path, exception, stackTrace);
           }
           return;
         }
@@ -863,11 +887,15 @@ class AnalysisDriver {
     // Analyze a general file.
     if (_filesToAnalyze.isNotEmpty) {
       String path = _removeFirst(_filesToAnalyze);
-      AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
-      if (result == null) {
-        _partsToAnalyze.add(path);
-      } else {
-        _resultController.add(result);
+      try {
+        AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
+        if (result == null) {
+          _partsToAnalyze.add(path);
+        } else {
+          _resultController.add(result);
+        }
+      } catch (exception, stackTrace) {
+        _reportError(path, exception, stackTrace);
       }
       return;
     }
@@ -875,27 +903,43 @@ class AnalysisDriver {
     // Analyze a requested part file.
     if (_requestedParts.isNotEmpty) {
       String path = _requestedParts.keys.first;
-      AnalysisResult result = _computeAnalysisResult(path,
-          withUnit: true, asIsIfPartWithoutLibrary: true);
-      // Notify the completers.
-      _requestedParts.remove(path).forEach((completer) {
-        completer.complete(result);
-      });
-      // Remove from to be analyzed and produce it now.
-      _filesToAnalyze.remove(path);
-      _resultController.add(result);
+      try {
+        AnalysisResult result = _computeAnalysisResult(path,
+            withUnit: true, asIsIfPartWithoutLibrary: true);
+        // Notify the completers.
+        _requestedParts.remove(path).forEach((completer) {
+          completer.complete(result);
+        });
+        // Remove from to be analyzed and produce it now.
+        _partsToAnalyze.remove(path);
+        _resultController.add(result);
+      } catch (exception, stackTrace) {
+        _partsToAnalyze.remove(path);
+        _requestedParts.remove(path).forEach((completer) {
+          completer.completeError(exception, stackTrace);
+        });
+      }
       return;
     }
 
     // Analyze a general part.
     if (_partsToAnalyze.isNotEmpty) {
       String path = _removeFirst(_partsToAnalyze);
-      AnalysisResult result = _computeAnalysisResult(path,
-          withUnit: _priorityFiles.contains(path),
-          asIsIfPartWithoutLibrary: true);
-      _resultController.add(result);
+      try {
+        AnalysisResult result = _computeAnalysisResult(path,
+            withUnit: _priorityFiles.contains(path),
+            asIsIfPartWithoutLibrary: true);
+        _resultController.add(result);
+      } catch (exception, stackTrace) {
+        _reportError(path, exception, stackTrace);
+      }
       return;
     }
+  }
+
+  void _reportError(String path, exception, StackTrace stackTrace) {
+    CaughtException caught = new CaughtException(exception, stackTrace);
+    _exceptionController.add(new ExceptionResult(path, caught));
   }
 
   /**
@@ -1151,6 +1195,25 @@ class AnalysisResult {
       this.unit,
       this.errors,
       this._index);
+}
+
+/**
+ * Exception that happened during analysis.
+ */
+class ExceptionResult {
+  /**
+   * The path of the file being analyzed when the [exception] happened.
+   *
+   * Absolute and normalized.
+   */
+  final String path;
+
+  /**
+   * The exception during analysis of the file with the [path].
+   */
+  final CaughtException exception;
+
+  ExceptionResult(this.path, this.exception);
 }
 
 /**
