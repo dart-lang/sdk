@@ -489,9 +489,17 @@ class FixProcessor {
           AstNode targetNode = targetElement.computeNode();
           if (targetNode is FunctionDeclaration) {
             FunctionExpression function = targetNode.functionExpression;
-            targetOffset = function.parameters.leftParenthesis.end;
+            Token paren = function.parameters.leftParenthesis;
+            if (paren == null) {
+              return;
+            }
+            targetOffset = paren.end;
           } else if (targetNode is MethodDeclaration) {
-            targetOffset = targetNode.parameters.leftParenthesis.end;
+            Token paren = targetNode.parameters.leftParenthesis;
+            if (paren == null) {
+              return;
+            }
+            targetOffset = paren.end;
           } else {
             return;
           }
