@@ -5,7 +5,7 @@ supported in Dart. Here is how to use them.
 
 [proposal]: https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md
 
-When they were still being prototyped, and [older comment-based syntax was
+When they were still being prototyped, an [older comment-based syntax was
 designed][old] so that the static analysis could be implemented and tested
 before the VM and compilers needed to worry about the syntax. Now that real
 syntax is allowed everywhere, this doc has been updated.
@@ -67,13 +67,13 @@ function. This will eventually be supported using a `typedef`.
 ## Using generic method type parameters
 
 You've seen some examples already, but you can use a generic type parameter
-anywhere you would expect in a generic method.
+almost anywhere you would expect in a generic method.
 
 * Inside the method's parameter list:
 
     ```dart
     takeThing<T>(T thing) { ... }
-    //           ^-- here
+    //           ^-- Here.
     ```
 
 * Inside type annotations in the body of the method:
@@ -81,9 +81,9 @@ anywhere you would expect in a generic method.
     ```dart
     useThing<T>() {
       T thing = getThing();
-    //^-- here
+    //^-- Here.
       List<T> pair = [thing, thing];
-      //   ^-- and here
+      //   ^-- And here.
     }
     ```
 
@@ -91,7 +91,7 @@ anywhere you would expect in a generic method.
 
     ```dart
       T itself<T>(T thing) => thing;
-    //^-- here
+    //^-- Here.
     ```
 
 * As type arguments in generic classes and method calls:
@@ -99,9 +99,9 @@ anywhere you would expect in a generic method.
     ```dart
     useThing<T>(T thing) {
       var pair = <T>[thing, thing];
-      //          ^-- here
+      //          ^-- Here.
       var set = new Set<T>()..add(thing);
-      //                ^-- here
+      //                ^-- And here.
     }
     ```
 
@@ -115,12 +115,24 @@ anywhere you would expect in a generic method.
     ```dart
     printType<T>() {
       Type t = T;
-      //       ^-- here
+      //       ^-- Here.
       print(t);
     }
     ```
 
     Again, note that on the VM and dart2js, this will currently print "dynamic".
+
+The one place you cannot currently use a generic method type parameter is in an
+`is` expression. Since the VM and dart2js don't reify generic method type
+arguments yet, those expressions wouldn't do what you want. Instead, this is
+currently an error:
+
+```dart
+testType<T>(object) {
+  print(object is T);
+  //              ^-- Error!
+}
+```
 
 ## Calling generic methods
 
@@ -133,11 +145,15 @@ var fruits = ["apple", "banana", "cherry"];
 var lengths = fruits.map((fruit) => fruit.length);
 ```
 
-`Iterable.map<S>(S transform(T` is now a generic method that takes a type
-parameter for the element type of the returned sequence:
+The `map()` method on Iterable is now generic and takes a type parameter for the
+element type of the returned sequence:
 
 ```dart
-Iterable.map<S>(S transform(T element))
+class Iterable<T> {
+  Iterable<S> map<S>(S transform(T element)) { ... }
+
+  // Other stuff...
+}
 ```
 
 In this example, the type checker:
@@ -145,10 +161,10 @@ In this example, the type checker:
 1. Infers `List<String>` for the type of `fruits` based on the elements in the
    list literal.
 2. That lets it infer `String` for the type of the lambda parameter `fruit`
-   passed to `map`.
+   passed to `map()`.
 3. Then, from the result of calling `.length`, it infers the return type of the
    lambda to be `int`.
-4. That in turn is used to fill in the type argument to the call to `map` as
+4. That in turn is used to fill in the type argument to the call to `map()` as
    `int`, and the resulting sequence is an `Iterable<int>`.
 
 If inference *isn't* able to fill in a type argument for you, it uses `dynamic`
