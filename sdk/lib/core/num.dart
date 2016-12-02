@@ -66,16 +66,40 @@ abstract class num implements Comparable<num> {
    * but integers are equal to doubles if they have the same numerical
    * value.
    *
-   * For ordering, the double NaN value is considered equal to itself, and
-   * greater than any numeric value (unlike its behavior in `operator==`).
+   * For doubles, the `compareTo` operation is different from the partial
+   * ordering given by [operator==], [operator<] and [operator>]. For example,
+   * IEEE doubles impose that `0.0 == -0.0` and all comparison operations on
+   * NaN return false.
    *
-   * The double value -0.0 is considered less than 0.0 (and the integer 0), but
-   * greater than any non-zero negative value.
+   * This function imposes a complete ordering for doubles. When using
+   * `compareTo` the following properties hold:
    *
-   * Positive infinity is greater than any finite value (any value apart from
-   * itself and NaN), and negative infinity is less than any other value.
+   * - All NaN values are considered equal, and greater than any numeric value.
+   * - -0.0 is less than 0.0 (and the integer 0), but greater than any non-zero
+   *    negative value.
+   * - Negative infinity is less than all other values and positive infinity is
+   *   greater than all non-NaN values.
+   * - All other values are compared using their numeric value.
    *
-   * All other values are compared using their numeric value.
+   * Examples:
+   * ```
+   * print(1.compareTo(2)); // => -1
+   * print(2.compareTo(1)); // => 1
+   * print(1.compareTo(1)); // => 0
+   *
+   * // The following comparisons yield different results than the
+   * // corresponding comparison operators.
+   * print((-0.0).compareTo(0.0));  // => -1
+   * print(double.NAN.compareTo(double.NAN));  // => 0
+   * print(double.INFINITY.compareTo(double.NAN)); // => -1
+   *
+   * // -0.0, and NaN comparison operators have rules imposed by the IEEE
+   * // standard.
+   * print(-0.0 == 0.0); // => true
+   * print(double.NAN == double.NAN);  // => false
+   * print(double.INFINITY < double.NAN);  // => false
+   * print(double.NAN < double.INFINITY);  // => false
+   * print(double.NAN == double.INFINITY);  // => false
    */
   int compareTo(num other);
 
