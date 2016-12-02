@@ -141,17 +141,19 @@ class EditDomainHandler implements RequestHandler {
     List<Assist> assists;
     if (server.options.enableNewAnalysisDriver) {
       AnalysisResult result = await server.getAnalysisResult(params.file);
-      CompilationUnit unit = result.unit;
-      DartAssistContext dartAssistContext = new _DartAssistContextForValues(
-          unit.element.source,
-          params.offset,
-          params.length,
-          unit.element.context,
-          unit);
-      try {
-        AssistProcessor processor = new AssistProcessor(dartAssistContext);
-        assists = await processor.compute();
-      } catch (_) {}
+      if (result != null) {
+        CompilationUnit unit = result.unit;
+        DartAssistContext dartAssistContext = new _DartAssistContextForValues(
+            unit.element.source,
+            params.offset,
+            params.length,
+            unit.element.context,
+            unit);
+        try {
+          AssistProcessor processor = new AssistProcessor(dartAssistContext);
+          assists = await processor.compute();
+        } catch (_) {}
+      }
     } else {
       ContextSourcePair pair = server.getContextSourcePair(params.file);
       engine.AnalysisContext context = pair.context;
@@ -179,49 +181,50 @@ class EditDomainHandler implements RequestHandler {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     if (server.options.enableNewAnalysisDriver) {
       AnalysisResult result = await server.getAnalysisResult(file);
-      CompilationUnit unit = result.unit;
-      LineInfo lineInfo = result.lineInfo;
-      int requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (engine.AnalysisError error in result.errors) {
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-        if (errorLine == requestLine) {
-          var context = new _DartFixContextImpl(
-              server.resourceProvider, unit.element.context, unit, error);
-          List<Fix> fixes =
-              await new DefaultFixContributor().internalComputeFixes(context);
-          if (fixes.isNotEmpty) {
-            AnalysisError serverError =
-                newAnalysisError_fromEngine(lineInfo, error);
-            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
-            errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
-              errorFixes.fixes.add(fix.change);
-            });
+      if (result != null) {
+        CompilationUnit unit = result.unit;
+        LineInfo lineInfo = result.lineInfo;
+        int requestLine = lineInfo.getLocation(offset).lineNumber;
+        for (engine.AnalysisError error in result.errors) {
+          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+          if (errorLine == requestLine) {
+            var context = new _DartFixContextImpl(
+                server.resourceProvider, unit.element.context, unit, error);
+            List<Fix> fixes =
+                await new DefaultFixContributor().internalComputeFixes(context);
+            if (fixes.isNotEmpty) {
+              AnalysisError serverError =
+                  newAnalysisError_fromEngine(lineInfo, error);
+              AnalysisErrorFixes errorFixes =
+                  new AnalysisErrorFixes(serverError);
+              errorFixesList.add(errorFixes);
+              fixes.forEach((fix) {
+                errorFixes.fixes.add(fix.change);
+              });
+            }
           }
         }
       }
     } else {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-      if (errorInfo != null) {
-        LineInfo lineInfo = errorInfo.lineInfo;
-        if (lineInfo != null) {
-          int requestLine = lineInfo.getLocation(offset).lineNumber;
-          for (engine.AnalysisError error in errorInfo.errors) {
-            int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-            if (errorLine == requestLine) {
-              List<Fix> fixes = await computeFixes(server.serverPlugin,
-                  server.resourceProvider, unit.element.context, error);
-              if (fixes.isNotEmpty) {
-                AnalysisError serverError =
-                    newAnalysisError_fromEngine(lineInfo, error);
-                AnalysisErrorFixes errorFixes =
-                    new AnalysisErrorFixes(serverError);
-                errorFixesList.add(errorFixes);
-                fixes.forEach((fix) {
-                  errorFixes.fixes.add(fix.change);
-                });
-              }
+      LineInfo lineInfo = errorInfo?.lineInfo;
+      if (unit != null && errorInfo != null && lineInfo != null) {
+        int requestLine = lineInfo.getLocation(offset).lineNumber;
+        for (engine.AnalysisError error in errorInfo.errors) {
+          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+          if (errorLine == requestLine) {
+            List<Fix> fixes = await computeFixes(server.serverPlugin,
+                server.resourceProvider, unit.element.context, error);
+            if (fixes.isNotEmpty) {
+              AnalysisError serverError =
+                  newAnalysisError_fromEngine(lineInfo, error);
+              AnalysisErrorFixes errorFixes =
+                  new AnalysisErrorFixes(serverError);
+              errorFixesList.add(errorFixes);
+              fixes.forEach((fix) {
+                errorFixes.fixes.add(fix.change);
+              });
             }
           }
         }

@@ -330,7 +330,8 @@ class AnalysisServer {
   final Set<String> priorityFiles = new Set<String>();
 
   /**
-   * The cached results units for [priorityFiles].
+   * The cached results for [priorityFiles].
+   * These results must have not `null` units.
    */
   final Map<String, nd.AnalysisResult> priorityFileResults = {};
 
@@ -1798,7 +1799,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // TODO(scheglov) send server status
     });
     analysisDriver.results.listen((result) {
-      if (analysisServer.priorityFiles.contains(result.path)) {
+      if (analysisServer.priorityFiles.contains(result.path) &&
+          result.unit != null) {
         analysisServer.priorityFileResults[result.path] = result;
       }
       _runDelayed(() {
