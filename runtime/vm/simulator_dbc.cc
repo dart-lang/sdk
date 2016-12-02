@@ -3498,15 +3498,17 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(LoadIndexedUint32, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<uintptr_t*>(data));
+    const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const uint32_t value = *reinterpret_cast<const uint32_t*>(data);
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
   {
     BYTECODE(LoadIndexedInt32, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<intptr_t*>(data));
+    const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const int32_t value = *reinterpret_cast<const int32_t*>(data);
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
