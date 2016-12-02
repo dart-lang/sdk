@@ -20,8 +20,11 @@
 
 * `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.
 
-* `dart:developer`:
-  * The service protocol http server can now be controlled from Dart code.
+* `dart:developer`
+
+  * Added `Service` class.
+    * Allows inspecting and controlling the VM service protocol HTTP server.
+    * Provides an API to access the ID of an `Isolate`.
 
 ### Tool changes
 
