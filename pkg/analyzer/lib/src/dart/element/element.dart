@@ -4782,12 +4782,13 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       buffer.write(">");
     }
     buffer.write("(");
-    int parameterCount = _parameters.length;
+    List<ParameterElement> parameterList = parameters;
+    int parameterCount = parameterList.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         buffer.write(", ");
       }
-      (_parameters[i] as ParameterElementImpl).appendTo(buffer);
+      (parameterList[i] as ParameterElementImpl).appendTo(buffer);
     }
     buffer.write(")");
     if (type != null) {
