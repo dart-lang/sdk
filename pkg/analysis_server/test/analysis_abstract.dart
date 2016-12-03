@@ -46,6 +46,8 @@ int findIdentifierLength(String search) {
  * An abstract base for all 'analysis' domain tests.
  */
 class AbstractAnalysisTest {
+  bool enableNewAnalysisDriver = false;
+  bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
   MockPackageMapProvider packageMapProvider;
@@ -126,18 +128,22 @@ class AbstractAnalysisTest {
     //
     // Create an SDK in the mock file system.
     //
-    new MockSdk(resourceProvider: resourceProvider);
+    new MockSdk(
+        generateSummaryFiles: generateSummaryFiles,
+        resourceProvider: resourceProvider);
     //
     // Create server
     //
+    AnalysisServerOptions options = new AnalysisServerOptions();
+    options.enableNewAnalysisDriver = enableNewAnalysisDriver;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
         packageMapProvider,
         index,
         serverPlugin,
-        new AnalysisServerOptions(),
-        new DartSdkManager(resourceProvider.convertPath('/'), false),
+        options,
+        new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
   }
 

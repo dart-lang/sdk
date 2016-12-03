@@ -6,7 +6,9 @@ library test.analysis.notification_errors;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/linter.dart';
@@ -14,15 +16,17 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotificationErrorsTest);
+    defineReflectiveTests(NotificationErrorsTest_Driver);
   });
 }
 
 @reflectiveTest
-class NotificationErrorsTest extends AbstractAnalysisTest {
+class AbstractNotificationErrorsTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   void processNotification(Notification notification) {
@@ -47,6 +51,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
 import 'does_not_exist.dart';
 ''');
     await waitForTasksFinished();
+    await pumpEventQueue();
     List<AnalysisError> errors = filesErrors[testFile];
     // Verify that we are generating only 1 error for the bad URI.
     // https://github.com/dart-lang/sdk/issues/23754
@@ -75,8 +80,16 @@ linter:
     handleSuccessfulRequest(request);
 
     await waitForTasksFinished();
-    AnalysisContext testContext = server.getContainingContext(testFile);
-    List<Linter> lints = getLints(testContext);
+    List<Linter> lints;
+    if (enableNewAnalysisDriver) {
+      AnalysisDriver testDriver = (server.contextManager as ContextManagerImpl)
+          .getContextInfoFor(resourceProvider.getFolder(projectPath))
+          .analysisDriver;
+      lints = testDriver.analysisOptions.lintRules;
+    } else {
+      AnalysisContext testContext = server.getContainingContext(testFile);
+      lints = getLints(testContext);
+    }
     // Registry should only contain single lint rule.
     expect(lints, hasLength(1));
     LintRule lint = lints.first as LintRule;
@@ -109,6 +122,7 @@ main() {
     createProject();
     addTestFile('library lib');
     await waitForTasksFinished();
+    await pumpEventQueue();
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
@@ -128,10 +142,32 @@ main() {
 }
 ''');
     await waitForTasksFinished();
+    await pumpEventQueue();
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+}
+
+@reflectiveTest
+class NotificationErrorsTest extends AbstractNotificationErrorsTest {}
+
+@reflectiveTest
+class NotificationErrorsTest_Driver extends AbstractNotificationErrorsTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
+    super.setUp();
+  }
+
+  @failingTest
+  @override
+  test_importError() {
+    // The overridden test is failing because we're getting an 'unused import'
+    // hint rather than a URI does not exist error.
+    return super.test_importError();
   }
 }

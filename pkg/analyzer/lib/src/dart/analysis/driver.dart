@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -761,8 +762,12 @@ class AnalysisDriver {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = unit.errors.map((error) {
       String errorName = error.uniqueName;
-      ErrorCode errorCode = errorCodeByUniqueName(errorName);
+      ErrorCode errorCode =
+          errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
       if (errorCode == null) {
+        // This could fail because the error code is no longer defined, or, in
+        // the case of a lint rule, if the lint rule has been disabled since the
+        // errors were written.
         throw new StateError('No ErrorCode for $errorName in $file');
       }
       return new AnalysisError.forValues(file.source, error.offset,
@@ -793,6 +798,24 @@ class AnalysisDriver {
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return '${signature.toHex()}.resolved';
+  }
+
+  /**
+   * Return the lint code with the given [errorName], or `null` if there is no
+   * lint registered with that name or the lint is not enabled in the analysis
+   * options.
+   */
+  ErrorCode _lintCodeByUniqueName(String errorName) {
+    if (errorName.startsWith('_LintCode.')) {
+      String lintName = errorName.substring(10);
+      List<Linter> lintRules = analysisOptions.lintRules;
+      for (Linter linter in lintRules) {
+        if (linter.name == lintName) {
+          return linter.lintCode;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -1016,6 +1039,12 @@ class AnalysisDriverScheduler {
   bool _started = false;
 
   AnalysisDriverScheduler(this._logger);
+
+  /**
+   * Return `true` if we are currently analyzing code.
+   */
+  bool get isAnalyzing =>
+      _statusSupport.currentStatus == AnalysisStatus.ANALYZING;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.

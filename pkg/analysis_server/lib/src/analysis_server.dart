@@ -914,7 +914,7 @@ class AnalysisServer {
    * Return `true` if analysis is complete.
    */
   bool isAnalysisComplete() {
-    return operationQueue.isEmpty;
+    return operationQueue.isEmpty && !analysisDriverScheduler.isAnalyzing;
   }
 
   /**
@@ -1159,10 +1159,14 @@ class AnalysisServer {
   }
 
   /**
-   * Send status notification to the client. The `operation` is the operation
-   * being performed or `null` if analysis is complete.
+   * Send status notification to the client. The state of analysis is given by
+   * the [status] information.
    */
   void sendStatusNotificationNew(nd.AnalysisStatus status) {
+    if (_onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
+      _onAnalysisCompleteCompleter.complete();
+      _onAnalysisCompleteCompleter = null;
+    }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
       return;
