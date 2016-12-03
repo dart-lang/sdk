@@ -3171,6 +3171,31 @@ main() {
 ''');
   }
 
+  test_importLibraryProject_withClass_constInstanceCreation() async {
+    addSource(
+        '/lib.dart',
+        '''
+class Test {
+  const Test();
+}
+''');
+    resolveTestUnit('''
+main() {
+  const Test();
+}
+''');
+    performAllAnalysisTasks();
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
+        '''
+import 'lib.dart';
+
+main() {
+  const Test();
+}
+''');
+  }
+
   test_importLibraryProject_withClass_hasOtherLibraryWithPrefix() async {
     testFile = '/project/bin/test.dart';
     addSource(
