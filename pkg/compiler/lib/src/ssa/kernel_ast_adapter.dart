@@ -72,6 +72,9 @@ class KernelAstAdapter {
       _compiler.globalInference.results.resultOf(e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
+    if (kernel.syntheticNodes.contains(node)) {
+      return _backend.constantSystem.createSymbol(_compiler, node.value);
+    }
     ast.Node astNode = getNode(node);
     ConstantValue constantValue = _backend.constants
         .getConstantValueForNode(astNode, _resolvedAst.elements);
@@ -101,6 +104,16 @@ class KernelAstAdapter {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
         message: "No node found for $node"));
     return result;
+  }
+
+  ast.Node getNodeOrNull(ir.Node node) {
+    return _nodeToAst[node];
+  }
+
+  void assertNodeIsSynthetic(ir.Node node) {
+    assert(invariant(
+        CURRENT_ELEMENT_SPANNABLE, kernel.syntheticNodes.contains(node),
+        message: "No synthetic marker found for $node"));
   }
 
   Local getLocal(ir.VariableDeclaration variable) {
@@ -206,7 +219,12 @@ class KernelAstAdapter {
     return _resultOf(_target).typeOfSend(getNode(send));
   }
 
-  TypeMask typeOfNewList(Element owner, ir.ListLiteral listLiteral) {
+  TypeMask typeOfListLiteral(Element owner, ir.ListLiteral listLiteral) {
+    ast.Node node = getNodeOrNull(listLiteral);
+    if (node == null) {
+      assertNodeIsSynthetic(listLiteral);
+      return _compiler.closedWorld.commonMasks.growableListType;
+    }
     return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
         _compiler.closedWorld.commonMasks.dynamicType;
   }
@@ -402,6 +420,21 @@ class KernelAstAdapter {
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
     return types.map(getDartType).toList();
+  }
+
+  DartType getDartTypeOfListLiteral(ir.ListLiteral list) {
+    ast.Node node = getNodeOrNull(list);
+    if (node != null) return elements.getType(node);
+    assertNodeIsSynthetic(list);
+    return _compiler.coreTypes.listType(getDartType(list.typeArgument));
+  }
+
+  DartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
+    ast.Node node = getNodeOrNull(literal);
+    if (node != null) return elements.getType(node);
+    assertNodeIsSynthetic(literal);
+    return _compiler.coreTypes
+        .mapType(getDartType(literal.keyType), getDartType(literal.valueType));
   }
 
   DartType getFunctionReturnType(ir.FunctionNode node) {

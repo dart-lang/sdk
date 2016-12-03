@@ -20,7 +20,8 @@ import 'dart:_js_helper' show checkInt,
                               patch_startup,
                               Primitives,
                               stringJoinUnchecked,
-                              getTraceFromException;
+                              getTraceFromException,
+                              RuntimeError;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -548,7 +549,7 @@ class StringBuffer {
 class NoSuchMethodError {
   @patch
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = new StringBuffer('');
     String comma = '';
     if (_arguments != null) {
       for (var argument in _arguments) {
@@ -620,7 +621,7 @@ class _Uri {
 
     // Encode the string into bytes then generate an ASCII only string
     // by percent encoding selected bytes.
-    StringBuffer result = new StringBuffer();
+    StringBuffer result = new StringBuffer('');
     var bytes = encoding.encode(text);
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
@@ -667,3 +668,30 @@ class StackTrace {
     }
   }
 }
+
+// Called from kernel generated code.
+_genericNoSuchMethod(receiver, memberName, positionalArguments, namedArguments,
+    existingArguments) {
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_unresolvedConstructorError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate an error that reads:
+  //
+  //     No constructor '$memberName' declared in class '$receiver'.
+
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_malformedTypeError(message) => new RuntimeError(message);

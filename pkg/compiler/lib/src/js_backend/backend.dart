@@ -748,6 +748,10 @@ class JavaScriptBackend extends Backend {
         element == coreClasses.stringClass) {
       // TODO(johnniwinther): Avoid these.
       return true;
+    } else if (element == helpers.genericNoSuchMethod ||
+        element == helpers.unresolvedConstructorError ||
+        element == helpers.malformedTypeError) {
+      return true;
     }
     return false;
   }

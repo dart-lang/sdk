@@ -57,11 +57,15 @@ abstract class UnresolvedVisitor {
   ir.Expression buildThrowNoSuchMethodError(ir.Procedure exceptionBuilder,
       ir.Expression receiver, String memberName, ir.Arguments callArguments,
       [Element candidateTarget]) {
-    ir.Expression memberNameArg = new ir.SymbolLiteral(memberName);
-    ir.Expression positional = new ir.ListLiteral(callArguments.positional);
-    ir.Expression named = new ir.MapLiteral(callArguments.named.map((e) {
-      return new ir.MapEntry(new ir.SymbolLiteral(e.name), e.value);
-    }).toList());
+    ir.Expression memberNameArg =
+        markSynthetic(new ir.SymbolLiteral(memberName));
+    ir.Expression positional =
+        markSynthetic(new ir.ListLiteral(callArguments.positional));
+    ir.Expression named =
+        markSynthetic(new ir.MapLiteral(callArguments.named.map((e) {
+      return new ir.MapEntry(
+          markSynthetic(new ir.SymbolLiteral(e.name)), e.value);
+    }).toList()));
     if (candidateTarget is FunctionElement) {
       // Ensure [candidateTarget] has been resolved.
       possiblyErroneousFunctionToIr(candidateTarget);
@@ -72,13 +76,15 @@ abstract class UnresolvedVisitor {
         candidateTarget.hasFunctionSignature) {
       List<ir.Expression> existingArgumentsList = <ir.Expression>[];
       candidateTarget.functionSignature.forEachParameter((param) {
-        existingArgumentsList.add(new ir.StringLiteral(param.name));
+        existingArgumentsList
+            .add(markSynthetic(new ir.StringLiteral(param.name)));
       });
-      existingArguments = new ir.ListLiteral(existingArgumentsList);
+      existingArguments =
+          markSynthetic(new ir.ListLiteral(existingArgumentsList));
     } else {
       existingArguments = new ir.NullLiteral();
     }
-    return new ir.Throw(new ir.StaticInvocation(
+    ir.Expression construction = markSynthetic(new ir.StaticInvocation(
         exceptionBuilder,
         new ir.Arguments(<ir.Expression>[
           receiver,
@@ -87,6 +93,12 @@ abstract class UnresolvedVisitor {
           named,
           existingArguments
         ])));
+    return new ir.Throw(construction);
+  }
+
+  ir.Expression markSynthetic(ir.Expression expression) {
+    kernel.syntheticNodes.add(expression);
+    return expression;
   }
 
   /// Throws a NoSuchMethodError for an unresolved getter named [name].

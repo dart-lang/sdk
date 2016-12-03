@@ -1969,6 +1969,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     final e = document.createElement(tag.name);
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
+    debugger.instances = instances;
     e._isolate = isolate;
     e._debugger = debugger;
     e._instances = instances;

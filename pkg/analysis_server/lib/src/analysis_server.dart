@@ -330,7 +330,8 @@ class AnalysisServer {
   final Set<String> priorityFiles = new Set<String>();
 
   /**
-   * The cached results units for [priorityFiles].
+   * The cached results for [priorityFiles].
+   * These results must have not `null` units.
    */
   final Map<String, nd.AnalysisResult> priorityFileResults = {};
 
@@ -631,8 +632,14 @@ class AnalysisServer {
     if (result != null) {
       return result;
     }
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    return driver?.getResult(path);
+    try {
+      nd.AnalysisDriver driver = getAnalysisDriver(path);
+      return await driver?.getResult(path);
+    } catch (e) {
+      // Ignore the exception.
+      // We don't want to log the same exception again and again.
+      return null;
+    }
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -1210,7 +1217,7 @@ class AnalysisServer {
           // The result will be produced by the "results" stream with
           // the fully resolved unit, and processed with sending analysis
           // notifications as it happens after content changes.
-          driver.getResult(file);
+          driver.getResult(file).catchError((exception, stackTrace) {});
         }
       }
       return;
@@ -1813,7 +1820,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // TODO(scheglov) send server status
     });
     analysisDriver.results.listen((result) {
-      if (analysisServer.priorityFiles.contains(result.path)) {
+      if (analysisServer.priorityFiles.contains(result.path) &&
+          result.unit != null) {
         analysisServer.priorityFileResults[result.path] = result;
       }
       _runDelayed(() {
@@ -1845,6 +1853,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // IMPLEMENTED
       // OCCURRENCES (not used in IDEA)
       // OUTLINE (not used in IDEA)
+    });
+    analysisDriver.exceptions.listen((nd.ExceptionResult result) {
+      AnalysisEngine.instance.logger
+          .logError('Analysis failed: ${result.path}', result.exception);
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
