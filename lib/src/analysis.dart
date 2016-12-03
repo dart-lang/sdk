@@ -87,7 +87,8 @@ class AnalysisDriver {
             options.packageRootPath;
       } catch (_) {
         // If that fails, fall back to the pre 0.30.0 API.
-        builder.defaultPackagesDirectoryPath = options.packageRootPath;
+        (builder as dynamic).defaultPackagesDirectoryPath =
+            options.packageRootPath;
       }
       Map<String, List<Folder>> packageMap =
           builder.convertPackagesToMap(builder.createPackageMap(null));
