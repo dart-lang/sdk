@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -41,11 +42,12 @@ class Search {
 
     ElementKind kind = element.kind;
     if (kind == ElementKind.CLASS ||
-        kind == ElementKind.COMPILATION_UNIT ||
         kind == ElementKind.CONSTRUCTOR ||
         kind == ElementKind.FUNCTION_TYPE_ALIAS ||
         kind == ElementKind.SETTER) {
       return _searchReferences(element);
+    } else if (kind == ElementKind.COMPILATION_UNIT) {
+      return _searchReferences_CompilationUnit(element);
     } else if (kind == ElementKind.GETTER) {
       return _searchReferences_Getter(element);
     } else if (kind == ElementKind.FIELD ||
@@ -96,15 +98,26 @@ class Search {
 
     // Check the index of every file that references the element name.
     for (String file in files) {
-      IndexResult result = await _driver.getIndex(file);
-      _IndexRequest request = new _IndexRequest(result.index);
-      int elementId = request.findElementId(element);
-      if (elementId != -1) {
-        CompilationUnitElement unitElement = result.unitElement;
-        List<SearchResult> fileResults =
-            request.getRelations(elementId, relationToResultKind, unitElement);
-        results.addAll(fileResults);
-      }
+      await _addResultsInFile(results, element, relationToResultKind, file);
+    }
+  }
+
+  /**
+   * Add results for [element] usage in the given [file].
+   */
+  Future<Null> _addResultsInFile(
+      List<SearchResult> results,
+      Element element,
+      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+      String file) async {
+    IndexResult result = await _driver.getIndex(file);
+    _IndexRequest request = new _IndexRequest(result.index);
+    int elementId = request.findElementId(element);
+    if (elementId != -1) {
+      CompilationUnitElement unitElement = result.unitElement;
+      List<SearchResult> fileResults =
+          request.getRelations(elementId, relationToResultKind, unitElement);
+      results.addAll(fileResults);
     }
   }
 
@@ -112,6 +125,33 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element,
         {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_CompilationUnit(
+      CompilationUnitElement element) async {
+    String path = element.source.fullName;
+
+    // If the path is not known, then the file is not referenced.
+    if (!_driver.fsState.knownFilePaths.contains(path)) {
+      return const <SearchResult>[];
+    }
+
+    // Check every file that references the given path.
+    List<SearchResult> results = <SearchResult>[];
+    for (FileState file in _driver.fsState.knownFiles) {
+      for (FileState referencedFile in file.directReferencedFiles) {
+        if (referencedFile.path == path) {
+          await _addResultsInFile(
+              results,
+              element,
+              const {
+                IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
+              },
+              file.path);
+        }
+      }
+    }
     return results;
   }
 

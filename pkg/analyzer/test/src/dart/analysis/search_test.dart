@@ -121,22 +121,22 @@ main(A p) {
     await _verifyReferences(element, expected);
   }
 
-  @failingTest
   test_searchReferences_CompilationUnitElement() async {
-    provider.newFile(
-        _p('$testProject/my_part.dart'),
-        '''
-part of lib;
-''');
+    provider.newFile(_p('$testProject/foo.dart'), '');
     await _resolveTestUnit('''
-library lib;
-part 'my_part.dart';
+import 'foo.dart'; // import
+export 'foo.dart'; // export
 ''');
-    CompilationUnitElement element = _findElementAtString('my_part');
+    CompilationUnitElement element =
+        testLibraryElement.imports[0].importedLibrary.definingCompilationUnit;
+    int uriLength = "'foo.dart'".length;
     var expected = [
-      _expectIdQ(element.library.definingCompilationUnit,
-          SearchResultKind.REFERENCE, "'my_part.dart'",
-          length: "'my_part.dart'".length)
+      _expectIdQ(
+          testUnitElement, SearchResultKind.REFERENCE, "'foo.dart'; // import",
+          length: uriLength),
+      _expectIdQ(
+          testUnitElement, SearchResultKind.REFERENCE, "'foo.dart'; // export",
+          length: uriLength),
     ];
     await _verifyReferences(element, expected);
   }

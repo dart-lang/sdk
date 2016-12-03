@@ -255,9 +255,14 @@ class AnalysisDriver {
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
 
   /**
+   * The current file system state.
+   */
+  FileSystemState get fsState => _fsState;
+
+  /**
    * Return the set of files that are known, i.e. added or used implicitly.
    */
-  Set<String> get knownFiles => _fsState.knownFiles;
+  Set<String> get knownFiles => _fsState.knownFilePaths;
 
   /**
    * Return the list of files that the driver should try to analyze sooner.

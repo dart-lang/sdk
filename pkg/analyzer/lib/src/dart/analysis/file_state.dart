@@ -576,9 +576,15 @@ class FileSystemState {
   }
 
   /**
-   * Return the set of known files.
+   * Return the set of known file paths.
    */
-  Set<String> get knownFiles => _pathToFiles.keys.toSet();
+  Set<String> get knownFilePaths => _pathToFiles.keys.toSet();
+
+  /**
+   * Return the known files.
+   */
+  Iterable<FileState> get knownFiles =>
+      _pathToFiles.values.map((files) => files.first);
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
