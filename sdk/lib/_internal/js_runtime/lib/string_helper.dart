@@ -144,7 +144,7 @@ stringReplaceAllUnchecked(receiver, pattern, replacement) {
       if (receiver == "") {
         return replacement;
       } else {
-        StringBuffer result = new StringBuffer();
+        StringBuffer result = new StringBuffer('');
         int length = receiver.length;
         result.write(replacement);
         for (int i = 0; i < length; i++) {
@@ -184,7 +184,7 @@ stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
   if (pattern is! Pattern) {
     throw new ArgumentError.value(pattern, 'pattern', 'is not a Pattern');
   }
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = new StringBuffer('');
   int startIndex = 0;
   for (Match match in pattern.allMatches(receiver)) {
     buffer.write(onNonMatch(receiver.substring(startIndex, match.start)));
@@ -197,7 +197,7 @@ stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
 
 stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
   // Pattern is the empty string.
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = new StringBuffer('');
   int length = receiver.length;
   int i = 0;
   buffer.write(onNonMatch(""));
@@ -229,7 +229,7 @@ stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     return stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch);
   }
   int length = receiver.length;
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = new StringBuffer('');
   int startIndex = 0;
   while (startIndex < length) {
     int position = stringIndexOfStringUnchecked(receiver, pattern, startIndex);

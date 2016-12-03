@@ -796,7 +796,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   HInstruction setListRuntimeTypeInfoIfNeeded(
       HInstruction object, ir.ListLiteral listLiteral) {
     InterfaceType type = localsHandler
-        .substInContext(elements.getType(astAdapter.getNode(listLiteral)));
+        .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
@@ -827,7 +827,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
     }
 
-    TypeMask type = astAdapter.typeOfNewList(targetElement, listLiteral);
+    TypeMask type = astAdapter.typeOfListLiteral(targetElement, listLiteral);
     if (!type.containsAll(compiler.closedWorld)) {
       listInstruction.instructionType = type;
     }
@@ -866,7 +866,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(constructor.kind == ir.ProcedureKind.Factory);
 
     InterfaceType type = localsHandler
-        .substInContext(elements.getType(astAdapter.getNode(mapLiteral)));
+        .substInContext(astAdapter.getDartTypeOfMapLiteral(mapLiteral));
 
     ir.Class cls = constructor.enclosingClass;
 
