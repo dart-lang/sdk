@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
@@ -442,6 +443,9 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.WITH_WITHOUT_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+  ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
+  ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH,
+  ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
   ScannerErrorCode.MISSING_HEX_DIGIT,
