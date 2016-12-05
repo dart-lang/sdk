@@ -886,6 +886,25 @@ foo<T>(T a) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchSubtypes() async {
+    await _resolveTestUnit('''
+class T {}
+class A extends T {} // A
+class B = Object with T; // B
+class C implements T {} // C
+''');
+    ClassElement element = _findElement('T');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    ClassElement c = _findElement('C');
+    var expected = [
+      _expectId(a, SearchResultKind.REFERENCE, 'T {} // A'),
+      _expectId(b, SearchResultKind.REFERENCE, 'T; // B'),
+      _expectId(c, SearchResultKind.REFERENCE, 'T {} // C'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   ExpectedResult _expectId(
       Element enclosingElement, SearchResultKind kind, String search,
       {int length, bool isResolved: true, bool isQualified: false}) {

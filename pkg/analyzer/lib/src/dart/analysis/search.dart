@@ -74,6 +74,22 @@ class Search {
     return const <SearchResult>[];
   }
 
+  /**
+   * Returns subtypes of the given [type].
+   */
+  Future<List<SearchResult>> subTypes(ClassElement type) async {
+    if (type == null) {
+      return const <SearchResult>[];
+    }
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, type, {
+      IndexRelationKind.IS_EXTENDED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_MIXED_IN_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_IMPLEMENTED_BY: SearchResultKind.REFERENCE
+    });
+    return results;
+  }
+
   Future<Null> _addResults(List<SearchResult> results, Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
     String path = element.source.fullName;
