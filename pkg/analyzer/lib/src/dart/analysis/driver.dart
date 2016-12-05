@@ -677,13 +677,15 @@ class AnalysisDriver {
       Set<String> libraryUrisToLink = new Set<String>();
       _logger.run('Load linked bundles', () {
         for (FileState library in libraries.values) {
-          String key = '${library.transitiveSignature}.linked';
-          List<int> bytes = _byteStore.get(key);
-          if (bytes != null) {
-            LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-            store.addLinkedLibrary(library.uriStr, linked);
-          } else {
-            libraryUrisToLink.add(library.uriStr);
+          if (library.exists) {
+            String key = '${library.transitiveSignature}.linked';
+            List<int> bytes = _byteStore.get(key);
+            if (bytes != null) {
+              LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
+              store.addLinkedLibrary(library.uriStr, linked);
+            } else {
+              libraryUrisToLink.add(library.uriStr);
+            }
           }
         }
         int numOfLoaded = libraries.length - libraryUrisToLink.length;

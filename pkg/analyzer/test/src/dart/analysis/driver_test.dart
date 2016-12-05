@@ -380,6 +380,40 @@ var A2 = B1;
     }
   }
 
+  test_errors_uriDoesNotExist_export() async {
+    addTestFile(r'''
+export 'foo.dart';
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_errors_uriDoesNotExist_import() async {
+    addTestFile(r'''
+import 'foo.dart';
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_errors_uriDoesNotExist_part() async {
+    addTestFile(r'''
+library lib;
+part 'foo.dart';
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
   test_getFilesReferencingName() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');

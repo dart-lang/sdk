@@ -85,6 +85,7 @@ class FileState {
    */
   Source source;
 
+  bool _exists;
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
@@ -126,6 +127,11 @@ class FileState {
    * parted.
    */
   Set<FileState> get directReferencedFiles => _directReferencedFiles;
+
+  /**
+   * Return `true` if the file exists.
+   */
+  bool get exists => _exists;
 
   /**
    * The list of files this file exports.
@@ -351,15 +357,10 @@ class FileState {
     try {
       _content = _fsState._contentOverlay[path];
       _content ??= _fsState._resourceProvider.getFile(path).readAsStringSync();
+      _exists = true;
     } catch (_) {
       _content = '';
-      // TODO(scheglov) We fail to report URI_DOES_NOT_EXIST.
-      // On one hand we need to provide an unlinked bundle to prevent
-      // analysis context from reading the file (we want it to work
-      // hermetically and handle one one file at a time). OTOH,
-      // ResynthesizerResultProvider happily reports that any source in the
-      // SummaryDataStore has MODIFICATION_TIME `0`. We need to return `-1`
-      // for missing files. Maybe add this feature to SummaryDataStore?
+      _exists = false;
     }
 
     // Compute the content hash.
