@@ -4,7 +4,7 @@
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 import 'type_parser.dart';
-import 'type_unification_test_disabled.dart' show testCases;
+import 'type_unification_test.dart' show testCases;
 import 'package:test/test.dart';
 
 checkType(DartType type) {
