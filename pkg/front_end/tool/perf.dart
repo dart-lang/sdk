@@ -35,6 +35,12 @@ int scanTotalChars = 0;
 /// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
 
+/// Cumulative time spent parsing.
+Stopwatch parseTimer = new Stopwatch();
+
+/// Cumulative time spent building unlinked summaries.
+Stopwatch unlinkedSummarizeTimer = new Stopwatch();
+
 /// Factory to load and resolve app, packages, and sdk sources.
 SourceFactory sources;
 
@@ -166,18 +172,15 @@ void parseFiles(Set<Source> files) {
   scanTimer = new Stopwatch();
   var old = scanTotalChars;
   scanTotalChars = 0;
-  var parseTimer = new Stopwatch()..start();
+  parseTimer = new Stopwatch();
   for (var source in files) {
     parseFull(source);
   }
-  parseTimer.stop();
 
   // Report size and scanning time again. See discussion above.
   if (old != scanTotalChars) print('input size changed? ${old} chars');
   report("scan", scanTimer.elapsedMicroseconds);
-
-  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("parse", pTime);
+  report("parse", parseTimer.elapsedMicroseconds);
 }
 
 /// Produces unlinked summaries for every file in [files] and reports the time
@@ -190,17 +193,20 @@ void unlinkedSummarizeFiles(Set<Source> files) {
   scanTimer = new Stopwatch();
   var old = scanTotalChars;
   scanTotalChars = 0;
-  var summarizeTimer = new Stopwatch()..start();
+  parseTimer = new Stopwatch();
+  unlinkedSummarizeTimer = new Stopwatch();
   for (var source in files) {
     unlinkedSummarize(source);
   }
-  summarizeTimer.stop();
 
   if (old != scanTotalChars) print('input size changed? ${old} chars');
-
-  // TODO(paulberry): subtract out scan/parse time?
-  var summarizeTime = summarizeTimer.elapsedMicroseconds;
-  report('unlinked summarize', summarizeTime);
+  report("scan", scanTimer.elapsedMicroseconds);
+  report("parse", parseTimer.elapsedMicroseconds);
+  report('unlinked summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
+  report(
+      'unlinked summarize + parse',
+      unlinkedSummarizeTimer.elapsedMicroseconds +
+          parseTimer.elapsedMicroseconds);
 }
 
 /// Add to [files] all sources reachable from [start].
@@ -225,13 +231,19 @@ CompilationUnit parseDirectives(Source source) {
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
+  parseTimer.start();
   var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-  return parser.parseCompilationUnit(token);
+  var unit = parser.parseCompilationUnit(token);
+  parseTimer.stop();
+  return unit;
 }
 
 UnlinkedUnitBuilder unlinkedSummarize(Source source) {
   var unit = parseFull(source);
-  return serializeAstUnlinked(unit);
+  unlinkedSummarizeTimer.start();
+  var unlinkedUnit = serializeAstUnlinked(unit);
+  unlinkedSummarizeTimer.stop();
+  return unlinkedUnit;
 }
 
 /// Scan [source] and return the first token produced by the scanner.
