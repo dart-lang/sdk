@@ -488,7 +488,7 @@ class AnalysisDriver {
    * resolved unit).
    */
   Future<ParseResult> parseFile(String path) async {
-    FileState file = _fsState.getFileForPath(path);
+    FileState file = _verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return new ParseResult(file.path, file.uri, file.content, file.contentHash,

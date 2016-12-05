@@ -824,6 +824,23 @@ import 'b.dart';
     expect(driver.knownFiles, contains(b));
   }
 
+  test_parseFile_shouldRefresh() async {
+    var p = _p('/test/bin/a.dart');
+
+    provider.newFile(p, 'class A {}');
+    driver.addFile(p);
+
+    // Get the result, so force the file reading.
+    await driver.getResult(p);
+
+    // Update the file.
+    provider.newFile(p, 'class A2 {}');
+
+    ParseResult parseResult = await driver.parseFile(p);
+    var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A2');
+  }
+
   test_part_getResult_afterLibrary() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
