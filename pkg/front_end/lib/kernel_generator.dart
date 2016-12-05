@@ -5,9 +5,13 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator;
 
-import 'dart:async';
+import 'compilation_error.dart';
 import 'compiler_options.dart';
-import 'package:kernel/kernel.dart' as kernel;
+import 'dart:async';
+
+// TODO(sigmund): move loader logic under front_end/lib/src/kernel/
+import 'package:kernel/analyzer/loader.dart';
+import 'package:kernel/kernel.dart';
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].
@@ -24,8 +28,12 @@ import 'package:kernel/kernel.dart' as kernel;
 ///
 /// TODO(paulberry): will the VM have a pickled version of the SDK inside it? If
 /// so, then maybe this method should not convert SDK libraries to kernel.
-Future<kernel.Program> kernelForProgram(Uri source, CompilerOptions options) =>
-    throw new UnimplementedError();
+Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
+  var loader = await _createLoader(options);
+  Program program = loader.loadProgram(source);
+  _reportErrors(loader.errors, options.onError);
+  return program;
+}
 
 /// Generates a kernel representation of the build unit whose source files are
 /// in [sources].
@@ -46,13 +54,51 @@ Future<kernel.Program> kernelForProgram(Uri source, CompilerOptions options) =>
 /// are also listed in [sources], otherwise an error results.  (It is not
 /// permitted to refer to a part file declared in another build unit).
 ///
-/// The return value is a [kernel.Program] object with no main method set.
+/// The return value is a [Program] object with no main method set.
 /// TODO(paulberry): would it be better to define a data type in kernel to
 /// represent a bundle of all the libraries in a given build unit?
 ///
 /// TODO(paulberry): does additional information need to be output to allow the
 /// caller to match up referenced elements to the summary files they were
 /// obtained from?
-Future<kernel.Program> kernelForBuildUnit(
-        List<Uri> sources, CompilerOptions options) =>
-    throw new UnimplementedError();
+Future<Program> kernelForBuildUnit(
+        List<Uri> sources, CompilerOptions options) async {
+  var repository = new Repository();
+  var loader = await _createLoader(options, repository: repository);
+  // TODO(sigmund): add special handling for part files.
+  sources.forEach(loader.loadLibrary);
+  Program program = new Program(repository.libraries);
+  _reportErrors(loader.errors, options.onError);
+  return program;
+}
+
+Future<DartLoader> _createLoader(CompilerOptions options,
+    {Repository repository}) async {
+  var kernelOptions = _convertOptions(options);
+  var packages = await createPackages(options.packagesFilePath);
+  return new DartLoader(
+      repository ?? new Repository(), kernelOptions, packages);
+}
+
+DartOptions _convertOptions(CompilerOptions options) {
+  return new DartOptions(
+      sdk: options.sdkPath,
+      packagePath: options.packagesFilePath,
+      declaredVariables: options.declaredVariables);
+}
+
+void _reportErrors(List errors, ErrorHandler onError) {
+  if (onError == null) return;
+  for (var error in errors) {
+    onError(new _DartkError(error));
+  }
+}
+
+// TODO(sigmund): delete this class. Dartk should not format errors itself, we
+// should just pass them along.
+class _DartkError implements CompilationError {
+  String get correction => null;
+  String get span => null;
+  final String message;
+  _DartkError(this.message);
+}
