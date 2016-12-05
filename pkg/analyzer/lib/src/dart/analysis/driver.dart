@@ -67,8 +67,6 @@ import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
  *
  *
  * TODO(scheglov) Clean up the list of implicitly analyzed files.
- *
- * TODO(scheglov) Handle not existing 'dart:x' URIs (while user is typing).
  */
 class AnalysisDriver {
   /**
@@ -512,29 +510,6 @@ class AnalysisDriver {
   }
 
   /**
-   * TODO(scheglov) see [_addToStoreUnlinked]
-   */
-  void _addToStoreLinked(
-      SummaryDataStore store, String uri, LinkedLibrary linked) {
-    store.linkedMap[uri] = linked;
-  }
-
-  /**
-   * TODO(scheglov) The existing [SummaryDataStore.addBundle] uses
-   * [PackageBundle.unlinkedUnitUris] to add [PackageBundle.unlinkedUnits].
-   * But we store unlinked bundles with the hash of the file content. This
-   * means that when two files are the same, but have different URIs, we
-   * add [UnlinkedUnit] with wrong URI.
-   *
-   * We need to clean this up.
-   */
-  void _addToStoreUnlinked(
-      SummaryDataStore store, Uri uri, UnlinkedUnit unlinked) {
-    String uriStr = uri.toString();
-    store.unlinkedMap[uriStr] = unlinked;
-  }
-
-  /**
    * Return the cached or newly computed analysis result of the file with the
    * given [path].
    *
@@ -682,15 +657,11 @@ class AnalysisDriver {
           libraries[library.uriStr] = library;
 
           // Append the defining unit.
-          {
-            UnlinkedUnit unlinked = library.unlinked;
-            _addToStoreUnlinked(store, library.uri, unlinked);
-          }
+          store.addUnlinkedUnit(library.uriStr, library.unlinked);
 
           // Append parts.
           for (FileState part in library.partedFiles) {
-            UnlinkedUnit unlinked = part.unlinked;
-            _addToStoreUnlinked(store, part.uri, unlinked);
+            store.addUnlinkedUnit(part.uriStr, part.unlinked);
           }
 
           // Append referenced libraries.
@@ -710,7 +681,7 @@ class AnalysisDriver {
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
             LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-            _addToStoreLinked(store, library.uriStr, linked);
+            store.addLinkedLibrary(library.uriStr, linked);
           } else {
             libraryUrisToLink.add(library.uriStr);
           }
@@ -736,7 +707,7 @@ class AnalysisDriver {
         String key = '${library.transitiveSignature}.linked';
         List<int> bytes = linkedBuilder.toBuffer();
         LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-        _addToStoreLinked(store, uri, linked);
+        store.addLinkedLibrary(uri, linked);
         _byteStore.put(key, bytes);
       });
 
