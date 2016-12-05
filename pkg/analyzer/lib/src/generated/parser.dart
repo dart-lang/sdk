@@ -6846,6 +6846,14 @@ class Parser {
           keyword != Keyword.OPERATOR &&
           (_tokenMatchesIdentifier(next) ||
               _tokenMatches(next, TokenType.LT))) {
+        Token afterTypeParameters = _skipTypeParameterList(next);
+        if (afterTypeParameters != null &&
+            _tokenMatches(afterTypeParameters, TokenType.OPEN_PAREN)) {
+          // If the identifier is followed by type parameters and a parenthesis,
+          // then the identifier is the name of a generic method, not a return
+          // type.
+          return null;
+        }
         return parseReturnType();
       }
       Token next2 = next.next;

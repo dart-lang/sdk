@@ -2071,7 +2071,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       }
 
       // Now that type parameters are declared, the result type can be resolved.
-      ResolveType(ClassFinalizer::kResolveTypeParameters, &result_type);
+      ResolveType(is_top_level_ ? ClassFinalizer::kResolveTypeParameters
+                                : ClassFinalizer::kCanonicalize,
+                  &result_type);
 
       ASSERT(CurrentToken() == Token::kLPAREN);
       ParamList func_params;
@@ -2108,11 +2110,12 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   } else {
     if (!parameter.type->IsFinalized()) {
       AbstractType& type = AbstractType::ZoneHandle(Z, parameter.type->raw());
-      ResolveType(ClassFinalizer::kResolveTypeParameters, &type);
-      if (!is_top_level_) {
-        type = ClassFinalizer::FinalizeType(
-            Class::Handle(Z, innermost_function().origin()), type,
-            ClassFinalizer::kCanonicalize);
+      if (is_top_level_) {
+        ResolveType(ClassFinalizer::kResolveTypeParameters, &type);
+      } else {
+        ResolveType(ClassFinalizer::kCanonicalize, &type);
+        type = ClassFinalizer::FinalizeType(current_class(), type,
+                                            ClassFinalizer::kCanonicalize);
       }
       parameter.type = &type;
     }
@@ -7673,7 +7676,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   if (!found_func && !result_type.IsFinalized()) {
     // Now that type parameters are declared, the result type can be resolved
     // and finalized.
-    ResolveType(ClassFinalizer::kResolveTypeParameters, &result_type);
+    ResolveType(ClassFinalizer::kCanonicalize, &result_type);
     result_type = ClassFinalizer::FinalizeType(current_class(), result_type,
                                                ClassFinalizer::kCanonicalize);
     function.set_result_type(result_type);
@@ -11917,6 +11920,8 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
       // The referenced class may not have been parsed yet. It would be wrong
       // to resolve it too early to an imported class of the same name. Only
       // resolve the class when a finalized type is requested.
+      // Note that when compiling a cloned mixin function, library_ may be
+      // different than current_class's library.
       if (finalization > ClassFinalizer::kResolveTypeParameters) {
         resolved_type_class = library_.LookupClass(unresolved_class_name);
       }
