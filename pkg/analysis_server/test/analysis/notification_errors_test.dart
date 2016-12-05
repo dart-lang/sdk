@@ -162,12 +162,4 @@ class NotificationErrorsTest_Driver extends AbstractNotificationErrorsTest {
     generateSummaryFiles = true;
     super.setUp();
   }
-
-  @failingTest
-  @override
-  test_importError() {
-    // The overridden test is failing because we're getting an 'unused import'
-    // hint rather than a URI does not exist error.
-    return super.test_importError();
-  }
 }
