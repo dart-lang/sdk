@@ -12,6 +12,7 @@ import 'dart:async';
 // TODO(sigmund): move loader logic under front_end/lib/src/kernel/
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
+import 'package:source_span/source_span.dart' show SourceSpan;
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].
@@ -98,7 +99,7 @@ void _reportErrors(List errors, ErrorHandler onError) {
 // should just pass them along.
 class _DartkError implements CompilationError {
   String get correction => null;
-  String get span => null;
+  SourceSpan get span => null;
   final String message;
   _DartkError(this.message);
 }
