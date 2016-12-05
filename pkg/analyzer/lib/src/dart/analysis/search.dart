@@ -71,7 +71,6 @@ class Search {
       return _searchReferences_Local(
           element, (n) => n.parent is CompilationUnit);
     }
-    // TODO(scheglov) support other kinds
     return const <SearchResult>[];
   }
 
@@ -84,16 +83,30 @@ class Search {
       return;
     }
 
-    // TODO(scheglov) optimize for private elements
+    // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
       name = element.enclosingElement.displayName;
     }
 
     // Prepare the list of files that reference the element name.
-    List<String> files = await _driver.getFilesReferencingName(name);
-    if (!files.contains(path) && _driver.addedFiles.contains(path)) {
-      files.add(path);
+    List<String> files = <String>[];
+    if (name.startsWith('_')) {
+      String libraryPath = element.library.source.fullName;
+      if (_driver.addedFiles.contains(libraryPath)) {
+        FileState library = _driver.fsState.getFileForPath(libraryPath);
+        List<FileState> candidates = [library]..addAll(library.partedFiles);
+        for (FileState file in candidates) {
+          if (file.path == path || file.referencedNames.contains(name)) {
+            files.add(file.path);
+          }
+        }
+      }
+    } else {
+      files = await _driver.getFilesReferencingName(name);
+      if (!files.contains(path) && _driver.addedFiles.contains(path)) {
+        files.add(path);
+      }
     }
 
     // Check the index of every file that references the element name.

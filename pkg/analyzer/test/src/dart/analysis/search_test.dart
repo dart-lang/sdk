@@ -661,6 +661,88 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_private_declaredInDefiningUnit() async {
+    String p1 = _p('$testProject/part1.dart');
+    String p2 = _p('$testProject/part2.dart');
+    String p3 = _p('$testProject/part3.dart');
+    String code1 = 'part of lib; _C v1;';
+    String code2 = 'part of lib; _C v2;';
+    provider.newFile(p1, code1);
+    provider.newFile(p2, code2);
+    provider.newFile(p3, 'part of lib; int v3;');
+
+    driver.addFile(p1);
+    driver.addFile(p2);
+    driver.addFile(p3);
+
+    await _resolveTestUnit('''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+part 'part3.dart';
+class _C {}
+_C v;
+''');
+    ClassElement element = _findElementAtString('_C {}');
+    Element v = testUnitElement.topLevelVariables[0];
+    Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
+    Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
+    var expected = [
+      _expectId(v, SearchResultKind.REFERENCE, '_C v;', length: 2),
+      new ExpectedResult(
+          v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
+      new ExpectedResult(
+          v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_private_declaredInPart() async {
+    String p = _p('$testProject/lib.dart');
+    String p1 = _p('$testProject/part1.dart');
+    String p2 = _p('$testProject/part2.dart');
+
+    var code = '''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+_C v;
+''';
+    var code1 = '''
+part of lib;
+class _C {}
+_C v1;
+''';
+    String code2 = 'part of lib; _C v2;';
+
+    provider.newFile(p, code);
+    provider.newFile(p1, code1);
+    provider.newFile(p2, code2);
+
+    driver.addFile(p);
+    driver.addFile(p1);
+    driver.addFile(p2);
+
+    AnalysisResult result = await driver.getResult(p);
+    testUnit = result.unit;
+    testUnitElement = testUnit.element;
+    testLibraryElement = testUnitElement.library;
+
+    ClassElement element = testLibraryElement.parts[0].types[0];
+    Element v = testUnitElement.topLevelVariables[0];
+    Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
+    Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
+    var expected = [
+      new ExpectedResult(
+          v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
+      new ExpectedResult(
+          v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
+      new ExpectedResult(
+          v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_PropertyAccessorElement_getter() async {
     await _resolveTestUnit('''
 class A {
