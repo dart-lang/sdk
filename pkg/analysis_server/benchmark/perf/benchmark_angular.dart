@@ -6,15 +6,14 @@ library server.performance.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
-
 import 'benchmark_scenario.dart';
 import 'memory_tests.dart';
 
 main(List<String> args) async {
   int length = args.length;
   if (length < 1) {
-    print('Usage: dart benchmark_local.dart path_to_np8080 (an example ngdart project)'
+    print(
+        'Usage: dart benchmark_local.dart path_to_np8080 (an example ngdart project)'
         ' [benchmark_id]');
     return;
   }
@@ -55,7 +54,8 @@ Future run_ng_change_dart(String id) async {
       roots: [paths.packageNp8080],
       file: paths.editorDart,
       fileChange: new FileChange(
-          afterStr: 'showPreview = false;', insertStr: '@Output() EventEmitter<int> myEventEmitter;'),
+          afterStr: 'showPreview = false;',
+          insertStr: '@Output() EventEmitter<int> myEventEmitter;'),
       numOfRepeats: 10);
   printBenchmarkResults(id, description, times);
 }
