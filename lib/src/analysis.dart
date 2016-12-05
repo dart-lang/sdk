@@ -112,9 +112,8 @@ class AnalysisDriver {
 
   List<AnalysisErrorInfo> analyze(Iterable<io.File> files) {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    registerLinters(context);
-
     context.analysisOptions = _buildAnalyzerOptions(options);
+    registerLinters(context);
 
     Packages packages = _getPackageConfig();
 
