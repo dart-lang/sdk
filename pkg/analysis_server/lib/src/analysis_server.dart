@@ -1910,6 +1910,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void applyFileRemoved(nd.AnalysisDriver driver, String file) {
+    driver.removeFile(file);
+    sendAnalysisNotificationFlushResults(analysisServer, [file]);
+  }
+
+  @override
   void computingPackageMap(bool computing) =>
       analysisServer._computingPackageMap(computing);
 

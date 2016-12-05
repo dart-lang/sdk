@@ -346,6 +346,11 @@ abstract class ContextManagerCallbacks {
   AnalysisContext addContext(Folder folder, AnalysisOptions options);
 
   /**
+   * The given [file] was removed from the folder analyzed in the [driver].
+   */
+  void applyFileRemoved(AnalysisDriver driver, String file);
+
+  /**
    * Called when the set of files associated with a context have changed (or
    * some of those files have been modified).  [changeSet] is the set of
    * changes that need to be applied to the context.
@@ -1479,7 +1484,7 @@ class ContextManagerImpl implements ContextManager {
         }
 
         if (enableNewAnalysisDriver) {
-          info.analysisDriver.removeFile(path);
+          callbacks.applyFileRemoved(info.analysisDriver, path);
         } else {
           List<Source> sources = info.context.getSourcesWithFullName(path);
           if (!sources.isEmpty) {
