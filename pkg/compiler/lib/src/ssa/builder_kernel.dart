@@ -1309,16 +1309,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void handleForeignJsSetStaticState(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation, 0, 0)) {
+    if (_unexpectedForeignArguments(invocation, 1, 1)) {
       stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
       return;
     }
-    _visitArguments(invocation.arguments);
+
+    List<HInstruction> inputs = _visitArguments(invocation.arguments);
+
     String isolateName = backend.namer.staticStateHolder;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
     push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
-        backend.dynamicType, <HInstruction>[pop()],
+        backend.dynamicType, inputs,
         nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
