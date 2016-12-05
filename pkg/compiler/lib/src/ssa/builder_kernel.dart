@@ -1212,14 +1212,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return stringConstant.primitiveValue.slowToString();
   }
 
-  // TODO(sra): Remove when handleInvokeStaticForeign fully implemented.
-  void unhandledForeign(ir.StaticInvocation invocation) {
-    ir.Procedure target = invocation.target;
-    TypeMask typeMask = astAdapter.returnTypeOf(target);
-    List<HInstruction> arguments = _visitArguments(invocation.arguments);
-    _pushStaticInvocation(target, arguments, typeMask);
-  }
-
   void handleForeignJsCurrentIsolateContext(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 0, 0)) {
       stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
@@ -1247,7 +1239,27 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void handleForeignJsCallInIsolate(ir.StaticInvocation invocation) {
-    unhandledForeign(invocation);
+    if (_unexpectedForeignArguments(invocation, 2, 2)) {
+      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      return;
+    }
+
+    List<HInstruction> inputs = _visitArguments(invocation.arguments);
+
+    if (!compiler.hasIsolateSupport) {
+      // If the isolate library is not used, we ignore the isolate argument and
+      // just invoke the closure.
+      push(new HInvokeClosure(new Selector.callClosure(0),
+          <HInstruction>[inputs[1]], backend.dynamicType));
+    } else {
+      // Call a helper method from the isolate library.
+      ir.Procedure callInIsolate = astAdapter.callInIsolate;
+      if (callInIsolate == null) {
+        compiler.reporter.internalError(astAdapter.getNode(invocation),
+            'Isolate library and compiler mismatch.');
+      }
+      _pushStaticInvocation(callInIsolate, inputs, backend.dynamicType);
+    }
   }
 
   void handleForeignDartClosureToJs(

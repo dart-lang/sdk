@@ -378,6 +378,9 @@ class KernelAstAdapter {
   ir.Procedure get currentIsolate =>
       kernel.functions[_backend.helpers.currentIsolate];
 
+  ir.Procedure get callInIsolate =>
+      kernel.functions[_backend.helpers.callInIsolate];
+
   bool isInForeignLibrary(ir.Member member) =>
       _backend.isForeign(getElement(member));
 
