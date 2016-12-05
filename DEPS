@@ -120,7 +120,7 @@ vars = {
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
-  "yaml_tag": "@2.1.12",
+  "yaml_tag": "@2.1.11",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
 
