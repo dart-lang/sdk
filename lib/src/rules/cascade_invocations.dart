@@ -5,6 +5,7 @@
 library linter.src.rules.cascade_invocations;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
@@ -118,7 +119,8 @@ class _Visitor extends SimpleAstVisitor {
       rule.reportLint(node);
     }
 
-    if (previousNode is VariableDeclarationStatement) {
+    if (previousNode is VariableDeclarationStatement &&
+        _isInvokedWithoutNullAwareOperator(node)) {
       _reportIfDeclarationFollowedByMethodInvocation(
           previousNode, prefixIdentifier, node);
     }
@@ -134,4 +136,14 @@ class _Visitor extends SimpleAstVisitor {
       rule.reportLint(node);
     }
   }
+}
+
+bool _isInvokedWithoutNullAwareOperator(AstNode node) {
+  if (node is ExpressionStatement && node.expression is MethodInvocation) {
+    final tokenType = (node.expression as MethodInvocation).operator.type;
+    return tokenType == TokenType.PERIOD ||
+        tokenType == TokenType.PERIOD_PERIOD;
+  }
+
+  return false;
 }

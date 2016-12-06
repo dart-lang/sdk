@@ -62,3 +62,8 @@ void withDifferentTypes() {
   foo.foo();
   if (foo.bar > 5) {}
 }
+
+void cascade() {
+  final foo = new Foo();
+  foo?.baz();
+}
