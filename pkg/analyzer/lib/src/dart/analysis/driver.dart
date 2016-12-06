@@ -594,6 +594,7 @@ class AnalysisDriver {
         _logger.writeln('Computed new analysis result.');
         return _getAnalysisResultFromBytes(libraryFile, file, bytes,
             content: withUnit ? file.content : null,
+            withErrors: _explicitFiles.contains(path),
             resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
         analysisContext.dispose();
@@ -736,21 +737,11 @@ class AnalysisDriver {
    */
   AnalysisResult _getAnalysisResultFromBytes(
       FileState libraryFile, FileState file, List<int> bytes,
-      {String content, CompilationUnit resolvedUnit}) {
+      {String content, bool withErrors: true, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    List<AnalysisError> errors = unit.errors.map((error) {
-      String errorName = error.uniqueName;
-      ErrorCode errorCode =
-          errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
-      if (errorCode == null) {
-        // This could fail because the error code is no longer defined, or, in
-        // the case of a lint rule, if the lint rule has been disabled since the
-        // errors were written.
-        throw new StateError('No ErrorCode for $errorName in $file');
-      }
-      return new AnalysisError.forValues(file.source, error.offset,
-          error.length, errorCode, error.message, error.correction);
-    }).toList();
+    List<AnalysisError> errors = withErrors
+        ? _getErrorsFromSerialized(file, unit.errors)
+        : const <AnalysisError>[];
     return new AnalysisResult(
         libraryFile,
         file,
@@ -763,6 +754,26 @@ class AnalysisDriver {
         resolvedUnit,
         errors,
         unit.index);
+  }
+
+  /**
+   * Return [AnalysisError]s for the given [serialized] errors.
+   */
+  List<AnalysisError> _getErrorsFromSerialized(
+      FileState file, List<AnalysisDriverUnitError> serialized) {
+    return serialized.map((error) {
+      String errorName = error.uniqueName;
+      ErrorCode errorCode =
+          errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
+      if (errorCode == null) {
+        // This could fail because the error code is no longer defined, or, in
+        // the case of a lint rule, if the lint rule has been disabled since the
+        // errors were written.
+        throw new StateError('No ErrorCode for $errorName in $file');
+      }
+      return new AnalysisError.forValues(file.source, error.offset,
+          error.length, errorCode, error.message, error.correction);
+    }).toList();
   }
 
   /**

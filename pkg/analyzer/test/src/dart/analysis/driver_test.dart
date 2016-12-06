@@ -623,6 +623,11 @@ var y = z;
 String z = "string";
 ''');
 
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+
     // Analysis of my_pkg/bin/a.dart produces no error because
     // file:///my_pkg/bin/a.dart imports package:my_pkg/c.dart, and
     // package:my_pkg/c.dart's import is erroneous, causing y's reference to z
@@ -643,6 +648,14 @@ String z = "string";
       expect(errors, hasLength(1));
       expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     }
+  }
+
+  test_getResult_noErrors_ifNotAdded() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, 'A a = null;');
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.errors, isEmpty);
   }
 
   test_getResult_notDartFile() async {
