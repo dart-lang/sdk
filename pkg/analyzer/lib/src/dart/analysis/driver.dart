@@ -745,6 +745,7 @@ class AnalysisDriver {
     return new AnalysisResult(
         libraryFile,
         file,
+        this,
         sourceFactory,
         file.path,
         file.uri,
@@ -1155,6 +1156,11 @@ class AnalysisResult {
   final FileState _file;
 
   /**
+   * The [AnalysisDriver] that produced this result.
+   */
+  final AnalysisDriver driver;
+
+  /**
    * The [SourceFactory] with which the file was analyzed.
    */
   final SourceFactory sourceFactory;
@@ -1204,6 +1210,7 @@ class AnalysisResult {
   AnalysisResult(
       this._libraryFile,
       this._file,
+      this.driver,
       this.sourceFactory,
       this.path,
       this.uri,

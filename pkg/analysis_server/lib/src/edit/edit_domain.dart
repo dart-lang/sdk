@@ -188,11 +188,12 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in result.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            var context = new _DartFixContextImpl(server.resourceProvider,
-                (String name) async {
-              // TODO(scheglov) implement for the new driver
-              return [];
-            }, unit.element.context, unit, error);
+            var context = new _DartFixContextImpl(
+                server.resourceProvider,
+                result.driver.getTopLevelNameDeclarations,
+                unit.element.context,
+                unit,
+                error);
             List<Fix> fixes =
                 await new DefaultFixContributor().internalComputeFixes(context);
             if (fixes.isNotEmpty) {

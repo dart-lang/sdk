@@ -1964,6 +1964,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
       nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
       driver.dispose();
+      // Remove cached priority results for the driver.
+      var results = analysisServer.priorityFileResults;
+      results.keys
+          .where((key) => results[key].driver == driver)
+          .forEach(results.remove);
     } else {
       AnalysisContext context = analysisServer.folderMap.remove(folder);
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
