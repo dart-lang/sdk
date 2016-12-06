@@ -25,18 +25,18 @@ import 'elements/elements.dart'
         ConstructorElement,
         Element,
         Entity,
-        FunctionElement,
         LibraryElement,
         LocalFunctionElement,
-        TypedElement;
+        MemberElement;
+import 'elements/entities.dart';
 import 'native/native.dart' as native;
 import 'types/types.dart' show TypeMaskStrategy;
-import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
+import 'util/enumset.dart';
 import 'util/util.dart' show Setlet;
 import 'world.dart' show OpenWorld;
 
@@ -122,7 +122,7 @@ abstract class Enqueuer {
 abstract class EnqueuerImpl extends Enqueuer {
   CompilerTask get task;
   EnqueuerStrategy get strategy;
-  void processInstantiatedClassMember(ClassElement cls, Element member);
+  void checkClass(ClassElement cls);
   void processStaticUse(StaticUse staticUse);
   void processTypeUse(TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
@@ -143,10 +143,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
-  final Map<String, Set<Element>> _instanceMembersByName =
-      new Map<String, Set<Element>>();
-  final Map<String, Set<Element>> _instanceFunctionsByName =
-      new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> _recentClasses = new Setlet<ClassElement>();
   final ResolutionWorldBuilderImpl _universe;
@@ -167,18 +163,18 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   ResolutionEnqueuer(
       this.task,
       this._options,
-      this._resolution,
+      Resolution resolution,
       this.strategy,
       this._globalDependencies,
       Backend backend,
-      CommonElements commonElements,
+      this._commonElements,
       CacheStrategy cacheStrategy,
       [this.name = 'resolution enqueuer'])
       : this.backend = backend,
-        this._commonElements = commonElements,
+        this._resolution = resolution,
         this.nativeEnqueuer = backend.nativeResolutionEnqueuer(),
         _universe = new ResolutionWorldBuilderImpl(
-            backend, commonElements, cacheStrategy, const TypeMaskStrategy()) {
+            backend, resolution, cacheStrategy, const TypeMaskStrategy()) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
@@ -233,94 +229,42 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     return strategy.checkEnqueuerConsistency(this);
   }
 
-  void processInstantiatedClassMember(ClassElement cls, Element member) {
-    assert(invariant(member, member.isDeclaration));
-    if (isProcessed(member)) return;
-    if (!member.isInstanceMember) return;
-    String memberName = member.name;
-
-    if (member.isField) {
-      // The obvious thing to test here would be "member.isNative",
-      // however, that only works after metadata has been parsed/analyzed,
-      // and that may not have happened yet.
-      // So instead we use the enclosing class, which we know have had
-      // its metadata parsed and analyzed.
-      // Note: this assumes that there are no non-native fields on native
-      // classes, which may not be the case when a native class is subclassed.
-      if (backend.isNative(cls)) {
-        _openWorld.registerUsedElement(member);
-        if (_universe.hasInvokedGetter(member, _openWorld) ||
-            _universe.hasInvocation(member, _openWorld)) {
-          _addToWorkList(member);
-          return;
-        }
-        if (_universe.hasInvokedSetter(member, _openWorld)) {
-          _addToWorkList(member);
-          return;
-        }
-        // Native fields need to go into instanceMembersByName as they
-        // are virtual instantiation points and escape points.
-      } else {
-        // All field initializers must be resolved as they could
-        // have an observable side-effect (and cannot be tree-shaken
-        // away).
-        _addToWorkList(member);
-        return;
+  void checkClass(ClassElement cls) {
+    _processClassMembers(cls,
+        (MemberElement member, EnumSet<MemberUse> useSet) {
+      if (useSet.isNotEmpty) {
+        _reporter.internalError(member,
+            'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    } else if (member.isFunction) {
-      FunctionElement function = member;
-      function.computeType(_resolution);
+    });
+  }
+
+  /// Callback for applying the first seen use of a [member].
+  void _applyFirstUse(MemberElement member, EnumSet<MemberUse> useSet) {
+    ClassElement cls = member.enclosingClass;
+    if (member.isFunction) {
+      MemberElement function = member;
       if (function.name == Identifiers.noSuchMethod_) {
         _registerNoSuchMethod(function);
       }
       if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
         _registerCallMethodWithFreeTypeVariables(function);
       }
-      // If there is a property access with the same name as a method we
-      // need to emit the method.
-      if (_universe.hasInvokedGetter(function, _openWorld)) {
-        _registerClosurizedMember(function);
-        _addToWorkList(function);
-        return;
-      }
-      // Store the member in [instanceFunctionsByName] to catch
-      // getters on the function.
-      _instanceFunctionsByName
-          .putIfAbsent(memberName, () => new Set<Element>())
-          .add(member);
-      if (_universe.hasInvocation(function, _openWorld)) {
-        _addToWorkList(function);
-        return;
-      }
-    } else if (member.isGetter) {
-      FunctionElement getter = member;
-      getter.computeType(_resolution);
-      if (_universe.hasInvokedGetter(getter, _openWorld)) {
-        _addToWorkList(getter);
-        return;
-      }
-      // We don't know what selectors the returned closure accepts. If
-      // the set contains any selector we have to assume that it matches.
-      if (_universe.hasInvocation(getter, _openWorld)) {
-        _addToWorkList(getter);
-        return;
-      }
-    } else if (member.isSetter) {
-      FunctionElement setter = member;
-      setter.computeType(_resolution);
-      if (_universe.hasInvokedSetter(setter, _openWorld)) {
-        _addToWorkList(setter);
-        return;
-      }
     }
-
-    // The element is not yet used. Add it to the list of instance
-    // members to still be processed.
-    _instanceMembersByName
-        .putIfAbsent(memberName, () => new Set<Element>())
-        .add(member);
+    _applyUse(member, useSet);
   }
 
+  /// Callback for applying the use of a [member].
+  void _applyUse(Entity member, EnumSet<MemberUse> useSet) {
+    if (useSet.contains(MemberUse.NORMAL)) {
+      _addToWorkList(member);
+    }
+    if (useSet.contains(MemberUse.CLOSURIZE)) {
+      _registerClosurizedMember(member);
+    }
+  }
+
+  /// TODO(johnniwinther): Move this to [ResolutionWorldBuilderImpl].
   void _processInstantiatedClass(ClassElement cls) {
     task.measure(() {
       if (_processedClasses.contains(cls)) return;
@@ -334,7 +278,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _processedClasses.add(superclass);
         _recentClasses.add(superclass);
         superclass.ensureResolved(_resolution);
-        superclass.implementation.forEachMember(processInstantiatedClassMember);
+        _processClassMembers(superclass, _applyFirstUse);
         _resolution.ensureClassMembers(superclass);
         // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
@@ -351,59 +295,17 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
+  /// TODO(johnniwinther): Move this to [ResolutionWorldBuilderImpl].
+  void _processClassMembers(ClassElement cls, MemberUsed memberUsed) {
+    cls.implementation.forEachMember((ClassElement cls, MemberElement member) {
+      _universe.processInstantiatedClassMember(cls, member, memberUsed);
+    });
+  }
+
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      if (_universe.registerDynamicUse(dynamicUse)) {
-        _handleUnseenSelector(dynamicUse);
-      }
+      _universe.registerDynamicUse(dynamicUse, _applyUse);
     });
-  }
-
-  void _processSet(
-      Map<String, Set<Element>> map, String memberName, bool f(Element e)) {
-    Set<Element> members = map[memberName];
-    if (members == null) return;
-    // [f] might add elements to [: map[memberName] :] during the loop below
-    // so we create a new list for [: map[memberName] :] and prepend the
-    // [remaining] members after the loop.
-    map[memberName] = new Set<Element>();
-    Set<Element> remaining = new Set<Element>();
-    for (Element member in members) {
-      if (!f(member)) remaining.add(member);
-    }
-    map[memberName].addAll(remaining);
-  }
-
-  void _processInstanceMembers(String n, bool f(Element e)) {
-    _processSet(_instanceMembersByName, n, f);
-  }
-
-  void _processInstanceFunctions(String n, bool f(Element e)) {
-    _processSet(_instanceFunctionsByName, n, f);
-  }
-
-  void _handleUnseenSelector(DynamicUse dynamicUse) {
-    Selector selector = dynamicUse.selector;
-    String methodName = selector.name;
-    _processInstanceMembers(methodName, (Element member) {
-      if (dynamicUse.appliesUnnamed(member, _openWorld)) {
-        if (member.isFunction && selector.isGetter) {
-          _registerClosurizedMember(member);
-        }
-        _addToWorkList(member);
-        return true;
-      }
-      return false;
-    });
-    if (selector.isGetter) {
-      _processInstanceFunctions(methodName, (Element member) {
-        if (dynamicUse.appliesUnnamed(member, _openWorld)) {
-          _registerClosurizedMember(member);
-          return true;
-        }
-        return false;
-      });
-    }
   }
 
   void processStaticUse(StaticUse staticUse) {
@@ -499,9 +401,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     _universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
-  void _registerClosurizedMember(TypedElement element) {
+  void _registerClosurizedMember(MemberElement element) {
     assert(element.isInstanceMember);
-    if (element.computeType(_resolution).containsTypeVariables) {
+    if (element.type.containsTypeVariables) {
       applyImpact(backend.registerClosureWithFreeTypeVariables(element,
           forResolution: true));
       _universe.closuresWithFreeTypeVariables.add(element);
@@ -656,8 +558,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void forgetElement(Element element, Compiler compiler) {
     _universe.forgetElement(element, compiler);
     _processedClasses.remove(element);
-    _instanceMembersByName[element.name]?.remove(element);
-    _instanceFunctionsByName[element.name]?.remove(element);
     processedElements.remove(element);
   }
 }
@@ -728,8 +628,7 @@ class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
         for (ClassElement currentClass = classElement;
             currentClass != null;
             currentClass = currentClass.superclass) {
-          currentClass.implementation
-              .forEachMember(enqueuer.processInstantiatedClassMember);
+          enqueuer.checkClass(currentClass);
         }
       }
     });

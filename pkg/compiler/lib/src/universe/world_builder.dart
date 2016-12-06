@@ -14,7 +14,9 @@ import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../universe/class_set.dart' show Instantiation;
+import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, OpenWorld, WorldImpl;
 import 'selector.dart' show Selector;
@@ -129,9 +131,6 @@ abstract class WorldBuilder {
   /// instantiated classes.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<DartType> get instantiatedTypes;
-
-  /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(Element member, World world);
 }
 
 abstract class ResolutionWorldBuilder implements WorldBuilder {
@@ -166,6 +165,9 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// directly and abstractly instantiated classes but also classes whose type
   /// arguments are used in live factory constructors.
   void forEachInstantiatedClass(f(ClassElement cls, InstantiationInfo info));
+
+  /// Returns `true` if [member] is invoked as a setter.
+  bool hasInvokedSetter(Element member);
 
   /// `true` of `Object.runtimeType` is supported.
   bool get hasRuntimeTypeSupport;
@@ -370,6 +372,20 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
       <String, Map<Selector, SelectorConstraints>>{};
 
+  /// Map of registers usage of instance members of live classes.
+  final Map<MemberEntity, MemberUsage> _instanceMemberUsage =
+      <MemberEntity, MemberUsage>{};
+
+  /// Map containing instance members of live classes that are not yet live
+  /// themselves.
+  final Map<String, Set<MemberUsage>> _instanceMembersByName =
+      <String, Set<MemberUsage>>{};
+
+  /// Map containing instance methods of live classes that are not yet
+  /// closurized.
+  final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
+      <String, Set<MemberUsage>>{};
+
   /// Fields set.
   final Set<Element> fieldSetters = new Set<Element>();
   final Set<DartType> isChecks = new Set<DartType>();
@@ -413,9 +429,15 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   OpenWorld _openWorld;
 
-  ResolutionWorldBuilderImpl(Backend backend, CoreClasses coreClasses,
-      CacheStrategy cacheStrategy, this.selectorConstraintsStrategy) {
-    _openWorld = new WorldImpl(this, backend, coreClasses, cacheStrategy);
+  final Backend _backend;
+  final Resolution _resolution;
+
+  ResolutionWorldBuilderImpl(Backend backend, Resolution resolution,
+      CacheStrategy cacheStrategy, this.selectorConstraintsStrategy)
+      : this._backend = backend,
+        this._resolution = resolution {
+    _openWorld =
+        new WorldImpl(this, backend, resolution.coreClasses, cacheStrategy);
   }
 
   OpenWorld get openWorld => _openWorld;
@@ -516,13 +538,13 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     getInstantiationMap().forEach(f);
   }
 
-  bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      Element member, OpenWorld world) {
+  bool _hasMatchingSelector(
+      Map<Selector, SelectorConstraints> selectors, Element member) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
-        if (masks.applies(member, selector, world)) {
+        if (masks.applies(member, selector, _openWorld)) {
           return true;
         }
       }
@@ -574,27 +596,63 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return instantiationMap;
   }
 
-  bool hasInvocation(Element member, OpenWorld world) {
-    return _hasMatchingSelector(_invokedNames[member.name], member, world);
+  bool _hasInvocation(Element member) {
+    return _hasMatchingSelector(_invokedNames[member.name], member);
   }
 
-  bool hasInvokedGetter(Element member, OpenWorld world) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
+  bool _hasInvokedGetter(Element member) {
+    return _hasMatchingSelector(_invokedGetters[member.name], member) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(Element member, OpenWorld world) {
-    return _hasMatchingSelector(_invokedSetters[member.name], member, world);
+  bool hasInvokedSetter(Element member) {
+    return _hasMatchingSelector(_invokedSetters[member.name], member);
   }
 
-  bool registerDynamicUse(DynamicUse dynamicUse) {
+  void registerDynamicUse(DynamicUse dynamicUse, MemberUsed memberUsed) {
+    Selector selector = dynamicUse.selector;
+    String methodName = selector.name;
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
-        return _registerNewSelector(dynamicUse, _invokedNames);
+        if (_registerNewSelector(dynamicUse, _invokedNames)) {
+          _processInstanceMembers(methodName, (MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
+              memberUsed(usage.member, usage.invoke());
+              return true;
+            }
+            return false;
+          });
+        }
+        break;
       case DynamicUseKind.GET:
-        return _registerNewSelector(dynamicUse, _invokedGetters);
+        if (_registerNewSelector(dynamicUse, _invokedGetters)) {
+          _processInstanceMembers(methodName, (MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
+              memberUsed(usage.member, usage.read());
+              return true;
+            }
+            return false;
+          });
+          _processInstanceFunctions(methodName, (MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
+              memberUsed(usage.member, usage.read());
+              return true;
+            }
+            return false;
+          });
+        }
+        break;
       case DynamicUseKind.SET:
-        return _registerNewSelector(dynamicUse, _invokedSetters);
+        if (_registerNewSelector(dynamicUse, _invokedSetters)) {
+          _processInstanceMembers(methodName, (MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
+              memberUsed(usage.member, usage.write());
+              return true;
+            }
+            return false;
+          });
+        }
+        break;
     }
   }
 
@@ -659,6 +717,15 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     closurizedMembers.remove(element);
     fieldSetters.remove(element);
     _instantiationInfo.remove(element);
+
+    void removeUsage(Set<MemberUsage> set, Element element) {
+      if (set == null) return;
+      set.removeAll(
+          set.where((MemberUsage usage) => usage.member == element).toList());
+    }
+
+    removeUsage(_instanceMembersByName[element.name], element);
+    removeUsage(_instanceFunctionsByName[element.name], element);
   }
 
   // TODO(ahe): Replace this method with something that is O(1), for example,
@@ -669,6 +736,88 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         allClosures.where((LocalFunctionElement closure) {
       return closure.executableContext == element;
     }));
+  }
+
+  /// Call [updateUsage] on all [MemberUsage]s in the set in [map] for
+  /// [memberName]. If [updateUsage] returns `true` the usage is removed from
+  /// the set.
+  void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
+      bool updateUsage(MemberUsage e)) {
+    Set<MemberUsage> members = map[memberName];
+    if (members == null) return;
+    // [f] might add elements to [: map[memberName] :] during the loop below
+    // so we create a new list for [: map[memberName] :] and prepend the
+    // [remaining] members after the loop.
+    map[memberName] = new Set<MemberUsage>();
+    Set<MemberUsage> remaining = new Set<MemberUsage>();
+    for (MemberUsage usage in members) {
+      if (!updateUsage(usage)) {
+        remaining.add(usage);
+      }
+    }
+    map[memberName].addAll(remaining);
+  }
+
+  void _processInstanceMembers(String name, bool updateUsage(MemberUsage e)) {
+    _processSet(_instanceMembersByName, name, updateUsage);
+  }
+
+  void _processInstanceFunctions(String name, bool updateUsage(MemberUsage e)) {
+    _processSet(_instanceFunctionsByName, name, updateUsage);
+  }
+
+  // TODO(johnniwinther): Make this private when
+  // [ResolutionEnqueuer._processClass] is move to [ResolutionWorldBuilderImpl].
+  void processInstantiatedClassMember(
+      ClassElement cls, MemberElement member, MemberUsed memberUsed) {
+    assert(invariant(member, member.isDeclaration));
+    if (!member.isInstanceMember) return;
+    String memberName = member.name;
+    member.computeType(_resolution);
+    EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+    // The obvious thing to test here would be "member.isNative",
+    // however, that only works after metadata has been parsed/analyzed,
+    // and that may not have happened yet.
+    // So instead we use the enclosing class, which we know have had
+    // its metadata parsed and analyzed.
+    // Note: this assumes that there are no non-native fields on native
+    // classes, which may not be the case when a native class is subclassed.
+    bool isNative = _backend.isNative(cls);
+    MemberUsage usage = _instanceMemberUsage.putIfAbsent(member, () {
+      MemberUsage usage = new MemberUsage(member, isNative: isNative);
+      useSet.addAll(usage.appliedUse);
+      if (member.isField && isNative) {
+        _openWorld.registerUsedElement(member);
+      }
+
+      if (_hasInvokedGetter(member)) {
+        useSet.addAll(usage.read());
+      }
+      if (_hasInvocation(member)) {
+        useSet.addAll(usage.invoke());
+      }
+      if (hasInvokedSetter(member)) {
+        useSet.addAll(usage.write());
+      }
+
+      if (usage.pendingUse.contains(MemberUse.NORMAL)) {
+        // The element is not yet used. Add it to the list of instance
+        // members to still be processed.
+        _instanceMembersByName
+            .putIfAbsent(memberName, () => new Set<MemberUsage>())
+            .add(usage);
+      }
+      if (usage.pendingUse.contains(MemberUse.CLOSURIZE)) {
+        // Store the member in [instanceFunctionsByName] to catch
+        // getters on the function.
+        _instanceFunctionsByName
+            .putIfAbsent(memberName, () => new Set<MemberUsage>())
+            .add(usage);
+      }
+
+      memberUsed(usage.member, useSet);
+      return usage;
+    });
   }
 }
 
@@ -684,6 +833,9 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors));
+
+  /// Returns `true` if [member] is invoked as a setter.
+  bool hasInvokedSetter(Element member, ClosedWorld world);
 
   bool hasInvokedGetter(Element member, ClosedWorld world);
 
@@ -932,3 +1084,269 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     }
   }
 }
+
+/// Registry for the observed use of [member] in the open world.
+abstract class MemberUsage {
+  // TODO(johnniwinther): Change [Entity] to [MemberEntity].
+  final Entity member;
+  final EnumSet<MemberUse> _pendingUse = new EnumSet<MemberUse>();
+
+  MemberUsage.internal(this.member) {
+    _pendingUse.addAll(_originalUse);
+  }
+
+  factory MemberUsage(MemberEntity member, {bool isNative: false}) {
+    if (member.isField) {
+      if (member.isAssignable) {
+        return new _FieldUsage(member, isNative: isNative);
+      } else {
+        return new _FinalFieldUsage(member, isNative: isNative);
+      }
+    } else if (member.isGetter) {
+      return new _GetterUsage(member);
+    } else if (member.isSetter) {
+      return new _SetterUsage(member);
+    } else {
+      assert(member.isFunction);
+      return new _FunctionUsage(member);
+    }
+  }
+
+  /// `true` if [member] has been read as a value. For a field this is a normal
+  /// read access, for a function this is a closurization.
+  bool get hasRead => false;
+
+  /// `true` if a value has been written to [member].
+  bool get hasWrite => false;
+
+  /// `true` if an invocation has been performed on the value [member]. For a
+  /// function this is a normal invocation, for a field this is a read access
+  /// followed by an invocation of the function-like value.
+  bool get hasInvoke => false;
+
+  /// `true` if [member] has been used in all the ways possible.
+  bool get fullyUsed;
+
+  /// Registers a read of the value of [member] and returns the new [MemberUse]s
+  /// that it caused.
+  ///
+  /// For a field this is a normal read access, for a function this is a
+  /// closurization.
+  EnumSet<MemberUse> read() => MemberUses.NONE;
+
+  /// Registers a write of a value to [member] and returns the new [MemberUse]s
+  /// that it caused.
+  EnumSet<MemberUse> write() => MemberUses.NONE;
+
+  /// Registers an invocation on the value of [member] and returns the new
+  /// [MemberUse]s that it caused.
+  ///
+  /// For a function this is a normal invocation, for a field this is a read
+  /// access followed by an invocation of the function-like value.
+  EnumSet<MemberUse> invoke() => MemberUses.NONE;
+
+  /// Registers all possible uses of [member] and returns the new [MemberUse]s
+  /// that it caused.
+  EnumSet<MemberUse> fullyUse() => MemberUses.NONE;
+
+  /// Returns the possible [MemberUse]s of [member] that have not yet been
+  /// registered.
+  EnumSet<MemberUse> get pendingUse => _pendingUse;
+
+  /// Returns the [MemberUse]s of [member] that have been registered.
+  EnumSet<MemberUse> get appliedUse => _originalUse.minus(_pendingUse);
+
+  EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
+
+  int get hashCode => member.hashCode;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! MemberUsage) return false;
+    return member == other.member;
+  }
+
+  String toString() => member.toString();
+}
+
+class _FieldUsage extends MemberUsage {
+  bool hasRead = false;
+  bool hasWrite = false;
+
+  _FieldUsage(FieldEntity field, {bool isNative: false})
+      : super.internal(field) {
+    if (!isNative) {
+      // All field initializers must be resolved as they could
+      // have an observable side-effect (and cannot be tree-shaken
+      // away).
+      fullyUse();
+    }
+  }
+
+  @override
+  bool get fullyUsed => hasRead && hasWrite;
+
+  @override
+  EnumSet<MemberUse> read() {
+    if (fullyUsed) {
+      return MemberUses.NONE;
+    }
+    hasRead = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> write() {
+    if (fullyUsed) {
+      return MemberUses.NONE;
+    }
+    hasWrite = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> invoke() => read();
+
+  @override
+  EnumSet<MemberUse> fullyUse() {
+    if (fullyUsed) {
+      return MemberUses.NONE;
+    }
+    hasRead = hasWrite = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+}
+
+class _FinalFieldUsage extends MemberUsage {
+  bool hasRead = false;
+
+  _FinalFieldUsage(FieldEntity field, {bool isNative: false})
+      : super.internal(field) {
+    if (!isNative) {
+      // All field initializers must be resolved as they could
+      // have an observable side-effect (and cannot be tree-shaken
+      // away).
+      read();
+    }
+  }
+
+  @override
+  bool get fullyUsed => hasRead;
+
+  @override
+  EnumSet<MemberUse> read() {
+    if (hasRead) {
+      return MemberUses.NONE;
+    }
+    hasRead = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> invoke() => read();
+
+  @override
+  EnumSet<MemberUse> fullyUse() => read();
+}
+
+class _FunctionUsage extends MemberUsage {
+  bool hasInvoke = false;
+  bool hasRead = false;
+
+  _FunctionUsage(FunctionEntity function) : super.internal(function);
+
+  EnumSet<MemberUse> get _originalUse => MemberUses.ALL;
+
+  @override
+  EnumSet<MemberUse> read() => fullyUse();
+
+  @override
+  EnumSet<MemberUse> invoke() {
+    if (hasInvoke) {
+      return MemberUses.NONE;
+    }
+    hasInvoke = true;
+    return _pendingUse
+        .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> fullyUse() {
+    if (hasInvoke) {
+      if (hasRead) {
+        return MemberUses.NONE;
+      }
+      hasRead = true;
+      return _pendingUse.removeAll(MemberUses.CLOSURIZE_ONLY);
+    } else if (hasRead) {
+      hasInvoke = true;
+      return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    } else {
+      hasRead = hasInvoke = true;
+      return _pendingUse.removeAll(MemberUses.ALL);
+    }
+  }
+
+  @override
+  bool get fullyUsed => hasInvoke && hasRead;
+}
+
+class _GetterUsage extends MemberUsage {
+  bool hasRead = false;
+
+  _GetterUsage(FunctionEntity getter) : super.internal(getter);
+
+  @override
+  bool get fullyUsed => hasRead;
+
+  @override
+  EnumSet<MemberUse> read() {
+    if (hasRead) {
+      return MemberUses.NONE;
+    }
+    hasRead = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> invoke() => read();
+
+  @override
+  EnumSet<MemberUse> fullyUse() => read();
+}
+
+class _SetterUsage extends MemberUsage {
+  bool hasWrite = false;
+
+  _SetterUsage(FunctionEntity setter) : super.internal(setter);
+
+  @override
+  bool get fullyUsed => hasWrite;
+
+  @override
+  EnumSet<MemberUse> write() {
+    if (hasWrite) {
+      return MemberUses.NONE;
+    }
+    hasWrite = true;
+    return MemberUses.NORMAL_ONLY;
+  }
+
+  @override
+  EnumSet<MemberUse> fullyUse() => write();
+}
+
+/// Enum class for the possible kind of use of [MemberEntity] objects.
+enum MemberUse { NORMAL, CLOSURIZE }
+
+/// Common [EnumSet]s used for [MemberUse].
+class MemberUses {
+  static const EnumSet<MemberUse> NONE = const EnumSet<MemberUse>.fixed(0);
+  static const EnumSet<MemberUse> NORMAL_ONLY =
+      const EnumSet<MemberUse>.fixed(1);
+  static const EnumSet<MemberUse> CLOSURIZE_ONLY =
+      const EnumSet<MemberUse>.fixed(2);
+  static const EnumSet<MemberUse> ALL = const EnumSet<MemberUse>.fixed(3);
+}
+
+typedef void MemberUsed(MemberEntity member, EnumSet<MemberUse> useSet);

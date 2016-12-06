@@ -1124,7 +1124,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
       return true;
     }
     if (element.isInstanceMember) {
-      return !resolverWorld.hasInvokedSetter(element, this) &&
+      return !resolverWorld.hasInvokedSetter(element) &&
           !resolverWorld.fieldSetters.contains(element);
     }
     return false;
