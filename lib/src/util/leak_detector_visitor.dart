@@ -95,9 +95,11 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
         Map<DartTypePredicate, String> predicates) =>
     classNodes.where((AstNode n) =>
         n is MethodInvocation &&
-        _hasMatch(predicates, variable.element.type, n.methodName.name) &&
-        (_isSimpleIdentifierElementEqualToVariable(n.target, variable) ||
-            (n.getAncestor((a) => a == variable) != null)));
+        ((_hasMatch(predicates, variable.element.type, n.methodName.name) &&
+                (_isSimpleIdentifierElementEqualToVariable(
+                        n.realTarget, variable) ||
+                    (n.getAncestor((a) => a == variable) != null))) ||
+            (_isInvocationThroughCascadeExpression(n, variable))));
 
 Iterable<AstNode> _findVariableAssignments(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {
@@ -125,6 +127,21 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
         false,
         (bool previous, DartTypePredicate p) =>
             previous || p(type) && predicates[p] == methodName);
+
+bool _isInvocationThroughCascadeExpression(
+        MethodInvocation invocation, VariableDeclaration variable) {
+  if (invocation.realTarget is! SimpleIdentifier) {
+    return false;
+  }
+
+  final identifier = invocation.realTarget;
+  if (identifier is SimpleIdentifier) {
+    final element = identifier.bestElement;
+    if (element is PropertyAccessorElement) {
+      return element.variable == variable.element;
+    }
+  }
+  return false;}
 
 bool _isSimpleIdentifierElementEqualToVariable(
         AstNode n, VariableDeclaration variable) =>
