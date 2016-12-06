@@ -2019,6 +2019,8 @@ class KernelVisitor extends Object
         if (initializer != null) {
           variable.initializer = initializer;
           initializer.parent = variable;
+          kernel.parameterInitializerNodeToConstant[initializer] =
+              parameter.constant;
         }
       });
       if (function.isGenerativeConstructor) {

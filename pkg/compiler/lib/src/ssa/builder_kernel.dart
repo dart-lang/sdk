@@ -1071,21 +1071,89 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     let.body.accept(this);
   }
 
-  // TODO(het): Also extract type arguments
-  /// Extracts the list of instructions for the expressions in the arguments.
-  List<HInstruction> _visitArguments(ir.Arguments arguments) {
+  /// Extracts the list of instructions for the positional subset of arguments.
+  List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
     List<HInstruction> result = <HInstruction>[];
-
     for (ir.Expression argument in arguments.positional) {
       argument.accept(this);
       result.add(pop());
     }
+    return result;
+  }
+
+  /// Builds the list of instructions for the expressions in the arguments to a
+  /// dynamic target (member function).  Dynamic targets use stubs to add
+  /// defaulted arguments, so (unlike static targets) we do not add the default
+  /// values.
+  List<HInstruction> _visitArgumentsForDynamicTarget(
+      Selector selector, ir.Arguments arguments) {
+    List<HInstruction> values = _visitPositionalArguments(arguments);
+
+    if (arguments.named.isEmpty) return values;
+
+    var namedValues = <String, HInstruction>{};
     for (ir.NamedExpression argument in arguments.named) {
       argument.value.accept(this);
-      result.add(pop());
+      namedValues[argument.name] = pop();
+    }
+    for (String name in selector.callStructure.getOrderedNamedArguments()) {
+      values.add(namedValues[name]);
     }
 
-    return result;
+    return values;
+  }
+
+  /// Build argument list in canonical order for a static [target], including
+  /// filling in the defaulted argument value.
+  List<HInstruction> _visitArgumentsForStaticTarget(
+      ir.FunctionNode target, ir.Arguments arguments) {
+    // Visit arguments in source order, then re-order and fill in defaults.
+    var values = _visitPositionalArguments(arguments);
+
+    while (values.length < target.positionalParameters.length) {
+      ir.VariableDeclaration parameter =
+          target.positionalParameters[values.length];
+      values.add(_defaultValueForParameter(parameter));
+    }
+
+    if (arguments.named.isEmpty) return values;
+
+    var namedValues = <String, HInstruction>{};
+    for (ir.NamedExpression argument in arguments.named) {
+      argument.value.accept(this);
+      namedValues[argument.name] = pop();
+    }
+
+    // Visit named arguments in parameter-position order, selecting provided or
+    // default value.
+    // TODO(sra): Ensure the stored order is canonical so we don't have to
+    // sort. The old builder uses CallStructure.makeArgumentList which depends
+    // on the old element model.
+    var namedParameters = target.namedParameters.toList()
+      ..sort((ir.VariableDeclaration a, ir.VariableDeclaration b) =>
+          a.name.compareTo(b.name));
+    for (ir.VariableDeclaration parameter in namedParameters) {
+      HInstruction value = namedValues[parameter.name];
+      if (value == null) {
+        values.add(_defaultValueForParameter(parameter));
+      } else {
+        values.add(value);
+        namedValues.remove(parameter.name);
+      }
+    }
+    assert(namedValues.isEmpty);
+
+    return values;
+  }
+
+  HInstruction _defaultValueForParameter(ir.VariableDeclaration parameter) {
+    ir.Expression initializer = parameter.initializer;
+    if (initializer == null) return graph.addConstantNull(compiler);
+    // TODO(sra): Evaluate constant in ir.Node domain.
+    ConstantValue constant =
+        astAdapter.getConstantForParameterDefaultValue(initializer);
+    if (constant == null) return graph.addConstantNull(compiler);
+    return graph.addConstant(constant, compiler);
   }
 
   @override
@@ -1097,7 +1165,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     TypeMask typeMask = astAdapter.returnTypeOf(target);
 
-    List<HInstruction> arguments = _visitArguments(invocation.arguments);
+    // TODO(sra): For JS interop external functions, use a different function to
+    // build arguments.
+    List<HInstruction> arguments =
+        _visitArgumentsForStaticTarget(target.function, invocation.arguments);
 
     _pushStaticInvocation(target, arguments, typeMask);
   }
@@ -1244,7 +1315,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    List<HInstruction> inputs = _visitArguments(invocation.arguments);
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
 
     if (!compiler.hasIsolateSupport) {
       // If the isolate library is not used, we ignore the isolate argument and
@@ -1314,13 +1385,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    List<HInstruction> inputs = _visitArguments(invocation.arguments);
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
 
     String isolateName = backend.namer.staticStateHolder;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
-    push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
-        backend.dynamicType, inputs,
+    push(new HForeignCode(
+        js.js.parseForeignJS("$isolateName = #"), backend.dynamicType, inputs,
         nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
@@ -1518,7 +1589,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
       return;
     }
-    List<HInstruction> inputs = _visitArguments(invocation.arguments);
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
     push(new HStringConcat(inputs[0], inputs[1], backend.stringType));
   }
 
@@ -1570,12 +1641,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (_handleEqualsNull(invocation)) return;
     invocation.receiver.accept(this);
     HInstruction receiver = pop();
-
+    Selector selector = astAdapter.getSelector(invocation);
     _pushDynamicInvocation(
         invocation,
         astAdapter.typeOfInvocation(invocation),
         <HInstruction>[receiver]
-          ..addAll(_visitArguments(invocation.arguments)));
+          ..addAll(
+              _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
   }
 
   bool _handleEqualsNull(ir.MethodInvocation invocation) {
@@ -1616,9 +1688,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
-    List<HInstruction> arguments = _visitArguments(invocation.arguments);
-    HInstruction receiver = localsHandler.readThis();
     Selector selector = astAdapter.getSelector(invocation);
+    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
+        invocation.interfaceTarget.function, invocation.arguments);
+    HInstruction receiver = localsHandler.readThis();
     ir.Class surroundingClass = _containingClass(invocation);
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -1644,7 +1717,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitConstructorInvocation(ir.ConstructorInvocation invocation) {
     ir.Constructor target = invocation.target;
-    List<HInstruction> arguments = _visitArguments(invocation.arguments);
+    // TODO(sra): For JS-interop targets, process arguments differently.
+    List<HInstruction> arguments =
+        _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     TypeMask typeMask = new TypeMask.nonNullExact(
         astAdapter.getElement(target.enclosingClass), compiler.closedWorld);
     _pushStaticInvocation(target, arguments, typeMask);

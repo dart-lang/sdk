@@ -292,6 +292,19 @@ class KernelAstAdapter {
     return constantValue;
   }
 
+  ConstantValue getConstantForParameterDefaultValue(ir.Node defaultExpression) {
+    // TODO(27394): Evaluate constant expressions in ir.Node domain.
+    // In the interim, expand the Constantifier and do this:
+    //
+    //     ConstantExpression constantExpression =
+    //         defaultExpression.accept(new Constantifier(this));
+    //     assert(constantExpression != null);
+    ConstantExpression constantExpression =
+        kernel.parameterInitializerNodeToConstant[defaultExpression];
+    if (constantExpression == null) return null;
+    return _backend.constants.getConstantValue(constantExpression);
+  }
+
   ConstantValue getConstantForType(ir.DartType irType) {
     DartType type = getDartType(irType);
     return _backend.constantSystem.createType(_compiler, type.asRaw());
