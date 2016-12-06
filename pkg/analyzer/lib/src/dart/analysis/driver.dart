@@ -1468,11 +1468,15 @@ class _TopLevelNameDeclarationsTask {
     if (checkedFiles.add(path)) {
       FileState file = driver._fsState.getFileForPath(path);
       if (!file.isPart) {
-        TopLevelDeclaration declaration =
-            file.exportedTopLevelDeclarations[name];
+        bool isExported = false;
+        TopLevelDeclaration declaration = file.topLevelDeclarations[name];
+        if (declaration == null) {
+          declaration = file.exportedTopLevelDeclarations[name];
+          isExported = true;
+        }
         if (declaration != null) {
-          libraryDeclarations
-              .add(new TopLevelDeclarationInSource(file.source, declaration));
+          libraryDeclarations.add(new TopLevelDeclarationInSource(
+              file.source, declaration, isExported));
         }
       }
     }

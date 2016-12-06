@@ -7,7 +7,6 @@ library test.services.correction.fix;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -142,10 +141,9 @@ bool test() {
    * Computes fixes for the given [error] in [testUnit].
    */
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    DartFixContext dartContext = new DartFixContextImpl(
-        new FixContextImpl(provider, context, error), testUnit);
-    FixProcessor processor = new FixProcessor(dartContext);
-    return processor.compute();
+    FixContextImpl fixContext = new FixContextImpl(provider, context, error);
+    DefaultFixContributor contributor = new DefaultFixContributor();
+    return contributor.computeFixes(fixContext);
   }
 
   /**

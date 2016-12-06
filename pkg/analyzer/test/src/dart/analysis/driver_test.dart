@@ -813,21 +813,31 @@ var A2 = B1;
     driver.addFile(c);
     // Don't add d.dart, it is referenced implicitly.
 
-    void assertLibraryPaths(
-        List<TopLevelDeclarationInSource> declarations, List<String> expected) {
-      expect(declarations.map((l) => l.source.fullName),
-          unorderedEquals(expected));
+    void assertDeclarations(List<TopLevelDeclarationInSource> declarations,
+        List<String> expectedFiles, List<bool> expectedIsExported) {
+      expect(expectedFiles, hasLength(expectedIsExported.length));
+      for (int i = 0; i < expectedFiles.length; i++) {
+        expect(declarations,
+            contains(predicate((TopLevelDeclarationInSource declaration) {
+          return declaration.source.fullName == expectedFiles[i] &&
+              declaration.isExported == expectedIsExported[i];
+        })));
+      }
     }
 
-    assertLibraryPaths(await driver.getTopLevelNameDeclarations('A'), [a, b]);
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('A'), [a, b], [false, true]);
 
-    assertLibraryPaths(await driver.getTopLevelNameDeclarations('B'), [b]);
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('B'), [b], [false]);
 
-    assertLibraryPaths(await driver.getTopLevelNameDeclarations('C'), [c]);
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('C'), [c], [false]);
 
-    assertLibraryPaths(await driver.getTopLevelNameDeclarations('D'), [d]);
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('D'), [d], [false]);
 
-    assertLibraryPaths(await driver.getTopLevelNameDeclarations('X'), []);
+    assertDeclarations(await driver.getTopLevelNameDeclarations('X'), [], []);
   }
 
   test_knownFiles() async {

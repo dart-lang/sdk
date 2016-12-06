@@ -31,10 +31,15 @@ class TopLevelDeclarationInSource {
    */
   final TopLevelDeclaration declaration;
 
-  TopLevelDeclarationInSource(this.source, this.declaration);
+  /**
+   * Is `true` if the [declaration] is exported, not declared in the [source].
+   */
+  final bool isExported;
+
+  TopLevelDeclarationInSource(this.source, this.declaration, this.isExported);
 
   @override
-  String toString() => '($source, $declaration)';
+  String toString() => '($source, $declaration, $isExported)';
 }
 
 /**

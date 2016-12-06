@@ -9,9 +9,20 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart'
     show DartFixContextImpl;
+import 'package:analysis_server/src/services/correction/namespace.dart'
+    show getExportedElement;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart' show LIBRARY_ELEMENT4;
+
+/**
+ * Complete with top-level declarations with the given [name].
+ */
+typedef Future<List<TopLevelDeclarationInSource>> GetTopLevelDeclarations(
+    String name);
 
 /**
  * An object used to provide context information for [DartFixContributor]s.
@@ -19,6 +30,11 @@ import 'package:analyzer/src/generated/source.dart';
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartFixContext implements FixContext {
+  /**
+   * The function to get top-level declarations from.
+   */
+  GetTopLevelDeclarations get getTopLevelDeclarations;
+
   /**
    * The [CompilationUnit] to compute fixes in.
    */
@@ -48,7 +64,8 @@ abstract class DartFixContributor implements FixContributor {
     if (unit == null) {
       return Fix.EMPTY_LIST;
     }
-    DartFixContext dartContext = new DartFixContextImpl(context, unit);
+    DartFixContext dartContext = new DartFixContextImpl(
+        context, _getTopLevelDeclarations(analysisContext), unit);
     return internalComputeFixes(dartContext);
   }
 
@@ -56,4 +73,43 @@ abstract class DartFixContributor implements FixContributor {
    * Return a list of fixes for the given [context].
    */
   Future<List<Fix>> internalComputeFixes(DartFixContext context);
+
+  GetTopLevelDeclarations _getTopLevelDeclarations(AnalysisContext context) {
+    return (String name) async {
+      List<TopLevelDeclarationInSource> declarations = [];
+      List<Source> librarySources = context.librarySources;
+      for (Source librarySource in librarySources) {
+        // Prepare the LibraryElement.
+        LibraryElement libraryElement =
+            context.getResult(librarySource, LIBRARY_ELEMENT4);
+        if (libraryElement == null) {
+          continue;
+        }
+        // Prepare the exported Element.
+        Element element = getExportedElement(libraryElement, name);
+        if (element == null) {
+          continue;
+        }
+        if (element is PropertyAccessorElement) {
+          element = (element as PropertyAccessorElement).variable;
+        }
+        // Add a new declaration.
+        TopLevelDeclarationKind topLevelKind;
+        if (element.kind == ElementKind.CLASS ||
+            element.kind == ElementKind.FUNCTION_TYPE_ALIAS) {
+          topLevelKind = TopLevelDeclarationKind.type;
+        } else if (element.kind == ElementKind.FUNCTION) {
+          topLevelKind = TopLevelDeclarationKind.function;
+        } else if (element.kind == ElementKind.TOP_LEVEL_VARIABLE) {
+          topLevelKind = TopLevelDeclarationKind.variable;
+        }
+        if (topLevelKind != null) {
+          bool isExported = element.librarySource != librarySource;
+          declarations.add(new TopLevelDeclarationInSource(librarySource,
+              new TopLevelDeclaration(topLevelKind, element.name), isExported));
+        }
+      }
+      return declarations;
+    };
+  }
 }
