@@ -181,3 +181,10 @@ someFunction() {
     print('bla');
   }
 }
+
+class Foo {
+  bool bar;
+  void sayHello() {
+    if (bar ?? false) print('hello');
+  }
+}

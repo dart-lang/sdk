@@ -5,6 +5,7 @@
 library linter.src.rules.invariant_booleans;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util/boolean_expression_utilities.dart';
@@ -134,7 +135,8 @@ class _Visitor extends SimpleAstVisitor {
     if (!BooleanExpressionUtilities.EQUALITY_OPERATIONS
         .contains(node.operator.type) &&
         (node.leftOperand is BooleanLiteral ||
-            node.rightOperand is BooleanLiteral)) {
+            node.rightOperand is BooleanLiteral) &&
+        node.operator.type != TokenType.QUESTION_QUESTION) {
       rule.reportLint(node);
     }
   }
