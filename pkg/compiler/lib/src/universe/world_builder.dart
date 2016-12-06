@@ -372,19 +372,22 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
       <String, Map<Selector, SelectorConstraints>>{};
 
+  final Map<ClassElement, _ClassUsage> _processedClasses =
+      <ClassElement, _ClassUsage>{};
+
   /// Map of registers usage of instance members of live classes.
-  final Map<MemberEntity, MemberUsage> _instanceMemberUsage =
-      <MemberEntity, MemberUsage>{};
+  final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
+      <MemberEntity, _MemberUsage>{};
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.
-  final Map<String, Set<MemberUsage>> _instanceMembersByName =
-      <String, Set<MemberUsage>>{};
+  final Map<String, Set<_MemberUsage>> _instanceMembersByName =
+      <String, Set<_MemberUsage>>{};
 
   /// Map containing instance methods of live classes that are not yet
   /// closurized.
-  final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
-      <String, Set<MemberUsage>>{};
+  final Map<String, Set<_MemberUsage>> _instanceFunctionsByName =
+      <String, Set<_MemberUsage>>{};
 
   /// Fields set.
   final Set<Element> fieldSetters = new Set<Element>();
@@ -440,6 +443,9 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         new WorldImpl(this, backend, resolution.coreClasses, cacheStrategy);
   }
 
+  Iterable<ClassElement> get processedClasses => _processedClasses.keys
+      .where((cls) => _processedClasses[cls].isInstantiated);
+
   OpenWorld get openWorld => _openWorld;
 
   /// All directly instantiated classes, that is, classes with a generative
@@ -490,33 +496,32 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  void registerTypeInstantiation(InterfaceType type,
+  void registerTypeInstantiation(InterfaceType type, ClassUsed classUsed,
       {ConstructorElement constructor,
       bool byMirrors: false,
-      bool isNative: false,
-      bool isRedirection: false,
-      void onImplemented(ClassElement cls)}) {
+      bool isRedirection: false}) {
     ClassElement cls = type.element;
+    cls.ensureResolved(_resolution);
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
     Instantiation kind = Instantiation.UNINSTANTIATED;
-    if (!cls.isAbstract
+    bool isNative = _backend.isNative(cls);
+    if (!cls.isAbstract ||
         // We can't use the closed-world assumption with native abstract
         // classes; a native abstract class may have non-abstract subclasses
         // not declared to the program.  Instances of these classes are
         // indistinguishable from the abstract class.
-        ||
-        isNative
+        isNative ||
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
         // TODO(herhut): Track classes required by mirrors seperately.
-        ||
         byMirrors) {
       if (isNative || byMirrors) {
         kind = Instantiation.ABSTRACTLY_INSTANTIATED;
       } else {
         kind = Instantiation.DIRECTLY_INSTANTIATED;
       }
+      _processInstantiatedClass(cls, classUsed);
     }
     info.addInstantiation(constructor, type, kind,
         isRedirection: isRedirection);
@@ -524,6 +529,11 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     // TODO(johnniwinther): Use [_instantiationInfo] to compute this information
     // instead.
     if (_implementedClasses.add(cls)) {
+      void onImplemented(ClassElement cls) {
+        _ClassUsage usage = _getClassUsage(cls);
+        classUsed(usage.cls, usage.implement());
+      }
+
       onImplemented(cls);
       cls.allSupertypes.forEach((InterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
@@ -615,9 +625,9 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _processInstanceMembers(methodName, (MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
-              memberUsed(usage.member, usage.invoke());
+          _processInstanceMembers(methodName, (_MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+              memberUsed(usage.entity, usage.invoke());
               return true;
             }
             return false;
@@ -626,16 +636,16 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         break;
       case DynamicUseKind.GET:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _processInstanceMembers(methodName, (MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
-              memberUsed(usage.member, usage.read());
+          _processInstanceMembers(methodName, (_MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+              memberUsed(usage.entity, usage.read());
               return true;
             }
             return false;
           });
-          _processInstanceFunctions(methodName, (MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
-              memberUsed(usage.member, usage.read());
+          _processInstanceFunctions(methodName, (_MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+              memberUsed(usage.entity, usage.read());
               return true;
             }
             return false;
@@ -644,9 +654,9 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         break;
       case DynamicUseKind.SET:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _processInstanceMembers(methodName, (MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.member, _openWorld)) {
-              memberUsed(usage.member, usage.write());
+          _processInstanceMembers(methodName, (_MemberUsage usage) {
+            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+              memberUsed(usage.entity, usage.write());
               return true;
             }
             return false;
@@ -718,12 +728,13 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     fieldSetters.remove(element);
     _instantiationInfo.remove(element);
 
-    void removeUsage(Set<MemberUsage> set, Element element) {
+    void removeUsage(Set<_MemberUsage> set, Element element) {
       if (set == null) return;
       set.removeAll(
-          set.where((MemberUsage usage) => usage.member == element).toList());
+          set.where((_MemberUsage usage) => usage.entity == element).toList());
     }
 
+    _processedClasses.remove(element);
     removeUsage(_instanceMembersByName[element.name], element);
     removeUsage(_instanceFunctionsByName[element.name], element);
   }
@@ -738,37 +749,70 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     }));
   }
 
+  /// Return the canonical [_ClassUsage] for [cls].
+  _ClassUsage _getClassUsage(ClassElement cls) {
+    return _processedClasses.putIfAbsent(cls, () {
+      cls.ensureResolved(_resolution);
+      _ClassUsage usage = new _ClassUsage(cls);
+      _resolution.ensureClassMembers(cls);
+      return usage;
+    });
+  }
+
+  /// Register [cls] and all its superclasses as instantiated.
+  void _processInstantiatedClass(ClassElement cls, ClassUsed classUsed) {
+    // Registers [superclass] as instantiated. Returns `true` if it wasn't
+    // already instantiated and we therefore have to process its superclass as
+    // well.
+    bool processClass(ClassElement superclass) {
+      _ClassUsage usage = _getClassUsage(superclass);
+      if (!usage.isInstantiated) {
+        classUsed(usage.cls, usage.instantiate());
+        return true;
+      }
+      return false;
+    }
+
+    while (cls != null && processClass(cls)) {
+      cls = cls.superclass;
+    }
+  }
+
+  /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
+  /// the usage changes for each member.
+  void processClassMembers(ClassElement cls, MemberUsed memberUsed) {
+    cls.implementation.forEachMember((ClassElement cls, MemberElement member) {
+      _processInstantiatedClassMember(cls, member, memberUsed);
+    });
+  }
+
   /// Call [updateUsage] on all [MemberUsage]s in the set in [map] for
   /// [memberName]. If [updateUsage] returns `true` the usage is removed from
   /// the set.
-  void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
-      bool updateUsage(MemberUsage e)) {
-    Set<MemberUsage> members = map[memberName];
+  void _processSet(Map<String, Set<_MemberUsage>> map, String memberName,
+      bool updateUsage(_MemberUsage e)) {
+    Set<_MemberUsage> members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
     // so we create a new list for [: map[memberName] :] and prepend the
     // [remaining] members after the loop.
-    map[memberName] = new Set<MemberUsage>();
-    Set<MemberUsage> remaining = new Set<MemberUsage>();
-    for (MemberUsage usage in members) {
-      if (!updateUsage(usage)) {
-        remaining.add(usage);
-      }
+    map[memberName] = new Set<_MemberUsage>();
+    Set<_MemberUsage> remaining = new Set<_MemberUsage>();
+    for (_MemberUsage usage in members) {
+      if (!updateUsage(usage)) remaining.add(usage);
     }
     map[memberName].addAll(remaining);
   }
 
-  void _processInstanceMembers(String name, bool updateUsage(MemberUsage e)) {
+  void _processInstanceMembers(String name, bool updateUsage(_MemberUsage e)) {
     _processSet(_instanceMembersByName, name, updateUsage);
   }
 
-  void _processInstanceFunctions(String name, bool updateUsage(MemberUsage e)) {
+  void _processInstanceFunctions(String name, bool updateUsage(_MemberUsage e)) {
     _processSet(_instanceFunctionsByName, name, updateUsage);
   }
 
-  // TODO(johnniwinther): Make this private when
-  // [ResolutionEnqueuer._processClass] is move to [ResolutionWorldBuilderImpl].
-  void processInstantiatedClassMember(
+  void _processInstantiatedClassMember(
       ClassElement cls, MemberElement member, MemberUsed memberUsed) {
     assert(invariant(member, member.isDeclaration));
     if (!member.isInstanceMember) return;
@@ -783,8 +827,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
     bool isNative = _backend.isNative(cls);
-    MemberUsage usage = _instanceMemberUsage.putIfAbsent(member, () {
-      MemberUsage usage = new MemberUsage(member, isNative: isNative);
+    _MemberUsage usage = _instanceMemberUsage.putIfAbsent(member, () {
+      _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       useSet.addAll(usage.appliedUse);
       if (member.isField && isNative) {
         _openWorld.registerUsedElement(member);
@@ -804,18 +848,18 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         // The element is not yet used. Add it to the list of instance
         // members to still be processed.
         _instanceMembersByName
-            .putIfAbsent(memberName, () => new Set<MemberUsage>())
+            .putIfAbsent(memberName, () => new Set<_MemberUsage>())
             .add(usage);
       }
       if (usage.pendingUse.contains(MemberUse.CLOSURIZE)) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
-            .putIfAbsent(memberName, () => new Set<MemberUsage>())
+            .putIfAbsent(memberName, () => new Set<_MemberUsage>())
             .add(usage);
       }
 
-      memberUsed(usage.member, useSet);
+      memberUsed(usage.entity, useSet);
       return usage;
     });
   }
@@ -1085,17 +1129,30 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   }
 }
 
-/// Registry for the observed use of [member] in the open world.
-abstract class MemberUsage {
-  // TODO(johnniwinther): Change [Entity] to [MemberEntity].
-  final Entity member;
-  final EnumSet<MemberUse> _pendingUse = new EnumSet<MemberUse>();
+abstract class _AbstractUsage<T> {
+  final EnumSet<T> _pendingUse = new EnumSet<T>();
 
-  MemberUsage.internal(this.member) {
+  _AbstractUsage() {
     _pendingUse.addAll(_originalUse);
   }
 
-  factory MemberUsage(MemberEntity member, {bool isNative: false}) {
+  /// Returns the possible uses of [entity] that have not yet been registered.
+  EnumSet<T> get pendingUse => _pendingUse;
+
+  /// Returns the uses of [entity] that have been registered.
+  EnumSet<T> get appliedUse => _originalUse.minus(_pendingUse);
+
+  EnumSet<T> get _originalUse;
+}
+
+/// Registry for the observed use of a member [entity] in the open world.
+abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
+  // TODO(johnniwinther): Change [Entity] to [MemberEntity].
+  final Entity entity;
+
+  _MemberUsage.internal(this.entity);
+
+  factory _MemberUsage(MemberEntity member, {bool isNative: false}) {
     if (member.isField) {
       if (member.isAssignable) {
         return new _FieldUsage(member, isNative: isNative);
@@ -1112,64 +1169,58 @@ abstract class MemberUsage {
     }
   }
 
-  /// `true` if [member] has been read as a value. For a field this is a normal
+  /// `true` if [entity] has been read as a value. For a field this is a normal
   /// read access, for a function this is a closurization.
   bool get hasRead => false;
 
-  /// `true` if a value has been written to [member].
+  /// `true` if a value has been written to [entity].
   bool get hasWrite => false;
 
-  /// `true` if an invocation has been performed on the value [member]. For a
+  /// `true` if an invocation has been performed on the value [entity]. For a
   /// function this is a normal invocation, for a field this is a read access
   /// followed by an invocation of the function-like value.
   bool get hasInvoke => false;
 
-  /// `true` if [member] has been used in all the ways possible.
+  /// `true` if [entity] has been used in all the ways possible.
   bool get fullyUsed;
 
-  /// Registers a read of the value of [member] and returns the new [MemberUse]s
+  /// Registers a read of the value of [entity] and returns the new [MemberUse]s
   /// that it caused.
   ///
   /// For a field this is a normal read access, for a function this is a
   /// closurization.
   EnumSet<MemberUse> read() => MemberUses.NONE;
 
-  /// Registers a write of a value to [member] and returns the new [MemberUse]s
+  /// Registers a write of a value to [entity] and returns the new [MemberUse]s
   /// that it caused.
   EnumSet<MemberUse> write() => MemberUses.NONE;
 
-  /// Registers an invocation on the value of [member] and returns the new
+  /// Registers an invocation on the value of [entity] and returns the new
   /// [MemberUse]s that it caused.
   ///
   /// For a function this is a normal invocation, for a field this is a read
   /// access followed by an invocation of the function-like value.
   EnumSet<MemberUse> invoke() => MemberUses.NONE;
 
-  /// Registers all possible uses of [member] and returns the new [MemberUse]s
+  /// Registers all possible uses of [entity] and returns the new [MemberUse]s
   /// that it caused.
   EnumSet<MemberUse> fullyUse() => MemberUses.NONE;
 
-  /// Returns the possible [MemberUse]s of [member] that have not yet been
-  /// registered.
-  EnumSet<MemberUse> get pendingUse => _pendingUse;
-
-  /// Returns the [MemberUse]s of [member] that have been registered.
-  EnumSet<MemberUse> get appliedUse => _originalUse.minus(_pendingUse);
-
+  @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
-  int get hashCode => member.hashCode;
+  int get hashCode => entity.hashCode;
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! MemberUsage) return false;
-    return member == other.member;
+    if (other is! _MemberUsage) return false;
+    return entity == other.entity;
   }
 
-  String toString() => member.toString();
+  String toString() => entity.toString();
 }
 
-class _FieldUsage extends MemberUsage {
+class _FieldUsage extends _MemberUsage {
   bool hasRead = false;
   bool hasWrite = false;
 
@@ -1217,7 +1268,7 @@ class _FieldUsage extends MemberUsage {
   }
 }
 
-class _FinalFieldUsage extends MemberUsage {
+class _FinalFieldUsage extends _MemberUsage {
   bool hasRead = false;
 
   _FinalFieldUsage(FieldEntity field, {bool isNative: false})
@@ -1249,7 +1300,7 @@ class _FinalFieldUsage extends MemberUsage {
   EnumSet<MemberUse> fullyUse() => read();
 }
 
-class _FunctionUsage extends MemberUsage {
+class _FunctionUsage extends _MemberUsage {
   bool hasInvoke = false;
   bool hasRead = false;
 
@@ -1291,7 +1342,7 @@ class _FunctionUsage extends MemberUsage {
   bool get fullyUsed => hasInvoke && hasRead;
 }
 
-class _GetterUsage extends MemberUsage {
+class _GetterUsage extends _MemberUsage {
   bool hasRead = false;
 
   _GetterUsage(FunctionEntity getter) : super.internal(getter);
@@ -1315,7 +1366,7 @@ class _GetterUsage extends MemberUsage {
   EnumSet<MemberUse> fullyUse() => read();
 }
 
-class _SetterUsage extends MemberUsage {
+class _SetterUsage extends _MemberUsage {
   bool hasWrite = false;
 
   _SetterUsage(FunctionEntity setter) : super.internal(setter);
@@ -1350,3 +1401,50 @@ class MemberUses {
 }
 
 typedef void MemberUsed(MemberEntity member, EnumSet<MemberUse> useSet);
+
+/// Registry for the observed use of a class [entity] in the open world.
+// TODO(johnniwinther): Merge this with [InstantiationInfo].
+class _ClassUsage extends _AbstractUsage<ClassUse> {
+  bool isInstantiated = false;
+  bool isImplemented = false;
+
+  final ClassEntity cls;
+
+  _ClassUsage(this.cls);
+
+  EnumSet<ClassUse> instantiate() {
+    if (isInstantiated) {
+      return ClassUses.NONE;
+    }
+    isInstantiated = true;
+    return _pendingUse.removeAll(ClassUses.INSTANTIATED_ONLY);
+  }
+
+  EnumSet<ClassUse> implement() {
+    if (isImplemented) {
+      return ClassUses.NONE;
+    }
+    isImplemented = true;
+    return _pendingUse.removeAll(ClassUses.IMPLEMENTED_ONLY);
+  }
+
+  @override
+  EnumSet<ClassUse> get _originalUse => ClassUses.ALL;
+
+  String toString() => cls.toString();
+}
+
+/// Enum class for the possible kind of use of [ClassEntity] objects.
+enum ClassUse { INSTANTIATED, IMPLEMENTED }
+
+/// Common [EnumSet]s used for [ClassUse].
+class ClassUses {
+  static const EnumSet<ClassUse> NONE = const EnumSet<ClassUse>.fixed(0);
+  static const EnumSet<ClassUse> INSTANTIATED_ONLY =
+      const EnumSet<ClassUse>.fixed(1);
+  static const EnumSet<ClassUse> IMPLEMENTED_ONLY =
+      const EnumSet<ClassUse>.fixed(2);
+  static const EnumSet<ClassUse> ALL = const EnumSet<ClassUse>.fixed(3);
+}
+
+typedef void ClassUsed(ClassEntity cls, EnumSet<ClassUse> useSet);

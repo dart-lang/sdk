@@ -143,7 +143,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
-  final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> _recentClasses = new Setlet<ClassElement>();
   final ResolutionWorldBuilderImpl _universe;
 
@@ -186,7 +185,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   DiagnosticReporter get _reporter => _resolution.reporter;
 
-  Iterable<ClassElement> get processedClasses => _processedClasses;
+  Iterable<ClassElement> get processedClasses => _universe.processedClasses;
 
   void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
     if (worldImpact.isEmpty) return;
@@ -201,16 +200,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       bool globalDependency: false,
       bool isRedirection: false}) {
     task.measure(() {
-      ClassElement cls = type.element;
-      cls.ensureResolved(_resolution);
-      bool isNative = backend.isNative(cls);
-      _universe.registerTypeInstantiation(type,
+      _universe.registerTypeInstantiation(type, _applyClassUse,
           constructor: constructor,
-          isNative: isNative,
           byMirrors: mirrorUsage,
-          isRedirection: isRedirection, onImplemented: (ClassElement cls) {
-        applyImpact(backend.registerImplementedClass(cls, forResolution: true));
-      });
+          isRedirection: isRedirection);
       if (globalDependency && !mirrorUsage) {
         _globalDependencies.registerDependency(type.element);
       }
@@ -218,10 +211,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         nativeEnqueuer.onInstantiatedType(type);
       }
       backend.registerInstantiatedType(type);
-      // TODO(johnniwinther): Share this reasoning with [Universe].
-      if (!cls.isAbstract || isNative || mirrorUsage) {
-        _processInstantiatedClass(cls);
-      }
     });
   }
 
@@ -230,7 +219,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void checkClass(ClassElement cls) {
-    _processClassMembers(cls,
+    _universe.processClassMembers(cls,
         (MemberElement member, EnumSet<MemberUse> useSet) {
       if (useSet.isNotEmpty) {
         _reporter.internalError(member,
@@ -240,7 +229,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   /// Callback for applying the first seen use of a [member].
-  void _applyFirstUse(MemberElement member, EnumSet<MemberUse> useSet) {
+  void _applyFirstMemberUse(MemberElement member, EnumSet<MemberUse> useSet) {
     ClassElement cls = member.enclosingClass;
     if (member.isFunction) {
       MemberElement function = member;
@@ -251,11 +240,11 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _registerCallMethodWithFreeTypeVariables(function);
       }
     }
-    _applyUse(member, useSet);
+    _applyMemberUse(member, useSet);
   }
 
   /// Callback for applying the use of a [member].
-  void _applyUse(Entity member, EnumSet<MemberUse> useSet) {
+  void _applyMemberUse(Entity member, EnumSet<MemberUse> useSet) {
     if (useSet.contains(MemberUse.NORMAL)) {
       _addToWorkList(member);
     }
@@ -264,47 +253,24 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
-  /// TODO(johnniwinther): Move this to [ResolutionWorldBuilderImpl].
-  void _processInstantiatedClass(ClassElement cls) {
-    task.measure(() {
-      if (_processedClasses.contains(cls)) return;
-      // The class must be resolved to compute the set of all
-      // supertypes.
-      cls.ensureResolved(_resolution);
-
-      void processClass(ClassElement superclass) {
-        if (_processedClasses.contains(superclass)) return;
-
-        _processedClasses.add(superclass);
-        _recentClasses.add(superclass);
-        superclass.ensureResolved(_resolution);
-        _processClassMembers(superclass, _applyFirstUse);
-        _resolution.ensureClassMembers(superclass);
-        // We only tell the backend once that [superclass] was instantiated, so
-        // any additional dependencies must be treated as global
-        // dependencies.
-        applyImpact(
-            backend.registerInstantiatedClass(superclass, forResolution: true));
-      }
-
-      ClassElement superclass = cls;
-      while (superclass != null) {
-        processClass(superclass);
-        superclass = superclass.superclass;
-      }
-    });
-  }
-
-  /// TODO(johnniwinther): Move this to [ResolutionWorldBuilderImpl].
-  void _processClassMembers(ClassElement cls, MemberUsed memberUsed) {
-    cls.implementation.forEachMember((ClassElement cls, MemberElement member) {
-      _universe.processInstantiatedClassMember(cls, member, memberUsed);
-    });
+  /// Callback for applying the use of a [cls].
+  void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
+    if (useSet.contains(ClassUse.INSTANTIATED)) {
+      _recentClasses.add(cls);
+      _universe.processClassMembers(cls, _applyFirstMemberUse);
+      // We only tell the backend once that [cls] was instantiated, so
+      // any additional dependencies must be treated as global
+      // dependencies.
+      applyImpact(backend.registerInstantiatedClass(cls, forResolution: true));
+    }
+    if (useSet.contains(ClassUse.IMPLEMENTED)) {
+      applyImpact(backend.registerImplementedClass(cls, forResolution: true));
+    }
   }
 
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      _universe.registerDynamicUse(dynamicUse, _applyUse);
+      _universe.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
@@ -557,7 +523,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void forgetElement(Element element, Compiler compiler) {
     _universe.forgetElement(element, compiler);
-    _processedClasses.remove(element);
     processedElements.remove(element);
   }
 }
