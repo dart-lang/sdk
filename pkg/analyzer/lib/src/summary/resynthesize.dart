@@ -516,6 +516,9 @@ class _ConstExprBuilder {
         case UnlinkedExprOperation.typeCheck:
         case UnlinkedExprOperation.throwException:
         case UnlinkedExprOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushError:
+        case UnlinkedExprOperation.pushTypedAbstract:
+        case UnlinkedExprOperation.pushUntypedAbstract:
           throw new UnimplementedError(
               'Unexpected $operation in a constant expression.');
       }

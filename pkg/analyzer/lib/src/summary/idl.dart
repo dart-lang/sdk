@@ -2347,6 +2347,37 @@ enum UnlinkedExprOperation {
    * completion.  Then push the awaited value onto the stack.
    */
   await,
+
+  /**
+   * Push an abstract value onto the stack. Abstract values mark the presence of
+   * a value, but whose details are not included.
+   *
+   * This is not used by the summary generators today, but it will be used to
+   * experiment with prunning the initializer expression tree, so only
+   * information that is necessary gets included in the output summary file.
+   */
+  pushUntypedAbstract,
+
+  /**
+   * Get the next type reference from [UnlinkedExpr.references] and push an
+   * abstract value onto the stack that has that type.
+   *
+   * Like [pushUntypedAbstract], this is also not used by the summary generators
+   * today. The plan is to experiment with prunning the initializer expression
+   * tree, and include just enough type information to perform strong-mode type
+   * inference, but not all the details of how this type was obtained.
+   */
+  pushTypedAbstract,
+
+  /**
+   * Push an error onto the stack.
+   *
+   * Like [pushUntypedAbstract], this is not used by summary generators today.
+   * This will be used to experiment with prunning the const expression tree. If
+   * a constant has an error, we can omit the subexpression containing the error
+   * and only include a marker that an error was detected.
+   */
+  pushError,
 }
 
 /**
