@@ -1,5 +1,9 @@
 # Using Generic Methods
 
+**Note: For historical reasons, this feature is called "generic methods", but it
+applies equally well to instance methods, static methods, top-level functions,
+local functions, and even lambda expressions.**
+
 Initially a [proposal][], generic methods are on their way to being fully
 supported in Dart. Here is how to use them.
 
@@ -110,29 +114,33 @@ almost anywhere you would expect in a generic method.
     treated like `dynamic` today. So in this example, `pair`'s reified type at
     runtime will be `List<dynamic>` and `set` will be `Set<dynamic>`.
 
+There are two places you *cannot* use a generic method type parameter. Both are
+because the VM and dart2js don't support reifying generic method type arguments
+yet. Since these expressions wouldn't do what you want, we've temporarily
+defined them to be an error:
+
+* As the right-hand side of an `is` or `is!` expression.
+
+    ```dart
+    testType<T>(object) {
+      print(object is T);
+      //              ^-- Error!
+      print(object is! T);
+      //               ^-- Error!
+    }
+    ```
+
 * As a type literal:
 
     ```dart
     printType<T>() {
       Type t = T;
-      //       ^-- Here.
+      //       ^-- Error!
       print(t);
     }
     ```
 
-    Again, note that on the VM and dart2js, this will currently print "dynamic".
-
-The one place you cannot currently use a generic method type parameter is in an
-`is` expression. Since the VM and dart2js don't reify generic method type
-arguments yet, those expressions wouldn't do what you want. Instead, this is
-currently an error:
-
-```dart
-testType<T>(object) {
-  print(object is T);
-  //              ^-- Error!
-}
-```
+Once we have full runtime support for generic methods, these will be allowed.
 
 ## Calling generic methods
 
