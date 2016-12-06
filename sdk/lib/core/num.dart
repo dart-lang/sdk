@@ -186,7 +186,7 @@ abstract class num implements Comparable<num> {
   /**
    * True if the number is finite; otherwise, false.
    *
-   * The only non-finite numbers are NaN, positive infinitity and
+   * The only non-finite numbers are NaN, positive infinity, and
    * negative infinity.
    */
   bool get isFinite;
