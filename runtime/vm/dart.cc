@@ -16,7 +16,6 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
-#include "vm/kernel_isolate.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
@@ -313,10 +312,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 
   ServiceIsolate::Run();
 
-#ifndef DART_PRECOMPILED_RUNTIME
-  KernelIsolate::Run();
-#endif  // DART_PRECOMPILED_RUNTIME
-
   return NULL;
 }
 
@@ -604,9 +599,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
     I->class_table()->Print();
   }
 
-#ifndef DART_PRECOMPILED_RUNTIME
-  KernelIsolate::InitCallback(I);
-#endif
   ServiceIsolate::MaybeMakeServiceIsolate(I);
   if (!ServiceIsolate::IsServiceIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(

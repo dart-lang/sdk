@@ -272,8 +272,6 @@
     'json_stream.h',
     'json_stream.cc',
     'json_test.cc',
-    'kernel_isolate.cc',
-    'kernel_isolate.h',
     'locations.cc',
     'locations.h',
     'lockers.cc',
