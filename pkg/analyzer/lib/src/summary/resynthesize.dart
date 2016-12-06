@@ -218,7 +218,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
-        return libraryElement..isSynthetic = true;
+        libraryElement.createLoadLibraryFunction(typeProvider);
+        return libraryElement;
       }
       UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
       if (unlinkedSummary == null) {

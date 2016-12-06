@@ -402,6 +402,22 @@ import 'foo.dart';
     expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
+  test_errors_uriDoesNotExist_import_deferred() async {
+    addTestFile(
+        r'''
+import 'foo.dart' deferred as foo;
+main() {
+  foo.loadLibrary();
+}
+''',
+        priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
   test_errors_uriDoesNotExist_part() async {
     addTestFile(r'''
 library lib;
