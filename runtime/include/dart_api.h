@@ -3131,6 +3131,27 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
 
 
 /*
+ * ======
+ * Kernel
+ * ======
+ */
+
+
+/**
+ * Experimental support for Dart to Kernel parser isolate.
+ *
+ * TODO(hausner): Document finalized interface.
+ *
+ */
+
+DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
+DART_EXPORT bool Dart_KernelIsolateIsRunning();
+DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort();
+DART_EXPORT Dart_Port Dart_KernelPort();
+
+#define DART_KERNEL_ISOLATE_NAME "kernel-service"
+
+/*
  * =======
  * Service
  * =======

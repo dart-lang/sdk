@@ -175,11 +175,9 @@ Dart_Port ServiceIsolate::Port() {
 
 Dart_Port ServiceIsolate::WaitForLoadPort() {
   MonitorLocker ml(monitor_);
-
   while (initializing_ && (load_port_ == ILLEGAL_PORT)) {
     ml.Wait();
   }
-
   return load_port_;
 }
 

@@ -206,6 +206,24 @@ void Loader::SendRequest(Dart_LibraryTag tag,
 }
 
 
+// Forward a request from the tag handler to the kernel isolate.
+// [ tag, send port, url ]
+void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
+  // This port delivers loading messages to the Kernel isolate.
+  Dart_Port kernel_port = Dart_KernelPort();
+  ASSERT(kernel_port != ILLEGAL_PORT);
+
+  Dart_Handle request = Dart_NewList(3);
+  Dart_ListSetAt(request, 0, Dart_NewInteger(tag));
+  Dart_ListSetAt(request, 1, Dart_NewSendPort(port_));
+  Dart_ListSetAt(request, 2, url);
+  if (Dart_Post(kernel_port, request)) {
+    MonitorLocker ml(monitor_);
+    pending_operations_++;
+  }
+}
+
+
 void Loader::QueueMessage(Dart_CObject* message) {
   MonitorLocker ml(monitor_);
   if (results_length_ == results_capacity_) {
@@ -625,11 +643,14 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
-    loader->SendRequest(tag, url, (library != Dart_Null())
-                                      ? Dart_LibraryUrl(library)
-                                      : Dart_Null());
+    if (Dart_KernelIsolateIsRunning()) {
+      loader->SendKernelRequest(tag, url);
+    } else {
+      loader->SendRequest(tag, url, (library != Dart_Null())
+                                        ? Dart_LibraryUrl(library)
+                                        : Dart_Null());
+    }
   }
-
 
   if (blocking_call) {
     // The outer invocation of the tag handler will block here until all nested
