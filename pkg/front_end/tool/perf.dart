@@ -20,6 +20,8 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
@@ -81,6 +83,11 @@ main(List<String> args) async {
       Set<Source> files = scanReachableFiles(entryUri);
       // TODO(sigmund): replace the warmup with instrumented snapshots.
       for (int i = 0; i < 10; i++) unlinkedSummarizeFiles(files);
+    },
+    'prelinked_summarize': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) prelinkedSummarizeFiles(files);
     }
   };
 
@@ -207,6 +214,52 @@ void unlinkedSummarizeFiles(Set<Source> files) {
       'unlinked summarize + parse',
       unlinkedSummarizeTimer.elapsedMicroseconds +
           parseTimer.elapsedMicroseconds);
+}
+
+/// Produces prelinked summaries for every file in [files] and reports the time
+/// spent doing so.
+void prelinkedSummarizeFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  parseTimer = new Stopwatch();
+  unlinkedSummarizeTimer = new Stopwatch();
+  var unlinkedSummaries = <Source, UnlinkedUnit>{};
+  for (var source in files) {
+    unlinkedSummaries[source] = unlinkedSummarize(source);
+  }
+  var prelinkTimer = new Stopwatch()..start();
+  for (var source in files) {
+    UnlinkedUnit getSummary(String uri) {
+      var resolvedUri = sources.resolveUri(source, uri);
+      var result = unlinkedSummaries[resolvedUri];
+      if (result == null) {
+        print('Warning: no summary found for: $uri');
+      }
+      return result;
+    }
+
+    UnlinkedPublicNamespace getImport(String uri) =>
+        getSummary(uri)?.publicNamespace;
+    String getDeclaredVariable(String s) => null;
+    prelink(
+        unlinkedSummaries[source], getSummary, getImport, getDeclaredVariable);
+  }
+  prelinkTimer.stop();
+
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+  report("parse", parseTimer.elapsedMicroseconds);
+  report('unlinked summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
+  report(
+      'unlinked summarize + parse',
+      unlinkedSummarizeTimer.elapsedMicroseconds +
+          parseTimer.elapsedMicroseconds);
+  report('prelink', prelinkTimer.elapsedMicroseconds);
 }
 
 /// Add to [files] all sources reachable from [start].
