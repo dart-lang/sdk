@@ -499,6 +499,7 @@ function $setupProgramName(programData, typesOffset) {
           chain = targetPrototype.#deferredAction;
         }
         return function foo() {
+          if (!supportsDirectProtoAccess) return;
           var prototype = this;
           // Find the actual prototype that this handler is installed on.
           while (!prototype.hasOwnProperty(#deferredActionString)) {
