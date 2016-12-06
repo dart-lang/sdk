@@ -116,6 +116,7 @@ void onListen(Stream<int> stream) {
 }
 
 void someFunctionClosing(StreamController controller) {}
+
 void controllerPassedAsArgument() {
   StreamController controllerArgument = new StreamController();
   someFunctionClosing(controllerArgument);
@@ -125,4 +126,14 @@ void fluentInvocation() {
   StreamController cascadeController = new StreamController()
     ..add(null)
     ..close();
+}
+
+class CascadeSink {
+  StreamController cascadeController = new StreamController(); // OK
+
+  void closeSink() {
+    cascadeController
+      ..add(null)
+      ..close();
+  }
 }
