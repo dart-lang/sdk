@@ -51,7 +51,7 @@ abstract class num implements Comparable<num> {
    * for an [int] and a [double] with the same numerical value, and therefore
    * the same value for the doubles zero and minus zero.
    *
-   * No guarantees are made about the hash code of NaN.
+   * No guarantees are made about the hash code of NaN values.
    */
   int get hashCode;
 
