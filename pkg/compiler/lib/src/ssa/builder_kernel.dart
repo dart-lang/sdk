@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart';
@@ -114,6 +115,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     if (originTarget is FunctionElement) {
       target = kernel.functions[originTarget];
+      // Closures require a lookup one level deeper in the closure class mapper.
+      if (target == null) {
+        ClosureClassMap classMap = compiler.closureToClassMapper
+            .getClosureToClassMapping(originTarget.resolvedAst);
+        if (classMap.closureElement != null) {
+          target = kernel.localFunctions[classMap.closureElement];
+        }
+      }
     } else if (originTarget is FieldElement) {
       target = kernel.fields[originTarget];
     }
@@ -123,11 +132,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(het): no reason to do this here...
     HInstruction.idCounter = 0;
     if (target is ir.Procedure) {
-      buildProcedure(target);
+      target = (target as ir.Procedure).function;
+      buildFunctionNode(target);
     } else if (target is ir.Field) {
       buildField(target);
     } else if (target is ir.Constructor) {
       buildConstructor(target);
+    } else if (target is ir.FunctionExpression) {
+      target = (target as ir.FunctionExpression).function;
+      buildFunctionNode(target);
+    } else {
+      throw 'No case implemented to handle $target';
     }
     assert(graph.isValid());
     return graph;
@@ -334,10 +349,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         type, kind, original.instructionType, reifiedType, original);
   }
 
-  /// Builds a SSA graph for [procedure].
-  void buildProcedure(ir.Procedure procedure) {
+  /// Builds a SSA graph for FunctionNodes, found in FunctionExpressions and
+  /// Procedures.
+  void buildFunctionNode(ir.FunctionNode functionNode) {
     openFunction();
-    procedure.function.body.accept(this);
+    functionNode.body.accept(this);
     closeFunction();
   }
 
@@ -433,10 +449,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (returnStatement.expression == null) {
       value = graph.addConstantNull(compiler);
     } else {
-      assert(target is ir.Procedure);
+      assert(target is ir.FunctionNode);
       returnStatement.expression.accept(this);
       value = typeBuilder.potentiallyCheckOrTrustType(pop(),
-          astAdapter.getFunctionReturnType((target as ir.Procedure).function));
+          astAdapter.getFunctionReturnType(target));
     }
     // TODO(het): Add source information
     // TODO(het): Set a return value instead of closing the function when we
@@ -1631,6 +1647,37 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       push(new HInvokeDynamicMethod(
           selector, mask, inputs, type, isIntercepted));
     }
+  }
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression funcExpression) {
+    LocalFunctionElement methodElement = astAdapter.getElement(funcExpression);
+    ClosureClassMap nestedClosureData = compiler.closureToClassMapper
+        .getClosureToClassMapping(methodElement.resolvedAst);
+    assert(nestedClosureData != null);
+    assert(nestedClosureData.closureClassElement != null);
+    ClosureClassElement closureClassElement =
+        nestedClosureData.closureClassElement;
+    FunctionElement callElement = nestedClosureData.callElement;
+    // TODO(ahe): This should be registered in codegen, not here.
+    // TODO(johnniwinther): Is [registerStaticUse] equivalent to
+    // [addToWorkList]?
+    registry?.registerStaticUse(new StaticUse.foreignUse(callElement));
+
+    List<HInstruction> capturedVariables = <HInstruction>[];
+    closureClassElement.closureFields.forEach((ClosureFieldElement field) {
+      Local capturedLocal =
+          nestedClosureData.getLocalVariableForClosureField(field);
+      assert(capturedLocal != null);
+      capturedVariables.add(localsHandler.readLocal(capturedLocal));
+    });
+
+    TypeMask type =
+        new TypeMask.nonNullExact(closureClassElement, compiler.closedWorld);
+    // TODO(efortuna): Add source information here.
+    push(new HCreate(closureClassElement, capturedVariables, type));
+
+    registry?.registerInstantiatedClosure(methodElement);
   }
 
   // TODO(het): Decide when to inline
