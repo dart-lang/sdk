@@ -9,6 +9,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,6 +30,7 @@ class LinterRuleOptionsValidatorTest {
   List<AnalysisError> get errors => recorder.errors;
 
   setUp() {
+    registerLintRules();
     recorder = new RecordingErrorListener();
     reporter = new ErrorReporter(recorder, new _TestSource());
   }
