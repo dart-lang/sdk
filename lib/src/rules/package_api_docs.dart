@@ -6,9 +6,9 @@ library linter.src.rules.package_api_docs;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/project.dart';
 import 'package:linter/src/ast.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/project.dart';
 
 const desc = r'Provide doc comments for all public APIs';
 
@@ -16,9 +16,9 @@ const details = r'''
 **DO** provide doc comments for all public APIs.
 
 As described in the [pub package layout doc]
-(https://www.dartlang.org/tools/pub/package-layout.html#implementation-files), 
-public APIs consist in everything in your package's `lib` folder, minus 
-implementation files in `lib/src`, adding elements explicitly exported with an 
+(https://www.dartlang.org/tools/pub/package-layout.html#implementation-files),
+public APIs consist in everything in your package's `lib` folder, minus
+implementation files in `lib/src`, adding elements explicitly exported with an
 `export` directive.
 
 For example, given `lib/foo.dart`:
@@ -36,7 +36,7 @@ it's API includes:
 * `Bar` (exported) and
 * all *public* elements in `src/baz.dart`
 
-All public API members should be documented with `///` doc-style comments. 
+All public API members should be documented with `///` doc-style comments.
 
 **Good:**
 ```
@@ -45,7 +45,7 @@ abstract class Foo {
   /// Start foo-ing.
   void start() => _start();
 
-  _start(); 
+  _start();
 }
 ```
 
@@ -56,7 +56,7 @@ class Bar {
 }
 ```
 
-Advice for writing good doc comments can be found in the 
+Advice for writing good doc comments can be found in the
 [Doc Writing Guidelines]
 (https://www.dartlang.org/articles/doc-comment-guidelines).
 ''';

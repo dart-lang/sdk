@@ -7,9 +7,9 @@ library linter.src.rules.package_prefixed_library_names;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/project.dart';
-import 'package:linter/src/util.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/project.dart';
+import 'package:analyzer/src/lint/util.dart';
 
 const desc =
     r'Prefix library names with the package name and a dot-separated path.';
@@ -17,15 +17,15 @@ const desc =
 const details = r'''
 **DO** prefix library names with the package name and a dot-separated path.
 
-This guideline helps avoid the warnings you get when two libraries have the 
+This guideline helps avoid the warnings you get when two libraries have the
 same name. Here are the rules we recommend:
 
 * Prefix all library names with the package name.
 * Make the entry library have the same name as the package.
-* For all other libraries in a package, after the package name add the dot-separated path to the library's Dart file. 
+* For all other libraries in a package, after the package name add the dot-separated path to the library's Dart file.
 * For libraries under `lib`, omit the top directory name.
 
-For example, say the package name is `my_package`. Here are the library names 
+For example, say the package name is `my_package`. Here are the library names
 for various files in the package:
 
 **GOOD:**

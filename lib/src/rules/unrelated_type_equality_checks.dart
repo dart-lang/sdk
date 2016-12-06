@@ -7,7 +7,7 @@ library linter.src.rules.unrelated_type_equality_checks;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
 const String _desc = r'Equality operator (==) invocation with references of'
@@ -125,6 +125,12 @@ class DerivedClass2 extends ClassBase with Mixin {}
 ```
 ''';
 
+bool _hasNonComparableOperands(BinaryExpression node) =>
+    node.leftOperand is! NullLiteral &&
+    node.rightOperand is! NullLiteral &&
+    DartTypeUtilities.unrelatedTypes(
+        node.leftOperand.bestType, node.rightOperand.bestType);
+
 class UnrelatedTypeEqualityChecks extends LintRule {
   _Visitor _visitor;
 
@@ -164,9 +170,3 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 }
-
-bool _hasNonComparableOperands(BinaryExpression node) =>
-    node.leftOperand is! NullLiteral &&
-    node.rightOperand is! NullLiteral &&
-    DartTypeUtilities.unrelatedTypes(
-        node.leftOperand.bestType, node.rightOperand.bestType);

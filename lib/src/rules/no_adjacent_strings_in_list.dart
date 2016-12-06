@@ -6,7 +6,7 @@ library linter.src.rules.no_adjacent_strings_in_list;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = 'Do not use adjacent strings in list';
 

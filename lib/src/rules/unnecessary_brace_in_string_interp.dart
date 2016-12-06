@@ -8,14 +8,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = 'Avoid using braces in interpolation when not needed.';
 
 const details = r'''
-**AVOID** using braces in interpolation when not needed. 
+**AVOID** using braces in interpolation when not needed.
 
-If you're just interpolating a simple identifier, and it's not immediately 
+If you're just interpolating a simple identifier, and it's not immediately
 followed by more alphanumeric text, the `{}` can and should be omitted.
 
 **GOOD:**

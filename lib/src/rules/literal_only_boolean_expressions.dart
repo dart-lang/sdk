@@ -5,11 +5,12 @@
 
 library linter.src.rules.literal_only_boolean_expressions;
 
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:linter/src/linter.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
-const _desc = r'Conditions should not unconditionally evaluate to "TRUE" or to "FALSE"';
+const _desc =
+    r'Conditions should not unconditionally evaluate to "TRUE" or to "FALSE"';
 
 const _details = r'''
 
@@ -81,15 +82,35 @@ void bad() {
 
 ''';
 
+bool _onlyLiterals(Expression expression) {
+  final literalsOnBothSides = expression is BinaryExpression &&
+      (_onlyLiterals(expression.leftOperand) &&
+          _onlyLiterals(expression.rightOperand));
+  final ifNullOperatorWithLiteral = expression is BinaryExpression &&
+      (_onlyLiterals(expression.leftOperand) ||
+          _onlyLiterals(expression.rightOperand)) &&
+      expression.operator.type == TokenType.QUESTION_QUESTION;
+  final literalNegation =
+      expression is PrefixExpression && _onlyLiterals(expression.operand);
+  final parenthesizedLiteral = expression is ParenthesizedExpression &&
+      _onlyLiterals(expression.expression);
+  return expression is Literal ||
+      literalsOnBothSides ||
+      ifNullOperatorWithLiteral ||
+      literalNegation ||
+      parenthesizedLiteral;
+}
+
 class LiteralOnlyBooleanExpressions extends LintRule {
   _Visitor _visitor;
 
-  LiteralOnlyBooleanExpressions() : super(
-      name: 'literal_only_boolean_expressions',
-      description: _desc,
-      details: _details,
-      group: Group.errors,
-      maturity: Maturity.experimental) {
+  LiteralOnlyBooleanExpressions()
+      : super(
+            name: 'literal_only_boolean_expressions',
+            description: _desc,
+            details: _details,
+            group: Group.errors,
+            maturity: Maturity.experimental) {
     _visitor = new _Visitor(this);
   }
 
@@ -103,14 +124,14 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  visitDoStatement(DoStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }
   }
 
   @override
-  visitDoStatement(DoStatement node) {
+  visitForStatement(ForStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }
@@ -124,25 +145,9 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  visitWhileStatement(WhileStatement node) {
     if (_onlyLiterals(node.condition)) {
       rule.reportLint(node);
     }
   }
-}
-
-bool _onlyLiterals(Expression expression) {
-  final literalsOnBothSides = expression is BinaryExpression &&
-      (_onlyLiterals(expression.leftOperand) &&
-          _onlyLiterals(expression.rightOperand));
-  final ifNullOperatorWithLiteral = expression is BinaryExpression &&
-      (_onlyLiterals(expression.leftOperand) ||
-          _onlyLiterals(expression.rightOperand)) &&
-      expression.operator.type == TokenType.QUESTION_QUESTION;
-  final literalNegation = expression is PrefixExpression &&
-      _onlyLiterals(expression.operand);
-  final parenthesizedLiteral = expression is ParenthesizedExpression &&
-      _onlyLiterals(expression.expression);
-  return expression is Literal || literalsOnBothSides ||
-      ifNullOperatorWithLiteral || literalNegation || parenthesizedLiteral;
 }

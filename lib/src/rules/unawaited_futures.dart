@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc =
     'Await for future expression statements inside async function bodies.';

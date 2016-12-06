@@ -6,7 +6,7 @@ library linter.src.rules.prefer_final_locals;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const _desc =
     r'Prefer final for variable declaration if reference is not reassigned.';

@@ -38,7 +38,7 @@ import 'package:analyzer/dart/element/element.dart'
     show Element, ParameterElement, PropertyAccessorElement;
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:linter/src/util.dart';
+import 'package:analyzer/src/lint/util.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {

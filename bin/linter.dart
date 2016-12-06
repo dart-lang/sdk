@@ -7,11 +7,12 @@ import 'dart:math' as math;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/formatter.dart';
-import 'package:linter/src/io.dart';
-import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules.dart';
 
 void main(List<String> args) {
@@ -43,6 +44,9 @@ For more information, see https://github.com/dart-lang/linter
 }
 
 void runLinter(List<String> args, LinterOptions initialLintOptions) {
+  // Force the rule registry to be populated.
+  registerLintRules();
+
   var parser = new ArgParser(allowTrailingOptions: true);
 
   parser
@@ -104,7 +108,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   if (lints != null && !lints.isEmpty) {
     var rules = <LintRule>[];
     for (var lint in lints) {
-      var rule = ruleRegistry[lint];
+      var rule = Registry.ruleRegistry[lint];
       if (rule == null) {
         errorSink.write('Unrecognized lint rule: $lint');
         exit(unableToProcessExitCode);

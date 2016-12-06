@@ -6,7 +6,7 @@
 /// lint rules.
 library analyzer.plugin.linter;
 
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/plugin.dart';
 

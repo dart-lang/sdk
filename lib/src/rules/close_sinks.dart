@@ -6,7 +6,7 @@ library linter.src.rules.close_sinks;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/leak_detector_visitor.dart';
 

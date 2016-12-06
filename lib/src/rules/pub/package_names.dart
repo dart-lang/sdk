@@ -4,10 +4,10 @@
 
 library linter.src.rules.pub.package_names;
 
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/pub.dart';
+import 'package:analyzer/src/lint/util.dart';
 import 'package:linter/src/ast.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/pub.dart';
-import 'package:linter/src/util.dart';
 
 const desc = 'Use `lowercase_with_underscores` for package names.';
 

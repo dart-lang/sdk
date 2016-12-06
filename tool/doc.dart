@@ -4,8 +4,9 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
-import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
 
@@ -47,7 +48,7 @@ const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
-    new List<LintRule>.from(ruleRegistry, growable: false)..sort();
+    new List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
 
 String get enumerateErrorRules => rules
     .where((r) => r.group == Group.errors)
@@ -80,8 +81,10 @@ void generateDocs(String outDir) {
     }
   }
 
+  registerLintRules();
+
   // Generate index
-  new Indexer(ruleRegistry).generate(outDir);
+  new Indexer(Registry.ruleRegistry).generate(outDir);
 
   // Generate rule files
   rules.forEach((l) => new Generator(l).generate(outDir));

@@ -6,11 +6,11 @@ library linter.src.plugin.linter_plugin;
 
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/plugin/linter.dart';
 import 'package:linter/src/config.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -100,6 +100,7 @@ class LinterPlugin implements Plugin {
     return lints;
   }
 
-  List<Linter> _getRules(LintConfig config) =>
-      config != null ? ruleRegistry.enabled(config).toList() : _noLints;
+  List<Linter> _getRules(LintConfig config) => config != null
+      ? Registry.ruleRegistry.enabled(config).toList()
+      : _noLints;
 }

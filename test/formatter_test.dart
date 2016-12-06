@@ -5,8 +5,8 @@
 library linter.test.formatter;
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/formatter.dart';
-import 'package:linter/src/linter.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 

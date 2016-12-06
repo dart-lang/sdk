@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/io.dart';
+import 'package:analyzer/src/lint/io.dart';
 
 import 'config_test.dart' as config_test;
 import 'engine_test.dart' as engine_test;
@@ -16,7 +16,6 @@ import 'pub_test.dart' as pub_test;
 import 'rule_test.dart' as rule_test;
 
 main() {
-
   // useCompactVMConfiguration();
 
   // Redirect output.

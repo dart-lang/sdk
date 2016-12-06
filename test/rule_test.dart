@@ -9,15 +9,15 @@ import 'dart:io';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/util.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
-import 'package:linter/src/io.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
-import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -404,7 +404,7 @@ testRule(String ruleName, File file, {bool debug: false}) {
       ++lineNumber;
     }
 
-    LintRule rule = ruleRegistry[ruleName];
+    LintRule rule = Registry.ruleRegistry[ruleName];
     if (rule == null) {
       print('WARNING: Test skipped -- rule `$ruleName` is not registered.');
       return;

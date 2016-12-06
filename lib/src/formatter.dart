@@ -10,8 +10,8 @@ import 'dart:math';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:linter/src/linter.dart';
 
 final int _pipeCodeUnit = '|'.codeUnitAt(0);
 final int _slashCodeUnit = '\\'.codeUnitAt(0);

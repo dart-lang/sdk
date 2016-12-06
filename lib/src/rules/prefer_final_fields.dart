@@ -7,7 +7,7 @@ library linter.src.rules.prefer_final_fields;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Private field could be final.';

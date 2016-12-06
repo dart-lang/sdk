@@ -4,10 +4,7 @@
 
 library linter.src.rules;
 
-import 'dart:collection';
-
-import 'package:linter/src/config.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
@@ -62,86 +59,61 @@ import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
-final Registry ruleRegistry = new Registry()
-  ..register(new AlwaysDeclareReturnTypes())
-  ..register(new AlwaysSpecifyTypes())
-  ..register(new AnnotateOverrides())
-  ..register(new AvoidAs())
-  ..register(new AvoidEmptyElse())
-  ..register(new AvoidInitToNull())
-  ..register(new AvoidReturnTypesOnSetters())
-  ..register(new AwaitOnlyFutures())
-  ..register(new CamelCaseTypes())
-  ..register(new CancelSubscriptions())
-  ..register(new CascadeInvocations())
-  ..register(new CloseSinks())
-  ..register(new CommentReferences())
-  ..register(new ControlFlowInFinally())
-  ..register(new ConstantIdentifierNames())
-  ..register(new EmptyCatches())
-  ..register(new EmptyConstructorBodies())
-  ..register(new EmptyStatements())
-  ..register(new HashAndEquals())
-  ..register(new ImplementationImports())
-  ..register(new InvariantBooleans())
-  ..register(new IterableContainsUnrelatedType())
-  ..register(new LibraryNames())
-  ..register(new LibraryPrefixes())
-  ..register(new ListRemoveUnrelatedType())
-  ..register(new LiteralOnlyBooleanExpressions())
-  ..register(new NoAdjacentStringsInList())
-  ..register(new NonConstantIdentifierNames())
-  ..register(new OneMemberAbstracts())
-  ..register(new OnlyThrowErrors())
-  ..register(new OverriddenFields())
-  ..register(new PackageApiDocs())
-  ..register(new PackagePrefixedLibraryNames())
-  ..register(new ParameterAssignments())
-  ..register(new PreferFinalFields())
-  ..register(new PreferFinalLocals())
-  ..register(new PreferIsNotEmpty())
-  ..register(new PublicMemberApiDocs())
-  ..register(new PubPackageNames())
-  ..register(new RecursiveGetter())
-  ..register(new SlashForDocComments())
-  ..register(new SortConstructorsFirst())
-  ..register(new SortUnnamedConstructorsFirst())
-  ..register(new SuperGoesLast())
-  ..register(new TestTypesInEquals())
-  ..register(new ThrowInFinally())
-  ..register(new TypeAnnotatePublicApis())
-  ..register(new TypeInitFormals())
-  ..register(new UnawaitedFutures())
-  ..register(new UnnecessaryBraceInStringInterp())
-  // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
-  //..register(new UnnecessaryGetters())
-  ..register(new UnnecessaryGettersSetters())
-  ..register(new UnrelatedTypeEqualityChecks())
-  ..register(new ValidRegExps());
-
-/// Registry of contributed lint rules.
-class Registry extends Object with IterableMixin<LintRule> {
-  Map<String, LintRule> _ruleMap = <String, LintRule>{};
-
-  @override
-  Iterator<LintRule> get iterator => _ruleMap.values.iterator;
-
-  Iterable<LintRule> get rules => _ruleMap.values;
-
-  LintRule operator [](String key) => _ruleMap[key];
-
-  /// All lint rules explicitly enabled by the given [config].
-  ///
-  /// For example:
-  ///     my_rule: true
-  ///
-  /// enables `my_rule`.
-  ///
-  /// Unspecified rules are treated as disabled by default.
-  Iterable<LintRule> enabled(LintConfig config) => rules
-      .where((rule) => config.ruleConfigs.any((rc) => rc.enables(rule.name)));
-
-  void register(LintRule rule) {
-    _ruleMap[rule.name] = rule;
-  }
+void registerLintRules() {
+  Registry.ruleRegistry
+    ..register(new AlwaysDeclareReturnTypes())
+    ..register(new AlwaysSpecifyTypes())
+    ..register(new AnnotateOverrides())
+    ..register(new AvoidAs())
+    ..register(new AvoidEmptyElse())
+    ..register(new AvoidInitToNull())
+    ..register(new AvoidReturnTypesOnSetters())
+    ..register(new AwaitOnlyFutures())
+    ..register(new CamelCaseTypes())
+    ..register(new CancelSubscriptions())
+    ..register(new CascadeInvocations())
+    ..register(new CloseSinks())
+    ..register(new CommentReferences())
+    ..register(new ControlFlowInFinally())
+    ..register(new ConstantIdentifierNames())
+    ..register(new EmptyCatches())
+    ..register(new EmptyConstructorBodies())
+    ..register(new EmptyStatements())
+    ..register(new HashAndEquals())
+    ..register(new ImplementationImports())
+    ..register(new InvariantBooleans())
+    ..register(new IterableContainsUnrelatedType())
+    ..register(new LibraryNames())
+    ..register(new LibraryPrefixes())
+    ..register(new ListRemoveUnrelatedType())
+    ..register(new LiteralOnlyBooleanExpressions())
+    ..register(new NoAdjacentStringsInList())
+    ..register(new NonConstantIdentifierNames())
+    ..register(new OneMemberAbstracts())
+    ..register(new OnlyThrowErrors())
+    ..register(new OverriddenFields())
+    ..register(new PackageApiDocs())
+    ..register(new PackagePrefixedLibraryNames())
+    ..register(new ParameterAssignments())
+    ..register(new PreferFinalFields())
+    ..register(new PreferFinalLocals())
+    ..register(new PreferIsNotEmpty())
+    ..register(new PublicMemberApiDocs())
+    ..register(new PubPackageNames())
+    ..register(new RecursiveGetter())
+    ..register(new SlashForDocComments())
+    ..register(new SortConstructorsFirst())
+    ..register(new SortUnnamedConstructorsFirst())
+    ..register(new SuperGoesLast())
+    ..register(new TestTypesInEquals())
+    ..register(new ThrowInFinally())
+    ..register(new TypeAnnotatePublicApis())
+    ..register(new TypeInitFormals())
+    ..register(new UnawaitedFutures())
+    ..register(new UnnecessaryBraceInStringInterp())
+    // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
+    //..register(new UnnecessaryGetters())
+    ..register(new UnnecessaryGettersSetters())
+    ..register(new UnrelatedTypeEqualityChecks())
+    ..register(new ValidRegExps());
 }

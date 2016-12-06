@@ -6,7 +6,7 @@ library linter.test.pub;
 
 import 'dart:io';
 
-import 'package:linter/src/pub.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';

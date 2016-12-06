@@ -6,7 +6,7 @@ library linter.src.rules.type_init_formals;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = "Don't type annotate initializing formals.";
 
@@ -15,7 +15,7 @@ From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **DON'T** type annotate initializing formals.
 
-If a constructor parameter is using `this`. to initialize a field, then the 
+If a constructor parameter is using `this`. to initialize a field, then the
 type of the parameter is understood to be the same type as the field.
 
 **GOOD:**

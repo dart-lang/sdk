@@ -7,8 +7,55 @@ library linter.src.util.unrelated_types_visitor;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
+
+_InterfaceTypePredicate _buildImplementsDefinitionPredicate(
+        InterfaceTypeDefinition definition) =>
+    (InterfaceType interface) =>
+        interface.name == definition.name &&
+        interface.element.library.name == definition.library;
+
+List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
+        {List<InterfaceType> acc: const []}) =>
+    acc.contains(type)
+        ? acc
+        : type.interfaces.fold(
+            <InterfaceType>[type],
+            (List<InterfaceType> acc, InterfaceType e) => new List.from(acc)
+              ..addAll(_findImplementedInterfaces(e, acc: acc)));
+
+DartType _findIterableTypeArgument(
+    InterfaceTypeDefinition definition, InterfaceType type,
+    {List<InterfaceType> accumulator: const []}) {
+  if (type == null ||
+      type.isObject ||
+      type.isDynamic ||
+      accumulator.contains(type)) {
+    return null;
+  }
+
+  _InterfaceTypePredicate predicate =
+      _buildImplementsDefinitionPredicate(definition);
+  if (predicate(type)) {
+    return type.typeArguments.first;
+  }
+
+  List<InterfaceType> implementedInterfaces = _findImplementedInterfaces(type);
+  InterfaceType interface =
+      implementedInterfaces.firstWhere(predicate, orElse: () => null);
+  if (interface != null && interface.typeArguments.isNotEmpty) {
+    return interface.typeArguments.first;
+  }
+
+  return _findIterableTypeArgument(definition, type.superclass,
+      accumulator: [type]..addAll(accumulator)..addAll(implementedInterfaces));
+}
+
+bool _isParameterizedMethodInvocation(
+        String methodName, MethodInvocation node) =>
+    node.methodName.name == methodName &&
+    node.argumentList.arguments.length == 1;
 
 typedef bool _InterfaceTypePredicate(InterfaceType type);
 
@@ -33,7 +80,8 @@ abstract class UnrelatedTypesVisitor extends SimpleAstVisitor {
     DartType type = node.target != null
         ? node.target.bestType
         : (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration)
-            ?.element?.type;
+            ?.element
+            ?.type;
     Expression argument = node.argumentList.arguments.first;
     if (type is InterfaceType &&
         DartTypeUtilities.unrelatedTypes(
@@ -42,47 +90,3 @@ abstract class UnrelatedTypesVisitor extends SimpleAstVisitor {
     }
   }
 }
-
-_InterfaceTypePredicate _buildImplementsDefinitionPredicate(
-    InterfaceTypeDefinition definition) =>
-        (InterfaceType interface) =>
-    interface.name == definition.name &&
-        interface.element.library.name == definition.library;
-
-List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
-    {List<InterfaceType> acc: const []}) =>
-    acc.contains(type)
-        ? acc
-        : type.interfaces.fold(
-        <InterfaceType>[type],
-        (List<InterfaceType> acc, InterfaceType e) => new List.from(acc)
-      ..addAll(_findImplementedInterfaces(e, acc: acc)));
-
-DartType _findIterableTypeArgument(
-    InterfaceTypeDefinition definition, InterfaceType type,
-    {List<InterfaceType> accumulator: const []}) {
-  if (type == null || type.isObject || type.isDynamic || accumulator.contains(type)) {
-    return null;
-  }
-
-  _InterfaceTypePredicate predicate =
-  _buildImplementsDefinitionPredicate(definition);
-  if (predicate(type)) {
-    return type.typeArguments.first;
-  }
-
-  List<InterfaceType> implementedInterfaces = _findImplementedInterfaces(type);
-  InterfaceType interface =
-  implementedInterfaces.firstWhere(predicate, orElse: () => null);
-  if (interface != null && interface.typeArguments.isNotEmpty) {
-    return interface.typeArguments.first;
-  }
-
-  return _findIterableTypeArgument(definition, type.superclass,
-      accumulator: [type]..addAll(accumulator)..addAll(implementedInterfaces));
-}
-
-bool _isParameterizedMethodInvocation(
-    String methodName, MethodInvocation node) =>
-    node.methodName.name == methodName &&
-        node.argumentList.arguments.length == 1;

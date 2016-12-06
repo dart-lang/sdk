@@ -6,9 +6,9 @@ library linter.src.rules.type_annotate_public_apis;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/util.dart';
 import 'package:linter/src/ast.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/util.dart';
 
 const desc = r'Type annotate public APIs.';
 

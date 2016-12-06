@@ -9,8 +9,8 @@ import 'dart:io';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/pub.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:mockito/mockito.dart';
 
 class CollectingSink extends MockIOSink {

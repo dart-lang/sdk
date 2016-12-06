@@ -6,7 +6,7 @@ library linter.src.rules.iterable_contains_unrelated_type;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/unrelated_types_visitor.dart';
 
@@ -128,10 +128,10 @@ class IterableContainsUnrelatedType extends LintRule {
 
   IterableContainsUnrelatedType()
       : super(
-      name: 'iterable_contains_unrelated_type',
-      description: _desc,
-      details: _details,
-      group: Group.errors) {
+            name: 'iterable_contains_unrelated_type',
+            description: _desc,
+            details: _details,
+            group: Group.errors) {
     _visitor = new _Visitor(this);
   }
 
@@ -140,7 +140,8 @@ class IterableContainsUnrelatedType extends LintRule {
 }
 
 class _Visitor extends UnrelatedTypesVisitor {
-  static final _DEFINITION = new InterfaceTypeDefinition('Iterable', 'dart.core');
+  static final _DEFINITION =
+      new InterfaceTypeDefinition('Iterable', 'dart.core');
 
   _Visitor(LintRule rule) : super(rule);
 

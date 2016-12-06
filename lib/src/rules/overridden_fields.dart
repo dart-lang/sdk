@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = r'Do not override fields.';
 
@@ -127,6 +127,7 @@ class _Visitor extends SimpleAstVisitor {
       }
       return false;
     }
+
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
     ClassElement classElement = member.enclosingElement;

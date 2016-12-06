@@ -4,7 +4,7 @@
 
 library linter.test.io;
 
-import 'package:linter/src/io.dart';
+import 'package:analyzer/src/lint/io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';

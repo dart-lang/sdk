@@ -6,7 +6,7 @@ library linter.src.rules.comment_references;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = r'Only reference in scope identifiers in doc comments.';
 

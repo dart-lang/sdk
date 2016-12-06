@@ -6,8 +6,8 @@ library linter.src.rules.constant_identifier_names;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
-import 'package:linter/src/util.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/util.dart';
 
 const desc = r'Prefer using lowerCamelCase for constant names.';
 
@@ -16,7 +16,7 @@ const details = r'''
 
 In new code, use `lowerCamelCase` for constant variables, including enum values.
 
-In existing code that uses `ALL_CAPS_WITH_UNDERSCORES` for constants, you may 
+In existing code that uses `ALL_CAPS_WITH_UNDERSCORES` for constants, you may
 continue to use all caps to stay consistent.
 
 

@@ -6,7 +6,7 @@ library linter.src.rules.slash_for_doc_comments;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = r'Prefer to use /// for doc comments';
 
@@ -15,7 +15,7 @@ From the [style guide](https://www.dartlang.org/articles/style-guide/):
 
 **PREFER** to use `///` for doc comments.
 
-Although Dart supports two syntaxes of doc comments (`///` and `/**`), we 
+Although Dart supports two syntaxes of doc comments (`///` and `/**`), we
 prefer using `///` for doc comments.
 
 **GOOD:**

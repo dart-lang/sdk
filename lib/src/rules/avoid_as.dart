@@ -6,7 +6,7 @@ library linter.src.rules.avoid_as;
 
 import 'package:analyzer/dart/ast/ast.dart' show AsExpression, AstVisitor;
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/linter.dart';
+import 'package:analyzer/src/lint/linter.dart';
 
 const desc = r'Avoid using `as`.';
 
