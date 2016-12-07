@@ -75,8 +75,6 @@ mixin_illegal_superclass_test/27: DartkMissingCompileTimeError
 mixin_illegal_superclass_test/28: DartkMissingCompileTimeError
 mixin_illegal_superclass_test/29: DartkMissingCompileTimeError
 mixin_illegal_superclass_test/30: DartkMissingCompileTimeError
-mixin_illegal_syntax_test/13: DartkCompileTimeError
-mixin_illegal_syntax_test/none: DartkCompileTimeError
 multiline_newline_test/01: DartkCompileTimeError
 multiline_newline_test/02: DartkCompileTimeError
 multiline_newline_test/03: DartkCompileTimeError
