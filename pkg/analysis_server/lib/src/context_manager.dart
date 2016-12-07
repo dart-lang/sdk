@@ -30,13 +30,13 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:linter/src/config.dart';
+import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -714,7 +714,7 @@ class ContextManagerImpl implements ContextManager {
     var lintOptions = options['linter'];
     if (lintOptions != null) {
       LintConfig config = new LintConfig.parseMap(lintOptions);
-      Iterable<LintRule> lintRules = Registry.ruleRegistry.enabled(config);
+      Iterable<LintRule> lintRules = ruleRegistry.enabled(config);
       if (lintRules.isNotEmpty) {
         analysisOptions.lint = true;
         analysisOptions.lintRules = lintRules.toList();

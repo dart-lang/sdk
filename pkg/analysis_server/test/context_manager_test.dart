@@ -22,7 +22,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
-import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
@@ -1783,8 +1782,6 @@ abstract class ContextManagerTest {
     plugins.add(linterPlugin);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-
-    registerLintRules();
   }
 
   UriResolver providePackageResolver(Folder folder) => packageResolver;

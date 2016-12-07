@@ -6,7 +6,7 @@ library services.src.linter;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:linter/src/rules.dart';
 import 'package:yaml/yaml.dart';
 
 /**
@@ -38,8 +38,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   validateRules(dynamic rules, ErrorReporter reporter) {
     if (rules is YamlList) {
       //TODO(pq): migrate this to a proper API once there is one.
-      Iterable<String> registeredLints =
-          Registry.ruleRegistry.map((r) => r.name);
+      Iterable<String> registeredLints = ruleRegistry.map((r) => r.name);
       rules.nodes.forEach((YamlNode ruleNode) {
         Object value = ruleNode.value;
         if (value != null && !registeredLints.contains(value)) {
