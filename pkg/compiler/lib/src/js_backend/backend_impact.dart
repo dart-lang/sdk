@@ -161,10 +161,16 @@ class BackendImpacts {
 
   BackendImpact get throwNoSuchMethod {
     return _throwNoSuchMethod ??= new BackendImpact(
+        instantiatedClasses: compiler.options.useKernel
+            ? [
+                commonElements.symbolClass,
+              ]
+            : [],
         staticUses: compiler.options.useKernel
             ? [
                 helpers.genericNoSuchMethod,
                 helpers.unresolvedConstructorError,
+                commonElements.symbolConstructor.declaration,
               ]
             : [
                 helpers.throwNoSuchMethod,
