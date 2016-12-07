@@ -15,8 +15,8 @@ static void updateThreadState(Thread* thread) {
   uint32_t old_state = Thread::SetAtSafepoint(true, 0);
   uword addr =
       reinterpret_cast<uword>(thread) + Thread::safepoint_state_offset();
-  if (AtomicOperations::CompareAndSwapUint32(
-          reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+  if (AtomicOperations::CompareAndSwapUint32(reinterpret_cast<uint32_t*>(addr),
+                                             old_state, 0) != old_state) {
     // Fast update failed which means we could potentially be in the middle
     // of a safepoint operation and need to block for it.
     SafepointHandler* handler = thread->isolate()->safepoint_handler();
@@ -29,6 +29,7 @@ static void updateThreadState(Thread* thread) {
 Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
                                                           int64_t millis) {
   ASSERT(thread == Thread::Current());
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->set_execution_state(Thread::kThreadInBlockedState);
   thread->EnterSafepoint();
   Monitor::WaitResult result = monitor_->Wait(millis);
@@ -37,8 +38,8 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
   uint32_t old_state = Thread::SetAtSafepoint(true, 0);
   uword addr =
       reinterpret_cast<uword>(thread) + Thread::safepoint_state_offset();
-  if (AtomicOperations::CompareAndSwapUint32(
-          reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+  if (AtomicOperations::CompareAndSwapUint32(reinterpret_cast<uint32_t*>(addr),
+                                             old_state, 0) != old_state) {
     // Fast update failed which means we could potentially be in the middle
     // of a safepoint operation and need to block for it.
     monitor_->Exit();

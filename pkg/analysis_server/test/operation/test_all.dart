@@ -4,9 +4,8 @@
 
 library test.operation.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'operation_queue_test.dart' as operation_queue_test;
 import 'operation_test.dart' as operation_test;
 
@@ -14,9 +13,8 @@ import 'operation_test.dart' as operation_test;
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
-  group('operation', () {
+  defineReflectiveSuite(() {
     operation_queue_test.main();
     operation_test.main();
-  });
+  }, name: 'operation');
 }

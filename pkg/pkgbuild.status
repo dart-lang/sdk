@@ -7,6 +7,8 @@ pkg/compiler: SkipByDesign # js_ast is not published
 
 [ ($use_repository_packages || $use_public_packages) ]
 pkg/dev_compiler: SkipByDesign # we have relative paths to analyzer
+pkg/analyzer: Fail # Issue 27654
+pkg/front_end: Fail # Issue 27655
 
 [ $use_repository_packages ]
  # third_party/pkg/dart2js_info: Fail # Issue https://github.com/dart-lang/dart2js_info/pull/14

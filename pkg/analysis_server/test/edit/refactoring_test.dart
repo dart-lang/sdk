@@ -11,25 +11,25 @@ import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/manager.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ConvertGetterMethodToMethodTest);
-  defineReflectiveTests(ConvertMethodToGetterTest);
-  defineReflectiveTests(ExtractLocalVariableTest);
-  defineReflectiveTests(ExtractMethodTest);
-  defineReflectiveTests(GetAvailableRefactoringsTest);
-  defineReflectiveTests(InlineLocalTest);
-  defineReflectiveTests(InlineMethodTest);
-  defineReflectiveTests(MoveFileTest);
-  defineReflectiveTests(RenameTest);
-  defineReflectiveTests(_NoSearchEngine);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertGetterMethodToMethodTest);
+    defineReflectiveTests(ConvertMethodToGetterTest);
+    defineReflectiveTests(ExtractLocalVariableTest);
+    defineReflectiveTests(ExtractMethodTest);
+    defineReflectiveTests(GetAvailableRefactoringsTest);
+    defineReflectiveTests(InlineLocalTest);
+    defineReflectiveTests(InlineMethodTest);
+    defineReflectiveTests(MoveFileTest);
+    defineReflectiveTests(RenameTest);
+    defineReflectiveTests(_NoSearchEngine);
+  });
 }
 
 @reflectiveTest

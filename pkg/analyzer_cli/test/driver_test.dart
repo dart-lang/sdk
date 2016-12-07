@@ -14,12 +14,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
 
 import 'utils.dart';
@@ -51,8 +50,6 @@ main() {
   setUp(() => _setUp());
 
   tearDown(() => _tearDown());
-
-  initializeTestEnvironment();
 
   group('Driver', () {
     group('options', () {
@@ -300,7 +297,7 @@ linter:
                 ErrorSeverity.WARNING);
             // Should not be made fatal by `--fatal-warnings`.
             expect(outSink.toString(),
-                contains("[warning] The function 'baz' is not defined"));
+                contains("[warning] The function 'baz' isn't defined"));
             expect(
                 outSink.toString(), contains("1 error and 1 warning found."));
           });
@@ -429,7 +426,7 @@ const emptyOptionsFile = 'data/empty_options.yaml';
 Driver driver;
 
 List<ErrorProcessor> get processors =>
-    driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+    driver.context.analysisOptions.errorProcessors;
 
 /// Convert a file specification from a relative path to an absolute path.
 /// Handles the case where the file specification is of the form "$uri|$path".

@@ -15,6 +15,7 @@ import '../kernel/kernel.dart';
 import '../kernel/kernel_debug.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
+import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -24,27 +25,40 @@ import '../common/resolution.dart';
 
 /// Computes the [ResolutionImpact] for [resolvedAst] through kernel.
 ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
-  AstElement element = resolvedAst.element.implementation;
-  JavaScriptBackend backend = compiler.backend;
-  Kernel kernel = backend.kernelTask.kernel;
-  KernelImpactBuilder builder =
-      new KernelImpactBuilder(resolvedAst, compiler, kernel);
-  if (element.isFunction) {
-    ir.Procedure function = kernel.functions[element];
-    if (function == null) {
-      print("FOUND NULL FUNCTION: $element");
+  AstElement element = resolvedAst.element;
+  return compiler.reporter.withCurrentElement(element.implementation, () {
+    JavaScriptBackend backend = compiler.backend;
+    Kernel kernel = backend.kernelTask.kernel;
+    KernelImpactBuilder builder =
+        new KernelImpactBuilder(resolvedAst, compiler, kernel);
+    if (element.isFunction ||
+        element.isGetter ||
+        element.isSetter ||
+        element.isFactoryConstructor) {
+      ir.Procedure function = kernel.functions[element];
+      if (function == null) {
+        throw "FOUND NULL FUNCTION: $element";
+      } else {
+        return builder.buildProcedure(function);
+      }
+    } else if (element.isGenerativeConstructor) {
+      ir.Constructor constructor = kernel.functions[element];
+      if (constructor == null) {
+        throw "FOUND NULL CONSTRUCTOR: $element";
+      } else {
+        return builder.buildConstructor(constructor);
+      }
+    } else if (element.isField) {
+      ir.Field field = kernel.fields[element];
+      if (field == null) {
+        throw "FOUND NULL FIELD: $element";
+      } else {
+        return builder.buildField(field);
+      }
     } else {
-      return builder.buildProcedure(function);
+      throw new UnsupportedError("Unsupported element: $element");
     }
-  } else {
-    ir.Field field = kernel.fields[element];
-    if (field == null) {
-      print("FOUND NULL FUNCTION: $element");
-    } else {
-      return builder.buildField(field);
-    }
-  }
-  return null;
+  });
 }
 
 class KernelImpactBuilder extends ir.Visitor {
@@ -72,33 +86,72 @@ class KernelImpactBuilder extends ir.Visitor {
     return type;
   }
 
-  /// Add a checked-mode type use of return type and parameters of [node].
-  void checkFunctionTypes(ir.FunctionNode node) {
-    checkType(node.returnType);
-    node.positionalParameters.forEach((v) => checkType(v.type));
-    node.namedParameters.forEach((v) => checkType(v.type));
+  /// Add checked-mode type use for the parameter type and constant for the
+  /// default value of [parameter].
+  void handleParameter(ir.VariableDeclaration parameter) {
+    checkType(parameter.type);
+    visitNode(parameter.initializer);
+  }
+
+  /// Add checked-mode type use for parameter and return types, and add
+  /// constants for default values.
+  void handleSignature(ir.FunctionNode node, {bool checkReturnType: true}) {
+    if (checkReturnType) {
+      checkType(node.returnType);
+    }
+    node.positionalParameters.forEach(handleParameter);
+    node.namedParameters.forEach(handleParameter);
   }
 
   ResolutionImpact buildField(ir.Field field) {
     checkType(field.type);
     if (field.initializer != null) {
       visitNode(field.initializer);
-    } else {
-      impactBuilder.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
+      if (!field.isInstanceMember &&
+          !field.isConst &&
+          field.initializer is! ir.NullLiteral) {
+        impactBuilder.registerFeature(Feature.LAZY_FIELD);
+      }
+    }
+    if (field.isInstanceMember && astAdapter.isNative(field.enclosingClass)) {
+      impactBuilder
+          .registerNativeData(astAdapter.getNativeBehaviorForFieldLoad(field));
+      impactBuilder
+          .registerNativeData(astAdapter.getNativeBehaviorForFieldStore(field));
     }
     return impactBuilder;
   }
 
+  ResolutionImpact buildConstructor(ir.Constructor constructor) {
+    handleSignature(constructor.function, checkReturnType: false);
+    visitNodes(constructor.initializers);
+    visitNode(constructor.function.body);
+    return impactBuilder;
+  }
+
   ResolutionImpact buildProcedure(ir.Procedure procedure) {
-    if (procedure.kind == ir.ProcedureKind.Method ||
-        procedure.kind == ir.ProcedureKind.Operator) {
-      checkFunctionTypes(procedure.function);
-      visitNode(procedure.function.body);
-    } else {
-      compiler.reporter.internalError(
-          resolvedAst.element,
-          "Unable to compute resolution impact for this kind of Kernel "
-          "procedure: ${procedure.kind}");
+    handleSignature(procedure.function);
+    visitNode(procedure.function.body);
+    switch (procedure.function.asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        break;
+      case ir.AsyncMarker.SyncStar:
+        impactBuilder.registerFeature(Feature.SYNC_STAR);
+        break;
+      case ir.AsyncMarker.Async:
+        impactBuilder.registerFeature(Feature.ASYNC);
+        break;
+      case ir.AsyncMarker.AsyncStar:
+        impactBuilder.registerFeature(Feature.ASYNC_STAR);
+        break;
+      case ir.AsyncMarker.SyncYielding:
+        compiler.reporter.internalError(resolvedAst.element,
+            "Unexpected async marker: ${procedure.function.asyncMarker}");
+    }
+    if (procedure.isExternal &&
+        !astAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
+      impactBuilder
+          .registerNativeData(astAdapter.getNativeBehaviorForMethod(procedure));
     }
     return impactBuilder;
   }
@@ -196,12 +249,39 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
-  void visitStaticInvocation(ir.StaticInvocation invocation) {
-    _visitArguments(invocation.arguments);
-    Element target = astAdapter.getElement(invocation.target).declaration;
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
+    handleNew(node, node.target, isConst: node.isConst);
+  }
+
+  void handleNew(ir.InvocationExpression node, ir.Member target,
+      {bool isConst: false}) {
+    _visitArguments(node.arguments);
+    Element element = astAdapter.getElement(target).declaration;
+    ClassElement cls = astAdapter.getElement(target.enclosingClass);
+    List<DartType> typeArguments =
+        astAdapter.getDartTypes(node.arguments.types);
+    InterfaceType type = new InterfaceType(cls, typeArguments);
+    CallStructure callStructure = astAdapter.getCallStructure(node.arguments);
+    impactBuilder.registerStaticUse(isConst
+        ? new StaticUse.constConstructorInvoke(element, callStructure, type)
+        : new StaticUse.typedConstructorInvoke(element, callStructure, type));
+    if (typeArguments.any((DartType type) => !type.isDynamic)) {
+      impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
+  }
+
+  @override
+  void visitSuperInitializer(ir.SuperInitializer node) {
+    Element target = astAdapter.getElement(node.target).declaration;
+    _visitArguments(node.arguments);
+    impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
+        target, astAdapter.getCallStructure(node.arguments)));
+  }
+
+  @override
+  void visitStaticInvocation(ir.StaticInvocation node) {
+    Element target = astAdapter.getElement(node.target).declaration;
     if (target.isFactoryConstructor) {
-      impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
-          target, astAdapter.getCallStructure(invocation.arguments)));
       // TODO(johnniwinther): We should not mark the type as instantiated but
       // rather follow the type arguments directly.
       //
@@ -224,18 +304,39 @@ class KernelImpactBuilder extends ir.Visitor {
       // to B. Currently, we only do this soundly if we register A<int> and
       // A<String> as instantiated. We should instead register that A.T is
       // instantiated as int and String.
-      ClassElement cls =
-          astAdapter.getElement(invocation.target.enclosingClass);
-      List<DartType> typeArguments =
-          astAdapter.getDartTypes(invocation.arguments.types);
-      impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(new InterfaceType(cls, typeArguments)));
-      if (typeArguments.any((DartType type) => !type.isDynamic)) {
-        impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
-      }
+      handleNew(node, node.target, isConst: node.isConst);
     } else {
+      _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target, astAdapter.getCallStructure(invocation.arguments)));
+          target, astAdapter.getCallStructure(node.arguments)));
+    }
+    switch (astAdapter.getForeignKind(node)) {
+      case ForeignKind.JS:
+        impactBuilder
+            .registerNativeData(astAdapter.getNativeBehaviorForJsCall(node));
+        break;
+      case ForeignKind.JS_BUILTIN:
+        impactBuilder.registerNativeData(
+            astAdapter.getNativeBehaviorForJsBuiltinCall(node));
+        break;
+      case ForeignKind.JS_EMBEDDED_GLOBAL:
+        impactBuilder.registerNativeData(
+            astAdapter.getNativeBehaviorForJsEmbeddedGlobalCall(node));
+        break;
+      case ForeignKind.JS_INTERCEPTOR_CONSTANT:
+        if (node.arguments.positional.length != 1 ||
+            node.arguments.named.isNotEmpty) {
+          astAdapter.reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+              MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+        }
+        ir.Node argument = node.arguments.positional.first;
+        if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
+          impactBuilder.registerTypeUse(
+              new TypeUse.instantiation(astAdapter.getDartType(argument.type)));
+        }
+        break;
+      case ForeignKind.NONE:
+        break;
     }
   }
 
@@ -248,6 +349,71 @@ class KernelImpactBuilder extends ir.Visitor {
     } else {
       impactBuilder.registerStaticUse(new StaticUse.staticGet(element));
     }
+  }
+
+  @override
+  void visitStaticSet(ir.StaticSet node) {
+    visitNode(node.value);
+    Element element = astAdapter.getElement(node.target).declaration;
+    impactBuilder.registerStaticUse(new StaticUse.staticSet(element));
+  }
+
+  void handleSuperInvocation(ir.Node target, ir.Node arguments) {
+    Element element = astAdapter.getElement(target).declaration;
+    _visitArguments(arguments);
+    impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+        element, astAdapter.getCallStructure(arguments)));
+  }
+
+  @override
+  void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
+    handleSuperInvocation(node.target, node.arguments);
+  }
+
+  @override
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+    // TODO(johnniwinther): Should we support this or always use the
+    // [MixinFullResolution] transformer?
+    handleSuperInvocation(node.interfaceTarget, node.arguments);
+  }
+
+  void handleSuperGet(ir.Member target) {
+    Element element = astAdapter.getElement(target).declaration;
+    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
+      impactBuilder.registerStaticUse(new StaticUse.superTearOff(element));
+    } else {
+      impactBuilder.registerStaticUse(new StaticUse.superGet(element));
+    }
+  }
+
+  @override
+  void visitDirectGet(ir.StaticGet node) {
+    handleSuperGet(node.target);
+  }
+
+  @override
+  void visitSuperPropertyGet(ir.SuperPropertyGet node) {
+    handleSuperGet(node.interfaceTarget);
+  }
+
+  void handleSuperSet(ir.Node target, ir.Node value) {
+    visitNode(value);
+    Element element = astAdapter.getElement(target).declaration;
+    if (target is ir.Field) {
+      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(element));
+    } else {
+      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(element));
+    }
+  }
+
+  @override
+  void visitDirectPropertySet(ir.DirectPropertySet node) {
+    handleSuperSet(node.target, node.value);
+  }
+
+  @override
+  void visitSuperPropertySet(ir.SuperPropertySet node) {
+    handleSuperSet(node.interfaceTarget, node.value);
   }
 
   @override
@@ -299,7 +465,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     impactBuilder
         .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
-    checkFunctionTypes(node.function);
+    handleSignature(node.function);
     visitNode(node.function.body);
   }
 
@@ -307,7 +473,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitFunctionExpression(ir.FunctionExpression node) {
     impactBuilder
         .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
-    checkFunctionTypes(node.function);
+    handleSignature(node.function);
     visitNode(node.function.body);
   }
 
@@ -319,6 +485,88 @@ class KernelImpactBuilder extends ir.Visitor {
     } else {
       impactBuilder.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
     }
+  }
+
+  @override
+  void visitIsExpression(ir.IsExpression node) {
+    impactBuilder.registerTypeUse(
+        new TypeUse.isCheck(astAdapter.getDartType(node.type)));
+    visitNode(node.operand);
+  }
+
+  @override
+  void visitAsExpression(ir.AsExpression node) {
+    impactBuilder
+        .registerTypeUse(new TypeUse.asCast(astAdapter.getDartType(node.type)));
+    visitNode(node.operand);
+  }
+
+  @override
+  void visitThrow(ir.Throw node) {
+    impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
+    visitNode(node.expression);
+  }
+
+  @override
+  void visitForInStatement(ir.ForInStatement node) {
+    visitNode(node.variable);
+    visitNode(node.iterable);
+    visitNode(node.body);
+    if (node.isAsync) {
+      impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
+    } else {
+      impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
+      impactBuilder
+          .registerDynamicUse(new DynamicUse(Selectors.iterator, null));
+    }
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current, null));
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
+  }
+
+  @override
+  void visitTryCatch(ir.TryCatch node) {
+    visitNode(node.body);
+    visitNodes(node.catches);
+  }
+
+  @override
+  void visitCatch(ir.Catch node) {
+    impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
+    if (node.stackTrace != null) {
+      impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
+    }
+    if (node.guard is! ir.DynamicType) {
+      impactBuilder.registerTypeUse(
+          new TypeUse.catchType(astAdapter.getDartType(node.guard)));
+    }
+    visitNode(node.body);
+  }
+
+  @override
+  void visitTryFinally(ir.TryFinally node) {
+    visitNode(node.body);
+    visitNode(node.finalizer);
+  }
+
+  @override
+  void visitTypeLiteral(ir.TypeLiteral node) {
+    impactBuilder.registerTypeUse(
+        new TypeUse.typeLiteral(astAdapter.getDartType(node.type)));
+  }
+
+  @override
+  void visitFieldInitializer(ir.FieldInitializer node) {
+    impactBuilder.registerStaticUse(
+        new StaticUse.fieldInit(astAdapter.getElement(node.field)));
+    visitNode(node.value);
+  }
+
+  @override
+  void visitRedirectingInitializer(ir.RedirectingInitializer node) {
+    _visitArguments(node.arguments);
+    Element target = astAdapter.getElement(node.target).declaration;
+    impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
+        target, astAdapter.getCallStructure(node.arguments)));
   }
 
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly

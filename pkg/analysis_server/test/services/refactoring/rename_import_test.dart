@@ -6,15 +6,15 @@ library test.services.refactoring.rename_import;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(RenameImportTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(RenameImportTest);
+  });
 }
 
 @reflectiveTest

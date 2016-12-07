@@ -20,6 +20,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
 
   // Print the file and line number into the buffer.
   char buffer[4 * KB];
+  MSAN_UNPOISON(buffer, sizeof(buffer));
   intptr_t file_and_line_length =
       snprintf(buffer, sizeof(buffer), "%s: %d: error: ", file, line_);
 
@@ -27,9 +28,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
   vsnprintf(buffer + file_and_line_length,
-            sizeof(buffer) - file_and_line_length,
-            format,
-            arguments);
+            sizeof(buffer) - file_and_line_length, format, arguments);
   va_end(arguments);
 
   // Print the buffer on stderr and/or syslog.
@@ -39,7 +38,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   // until the program is exiting before producing a non-zero exit
   // code through abort.
   if (kind_ == ASSERT) {
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /* native_stack_trace */));
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace());
     OS::Abort();
   }
   failed_ = true;

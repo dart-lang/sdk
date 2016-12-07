@@ -200,7 +200,7 @@ Future testPatchVersioned() async {
         Expect.equals(patchText, patch.node.toString());
       }
 
-      compiler.analyzeElement(origin);
+      compiler.resolution.computeWorldImpact(origin);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
 
       DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -920,7 +920,7 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  ClosedWorld world = compiler.openWorld.closeWorld();
+  ClosedWorld world = compiler.openWorld.closeWorld(compiler.reporter);
 
   ClassElement cls = ensure(
       compiler, "A", compiler.commonElements.coreLibrary.find,

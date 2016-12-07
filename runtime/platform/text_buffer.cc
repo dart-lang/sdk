@@ -15,6 +15,9 @@ namespace dart {
 TextBuffer::TextBuffer(intptr_t buf_size) {
   ASSERT(buf_size > 0);
   buf_ = reinterpret_cast<char*>(malloc(buf_size));
+  if (buf_ == NULL) {
+    OUT_OF_MEMORY();
+  }
   buf_size_ = buf_size;
   Clear();
 }
@@ -49,8 +52,7 @@ void TextBuffer::AddChar(char ch) {
 }
 
 
-void TextBuffer::AddRaw(const uint8_t* buffer,
-                        intptr_t buffer_length) {
+void TextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
   EnsureCapacity(buffer_length);
   memmove(&buf_[msg_len_], buffer, buffer_length);
   msg_len_ += buffer_length;
@@ -152,7 +154,9 @@ void TextBuffer::EnsureCapacity(intptr_t len) {
     // the debugger front-end.
     intptr_t new_size = buf_size_ + len + kBufferSpareCapacity;
     char* new_buf = reinterpret_cast<char*>(realloc(buf_, new_size));
-    ASSERT(new_buf != NULL);
+    if (new_buf == NULL) {
+      OUT_OF_MEMORY();
+    }
     buf_ = new_buf;
     buf_size_ = new_size;
   }

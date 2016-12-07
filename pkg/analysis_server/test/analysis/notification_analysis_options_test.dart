@@ -9,17 +9,17 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
-  defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
+    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
+  });
 }
 
 abstract class AnalysisOptionsFileNotificationTest

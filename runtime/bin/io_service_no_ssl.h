@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_IO_SERVICE_NO_SSL_H_
-#define BIN_IO_SERVICE_NO_SSL_H_
+#ifndef RUNTIME_BIN_IO_SERVICE_NO_SSL_H_
+#define RUNTIME_BIN_IO_SERVICE_NO_SSL_H_
 
 #if defined(DART_IO_DISABLED) || !defined(DART_IO_SECURE_SOCKET_DISABLED)
 #error "io_service_no_ssl.h can only be included on builds with IO enabled"
@@ -59,14 +59,11 @@ namespace bin {
   V(Directory, ListStop, 37)                                                   \
   V(Directory, Rename, 38)
 
-#define DECLARE_REQUEST(type, method, id)                                      \
-  k##type##method##Request = id,
+#define DECLARE_REQUEST(type, method, id) k##type##method##Request = id,
 
 class IOService {
  public:
-  enum {
-IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST)
-  };
+  enum { IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST) };
 
   static Dart_Port GetServicePort();
 
@@ -78,4 +75,4 @@ IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST)
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_IO_SERVICE_NO_SSL_H_
+#endif  // RUNTIME_BIN_IO_SERVICE_NO_SSL_H_

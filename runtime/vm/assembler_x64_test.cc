@@ -233,8 +233,7 @@ ASSEMBLER_TEST_RUN(AddressingModes, test) {
 ASSEMBLER_TEST_GENERATE(JumpAroundCrash, assembler) {
   Label done;
   // Make sure all the condition jumps work.
-  for (Condition condition = OVERFLOW;
-       condition <= GREATER;
+  for (Condition condition = OVERFLOW; condition <= GREATER;
        condition = static_cast<Condition>(condition + 1)) {
     __ j(condition, &done);
   }
@@ -413,8 +412,8 @@ ASSEMBLER_TEST_RUN(SignedMultiply, test) {
 ASSEMBLER_TEST_GENERATE(UnsignedMultiply, assembler) {
   __ movl(RAX, Immediate(-1));  // RAX = 0xFFFFFFFF
   __ movl(RCX, Immediate(16));  // RCX = 0x10
-  __ mull(RCX);  // RDX:RAX = RAX * RCX = 0x0FFFFFFFF0
-  __ movq(RAX, RDX);  // Return high32(0x0FFFFFFFF0) == 0x0F
+  __ mull(RCX);                 // RDX:RAX = RAX * RCX = 0x0FFFFFFFF0
+  __ movq(RAX, RDX);            // Return high32(0x0FFFFFFFF0) == 0x0F
   __ ret();
 }
 
@@ -534,8 +533,8 @@ ASSEMBLER_TEST_RUN(SignedMultiply2, test) {
 ASSEMBLER_TEST_GENERATE(UnsignedMultiplyLong, assembler) {
   __ movq(RAX, Immediate(-1));  // RAX = 0xFFFFFFFFFFFFFFFF
   __ movq(RCX, Immediate(16));  // RCX = 0x10
-  __ mulq(RCX);  // RDX:RAX = RAX * RCX = 0x0FFFFFFFFFFFFFFFF0
-  __ movq(RAX, RDX);  // Return high64(0x0FFFFFFFFFFFFFFFF0) == 0x0F
+  __ mulq(RCX);                 // RDX:RAX = RAX * RCX = 0x0FFFFFFFFFFFFFFFF0
+  __ movq(RAX, RDX);            // Return high64(0x0FFFFFFFFFFFFFFFF0) == 0x0F
   __ ret();
 }
 
@@ -801,8 +800,8 @@ ASSEMBLER_TEST_GENERATE(LongAddImmediate, assembler) {
   __ pushq(CallingConventions::kArg1Reg);
   __ movl(RAX, Address(RSP, 0));  // left low.
   __ movl(RDX, Address(RSP, 4));  // left high.
-  __ addl(RAX, Immediate(12));  // right low immediate.
-  __ adcl(RDX, Immediate(11));  // right high immediate.
+  __ addl(RAX, Immediate(12));    // right low immediate.
+  __ adcl(RDX, Immediate(11));    // right high immediate.
   // Result is in RAX/RDX.
   __ movl(Address(RSP, 0), RAX);  // result low.
   __ movl(Address(RSP, 4), RDX);  // result high.
@@ -826,9 +825,9 @@ ASSEMBLER_TEST_RUN(LongAddImmediate, test) {
 ASSEMBLER_TEST_GENERATE(LongAddAddress, assembler) {
   __ pushq(CallingConventions::kArg2Reg);
   __ pushq(CallingConventions::kArg1Reg);
-  __ movl(RAX, Address(RSP, 0));  // left low.
-  __ movl(RDX, Address(RSP, 4));  // left high.
-  __ addl(RAX, Address(RSP, 8));  // low.
+  __ movl(RAX, Address(RSP, 0));   // left low.
+  __ movl(RDX, Address(RSP, 4));   // left high.
+  __ addl(RAX, Address(RSP, 8));   // low.
   __ adcl(RDX, Address(RSP, 12));  // high.
   // Result is in RAX/RDX.
   __ movl(Address(RSP, 0), RAX);  // result low.
@@ -887,8 +886,8 @@ ASSEMBLER_TEST_GENERATE(LongSubImmediate, assembler) {
   __ pushq(CallingConventions::kArg1Reg);
   __ movl(RAX, Address(RSP, 0));  // left low.
   __ movl(RDX, Address(RSP, 4));  // left high.
-  __ subl(RAX, Immediate(12));  // right low immediate.
-  __ sbbl(RDX, Immediate(11));  // right high immediate.
+  __ subl(RAX, Immediate(12));    // right low immediate.
+  __ sbbl(RDX, Immediate(11));    // right high immediate.
   // Result is in RAX/RDX.
   __ movl(Address(RSP, 0), RAX);  // result low.
   __ movl(Address(RSP, 4), RDX);  // result high.
@@ -912,9 +911,9 @@ ASSEMBLER_TEST_RUN(LongSubImmediate, test) {
 ASSEMBLER_TEST_GENERATE(LongSubAddress, assembler) {
   __ pushq(CallingConventions::kArg2Reg);
   __ pushq(CallingConventions::kArg1Reg);
-  __ movl(RAX, Address(RSP, 0));  // left low.
-  __ movl(RDX, Address(RSP, 4));  // left high.
-  __ subl(RAX, Address(RSP, 8));  // low.
+  __ movl(RAX, Address(RSP, 0));   // left low.
+  __ movl(RDX, Address(RSP, 4));   // left high.
+  __ subl(RAX, Address(RSP, 8));   // low.
   __ sbbl(RDX, Address(RSP, 12));  // high.
   // Result is in RAX/RDX.
   __ movl(Address(RSP, 0), RAX);  // result low.
@@ -964,9 +963,9 @@ ASSEMBLER_TEST_RUN(AddReg, test) {
 
 ASSEMBLER_TEST_GENERATE(AddImmediate, assembler) {
   __ movq(R10, CallingConventions::kArg1Reg);  // al.
-  __ addq(R10, Immediate(13));  // bl.
+  __ addq(R10, Immediate(13));                 // bl.
   __ movq(RAX, CallingConventions::kArg2Reg);  // ah.
-  __ adcq(RAX, Immediate(14));  // bh.
+  __ adcq(RAX, Immediate(14));                 // bh.
   // RAX = high64(ah:al + bh:bl).
   __ ret();
 }
@@ -1040,9 +1039,9 @@ ASSEMBLER_TEST_RUN(SubReg, test) {
 
 ASSEMBLER_TEST_GENERATE(SubImmediate, assembler) {
   __ movq(R10, CallingConventions::kArg1Reg);  // al.
-  __ subq(R10, Immediate(12));  // bl.
+  __ subq(R10, Immediate(12));                 // bl.
   __ movq(RAX, CallingConventions::kArg2Reg);  // ah.
-  __ sbbq(RAX, Immediate(11));  // bh.
+  __ sbbq(RAX, Immediate(11));                 // bh.
   // RAX = high64(ah:al - bh:bl).
   __ ret();
 }
@@ -1811,8 +1810,9 @@ ASSEMBLER_TEST_RUN(LargeConstant, test) {
 
 static int ComputeStackSpaceReservation(int needed, int fixed) {
   return (OS::ActivationFrameAlignment() > 1)
-      ? Utils::RoundUp(needed + fixed, OS::ActivationFrameAlignment()) - fixed
-      : needed;
+             ? Utils::RoundUp(needed + fixed, OS::ActivationFrameAlignment()) -
+                   fixed
+             : needed;
 }
 
 
@@ -1972,11 +1972,11 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAdd, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 1.0, 2.0 };
+  } constant0 = {1.0, 2.0};
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant1 = { 3.0, 4.0 };
+  } constant1 = {3.0, 4.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
@@ -1998,11 +1998,11 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleSub, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 1.0, 2.0 };
+  } constant0 = {1.0, 2.0};
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant1 = { 3.0, 4.0 };
+  } constant1 = {3.0, 4.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
@@ -2046,7 +2046,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 1.0, 2.0 };
+  } constant0 = {1.0, 2.0};
   EnterTestFrame(assembler);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
@@ -2067,7 +2067,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { -1.0, 2.0 };
+  } constant0 = {-1.0, 2.0};
   EnterTestFrame(assembler);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
@@ -2088,11 +2088,11 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleMul, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 3.0, 2.0 };
+  } constant0 = {3.0, 2.0};
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant1 = { 3.0, 4.0 };
+  } constant1 = {3.0, 4.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
@@ -2114,11 +2114,11 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleDiv, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 9.0, 2.0 };
+  } constant0 = {9.0, 2.0};
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant1 = { 3.0, 4.0 };
+  } constant1 = {3.0, 4.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
@@ -2140,7 +2140,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleSqrt, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 16.0, 2.0 };
+  } constant0 = {16.0, 2.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ sqrtpd(XMM10);
@@ -2160,11 +2160,11 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleMin, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 9.0, 2.0 };
+  } constant0 = {9.0, 2.0};
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant1 = { 3.0, 4.0 };
+  } constant1 = {3.0, 4.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
@@ -2186,11 +2186,11 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleMax, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 9.0, 2.0 };
+  } constant0 = {9.0, 2.0};
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant1 = { 3.0, 4.0 };
+  } constant1 = {3.0, 4.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
@@ -2212,7 +2212,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleShuffle, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 2.0, 9.0 };
+  } constant0 = {2.0, 9.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   // Splat Y across all lanes.
@@ -2236,7 +2236,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleToSingle, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
-  } constant0 = { 9.0, 2.0 };
+  } constant0 = {9.0, 2.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM11, Address(RAX, 0));
   __ cvtpd2ps(XMM10, XMM11);
@@ -2258,7 +2258,7 @@ ASSEMBLER_TEST_GENERATE(PackedSingleToDouble, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 9.0f, 2.0f, 3.0f, 4.0f };
+  } constant0 = {9.0f, 2.0f, 3.0f, 4.0f};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM11, Address(RAX, 0));
   __ cvtps2pd(XMM10, XMM11);
@@ -2387,11 +2387,11 @@ ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
 
-  __ movaps(XMM11, XMM0);  // Copy XMM0
-  __ reciprocalps(XMM11);  // 0.25
-  __ sqrtps(XMM11);  // 0.5
-  __ rsqrtps(XMM0);  // ~0.5
-  __ subps(XMM0, XMM11);  // ~0.0
+  __ movaps(XMM11, XMM0);                  // Copy XMM0
+  __ reciprocalps(XMM11);                  // 0.25
+  __ sqrtps(XMM11);                        // 0.5
+  __ rsqrtps(XMM0);                        // ~0.5
+  __ subps(XMM0, XMM11);                   // ~0.0
   __ shufps(XMM0, XMM0, Immediate(0x00));  // Copy second lane into all 4 lanes.
   __ ret();
 }
@@ -2600,15 +2600,13 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalOr, assembler) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } constant1 =
-      { 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0 };
+  } constant1 = {0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0};
   static const struct ALIGN16 {
     uint32_t a;
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } constant2 =
-      { 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F };
+  } constant2 = {0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F};
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM0, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant2)));
@@ -2634,15 +2632,13 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalAnd, assembler) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } constant1 =
-      { 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0 };
+  } constant1 = {0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0};
   static const struct ALIGN16 {
     uint32_t a;
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } constant2 =
-      { 0x0F0FFF0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F };
+  } constant2 = {0x0F0FFF0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F};
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM0, Address(RAX, 0));
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant2)));
@@ -2667,8 +2663,7 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } constant1 =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+  } constant1 = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
   EnterTestFrame(assembler);
   __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2694,13 +2689,13 @@ ASSEMBLER_TEST_GENERATE(PackedMoveHighLow, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  } constant0 = {1.0, 2.0, 3.0, 4.0};
   static const struct ALIGN16 {
     float a;
     float b;
     float c;
     float d;
-  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  } constant1 = {5.0, 6.0, 7.0, 8.0};
   // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2714,7 +2709,7 @@ ASSEMBLER_TEST_GENERATE(PackedMoveHighLow, assembler) {
   __ movaps(XMM1, XMM9);
   __ shufps(XMM9, XMM9, Immediate(0x00));  // 7.0f.
   __ shufps(XMM1, XMM1, Immediate(0x55));  // 8.0f.
-  __ addss(XMM9, XMM1);  // 15.0f.
+  __ addss(XMM9, XMM1);                    // 15.0f.
   __ movaps(XMM0, XMM9);
   __ ret();
 }
@@ -2733,13 +2728,13 @@ ASSEMBLER_TEST_GENERATE(PackedMoveLowHigh, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  } constant0 = {1.0, 2.0, 3.0, 4.0};
   static const struct ALIGN16 {
     float a;
     float b;
     float c;
     float d;
-  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  } constant1 = {5.0, 6.0, 7.0, 8.0};
   // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2753,7 +2748,7 @@ ASSEMBLER_TEST_GENERATE(PackedMoveLowHigh, assembler) {
   __ movaps(XMM1, XMM9);
   __ shufps(XMM9, XMM9, Immediate(0xAA));  // 5.0f.
   __ shufps(XMM1, XMM1, Immediate(0xFF));  // 6.0f.
-  __ addss(XMM9, XMM1);  // 11.0f.
+  __ addss(XMM9, XMM1);                    // 11.0f.
   __ movaps(XMM0, XMM9);
   __ ret();
 }
@@ -2772,13 +2767,13 @@ ASSEMBLER_TEST_GENERATE(PackedUnpackLow, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  } constant0 = {1.0, 2.0, 3.0, 4.0};
   static const struct ALIGN16 {
     float a;
     float b;
     float c;
     float d;
-  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  } constant1 = {5.0, 6.0, 7.0, 8.0};
   // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2810,13 +2805,13 @@ ASSEMBLER_TEST_GENERATE(PackedUnpackHigh, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  } constant0 = {1.0, 2.0, 3.0, 4.0};
   static const struct ALIGN16 {
     float a;
     float b;
     float c;
     float d;
-  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  } constant1 = {5.0, 6.0, 7.0, 8.0};
   // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2848,13 +2843,13 @@ ASSEMBLER_TEST_GENERATE(PackedUnpackLowPair, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  } constant0 = {1.0, 2.0, 3.0, 4.0};
   static const struct ALIGN16 {
     float a;
     float b;
     float c;
     float d;
-  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  } constant1 = {5.0, 6.0, 7.0, 8.0};
   // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2886,13 +2881,13 @@ ASSEMBLER_TEST_GENERATE(PackedUnpackHighPair, assembler) {
     float b;
     float c;
     float d;
-  } constant0 = { 1.0, 2.0, 3.0, 4.0 };
+  } constant0 = {1.0, 2.0, 3.0, 4.0};
   static const struct ALIGN16 {
     float a;
     float b;
     float c;
     float d;
-  } constant1 = { 5.0, 6.0, 7.0, 8.0 };
+  } constant1 = {5.0, 6.0, 7.0, 8.0};
   // XMM9 = 1.0f, 2.0f, 3.0f, 4.0f.
   __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(&constant0)));
   __ movups(XMM9, Address(RAX, 0));
@@ -2975,8 +2970,8 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
 
 ASSEMBLER_TEST_RUN(DoubleFPMoves, test) {
   typedef double (*DoubleFPMovesCode)();
-  EXPECT_FLOAT_EQ(1024.67,
-                  reinterpret_cast<DoubleFPMovesCode>(test->entry())(), 0.001);
+  EXPECT_FLOAT_EQ(1024.67, reinterpret_cast<DoubleFPMovesCode>(test->entry())(),
+                  0.001);
 }
 
 
@@ -2994,12 +2989,12 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   __ divsd(XMM8, XMM12);  // 14.7
   __ sqrtsd(XMM8, XMM8);  // 3.834
   __ movsd(XMM1, Address(RSP, 0));
-  __ addsd(XMM0, XMM1);  // 15.7
-  __ mulsd(XMM0, XMM1);  // 53.38
-  __ subsd(XMM0, XMM1);  // 49.98
-  __ divsd(XMM0, XMM1);  // 14.7
+  __ addsd(XMM0, XMM1);   // 15.7
+  __ mulsd(XMM0, XMM1);   // 53.38
+  __ subsd(XMM0, XMM1);   // 49.98
+  __ divsd(XMM0, XMM1);   // 14.7
   __ sqrtsd(XMM0, XMM0);  // 3.834057902
-  __ addsd(XMM0, XMM8);  // 7.6681
+  __ addsd(XMM0, XMM8);   // 7.6681
   __ popq(RAX);
   __ ret();
 }
@@ -3035,7 +3030,7 @@ ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
   __ movq(RDX, Immediate(12LL << 32));
   __ cvtsi2sdq(XMM0, RDX);
   __ movsd(XMM15, XMM0);  // Move to high register
-  __ addsd(XMM0, XMM0);  // Stomp XMM0
+  __ addsd(XMM0, XMM0);   // Stomp XMM0
   __ movsd(XMM0, XMM15);  // Move back to XMM0
   __ ret();
 }
@@ -3113,8 +3108,6 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ nop(2);
   __ nop(3);
@@ -3136,8 +3129,6 @@ ASSEMBLER_TEST_RUN(TestNop, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
-  __ RawEntry();
-
   __ Align(4, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
   __ ret();
@@ -3152,8 +3143,6 @@ ASSEMBLER_TEST_RUN(TestAlign0, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ Align(4, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3169,8 +3158,6 @@ ASSEMBLER_TEST_RUN(TestAlign1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ Align(4, 1);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3186,8 +3173,6 @@ ASSEMBLER_TEST_RUN(TestAlign1Offset1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ Align(16, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3445,7 +3430,7 @@ ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
 
 ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   double val = -12.45;
-  double res =  test->InvokeWithCodeAndThread<double, double>(val);
+  double res = test->InvokeWithCodeAndThread<double, double>(val);
   EXPECT_FLOAT_EQ(-val, res, 0.001);
   val = 12.45;
   res = test->InvokeWithCodeAndThread<double, double>(val);
@@ -3489,9 +3474,9 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
 ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ pushq(RSI);
   __ pushq(RDI);
-  __ pushq(CallingConventions::kArg1Reg);  // from.
-  __ pushq(CallingConventions::kArg2Reg);  // to.
-  __ pushq(CallingConventions::kArg3Reg);  // count.
+  __ pushq(CallingConventions::kArg1Reg);     // from.
+  __ pushq(CallingConventions::kArg2Reg);     // to.
+  __ pushq(CallingConventions::kArg3Reg);     // count.
   __ movq(RSI, Address(RSP, 2 * kWordSize));  // from.
   __ movq(RDI, Address(RSP, 1 * kWordSize));  // to.
   __ movq(RCX, Address(RSP, 0 * kWordSize));  // count.
@@ -3515,13 +3500,13 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
   for (int i = 0; i < 10; i++) {
     EXPECT_EQ(from[i], to[i]);
   }
-  delete [] to;
+  delete[] to;
 }
 
 
 ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
   __ cmpq(CallingConventions::kArg1Reg, CallingConventions::kArg2Reg);
-  __ movq(RDX, Immediate(1));  // Greater equal.
+  __ movq(RDX, Immediate(1));   // Greater equal.
   __ movq(RCX, Immediate(-1));  // Less
   __ cmovlessq(RAX, RCX);
   __ cmovgeq(RAX, RDX);
@@ -3592,8 +3577,8 @@ ASSEMBLER_TEST_GENERATE(ConditionalMovesNoOverflow, assembler) {
 
 ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
   typedef int (*ConditionalMovesNoOverflowCode)(int64_t i, int64_t j);
-  int res = reinterpret_cast<ConditionalMovesNoOverflowCode>(
-      test->entry())(0x7fffffffffffffff, 2);
+  int res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(
+      0x7fffffffffffffff, 2);
   EXPECT_EQ(1, res);
   res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
   EXPECT_EQ(0, res);

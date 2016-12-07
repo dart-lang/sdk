@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'analysis_context_factory.dart';
 
@@ -242,7 +242,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    *           expected
    */
   void assertErrorsWithCodes(
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     StringBuffer buffer = new StringBuffer();
     //
     // Verify that the expected error codes have a non-empty message.

@@ -20,8 +20,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 
-#define STUB_CODE_DECLARE(name)                                                \
-  StubEntry* StubCode::name##_entry_ = NULL;
+#define STUB_CODE_DECLARE(name) StubEntry* StubCode::name##_entry_ = NULL;
 VM_STUB_CODE_LIST(STUB_CODE_DECLARE);
 #undef STUB_CODE_DECLARE
 
@@ -31,8 +30,7 @@ StubEntry::StubEntry(const Code& code)
       entry_point_(code.UncheckedEntryPoint()),
       checked_entry_point_(code.CheckedEntryPoint()),
       size_(code.Size()),
-      label_(code.UncheckedEntryPoint()) {
-}
+      label_(code.UncheckedEntryPoint()) {}
 
 
 // Visit all object pointers.
@@ -43,7 +41,7 @@ void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 #define STUB_CODE_GENERATE(name)                                               \
-  code ^= Generate("_stub_"#name, StubCode::Generate##name##Stub);             \
+  code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
   name##_entry_ = new StubEntry(code);
 
 
@@ -62,16 +60,14 @@ void StubCode::InitOnce() {
 
 
 void StubCode::Push(Serializer* serializer) {
-#define WRITE_STUB(name)                                                       \
-  serializer->Push(StubCode::name##_entry()->code());
+#define WRITE_STUB(name) serializer->Push(StubCode::name##_entry()->code());
   VM_STUB_CODE_LIST(WRITE_STUB);
 #undef WRITE_STUB
 }
 
 
 void StubCode::WriteRef(Serializer* serializer) {
-#define WRITE_STUB(name)                                                       \
-  serializer->WriteRef(StubCode::name##_entry()->code());
+#define WRITE_STUB(name) serializer->WriteRef(StubCode::name##_entry()->code());
   VM_STUB_CODE_LIST(WRITE_STUB);
 #undef WRITE_STUB
 }
@@ -87,18 +83,16 @@ void StubCode::ReadRef(Deserializer* deserializer) {
 }
 
 
+void StubCode::Init(Isolate* isolate) {}
 
-void StubCode::Init(Isolate* isolate) { }
 
-
-void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-}
+void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
 
 bool StubCode::HasBeenInitialized() {
 #if !defined(TARGET_ARCH_DBC)
-  // Use JumpToExceptionHandler and InvokeDart as canaries.
-  const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
+  // Use JumpToHandler and InvokeDart as canaries.
+  const StubEntry* entry_1 = StubCode::JumpToFrame_entry();
   const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
   return (entry_1 != NULL) && (entry_2 != NULL);
 #else
@@ -121,11 +115,11 @@ bool StubCode::InInvocationStub(uword pc) {
 }
 
 
-bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+bool StubCode::InJumpToFrameStub(uword pc) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
-  uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
-  uword size = StubCode::JumpToExceptionHandlerSize();
+  uword entry = StubCode::JumpToFrame_entry()->EntryPoint();
+  uword size = StubCode::JumpToFrameSize();
   return (pc >= entry) && (pc < (entry + size));
 #else
   // This stub does not exist on DBC.
@@ -135,7 +129,7 @@ bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
 
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-  // These stubs are not used by DBC.
+// These stubs are not used by DBC.
 #if !defined(TARGET_ARCH_DBC)
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -205,7 +199,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 
 const StubEntry* StubCode::UnoptimizedStaticCallEntry(
     intptr_t num_args_tested) {
-  // These stubs are not used by DBC.
+// These stubs are not used by DBC.
 #if !defined(TARGET_ARCH_DBC)
   switch (num_args_tested) {
     case 0:
@@ -228,8 +222,8 @@ RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(
-      Code::FinalizeCode(name, &assembler, false /* optimized */));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -249,7 +243,7 @@ const char* StubCode::NameOfStub(uword entry_point) {
 #define VM_STUB_CODE_TESTER(name)                                              \
   if ((name##_entry() != NULL) &&                                              \
       (entry_point == name##_entry()->EntryPoint())) {                         \
-    return ""#name;                                                            \
+    return "" #name;                                                           \
   }
   VM_STUB_CODE_LIST(VM_STUB_CODE_TESTER);
 #undef VM_STUB_CODE_TESTER

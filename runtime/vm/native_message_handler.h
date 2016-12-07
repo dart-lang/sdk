@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_NATIVE_MESSAGE_HANDLER_H_
-#define VM_NATIVE_MESSAGE_HANDLER_H_
+#ifndef RUNTIME_VM_NATIVE_MESSAGE_HANDLER_H_
+#define RUNTIME_VM_NATIVE_MESSAGE_HANDLER_H_
 
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
@@ -38,4 +38,4 @@ class NativeMessageHandler : public MessageHandler {
 
 }  // namespace dart
 
-#endif  // VM_NATIVE_MESSAGE_HANDLER_H_
+#endif  // RUNTIME_VM_NATIVE_MESSAGE_HANDLER_H_

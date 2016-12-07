@@ -62,8 +62,8 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
   const intptr_t size_before = before_obj->Size();
 
   uword corpse_addr = reinterpret_cast<uword>(before_obj) - kHeapObjectTag;
-  ForwardingCorpse* forwarder = ForwardingCorpse::AsForwarder(corpse_addr,
-                                                              size_before);
+  ForwardingCorpse* forwarder =
+      ForwardingCorpse::AsForwarder(corpse_addr, size_before);
   forwarder->set_target(after_obj);
   if (!IsForwardingObject(before_obj)) {
     FATAL("become: ForwardObjectTo failure.");
@@ -79,7 +79,7 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
 class ForwardPointersVisitor : public ObjectPointerVisitor {
  public:
   explicit ForwardPointersVisitor(Isolate* isolate)
-      : ObjectPointerVisitor(isolate), visiting_object_(NULL), count_(0) { }
+      : ObjectPointerVisitor(isolate), visiting_object_(NULL), count_(0) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** p = first; p <= last; p++) {
@@ -111,7 +111,7 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
 class ForwardHeapPointersVisitor : public ObjectVisitor {
  public:
   explicit ForwardHeapPointersVisitor(ForwardPointersVisitor* pointer_visitor)
-      : pointer_visitor_(pointer_visitor) { }
+      : pointer_visitor_(pointer_visitor) {}
 
   virtual void VisitObject(RawObject* obj) {
     pointer_visitor_->VisitingObject(obj);
@@ -128,7 +128,7 @@ class ForwardHeapPointersVisitor : public ObjectVisitor {
 class ForwardHeapPointersHandleVisitor : public HandleVisitor {
  public:
   ForwardHeapPointersHandleVisitor()
-      : HandleVisitor(Thread::Current()), count_(0) { }
+      : HandleVisitor(Thread::Current()), count_(0) {}
 
   virtual void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -173,8 +173,8 @@ class WritableCodeLiteralsScope : public ValueObject {
 #else
 class WritableCodeLiteralsScope : public ValueObject {
  public:
-  explicit WritableCodeLiteralsScope(Heap* heap) { }
-  ~WritableCodeLiteralsScope() { }
+  explicit WritableCodeLiteralsScope(Heap* heap) {}
+  ~WritableCodeLiteralsScope() {}
 };
 #endif
 
@@ -291,7 +291,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 
 #if !defined(PRODUCT)
     tds.SetNumArguments(2);
-    tds.FormatArgument(0, "Remapped objects", "%" Pd,  before.Length());
+    tds.FormatArgument(0, "Remapped objects", "%" Pd, before.Length());
     tds.FormatArgument(1, "Remapped references", "%" Pd,
                        pointer_visitor.count() + handle_visitor.count());
 #endif

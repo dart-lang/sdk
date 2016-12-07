@@ -49,8 +49,6 @@ static_library("zlib") {
   all_dependent_configs = [ ":zlib_config" ]
 
   if (is_clang) {
-    cflags = [
-      "-Wno-shift-negative-value",
-    ]
+    cflags = [ "-Wno-shift-negative-value" ]
   }
 }

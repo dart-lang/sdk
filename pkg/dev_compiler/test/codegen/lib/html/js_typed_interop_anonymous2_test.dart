@@ -9,8 +9,7 @@ import 'dart:html';
 import 'dart:js' as js;
 
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 @JS() @anonymous
 class A {
@@ -38,8 +37,6 @@ class D {
 }
 
 main() {
-  useHtmlConfiguration();
-
   test('simple', () {
     var b = new B();
     var a = new A(b: b);

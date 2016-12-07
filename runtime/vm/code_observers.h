@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CODE_OBSERVERS_H_
-#define VM_CODE_OBSERVERS_H_
+#ifndef RUNTIME_VM_CODE_OBSERVERS_H_
+#define RUNTIME_VM_CODE_OBSERVERS_H_
 
 #include "vm/globals.h"
 #include "vm/allocation.h"
@@ -18,9 +18,9 @@ class Mutex;
 // debuggers to map address ranges to function names.
 class CodeObserver {
  public:
-  CodeObserver() { }
+  CodeObserver() {}
 
-  virtual ~CodeObserver() { }
+  virtual ~CodeObserver() {}
 
   // Returns true if this observer is active and should be notified
   // about newly created code objects.
@@ -57,9 +57,7 @@ class CodeObservers : public AllStatic {
 
   static void DeleteAll();
 
-  static Mutex* mutex() {
-    return mutex_;
-  }
+  static Mutex* mutex() { return mutex_; }
 
  private:
   static Mutex* mutex_;
@@ -71,4 +69,4 @@ class CodeObservers : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_CODE_OBSERVERS_H_
+#endif  // RUNTIME_VM_CODE_OBSERVERS_H_

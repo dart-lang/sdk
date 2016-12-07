@@ -49,9 +49,8 @@ TEST_CASE(IsolateSpawn) {
   Dart_Handle internal_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(internal_lib);
   Dart_Handle print = Dart_GetField(test_lib, NewString("_nullPrintClosure"));
-  Dart_Handle result = Dart_SetField(internal_lib,
-                                     NewString("_printClosure"),
-                                     print);
+  Dart_Handle result =
+      Dart_SetField(internal_lib, NewString("_printClosure"), print);
 
   DART_CHECK_VALID(result);
 
@@ -60,9 +59,8 @@ TEST_CASE(IsolateSpawn) {
   DART_CHECK_VALID(url);
   Dart_Handle isolate_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(isolate_lib);
-  Dart_Handle schedule_immediate_closure =
-      Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
-                  0, NULL);
+  Dart_Handle schedule_immediate_closure = Dart_Invoke(
+      isolate_lib, NewString("_getIsolateScheduleImmediateClosure"), 0, NULL);
   Dart_Handle args[1];
   args[0] = schedule_immediate_closure;
   url = NewString("dart:async");
@@ -90,9 +88,7 @@ class InterruptChecker : public ThreadPool::Task {
   static const intptr_t kIterations;
 
   InterruptChecker(Thread* thread, ThreadBarrier* barrier)
-    : thread_(thread),
-      barrier_(barrier) {
-  }
+      : thread_(thread), barrier_(barrier) {}
 
   virtual void Run() {
     Thread::EnterIsolateAsHelper(thread_->isolate(), Thread::kUnknownTask);
@@ -104,9 +100,9 @@ class InterruptChecker : public ThreadPool::Task {
       do {
         limit = AtomicOperations::LoadRelaxed(
             reinterpret_cast<uword*>(thread_->stack_limit_address()));
-      } while ((limit == thread_->saved_stack_limit_) ||
-               (((limit & Thread::kInterruptsMask) &
-                 Thread::kVMInterrupt) == 0));
+      } while (
+          (limit == thread_->saved_stack_limit_) ||
+          (((limit & Thread::kInterruptsMask) & Thread::kVMInterrupt) == 0));
       // Tell main thread that we observed the interrupt.
       barrier_->Sync();
     }
@@ -157,9 +153,7 @@ TEST_CASE(StackLimitInterrupts) {
 
 class IsolateTestHelper {
  public:
-  static uword GetStackLimit(Thread* thread) {
-    return thread->stack_limit_;
-  }
+  static uword GetStackLimit(Thread* thread) { return thread->stack_limit_; }
   static uword GetSavedStackLimit(Thread* thread) {
     return thread->saved_stack_limit_;
   }

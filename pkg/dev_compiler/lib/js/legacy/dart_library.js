@@ -135,9 +135,16 @@ var dart_library =
       // Expose constructors for DOM types dart:html needs to assume are
       // available on window.
       if (typeof PannerNode == "undefined") {
-        let audioContext = new AudioContext();
+        let audioContext;
+        if (typeof AudioContext == "undefined" &&
+            (typeof webkitAudioContext != "undefined")) {
+          audioContext = new webkitAudioContext();
+        } else {
+          audioContext = new AudioContext();
+          window.StereoPannerNode =
+              audioContext.createStereoPanner().constructor;
+        }
         window.PannerNode = audioContext.createPanner().constructor;
-        window.StereoPannerNode = audioContext.createStereoPanner().constructor;
       }
       if (typeof AudioSourceNode == "undefined") {
         window.AudioSourceNode = MediaElementAudioSourceNode.constructor;
@@ -146,14 +153,18 @@ var dart_library =
         window.FontFaceSet = document.fonts.__proto__.constructor;
       }
       if (typeof MemoryInfo == "undefined") {
-        window.MemoryInfo = window.performance.memory.constructor;
+        if (typeof window.performance.memory != "undefined") {
+          window.MemoryInfo = window.performance.memory.constructor;
+        }
       }
       if (typeof Geolocation == "undefined") {
         navigator.geolocation.constructor;
       }
       if (typeof Animation == "undefined") {
         let d = document.createElement('div');
-        window.Animation = d.animate(d).constructor;
+        if (typeof d.animate != "undefined") {
+          window.Animation = d.animate(d).constructor;
+        }
       }
       if (typeof SourceBufferList == "undefined") {
         window.SourceBufferList = new MediaSource().sourceBuffers.constructor;

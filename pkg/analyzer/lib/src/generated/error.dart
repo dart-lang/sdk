@@ -8,5 +8,3 @@ library analyzer.src.generated.error;
 export 'package:analyzer/error/error.dart';
 export 'package:analyzer/error/listener.dart';
 export 'package:analyzer/src/error/codes.dart';
-export 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;

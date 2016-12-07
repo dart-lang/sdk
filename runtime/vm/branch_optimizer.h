@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_BRANCH_OPTIMIZER_H_
-#define VM_BRANCH_OPTIMIZER_H_
+#ifndef RUNTIME_VM_BRANCH_OPTIMIZER_H_
+#define RUNTIME_VM_BRANCH_OPTIMIZER_H_
 
 #include "vm/allocation.h"
 
@@ -26,8 +26,7 @@ class BranchSimplifier : public AllStatic {
   // Replace a target entry instruction with a join entry instruction.  Does
   // not update the original target's predecessors to point to the new block
   // and does not replace the target in already computed block order lists.
-  static JoinEntryInstr* ToJoinEntry(Zone* zone,
-                                     TargetEntryInstr* target);
+  static JoinEntryInstr* ToJoinEntry(Zone* zone, TargetEntryInstr* target);
 
  private:
   // Match an instance of the pattern to rewrite.  See the implementation
@@ -53,4 +52,4 @@ class IfConverter : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_BRANCH_OPTIMIZER_H_
+#endif  // RUNTIME_VM_BRANCH_OPTIMIZER_H_

@@ -18,14 +18,15 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'summary_common.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(LinkedSummarizeAstSpecTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LinkedSummarizeAstSpecTest);
+  });
 }
 
 @reflectiveTest
@@ -132,9 +133,6 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   List<UnlinkedUnit> unlinkedUnits;
 
   LinkerInputs linkerInputs;
-
-  @override
-  bool get expectAbsoluteUrisInDependencies => false;
 
   @override
   bool get skipFullyLinkedData => false;
@@ -317,7 +315,6 @@ abstract class SummaryLinkerTest {
         new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
-    parser.parseGenericMethods = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_C99_SUPPORT_WIN_H_
-#define PLATFORM_C99_SUPPORT_WIN_H_
+#ifndef RUNTIME_PLATFORM_C99_SUPPORT_WIN_H_
+#define RUNTIME_PLATFORM_C99_SUPPORT_WIN_H_
 
 #if defined(_MSC_VER) && (_MSC_VER < 1800)
 
@@ -21,11 +21,10 @@ static const unsigned __int64 kQuietNaNMask =
 
 #ifndef va_copy
 #define va_copy(dst, src) (memmove(&(dst), &(src), sizeof(dst)))
-#endif  /* va_copy */
+#endif /* va_copy */
 
 
-#define NAN \
-    *reinterpret_cast<const double*>(&kQuietNaNMask)
+#define NAN *reinterpret_cast<const double*>(&kQuietNaNMask)
 
 namespace std {
 
@@ -79,4 +78,4 @@ static inline double round(double x) {
 
 #endif
 
-#endif  // PLATFORM_C99_SUPPORT_WIN_H_
+#endif  // RUNTIME_PLATFORM_C99_SUPPORT_WIN_H_

@@ -3,7 +3,7 @@ import 'dart:io' show exitCode;
 import 'package:analyzer_cli/src/driver.dart' show Driver, outSink, errorSink;
 import 'package:analyzer_cli/src/options.dart' show ExitHandler, exitHandler;
 import 'package:path/path.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'utils.dart' show testDirectory;
 

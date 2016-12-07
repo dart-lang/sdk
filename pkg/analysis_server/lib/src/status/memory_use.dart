@@ -225,8 +225,10 @@ class MemoryUseData {
     DartSdkManager manager = server.sdkManager;
     List<SdkDescription> descriptors = manager.sdkDescriptors;
     for (SdkDescription descriptor in descriptors) {
-      _processAnalysisContext(
-          manager.getSdk(descriptor, () => null).context, manager);
+      DartSdk sdk = manager.getSdk(descriptor, () => null);
+      if (sdk != null) {
+        _processAnalysisContext(sdk.context, manager);
+      }
     }
   }
 

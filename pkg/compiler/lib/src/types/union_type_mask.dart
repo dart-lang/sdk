@@ -88,24 +88,25 @@ class UnionTypeMask implements TypeMask {
   }
 
   static TypeMask flatten(List<FlatTypeMask> masks, ClosedWorld closedWorld) {
+    // TODO(johnniwinther): Move this computation to [ClosedWorld] and use the
+    // class set structures.
     assert(masks.length > 1);
     // If either type mask is a subtype type mask, we cannot use a
     // subclass type mask to represent their union.
     bool useSubclass = masks.every((e) => !e.isSubtype);
     bool isNullable = masks.any((e) => e.isNullable);
 
-    List<ClassElement> masksBases = masks.map((mask) => mask.base).toList();
-    Iterable<ClassElement> candidates =
-        closedWorld.commonSupertypesOf(masksBases);
+    List masksBases = masks.map((mask) => mask.base).toList();
+    Iterable<Entity> candidates = closedWorld.commonSupertypesOf(masksBases);
 
     // Compute the best candidate and its kind.
-    ClassElement bestElement;
+    Entity bestElement;
     int bestKind;
     int bestSize;
-    for (ClassElement candidate in candidates) {
+    for (Entity candidate in candidates) {
       bool isInstantiatedStrictSubclass(cls) =>
           cls != candidate &&
-          closedWorld.isDirectlyInstantiated(cls) &&
+          closedWorld.isExplicitlyInstantiated(cls) &&
           closedWorld.isSubclassOf(cls, candidate);
 
       int size;
@@ -231,14 +232,14 @@ class UnionTypeMask implements TypeMask {
     // Check we cover the base class.
     if (!contains(flat.base, closedWorld)) return false;
     // Check for other members.
-    Iterable<ClassElement> members;
+    Iterable<Entity> members;
     if (flat.isSubclass) {
       members = closedWorld.strictSubclassesOf(flat.base);
     } else {
       assert(flat.isSubtype);
       members = closedWorld.strictSubtypesOf(flat.base);
     }
-    return members.every((ClassElement cls) => this.contains(cls, closedWorld));
+    return members.every((Entity cls) => this.contains(cls, closedWorld));
   }
 
   bool isInMask(TypeMask other, ClosedWorld closedWorld) {
@@ -306,23 +307,23 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((mask) => mask.containsOnlyString(closedWorld));
   }
 
-  bool containsOnly(ClassElement element) {
+  bool containsOnly(Entity element) {
     return disjointMasks.every((mask) => mask.containsOnly(element));
   }
 
-  bool satisfies(ClassElement cls, ClosedWorld closedWorld) {
+  bool satisfies(Entity cls, ClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.satisfies(cls, closedWorld));
   }
 
-  bool contains(ClassElement type, ClosedWorld closedWorld) {
-    return disjointMasks.any((e) => e.contains(type, closedWorld));
+  bool contains(Entity cls, ClosedWorld closedWorld) {
+    return disjointMasks.any((e) => e.contains(cls, closedWorld));
   }
 
   bool containsAll(ClosedWorld closedWorld) {
     return disjointMasks.any((mask) => mask.containsAll(closedWorld));
   }
 
-  ClassElement singleClass(ClosedWorld closedWorld) => null;
+  Entity singleClass(ClosedWorld closedWorld) => null;
 
   bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
     return disjointMasks
@@ -333,10 +334,10 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
   }
 
-  Element locateSingleElement(Selector selector, Compiler compiler) {
+  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
     Element candidate;
     for (FlatTypeMask mask in disjointMasks) {
-      Element current = mask.locateSingleElement(selector, compiler);
+      Element current = mask.locateSingleElement(selector, closedWorld);
       if (current == null) {
         return null;
       } else if (candidate == null) {

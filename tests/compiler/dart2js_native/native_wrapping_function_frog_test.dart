@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 typedef void Callback0();
 typedef void Callback1(arg1);
@@ -26,9 +25,11 @@ A.prototype.foo2 = function(closure, arg1, arg2) {
   return closure(arg1, arg2);
 };
 makeA = function(){return new A;};
+self.nativeConstructor(A);
 """;
 
 main() {
+  nativeTesting();
   setup();
   var a = makeA();
   Expect.equals(42, a.foo0(() => 42));

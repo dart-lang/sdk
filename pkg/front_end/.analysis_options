@@ -1,0 +1,4 @@
+analyzer:
+  strong-mode: true
+  language:
+    enableSuperMixins: true

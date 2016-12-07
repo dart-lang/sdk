@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_LONGJUMP_H_
-#define VM_LONGJUMP_H_
+#ifndef RUNTIME_VM_LONGJUMP_H_
+#define RUNTIME_VM_LONGJUMP_H_
 
 #include <setjmp.h>
 
@@ -17,15 +17,13 @@ class Error;
 class LongJumpScope : public StackResource {
  public:
   LongJumpScope()
-    : StackResource(Thread::Current()),
-      top_(NULL),
-      base_(Thread::Current()->long_jump_base()) {
+      : StackResource(Thread::Current()),
+        top_(NULL),
+        base_(Thread::Current()->long_jump_base()) {
     Thread::Current()->set_long_jump_base(this);
   }
 
-  ~LongJumpScope() {
-    Thread::Current()->set_long_jump_base(base_);
-  }
+  ~LongJumpScope() { Thread::Current()->set_long_jump_base(base_); }
 
   jmp_buf* Set();
   void Jump(int value, const Error& error);
@@ -45,4 +43,4 @@ class LongJumpScope : public StackResource {
 
 }  // namespace dart
 
-#endif  // VM_LONGJUMP_H_
+#endif  // RUNTIME_VM_LONGJUMP_H_

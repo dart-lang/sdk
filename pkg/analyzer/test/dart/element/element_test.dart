@@ -6,15 +6,15 @@ library analyzer.test.dart.element.element_test;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ElementKindTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ElementKindTest);
+  });
 }
 
 @reflectiveTest

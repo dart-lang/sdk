@@ -11,8 +11,7 @@ namespace dart {
 
 
 #define FUNCTION_NAME(name) UnhandledExcp_##name
-#define REGISTER_FUNCTION(name, count)                                         \
-  { ""#name, FUNCTION_NAME(name), count },
+#define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
 
 
 void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
@@ -20,8 +19,8 @@ void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
   const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
   if (!expected.CanonicalizeEquals(actual)) {
-    OS::Print("expected: '%s' actual: '%s'\n",
-        expected.ToCString(), actual.ToCString());
+    OS::Print("expected: '%s' actual: '%s'\n", expected.ToCString(),
+              actual.ToCString());
     FATAL("Unhandled_equals fails.\n");
   }
 }
@@ -30,10 +29,7 @@ void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
   Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("Second"));
-  Dart_Handle result = Dart_Invoke(cls,
-                                   NewString("method2"),
-                                   0,
-                                   NULL);
+  Dart_Handle result = Dart_Invoke(cls, NewString("method2"), 0, NULL);
   ASSERT(Dart_IsError(result));
   ASSERT(Dart_ErrorHasException(result));
   return;
@@ -43,10 +39,7 @@ void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
   Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("Second"));
-  Dart_Handle result = Dart_Invoke(cls,
-                                   NewString("method2"),
-                                   0,
-                                   NULL);
+  Dart_Handle result = Dart_Invoke(cls, NewString("method2"), 0, NULL);
   ASSERT(Dart_IsError(result));
   ASSERT(Dart_ErrorHasException(result));
   Dart_Handle exception = Dart_ErrorGetException(result);
@@ -63,16 +56,14 @@ void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
 #define UNHANDLED_NATIVE_LIST(V)                                               \
   V(Unhandled_equals, 2)                                                       \
   V(Unhandled_invoke, 0)                                                       \
-  V(Unhandled_invoke2, 0)                                                      \
+  V(Unhandled_invoke2, 0)
 
 
 static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
-} BuiltinEntries[] = {
-  UNHANDLED_NATIVE_LIST(REGISTER_FUNCTION)
-};
+} BuiltinEntries[] = {UNHANDLED_NATIVE_LIST(REGISTER_FUNCTION)};
 
 
 static Dart_NativeFunction native_lookup(Dart_Handle name,
@@ -127,8 +118,7 @@ TEST_CASE(UnhandledExceptions) {
       "  UnhandledExceptions.equals(3, Second.method3(1));\n"
       "}";
   Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, NULL));
 }
 

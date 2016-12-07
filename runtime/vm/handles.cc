@@ -21,20 +21,18 @@ DEFINE_FLAG(bool, verify_handles, false, "Verify handles.");
 
 
 VMHandles::~VMHandles() {
-    if (FLAG_trace_handles) {
-      OS::PrintErr("***   Handle Counts for 0x(%" Px
-                   "):Zone = %d,Scoped = %d\n",
-                   reinterpret_cast<intptr_t>(this),
-                   CountZoneHandles(), CountScopedHandles());
-      OS::PrintErr("*** Deleting VM handle block 0x%" Px "\n",
-                   reinterpret_cast<intptr_t>(this));
-    }
+  if (FLAG_trace_handles) {
+    OS::PrintErr("***   Handle Counts for 0x(%" Px "):Zone = %d,Scoped = %d\n",
+                 reinterpret_cast<intptr_t>(this), CountZoneHandles(),
+                 CountScopedHandles());
+    OS::PrintErr("*** Deleting VM handle block 0x%" Px "\n",
+                 reinterpret_cast<intptr_t>(this));
+  }
 }
 
 
 void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  return Handles<kVMHandleSizeInWords,
-                 kVMHandlesPerChunk,
+  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::VisitObjectPointers(visitor);
 }
 
@@ -49,24 +47,21 @@ static bool IsCurrentApiNativeScope(Zone* zone) {
 
 uword VMHandles::AllocateHandle(Zone* zone) {
   DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
-  return Handles<kVMHandleSizeInWords,
-                 kVMHandlesPerChunk,
+  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::AllocateHandle(zone);
 }
 
 
 uword VMHandles::AllocateZoneHandle(Zone* zone) {
   DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
-  return Handles<kVMHandleSizeInWords,
-                 kVMHandlesPerChunk,
+  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::AllocateZoneHandle(zone);
 }
 
 
 bool VMHandles::IsZoneHandle(uword handle) {
-  return Handles<kVMHandleSizeInWords,
-                 kVMHandlesPerChunk,
-                 kOffsetOfRawPtr >::IsZoneHandle(handle);
+  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
+                 kOffsetOfRawPtr>::IsZoneHandle(handle);
 }
 
 

@@ -28,54 +28,54 @@ vars = {
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
+  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
 
   # Revisions of GN related dependencies.
-  "buildtools_revision": "@3d2e47bf14e4e67816a53e304dea422fa18f9180",
+  "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
+  "clang_format_rev": "@0ed791d1387a3c9146ea6c453c646f3c0fc97784",
 
-  "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
+  "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.5",
-  "async_tag": "@1.11.1",
+  "async_tag": "@1.11.3",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+9",
   "bazel_worker_tag": "@0.1.1",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@922830c0aad900dd3d143eef1ba06faa83fe263b",
+  "boringssl_gen_rev": "@62c20247d582444cb2804f9ea4e3abaa6e47f6a5",
   "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+3",
   "code_transformers_tag": "@v0.4.2+3",
-  "collection_tag": "@1.9.1",
+  "collection_tag": "@1.10.1",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.2",
-  "dart2js_info_tag" : "@0.2.7+1",
+  "dart2js_info_tag" : "@0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.10",
-  "dartdoc_tag" : "@v0.9.7+6",
+  "dart_style_tag": "@0.2.13",
+  "dartdoc_tag" : "@v0.9.8",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",
   "glob_tag": "@1.1.3",
-  "html_tag" : "@0.13.0",
+  "html_tag" : "@0.13.1",
   "http_multi_server_tag" : "@2.0.2",
-  "http_parser_tag" : "@3.0.2",
+  "http_parser_tag" : "@3.0.3",
   "http_tag" : "@0.11.3+9",
   "http_throttle_rev" : "@284344cd357e435c6c8ff9a4a21f02b9e384a541",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_tag": "@v0.6.2+2",
-  "intl_tag": "@0.13.1",
+  "intl_tag": "@0.14.0",
   "isolate_tag": "@0.2.3",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
-  "kernel_rev": "@449803b82e850a41148e636db1a6e4a848284aed",
-  "linter_tag": "@0.1.27",
+  "linter_tag": "@0.1.29",
   "logging_tag": "@0.11.3+1",
-  "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
+  "markdown_tag": "@0.11.0",
   "matcher_tag": "@0.12.0+2",
   "metatest_tag": "@0.2.2+2",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
@@ -90,7 +90,6 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.4",
   "protobuf_tag": "@0.5.3",
-  "pub_cache_tag": "@v0.1.0",
   "pub_rev": "@3dd04bd17ba269ccdd34502a253041dd96ded3be",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.22.0",
@@ -104,13 +103,13 @@ vars = {
   "smoke_tag" : "@v0.3.6+2",
   "source_map_stack_trace_tag": "@1.1.3",
   "source_maps-0.9.4_rev": "@38524",
-  "source_maps_tag": "@0.10.1+1",
-  "source_span_tag": "@1.2.3",
+  "source_maps_tag": "@0.10.1+2",
+  "source_span_tag": "@1.2.4",
   "stack_trace_tag": "@1.6.6",
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@1.0.0",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_reflective_loader_tag": "@0.0.4",
+  "test_reflective_loader_tag": "@0.1.0",
   "test_tag": "@0.12.15+6",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@v2.2.2",
@@ -121,7 +120,7 @@ vars = {
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
-  "yaml_tag": "@2.1.10",
+  "yaml_tag": "@2.1.11",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
 
@@ -134,6 +133,9 @@ deps = {
   Var("dart_root") + "/buildtools":
      Var('chromium_git') + '/chromium/buildtools.git' +
      Var('buildtools_revision'),
+  Var("dart_root") + "/buildtools/clang_format/script":
+    Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
+    Var("clang_format_rev"),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
@@ -232,14 +234,12 @@ deps = {
       (Var("github_dartlang") % "isolate") + Var("isolate_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
-  Var("dart_root") + "/third_party/pkg/kernel":
-      (Var("github_mirror") % "kernel") + Var("kernel_rev"),
   Var("dart_root") + "/third_party/pkg/linter":
       (Var("github_mirror") % "linter") + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_tag"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      (Var("github_mirror") % "markdown") + Var("markdown_rev"),
+      (Var("github_mirror") % "markdown") + Var("markdown_tag"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
@@ -275,8 +275,6 @@ deps = {
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
       (Var("github_mirror") % "pub") + Var("pub_rev"),
-  Var("dart_root") + "/third_party/pkg/pub_cache":
-      (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
   Var("dart_root") + "/third_party/pkg/quiver":
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
@@ -406,6 +404,21 @@ hooks = [
   },
   # Pull clang-format binaries using checked-in hashes.
   {
+    'name': 'clang_format_win',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=win32',
+      '--bucket',
+      'chromium-clang-format',
+      '-s',
+      Var('dart_root') + '/buildtools/win/clang-format.exe.sha1',
+    ],
+  },
+  {
     'name': 'clang_format_linux',
     'pattern': '.',
     'action': [
@@ -496,20 +509,6 @@ hooks = [
     ],
   },
   {
-    "name": "petitparser",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/pkg/petitparser.tar.gz.sha1",
-    ],
-  },
-  {
     "name": "unittest",
     # Unittest is an early version, 0.11.6, of the package "test"
     # Do not use it in any new tests.
@@ -570,13 +569,33 @@ hooks = [
     ],
   },
   {
+    # Pull Debian wheezy sysroot for i386 Linux
+    'name': 'sysroot_i386',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+               '--running-as-hook', '--arch', 'i386'],
+  },
+  {
+    # Pull Debian wheezy sysroot for amd64 Linux
+    'name': 'sysroot_amd64',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+               '--running-as-hook', '--arch', 'amd64'],
+  },
+  {
     # Pull clang if needed or requested via GYP_DEFINES.
     'name': 'gn_clang',
     'pattern': '.',
     'action': ['python', 'sdk/tools/clang/scripts/update.py', '--if-needed'],
   },
   {
+    # Update the Windows toolchain if necessary.
+    'name': 'win_toolchain',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
+  },
+  {
     "pattern": ".",
-    "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
+    "action": ["python", Var("dart_root") + "/tools/generate_buildfiles.py"],
   },
 ]

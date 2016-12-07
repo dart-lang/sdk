@@ -90,6 +90,8 @@ class Options {
 }
 ```
 
+NB: This _anonymous_ class must have an unnamed _factory constructor_.
+
 #### Passing functions to JavaScript.
 
 If you are passing a Dart function to a JavaScript API, you must wrap it using

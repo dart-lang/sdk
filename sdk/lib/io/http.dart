@@ -149,7 +149,7 @@ abstract class HttpStatus {
  * about the streaming qualities of an HttpServer.
  * Pausing the subscription of the stream, pauses at the OS level.
  *
- * * The [http_server](https://pub.dartlang.org/packages/http_server)
+ * * The [shelf](https://pub.dartlang.org/packages/shelf)
  * package on pub.dartlang.org contains a set of high-level classes that,
  * together with this class, makes it easy to provide content through HTTP
  * servers.
@@ -1668,13 +1668,13 @@ abstract class HttpClient {
                                            int port));
 
   /**
-   * Shutdown the HTTP client. If [force] is [:false:] (the default)
+   * Shut down the HTTP client. If [force] is [:false:] (the default)
    * the [:HttpClient:] will be kept alive until all active
    * connections are done. If [force] is [:true:] any active
    * connections will be closed to immediately release all
    * resources. These closed connections will receive an [:onError:]
-   * callback to indicate that the client was shutdown. In both cases
-   * trying to establish a new connection after calling [shutdown]
+   * callback to indicate that the client was shut down. In both cases
+   * trying to establish a new connection after calling [close]
    * will throw an exception.
    */
   void close({bool force: false});

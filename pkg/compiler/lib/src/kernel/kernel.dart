@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/checks.dart' show CheckParentPointers;
+import 'package:kernel/verifier.dart' show CheckParentPointers;
 
+import '../common.dart';
+import '../common/names.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show TypeConstantExpression;
 import '../dart_types.dart'
@@ -25,10 +27,12 @@ import '../elements/elements.dart'
         ImportElement,
         LibraryElement,
         LocalFunctionElement,
+        MetadataAnnotation,
         MixinApplicationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
 import '../tree/tree.dart' show FunctionExpression, Node;
+import 'constant_visitor.dart';
 import 'kernel_visitor.dart' show IrFunction, KernelVisitor;
 
 typedef void WorkAction();
@@ -69,6 +73,7 @@ class Kernel {
 
   final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
   final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
+  final Map<ir.Node, Node> nodeToAstOperator = <ir.Node, Node>{};
 
   /// FIFO queue of work that needs to be completed before the returned AST
   /// nodes are correct.
@@ -188,7 +193,11 @@ class Kernel {
           fields: null);
       addWork(cls, () {
         if (cls.supertype != null) {
-          classNode.supertype = interfaceTypeToIr(cls.supertype);
+          classNode.supertype = supertypeToIr(cls.supertype);
+        }
+        if (cls.isMixinApplication) {
+          MixinApplicationElement mixinApplication = cls;
+          classNode.mixedInType = supertypeToIr(mixinApplication.mixinType);
         }
         classNode.parent = libraryToIr(cls.library);
         if (cls.isUnnamedMixinApplication) {
@@ -199,9 +208,13 @@ class Kernel {
           if (member.enclosingClass.declaration != cls) {
             // TODO(het): figure out why impact_test triggers this
             //internalError(cls, "`$member` isn't mine.");
-          } else if (member.isFunction ||
-              member.isAccessor ||
-              member.isConstructor) {
+          } else if (member.isConstructor) {
+            ConstructorElement constructor = member;
+            ir.Member memberNode = functionToIr(member);
+            if (!constructor.isRedirectingFactory) {
+              classNode.addMember(memberNode);
+            }
+          } else if (member.isFunction || member.isAccessor) {
             classNode.addMember(functionToIr(member));
           } else if (member.isField) {
             classNode.addMember(fieldToIr(member));
@@ -210,13 +223,55 @@ class Kernel {
           }
         });
         classNode.typeParameters.addAll(typeVariablesToIr(cls.typeVariables));
-        for (ir.InterfaceType interface
-            in typesToIr(cls.interfaces.reverse().toList())) {
-          classNode.implementedTypes.add(interface);
+        for (ir.Supertype supertype
+            in supertypesToIr(cls.interfaces.reverse().toList())) {
+          if (supertype != classNode.mixedInType) {
+            classNode.implementedTypes.add(supertype);
+          }
+        }
+        addWork(cls, () {
+          addDefaultInstanceFieldInitializers(classNode);
+        });
+      });
+      addWork(cls.declaration, () {
+        for (MetadataAnnotation metadata in cls.declaration.metadata) {
+          classNode.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
         }
       });
       return classNode;
     });
+  }
+
+  /// Adds initializers to instance fields that are have no initializer and are
+  /// not initialized by all constructors in the class.
+  ///
+  /// This is more or less copied directly from `ast_from_analyzer.dart` in
+  /// dartk.
+  void addDefaultInstanceFieldInitializers(ir.Class node) {
+    List<ir.Field> uninitializedFields = new List<ir.Field>();
+    for (ir.Field field in node.fields) {
+      if (field.initializer != null || field.isStatic) continue;
+      uninitializedFields.add(field);
+    }
+    if (uninitializedFields.isEmpty) return;
+    constructorLoop:
+    for (ir.Constructor constructor in node.constructors) {
+      Set<ir.Field> remainingFields = uninitializedFields.toSet();
+      for (ir.Initializer initializer in constructor.initializers) {
+        if (initializer is ir.FieldInitializer) {
+          remainingFields.remove(initializer.field);
+        } else if (initializer is ir.RedirectingInitializer) {
+          // The target constructor will be checked in another iteration.
+          continue constructorLoop;
+        }
+      }
+      for (ir.Field field in remainingFields) {
+        if (field.initializer == null) {
+          field.initializer = new ir.NullLiteral()..parent = field;
+        }
+      }
+    }
   }
 
   bool hasHierarchyProblem(ClassElement cls) => cls.hasIncompleteHierarchy;
@@ -227,6 +282,15 @@ class Kernel {
       return cls.rawType;
     } else {
       return new ir.InterfaceType(cls, typesToIr(type.typeArguments));
+    }
+  }
+
+  ir.Supertype supertypeToIr(InterfaceType type) {
+    ir.Class cls = classToIr(type.element);
+    if (type.typeArguments.isEmpty) {
+      return cls.asRawSupertype;
+    } else {
+      return new ir.Supertype(cls, typesToIr(type.typeArguments));
     }
   }
 
@@ -241,11 +305,10 @@ class Kernel {
     List<ir.DartType> positionalParameters =
         new List<ir.DartType>.from(typesToIr(type.parameterTypes))
           ..addAll(typesToIr(type.optionalParameterTypes));
-    Map<String, ir.DartType> namedParameters = <String, ir.DartType>{};
-    for (int i = 0; i < type.namedParameters.length; i++) {
-      namedParameters[type.namedParameters[i]] =
-          typeToIr(type.namedParameterTypes[i]);
-    }
+    List<ir.NamedType> namedParameters = new List<ir.NamedType>.generate(
+        type.namedParameters.length,
+        (i) => new ir.NamedType(
+            type.namedParameters[i], typeToIr(type.namedParameterTypes[i])));
     ir.DartType returnType = typeToIr(type.returnType);
 
     return new ir.FunctionType(positionalParameters, returnType,
@@ -262,6 +325,14 @@ class Kernel {
     List<ir.DartType> result = new List<ir.DartType>(types.length);
     for (int i = 0; i < types.length; i++) {
       result[i] = typeToIr(types[i]);
+    }
+    return result;
+  }
+
+  List<ir.Supertype> supertypesToIr(List<DartType> types) {
+    List<ir.Supertype> result = new List<ir.Supertype>(types.length);
+    for (int i = 0; i < types.length; i++) {
+      result[i] = supertypeToIr(types[i]);
     }
     return result;
   }
@@ -338,7 +409,7 @@ class Kernel {
     }
     function = function.declaration;
     return functions.putIfAbsent(function, () {
-      compiler.analyzeElement(function);
+      compiler.resolution.ensureResolved(function);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       function = function.implementation;
       ir.Member member;
@@ -389,6 +460,12 @@ class Kernel {
           return true;
         });
       });
+      addWork(function.declaration, () {
+        for (MetadataAnnotation metadata in function.declaration.metadata) {
+          member.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
+        }
+      });
       return member;
     });
   }
@@ -430,7 +507,7 @@ class Kernel {
     }
     field = field.declaration;
     return fields.putIfAbsent(field, () {
-      compiler.analyzeElement(field);
+      compiler.resolution.ensureResolved(field);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
       field = field.implementation;
       ir.DartType type =
@@ -443,11 +520,21 @@ class Kernel {
           isConst: field.isConst);
       addWork(field, () {
         setParent(fieldNode, field);
-        if (!field.isMalformed && field.initializer != null) {
-          KernelVisitor visitor =
-              new KernelVisitor(field, field.treeElements, this);
-          fieldNode.initializer = visitor.buildInitializer()
-            ..parent = fieldNode;
+        if (!field.isMalformed) {
+          if (field.initializer != null) {
+            KernelVisitor visitor =
+                new KernelVisitor(field, field.treeElements, this);
+            fieldNode.initializer = visitor.buildInitializer()
+              ..parent = fieldNode;
+          } else if (!field.isInstanceMember) {
+            fieldNode.initializer = new ir.NullLiteral()..parent = fieldNode;
+          }
+        }
+      });
+      addWork(field.declaration, () {
+        for (MetadataAnnotation metadata in field.declaration.metadata) {
+          fieldNode.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
         }
       });
       return fieldNode;
@@ -591,10 +678,26 @@ class Kernel {
     return false;
   }
 
+  ir.Constructor getDartCoreConstructor(
+      String className, String constructorName) {
+    LibraryElement library =
+        compiler.libraryLoader.lookupLibrary(Uris.dart_core);
+    ClassElement cls = library.implementation.localLookup(className);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, cls != null,
+        message: 'dart:core class $className not found.'));
+    ConstructorElement constructor = cls.lookupConstructor(constructorName);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, constructor != null,
+        message: "Constructor '$constructorName' not found "
+            "in class '$className'."));
+    return functionToIr(constructor);
+  }
+
   ir.Procedure getDartCoreMethod(String name) {
     LibraryElement library =
-        compiler.libraryLoader.lookupLibrary(Uri.parse("dart:core"));
+        compiler.libraryLoader.lookupLibrary(Uris.dart_core);
     Element function = library.implementation.localLookup(name);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, function != null,
+        message: "dart:core method '$name' not found."));
     return functionToIr(function);
   }
 
@@ -646,8 +749,8 @@ class Kernel {
     return getDartCoreMethod('_genericNoSuchMethod');
   }
 
-  ir.Procedure getFallThroughErrorBuilder() {
-    return getDartCoreMethod('_fallThroughError');
+  ir.Constructor getFallThroughErrorConstructor() {
+    return getDartCoreConstructor('FallThroughError', '');
   }
 }
 

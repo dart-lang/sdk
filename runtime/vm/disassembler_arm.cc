@@ -17,9 +17,7 @@ namespace dart {
 class ARMDecoder : public ValueObject {
  public:
   ARMDecoder(char* buffer, size_t buffer_size)
-      : buffer_(buffer),
-        buffer_size_(buffer_size),
-        buffer_pos_(0) {
+      : buffer_(buffer), buffer_size_(buffer_size), buffer_pos_(0) {
     buffer_[buffer_pos_] = '\0';
   }
 
@@ -71,9 +69,9 @@ class ARMDecoder : public ValueObject {
   char* current_position_in_buffer() { return buffer_ + buffer_pos_; }
   size_t remaining_size_in_buffer() { return buffer_size_ - buffer_pos_; }
 
-  char* buffer_;  // Decode instructions into this buffer.
+  char* buffer_;        // Decode instructions into this buffer.
   size_t buffer_size_;  // The size of the character buffer.
-  size_t buffer_pos_;  // Current character position in buffer.
+  size_t buffer_pos_;   // Current character position in buffer.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ARMDecoder);
@@ -81,7 +79,7 @@ class ARMDecoder : public ValueObject {
 
 
 // Support for assertions in the ARMDecoder formatting functions.
-#define STRING_STARTS_WITH(string, compare_string) \
+#define STRING_STARTS_WITH(string, compare_string)                             \
   (strncmp(string, compare_string, strlen(compare_string)) == 0)
 
 
@@ -99,8 +97,8 @@ void ARMDecoder::Print(const char* str) {
 // These condition names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
 static const char* cond_names[kMaxCondition] = {
-  "eq", "ne", "cs" , "cc" , "mi" , "pl" , "vs" , "vc" ,
-  "hi", "ls", "ge", "lt", "gt", "le", "", "invalid",
+    "eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
+    "hi", "ls", "ge", "lt", "gt", "le", "",   "invalid",
 };
 
 
@@ -115,11 +113,11 @@ void ARMDecoder::PrintCondition(Instr* instr) {
 // See for example the command "objdump -d <binary file>".
 static const char* reg_names[kNumberOfCpuRegisters] = {
 #if defined(TARGET_ABI_IOS)
-  "r0", "r1", "r2", "r3", "r4", "pp", "r6", "fp",
-  "r8", "r9", "thr", "r11", "ip", "sp", "lr", "pc",
+    "r0", "r1", "r2",  "r3",  "r4", "pp", "r6", "fp",
+    "r8", "r9", "thr", "r11", "ip", "sp", "lr", "pc",
 #elif defined(TARGET_ABI_EABI)
-  "r0", "r1", "r2", "r3", "r4", "pp", "r6", "r7",
-  "r8", "r9", "thr", "fp", "ip", "sp", "lr", "pc",
+    "r0", "r1", "r2",  "r3", "r4", "pp", "r6", "r7",
+    "r8", "r9", "thr", "fp", "ip", "sp", "lr", "pc",
 #else
 #error Unknown ABI
 #endif
@@ -138,8 +136,7 @@ void ARMDecoder::PrintSRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfSRegisters);
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(),
-                             "s%d", reg);
+                             remaining_size_in_buffer(), "s%d", reg);
 }
 
 
@@ -147,8 +144,7 @@ void ARMDecoder::PrintDRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfDRegisters);
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(),
-                             "d%d", reg);
+                             remaining_size_in_buffer(), "d%d", reg);
 }
 
 
@@ -156,16 +152,13 @@ void ARMDecoder::PrintQRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfQRegisters);
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(),
-                             "q%d", reg);
+                             remaining_size_in_buffer(), "q%d", reg);
 }
 
 
 // These shift names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
-static const char* shift_names[kMaxShift] = {
-  "lsl", "lsr", "asr", "ror"
-};
+static const char* shift_names[kMaxShift] = {"lsl", "lsr", "asr", "ror"};
 
 
 // Print the register shift operands for the instruction. Generally used for
@@ -189,18 +182,15 @@ void ARMDecoder::PrintShiftRm(Instr* instr) {
     } else if (((shift == LSR) || (shift == ASR)) && (shift_amount == 0)) {
       shift_amount = 32;
     }
-    buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                               remaining_size_in_buffer(),
-                               ", %s #%d",
-                               shift_names[shift],
-                               shift_amount);
+    buffer_pos_ +=
+        OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                    ", %s #%d", shift_names[shift], shift_amount);
   } else {
     // by register
     int rs = instr->RsField();
-    buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                               remaining_size_in_buffer(),
-                              ", %s ",
-                              shift_names[shift]);
+    buffer_pos_ +=
+        OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                    ", %s ", shift_names[shift]);
     PrintRegister(rs);
   }
 }
@@ -213,9 +203,7 @@ void ARMDecoder::PrintShiftImm(Instr* instr) {
   int immed8 = instr->Immed8Field();
   int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                             remaining_size_in_buffer(),
-                             "#%d",
-                             imm);
+                             remaining_size_in_buffer(), "#%d", imm);
 }
 
 
@@ -437,10 +425,9 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         ASSERT(STRING_STARTS_WITH(format, "dest"));
         int off = (instr->SImmed24Field() << 2) + 8;
         uword destination = reinterpret_cast<uword>(instr) + off;
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "%#" Px "",
-                                   destination);
+        buffer_pos_ +=
+            OS::SNPrint(current_position_in_buffer(),
+                        remaining_size_in_buffer(), "%#" Px "", destination);
         return 4;
       } else {
         return FormatDRegister(instr, format);
@@ -454,15 +441,13 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       if (format[3] == 'f') {
         ASSERT(STRING_STARTS_WITH(format, "immf"));
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "%f",
+                                   remaining_size_in_buffer(), "%f",
                                    instr->ImmFloatField());
         return 4;
       } else if (format[3] == 'd') {
         ASSERT(STRING_STARTS_WITH(format, "immd"));
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "%g",
+                                   remaining_size_in_buffer(), "%g",
                                    instr->ImmDoubleField());
         return 4;
       } else if (format[3] == '1') {
@@ -474,13 +459,14 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
           ASSERT(STRING_STARTS_WITH(format, "imm4_vdup"));
           int32_t idx = -1;
           int32_t imm4 = instr->Bits(16, 4);
-          if ((imm4 & 1) != 0) idx = imm4 >> 1;
-          else if ((imm4 & 2) != 0) idx = imm4 >> 2;
-          else if ((imm4 & 4) != 0) idx = imm4 >> 3;
+          if ((imm4 & 1) != 0)
+            idx = imm4 >> 1;
+          else if ((imm4 & 2) != 0)
+            idx = imm4 >> 2;
+          else if ((imm4 & 4) != 0)
+            idx = imm4 >> 3;
           buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(),
-                                     "%d",
-                                     idx);
+                                     remaining_size_in_buffer(), "%d", idx);
           return 9;
         } else {
           ASSERT(STRING_STARTS_WITH(format, "imm4_12"));
@@ -488,9 +474,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         }
       }
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "0x%x",
-                                 immed16);
+                                 remaining_size_in_buffer(), "0x%x", immed16);
       return 7;
     }
     case 'l': {  // 'l: branch and link
@@ -515,15 +499,13 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         if (format[4] == '0') {
           // 'off10: 10-bit offset for VFP load and store instructions
           buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(),
-                                     "%d",
+                                     remaining_size_in_buffer(), "%d",
                                      instr->Bits(0, 8) << 2);
         } else {
           // 'off12: 12-bit offset for load and store instructions.
           ASSERT(STRING_STARTS_WITH(format, "off12"));
           buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                     remaining_size_in_buffer(),
-                                     "%d",
+                                     remaining_size_in_buffer(), "%d",
                                      instr->Offset12Field());
         }
         return 5;
@@ -532,9 +514,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       ASSERT(STRING_STARTS_WITH(format, "off8"));
       int offs8 = (instr->ImmedHField() << 4) | instr->ImmedLField();
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "%d",
-                                 offs8);
+                                 remaining_size_in_buffer(), "%d", offs8);
       return 4;
     }
     case 'p': {  // 'pu: P and U bits for load and store instructions.
@@ -546,7 +526,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       return FormatRegister(instr, format);
     }
     case 's': {
-      if (format[1] == 'h') {  // 'shift_op or 'shift_rm
+      if (format[1] == 'h') {    // 'shift_op or 'shift_rm
         if (format[6] == 'o') {  // 'shift_op
           ASSERT(STRING_STARTS_WITH(format, "shift_op"));
           if (instr->TypeField() == 0) {
@@ -563,26 +543,33 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
         }
       } else if (format[1] == 'v') {  // 'svc
         ASSERT(STRING_STARTS_WITH(format, "svc"));
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "0x%x",
-                                   instr->SvcField());
+        buffer_pos_ +=
+            OS::SNPrint(current_position_in_buffer(),
+                        remaining_size_in_buffer(), "0x%x", instr->SvcField());
         return 3;
       } else if (format[1] == 'z') {
         // 'sz: Size field of SIMD instructions.
         int sz = instr->Bits(20, 2);
         char const* sz_str;
         switch (sz) {
-          case 0: sz_str = "b"; break;
-          case 1: sz_str = "h"; break;
-          case 2: sz_str = "w"; break;
-          case 3: sz_str = "l"; break;
-          default: sz_str = "?"; break;
+          case 0:
+            sz_str = "b";
+            break;
+          case 1:
+            sz_str = "h";
+            break;
+          case 2:
+            sz_str = "w";
+            break;
+          case 3:
+            sz_str = "l";
+            break;
+          default:
+            sz_str = "?";
+            break;
         }
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "%s",
-                                   sz_str);
+                                   remaining_size_in_buffer(), "%s", sz_str);
         return 2;
       } else if (format[1] == ' ') {
         // 's: S field of data processing instructions.
@@ -598,9 +585,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
       ASSERT(STRING_STARTS_WITH(format, "target"));
       int off = (instr->SImmed24Field() << 2) + 8;
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "%+d",
-                                 off);
+                                 remaining_size_in_buffer(), "%+d", off);
       return 6;
     }
     case 'u': {  // 'u: signed or unsigned multiplies.
@@ -654,7 +639,7 @@ void ARMDecoder::Format(Instr* instr, const char* format) {
     }
     cur = *format++;
   }
-  buffer_[buffer_pos_]  = '\0';
+  buffer_[buffer_pos_] = '\0';
 }
 
 
@@ -695,13 +680,12 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             if (instr->BkptField() == Instr::kStopMessageCode) {
               const char* message = *reinterpret_cast<const char**>(
                   reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-              buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                         remaining_size_in_buffer(),
-                                         " ; \"%s\"",
-                                         message);
+              buffer_pos_ +=
+                  OS::SNPrint(current_position_in_buffer(),
+                              remaining_size_in_buffer(), " ; \"%s\"", message);
             }
           } else {
-             // Format(instr, "smc'cond");
+            // Format(instr, "smc'cond");
             Unknown(instr);  // Not used.
           }
           break;
@@ -1064,7 +1048,7 @@ void ARMDecoder::DecodeType6(Instr* instr) {
         Format(instr, "vmovdrr'cond 'dm, 'rd, 'rn");
       }
     }
-  } else if (instr-> IsVFPLoadStore()) {
+  } else if (instr->IsVFPLoadStore()) {
     if (instr->Bit(8) == 0) {
       if (instr->Bit(20) == 1) {  // vldrs
         if (instr->Bit(23) == 1) {
@@ -1095,13 +1079,13 @@ void ARMDecoder::DecodeType6(Instr* instr) {
       }
     }
   } else if (instr->IsVFPMultipleLoadStore()) {
-    if (instr->HasL()) {  // vldm
+    if (instr->HasL()) {    // vldm
       if (instr->Bit(8)) {  // vldmd
         Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
       } else {  // vldms
         Format(instr, "vldms'cond'pu 'rn'w, 'slist");
       }
-    } else {  // vstm
+    } else {                // vstm
       if (instr->Bit(8)) {  // vstmd
         Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
       } else {  // vstms
@@ -1174,7 +1158,7 @@ void ARMDecoder::DecodeType7(Instr* instr) {
           }
           break;
         }
-        case 0xb: {  // Other VFP data-processing instructions
+        case 0xb: {                  // Other VFP data-processing instructions
           if (instr->Bit(6) == 0) {  // vmov immediate
             if (instr->Bit(8) == 0) {
               Format(instr, "vmovs'cond 'sd, #'immf");
@@ -1234,8 +1218,8 @@ void ARMDecoder::DecodeType7(Instr* instr) {
               }
               break;
             }
-            case 4:  // vcmp, vcmpe
-            case 5: {  // vcmp #0.0, vcmpe #0.0
+            case 4:                      // vcmp, vcmpe
+            case 5: {                    // vcmp #0.0, vcmpe #0.0
               if (instr->Bit(7) == 1) {  // vcmpe
                 Unknown(instr);
               } else {
@@ -1301,9 +1285,9 @@ void ARMDecoder::DecodeType7(Instr* instr) {
               }
               break;
             }
-            case 2:  // vcvtb, vcvtt
-            case 3:  // vcvtb, vcvtt
-            case 9:  // undefined
+            case 2:   // vcvtb, vcvtt
+            case 3:   // vcvtb, vcvtt
+            case 9:   // undefined
             case 10:  // vcvt between floating-point and fixed-point
             case 11:  // vcvt between floating-point and fixed-point
             case 14:  // vcvt between floating-point and fixed-point
@@ -1313,8 +1297,7 @@ void ARMDecoder::DecodeType7(Instr* instr) {
               break;
             }
           }
-        }
-        break;
+        } break;
       }
     } else {
       // 8, 16, or 32-bit Transfer between ARM Core and VFP
@@ -1532,10 +1515,14 @@ void ARMDecoder::InstructionDecode(uword pc) {
 }
 
 
-void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                     char* human_buffer, intptr_t human_size,
-                                     int* out_instr_size, const Code& code,
-                                     Object** object, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer,
+                                     intptr_t hex_size,
+                                     char* human_buffer,
+                                     intptr_t human_size,
+                                     int* out_instr_size,
+                                     const Code& code,
+                                     Object** object,
+                                     uword pc) {
   ARMDecoder decoder(human_buffer, human_size);
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();

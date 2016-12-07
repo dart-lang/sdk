@@ -4,10 +4,10 @@
 
 library dart2js.world;
 
+import 'cache_strategy.dart';
 import 'closure.dart' show SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
-import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
 import 'dart_types.dart';
 import 'elements/elements.dart'
@@ -17,7 +17,7 @@ import 'elements/elements.dart'
         FunctionElement,
         MixinApplicationElement,
         TypedefElement,
-        VariableElement;
+        FieldElement;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
@@ -25,6 +25,8 @@ import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
+import 'universe/world_builder.dart'
+    show InstantiationInfo, ResolutionWorldBuilder;
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -45,15 +47,38 @@ abstract class ClosedWorld implements World {
   /// Access to core classes used in the Dart language.
   CoreClasses get coreClasses;
 
+  CommonMasks get commonMasks;
+
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
 
-  /// Returns `true` if [cls] is directly instantiated.
+  /// Returns `true` if [cls] is directly instantiated. This means that at
+  /// runtime instances of exactly [cls] are assumed to exist.
   bool isDirectlyInstantiated(ClassElement cls);
+
+  /// Returns `true` if [cls] is abstractly instantiated. This means that at
+  /// runtime instances of [cls] or unknown subclasses of [cls] are assumed to
+  /// exist.
+  ///
+  /// This is used to mark native and/or reflectable classes as instantiated.
+  /// For native classes we do not know the exact class that instantiates [cls]
+  /// so [cls] here represents the root of the subclasses. For reflectable
+  /// classes we need event abstract classes to be 'live' even though they
+  /// cannot themselves be instantiated.
+  bool isAbstractlyInstantiated(ClassElement cls);
+
+  /// Returns `true` if [cls] is either directly or abstractly instantiated.
+  ///
+  /// See [isDirectlyInstantiated] and [isAbstractlyInstantiated].
+  bool isExplicitlyInstantiated(ClassElement cls);
 
   /// Returns `true` if [cls] is indirectly instantiated, that is through a
   /// subclass.
   bool isIndirectlyInstantiated(ClassElement cls);
+
+  /// Returns `true` if [cls] is abstract and thus can only be instantiated
+  /// through subclasses.
+  bool isAbstract(ClassElement cls);
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls);
@@ -156,6 +181,52 @@ abstract class ClosedWorld implements World {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
+  /// Returns `true` if a call of [selector] on [cls] and/or subclasses/subtypes
+  /// need noSuchMethod handling.
+  ///
+  /// If the receiver is guaranteed to have a member that matches what we're
+  /// looking for, there's no need to introduce a noSuchMethod handler. It will
+  /// never be called.
+  ///
+  /// As an example, consider this class hierarchy:
+  ///
+  ///                   A    <-- noSuchMethod
+  ///                  / \
+  ///                 C   B  <-- foo
+  ///
+  /// If we know we're calling foo on an object of type B we don't have to worry
+  /// about the noSuchMethod method in A because objects of type B implement
+  /// foo. On the other hand, if we end up calling foo on something of type C we
+  /// have to add a handler for it.
+  ///
+  /// If the holders of all user-defined noSuchMethod implementations that might
+  /// be applicable to the receiver type have a matching member for the current
+  /// name and selector, we avoid introducing a noSuchMethod handler.
+  ///
+  /// As an example, consider this class hierarchy:
+  ///
+  ///                        A    <-- foo
+  ///                       / \
+  ///    noSuchMethod -->  B   C  <-- bar
+  ///                      |   |
+  ///                      C   D  <-- noSuchMethod
+  ///
+  /// When calling foo on an object of type A, we know that the implementations
+  /// of noSuchMethod are in the classes B and D that also (indirectly)
+  /// implement foo, so we do not need a handler for it.
+  ///
+  /// If we're calling bar on an object of type D, we don't need the handler
+  /// either because all objects of type D implement bar through inheritance.
+  ///
+  /// If we're calling bar on an object of type A we do need the handler because
+  /// we may have to call B.noSuchMethod since B does not implement bar.
+  bool needsNoSuchMethod(ClassElement cls, Selector selector, ClassQuery query);
+
+  /// Returns whether [element] will be the one used at runtime when being
+  /// invoked on an instance of [cls]. [selector] is used to ensure library
+  /// privacy is taken into account.
+  bool hasElementIn(ClassElement cls, Selector selector, Element element);
+
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
   ///
@@ -170,9 +241,10 @@ abstract class ClosedWorld implements World {
   /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassElement cls);
 
-  // TODO(johnniwinther): Find a better strategy for caching these.
-  @deprecated
-  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
+  /// Return the cached mask for [base] with the given flags, or
+  /// calls [createMask] to create the mask and cache it.
+  // TODO(johnniwinther): Find a better strategy for caching these?
+  TypeMask getCachedMask(ClassElement base, int flags, TypeMask createMask());
 
   /// Returns the [FunctionSet] containing all live functions in the closed
   /// world.
@@ -195,7 +267,7 @@ abstract class ClosedWorld implements World {
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
   /// is not a field, `null` is returned.
-  VariableElement locateSingleField(Selector selector, TypeMask mask);
+  FieldElement locateSingleField(Selector selector, TypeMask mask);
 
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(Element element);
@@ -265,7 +337,7 @@ abstract class OpenWorld implements World {
   void registerUsedElement(Element element);
   void registerTypedef(TypedefElement typedef);
 
-  ClosedWorld closeWorld();
+  ClosedWorld closeWorld(DiagnosticReporter reporter);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls);
@@ -274,9 +346,15 @@ abstract class OpenWorld implements World {
 class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   bool _closed = false;
 
+  TypeMask getCachedMask(ClassElement base, int flags, TypeMask createMask()) {
+    Map<ClassElement, TypeMask> cachedMasks =
+        _canonicalizedTypeMasks[flags] ??= <ClassElement, TypeMask>{};
+    return cachedMasks.putIfAbsent(base, createMask);
+  }
+
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.
-  List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
+  final List<Map<ClassElement, TypeMask>> _canonicalizedTypeMasks =
       new List<Map<ClassElement, TypeMask>>.filled(8, null);
 
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
@@ -336,16 +414,33 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   @override
+  bool isAbstractlyInstantiated(ClassElement cls) {
+    assert(isClosed);
+    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
+    return node != null && node.isAbstractlyInstantiated;
+  }
+
+  @override
+  bool isExplicitlyInstantiated(ClassElement cls) {
+    assert(isClosed);
+    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
+    return node != null && node.isExplicitlyInstantiated;
+  }
+
+  @override
   bool isIndirectlyInstantiated(ClassElement cls) {
     assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isIndirectlyInstantiated;
   }
 
+  @override
+  bool isAbstract(ClassElement cls) => cls.isAbstract;
+
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls) {
     assert(isClosed);
-    return _compiler.resolverWorld.isImplemented(cls);
+    return resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -354,7 +449,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     if (hierarchy == null) return const <ClassElement>[];
-    return hierarchy.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
+    return hierarchy
+        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -363,7 +459,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
-    return subclasses.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    return subclasses.subclassesByMask(
+        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -383,7 +480,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return;
-    subclasses.forEachSubclass(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -394,7 +491,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
-        predicate, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -406,7 +503,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
+      return classSet
+          .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
     }
   }
 
@@ -418,7 +516,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+      return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
           strict: true);
     }
   }
@@ -439,7 +537,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return;
-    classSet.forEachSubtype(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -450,7 +548,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return false;
     return classSet.anySubtype(
-        predicate, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -622,14 +720,14 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if [cls] or any superclass mixes in [mixin].
   bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin) {
     assert(isClosed);
+    assert(cls.isDeclaration);
+    assert(mixin.isDeclaration);
     if (isUsedAsMixin(mixin)) {
-      ClassElement current = cls.declaration;
-      mixin = mixin.declaration;
+      ClassElement current = cls;
       while (current != null) {
-        current = current.declaration;
         if (current.isMixinApplication) {
           MixinApplicationElement application = current;
-          if (application.mixin.declaration == mixin) return true;
+          if (application.mixin == mixin) return true;
         }
         current = current.superclass;
       }
@@ -641,8 +739,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// of a mixin application of [y].
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y) {
     assert(isClosed);
-    x = x.declaration;
-    y = y.declaration;
+    assert(x.isDeclaration);
+    assert(y.isDeclaration);
     Map<ClassElement, bool> secondMap =
         _subtypeCoveredByCache[x] ??= <ClassElement, bool>{};
     return secondMap[y] ??= subtypesOf(x).every((ClassElement cls) =>
@@ -658,11 +756,92 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     return subclasses.contains(type);
   }
 
-  final Compiler _compiler;
+  @override
+  bool hasElementIn(ClassElement cls, Selector selector, Element element) {
+    // Use [:implementation:] of [element]
+    // because our function set only stores declarations.
+    Element result = findMatchIn(cls, selector);
+    return result == null
+        ? false
+        : result.implementation == element.implementation;
+  }
+
+  Element findMatchIn(ClassElement cls, Selector selector,
+      {ClassElement stopAtSuperclass}) {
+    // Use the [:implementation] of [cls] in case the found [element]
+    // is in the patch class.
+    var result = cls.implementation
+        .lookupByName(selector.memberName, stopAt: stopAtSuperclass);
+    return result;
+  }
+
+  /// Returns whether a [selector] call on an instance of [cls]
+  /// will hit a method at runtime, and not go through [noSuchMethod].
+  bool hasConcreteMatch(ClassElement cls, Selector selector,
+      {ClassElement stopAtSuperclass}) {
+    assert(invariant(cls, isInstantiated(cls),
+        message: '$cls has not been instantiated.'));
+    Element element = findMatchIn(cls, selector);
+    if (element == null) return false;
+
+    if (element.isAbstract) {
+      ClassElement enclosingClass = element.enclosingClass;
+      return hasConcreteMatch(enclosingClass.superclass, selector);
+    }
+    return selector.appliesUntyped(element);
+  }
+
+  @override
+  bool needsNoSuchMethod(
+      ClassElement base, Selector selector, ClassQuery query) {
+    /// Returns `true` if subclasses in the [rootNode] tree needs noSuchMethod
+    /// handling.
+    bool subclassesNeedNoSuchMethod(ClassHierarchyNode rootNode) {
+      if (!rootNode.isInstantiated) {
+        // No subclass needs noSuchMethod handling since they are all
+        // uninstantiated.
+        return false;
+      }
+      ClassElement rootClass = rootNode.cls;
+      if (hasConcreteMatch(rootClass, selector)) {
+        // The root subclass has a concrete implementation so no subclass needs
+        // noSuchMethod handling.
+        return false;
+      } else if (rootNode.isExplicitlyInstantiated) {
+        // The root class need noSuchMethod handling.
+        return true;
+      }
+      IterationStep result = rootNode.forEachSubclass((ClassElement subclass) {
+        if (hasConcreteMatch(subclass, selector, stopAtSuperclass: rootClass)) {
+          // Found a match - skip all subclasses.
+          return IterationStep.SKIP_SUBCLASSES;
+        } else {
+          // Stop fast - we found a need for noSuchMethod handling.
+          return IterationStep.STOP;
+        }
+      }, ClassHierarchyNode.EXPLICITLY_INSTANTIATED, strict: true);
+      // We stopped fast so we need noSuchMethod handling.
+      return result == IterationStep.STOP;
+    }
+
+    ClassSet classSet = getClassSet(base);
+    ClassHierarchyNode node = classSet.node;
+    if (query == ClassQuery.EXACT) {
+      return node.isDirectlyInstantiated && !hasConcreteMatch(base, selector);
+    } else if (query == ClassQuery.SUBCLASS) {
+      return subclassesNeedNoSuchMethod(node);
+    } else {
+      if (subclassesNeedNoSuchMethod(node)) return true;
+      for (ClassHierarchyNode subtypeNode in classSet.subtypeNodes) {
+        if (subclassesNeedNoSuchMethod(subtypeNode)) return true;
+      }
+      return false;
+    }
+  }
+
+  final JavaScriptBackend _backend;
   BackendClasses get backendClasses => _backend.backendClasses;
-  JavaScriptBackend get _backend => _compiler.backend;
-  CommonMasks get commonMasks => _compiler.commonMasks;
-  final FunctionSet allFunctions;
+  FunctionSet _allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
@@ -693,20 +872,33 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   final Set<Element> alreadyPopulated;
 
+  CommonMasks _commonMasks;
+
+  final CoreClasses coreClasses;
+
+  final CacheStrategy cacheStrategy;
+
+  final ResolutionWorldBuilder resolverWorld;
+
   bool get isClosed => _closed;
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
     return _typesImplementedBySubclasses[cls.declaration];
   }
 
-  WorldImpl(Compiler compiler)
-      : allFunctions = new FunctionSet(compiler),
-        this._compiler = compiler,
-        alreadyPopulated = compiler.cacheStrategy.newSet();
+  WorldImpl(this.resolverWorld, this._backend, this.coreClasses,
+      CacheStrategy cacheStrategy)
+      : this.cacheStrategy = cacheStrategy,
+        alreadyPopulated = cacheStrategy.newSet() {
+    _allFunctions = new FunctionSet(this);
+  }
 
-  CoreClasses get coreClasses => _compiler.coreClasses;
+  FunctionSet get allFunctions => _allFunctions;
 
-  DiagnosticReporter get reporter => _compiler.reporter;
+  CommonMasks get commonMasks {
+    assert(isClosed);
+    return _commonMasks;
+  }
 
   /// Called to add [cls] to the set of known classes.
   ///
@@ -800,21 +992,26 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   void _updateClassHierarchyNodeForClass(ClassElement cls,
-      {bool directlyInstantiated: false}) {
-    ClassHierarchyNode node = getClassHierarchyNode(cls);
+      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
+    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
     _updateSuperClassHierarchyNodeForClass(node);
     if (directlyInstantiated) {
       node.isDirectlyInstantiated = true;
     }
+    if (abstractlyInstantiated) {
+      node.isAbstractlyInstantiated = true;
+    }
   }
 
-  ClosedWorld closeWorld() {
+  ClosedWorld closeWorld(DiagnosticReporter reporter) {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
-    void addSubtypes(ClassElement cls) {
-      if (_compiler.options.hasIncrementalSupport &&
-          !alreadyPopulated.add(cls)) {
+    void addSubtypes(ClassElement cls, InstantiationInfo info) {
+      if (!info.hasInstantiation) {
+        return;
+      }
+      if (cacheStrategy.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
         return;
       }
       assert(cls.isDeclaration);
@@ -822,7 +1019,9 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
         reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
-      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
+      _updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
@@ -842,9 +1041,10 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    _compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+    resolverWorld.forEachInstantiatedClass(addSubtypes);
 
     _closed = true;
+    _commonMasks = new CommonMasks(this);
     return this;
   }
 
@@ -881,20 +1081,22 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector, TypeMask mask) {
+  FieldElement locateSingleField(Selector selector, TypeMask mask) {
     Element result = locateSingleElement(selector, mask);
     return (result != null && result.isField) ? result : null;
   }
 
   Element locateSingleElement(Selector selector, TypeMask mask) {
+    assert(isClosed);
     mask ??= commonMasks.dynamicType;
-    return mask.locateSingleElement(selector, _compiler);
+    return mask.locateSingleElement(selector, this);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
+    assert(isClosed);
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = _compiler.enabledInvokeOn &&
+      canReachAll = _backend.hasInvokeOnSupport &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? commonMasks.dynamicType : mask;
@@ -922,8 +1124,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
       return true;
     }
     if (element.isInstanceMember) {
-      return !_compiler.resolverWorld.hasInvokedSetter(element, this) &&
-          !_compiler.resolverWorld.fieldSetters.contains(element);
+      return !resolverWorld.hasInvokedSetter(element, this) &&
+          !resolverWorld.fieldSetters.contains(element);
     }
     return false;
   }
@@ -1010,4 +1212,17 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   bool getCurrentlyKnownMightBePassedToApply(Element element) {
     return getMightBePassedToApply(element);
   }
+}
+
+/// Enum values defining subset of classes included in queries.
+enum ClassQuery {
+  /// Only the class itself is included.
+  EXACT,
+
+  /// The class and all subclasses (transitively) are included.
+  SUBCLASS,
+
+  /// The class and all classes that implement or subclass it (transitively)
+  /// are included.
+  SUBTYPE,
 }

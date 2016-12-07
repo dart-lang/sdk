@@ -11,7 +11,7 @@ part of dart._interceptors;
  * argument added to each member.
  */
 @JsPeerInterface(name: 'String')
-class JSString extends Interceptor implements String, JSIndexable {
+class JSString extends Interceptor implements String, JSIndexable<String> {
   const JSString();
 
   int codeUnitAt(int index) {
@@ -243,7 +243,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     return index;
   }
 
-  /// Finds the index after the the last non-whitespace character, or 0.
+  /// Finds the index after the last non-whitespace character, or 0.
   /// Start looking at position [index - 1].
   static int _skipTrailingWhitespace(String string, int index) {
     const int SPACE = 0x20;

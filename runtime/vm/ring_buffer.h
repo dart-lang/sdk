@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_RING_BUFFER_H_
-#define VM_RING_BUFFER_H_
+#ifndef RUNTIME_VM_RING_BUFFER_H_
+#define RUNTIME_VM_RING_BUFFER_H_
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -11,14 +11,12 @@
 namespace dart {
 
 // Fixed-capacity ring buffer.
-template<typename T, int N>
+template <typename T, int N>
 class RingBuffer {
  public:
-  RingBuffer() : count_(0) { }
+  RingBuffer() : count_(0) {}
 
-  void Add(const T& t) {
-    data_[count_++ & kMask] = t;
-  }
+  void Add(const T& t) { data_[count_++ & kMask] = t; }
 
   // Returns the i'th most recently added element. Requires 0 <= i < Size().
   const T& Get(int i) const {
@@ -40,4 +38,4 @@ class RingBuffer {
 
 }  // namespace dart
 
-#endif  // VM_RING_BUFFER_H_
+#endif  // RUNTIME_VM_RING_BUFFER_H_

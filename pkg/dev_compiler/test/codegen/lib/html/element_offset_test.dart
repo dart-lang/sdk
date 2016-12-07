@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library element_offset_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
 
+import 'package:expect/minitest.dart';
+
 main() {
-  useHtmlIndividualConfiguration();
   void initPage() {
     var level1 = new UListElement()
       ..classes.add('level-1')

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_NATIVE_ENTRY_H_
-#define VM_NATIVE_ENTRY_H_
+#ifndef RUNTIME_VM_NATIVE_ENTRY_H_
+#define RUNTIME_VM_NATIVE_ENTRY_H_
 
 #include "platform/memory_sanitizer.h"
 
@@ -33,15 +33,12 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   ASSERT(retval->IsDartInstance());                                            \
   arguments->SetReturnUnsafe(retval);
 #else
-#define SET_NATIVE_RETVAL(arguments, value)                                    \
-  arguments->SetReturnUnsafe(value);
+#define SET_NATIVE_RETVAL(arguments, value) arguments->SetReturnUnsafe(value);
 #endif
 
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
-  static RawObject* DN_Helper##name(Isolate* isolate,                          \
-                                    Thread* thread,                            \
-                                    Zone* zone,                                \
-                                    NativeArguments* arguments);               \
+  static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
+                                    Zone* zone, NativeArguments* arguments);   \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
@@ -49,26 +46,22 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
     MSAN_UNPOISON(arguments, sizeof(*arguments));                              \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
-    TRACE_NATIVE_CALL("%s", ""#name);                                          \
+    TRACE_NATIVE_CALL("%s", "" #name);                                         \
     {                                                                          \
       Thread* thread = arguments->thread();                                    \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
       TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
-      SET_NATIVE_RETVAL(arguments,                                             \
-                        DN_Helper##name(isolate,                               \
-                                        thread,                                \
-                                        zone.GetZone(),                        \
-                                        arguments));                           \
+      SET_NATIVE_RETVAL(                                                       \
+          arguments,                                                           \
+          DN_Helper##name(isolate, thread, zone.GetZone(), arguments));        \
       DEOPTIMIZE_ALOT;                                                         \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
-  static RawObject* DN_Helper##name(Isolate* isolate,                          \
-                                    Thread* thread,                            \
-                                    Zone* zone,                                \
-                                    NativeArguments* arguments)
+  static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
+                                    Zone* zone, NativeArguments* arguments)
 
 
 // Helper that throws an argument exception.
@@ -118,7 +111,7 @@ class NativeEntry : public AllStatic {
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
 
-  // DBC does not support lazy native call linking.
+// DBC does not support lazy native call linking.
 #if !defined(TARGET_ARCH_DBC)
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
@@ -134,4 +127,4 @@ class NativeEntry : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_NATIVE_ENTRY_H_
+#endif  // RUNTIME_VM_NATIVE_ENTRY_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_OBJECT_SET_H_
-#define VM_OBJECT_SET_H_
+#ifndef RUNTIME_VM_OBJECT_SET_H_
+#define RUNTIME_VM_OBJECT_SET_H_
 
 #include "platform/utils.h"
 #include "vm/bit_vector.h"
@@ -19,8 +19,7 @@ class ObjectSetRegion : public ZoneAllocated {
       : start_(start),
         end_(end),
         bit_vector_(zone, (end - start) >> kWordSizeLog2),
-        next_(NULL) {
-  }
+        next_(NULL) {}
 
   bool ContainsAddress(uword address) {
     return address >= start_ && address < end_;
@@ -31,9 +30,7 @@ class ObjectSetRegion : public ZoneAllocated {
     return (address - start_) >> kWordSizeLog2;
   }
 
-  void AddObject(uword address) {
-    bit_vector_.Add(IndexForAddress(address));
-  }
+  void AddObject(uword address) { bit_vector_.Add(IndexForAddress(address)); }
 
   bool ContainsObject(uword address) {
     return bit_vector_.Contains(IndexForAddress(address));
@@ -51,18 +48,17 @@ class ObjectSetRegion : public ZoneAllocated {
 
 class ObjectSet : public ZoneAllocated {
  public:
-  explicit ObjectSet(Zone* zone) : zone_(zone), head_(NULL) { }
+  explicit ObjectSet(Zone* zone) : zone_(zone), head_(NULL) {}
 
   void AddRegion(uword start, uword end) {
-    ObjectSetRegion* region = new(zone_) ObjectSetRegion(zone_, start, end);
+    ObjectSetRegion* region = new (zone_) ObjectSetRegion(zone_, start, end);
     region->set_next(head_);
     head_ = region;
   }
 
   bool Contains(RawObject* raw_obj) const {
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    for (ObjectSetRegion* region = head_;
-         region != NULL;
+    for (ObjectSetRegion* region = head_; region != NULL;
          region = region->next()) {
       if (region->ContainsAddress(raw_addr)) {
         return region->ContainsObject(raw_addr);
@@ -73,8 +69,7 @@ class ObjectSet : public ZoneAllocated {
 
   void Add(RawObject* raw_obj) {
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    for (ObjectSetRegion* region = head_;
-         region != NULL;
+    for (ObjectSetRegion* region = head_; region != NULL;
          region = region->next()) {
       if (region->ContainsAddress(raw_addr)) {
         return region->AddObject(raw_addr);
@@ -90,4 +85,4 @@ class ObjectSet : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_OBJECT_SET_H_
+#endif  // RUNTIME_VM_OBJECT_SET_H_

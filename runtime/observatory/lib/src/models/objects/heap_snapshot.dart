@@ -4,20 +4,33 @@
 
 part of models;
 
+enum HeapSnapshotRoots { user, vm }
+
 abstract class HeapSnapshot {
   DateTime get timestamp;
   int get objects;
   int get references;
   int get size;
   HeapSnapshotDominatorNode get dominatorTree;
+  HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<HeapSnapshotClassReferences> get classReferences;
 }
 
 abstract class HeapSnapshotDominatorNode {
   int get shallowSize;
   int get retainedSize;
+  bool get isStack;
   Future<ObjectRef> get object;
   Iterable<HeapSnapshotDominatorNode> get children;
+}
+
+abstract class HeapSnapshotMergedDominatorNode {
+  int get instanceCount;
+  int get shallowSize;
+  int get retainedSize;
+  bool get isStack;
+  Future<ObjectRef> get klass;
+  Iterable<HeapSnapshotMergedDominatorNode> get children;
 }
 
 abstract class HeapSnapshotClassReferences {

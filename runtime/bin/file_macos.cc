@@ -8,13 +8,13 @@
 #include "bin/file.h"
 
 #include <copyfile.h>  // NOLINT
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <libgen.h>  // NOLINT
-#include <limits.h>  // NOLINT
+#include <errno.h>     // NOLINT
+#include <fcntl.h>     // NOLINT
+#include <libgen.h>    // NOLINT
+#include <limits.h>    // NOLINT
 #include <sys/mman.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>    // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
@@ -28,8 +28,8 @@ namespace bin {
 
 class FileHandle {
  public:
-  explicit FileHandle(int fd) : fd_(fd) { }
-  ~FileHandle() { }
+  explicit FileHandle(int fd) : fd_(fd) {}
+  ~FileHandle() {}
   int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
@@ -41,8 +41,8 @@ class FileHandle {
 
 
 File::~File() {
-  if (!IsClosed() &&
-      handle_->fd() != STDOUT_FILENO && handle_->fd() != STDERR_FILENO) {
+  if (!IsClosed() && handle_->fd() != STDOUT_FILENO &&
+      handle_->fd() != STDERR_FILENO) {
     Close();
   }
   delete handle_;
@@ -80,16 +80,22 @@ bool File::IsClosed() {
 }
 
 
-void* File::MapExecutable(intptr_t* len) {
+void* File::Map(MapType type, int64_t position, int64_t length) {
   ASSERT(handle_->fd() >= 0);
-  intptr_t length = Length();
-  void* addr = mmap(0, length,
-                    PROT_READ | PROT_EXEC, MAP_PRIVATE,
-                    handle_->fd(), 0);
+  int prot = PROT_NONE;
+  switch (type) {
+    case kReadOnly:
+      prot = PROT_READ;
+      break;
+    case kReadExecute:
+      prot = PROT_READ | PROT_EXEC;
+      break;
+    default:
+      return NULL;
+  }
+  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
   if (addr == MAP_FAILED) {
-    *len = -1;
-  } else {
-    *len = length;
+    return NULL;
   }
   return addr;
 }
@@ -178,7 +184,7 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 }
 
 
-File* File::ScopedOpen(const char* name, FileOpenMode mode) {
+File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -213,12 +219,6 @@ File* File::ScopedOpen(const char* name, FileOpenMode mode) {
     }
   }
   return new File(new FileHandle(fd));
-}
-
-
-File* File::Open(const char* path, FileOpenMode mode) {
-  // ScopedOpen doesn't actually need a scope.
-  return ScopedOpen(path, mode);
 }
 
 
@@ -325,7 +325,7 @@ int64_t File::LengthFromPath(const char* name) {
 
 static int64_t TimespecToMilliseconds(const struct timespec& t) {
   return static_cast<int64_t>(t.tv_sec) * 1000L +
-      static_cast<int64_t>(t.tv_nsec) / 1000000L;
+         static_cast<int64_t>(t.tv_nsec) / 1000000L;
 }
 
 
@@ -377,8 +377,8 @@ const char* File::LinkTarget(const char* pathname) {
   // target. The link might have changed before the readlink call.
   const int kBufferSize = 1024;
   char target[kBufferSize];
-  size_t target_size = TEMP_FAILURE_RETRY(
-      readlink(pathname, target, kBufferSize));
+  size_t target_size =
+      TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
   if (target_size <= 0) {
     return NULL;
   }
@@ -481,9 +481,9 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
     return File::kError;
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
-          (file_1_info.st_dev == file_2_info.st_dev)) ?
-      File::kIdentical :
-      File::kDifferent;
+          (file_1_info.st_dev == file_2_info.st_dev))
+             ? File::kIdentical
+             : File::kDifferent;
 }
 
 }  // namespace bin

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_METRICS_H_
-#define VM_METRICS_H_
+#ifndef RUNTIME_VM_METRICS_H_
+#define RUNTIME_VM_METRICS_H_
 
 #include "vm/allocation.h"
 
@@ -25,7 +25,7 @@ class JSONStream;
   V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
   V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
   V(MetricHeapUsed, HeapGlobalUsed, "heap.global.used", kByte)                 \
-  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)               \
+  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)
 
 #define VM_METRIC_LIST(V)                                                      \
   V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)
@@ -50,9 +50,7 @@ class Metric {
             Unit unit);
 
   // Initialize and register a metric for the VM.
-  void Init(const char* name,
-            const char* description,
-            Unit unit);
+  void Init(const char* name, const char* description, Unit unit);
 
   virtual ~Metric();
 
@@ -72,9 +70,7 @@ class Metric {
   void increment() { value_++; }
 
   Metric* next() const { return next_; }
-  void set_next(Metric* next) {
-    next_ = next;
-  }
+  void set_next(Metric* next) { next_ = next; }
 
   const char* name() const { return name_; }
   const char* description() const { return description_; }
@@ -179,4 +175,4 @@ class MetricHeapUsed : public Metric {
 
 }  // namespace dart
 
-#endif  // VM_METRICS_H_
+#endif  // RUNTIME_VM_METRICS_H_

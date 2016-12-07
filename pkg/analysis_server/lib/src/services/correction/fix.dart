@@ -105,7 +105,9 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
     errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
     errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
-    (errorCode is LintCode && errorCode.name == LintNames.annotate_overrides);
+    (errorCode is LintCode &&
+        (errorCode.name == LintNames.annotate_overrides ||
+            errorCode.name == LintNames.unnecessary_brace_in_string_interp));
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -179,6 +181,10 @@ class DartFixKind {
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const LINT_ADD_OVERRIDE =
       const FixKind('LINT_ADD_OVERRIDE', 50, "Add '@override' annotation");
+  static const LINT_REMOVE_INTERPOLATION_BRACES = const FixKind(
+      'LINT_REMOVE_INTERPOLATION_BRACES',
+      50,
+      'Remove unnecessary interpolation braces');
   static const MAKE_CLASS_ABSTRACT =
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
   static const REMOVE_DEAD_CODE =

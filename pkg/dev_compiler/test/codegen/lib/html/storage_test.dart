@@ -1,10 +1,8 @@
-library StorageTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
+import 'package:expect/minitest.dart';
+
 main() {
-  useHtmlConfiguration();
   test('GetItem', () {
     final value = window.localStorage['does not exist'];
     expect(value, isNull);

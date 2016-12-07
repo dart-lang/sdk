@@ -9,16 +9,16 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SetPriorityFilesTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SetPriorityFilesTest);
+  });
 }
 
 @reflectiveTest
@@ -26,7 +26,9 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new AnalysisDomainHandler(server),];
+    server.handlers = [
+      new AnalysisDomainHandler(server),
+    ];
     createProject();
   }
 

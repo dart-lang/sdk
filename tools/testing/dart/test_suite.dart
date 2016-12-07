@@ -234,6 +234,13 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get processTestBinaryFileName {
+    String suffix = executableBinarySuffix;
+    String processTestExecutable = '$buildDir/process_test$suffix';
+    TestUtils.ensureExists(processTestExecutable, configuration);
+    return processTestExecutable;
+  }
+
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');
@@ -717,7 +724,8 @@ class StandardTestSuite extends TestSuite {
       '$directory/$name.status',
       '$directory/.status',
       '$directory/${name}_dart2js.status',
-      '$directory/${name}_analyzer2.status'
+      '$directory/${name}_analyzer2.status',
+      '$directory/${name}_kernel.status'
     ];
 
     return new StandardTestSuite(configuration, name, directory, status_paths,
@@ -1069,6 +1077,15 @@ class StandardTestSuite extends TestSuite {
         path = path.join(new Path(vmOptionsVarient.toString()));
       }
       tempDir = createCompilationOutputDirectory(path);
+
+      List<String> otherResources = info.optionsFromFile['otherResources'];
+      for (String name in otherResources) {
+        Path namePath = new Path(name);
+        String fileName = namePath.filename;
+        Path fromPath = info.filePath.directoryPath.join(namePath);
+        new File('$tempDir/$name').parent.createSync(recursive: true);
+        new File(fromPath.toNativePath()).copySync('$tempDir/$name');
+      }
     }
 
     CommandArtifact compilationArtifact =
@@ -1666,13 +1683,16 @@ class StandardTestSuite extends TestSuite {
    * configurations, so it may not use [configuration].
    */
   Map readOptionsFromFile(Path filePath) {
-    if (filePath.segments().contains('co19')) {
+    if (filePath.filename.endsWith('.dill')) {
+      return optionsFromKernelFile();
+    } else if (filePath.segments().contains('co19')) {
       return readOptionsFromCo19File(filePath);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp sharedOptionsRegExp = new RegExp(r"// SharedOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
+    RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp packagesRegExp = new RegExp(r"// Packages=(.*)");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
@@ -1752,6 +1772,12 @@ class StandardTestSuite extends TestSuite {
       otherScripts.addAll(match[1].split(' ').where((e) => e != '').toList());
     }
 
+    List<String> otherResources = new List<String>();
+    matches = otherResourcesRegExp.allMatches(contents);
+    for (var match in matches) {
+      otherResources.addAll(match[1].split(' ').where((e) => e != '').toList());
+    }
+
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1776,11 +1802,31 @@ class StandardTestSuite extends TestSuite {
       "hasRuntimeError": false,
       "hasStaticWarning": false,
       "otherScripts": otherScripts,
+      "otherResources": otherResources,
       "isMultitest": isMultitest,
       "isMultiHtmlTest": isMultiHtmlTest,
       "subtestNames": subtestNames,
       "isolateStubs": isolateStubs,
       "containsDomImport": containsDomImport
+    };
+  }
+
+  Map optionsFromKernelFile() {
+    return const {
+      "vmOptions": const [ const []],
+      "sharedOptions": const [],
+      "dartOptions": null,
+      "packageRoot": null,
+      "packages": null,
+      "hasCompileError": false,
+      "hasRuntimeError": false,
+      "hasStaticWarning": false,
+      "otherScripts": const [],
+      "isMultitest": false,
+      "isMultiHtmlTest": false,
+      "subtestNames": const [],
+      "isolateStubs": '',
+      "containsDomImport": false,
     };
   }
 
@@ -1835,6 +1881,7 @@ class StandardTestSuite extends TestSuite {
       "hasRuntimeError": hasRuntimeError,
       "hasStaticWarning": hasStaticWarning,
       "otherScripts": <String>[],
+      "otherResources": <String>[],
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,
       "subtestNames": <String>[],

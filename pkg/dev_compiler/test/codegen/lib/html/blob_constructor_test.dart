@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library blob_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test('basic', () {
       var b = new Blob([]);
-      expect(b.size, isZero);
+      expect(b.size, 0);
     });
 
   test('type1', () {
@@ -32,7 +29,7 @@ main() {
   test('endings2', () {
       // OPTIONALS var b = new Blob(['A\nB\n'], endings: 'native');
       var b = new Blob(['A\nB\n'], null, 'native');
-      expect(b.size, (x) => x == 4 || x == 6,
+      expect(b.size, predicate((x) => x == 4 || x == 6),
           reason: "b.size should be 4 or 6");
     });
 
@@ -45,7 +42,7 @@ main() {
   test('fromBlob1', () {
       var b1 = new Blob([]);
       var b2 = new Blob([b1]);
-      expect(b2.size, isZero);
+      expect(b2.size, 0);
     });
 
   test('fromBlob2', () {

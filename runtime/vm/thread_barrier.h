@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_THREAD_BARRIER_H_
-#define VM_THREAD_BARRIER_H_
+#ifndef RUNTIME_VM_THREAD_BARRIER_H_
+#define RUNTIME_VM_THREAD_BARRIER_H_
 
 #include "vm/globals.h"
 #include "vm/os_thread.h"
@@ -49,12 +49,12 @@ class ThreadBarrier {
   explicit ThreadBarrier(intptr_t num_threads,
                          Monitor* monitor,
                          Monitor* done_monitor)
-    : num_threads_(num_threads),
-      monitor_(monitor),
-      remaining_(num_threads),
-      parity_(false),
-      done_monitor_(done_monitor),
-      done_(false) {
+      : num_threads_(num_threads),
+        monitor_(monitor),
+        remaining_(num_threads),
+        parity_(false),
+        done_monitor_(done_monitor),
+        done_(false) {
     ASSERT(remaining_ > 0);
   }
 
@@ -117,4 +117,4 @@ class ThreadBarrier {
 
 }  // namespace dart
 
-#endif  // VM_THREAD_BARRIER_H_
+#endif  // RUNTIME_VM_THREAD_BARRIER_H_

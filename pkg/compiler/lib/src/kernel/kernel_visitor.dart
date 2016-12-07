@@ -22,6 +22,7 @@ import 'package:kernel/frontend/accessors.dart'
 import 'package:kernel/transformations/flags.dart';
 
 import '../common.dart';
+import '../common/names.dart';
 import '../constants/expressions.dart'
     show
         BoolFromEnvironmentConstantExpression,
@@ -145,7 +146,6 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Link;
 import 'error.dart' show KernelError;
-import 'fall_through_visitor.dart' show fallsThrough;
 import 'kernel.dart' show ConstructorTarget, Kernel;
 import 'unavailable.dart' show UnavailableVisitor;
 import 'unresolved.dart' show UnresolvedVisitor;
@@ -710,7 +710,8 @@ class KernelVisitor extends Object
     return new ir.ConditionalExpression(
         visitForValue(node.condition),
         visitWithCurrentContext(node.thenExpression),
-        visitWithCurrentContext(node.elseExpression));
+        visitWithCurrentContext(node.elseExpression),
+        null);
   }
 
   @override
@@ -995,6 +996,15 @@ class KernelVisitor extends Object
     return new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase);
   }
 
+  /// Returns true if [node] would let execution reach the next node (aka
+  /// fall-through in switch cases).
+  bool fallsThrough(ir.Statement node) {
+    return !(node is ir.BreakStatement ||
+        node is ir.ReturnStatement ||
+        node is ir.ContinueSwitchStatement ||
+        (node is ir.ExpressionStatement && node.expression is ir.Throw));
+  }
+
   @override
   ir.Statement visitSwitchStatement(SwitchStatement node) {
     ir.Expression expression = visitForValue(node.expression);
@@ -1026,18 +1036,18 @@ class KernelVisitor extends Object
           hasVariableDeclaration = true;
         }
       }
-      if (!isLastCase &&
-          (statements.isEmpty || fallsThrough(statements.last))) {
-        statements.add(new ir.ExpressionStatement(new ir.Throw(
-            new ir.StaticInvocation(kernel.getFallThroughErrorBuilder(),
-                new ir.Arguments.empty()))));
+      if (statements.isEmpty || fallsThrough(statements.last)) {
+        if (isLastCase) {
+          statements.add(new ir.BreakStatement(
+              getBreakTarget(elements.getTargetDefinition(node))));
+        } else {
+          statements.add(new ir.ExpressionStatement(new ir.Throw(
+              new ir.ConstructorInvocation(
+                  kernel.getFallThroughErrorConstructor(),
+                  new ir.Arguments.empty()))));
+        }
       }
-      ir.Statement body;
-      if (!hasVariableDeclaration && statements.length == 1) {
-        body = statements.single;
-      } else {
-        body = new ir.Block(statements);
-      }
+      ir.Statement body = new ir.Block(statements);
       irCase.body = body;
       body.parent = irCase;
     }
@@ -1149,13 +1159,8 @@ class KernelVisitor extends Object
 
   ir.Expression buildConstructorInvoke(NewExpression node, {bool isConst}) {
     ConstructorElement constructor = elements[node.send];
-    ConstructorTarget target;
-    if (isConst) {
-      target =
-          kernel.computeEffectiveTarget(constructor, elements.getType(node));
-    } else {
-      target = new ConstructorTarget(constructor, elements.getType(node));
-    }
+    ConstructorTarget target =
+        kernel.computeEffectiveTarget(constructor, elements.getType(node));
     NodeList arguments = node.send.argumentsNode;
     if (kernel.isSyntheticError(target.element)) {
       return new ir.MethodInvocation(new ir.InvalidExpression(),
@@ -1225,6 +1230,7 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitCompoundIndexSet(SendSet node, Node receiver, Node index,
       AssignmentOperator operator, Node rhs, _) {
+    // TODO(sra): Find binary operator.
     return buildIndexAccessor(receiver, index).buildCompoundAssignment(
         kernel.irName(operator.selectorName, currentElement),
         visitForValue(rhs),
@@ -1284,7 +1290,8 @@ class KernelVisitor extends Object
         receiver == null ? new ir.ThisExpression() : visitForValue(receiver);
     ir.Expression compound = buildCompound(
         PropertyAccessor.make(receiverNode, nameToIrName(name), null, null),
-        rhs);
+        rhs,
+        node);
     if (compound is ir.VariableSet) {
       associateNode(compound.value, node);
     } else {
@@ -1308,7 +1315,7 @@ class KernelVisitor extends Object
     Accessor accessor = (receiver == null)
         ? new ThisPropertyAccessor(irName, null, null)
         : PropertyAccessor.make(visitForValue(receiver), irName, null, null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs),
+    return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -1500,7 +1507,7 @@ class KernelVisitor extends Object
 
   Accessor buildNullAwarePropertyAccessor(Node receiver, Name name) {
     return new NullAwarePropertyAccessor(
-        visitForValue(receiver), nameToIrName(name), null, null);
+        visitForValue(receiver), nameToIrName(name), null, null, null);
   }
 
   @override
@@ -1520,7 +1527,8 @@ class KernelVisitor extends Object
             buildIsNull(new ir.VariableGet(receiver)),
             new ir.NullLiteral(),
             buildInvokeSelector(new ir.VariableGet(receiver), selector,
-                buildArguments(arguments))));
+                buildArguments(arguments)),
+            null));
   }
 
   @override
@@ -1534,7 +1542,7 @@ class KernelVisitor extends Object
   ir.Expression visitIfNotNullDynamicPropertySetIfNull(
       Send node, Node receiver, Name name, Node rhs, _) {
     return buildNullAwarePropertyAccessor(receiver, name)
-        .buildNullAwareAssignment(visitForValue(rhs),
+        .buildNullAwareAssignment(visitForValue(rhs), null,
             voidContext: isVoidContext);
   }
 
@@ -1545,8 +1553,12 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.LogicalExpression visitIfNull(Send node, Node left, Node right, _) {
-    return buildLogicalExpression(left, node.selector, right);
+  ir.Expression visitIfNull(Send node, Node left, Node right, _) {
+    var leftValue = new ir.VariableDeclaration.forValue(visitForValue(left));
+    return new ir.Let(
+        leftValue,
+        new ir.ConditionalExpression(buildIsNull(new ir.VariableGet(leftValue)),
+            visitForValue(right), new ir.VariableGet(leftValue), null));
   }
 
   @override
@@ -1710,19 +1722,32 @@ class KernelVisitor extends Object
     return buildLocalGet(element);
   }
 
-  ir.Expression buildCompound(Accessor accessor, CompoundRhs rhs) {
+  ir.Expression buildCompound(
+      Accessor accessor, CompoundRhs rhs, SendSet node) {
     ir.Name name = kernel.irName(rhs.operator.selectorName, currentElement);
+    ir.Expression result;
     switch (rhs.kind) {
       case CompoundKind.POSTFIX:
-        return accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
+        result =
+            accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
+        break;
 
       case CompoundKind.PREFIX:
-        return accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
+        result =
+            accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
+        break;
 
       case CompoundKind.ASSIGNMENT:
-        return accessor.buildCompoundAssignment(name, visitForValue(rhs.rhs),
+        result = accessor.buildCompoundAssignment(name, visitForValue(rhs.rhs),
             voidContext: isVoidContext);
+        break;
     }
+    assert(accessor.builtBinary != null);
+    kernel.nodeToAstOperator[accessor.builtBinary] = node;
+    if (accessor.builtGetter != null) {
+      kernel.nodeToAst[accessor.builtGetter] = node;
+    }
+    return result;
   }
 
   @override
@@ -1730,7 +1755,7 @@ class KernelVisitor extends Object
       SendSet node, LocalElement local, CompoundRhs rhs, _,
       {bool isSetterValid}) {
     ir.Expression compound =
-        buildCompound(new VariableAccessor(getLocal(local)), rhs);
+        buildCompound(new VariableAccessor(getLocal(local)), rhs, node);
     if (compound is ir.VariableSet) {
       associateNode(compound.value, node);
     } else {
@@ -1833,7 +1858,7 @@ class KernelVisitor extends Object
       SendSet node, LocalElement local, Node rhs, _,
       {bool isSetterValid}) {
     return new VariableAccessor(getLocal(local)).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -1921,7 +1946,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression handleStaticFieldGet(Send node, FieldElement field, _) {
-    return buildStaticGet(field);
+    return associateNode(buildStaticGet(field), node);
   }
 
   @override
@@ -1950,7 +1975,7 @@ class KernelVisitor extends Object
       setter = null;
     }
     return buildStaticAccessor(getter, setter).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -2042,13 +2067,23 @@ class KernelVisitor extends Object
     } else if (function.isConstructor) {
       // TODO(johnniwinther): Clean this up pending kernel issue #28.
       ConstructorElement constructor = function;
-      if (constructor.isDefaultConstructor) {
+      if (bodyNode == null || bodyNode.asEmptyStatement() != null) {
         body = new ir.EmptyStatement();
-      } else if (bodyNode != null && bodyNode.asEmptyStatement() == null) {
+      } else {
         body = buildStatementInBlock(bodyNode);
       }
     } else if (bodyNode != null) {
-      body = buildStatementInBlock(bodyNode);
+      Return returnStatement = bodyNode.asReturn();
+      if ((function.isSetter || function.name == Names.INDEX_SET_NAME.text) &&
+          returnStatement != null) {
+        // Avoid encoding the implicit return of setters with arrow body:
+        //    set setter(value) => this.value = value;
+        //    operator []=(index, value) => this[index] = value;
+        body = new ir.ExpressionStatement(
+            visitForEffect(returnStatement.expression));
+      } else {
+        body = buildStatementInBlock(bodyNode);
+      }
     }
     return associateElement(
         new ir.FunctionNode(body,
@@ -2118,7 +2153,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildStaticInvoke(function, arguments, isConst: false);
+    return associateNode(
+        buildStaticInvoke(function, arguments, isConst: false), node);
   }
 
   @override
@@ -2214,6 +2250,7 @@ class KernelVisitor extends Object
       AssignmentOperator operator,
       Node rhs,
       _) {
+    // TODO(sra): Find binary operator.
     return buildSuperIndexAccessor(index, getter, setter)
         .buildCompoundAssignment(
             kernel.irName(operator.selectorName, currentElement),
@@ -2265,7 +2302,7 @@ class KernelVisitor extends Object
     if (setterKind == CompoundSetter.INVALID) {
       setter = null;
     }
-    return buildCompound(buildSuperPropertyAccessor(getter, setter), rhs);
+    return buildCompound(buildSuperPropertyAccessor(getter, setter), rhs, node);
   }
 
   @override
@@ -2280,13 +2317,14 @@ class KernelVisitor extends Object
     if (setterKind == CompoundSetter.INVALID) {
       setter = null;
     }
-    return buildCompound(buildStaticAccessor(getter, setter), rhs);
+    return buildCompound(buildStaticAccessor(getter, setter), rhs, node);
   }
 
   @override
   ir.Expression handleTypeLiteralConstantCompounds(
       SendSet node, ConstantExpression constant, CompoundRhs rhs, _) {
-    return buildCompound(new ReadOnlyAccessor(buildTypeLiteral(constant)), rhs);
+    return buildCompound(
+        new ReadOnlyAccessor(buildTypeLiteral(constant)), rhs, node);
   }
 
   ir.TypeLiteral buildTypeVariable(TypeVariableElement element) {
@@ -2296,7 +2334,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression handleTypeVariableTypeLiteralCompounds(
       SendSet node, TypeVariableElement element, CompoundRhs rhs, _) {
-    return buildCompound(new ReadOnlyAccessor(buildTypeVariable(element)), rhs);
+    return buildCompound(
+        new ReadOnlyAccessor(buildTypeVariable(element)), rhs, node);
   }
 
   @override
@@ -2380,7 +2419,7 @@ class KernelVisitor extends Object
       setter = null;
     }
     return buildSuperPropertyAccessor(getter, setter).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -2609,7 +2648,7 @@ class KernelVisitor extends Object
   ir.Expression visitTypeVariableTypeLiteralSetIfNull(
       Send node, TypeVariableElement element, Node rhs, _) {
     return new ReadOnlyAccessor(buildTypeVariable(element))
-        .buildNullAwareAssignment(visitForValue(rhs),
+        .buildNullAwareAssignment(visitForValue(rhs), null,
             voidContext: isVoidContext);
   }
 
@@ -2675,7 +2714,7 @@ class KernelVisitor extends Object
   ir.Expression visitIndexSetIfNull(
       SendSet node, Node receiver, Node index, Node rhs, _) {
     return buildIndexAccessor(receiver, index).buildNullAwareAssignment(
-        visitForValue(rhs),
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
@@ -2683,7 +2722,7 @@ class KernelVisitor extends Object
   ir.Expression visitSuperIndexSetIfNull(SendSet node, MethodElement getter,
       MethodElement setter, Node index, Node rhs, _) {
     return buildSuperIndexAccessor(index, getter, setter)
-        .buildNullAwareAssignment(visitForValue(rhs),
+        .buildNullAwareAssignment(visitForValue(rhs), null,
             voidContext: isVoidContext);
   }
 
@@ -2743,7 +2782,7 @@ class KernelVisitor extends Object
       FieldElement field = currentElement;
       return field.isMalformed
           ? new ir.InvalidExpression()
-          : visitForValue(field.initializer);
+          : associateNode(visitForValue(field.initializer), field.initializer);
     });
   }
 }

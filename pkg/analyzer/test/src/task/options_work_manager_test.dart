@@ -22,17 +22,17 @@ import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(OptionsWorkManagerNewFileTest);
-  defineReflectiveTests(OptionsWorkManagerOldFileTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(OptionsWorkManagerNewFileTest);
+    defineReflectiveTests(OptionsWorkManagerOldFileTest);
+  });
 }
 
 @reflectiveTest

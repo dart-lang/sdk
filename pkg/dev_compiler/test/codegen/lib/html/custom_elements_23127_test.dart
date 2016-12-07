@@ -56,25 +56,25 @@ abstract class B2T<T> extends HtmlElement {
 class C1 extends B1 {
   int z;
   C1.created() : super.created();
-  action() => z = 3;
+  action() { z = 3; }
 }
 
 class C1T extends B1T {
   int z;
   C1T.created() : super.created();
-  action() => z = 3;
+  action() { z = 3; }
 }
 
 class C2 extends B2 {
   int z;
   C2.created() : super.created(20);
-  action() => z = 3;
+  action() { z = 3; }
 }
 
 class C2T extends B2T {
   int z;
   C2T.created() : super.created(20);
-  action() => z = 3;
+  action() { z = 3; }
 }
 
 

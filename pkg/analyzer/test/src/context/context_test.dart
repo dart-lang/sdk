@@ -31,8 +31,8 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 
 import '../../generated/engine_test.dart';
@@ -41,9 +41,10 @@ import '../../utils.dart';
 import 'abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisContextImplTest);
-  defineReflectiveTests(LimitedInvalidateTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisContextImplTest);
+    defineReflectiveTests(LimitedInvalidateTest);
+  });
 }
 
 @reflectiveTest
@@ -319,7 +320,7 @@ int b = aa;''';
   }
 
   void test_applyChanges_changedSource_updateModificationTime() {
-    String path = '/test.dart';
+    String path = resourceProvider.convertPath('/test.dart');
     File file = resourceProvider.newFile(path, 'var V = 1;');
     Source source = file.createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
@@ -976,15 +977,6 @@ main() {}''');
         });
   }
 
-  void test_configurationData() {
-    var key = new ResultDescriptor('test_key', 'TEST_DEFAULT');
-    var testData = ['test', 'data'];
-    context.setConfigurationData(key, testData);
-    expect(context.getConfigurationData(key), testData);
-    var unusedKey = new ResultDescriptor('unused_key', 'UNUSED_DEFAULT');
-    expect(context.getConfigurationData(unusedKey), 'UNUSED_DEFAULT');
-  }
-
   void test_dispose() {
     expect(context.isDisposed, isFalse);
     context.dispose();
@@ -1116,7 +1108,7 @@ part of lib;
     String newCode = r'''
 import 'dart:async';
 ''';
-    String path = '/test.dart';
+    String path = resourceProvider.convertPath('/test.dart');
     Source source = resourceProvider.newFile(path, oldCode).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
@@ -1142,7 +1134,7 @@ main() {}
 import 'dart:async';
 main() {}
 ''';
-    String path = '/test.dart';
+    String path = resourceProvider.convertPath('/test.dart');
     Source source = resourceProvider.newFile(path, oldCode).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
@@ -1160,6 +1152,125 @@ main() {}
     // Driver must detect that the file was changed and recover.
     CompilationUnit unit = context.resolveCompilationUnit2(source, source);
     expect(unit, isNotNull);
+  }
+
+  void test_flushSingleResolvedUnit_instanceField() {
+    _checkFlushSingleResolvedUnit('class C { var x = 0; }',
+        (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(1), reason: reason);
+      ClassElement cls = unitElement.types[0];
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+      expect(cls.accessors, hasLength(2), reason: reason);
+      expect(cls.accessors[0].isGetter, isTrue, reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.accessors[1].isSetter, isTrue, reason: reason);
+      expect(cls.accessors[1].returnType.toString(), 'void', reason: reason);
+      expect(cls.accessors[1].parameters, hasLength(1), reason: reason);
+      expect(cls.accessors[1].parameters[0].type.toString(), 'int',
+          reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_instanceGetter() {
+    _checkFlushSingleResolvedUnit(
+        '''
+abstract class B {
+  int get x;
+}
+class C extends B {
+  get x => null;
+}
+''', (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(2), reason: reason);
+      ClassElement cls = unitElement.types[1];
+      expect(cls.name, 'C', reason: reason);
+      expect(cls.accessors, hasLength(1), reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_instanceMethod() {
+    _checkFlushSingleResolvedUnit(
+        '''
+abstract class B {
+  int f(String s);
+}
+class C extends B {
+  f(s) => null;
+}
+''', (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(2), reason: reason);
+      ClassElement cls = unitElement.types[1];
+      expect(cls.name, 'C', reason: reason);
+      expect(cls.methods, hasLength(1), reason: reason);
+      expect(cls.methods[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.methods[0].parameters, hasLength(1), reason: reason);
+      expect(cls.methods[0].parameters[0].type.toString(), 'String',
+          reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_instanceSetter() {
+    _checkFlushSingleResolvedUnit(
+        '''
+abstract class B {
+  set x(int value);
+}
+class C extends B {
+  set x(value) {}
+}
+''', (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(2), reason: reason);
+      ClassElement cls = unitElement.types[1];
+      expect(cls.name, 'C', reason: reason);
+      expect(cls.accessors, hasLength(1), reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'void', reason: reason);
+      expect(cls.accessors[0].parameters, hasLength(1), reason: reason);
+      expect(cls.accessors[0].parameters[0].type.toString(), 'int',
+          reason: reason);
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_staticField() {
+    _checkFlushSingleResolvedUnit('class C { static var x = 0; }',
+        (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(1), reason: reason);
+      ClassElement cls = unitElement.types[0];
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+      expect(cls.accessors, hasLength(2), reason: reason);
+      expect(cls.accessors[0].isGetter, isTrue, reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.accessors[1].isSetter, isTrue, reason: reason);
+      expect(cls.accessors[1].returnType.toString(), 'void', reason: reason);
+      expect(cls.accessors[1].parameters, hasLength(1), reason: reason);
+      expect(cls.accessors[1].parameters[0].type.toString(), 'int',
+          reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_topLevelVariable() {
+    _checkFlushSingleResolvedUnit('var x = 0;',
+        (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.topLevelVariables, hasLength(1), reason: reason);
+      expect(unitElement.topLevelVariables[0].type.toString(), 'int',
+          reason: reason);
+      expect(unitElement.accessors, hasLength(2), reason: reason);
+      expect(unitElement.accessors[0].isGetter, isTrue, reason: reason);
+      expect(unitElement.accessors[0].returnType.toString(), 'int',
+          reason: reason);
+      expect(unitElement.accessors[1].isSetter, isTrue, reason: reason);
+      expect(unitElement.accessors[1].returnType.toString(), 'void',
+          reason: reason);
+      expect(unitElement.accessors[1].parameters, hasLength(1), reason: reason);
+      expect(unitElement.accessors[1].parameters[0].type.toString(), 'int',
+          reason: reason);
+    });
   }
 
   void test_getAnalysisOptions() {
@@ -1751,7 +1862,8 @@ main() {}''');
     // 3. Notify the context, and because this is the first time when we
     //    update the content cache, we don't know "originalContents".
     // The source must be invalidated, because it has different contents now.
-    resourceProvider.updateFile('/test.dart', newCode);
+    resourceProvider.updateFile(
+        resourceProvider.convertPath('/test.dart'), newCode);
     contentCache.setContents(source, newCode);
     context.handleContentsChanged(source, null, newCode, true);
     expect(context.getResolvedCompilationUnit2(source, source), isNull);
@@ -1900,7 +2012,7 @@ main() {}''');
 
   void test_parseCompilationUnit_nonExistentSource() {
     Source source = newSource('/test.dart');
-    resourceProvider.deleteFile('/test.dart');
+    resourceProvider.deleteFile(resourceProvider.convertPath('/test.dart'));
     try {
       context.parseCompilationUnit(source);
       fail("Expected AnalysisException because file does not exist");
@@ -2358,9 +2470,13 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    expect(libraryElementUris, contains('file:///test.dart'));
-    expect(parsedUnitUris, contains('file:///test.dart'));
-    expect(resolvedUnitUris, contains('file:///test.dart'));
+    String testUri = resourceProvider
+        .getFile(resourceProvider.convertPath('/test.dart'))
+        .toUri()
+        .toString();
+    expect(libraryElementUris, contains(testUri));
+    expect(parsedUnitUris, contains(testUri));
+    expect(resolvedUnitUris, contains(testUri));
   }
 
   void test_performAnalysisTask_switchPackageVersion() {
@@ -2418,6 +2534,7 @@ import 'package:crypto/crypto.dart';
   }
 
   void test_resolveCompilationUnit_existingElementModel() {
+    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(
         '/test.dart',
         r'''
@@ -2432,6 +2549,11 @@ typedef String FunctionTypeAlias(int i);
 
 enum EnumeratedType {Invalid, Valid}
 
+class A {
+  const A(x);
+}
+
+@A(const [(_) => null])
 class ClassOne {
   int instanceField;
   static int staticField;
@@ -2455,6 +2577,13 @@ class ClassOne {
 class ClassTwo {
   // Implicit no-argument constructor
 }
+
+void topLevelFunctionWithLocalFunction() {
+  void localFunction({bool b: false}) {}
+}
+
+void functionWithGenericFunctionTypedParam/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {}
+void functionWithClosureAsDefaultParam([x = () => null]) {}
 ''');
     context.resolveCompilationUnit2(source, source);
     LibraryElement firstElement = context.computeLibraryElement(source);
@@ -2508,6 +2637,15 @@ class ClassTwo {
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
 
+  void test_resolveCompilationUnit_library() {
+    Source source = addSource("/lib.dart", "library lib;");
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnit compilationUnit =
+        context.resolveCompilationUnit(source, library);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
+  }
+
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
 //    _context = new _AnalysisContext_sourceChangeDuringResolution();
 //    AnalysisContextFactory.initContextWithCore(_context);
@@ -2519,15 +2657,6 @@ class ClassTwo {
 //    expect(_context.getLineInfo(source), isNotNull);
 //  }
 
-  void test_resolveCompilationUnit_library() {
-    Source source = addSource("/lib.dart", "library lib;");
-    LibraryElement library = context.computeLibraryElement(source);
-    CompilationUnit compilationUnit =
-        context.resolveCompilationUnit(source, library);
-    expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
-  }
-
   void test_resolveCompilationUnit_source() {
     Source source = addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit =
@@ -2537,12 +2666,10 @@ class ClassTwo {
 
   void test_setAnalysisOptions() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.cacheSize = 42;
     options.dart2jsHint = false;
     options.hint = false;
     context.analysisOptions = options;
     AnalysisOptions result = context.analysisOptions;
-    expect(result.cacheSize, options.cacheSize);
     expect(result.dart2jsHint, options.dart2jsHint);
     expect(result.hint, options.hint);
   }
@@ -2714,8 +2841,10 @@ int a = 0;''');
 
   void test_validateCacheConsistency_deletedFile() {
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    var fileA = resourceProvider.newFile('/a.dart', "");
-    var fileB = resourceProvider.newFile('/b.dart', "import 'a.dart';");
+    String pathA = resourceProvider.convertPath('/a.dart');
+    String pathB = resourceProvider.convertPath('/b.dart');
+    var fileA = resourceProvider.newFile(pathA, "");
+    var fileB = resourceProvider.newFile(pathB, "import 'a.dart';");
     Source sourceA = fileA.createSource();
     Source sourceB = fileB.createSource();
     context.applyChanges(
@@ -2723,7 +2852,7 @@ int a = 0;''');
     // analyze everything
     _analyzeAll_assertFinished();
     // delete a.dart
-    resourceProvider.deleteFile('/a.dart');
+    resourceProvider.deleteFile(pathA);
     // analysis should eventually stop
     _analyzeAll_assertFinished();
   }
@@ -2732,7 +2861,6 @@ int a = 0;''');
     int maxCacheSize = 4;
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.from(context.analysisOptions);
-    options.cacheSize = maxCacheSize;
     context.analysisOptions = options;
     int sourceCount = maxCacheSize + 2;
     List<Source> sources = <Source>[];
@@ -2807,6 +2935,25 @@ int a = 0;''');
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
     context.applyChanges(changeSet);
+  }
+
+  void _checkFlushSingleResolvedUnit(String code,
+      void validate(CompilationUnitElement unitElement, String reason)) {
+    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
+    String path = resourceProvider.convertPath('/test.dart');
+    Source source = resourceProvider.newFile(path, code).createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    CompilationUnitElement unitElement =
+        context.resolveCompilationUnit2(source, source).element;
+    validate(unitElement, 'initial state');
+    for (ResultDescriptor<CompilationUnit> descriptor
+        in RESOLVED_UNIT_RESULTS) {
+      context.analysisCache.flush(
+          (target, result) => target.source == source && result == descriptor);
+      context.computeResult(
+          new LibrarySpecificUnit(source, source), descriptor);
+      validate(unitElement, 'after flushing $descriptor');
+    }
   }
 
   /**
@@ -3676,7 +3823,7 @@ main() {
 ''');
     _performPendingAnalysisTasks();
     resourceProvider.updateFile(
-        '/a.dart',
+        resourceProvider.convertPath('/a.dart'),
         r'''
 class A2 {}
 class B {}
@@ -5237,7 +5384,10 @@ class _ElementComparer extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     Element previousElement = previousElements[element];
-    if (!identical(previousElement, element)) {
+    bool ok = _expectedIdentical(element)
+        ? identical(previousElement, element)
+        : previousElement == element;
+    if (!ok) {
       if (overwrittenCount == 0) {
         buffer.writeln();
       }
@@ -5251,6 +5401,23 @@ class _ElementComparer extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
+  }
+
+  /**
+   * Return `true` if the given [element] should be the same as the previous
+   * element at the same position in the element model.
+   */
+  static bool _expectedIdentical(Element element) {
+    while (element != null) {
+      if (element is ConstructorElement ||
+          element is MethodElement ||
+          element is FunctionElement &&
+              element.enclosingElement is CompilationUnitElement) {
+        return false;
+      }
+      element = element.enclosingElement;
+    }
+    return true;
   }
 }
 

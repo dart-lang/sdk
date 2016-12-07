@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_IL_PRINTER_H_
-#define VM_IL_PRINTER_H_
+#ifndef RUNTIME_VM_IL_PRINTER_H_
+#define RUNTIME_VM_IL_PRINTER_H_
 
 #include "vm/flow_graph.h"
 #include "vm/intermediate_language.h"
@@ -13,9 +13,7 @@ namespace dart {
 class BufferFormatter : public ValueObject {
  public:
   BufferFormatter(char* buffer, intptr_t size)
-    : position_(0),
-      buffer_(buffer),
-      size_(size) { }
+      : position_(0), buffer_(buffer), size_(size) {}
 
   void VPrint(const char* format, va_list args);
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -37,11 +35,11 @@ class FlowGraphPrinter : public ValueObject {
  public:
   static const intptr_t kPrintAll = -1;
 
-  FlowGraphPrinter(const FlowGraph& flow_graph,
-                   bool print_locations = false)
+  explicit FlowGraphPrinter(const FlowGraph& flow_graph,
+                            bool print_locations = false)
       : function_(flow_graph.function()),
         block_order_(flow_graph.reverse_postorder()),
-        print_locations_(print_locations) { }
+        print_locations_(print_locations) {}
 
   // Print the instructions in a block terminated by newlines.  Add "goto N"
   // to the end of the block if it ends with an unconditional jump to
@@ -76,4 +74,4 @@ class FlowGraphPrinter : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_IL_PRINTER_H_
+#endif  // RUNTIME_VM_IL_PRINTER_H_

@@ -5,7 +5,7 @@
 library dart2js.common.codegen;
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common/backend_api.dart' show Backend;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
@@ -21,7 +21,6 @@ import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
 import '../util/util.dart' show Pair, Setlet;
-import 'registry.dart' show Registry;
 import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
@@ -146,19 +145,22 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
-class CodegenRegistry extends Registry {
-  final Compiler compiler;
+class CodegenRegistry {
   final Element currentElement;
   final _CodegenImpact worldImpact;
 
-  CodegenRegistry(Compiler compiler, AstElement currentElement)
-      : this.compiler = compiler,
-        this.currentElement = currentElement,
+  CodegenRegistry(AstElement currentElement)
+      : this.currentElement = currentElement,
         this.worldImpact = new _CodegenImpact();
 
   bool get isForResolution => false;
 
   String toString() => 'CodegenRegistry for $currentElement';
+
+  /// Add the uses in [impact] to the impact of this registry.
+  void addImpact(WorldImpact impact) {
+    worldImpact.addImpact(impact);
+  }
 
   @deprecated
   void registerInstantiatedClass(ClassElement element) {
@@ -219,8 +221,9 @@ class CodegenRegistry extends Registry {
 class CodegenWorkItem extends WorkItem {
   CodegenRegistry registry;
   final ResolvedAst resolvedAst;
+  final Backend backend;
 
-  factory CodegenWorkItem(Compiler compiler, AstElement element) {
+  factory CodegenWorkItem(Backend backend, AstElement element) {
     // If this assertion fails, the resolution callbacks of the backend may be
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we
@@ -228,18 +231,16 @@ class CodegenWorkItem extends WorkItem {
     assert(invariant(element, element.hasResolvedAst,
         message: "$element has no resolved ast."));
     ResolvedAst resolvedAst = element.resolvedAst;
-    return new CodegenWorkItem.internal(resolvedAst);
+    return new CodegenWorkItem.internal(resolvedAst, backend);
   }
 
-  CodegenWorkItem.internal(ResolvedAst resolvedAst)
+  CodegenWorkItem.internal(ResolvedAst resolvedAst, this.backend)
       : this.resolvedAst = resolvedAst,
         super(resolvedAst.element);
 
-  WorldImpact run(Compiler compiler, Enqueuer world) {
-    if (world.isProcessed(element)) return const WorldImpact();
-
-    registry = new CodegenRegistry(compiler, element);
-    return compiler.codegen(this, world);
+  WorldImpact run() {
+    registry = new CodegenRegistry(element);
+    return backend.codegen(this);
   }
 
   String toString() => 'CodegenWorkItem(${resolvedAst.element})';

@@ -11,15 +11,15 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LocalConstructorContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LocalConstructorContributorTest);
+  });
 }
 
 @reflectiveTest
@@ -2404,6 +2404,44 @@ main() {new ^ String x = "hello";}''');
     expect(suggestion.hasNamedParameters, true);
   }
 
+  test_InstanceCreationExpression_assignment_expression_filter() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_assignment_expression_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
   test_InstanceCreationExpression_imported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource(
@@ -2472,44 +2510,6 @@ main() {
 class A {} class B extends A {} class C implements A {} class D {}
 main() {
   A a = new ^;
-}''');
-    await computeSuggestions();
-
-    assertSuggestConstructor('A',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
-    assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertNotSuggested('D');
-  }
-
-  test_InstanceCreationExpression_assignment_expression_filter() async {
-    addTestSource('''
-class A {} class B extends A {} class C implements A {} class D {}
-main() {
-  A a;
-  a = new ^
-}''');
-    await computeSuggestions();
-
-    assertSuggestConstructor('A',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
-    assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
-    assertNotSuggested('D');
-  }
-
-  test_InstanceCreationExpression_assignment_expression_filter2() async {
-    addTestSource('''
-class A {} class B extends A {} class C implements A {} class D {}
-main() {
-  A a;
-  a = new ^;
 }''');
     await computeSuggestions();
 

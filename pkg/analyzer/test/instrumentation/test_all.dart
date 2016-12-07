@@ -4,14 +4,13 @@
 
 library analyzer.test.instrumentation.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'instrumentation_test.dart' as instrumentation_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
-  group('instrumentation', () {
+  defineReflectiveSuite(() {
     instrumentation_test.main();
-  });
+  }, name: 'instrumentation');
 }

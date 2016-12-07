@@ -274,9 +274,7 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder, _definingUnit);
-      builder.initForFunctionBodyIncrementalResolution();
-      node.accept(builder);
+      node.accept(new LocalElementBuilder(holder, _definingUnit));
       // Move local elements into the ExecutableElementImpl.
       ExecutableElementImpl executableElement =
           executable.element as ExecutableElementImpl;
@@ -667,6 +665,14 @@ class PoorMansIncrementalResolver {
             } else if (oldParent is FunctionBody && newParent is FunctionBody) {
               if (oldParent is BlockFunctionBody &&
                   newParent is BlockFunctionBody) {
+                if (oldParent.isAsynchronous != newParent.isAsynchronous) {
+                  logger.log('Failure: body async mismatch.');
+                  return false;
+                }
+                if (oldParent.isGenerator != newParent.isGenerator) {
+                  logger.log('Failure: body generator mismatch.');
+                  return false;
+                }
                 oldNode = oldParent;
                 newNode = newParent;
                 found = true;
@@ -745,7 +751,6 @@ class PoorMansIncrementalResolver {
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
       parser.parseGenericMethodComments = options.strongMode;
-      parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
       return unit;

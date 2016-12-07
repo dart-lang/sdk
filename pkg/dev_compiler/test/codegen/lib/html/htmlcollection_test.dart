@@ -1,7 +1,9 @@
-library ElementListTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
+
+bool isChecked(Element e) => (e as CheckboxInputElement).checked;
+bool isUnchecked(Element e) => !(e as CheckboxInputElement).checked;
 
 // Test that List<Element> implements List<T>
 main() {
@@ -32,15 +34,13 @@ main() {
     return element;
   }
 
-  useHtmlConfiguration();
-
   test('IsList', () {
     Element root = insertTestDiv();
 
     List<Element> eachChecked =
         document.query('#allChecked').children;
 
-    expect(eachChecked, isList);
+    expect(eachChecked is List, isTrue);
 
     root.remove();
   });
@@ -60,12 +60,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(eachChecked.every((x) => x.checked), isTrue);
-    expect(eachChecked.every((x) => !x.checked), isFalse);
-    expect(someChecked.every((x) => x.checked), isFalse);
-    expect(someChecked.every((x) => !x.checked), isFalse);
-    expect(noneChecked.every((x) => x.checked), isFalse);
-    expect(noneChecked.every((x) => !x.checked), isTrue);
+    expect(eachChecked.every(isChecked), isTrue);
+    expect(eachChecked.every(isUnchecked), isFalse);
+    expect(someChecked.every(isChecked), isFalse);
+    expect(someChecked.every(isUnchecked), isFalse);
+    expect(noneChecked.every(isChecked), isFalse);
+    expect(noneChecked.every(isUnchecked), isTrue);
 
     root.remove();
   });
@@ -85,12 +85,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(eachChecked.any((x) => x.checked), isTrue);
-    expect(eachChecked.any((x) => !x.checked), isFalse);
-    expect(someChecked.any((x) => x.checked), isTrue);
-    expect(someChecked.any((x) => !x.checked), isTrue);
-    expect(noneChecked.any((x) => x.checked), isFalse);
-    expect(noneChecked.any((x) => !x.checked), isTrue);
+    expect(eachChecked.any(isChecked), isTrue);
+    expect(eachChecked.any(isUnchecked), isFalse);
+    expect(someChecked.any(isChecked), isTrue);
+    expect(someChecked.any(isUnchecked), isTrue);
+    expect(noneChecked.any(isChecked), isFalse);
+    expect(noneChecked.any(isUnchecked), isTrue);
 
     root.remove();
   });
@@ -110,12 +110,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(eachChecked.where((x) => x.checked).length, 4);
-    expect(eachChecked.where((x) => !x.checked).length, 0);
-    expect(someChecked.where((x) => x.checked).length, 2);
-    expect(someChecked.where((x) => !x.checked).length, 2);
-    expect(noneChecked.where((x) => x.checked).length, 0);
-    expect(noneChecked.where((x) => !x.checked).length, 4);
+    expect(eachChecked.where(isChecked).length, 4);
+    expect(eachChecked.where(isUnchecked).length, 0);
+    expect(someChecked.where(isChecked).length, 2);
+    expect(someChecked.where(isUnchecked).length, 2);
+    expect(noneChecked.where(isChecked).length, 0);
+    expect(noneChecked.where(isUnchecked).length, 4);
 
     root.remove();
   });
@@ -161,12 +161,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(countWithForEach(eachChecked, (x) => x.checked), 4);
-    expect(countWithForEach(eachChecked, (x) => !x.checked), 0);
-    expect(countWithForEach(someChecked, (x) => x.checked), 2);
-    expect(countWithForEach(someChecked, (x) => !x.checked), 2);
-    expect(countWithForEach(noneChecked, (x) => x.checked), 0);
-    expect(countWithForEach(noneChecked, (x) => !x.checked), 4);
+    expect(countWithForEach(eachChecked, isChecked), 4);
+    expect(countWithForEach(eachChecked, isUnchecked), 0);
+    expect(countWithForEach(someChecked, isChecked), 2);
+    expect(countWithForEach(someChecked, isUnchecked), 2);
+    expect(countWithForEach(noneChecked, isChecked), 0);
+    expect(countWithForEach(noneChecked, isUnchecked), 4);
 
     root.remove();
   });
@@ -195,12 +195,12 @@ main() {
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
 
-    expect(countWithForLoop(eachChecked, (x) => x.checked), 4);
-    expect(countWithForLoop(eachChecked, (x) => !x.checked), 0);
-    expect(countWithForLoop(someChecked, (x) => x.checked), 2);
-    expect(countWithForLoop(someChecked, (x) => !x.checked), 2);
-    expect(countWithForLoop(noneChecked, (x) => x.checked), 0);
-    expect(countWithForLoop(noneChecked, (x) => !x.checked), 4);
+    expect(countWithForLoop(eachChecked, isChecked), 4);
+    expect(countWithForLoop(eachChecked, isUnchecked), 0);
+    expect(countWithForLoop(someChecked, isChecked), 2);
+    expect(countWithForLoop(someChecked, isUnchecked), 2);
+    expect(countWithForLoop(noneChecked, isChecked), 0);
+    expect(countWithForLoop(noneChecked, isUnchecked), 4);
 
     root.remove();
   });

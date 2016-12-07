@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_TEXT_BUFFER_H_
-#define PLATFORM_TEXT_BUFFER_H_
+#ifndef RUNTIME_PLATFORM_TEXT_BUFFER_H_
+#define RUNTIME_PLATFORM_TEXT_BUFFER_H_
 
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -24,8 +24,7 @@ class TextBuffer : ValueObject {
   void EscapeAndAddCodeUnit(uint32_t cu);
   void AddString(const char* s);
   void AddEscapedString(const char* s);
-  void AddRaw(const uint8_t* buffer,
-              intptr_t buffer_length);
+  void AddRaw(const uint8_t* buffer, intptr_t buffer_length);
 
   void Clear();
 
@@ -45,4 +44,4 @@ class TextBuffer : ValueObject {
 
 }  // namespace dart
 
-#endif  // PLATFORM_TEXT_BUFFER_H_
+#endif  // RUNTIME_PLATFORM_TEXT_BUFFER_H_

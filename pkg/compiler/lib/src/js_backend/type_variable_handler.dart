@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
@@ -45,9 +44,13 @@ class TypeVariableHandler {
   Map<TypeVariableElement, jsAst.Expression> _typeVariableConstants =
       new Map<TypeVariableElement, jsAst.Expression>();
 
+  /// Impact builder used for the resolution world computation.
+  final StagedWorldImpactBuilder impactBuilderForResolution =
+      new StagedWorldImpactBuilder();
+
   /// Impact builder used for the codegen world computation.
-  // TODO(johnniwinther): Add impact builder for resolution.
-  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+  final StagedWorldImpactBuilder impactBuilderForCodegen =
+      new StagedWorldImpactBuilder();
 
   TypeVariableHandler(this._compiler);
 
@@ -57,19 +60,21 @@ class TypeVariableHandler {
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get reporter => _compiler.reporter;
 
-  void onQueueEmpty(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) return;
-
-    enqueuer.applyImpact(null, impactBuilder.flush());
+  /// Compute the [WorldImpact] for the type variables registered since last
+  /// flush.
+  WorldImpact flush({bool forResolution}) {
+    if (forResolution) {
+      return impactBuilderForResolution.flush();
+    } else {
+      return impactBuilderForCodegen.flush();
+    }
   }
 
-  void registerClassWithTypeVariables(
-      ClassElement cls, Enqueuer enqueuer, Registry registry) {
-    if (enqueuer.isResolutionQueue) {
+  void registerClassWithTypeVariables(ClassElement cls, {bool forResolution}) {
+    if (forResolution) {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
       if (!_seenClassesWithTypeVariables) {
-        _backend.enqueueClass(enqueuer, _typeVariableClass, registry);
         _typeVariableClass.ensureResolved(_compiler.resolution);
         Link constructors = _typeVariableClass.constructors;
         if (constructors.isEmpty && constructors.tail.isEmpty) {
@@ -77,12 +82,12 @@ class TypeVariableHandler {
               "Class '$_typeVariableClass' should only have one constructor");
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
-        _backend.enqueueInResolution(_typeVariableConstructor, registry);
-        _backend.registerInstantiatedType(
-            _typeVariableClass.rawType, enqueuer, registry);
-        enqueuer.registerStaticUse(new StaticUse.staticInvoke(
-            _backend.registerBackendUse(_backend.helpers.createRuntimeType),
-            CallStructure.ONE_ARG));
+        _backend.impactTransformer.registerBackendStaticUse(
+            impactBuilderForResolution, _typeVariableConstructor);
+        _backend.impactTransformer.registerBackendInstantiation(
+            impactBuilderForResolution, _typeVariableClass);
+        _backend.impactTransformer.registerBackendStaticUse(
+            impactBuilderForResolution, _backend.helpers.createRuntimeType);
         _seenClassesWithTypeVariables = true;
       }
     } else {
@@ -119,7 +124,8 @@ class TypeVariableHandler {
 
       _backend.constants.evaluate(constant);
       ConstantValue value = _backend.constants.getConstantValue(constant);
-      _backend.computeImpactForCompileTimeConstant(value, impactBuilder, false);
+      _backend.computeImpactForCompileTimeConstant(
+          value, impactBuilderForCodegen, false);
       _backend.addCompileTimeConstantForEmission(value);
       constants
           .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));

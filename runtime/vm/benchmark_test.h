@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_BENCHMARK_TEST_H_
-#define VM_BENCHMARK_TEST_H_
+#ifndef RUNTIME_VM_BENCHMARK_TEST_H_
+#define RUNTIME_VM_BENCHMARK_TEST_H_
 
 #include "include/dart_api.h"
 
@@ -34,7 +34,8 @@ extern const uint8_t* isolate_snapshot_buffer;
 #define BENCHMARK_HELPER(name, kind)                                           \
   void Dart_Benchmark##name(Benchmark* benchmark);                             \
   static Benchmark kRegister##name(Dart_Benchmark##name, #name, kind);         \
-  static void Dart_BenchmarkHelper##name(Benchmark* benchmark, Thread* thread);\
+  static void Dart_BenchmarkHelper##name(Benchmark* benchmark,                 \
+                                         Thread* thread);                      \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_old_gen_growth_space_ratio = 100;                                     \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
@@ -48,7 +49,7 @@ extern const uint8_t* isolate_snapshot_buffer;
 
 #define BENCHMARK(name) BENCHMARK_HELPER(name, "RunTime")
 #define BENCHMARK_SIZE(name) BENCHMARK_HELPER(name, "CodeSize")
-#define BENCHMARK_MEMORY(name) BENCHMARK_HELPER(name, "Memory")
+#define BENCHMARK_MEMORY(name) BENCHMARK_HELPER(name, "MemoryUse")
 
 inline Dart_Handle NewString(const char* str) {
   return Dart_NewStringFromCString(str);
@@ -57,15 +58,15 @@ inline Dart_Handle NewString(const char* str) {
 
 class Benchmark {
  public:
-  typedef void (RunEntry)(Benchmark* benchmark);
+  typedef void(RunEntry)(Benchmark* benchmark);
 
-  Benchmark(RunEntry* run, const char* name, const char* score_kind) :
-      run_(run),
-      name_(name),
-      score_kind_(score_kind),
-      score_(0),
-      isolate_(NULL),
-      next_(NULL) {
+  Benchmark(RunEntry* run, const char* name, const char* score_kind)
+      : run_(run),
+        name_(name),
+        score_kind_(score_kind),
+        score_(0),
+        isolate_(NULL),
+        next_(NULL) {
     if (first_ == NULL) {
       first_ = this;
     } else {
@@ -128,4 +129,4 @@ class BenchmarkIsolateScope {
 
 }  // namespace dart
 
-#endif  // VM_BENCHMARK_TEST_H_
+#endif  // RUNTIME_VM_BENCHMARK_TEST_H_

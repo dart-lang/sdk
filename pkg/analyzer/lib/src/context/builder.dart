@@ -14,9 +14,13 @@ import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/pub_summary.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -65,6 +69,11 @@ class ContextBuilder {
   final ContentCache contentCache;
 
   /**
+   * The options used by the context builder.
+   */
+  final ContextBuilderOptions builderOptions;
+
+  /**
    * The resolver provider used to create a package: URI resolver, or `null` if
    * the normal (Package Specification DEP) lookup mechanism is to be used.
    */
@@ -77,44 +86,12 @@ class ContextBuilder {
   ResolverProvider fileResolverProvider;
 
   /**
-   * The file path of the .packages file that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism,
-   * or `null` if the normal lookup mechanism should be used.
-   */
-  String defaultPackageFilePath;
-
-  /**
-   * The file path of the packages directory that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism,
-   * or `null` if the normal lookup mechanism should be used.
-   */
-  String defaultPackagesDirectoryPath;
-
-  /**
-   * The file path of the analysis options file that should be used in place of
-   * any file in the root directory or a parent of the root directory, or `null`
-   * if the normal lookup mechanism should be used.
-   */
-  String defaultAnalysisOptionsFilePath;
-
-  /**
-   * The default analysis options that should be used unless some or all of them
-   * are overridden in the analysis options file, or `null` if the default
-   * defaults should be used.
-   */
-  AnalysisOptions defaultOptions;
-
-  /**
-   * A table mapping variable names to values for the declared variables, or
-   * `null` if no additional variables should be declared.
-   */
-  Map<String, String> declaredVariables;
-
-  /**
    * Initialize a newly created builder to be ready to build a context rooted in
    * the directory with the given [rootDirectoryPath].
    */
-  ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache);
+  ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
+      {ContextBuilderOptions options})
+      : builderOptions = options ?? new ContextBuilderOptions();
 
   /**
    * Return an analysis context that is configured correctly to analyze code in
@@ -132,7 +109,27 @@ class ContextBuilder {
     context.name = path;
     //_processAnalysisOptions(context, optionMap);
     declareVariables(context);
+    configureSummaries(context);
     return context;
+  }
+
+  /**
+   * Configure the context to make use of summaries.
+   */
+  void configureSummaries(InternalAnalysisContext context) {
+    PubSummaryManager manager = builderOptions.pubSummaryManager;
+    if (manager != null) {
+      List<LinkedPubPackage> linkedBundles = manager.getLinkedBundles(context);
+      if (linkedBundles.isNotEmpty) {
+        SummaryDataStore store = new SummaryDataStore([]);
+        for (LinkedPubPackage package in linkedBundles) {
+          store.addBundle(null, package.unlinked);
+          store.addBundle(null, package.linked);
+        }
+        context.resultProvider =
+            new InputPackagesResultProvider(context, store);
+      }
+    }
   }
 
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
@@ -173,6 +170,7 @@ class ContextBuilder {
    * Return an analysis options object containing the default option values.
    */
   AnalysisOptions createDefaultOptions() {
+    AnalysisOptions defaultOptions = builderOptions.defaultOptions;
     if (defaultOptions == null) {
       return new AnalysisOptionsImpl();
     }
@@ -180,51 +178,40 @@ class ContextBuilder {
   }
 
   Packages createPackageMap(String rootDirectoryPath) {
-    if (defaultPackageFilePath != null) {
-      File configFile = resourceProvider.getFile(defaultPackageFilePath);
+    String filePath = builderOptions.defaultPackageFilePath;
+    if (filePath != null) {
+      File configFile = resourceProvider.getFile(filePath);
       List<int> bytes = configFile.readAsBytesSync();
       Map<String, Uri> map = parse(bytes, configFile.toUri());
       resolveSymbolicLinks(map);
       return new MapPackages(map);
-    } else if (defaultPackagesDirectoryPath != null) {
-      Folder folder = resourceProvider.getFolder(defaultPackagesDirectoryPath);
+    }
+    String directoryPath = builderOptions.defaultPackagesDirectoryPath;
+    if (directoryPath != null) {
+      Folder folder = resourceProvider.getFolder(directoryPath);
       return getPackagesFromFolder(folder);
     }
     return findPackagesFromFile(rootDirectoryPath);
   }
 
-  SourceFactory createSourceFactory(
-      String rootDirectoryPath, AnalysisOptions options) {
-    Folder _folder = null;
-    Folder folder() {
-      return _folder ??= resourceProvider.getFolder(rootDirectoryPath);
+  SourceFactory createSourceFactory(String rootPath, AnalysisOptions options) {
+    BazelWorkspace bazelWorkspace =
+        BazelWorkspace.find(resourceProvider, rootPath);
+    if (bazelWorkspace != null) {
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(findSdk(null, options)),
+        new BazelPackageUriResolver(bazelWorkspace),
+        new BazelFileUriResolver(bazelWorkspace)
+      ];
+      return new SourceFactory(resolvers, null, resourceProvider);
     }
 
-    UriResolver fileResolver;
-    if (fileResolverProvider != null) {
-      fileResolver = fileResolverProvider(folder());
-    }
-    fileResolver ??= new ResourceUriResolver(resourceProvider);
-    if (packageResolverProvider != null) {
-      UriResolver packageResolver = packageResolverProvider(folder());
-      if (packageResolver != null) {
-        // TODO(brianwilkerson) This doesn't support either embedder files or
-        // sdk extensions because we don't have a way to get the package map
-        // from the resolver.
-        List<UriResolver> resolvers = <UriResolver>[
-          new DartUriResolver(findSdk(null, options)),
-          packageResolver,
-          fileResolver
-        ];
-        return new SourceFactory(resolvers, null, resourceProvider);
-      }
-    }
-    Packages packages = createPackageMap(rootDirectoryPath);
+    Packages packages = createPackageMap(rootPath);
     Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(findSdk(packageMap, options)),
       new PackageMapUriResolver(resourceProvider, packageMap),
-      fileResolver
+      new ResourceUriResolver(resourceProvider)
     ];
     return new SourceFactory(resolvers, packages, resourceProvider);
   }
@@ -234,9 +221,10 @@ class ContextBuilder {
    * given [context].
    */
   void declareVariables(InternalAnalysisContext context) {
-    if (declaredVariables != null && declaredVariables.isNotEmpty) {
+    Map<String, String> variables = builderOptions.declaredVariables;
+    if (variables != null && variables.isNotEmpty) {
       DeclaredVariables contextVariables = context.declaredVariables;
-      declaredVariables.forEach((String variableName, String value) {
+      variables.forEach((String variableName, String value) {
         contextVariables.define(variableName, value);
       });
     }
@@ -268,11 +256,14 @@ class ContextBuilder {
 
   /**
    * Return the SDK that should be used to analyze code. Use the given
-   * [packageMap] and [options] to locate the SDK.
+   * [packageMap] and [analysisOptions] to locate the SDK.
    */
   DartSdk findSdk(
-      Map<String, List<Folder>> packageMap, AnalysisOptions options) {
-    if (packageMap != null) {
+      Map<String, List<Folder>> packageMap, AnalysisOptions analysisOptions) {
+    String summaryPath = builderOptions.dartSdkSummaryPath;
+    if (summaryPath != null) {
+      return new SummaryBasedDartSdk(summaryPath, analysisOptions.strongMode);
+    } else if (packageMap != null) {
       SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
       List<String> extFilePaths = extFinder.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
@@ -291,12 +282,12 @@ class ContextBuilder {
               .path);
         }
         paths.addAll(extFilePaths);
-        SdkDescription description = new SdkDescription(paths, options);
+        SdkDescription description = new SdkDescription(paths, analysisOptions);
         DartSdk dartSdk = sdkManager.getSdk(description, () {
           if (extFilePaths.isNotEmpty) {
             embedderSdk.addExtensions(extFinder.urlMappings);
           }
-          embedderSdk.analysisOptions = options;
+          embedderSdk.analysisOptions = analysisOptions;
           embedderSdk.useSummary = sdkManager.canUseSummaries;
           return embedderSdk;
         });
@@ -308,25 +299,26 @@ class ContextBuilder {
         String sdkPath = sdkManager.defaultSdkDirectory;
         List<String> paths = <String>[sdkPath];
         paths.addAll(extFilePaths);
-        SdkDescription description = new SdkDescription(paths, options);
+        SdkDescription description = new SdkDescription(paths, analysisOptions);
         return sdkManager.getSdk(description, () {
           FolderBasedDartSdk sdk = new FolderBasedDartSdk(
               resourceProvider, resourceProvider.getFolder(sdkPath));
           if (extFilePaths.isNotEmpty) {
             sdk.addExtensions(extFinder.urlMappings);
           }
-          sdk.analysisOptions = options;
+          sdk.analysisOptions = analysisOptions;
           sdk.useSummary = sdkManager.canUseSummaries;
           return sdk;
         });
       }
     }
     String sdkPath = sdkManager.defaultSdkDirectory;
-    SdkDescription description = new SdkDescription(<String>[sdkPath], options);
+    SdkDescription description =
+        new SdkDescription(<String>[sdkPath], analysisOptions);
     return sdkManager.getSdk(description, () {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-          resourceProvider, resourceProvider.getFolder(sdkPath));
-      sdk.analysisOptions = options;
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+          resourceProvider.getFolder(sdkPath), analysisOptions.strongMode);
+      sdk.analysisOptions = analysisOptions;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
     });
@@ -342,9 +334,20 @@ class ContextBuilder {
     if (optionsFile != null) {
       List<OptionsProcessor> optionsProcessors =
           AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+      // TODO(danrubel) restructure so that we don't recalculate the package map
+      // more than once per path.
+      Packages packages = createPackageMap(path);
+      Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
+      List<UriResolver> resolvers = <UriResolver>[
+        new ResourceUriResolver(resourceProvider),
+        new PackageMapUriResolver(resourceProvider, packageMap),
+      ];
+      SourceFactory sourceFactory =
+          new SourceFactory(resolvers, packages, resourceProvider);
       try {
         Map<String, YamlNode> optionMap =
-            new AnalysisOptionsProvider().getOptionsFromFile(optionsFile);
+            new AnalysisOptionsProvider(sourceFactory)
+                .getOptionsFromFile(optionsFile);
         optionsProcessors.forEach(
             (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
         applyToAnalysisOptions(options, optionMap);
@@ -360,8 +363,9 @@ class ContextBuilder {
    * the directory with the given [path].
    */
   File getOptionsFile(String path) {
-    if (defaultAnalysisOptionsFilePath != null) {
-      return resourceProvider.getFile(defaultAnalysisOptionsFilePath);
+    String filePath = builderOptions.defaultAnalysisOptionsFilePath;
+    if (filePath != null) {
+      return resourceProvider.getFile(filePath);
     }
     Folder root = resourceProvider.getFolder(path);
     for (Folder folder = root; folder != null; folder = folder.parent) {
@@ -475,6 +479,62 @@ class ContextBuilder {
     }
     return null;
   }
+}
+
+/**
+ * Options used by a [ContextBuilder].
+ */
+class ContextBuilderOptions {
+  /**
+   * The file path of the file containing the summary of the SDK that should be
+   * used to "analyze" the SDK. This option should only be specified by
+   * command-line tools such as 'dartanalyzer' or 'ddc'.
+   */
+  String dartSdkSummaryPath;
+
+  /**
+   * The file path of the analysis options file that should be used in place of
+   * any file in the root directory or a parent of the root directory, or `null`
+   * if the normal lookup mechanism should be used.
+   */
+  String defaultAnalysisOptionsFilePath;
+
+  /**
+   * A table mapping variable names to values for the declared variables, or
+   * `null` if no additional variables should be declared.
+   */
+  Map<String, String> declaredVariables;
+
+  /**
+   * The default analysis options that should be used unless some or all of them
+   * are overridden in the analysis options file, or `null` if the default
+   * defaults should be used.
+   */
+  AnalysisOptions defaultOptions;
+
+  /**
+   * The file path of the .packages file that should be used in place of any
+   * file found using the normal (Package Specification DEP) lookup mechanism,
+   * or `null` if the normal lookup mechanism should be used.
+   */
+  String defaultPackageFilePath;
+
+  /**
+   * The file path of the packages directory that should be used in place of any
+   * file found using the normal (Package Specification DEP) lookup mechanism,
+   * or `null` if the normal lookup mechanism should be used.
+   */
+  String defaultPackagesDirectoryPath;
+
+  /**
+   * The manager of pub package summaries.
+   */
+  PubSummaryManager pubSummaryManager;
+
+  /**
+   * Initialize a newly created set of options
+   */
+  ContextBuilderOptions();
 }
 
 /**

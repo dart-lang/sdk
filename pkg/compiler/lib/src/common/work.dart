@@ -18,5 +18,5 @@ abstract class WorkItem {
     assert(invariant(element, element.isDeclaration));
   }
 
-  WorldImpact run(Compiler compiler, Enqueuer world);
+  WorldImpact run();
 }

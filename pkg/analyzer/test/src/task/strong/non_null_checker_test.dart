@@ -14,8 +14,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../strong/strong_test_helper.dart';
 
 void main() {
-  initStrongModeTests();
-  defineReflectiveTests(NonNullCheckerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonNullCheckerTest);
+  });
 }
 
 String _withError(String file, String error) {
@@ -73,6 +74,14 @@ void main() {
 }
 ''';
 
+  void setUp() {
+    doSetUp();
+  }
+
+  void tearDown() {
+    doTearDown();
+  }
+
   void test_assign_null_to_nonnullable() {
     addFile('''
 int x = 0;
@@ -83,27 +92,6 @@ main() {
 }
 ''');
     check(nonnullableTypes: <String>['dart:core,int']);
-  }
-
-  void test_forLoop() {
-    checkFile('''
-class MyList {
-  int length;
-  MyList() {
-    length = 6;
-  }
-  String operator [](int i) {
-    return <String>["Dart", "Java", "JS", "C", "C++", "C#"][i];
-  }
-}
-
-main() {
-  var languages = new MyList();
-  for (int i = 0; i < languages.length; ++i) {
-    print(languages[i]);
-  }
-}
-''');
   }
 
   void test_compoundAssignment() {
@@ -130,98 +118,25 @@ void main() {
     check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_initialize_nonnullable_with_null() {
-    addFile('int x = /*error:INVALID_ASSIGNMENT*/null;');
-    check(nonnullableTypes: <String>['dart:core,int']);
+  void test_forLoop() {
+    checkFile('''
+class MyList {
+  int length;
+  MyList() {
+    length = 6;
   }
-
-  void test_initialize_nonnullable_with_valid_value() {
-    addFile('int x = 0;');
-    check(nonnullableTypes: <String>['dart:core,int']);
+  String operator [](int i) {
+    return <String>["Dart", "Java", "JS", "C", "C++", "C#"][i];
   }
+}
 
-  void test_nonnullable_fields() {
-    addFile(defaultNnbdExample);
-    // `null` can be passed as an argument to `Point` in default mode.
-    addFile(_withError(defaultNnbdExampleMod1, "error:INVALID_ASSIGNMENT"));
-    // A nullable expression can be passed as an argument to `Point` in default
-    // mode.
-    addFile(_withError(defaultNnbdExampleMod2, "error:INVALID_ASSIGNMENT"));
-    check(nonnullableTypes: <String>['dart:core,int']);
+main() {
+  var languages = new MyList();
+  for (int i = 0; i < languages.length; ++i) {
+    print(languages[i]);
   }
-
-  void test_nullable_fields() {
-    addFile(defaultNnbdExample);
-    // `null` can be passed as an argument to `Point` in default mode.
-    addFile(defaultNnbdExampleMod1);
-    // A nullable expression can be passed as an argument to `Point` in default
-    // mode.
-    addFile(defaultNnbdExampleMod2);
-    check();
-  }
-
-  // Default example from NNBD document.
-  void test_nullableTypes() {
-    // By default x can be set to null.
-    checkFile('int x = null;');
-  }
-
-  void test_prefer_final_to_non_nullable_error() {
-    addFile('main() { final int /*error:FINAL_NOT_INITIALIZED*/x; }');
-    addFile('final int /*error:FINAL_NOT_INITIALIZED*/x;');
-    addFile('''
-void foo() {}
-
-class A {
-  final int x;
-
-  /*warning:FINAL_NOT_INITIALIZED_CONSTRUCTOR_1*/A();
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
-  }
-
-  void test_uninitialized_nonnullable_field_declaration() {
-    addFile('''
-void foo() {}
-
-class A {
-  // Ideally, we should allow x to be init in the constructor, but that requires
-  // too much complication in the checker, so for now we throw a static error at
-  // the declaration site.
-  int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;
-
-  A();
-}
-''');
-    check(nonnullableTypes: <String>['dart:core,int']);
-  }
-
-  void test_uninitialized_nonnullable_local_variable() {
-    // Ideally, we will do flow analysis and throw an error only if a variable
-    // is used before it has been initialized.
-    addFile('main() { int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x; }');
-    check(nonnullableTypes: <String>['dart:core,int']);
-  }
-
-  void test_uninitialized_nonnullable_top_level_variable_declaration() {
-    // If `int`s are non-nullable, then this code should throw an error.
-    addFile('int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;');
-    check(nonnullableTypes: <String>['dart:core,int']);
-  }
-
-  void test_method_call() {
-    addFile('''
-int s(int x) {
-  return x + 1;
-}
-
-void main() {
-  s(10);
-  s(/*error:INVALID_ASSIGNMENT*/null);
-}
-''');
-    check(nonnullableTypes: <String>['dart:core,int']);
   }
 
   void test_generics() {
@@ -256,6 +171,16 @@ void main() {
   var g = new Foo<int>(); // Should fail at runtime.
 }
 ''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_initialize_nonnullable_with_null() {
+    addFile('int x = /*error:INVALID_ASSIGNMENT*/null;');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_initialize_nonnullable_with_valid_value() {
+    addFile('int x = 0;');
     check(nonnullableTypes: <String>['dart:core,int']);
   }
 
@@ -310,6 +235,90 @@ void main() {
   int y = legs.get("sheep"); // TODO(stanm): Runtime error here.
 }
 ''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  // Default example from NNBD document.
+  void test_method_call() {
+    addFile('''
+int s(int x) {
+  return x + 1;
+}
+
+void main() {
+  s(10);
+  s(/*error:INVALID_ASSIGNMENT*/null);
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_nonnullable_fields() {
+    addFile(defaultNnbdExample);
+    // `null` can be passed as an argument to `Point` in default mode.
+    addFile(_withError(defaultNnbdExampleMod1, "error:INVALID_ASSIGNMENT"));
+    // A nullable expression can be passed as an argument to `Point` in default
+    // mode.
+    addFile(_withError(defaultNnbdExampleMod2, "error:INVALID_ASSIGNMENT"));
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_nullable_fields() {
+    addFile(defaultNnbdExample);
+    // `null` can be passed as an argument to `Point` in default mode.
+    addFile(defaultNnbdExampleMod1);
+    // A nullable expression can be passed as an argument to `Point` in default
+    // mode.
+    addFile(defaultNnbdExampleMod2);
+    check();
+  }
+
+  void test_nullableTypes() {
+    // By default x can be set to null.
+    checkFile('int x = null;');
+  }
+
+  void test_prefer_final_to_non_nullable_error() {
+    addFile('main() { final int /*error:FINAL_NOT_INITIALIZED*/x; }');
+    addFile('final int /*error:FINAL_NOT_INITIALIZED*/x;');
+    addFile('''
+void foo() {}
+
+class A {
+  final int x;
+
+  /*warning:FINAL_NOT_INITIALIZED_CONSTRUCTOR_1*/A();
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_uninitialized_nonnullable_field_declaration() {
+    addFile('''
+void foo() {}
+
+class A {
+  // Ideally, we should allow x to be init in the constructor, but that requires
+  // too much complication in the checker, so for now we throw a static error at
+  // the declaration site.
+  int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;
+
+  A();
+}
+''');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_uninitialized_nonnullable_local_variable() {
+    // Ideally, we will do flow analysis and throw an error only if a variable
+    // is used before it has been initialized.
+    addFile('main() { int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x; }');
+    check(nonnullableTypes: <String>['dart:core,int']);
+  }
+
+  void test_uninitialized_nonnullable_top_level_variable_declaration() {
+    // If `int`s are non-nullable, then this code should throw an error.
+    addFile('int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;');
     check(nonnullableTypes: <String>['dart:core,int']);
   }
 }

@@ -1,0 +1,13 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../application_snapshot.gni")
+
+application_snapshot("dartdoc") {
+  main_dart = "../../third_party/pkg/dartdoc/bin/dartdoc.dart"
+  training_args = [ "--help" ]
+  inputs = exec_script("../../tools/list_dart_files.py",
+                       [ rebase_path("../../third_party/pkg/dartdoc") ],
+                       "list lines")
+}

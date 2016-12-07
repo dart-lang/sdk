@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_VISITOR_H_
-#define VM_VISITOR_H_
+#ifndef RUNTIME_VM_VISITOR_H_
+#define RUNTIME_VM_VISITOR_H_
 
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -18,8 +18,8 @@ class RawObject;
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) { }
-  virtual ~ObjectPointerVisitor() { }
+  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) {}
+  virtual ~ObjectPointerVisitor() {}
 
   Isolate* isolate() const { return isolate_; }
 
@@ -27,15 +27,13 @@ class ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
 
   virtual bool visit_function_code() const { return true; }
-  virtual void add_skipped_code_function(RawFunction* funct) {
-    UNREACHABLE();
-  }
+  virtual void add_skipped_code_function(RawFunction* funct) { UNREACHABLE(); }
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(RawObject** p, intptr_t len) {
     VisitPointers(p, (p + len - 1));
   }
 
-  void VisitPointer(RawObject** p) { VisitPointers(p , p); }
+  void VisitPointer(RawObject** p) { VisitPointers(p, p); }
 
  private:
   Isolate* isolate_;
@@ -48,9 +46,9 @@ class ObjectPointerVisitor {
 // An object visitor interface.
 class ObjectVisitor {
  public:
-  ObjectVisitor() { }
+  ObjectVisitor() {}
 
-  virtual ~ObjectVisitor() { }
+  virtual ~ObjectVisitor() {}
 
   // Invoked for each object.
   virtual void VisitObject(RawObject* obj) = 0;
@@ -63,8 +61,8 @@ class ObjectVisitor {
 // An object finder visitor interface.
 class FindObjectVisitor {
  public:
-  FindObjectVisitor() { }
-  virtual ~FindObjectVisitor() { }
+  FindObjectVisitor() {}
+  virtual ~FindObjectVisitor() {}
 
   // Allow to specify a address filter.
   virtual uword filter_addr() const { return 0; }
@@ -82,4 +80,4 @@ class FindObjectVisitor {
 
 }  // namespace dart
 
-#endif  // VM_VISITOR_H_
+#endif  // RUNTIME_VM_VISITOR_H_

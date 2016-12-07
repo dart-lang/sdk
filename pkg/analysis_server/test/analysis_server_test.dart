@@ -23,17 +23,17 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisServerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisServerTest);
+  });
 }
 
 @reflectiveTest
@@ -137,7 +137,8 @@ import "../foo/foo.dart";
     manager.processPlugins([plugin]);
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     packageMapProvider = new MockPackageMapProvider();
     server = new AnalysisServer(
         channel,
@@ -146,7 +147,7 @@ import "../foo/foo.dart";
         null,
         plugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();

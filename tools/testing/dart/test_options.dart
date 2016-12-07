@@ -26,6 +26,7 @@ const List<String> defaultTestSelectors = const [
   'pkg',
   'analyze_library',
   'service',
+  'kernel',
   'observatory_ui'
 ];
 
@@ -73,10 +74,25 @@ class TestOptionsParser {
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)
 
-   dart2app: Compile the Dart code into an app snapshot before running the test
-          (only valid with the following runtimes: dart_app)''',
+   dart2app:
+   dart2appjit: Compile the Dart code into an app snapshot before running test
+          (only valid with dart_app runtime)
+
+   dartk: Compile the Dart source into Kernel before running test.
+
+   dartkp: Compiler the Dart source into Kernel and then Kernel into AOT
+   snapshot before running the test.''',
           ['-c', '--compiler'],
-          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
+          [
+            'none',
+            'precompiler',
+            'dart2js',
+            'dart2analyzer',
+            'dart2app',
+            'dart2appjit',
+            'dartk',
+            'dartkp'
+          ],
           'none'),
       // TODO(antonm): fix the option drt.
       new _TestOptionSpecification(
@@ -190,21 +206,29 @@ class TestOptionsParser {
           'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'fast_startup', 'Pass the --fast-startup flag to dart2js',
-          ['--fast-startup'], [], false,
+          'fast_startup',
+          'Pass the --fast-startup flag to dart2js',
+          ['--fast-startup'],
+          [],
+          false,
+          type: 'bool'),
+      new _TestOptionSpecification('hot_reload', 'Run hot reload stress tests',
+          ['--hot-reload'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
-          false, type: 'bool'),
-      new _TestOptionSpecification(
           'hot_reload_rollback',
-          'Run hot reload rollback stress tests', ['--hot-reload-rollback'],
+          'Run hot reload rollback stress tests',
+          ['--hot-reload-rollback'],
           [],
-          false, type: 'bool'),
+          false,
+          type: 'bool'),
       new _TestOptionSpecification(
           'use_blobs',
           'Use mmap instead of shared libraries for precompilation',
-          ['--use-blobs'], [], false, type: 'bool'),
+          ['--use-blobs'],
+          [],
+          false,
+          type: 'bool'),
       new _TestOptionSpecification(
           'timeout', 'Timeout in seconds', ['-t', '--timeout'], [], -1,
           type: 'int'),
@@ -261,6 +285,9 @@ class TestOptionsParser {
           type: 'bool'),
       new _TestOptionSpecification(
           'verbose', 'Verbose output', ['-v', '--verbose'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
@@ -581,56 +608,56 @@ Note: currently only implemented for dart2js.''',
   // For printing out reproducing command lines, we don't want to add these
   // options.
   Set<String> _blacklistedOptions = new Set<String>.from([
-    'progress',
-    'failure-summary',
-    'step_name',
-    'report',
-    'tasks',
-    'verbose',
-    'time',
-    'dart',
-    'drt',
-    'dartium',
-    'firefox',
-    'chrome',
-    'safari',
-    'build_directory',
     'append_logs',
+    'build_directory',
+    'chrome',
+    'copy_coredumps',
+    'dart',
+    'dartium',
+    'drt',
+    'exclude_suite',
+    'failure-summary',
+    'firefox',
     'local_ip',
+    'progress',
+    'report',
+    'safari',
     'shard',
     'shards',
+    'step_name',
+    'tasks',
+    'time',
+    'verbose',
+    'write_debug_log',
+    'write_test_outcome_log',
   ]);
 
   List<String> _constructReproducingCommandArguments(Map config) {
     var arguments = new List<String>();
-    for (var configKey in config.keys) {
-      if (!_blacklistedOptions.contains(configKey)) {
-        for (var option in _options) {
-          var configValue = config[configKey];
-          // We only include entries of [conf] if we find an option for it.
-          if (configKey == option.name && configValue != option.defaultValue) {
-            var isBooleanOption = option.type == 'bool';
-            // Sort by length, so we get the shortest variant.
-            var possibleOptions = new List.from(option.keys);
-            possibleOptions.sort((a, b) => (a.length < b.length ? -1 : 1));
-            var key = possibleOptions[0];
-            if (key.startsWith('--')) {
-              // long version
-              arguments.add(key);
-              if (!isBooleanOption) {
-                arguments.add("$configValue");
-              }
-            } else {
-              // short version
-              assert(key.startsWith('-'));
-              if (!isBooleanOption) {
-                arguments.add("$key$configValue");
-              } else {
-                arguments.add(key);
-              }
-            }
-          }
-        }
+    for (var option in _options) {
+      var name = option.name;
+      if (!config.containsKey(name) || _blacklistedOptions.contains(name)) {
+        continue;
+      }
+      var value = config[name];
+      if (config[name] == option.defaultValue ||
+          (name == 'packages' &&
+              value ==
+                  TestUtils.dartDirUri.resolve('.packages').toFilePath())) {
+        continue;
+      }
+      shortest(String a, String b) => a.length <= b.length ? a : b;
+      var key = option.keys.reduce(shortest);
+      if (option.type == 'bool') {
+        arguments.add(key);
+      } else if (key.startsWith('--')) {
+        // long version
+        arguments.add(key);
+        arguments.add("$value");
+      } else {
+        // short version
+        assert(key.startsWith('-'));
+        arguments.add("$key$value");
       }
     }
     return arguments;
@@ -670,12 +697,16 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['none'];
         break;
       case 'dart2app':
-        validRuntimes = const ['dart_app'];
-        break;
       case 'dart2appjit':
         validRuntimes = const ['dart_app'];
         break;
       case 'precompiler':
+        validRuntimes = const ['dart_precompiled'];
+        break;
+      case 'dartk':
+        validRuntimes = const ['vm'];
+        break;
+      case 'dartkp':
         validRuntimes = const ['dart_precompiled'];
         break;
       case 'none':
@@ -814,20 +845,23 @@ Note: currently only implemented for dart2js.''',
     if (selectors.containsKey('observatory_ui')) {
       if (selectors.length == 1) {
         configuration['packages'] = TestUtils.dartDirUri
-          .resolve('runtime/observatory/.packages').toFilePath();
+            .resolve('runtime/observatory/.packages')
+            .toFilePath();
       } else {
         // Make a new configuration whose selectors map only contains
         // observatory_ui, and remove the key from the original selectors.
         // The only mutable value in the map is the selectors, so a
         // shallow copy is safe.
         var observatoryConfiguration = new Map.from(configuration);
-        observatoryConfiguration['selectors'] =
-          {'observatory_ui': selectors['observatory_ui']};
+        observatoryConfiguration['selectors'] = {
+          'observatory_ui': selectors['observatory_ui']
+        };
         selectors.remove('observatory_ui');
 
         // Set the packages flag.
         observatoryConfiguration['packages'] = TestUtils.dartDirUri
-          .resolve('runtime/observatory/.packages').toFilePath();
+            .resolve('runtime/observatory/.packages')
+            .toFilePath();
 
         // Return the expansions of both configurations. Neither will reach
         // this line in the recursive call to _expandConfigurations.
@@ -839,9 +873,9 @@ Note: currently only implemented for dart2js.''',
     if (configuration['package_root'] == null &&
         configuration['packages'] == null) {
       configuration['packages'] =
-        TestUtils.dartDirUri.resolve('.packages').toFilePath();     
+          TestUtils.dartDirUri.resolve('.packages').toFilePath();
     }
-    
+
     // Expand the architectures.
     if (configuration['arch'].contains(',')) {
       return _expandHelper('arch', configuration);
@@ -871,8 +905,8 @@ Note: currently only implemented for dart2js.''',
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
-      var isReload = configuration['hot_reload'] ||
-                     configuration['hot_reload_rollback'];
+      var isReload =
+          configuration['hot_reload'] || configuration['hot_reload_rollback'];
       int compilerMulitiplier =
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
       int runtimeMultiplier = new RuntimeConfiguration(configuration)

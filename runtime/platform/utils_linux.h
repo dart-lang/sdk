@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_UTILS_LINUX_H_
-#define PLATFORM_UTILS_LINUX_H_
+#ifndef RUNTIME_PLATFORM_UTILS_LINUX_H_
+#define RUNTIME_PLATFORM_UTILS_LINUX_H_
 
 #include <endian.h>  // NOLINT
 
@@ -62,8 +62,8 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
 
 
 inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
-#if !defined(__GLIBC__) ||                                              \
-((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
+#if !defined(__GLIBC__) ||                                                     \
+    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
   // Use the XSI version.
   if (strerror_r(err, buffer, bufsize) != 0) {
     snprintf(buffer, bufsize, "%s", "strerror_r failed");
@@ -77,4 +77,4 @@ inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
 
 }  // namespace dart
 
-#endif  // PLATFORM_UTILS_LINUX_H_
+#endif  // RUNTIME_PLATFORM_UTILS_LINUX_H_

@@ -73,7 +73,7 @@ The produced `world.dart.js` fully links all dependencies (`dart_sdk`, `hello`, 
 
 ## Feedback
 
-Please file issues in our [GitHub issue tracker](https://github.com/dart-lang/dev_compiler/issues).
+Please file issues in our [GitHub issue tracker](https://github.com/dart-lang/sdk/issues).
 
 You can also view or join our [mailing list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).
 

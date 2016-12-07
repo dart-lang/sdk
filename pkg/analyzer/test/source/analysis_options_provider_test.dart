@@ -10,17 +10,18 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
 import '../resource_utils.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisOptionsProviderOldTest);
-  defineReflectiveTests(AnalysisOptionsProviderNewTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisOptionsProviderOldTest);
+    defineReflectiveTests(AnalysisOptionsProviderNewTest);
+  });
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
       var optionsProvider = new AnalysisOptionsProvider();
@@ -115,14 +116,17 @@ abstract class AnalysisOptionsProviderTest {
   TestPathTranslator pathTranslator;
   ResourceProvider resourceProvider;
 
-  AnalysisOptionsProvider provider = new AnalysisOptionsProvider();
+  AnalysisOptionsProvider provider;
 
   String get optionsFileName;
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
+    var rawProvider = new MemoryResourceProvider();
     resourceProvider = new TestResourceProvider(rawProvider);
     pathTranslator = new TestPathTranslator(rawProvider);
+    provider = new AnalysisOptionsProvider(new SourceFactory([
+      new ResourceUriResolver(rawProvider),
+    ]));
   }
 
   void test_getOptions_crawlUp_hasInFolder() {
@@ -186,6 +190,44 @@ analyzer:
     Map<String, YamlNode> options = _getOptions('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
+  }
+
+  void test_getOptions_include() {
+    pathTranslator.newFile(
+        '/foo.include',
+        r'''
+analyzer:
+  ignore:
+    - ignoreme.dart
+    - 'sdk_ext/**'
+''');
+    pathTranslator.newFile(
+        '/$optionsFileName',
+        r'''
+include: foo.include
+''');
+    Map<String, YamlNode> options = _getOptions('/');
+    expect(options, hasLength(1));
+    {
+      YamlMap analyzer = options['analyzer'];
+      expect(analyzer, hasLength(1));
+      {
+        YamlList ignore = analyzer['ignore'];
+        expect(ignore, hasLength(2));
+        expect(ignore[0], 'ignoreme.dart');
+        expect(ignore[1], 'sdk_ext/**');
+      }
+    }
+  }
+
+  void test_getOptions_include_missing() {
+    pathTranslator.newFile(
+        '/$optionsFileName',
+        r'''
+include: /foo.include
+''');
+    Map<String, YamlNode> options = _getOptions('/');
+    expect(options, hasLength(0));
   }
 
   void test_getOptions_invalid() {

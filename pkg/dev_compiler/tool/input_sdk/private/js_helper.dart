@@ -768,7 +768,7 @@ class JSName {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
+abstract class JavaScriptIndexingBehavior {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.

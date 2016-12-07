@@ -11,23 +11,40 @@ import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' hide ERROR;
 
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 import '../context/mock_sdk.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(PubSummaryManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(PubSummaryManagerTest);
+  });
 }
 
 @reflectiveTest
 class PubSummaryManagerTest extends AbstractContextTest {
+  /**
+   * The path to the root of the pubcache directory used in these tests. The
+   * path has not been converted to the current platform, and is therefore only
+   * appropriate for composing paths that will later be converted.
+   */
   static const String CACHE = '/home/.pub-cache/hosted/pub.dartlang.org';
 
   PubSummaryManager manager;
+
+  Folder getFolder(String path) =>
+      resourceProvider.getFolder(resourceProvider.convertPath(path));
+
+  File newFile(String path, String content) {
+    //, [int stamp]) {
+    return resourceProvider.newFile(
+        resourceProvider.convertPath(path), content);
+  }
+
+  Folder newFolder(String path) =>
+      resourceProvider.newFolder(resourceProvider.convertPath(path));
 
   void setUp() {
     super.setUp();
@@ -36,20 +53,20 @@ class PubSummaryManagerTest extends AbstractContextTest {
 
   test_computeUnlinkedForFolder() async {
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '/flutter/aaa/lib/a.dart',
         '''
 class A {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '/flutter/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('/flutter/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('/flutter/bbb/lib');
+    Folder libFolderA = newFolder('/flutter/aaa/lib');
+    Folder libFolderB = newFolder('/flutter/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -72,32 +89,32 @@ class B {}
   test_getLinkedBundles_cached() async {
     String pathA1 = '$CACHE/aaa-1.0.0';
     String pathA2 = '$CACHE/aaa-2.0.0';
-    resourceProvider.newFile(
+    newFile(
         '$pathA1/lib/a.dart',
         '''
 class A {}
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$pathA2/lib/a.dart',
         '''
 class A2 {}
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:aaa/a.dart';
 A b;
 ''');
-    Folder folderA1 = resourceProvider.getFolder(pathA1);
-    Folder folderA2 = resourceProvider.getFolder(pathA2);
-    Folder folderB = resourceProvider.getFolder('$CACHE/bbb');
+    Folder folderA1 = getFolder(pathA1);
+    Folder folderA2 = getFolder(pathA2);
+    Folder folderB = getFolder('$CACHE/bbb');
 
     // Configure packages resolution.
-    Folder libFolderA1 = resourceProvider.newFolder('$pathA1/lib');
-    Folder libFolderA2 = resourceProvider.newFolder('$pathA2/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA1 = newFolder('$pathA1/lib');
+    Folder libFolderA2 = newFolder('$pathA2/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -184,24 +201,24 @@ A b;
 
   test_getLinkedBundles_cached_differentSdk() async {
     String pathA = '$CACHE/aaa';
-    resourceProvider.newFile(
+    newFile(
         '$pathA/lib/a.dart',
         '''
 class A {}
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:aaa/a.dart';
 A b;
 ''');
-    Folder folderA = resourceProvider.getFolder(pathA);
-    Folder folderB = resourceProvider.getFolder('$CACHE/bbb');
+    Folder folderA = getFolder(pathA);
+    Folder folderB = getFolder('$CACHE/bbb');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$pathA/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$pathA/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -237,7 +254,7 @@ A b;
     // Use DartSdk with a different API signature.
     // Different linked bundles should be created.
     {
-      MockSdk sdk = new MockSdk();
+      MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
       sdk.updateUriFile('dart:math', (String content) {
         return content + '  class NewMathClass {}';
       });
@@ -270,14 +287,14 @@ A b;
 
   test_getLinkedBundles_cached_inconsistent_majorVersion() async {
     String pathA = '$CACHE/aaa';
-    resourceProvider.newFile(
+    newFile(
         '$pathA/lib/a.dart',
         '''
 class A {}
 int a;
 ''');
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$pathA/lib');
+    Folder libFolderA = newFolder('$pathA/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -310,7 +327,7 @@ int a;
   }
 
   test_getLinkedBundles_hasCycle() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
@@ -318,14 +335,14 @@ class A {}
 int a1;
 B a2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
 class B {}
 C b;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 import 'package:aaa/a.dart';
@@ -334,7 +351,7 @@ class C {}
 A c1;
 D c2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ddd/lib/d.dart',
         '''
 class D {}
@@ -342,10 +359,10 @@ String d;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
-    Folder libFolderD = resourceProvider.newFolder('$CACHE/ddd/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
+    Folder libFolderD = newFolder('$CACHE/ddd/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -407,21 +424,21 @@ String d;
   }
 
   test_getLinkedBundles_missingBundle_listed() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
 B a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -443,26 +460,26 @@ class B {}
   }
 
   test_getLinkedBundles_missingBundle_listed_chained() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 class C {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -485,27 +502,27 @@ class C {}
   }
 
   test_getLinkedBundles_missingBundle_listed_partial() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
 C b;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 class C {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -536,12 +553,12 @@ class C {}
   }
 
   test_getLinkedBundles_missingBundle_notListed() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
@@ -550,8 +567,8 @@ C b2;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -592,14 +609,14 @@ C b2;
   }
 
   test_getLinkedBundles_missingLibrary() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b2.dart';
 int a1;
 B2 a2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
@@ -607,8 +624,8 @@ int b = 42;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -648,13 +665,13 @@ int b = 42;
   }
 
   test_getLinkedBundles_missingLibrary_hasCycle() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
 B a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:aaa/a.dart';
@@ -663,7 +680,7 @@ class B {}
 int b1;
 C2 b2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 class C {}
@@ -671,9 +688,9 @@ int c;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -725,13 +742,13 @@ int c;
   }
 
   test_getLinkedBundles_noCycle() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 class A {}
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:aaa/a.dart';
@@ -739,8 +756,8 @@ A b;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -776,20 +793,20 @@ A b;
   }
 
   test_getLinkedBundles_noCycle_relativeUri() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'src/a2.dart';
 A a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/src/a2.dart',
         '''
 class A {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -816,27 +833,27 @@ class A {}
   }
 
   test_getLinkedBundles_noCycle_withExport() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
 C a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 export 'package:ccc/c.dart';
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 class C {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -865,7 +882,7 @@ class C {}
   }
 
   test_getLinkedBundles_wrongScheme() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'xxx:yyy/zzz.dart';
@@ -874,7 +891,7 @@ Z a2;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -907,25 +924,25 @@ Z a2;
 
   test_getUnlinkedBundles() async {
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 class A {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/src/a2.dart',
         '''
 class A2 {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -975,14 +992,14 @@ class B {}
 
   test_getUnlinkedBundles_inconsistent_majorVersion() async {
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 class A {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolder = resourceProvider.newFolder('$CACHE/aaa/lib');
+    Folder libFolder = newFolder('$CACHE/aaa/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -1026,20 +1043,20 @@ class A {}
   test_getUnlinkedBundles_notPubCache_dontCreate() async {
     String aaaPath = '/Users/user/projects/aaa';
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '$aaaPath/lib/a.dart',
         '''
 class A {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = getFolder('$aaaPath/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -1080,7 +1097,7 @@ class B {}
     String aaaPath = '/Users/user/projects/aaa';
     // Create package files.
     {
-      File file = resourceProvider.newFile(
+      File file = newFile(
           '$aaaPath/lib/a.dart',
           '''
 class A {}
@@ -1090,18 +1107,19 @@ class A {}
             file.createSource(FastUri.parse('package:aaa/a.dart')),
             new UnlinkedUnitBuilder());
       resourceProvider.newFileWithBytes(
-          '$aaaPath/${PubSummaryManager.UNLINKED_SPEC_NAME}',
+          resourceProvider
+              .convertPath('$aaaPath/${PubSummaryManager.UNLINKED_SPEC_NAME}'),
           assembler.assemble().toBuffer());
     }
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = getFolder('$aaaPath/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -1150,14 +1168,14 @@ class B {}
   test_getUnlinkedBundles_notPubCache_useExisting_inconsistent() async {
     String aaaPath = '/Users/user/projects/aaa';
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '$aaaPath/lib/a.dart',
         '''
 class A {}
 ''');
 
     // Compute the bundles.
-    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
+    Folder libFolderA = getFolder('$aaaPath/lib');
     await new PubSummaryManager(resourceProvider, '_.temp')
         .computeUnlinkedForFolder('aaa', libFolderA);
 
@@ -1176,7 +1194,7 @@ class A {}
     // Update a Dart file.
     // So, the cached bundle cannot be reused.
     resourceProvider.updateFile(
-        '$aaaPath/lib/a.dart',
+        resourceProvider.convertPath('$aaaPath/lib/a.dart'),
         '''
 class A2 {}
 ''');
@@ -1281,10 +1299,10 @@ class A2 {}
   _testImpl_getLinkedBundles_cached_declaredVariables(
       String importOrExport) async {
     String pathA = '$CACHE/aaa/lib';
-    resourceProvider.newFile('$pathA/foo.dart', 'class A {}');
-    resourceProvider.newFile('$pathA/foo_io.dart', 'class A {}');
-    resourceProvider.newFile('$pathA/foo_html.dart', 'class A {}');
-    resourceProvider.newFile(
+    newFile('$pathA/foo.dart', 'class A {}');
+    newFile('$pathA/foo_io.dart', 'class A {}');
+    newFile('$pathA/foo_html.dart', 'class A {}');
+    newFile(
         '$pathA/user.dart',
         '''
 $importOrExport 'foo.dart'
@@ -1292,7 +1310,7 @@ $importOrExport 'foo.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder(pathA);
+    Folder libFolderA = newFolder(pathA);
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,

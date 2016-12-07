@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CPUINFO_H_
-#define VM_CPUINFO_H_
+#ifndef RUNTIME_VM_CPUINFO_H_
+#define RUNTIME_VM_CPUINFO_H_
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
@@ -16,7 +16,8 @@ enum CpuInfoIndices {
   kCpuInfoModel = 1,
   kCpuInfoHardware = 2,
   kCpuInfoFeatures = 3,
-  kCpuInfoMax = 4,
+  kCpuInfoArchitecture = 4,
+  kCpuInfoMax = 5,
 };
 
 // For Intel architectures, the method to use to get CPU information.
@@ -72,4 +73,4 @@ class CpuInfo : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_CPUINFO_H_
+#endif  // RUNTIME_VM_CPUINFO_H_

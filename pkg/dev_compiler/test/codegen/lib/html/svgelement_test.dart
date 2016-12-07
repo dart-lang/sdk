@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library SvgElementTest;
 import 'dart:html';
 import 'dart:svg' as svg;
-import 'package:expect/expect.dart';
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/minitest.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   var isSvgSvgElement =
       predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
 
@@ -47,12 +43,12 @@ main() {
           "</svg>";
       final el = new svg.SvgElement.svg(svgContent);
       expect(el, isSvgSvgElement);
-      expect(el.innerHtml, anyOf("<circle></circle><path></path>", '<circle '
+      expect(el.innerHtml, anyOf(["<circle></circle><path></path>", '<circle '
           'xmlns="http://www.w3.org/2000/svg" /><path '
-          'xmlns="http://www.w3.org/2000/svg" />'));
-      expect(el.outerHtml, anyOf(svgContent,
+          'xmlns="http://www.w3.org/2000/svg" />']));
+      expect(el.outerHtml, anyOf([svgContent,
           '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n  '
-          '<circle />\n  <path />\n</svg>'));
+          '<circle />\n  <path />\n</svg>']));
     });
 
     test('has no parent', () =>

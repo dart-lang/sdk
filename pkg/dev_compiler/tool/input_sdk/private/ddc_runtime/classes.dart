@@ -64,12 +64,12 @@ mixin(base, @rest mixins) => JS(
 /// The Symbol for storing type arguments on a specialized generic type.
 final _mixins = JS('', 'Symbol("mixins")');
 
-getMixins(clazz) => JS('', '$clazz[$_mixins]');
+getMixins(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null', clazz, _mixins, clazz, _mixins);
 
 @JSExportName('implements')
 final _implements = JS('', 'Symbol("implements")');
 
-getImplements(clazz) => JS('', '#[#]', clazz, _implements);
+getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null', clazz, _implements, clazz, _implements);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
@@ -97,7 +97,7 @@ flattenFutures(builder) => JS(
 })()''');
 
 /// Memoize a generic type constructor function.
-generic(typeConstructor) => JS(
+generic(typeConstructor, [setBaseClass]) => JS(
     '',
     '''(() => {
   let length = $typeConstructor.length;
@@ -128,10 +128,12 @@ generic(typeConstructor) => JS(
             value[$_typeArguments] = args;
             value[$_originalDeclaration] = makeGenericType;
           }
+          map.set(arg, value);
+          if ($setBaseClass) $setBaseClass(value);
         } else {
           value = new Map();
+          map.set(arg, value);
         }
-        map.set(arg, value);
       }
     }
     return value;
@@ -459,11 +461,6 @@ defineExtensionMembers(type, methodNames) => JS(
   let proto = $type.prototype;
   for (let name of $methodNames) {
     let method = $getOwnPropertyDescriptor(proto, name);
-    // TODO(vsm): We should be able to generate code to avoid this case.
-    // The method may be null if this type implements a potentially native
-    // interface but isn't native itself.  For a field on this type, we're not
-    // generating a corresponding getter/setter method - it's just a field.
-    if (!method) continue;
     $defineProperty(proto, $getExtensionSymbol(name), method);
   }
   // Ensure the signature is available too.
@@ -501,10 +498,13 @@ setBaseClass(derived, base) {
 
 /// Like [setBaseClass] but for generic extension types, e.g. `JSArray<E>`
 setExtensionBaseClass(derived, base) {
-  // Mark the generic type as an extension type.
-  JS('', '#.prototype[#] = #', derived, _extensionType, derived);
-  // Link the prototype objects
-  JS('', '#.prototype.__proto__ = #.prototype', derived, base);
+  // Mark the generic type as an extension type and link the prototype objects
+  return JS('', '''(() => {
+    if ($base) {
+      $derived.prototype[$_extensionType] = $derived;
+      $derived.prototype.__proto__ = $base.prototype
+    }
+})()''');
 }
 
 /// Given a special constructor function that creates a function instances,
@@ -541,4 +541,17 @@ defineNamedConstructorCallable(clazz, name, ctor) => JS(
   // Use defineProperty so we don't hit a property defined on Function,
   // like `caller` and `arguments`.
   $defineProperty($clazz, $name, { value: ctor, configurable: true });
+})()''');
+
+defineEnumValues(enumClass, names) => JS(
+    '',
+    '''(() => {
+  let values = [];
+  for (var i = 0; i < $names.length; i++) {
+    let value = $const_(new $enumClass(i));
+    values.push(value);
+    Object.defineProperty($enumClass, $names[i],
+        { value: value, configurable: true });
+  }
+  $enumClass.values = $constList(values, $enumClass);
 })()''');

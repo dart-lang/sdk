@@ -11,12 +11,8 @@ class B {}
 
 class A {
   B x, y;
-  A(this.x) {
-    // Promote to subtype.
-    if (x is C) y = x.x;
-    // Promotion fails, not a subtype.
-    if (x is A) y = x;
-  }
+  // Promotion occurs for the initializing formal because C <: B.
+  A(this.x) : y = (x is C) ? x.x : x;
 }
 
 class C extends A implements B {
@@ -24,8 +20,8 @@ class C extends A implements B {
 }
 
 main() {
-  C c2 = new C(null);
-  C cc = new C(c2);
-  Expect.equals(c2.y, null);
-  Expect.equals(cc.y, c2);
+  C c = new C(null);
+  C cc = new C(c);
+  Expect.equals(c.y, null);
+  Expect.equals(cc.y, null);
 }

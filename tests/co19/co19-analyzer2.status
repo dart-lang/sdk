@@ -4,16 +4,7 @@
 
 [ $compiler == dart2analyzer ]
 
-# Trailing commas are now allowed by the language - issue #26644
-Language/Functions/Formal_Parameters/syntax_t12: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t05: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t04: MissingCompileTimeError
-Language/Expressions/Function_Invocation/Actual_Argument_List_Evaluation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t05: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/syntax_t10: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/syntax_t05: MissingCompileTimeError
-# End issue #26644
-
+Language/Functions/Formal_Parameters/syntax_t05: StaticWarning # Issue 26644
 Language/Classes/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
 Language/Classes/Getters/static_t01: StaticWarning # Please triage this failure.
@@ -37,7 +28,6 @@ Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: Missin
 Language/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
 Language/Enums/syntax_t08: MissingCompileTimeError # Please triage this failure.
 Language/Enums/syntax_t09: MissingCompileTimeError # Please triage this failure.
-Language/Expressions/Assignable_Expressions/syntax_t08: StaticWarning
 Language/Expressions/Assignment/super_assignment_static_warning_t03: StaticWarning # Issue 15467
 Language/Expressions/Constants/exception_t01: fail, OK # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/Expressions/Constants/exception_t02: fail, OK # co19 issue #438, Static variables are initialized lazily, need not be constants
@@ -166,7 +156,6 @@ Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError #
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t03: StaticWarning # Please triage this failure.
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure.
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure.
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # co19 issue 60.
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError # Please triage this failure.
 Language/Libraries_and_Scripts/Parts/compilation_t01: Pass, MissingCompileTimeError # Issue 26692
 Language/Libraries_and_Scripts/Parts/compilation_t02: Pass, MissingCompileTimeError # Issue 26692
@@ -210,7 +199,6 @@ LayoutTests/fast/animation/request-animation-frame-missing-arguments_t01: Static
 LayoutTests/fast/backgrounds/001_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: StaticWarning # Issue 20939
 LayoutTests/fast/canvas/canvas-createImageBitmap-animated_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-specific_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/DOMImplementation/createDocumentType-err_t01: StaticWarning # Please triage this failure.
@@ -265,7 +253,6 @@ LayoutTests/fast/dom/icon-url-change_t01: StaticWarning # Please triage this fai
 LayoutTests/fast/dom/icon-url-list_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/implementation-api-args_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/javascript-backslash_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/dom/location-missing-arguments_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # Please triage this failure. isProtocolHandlerRegistered and unregisterProtocolHandler don't exist
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/option-properties_t01: StaticWarning # Please triage this failure.
@@ -353,26 +340,6 @@ LibTest/html/Window/requestFileSystem_A01_t02: StaticWarning # Please triage thi
 LibTest/html/Window/requestFileSystem_A02_t01: StaticWarning # Please triage this failure.
 LibTest/html/Window/resizeBy_A01_t01: StaticWarning # Please triage this failure.
 LibTest/html/Window/resizeTo_A01_t01: StaticWarning # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t01: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawnUri_A02_t06: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawnUri_A02_t07: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A02_t04: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A02_t05: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A02_t06: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A02_t07: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A04_t01: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A04_t02: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A04_t03: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A04_t04: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A04_t05: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A05_t03: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t01: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t02: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t03: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t04: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t05: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t06: StaticWarning # co19 issue 74
-LibTest/isolate/Isolate/spawn_A06_t07: StaticWarning # co19 issue 74
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # Please triage this failure.
 LibTest/isolate/IsolateStream/any_A02_t01: Fail # Please triage this failure.
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # Please triage this failure.

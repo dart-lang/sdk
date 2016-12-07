@@ -19,11 +19,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
@@ -410,7 +410,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         PrefixedIdentifier oTarget = o.target;
         checkElidablePrefix(oTarget.prefix);
         compareConstAsts(
-            r, AstFactory.identifier(oTarget.identifier, o.propertyName), desc);
+            r,
+            AstTestFactory.identifier(oTarget.identifier, o.propertyName),
+            desc);
       } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
         compareConstAsts(r.prefix, o.prefix, desc);
         compareConstAsts(r.identifier, o.identifier, desc);
@@ -542,18 +544,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         }
         compareConstAstLists(
             r.arguments?.arguments, o.arguments?.arguments, desc);
-        Element expectedElement = o.element;
-        if (oName is PrefixedIdentifier &&
-            o.constructorName != null &&
-            o.element != null) {
-          // Due to dartbug.com/25706, [o.element] incorrectly points to the
-          // class rather than the named constructor.  Hack around this.
-          // TODO(paulberry): when dartbug.com/25706 is fixed, remove this.
-          expectedElement = (expectedElement as ClassElement)
-              .getNamedConstructor(o.constructorName.name);
-          expect(expectedElement, isNotNull, reason: desc);
-        }
-        compareElements(r.element, expectedElement, desc);
+        compareElements(r.element, o.element, desc);
         // elementAnnotation should be null; it is only used in the full AST.
         expect(o.elementAnnotation, isNull);
         expect(r.elementAnnotation, isNull);
@@ -928,6 +919,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     expect(resynthesized.defaultValueCode, original.defaultValueCode,
         reason: desc);
+    expect(resynthesized.isCovariant, original.isCovariant, reason: desc);
     ParameterElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     ParameterElementImpl originalActual = getActualElement(original, desc);
@@ -1126,8 +1118,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   /**
    * Determine the analysis options that should be used for this test.
    */
-  AnalysisOptionsImpl createOptions() =>
-      new AnalysisOptionsImpl()..enableGenericMethods = true;
+  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl();
 
   ElementImpl getActualElement(Element element, String desc) {
     if (element == null) {
@@ -1268,6 +1259,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       return false;
     } else if (modifier == Modifier.STATIC) {
       if (element is ExecutableElement) {
+        return element.isStatic;
+      } else if (element is FieldElement) {
         return element.isStatic;
       }
       return false;
@@ -1642,6 +1635,14 @@ f() {
   print(() {});
   print(() => () => 0);
 }
+''');
+  }
+
+  test_closure_in_variable_declaration_in_part() {
+    addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
+    checkLibrary('''
+library lib;
+part "a.dart";
 ''');
   }
 
@@ -2303,6 +2304,12 @@ const vIdentical = (1 == 2) ? 11 : 22;
 ''');
   }
 
+  test_const_topLevel_ifNull() {
+    checkLibrary(r'''
+const vIfNull = 1 ?? 2.0;
+''');
+  }
+
   test_const_topLevel_literal() {
     checkLibrary(r'''
 const vNull = null;
@@ -2590,6 +2597,27 @@ class C<T, U> {
 ''');
   }
 
+  test_constructor_redirected_factory_named_unresolved_class() {
+    checkLibrary(
+        '''
+class C<E> {
+  factory C() = D.named<E>;
+}
+''',
+        allowErrors: true);
+  }
+
+  test_constructor_redirected_factory_named_unresolved_constructor() {
+    checkLibrary(
+        '''
+class D {}
+class C<E> {
+  factory C() = D.named<E>;
+}
+''',
+        allowErrors: true);
+  }
+
   test_constructor_redirected_factory_unnamed() {
     checkLibrary('''
 class C {
@@ -2686,6 +2714,16 @@ class C<T, U> {
 ''');
   }
 
+  test_constructor_redirected_factory_unnamed_unresolved() {
+    checkLibrary(
+        '''
+class C<E> {
+  factory C() = D<E>;
+}
+''',
+        allowErrors: true);
+  }
+
   test_constructor_redirected_thisInvocation_named() {
     checkLibrary('''
 class C {
@@ -2744,6 +2782,35 @@ class C {
 class D {
   final x;
   D() : x = new C();
+}
+''');
+  }
+
+  void test_covariant_parameter() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // my need to be changed.
+    checkLibrary(r'''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+''');
+  }
+
+  void test_covariant_parameter_inherited() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // my need to be changed.
+    checkLibrary(r'''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
 }
 ''');
   }
@@ -3171,12 +3238,12 @@ f() {}''');
   }
 
   test_function_type_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('T f<T, U>(U u) => null;');
   }
 
   test_function_type_parameter_with_function_typed_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('void f<T, U>(T x(U u)) {}');
   }
 
@@ -3185,7 +3252,7 @@ f() {}''');
   }
 
   test_generic_gClass_gMethodStatic() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -3373,6 +3440,18 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(resynthesized.imports[1].importedLibrary.isDartCore, true);
   }
 
+  test_import_short_absolute() {
+    if (resourceProvider.pathContext.separator == '\\') {
+      // This test fails on Windows due to
+      // https://github.com/dart-lang/path/issues/18
+      // TODO(paulberry): reenable once that bug is addressed.
+      return;
+    }
+    testFile = '/my/project/bin/test.dart';
+    addLibrarySource('/a.dart', 'class C {}');
+    checkLibrary('import "/a.dart"; C c;');
+  }
+
   test_import_show() {
     addLibrary('dart:async');
     checkLibrary('''
@@ -3538,6 +3617,32 @@ var v = f(g: (x, y) {});
         ' abstract class D { void set f(int g(String s)); }');
   }
 
+  void test_inferredType_definedInSdkLibraryPart() {
+    addSource(
+        '/a.dart',
+        r'''
+import 'dart:async';
+class A {
+  m(Stream p) {}
+}
+''');
+    LibraryElement library = checkLibrary(r'''
+import 'a.dart';
+class B extends A {
+  m(p) {}
+}
+  ''');
+    ClassElement b = library.definingCompilationUnit.types[0];
+    ParameterElement p = b.methods[0].parameters[0];
+    // This test should verify that we correctly record inferred types,
+    // when the type is defined in a part of an SDK library. So, test that
+    // the type is actually in a part.
+    Element streamElement = p.type.element;
+    if (streamElement is ClassElement) {
+      expect(streamElement.source, isNot(streamElement.library.source));
+    }
+  }
+
   void test_inferredType_usesSyntheticFunctionType_functionTypedParam() {
     checkLibrary('''
 int f(int x(String y)) => null;
@@ -3546,8 +3651,51 @@ var v = [f, g];
 ''');
   }
 
+  test_inheritance_errors() {
+    checkLibrary('''
+abstract class A {
+  int m();
+}
+
+abstract class B {
+  String m();
+}
+
+abstract class C implements A, B {}
+
+abstract class D extends C {
+  var f;
+}
+''');
+  }
+
   test_initializer_executable_with_return_type_from_closure() {
     checkLibrary('var v = () => 0;');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_dynamic() {
+    checkLibrary('var v = (f) async => await f;');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_future3_int() {
+    checkLibrary(r'''
+import 'dart:async';
+var v = (Future<Future<Future<int>>> f) async => await f;
+''');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_future_int() {
+    checkLibrary(r'''
+import 'dart:async';
+var v = (Future<int> f) async => await f;
+''');
+  }
+
+  test_initializer_executable_with_return_type_from_closure_await_future_noArg() {
+    checkLibrary(r'''
+import 'dart:async';
+var v = (Future f) async => await f;
+''');
   }
 
   test_initializer_executable_with_return_type_from_closure_field() {
@@ -4006,17 +4154,17 @@ class C {
   }
 
   test_method_type_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('class C { T f<T, U>(U u) => null; }');
   }
 
   test_method_type_parameter_in_generic_class() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
   }
 
   test_method_type_parameter_with_function_typed_parameter() {
-    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions());
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
@@ -4469,48 +4617,51 @@ typedef F();''');
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() {
-    checkLibrary('@foo.bar() class C {}');
+    checkLibrary('@foo.bar() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() {
-    checkLibrary('@String.foo() class C {}');
+    checkLibrary('@String.foo() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() {
-    checkLibrary('@foo.bar class C {}');
+    checkLibrary('@foo.bar class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() {
-    checkLibrary('import "dart:async" as foo; @foo.bar class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.bar class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() {
-    checkLibrary('@foo.bar.baz() class C {}');
+    checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() {
-    checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}',
+        allowErrors: true);
   }
 
-  @failingTest // See dartbug.com/25706
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() {
-    checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() {
-    checkLibrary('@foo.bar() class C {}');
+    checkLibrary('@foo.bar() class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() {
-    checkLibrary('import "dart:async" as foo; @foo.bar() class C {}');
+    checkLibrary('import "dart:async" as foo; @foo.bar() class C {}',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_simpleIdentifier() {
-    checkLibrary('@foo class C {}');
+    checkLibrary('@foo class C {}', allowErrors: true);
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() {
-    checkLibrary('@foo() class C {}');
+    checkLibrary('@foo() class C {}', allowErrors: true);
   }
 
   test_unresolved_export() {

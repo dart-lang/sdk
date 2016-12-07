@@ -69,9 +69,13 @@ class DartFixContextImpl extends FixContextImpl implements DartFixContext {
  */
 class DefaultFixContributor extends DartFixContributor {
   @override
-  Future<List<Fix>> internalComputeFixes(DartFixContext context) {
-    FixProcessor processor = new FixProcessor(context);
-    return processor.compute();
+  Future<List<Fix>> internalComputeFixes(DartFixContext context) async {
+    try {
+      FixProcessor processor = new FixProcessor(context);
+      return processor.compute();
+    } on CancelCorrectionException {
+      return Fix.EMPTY_LIST;
+    }
   }
 }
 
@@ -135,7 +139,18 @@ class FixProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
-    utils = new CorrectionUtils(unit);
+    // If the source was changed between the constructor and running
+    // this asynchronous method, it is not safe to use the unit.
+    if (context.getModificationStamp(unitSource) != fileStamp) {
+      return const <Fix>[];
+    }
+
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
     errorOffset = error.offset;
     errorLength = error.length;
     errorEnd = errorOffset + errorLength;
@@ -270,15 +285,17 @@ class FixProcessor {
                 .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS) {
       // make class abstract
       _addFix_makeEnclosingClassAbstract();
-      // implement methods
-      AnalysisErrorWithProperties errorWithProperties =
-          error as AnalysisErrorWithProperties;
-      Object property =
-          errorWithProperties.getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
-      List<ExecutableElement> missingOverrides =
-          property as List<ExecutableElement>;
-      _addFix_createMissingOverrides(missingOverrides);
       _addFix_createNoSuchMethod();
+      // implement methods
+      // TODO(scheglov) Fix another way to get unimplemented methods.
+      // AnalysisErrorWithProperties does not work with the new analysis driver.
+      if (error is AnalysisErrorWithProperties) {
+        AnalysisErrorWithProperties errorWithProperties =
+            error as AnalysisErrorWithProperties;
+        List<ExecutableElement> missingOverrides = errorWithProperties
+            .getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
+        _addFix_createMissingOverrides(missingOverrides);
+      }
     }
     if (errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
         errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
@@ -355,6 +372,9 @@ class FixProcessor {
     if (errorCode is LintCode) {
       if (errorCode.name == LintNames.annotate_overrides) {
         _addLintFixAddOverrideAnnotation();
+      }
+      if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
+        _addLintRemoveInterpolationBraces();
       }
     }
     // done
@@ -1198,7 +1218,7 @@ class FixProcessor {
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
           String libName = _computeLibraryName(file);
           SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
-          doSourceChange_addSourceEdit(change, context, source, edit);
+          doSourceChange_addSourceEdit(change, source, edit, isNewFile: true);
           _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
         }
       }
@@ -1417,7 +1437,7 @@ class FixProcessor {
       if (source != null) {
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
-        doSourceChange_addSourceEdit(change, context, source, edit);
+        doSourceChange_addSourceEdit(change, source, edit, isNewFile: true);
         _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
       }
     }
@@ -2280,6 +2300,18 @@ class FixProcessor {
     _addFix(DartFixKind.LINT_ADD_OVERRIDE, []);
   }
 
+  void _addLintRemoveInterpolationBraces() {
+    AstNode node = this.node;
+    if (node is InterpolationExpression) {
+      Token right = node.rightBracket;
+      if (node.expression != null && right != null) {
+        _addReplaceEdit(rf.rangeStartStart(node, node.expression), r'$');
+        _addRemoveEdit(rf.rangeToken(right));
+        _addFix(DartFixKind.LINT_REMOVE_INTERPOLATION_BRACES, []);
+      }
+    }
+  }
+
   /**
    * Prepares proposal for creating function corresponding to the given
    * [FunctionType].
@@ -2896,6 +2928,8 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String unnecessary_brace_in_string_interp =
+      'unnecessary_brace_in_string_interp';
 }
 
 /**

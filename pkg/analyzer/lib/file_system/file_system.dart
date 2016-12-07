@@ -21,8 +21,14 @@ abstract class File implements Resource {
   Stream<WatchEvent> get changes;
 
   /**
+   * Synchronously get the length of the file.
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  int get lengthSync;
+
+  /**
    * Return the last-modified stamp of the file.
-   * Throws [FileSystemException] if the file does not exist.
+   * Throws a [FileSystemException] if the file does not exist.
    */
   int get modificationStamp;
 
@@ -260,8 +266,8 @@ class ResourceUriResolver extends UriResolver {
     if (!isFileUri(uri)) {
       return null;
     }
-    Resource resource =
-        _provider.getResource(_provider.pathContext.fromUri(uri));
+    String path = _provider.pathContext.fromUri(uri);
+    Resource resource = _provider.getResource(path);
     if (resource is File) {
       return resource.createSource(actualUri ?? uri);
     }

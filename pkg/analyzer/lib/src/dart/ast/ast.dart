@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
@@ -283,7 +282,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   Element get element {
     if (_element != null) {
       return _element;
-    } else if (_name != null) {
+    } else if (_constructorName == null && _name != null) {
       return _name.staticElement;
     }
     return null;
@@ -559,21 +558,16 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 }
 
 /**
- * An assert statement.
+ * An assert in the initializer list of a constructor.
  *
- *    assertStatement ::=
- *        'assert' '(' [Expression] ')' ';'
+ *    assertInitializer ::=
+ *        'assert' '(' [Expression] (',' [Expression])? ')'
  */
-class AssertStatementImpl extends StatementImpl implements AssertStatement {
-  /**
-   * The token representing the 'assert' keyword.
-   */
+class AssertInitializerImpl extends ConstructorInitializerImpl
+    implements AssertInitializer {
   @override
   Token assertKeyword;
 
-  /**
-   * The left parenthesis.
-   */
   @override
   Token leftParenthesis;
 
@@ -582,27 +576,104 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
    */
   Expression _condition;
 
-  /**
-   * The comma, if a message expression was supplied.  Otherwise `null`.
-   */
   @override
   Token comma;
 
   /**
-   * The message to report if the assertion fails.  `null` if no message was
+   * The message to report if the assertion fails, or `null` if no message was
    * supplied.
    */
   Expression _message;
 
-  /**
-   * The right parenthesis.
-   */
   @override
   Token rightParenthesis;
 
   /**
-   * The semicolon terminating the statement.
+   * Initialize a newly created assert initializer.
    */
+  AssertInitializerImpl(
+      this.assertKeyword,
+      this.leftParenthesis,
+      ExpressionImpl condition,
+      this.comma,
+      ExpressionImpl message,
+      this.rightParenthesis) {
+    _condition = _becomeParentOf(condition);
+    _message = _becomeParentOf(message);
+  }
+
+  @override
+  Token get beginToken => assertKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(assertKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(comma)
+    ..add(_message)
+    ..add(rightParenthesis);
+
+  @override
+  Expression get condition => _condition;
+
+  @override
+  void set condition(Expression condition) {
+    _condition = _becomeParentOf(condition as AstNodeImpl);
+  }
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  Expression get message => _message;
+
+  @override
+  void set message(Expression expression) {
+    _message = _becomeParentOf(expression as AstNodeImpl);
+  }
+
+  @override
+  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+      visitor.visitAssertInitializer(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _condition?.accept(visitor);
+    message?.accept(visitor);
+  }
+}
+
+/**
+ * An assert statement.
+ *
+ *    assertStatement ::=
+ *        'assert' '(' [Expression] ')' ';'
+ */
+class AssertStatementImpl extends StatementImpl implements AssertStatement {
+  @override
+  Token assertKeyword;
+
+  @override
+  Token leftParenthesis;
+
+  /**
+   * The condition that is being asserted to be `true`.
+   */
+  Expression _condition;
+
+  @override
+  Token comma;
+
+  /**
+   * The message to report if the assertion fails, or `null` if no message was
+   * supplied.
+   */
+  Expression _message;
+
+  @override
+  Token rightParenthesis;
+
   @override
   Token semicolon;
 
@@ -941,9 +1012,9 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   String toSource() {
-    PrintStringWriter writer = new PrintStringWriter();
-    accept(new ToSourceVisitor(writer));
-    return writer.toString();
+    StringBuffer buffer = new StringBuffer();
+    accept(new ToSourceVisitor2(buffer));
+    return buffer.toString();
   }
 
   @override
@@ -8103,7 +8174,13 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   Token ofKeyword;
 
   /**
-   * The name of the library that the containing compilation unit is part of.
+   * The URI of the library that the containing compilation unit is part of.
+   */
+  StringLiteralImpl _uri;
+
+  /**
+   * The name of the library that the containing compilation unit is part of, or
+   * `null` if no name was given (typically because a library URI was provided).
    */
   LibraryIdentifier _libraryName;
 
@@ -8123,9 +8200,11 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
       List<Annotation> metadata,
       this.partKeyword,
       this.ofKeyword,
+      StringLiteralImpl uri,
       LibraryIdentifierImpl libraryName,
       this.semicolon)
       : super(comment, metadata) {
+    _uri = _becomeParentOf(uri);
     _libraryName = _becomeParentOf(libraryName);
   }
 
@@ -8154,6 +8233,14 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 
   @override
+  StringLiteral get uri => _uri;
+
+  @override
+  void set uri(StringLiteral uri) {
+    _uri = _becomeParentOf(uri as AstNodeImpl);
+  }
+
+  @override
   dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
       visitor.visitPartOfDirective(this);
 
@@ -8161,6 +8248,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _libraryName?.accept(visitor);
+    _uri?.accept(visitor);
   }
 }
 
@@ -10597,7 +10685,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf(uri as AstNodeImpl);
   }
 
-  @override
   UriValidationCode validate() {
     return validateUri(this is ImportDirective, uri, uriContent);
   }
@@ -10639,15 +10726,15 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 /**
  * Validation codes returned by [UriBasedDirective.validate].
  */
-class UriValidationCodeImpl implements UriValidationCode {
+class UriValidationCode {
   static const UriValidationCode INVALID_URI =
-      const UriValidationCodeImpl('INVALID_URI');
+      const UriValidationCode('INVALID_URI');
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
-      const UriValidationCodeImpl('URI_WITH_INTERPOLATION');
+      const UriValidationCode('URI_WITH_INTERPOLATION');
 
   static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      const UriValidationCodeImpl('URI_WITH_DART_EXT_SCHEME');
+      const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /**
    * The name of the validation code.
@@ -10657,7 +10744,7 @@ class UriValidationCodeImpl implements UriValidationCode {
   /**
    * Initialize a newly created validation code to have the given [name].
    */
-  const UriValidationCodeImpl(this.name);
+  const UriValidationCode(this.name);
 
   @override
   String toString() => name;

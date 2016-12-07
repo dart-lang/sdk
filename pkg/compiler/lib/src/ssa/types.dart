@@ -14,46 +14,46 @@ import '../world.dart' show ClosedWorld;
 class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
       Element element, Compiler compiler) {
-    return compiler.globalInference.results.returnTypeOf(element) ??
-        compiler.commonMasks.dynamicType;
+    return compiler.globalInference.results.resultOf(element).returnType ??
+        compiler.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
-    return compiler.globalInference.results.typeOf(element) ??
-        compiler.commonMasks.dynamicType;
+    return compiler.globalInference.results.resultOf(element).type ??
+        compiler.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForSelector(
       Selector selector, TypeMask mask, Compiler compiler) {
     return compiler.globalInference.results.typeOfSelector(selector, mask) ??
-        compiler.commonMasks.dynamicType;
+        compiler.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask fromNativeBehavior(
       native.NativeBehavior nativeBehavior, Compiler compiler) {
+    ClosedWorld closedWorld = compiler.closedWorld;
+    CommonMasks commonMasks = closedWorld.commonMasks;
     var typesReturned = nativeBehavior.typesReturned;
-    if (typesReturned.isEmpty) return compiler.commonMasks.dynamicType;
+    if (typesReturned.isEmpty) return commonMasks.dynamicType;
 
-    ClosedWorld world = compiler.closedWorld;
-    CommonMasks commonMasks = compiler.commonMasks;
-    CoreClasses coreClasses = compiler.coreClasses;
+    CoreClasses coreClasses = closedWorld.coreClasses;
 
     // [type] is either an instance of [DartType] or special objects
     // like [native.SpecialType.JsObject].
     TypeMask fromNativeType(dynamic type) {
       if (type == native.SpecialType.JsObject) {
-        return new TypeMask.nonNullExact(coreClasses.objectClass, world);
+        return new TypeMask.nonNullExact(coreClasses.objectClass, closedWorld);
       }
 
       if (type.isVoid) return commonMasks.nullType;
       if (type.element == coreClasses.nullClass) return commonMasks.nullType;
       if (type.treatAsDynamic) return commonMasks.dynamicType;
-      return new TypeMask.nonNullSubtype(type.element, world);
+      return new TypeMask.nonNullSubtype(type.element, closedWorld);
     }
 
     TypeMask result = typesReturned
         .map(fromNativeType)
-        .reduce((t1, t2) => t1.union(t2, compiler.closedWorld));
+        .reduce((t1, t2) => t1.union(t2, closedWorld));
     assert(!result.isEmpty);
     return result;
   }

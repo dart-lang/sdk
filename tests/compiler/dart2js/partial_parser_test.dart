@@ -12,7 +12,7 @@ void main() {
 
 void testSkipExpression() {
   PartialParser parser =
-      new PartialParser(new Listener(), new MockParserOptions());
+      new PartialParser(new Listener());
   Token token = scan('a < b;');
   token = parser.skipExpression(token);
   Expect.equals(';', token.value);

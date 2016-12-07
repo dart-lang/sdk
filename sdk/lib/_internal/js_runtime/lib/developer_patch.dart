@@ -105,3 +105,28 @@ void _reportTaskEvent(int start,
                       String argumentsAsJson) {
  // TODO.
 }
+
+@patch
+int _getServiceMajorVersion() {
+  return 0;
+}
+
+@patch
+int _getServiceMinorVersion() {
+  return 0;
+}
+
+@patch
+void _getServerInfo(SendPort sendPort) {
+  sendPort.send(null);
+}
+
+@patch
+void _webServerControl(SendPort sendPort, bool enable) {
+  sendPort.send(null);
+}
+
+@patch
+String _getIsolateIDFromSendPort(SendPort sendPort) {
+  return null;
+}

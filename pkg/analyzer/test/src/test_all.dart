@@ -4,9 +4,9 @@
 
 library analyzer.test.src.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
+import 'command_line/test_all.dart' as command_line;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'plugin/plugin_config_test.dart' as plugin;
@@ -17,8 +17,8 @@ import 'util/test_all.dart' as util;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('src tests', () {
+  defineReflectiveSuite(() {
+    command_line.main();
     context.main();
     dart.main();
     plugin.main();
@@ -26,5 +26,5 @@ main() {
     summary.main();
     task.main();
     util.main();
-  });
+  }, name: 'src');
 }

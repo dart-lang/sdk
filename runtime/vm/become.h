@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_BECOME_H_
-#define VM_BECOME_H_
+#ifndef RUNTIME_VM_BECOME_H_
+#define RUNTIME_VM_BECOME_H_
 
 #include "vm/allocation.h"
 #include "vm/raw_object.h"
@@ -22,12 +22,8 @@ class Array;
 // representation as a FreeListElement.
 class ForwardingCorpse {
  public:
-  RawObject* target() const {
-    return target_;
-  }
-  void set_target(RawObject* target) {
-    target_ = target;
-  }
+  RawObject* target() const { return target_; }
+  void set_target(RawObject* target) { target_ = target; }
 
   intptr_t Size() {
     intptr_t size = RawObject::SizeTag::decode(tags_);
@@ -42,7 +38,7 @@ class ForwardingCorpse {
   // Used to allocate class for forwarding corpses in Object::InitOnce.
   class FakeInstance {
    public:
-    FakeInstance() { }
+    FakeInstance() {}
     static cpp_vtable vtable() { return 0; }
     static intptr_t InstanceSize() { return 0; }
     static intptr_t NextFieldOffset() { return -kWordSize; }
@@ -92,4 +88,4 @@ class Become : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_BECOME_H_
+#endif  // RUNTIME_VM_BECOME_H_

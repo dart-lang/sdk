@@ -16,6 +16,8 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/kernel.h"
+#include "vm/kernel_to_il.h"
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -45,37 +47,63 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, allocation_sinking, true,
-    "Attempt to sink temporary allocations to side exits");
-DEFINE_FLAG(bool, common_subexpression_elimination, true,
-    "Do common subexpression elimination.");
-DEFINE_FLAG(bool, constant_propagation, true,
+DEFINE_FLAG(bool,
+            allocation_sinking,
+            true,
+            "Attempt to sink temporary allocations to side exits");
+DEFINE_FLAG(bool,
+            common_subexpression_elimination,
+            true,
+            "Do common subexpression elimination.");
+DEFINE_FLAG(
+    bool,
+    constant_propagation,
+    true,
     "Do conditional constant propagation/unreachable code elimination.");
-DEFINE_FLAG(int, max_deoptimization_counter_threshold, 16,
+DEFINE_FLAG(
+    int,
+    max_deoptimization_counter_threshold,
+    16,
     "How many times we allow deoptimization before we disallow optimization.");
-DEFINE_FLAG(bool, loop_invariant_code_motion, true,
-    "Do loop invariant code motion.");
+DEFINE_FLAG(bool,
+            loop_invariant_code_motion,
+            true,
+            "Do loop invariant code motion.");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
-DEFINE_FLAG(bool, print_flow_graph_optimized, false,
-    "Print the IR flow graph when optimizing.");
-DEFINE_FLAG(bool, print_ic_data_map, false,
-    "Print the deopt-id to ICData map in optimizing compiler.");
+DEFINE_FLAG(bool,
+            print_flow_graph_optimized,
+            false,
+            "Print the IR flow graph when optimizing.");
+DEFINE_FLAG(bool,
+            print_ic_data_map,
+            false,
+            "Print the deopt-id to ICData map in optimizing compiler.");
 DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
-DEFINE_FLAG(bool, stress_test_background_compilation, false,
-    "Keep background compiler running all the time");
-DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
-    "Debugging: stops program if deoptimizing same function too often");
+DEFINE_FLAG(bool,
+            stress_test_background_compilation,
+            false,
+            "Keep background compiler running all the time");
+DEFINE_FLAG(bool,
+            stop_on_excessive_deoptimization,
+            false,
+            "Debugging: stops program if deoptimizing same function too often");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
-    "Traces all failed optimization attempts");
-DEFINE_FLAG(bool, trace_optimizing_compiler, false,
-    "Trace only optimizing compiler operations.");
+DEFINE_FLAG(bool,
+            trace_failed_optimization_attempts,
+            false,
+            "Traces all failed optimization attempts");
+DEFINE_FLAG(bool,
+            trace_optimizing_compiler,
+            false,
+            "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
-DEFINE_FLAG(bool, verify_compiler, false,
-    "Enable compiler verification assertions");
+DEFINE_FLAG(bool,
+            verify_compiler,
+            false,
+            "Enable compiler verification assertions");
 
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
@@ -84,9 +112,20 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
+
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
+  const Function& function = parsed_function->function();
+  return (function.kernel_function() != NULL) ||
+         (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
+         (function.kind() == RawFunction::kInvokeFieldDispatcher);
+}
+
+
 void DartCompilationPipeline::ParseFunction(ParsedFunction* parsed_function) {
-  Parser::ParseFunction(parsed_function);
-  parsed_function->AllocateVariables();
+  if (!UseKernelFrontEndFor(parsed_function)) {
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+  }
 }
 
 
@@ -95,9 +134,16 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
-  // Build the flow graph.
-  FlowGraphBuilder builder(*parsed_function,
-                           ic_data_array,
+  if (UseKernelFrontEndFor(parsed_function)) {
+    kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
+        parsed_function->function().kernel_function());
+    kernel::FlowGraphBuilder builder(node, parsed_function, ic_data_array, NULL,
+                                     osr_id);
+    FlowGraph* graph = builder.BuildGraph();
+    ASSERT(graph != NULL);
+    return graph;
+  }
+  FlowGraphBuilder builder(*parsed_function, ic_data_array,
                            NULL,  // NULL = not inlining.
                            osr_id);
 
@@ -105,7 +151,7 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
 }
 
 
-void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) { }
+void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {}
 
 
 void IrregexpCompilationPipeline::ParseFunction(
@@ -121,24 +167,20 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
   // Compile to the dart IR.
-  RegExpEngine::CompilationResult result =
-      RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
-                              parsed_function,
-                              ic_data_array);
+  RegExpEngine::CompilationResult result = RegExpEngine::CompileIR(
+      parsed_function->regexp_compile_data(), parsed_function, ic_data_array);
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
   parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
 
   // Build the flow graph.
-  FlowGraphBuilder builder(*parsed_function,
-                           ic_data_array,
+  FlowGraphBuilder builder(*parsed_function, ic_data_array,
                            NULL,  // NULL = not inlining.
                            osr_id);
 
-  return new(zone) FlowGraph(*parsed_function,
-                             result.graph_entry,
-                             result.num_blocks);
+  return new (zone)
+      FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);
 }
 
 
@@ -150,9 +192,9 @@ void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
   if (function.IsIrregexpFunction()) {
-    return new(zone) IrregexpCompilationPipeline();
+    return new (zone) IrregexpCompilationPipeline();
   } else {
-    return new(zone) DartCompilationPipeline();
+    return new (zone) DartCompilationPipeline();
   }
 }
 
@@ -190,7 +232,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     if (FLAG_trace_failed_optimization_attempts ||
         FLAG_stop_on_excessive_deoptimization) {
       THR_Print("Too many deoptimizations: %s\n",
-          function.ToFullyQualifiedCString());
+                function.ToFullyQualifiedCString());
       if (FLAG_stop_on_excessive_deoptimization) {
         FATAL("Stop on excessive deoptimization");
       }
@@ -331,8 +373,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
   // compile it. Just finalize it directly.
   if (cls.IsTypedefClass()) {
 #if defined(DEBUG)
-    const Class& closure_cls = Class::Handle(
-        Isolate::Current()->object_store()->closure_class());
+    const Class& closure_cls =
+        Class::Handle(Isolate::Current()->object_store()->closure_class());
     ASSERT(closure_cls.is_finalized());
 #endif
     LongJumpScope jump;
@@ -350,16 +392,15 @@ RawError* Compiler::CompileClass(const Class& cls) {
 
   Thread* const thread = Thread::Current();
   StackZone zone(thread);
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
-  TimelineDurationScope tds(thread,
-                            Timeline::GetCompilerStream(),
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                             "CompileClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "class", cls.ToCString());
   }
-)  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
@@ -391,7 +432,7 @@ NOT_IN_PRODUCT(
     }
 
     // Parse all the classes that have been added above.
-    for (intptr_t i = (parse_list.length() - 1); i >=0 ; i--) {
+    for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
       const Class& parse_class = parse_list.At(i);
       ASSERT(!parse_class.IsNull());
       Parser::ParseClass(parse_class);
@@ -405,13 +446,13 @@ NOT_IN_PRODUCT(
     }
 
     // Finalize these classes.
-    for (intptr_t i = (parse_list.length() - 1); i >=0 ; i--) {
+    for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
       const Class& parse_class = parse_list.At(i);
       ASSERT(!parse_class.IsNull());
       ClassFinalizer::FinalizeClass(parse_class);
       parse_class.reset_is_marked_for_parsing();
     }
-    for (intptr_t i = (patch_list.length() - 1); i >=0 ; i--) {
+    for (intptr_t i = (patch_list.length() - 1); i >= 0; i--) {
       const Class& parse_class = patch_list.At(i);
       ASSERT(!parse_class.IsNull());
       ClassFinalizer::FinalizeClass(parse_class);
@@ -453,8 +494,7 @@ class CompileParsedFunctionHelper : public ValueObject {
         osr_id_(osr_id),
         thread_(Thread::Current()),
         loading_invalidation_gen_at_start_(
-            isolate()->loading_invalidation_gen()) {
-  }
+            isolate()->loading_invalidation_gen()) {}
 
   bool Compile(CompilationPipeline* pipeline);
 
@@ -499,8 +539,8 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
            deopt_info_array.Length() * sizeof(uword));
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
-  const Code& code = Code::Handle(
-      Code::FinalizeCode(function, assembler, optimized()));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, assembler, optimized()));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {
@@ -510,8 +550,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
   }
 
   const Array& intervals = graph_compiler->inlined_code_intervals();
-  INC_STAT(thread(), total_code_size,
-           intervals.Length() * sizeof(uword));
+  INC_STAT(thread(), total_code_size, intervals.Length() * sizeof(uword));
   code.SetInlinedIntervals(intervals);
 
   const Array& inlined_id_array =
@@ -540,18 +579,17 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeExceptionHandlers(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);
 
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   // Set the code source map after setting the inlined information because
   // we use the inlined information when printing.
-  const CodeSourceMap& code_source_map =
-      CodeSourceMap::Handle(
-          zone,
-          graph_compiler->code_source_map_builder()->Finalize());
+  const CodeSourceMap& code_source_map = CodeSourceMap::Handle(
+      zone, graph_compiler->code_source_map_builder()->Finalize());
   code.set_code_source_map(code_source_map);
   if (FLAG_print_code_source_map) {
     CodeSourceMap::Dump(code_source_map, code, function);
   }
-);
+#endif  // !defined(PRODUCT)
+
   if (optimized()) {
     bool code_was_installed = false;
     // Installs code while at safepoint.
@@ -654,8 +692,8 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped() {
   ASSERT(Compiler::IsBackgroundCompilation());
   if (!isolate()->background_compiler()->is_running()) {
     // The background compiler is being stopped.
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-        "Background compilation is being stopped");
+    Compiler::AbortBackgroundCompilation(
+        Thread::kNoDeoptId, "Background compilation is being stopped");
   }
 }
 
@@ -671,8 +709,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   }
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
-  NOT_IN_PRODUCT(
-      TimelineStream* compiler_timeline = Timeline::GetCompilerStream());
+  NOT_IN_PRODUCT(TimelineStream* compiler_timeline =
+                     Timeline::GetCompilerStream());
   CSTAT_TIMER_SCOPE(thread(), codegen_timer);
   HANDLESCOPE(thread());
 
@@ -704,7 +742,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         CSTAT_TIMER_SCOPE(thread(), graphbuilder_timer);
         ZoneGrowableArray<const ICData*>* ic_data_array =
-            new(zone) ZoneGrowableArray<const ICData*>();
+            new (zone) ZoneGrowableArray<const ICData*>();
         if (optimized()) {
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
@@ -713,7 +751,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // already reached the limit.
           ASSERT(Compiler::IsBackgroundCompilation() ||
                  (function.deoptimization_counter() <
-                     FLAG_max_deoptimization_counter_threshold));
+                  FLAG_max_deoptimization_counter_threshold));
 
           // 'Freeze' ICData in background compilation so that it does not
           // change while compiling.
@@ -722,8 +760,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           if (Compiler::IsBackgroundCompilation() &&
               (function.ic_data_array() == Array::null())) {
-            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-                "RestoreICDataMap: ICData array cleared.");
+            Compiler::AbortBackgroundCompilation(
+                Thread::kNoDeoptId, "RestoreICDataMap: ICData array cleared.");
           }
           if (FLAG_print_ic_data_map) {
             for (intptr_t i = 0; i < ic_data_array->length(); i++) {
@@ -735,13 +773,10 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           }
         }
 
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
-                                                 compiler_timeline,
-                                                 "BuildFlowGraph");)
-        flow_graph = pipeline->BuildFlowGraph(zone,
-                                              parsed_function(),
-                                              *ic_data_array,
-                                              osr_id());
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
+                                                 "BuildFlowGraph"));
+        flow_graph = pipeline->BuildFlowGraph(zone, parsed_function(),
+                                              *ic_data_array, osr_id());
       }
 
       const bool print_flow_graph =
@@ -767,8 +802,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
 
       if (optimized()) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
-                                                 compiler_timeline,
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "ComputeSSA"));
         CSTAT_TIMER_SCOPE(thread(), ssa_timer);
         // Transform to SSA (virtual register 0 and no inlining arguments).
@@ -790,8 +824,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
       if (optimized()) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
-                                                 compiler_timeline,
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "OptimizationPasses"));
         inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -817,8 +850,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "Inlining"));
           CSTAT_TIMER_SCOPE(thread(), graphinliner_timer);
           // Propagate types to create more inlining opportunities.
@@ -829,12 +861,11 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           optimizer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-          FlowGraphInliner inliner(flow_graph,
-                                   &inline_id_to_function,
-                                   &inline_id_to_token_pos,
-                                   &caller_inline_id,
+          FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
+                                   &inline_id_to_token_pos, &caller_inline_id,
                                    use_speculative_inlining,
-                                   NULL);
+                                   /*inlining_black_list=*/NULL,
+                                   /*precompiler=*/NULL);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -845,8 +876,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "ApplyClassIds"));
           // Use propagated class-ids to optimize further.
           optimizer.ApplyClassIds();
@@ -867,8 +897,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "BranchSimplifier"));
           BranchSimplifier::Simplify(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -878,10 +907,9 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
 
         if (FLAG_constant_propagation) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "ConstantPropagation");
-          ConstantPropagator::Optimize(flow_graph));
+                         ConstantPropagator::Optimize(flow_graph));
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // A canonicalization pass to remove e.g. smi checks on smi constants.
           flow_graph->Canonicalize();
@@ -907,8 +935,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "SelectRepresentations"));
           // Where beneficial convert Smi operations into Int32 operations.
           // Only meanigful for 32bit platforms right now.
@@ -961,15 +988,13 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "DeadStoreElimination"));
           DeadStoreElimination::Optimize(flow_graph);
         }
 
         if (FLAG_range_analysis) {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "RangeAnalysis"));
           // Propagate types after store-load-forwarding. Some phis may have
           // become smi phis that can be processed by range analysis.
@@ -1013,8 +1038,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         flow_graph->EliminateEnvironments();
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "EliminateDeadPhis"));
           DeadCodeElimination::EliminateDeadPhis(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -1028,7 +1052,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // the deoptimization path.
         AllocationSinking* sinking = NULL;
         if (FLAG_allocation_sinking &&
-            (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
+            (flow_graph->graph_entry()->SuccessorCount() == 1)) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(
               thread(), compiler_timeline, "AllocationSinking::Optimize"));
           // TODO(fschneider): Support allocation sinking with try-catch.
@@ -1044,8 +1068,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "SelectRepresentations"));
           // Ensure that all phis inserted by optimization passes have
           // consistent representations.
@@ -1078,8 +1101,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
         {
-          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(),
-                                                    compiler_timeline,
+          NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "AllocateRegisters"));
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(*flow_graph);
@@ -1099,22 +1121,18 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(inline_id_to_function.length() == caller_inline_id.length());
       Assembler assembler(use_far_branches);
-      FlowGraphCompiler graph_compiler(&assembler, flow_graph,
-                                       *parsed_function(), optimized(),
-                                       inline_id_to_function,
-                                       inline_id_to_token_pos,
-                                       caller_inline_id);
+      FlowGraphCompiler graph_compiler(
+          &assembler, flow_graph, *parsed_function(), optimized(),
+          inline_id_to_function, inline_id_to_token_pos, caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
-                                                 compiler_timeline,
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "CompileGraph"));
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
-                                                 compiler_timeline,
+        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "FinalizeCompilation"));
         if (thread()->IsMutatorThread()) {
           FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
@@ -1187,7 +1205,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 }
 
 
-DEBUG_ONLY(
+#if defined(DEBUG)
 // Verifies that the inliner is always in the list of inlined functions.
 // If this fails run with --trace-inlining-intervals to get more information.
 static void CheckInliningIntervals(const Function& function) {
@@ -1205,7 +1223,7 @@ static void CheckInliningIntervals(const Function& function) {
            function.raw());
   }
 }
-)
+#endif  // defined(DEBUG)
 
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
@@ -1220,23 +1238,21 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
-        FLAG_trace_compiler ||
-        (FLAG_trace_optimizing_compiler && optimized);
+        FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
     Timer per_compile_timer(trace_compiler, "Compilation time");
     per_compile_timer.Start();
 
-    ParsedFunction* parsed_function = new(zone) ParsedFunction(
-        thread, Function::ZoneHandle(zone, function.raw()));
+    ParsedFunction* parsed_function = new (zone)
+        ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
     if (trace_compiler) {
-      const intptr_t token_size = function.end_token_pos().Pos() -
-                                  function.token_pos().Pos();
+      const intptr_t token_size =
+          function.end_token_pos().Pos() - function.token_pos().Pos();
       THR_Print("Compiling %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 (Compiler::IsBackgroundCompilation() ? "(background)" : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_pos().ToCString(),
-                token_size);
+                function.token_pos().ToCString(), token_size);
     }
     INC_STAT(thread, num_functions_compiled, 1);
     if (optimized) {
@@ -1250,8 +1266,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       const int64_t num_tokens_before = STAT_VALUE(thread, num_tokens_consumed);
       pipeline->ParseFunction(parsed_function);
       const int64_t num_tokens_after = STAT_VALUE(thread, num_tokens_consumed);
-      INC_STAT(thread,
-               num_func_tokens_compiled,
+      INC_STAT(thread, num_func_tokens_compiled,
                num_tokens_after - num_tokens_before);
     }
 
@@ -1259,11 +1274,12 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     if (Compiler::IsBackgroundCompilation()) {
       if (isolate->IsTopLevelParsing() ||
-              (loading_invalidation_gen_at_start !=
-               isolate->loading_invalidation_gen())) {
+          (loading_invalidation_gen_at_start !=
+           isolate->loading_invalidation_gen())) {
         // Loading occured while parsing. We need to abort here because state
         // changed while compiling.
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+        Compiler::AbortBackgroundCompilation(
+            Thread::kNoDeoptId,
             "Invalidated state during parsing because of script loading");
       }
     }
@@ -1280,7 +1296,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
           // state change during compilation.
           if (FLAG_trace_compiler) {
             THR_Print("Aborted background compilation: %s\n",
-                function.ToFullyQualifiedCString());
+                      function.ToFullyQualifiedCString());
           }
           {
             // If it was a bailout, then disable optimization.
@@ -1342,8 +1358,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
       Disassembler::DisassembleCode(function, optimized);
-    } else if (FLAG_disassemble_optimized &&
-               optimized &&
+    } else if (FLAG_disassemble_optimized && optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
       Disassembler::DisassembleCode(function, true);
     }
@@ -1362,7 +1377,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       // Exit compilation, retry it later.
       if (FLAG_trace_bailout) {
         THR_Print("Aborted background compilation: %s\n",
-            function.ToFullyQualifiedCString());
+                  function.ToFullyQualifiedCString());
       }
       return Error::null();
     }
@@ -1387,26 +1402,24 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
-        FLAG_trace_compiler ||
-        (FLAG_trace_optimizing_compiler && optimized);
+        FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
 
     if (trace_compiler) {
-      const intptr_t token_size = function.end_token_pos().Pos() -
-                                  function.token_pos().Pos();
+      const intptr_t token_size =
+          function.end_token_pos().Pos() - function.token_pos().Pos();
       THR_Print("Parsing %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 (Compiler::IsBackgroundCompilation() ? "(background)" : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_pos().ToCString(),
-                token_size);
+                function.token_pos().ToCString(), token_size);
     }
-    ParsedFunction* parsed_function = new(zone) ParsedFunction(
-        thread, Function::ZoneHandle(zone, function.raw()));
+    ParsedFunction* parsed_function = new (zone)
+        ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
     pipeline->ParseFunction(parsed_function);
-    // For now we just walk thru the AST nodes and in DEBUG mode we print
-    // them otherwise just skip through them, this will be need to be
-    // wired to generate the IR format.
+// For now we just walk thru the AST nodes and in DEBUG mode we print
+// them otherwise just skip through them, this will be need to be
+// wired to generate the IR format.
 #if !defined(PRODUCT)
 #if defined(DEBUG)
     AstPrinter ast_printer(true);
@@ -1434,18 +1447,20 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
 }
 
 
-RawError* Compiler::CompileFunction(Thread* thread,
-                                    const Function& function) {
+RawError* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #ifdef DART_PRECOMPILER
   if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(thread, thread->zone(), function);
+    return Precompiler::CompileFunction(
+        /* precompiler = */ NULL, thread, thread->zone(), function);
   }
 #endif
+
   Isolate* isolate = thread->isolate();
-NOT_IN_PRODUCT(
+
+#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
-)  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
@@ -1457,20 +1472,17 @@ NOT_IN_PRODUCT(
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
-  return CompileFunctionHelper(pipeline,
-                               function,
-                               /* optimized = */ false,
-                               kNoOSRDeoptId);
+  return CompileFunctionHelper(pipeline, function,
+                               /* optimized = */ false, kNoOSRDeoptId);
 }
 
 
-RawError* Compiler::ParseFunction(Thread* thread,
-                                  const Function& function) {
+RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
   Isolate* isolate = thread->isolate();
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "ParseFunction", function);
-)  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
@@ -1482,10 +1494,8 @@ NOT_IN_PRODUCT(
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
-  return ParseFunctionHelper(pipeline,
-                             function,
-                             /* optimized = */ false,
-                             kNoOSRDeoptId);
+  return ParseFunctionHelper(pipeline, function,
+                             /* optimized = */ false, kNoOSRDeoptId);
 }
 
 
@@ -1501,9 +1511,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   const Error& error = Error::Handle(
-      CompileFunctionHelper(pipeline,
-                            function,
-                            false,  /* not optimized */
+      CompileFunctionHelper(pipeline, function, false, /* not optimized */
                             kNoOSRDeoptId));
   if (!error.IsNull()) {
     return error.raw();
@@ -1525,7 +1533,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {
@@ -1536,26 +1544,22 @@ NOT_IN_PRODUCT(
     event_name = "CompileFunctionOptimized";
   }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
-)  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
   // If we are in the optimizing in the mutator/Dart thread, then
   // this is either an OSR compilation or background compilation is
   // not currently allowed.
-  ASSERT(!thread->IsMutatorThread() ||
-         (osr_id != kNoOSRDeoptId) ||
+  ASSERT(!thread->IsMutatorThread() || (osr_id != kNoOSRDeoptId) ||
          !FLAG_background_compilation || BackgroundCompiler::IsDisabled());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
-  return CompileFunctionHelper(pipeline,
-                               function,
-                               true,  /* optimized */
+  return CompileFunctionHelper(pipeline, function, true, /* optimized */
                                osr_id);
 }
 
 
 // This is only used from unit tests.
-RawError* Compiler::CompileParsedFunction(
-    ParsedFunction* parsed_function) {
+RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
@@ -1620,8 +1624,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() &&
-        !func.is_abstract() &&
+    if (!func.HasCode() && !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
       if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
           func.HasOptionalParameters()) {
@@ -1694,28 +1697,36 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     ASSERT(!field.HasPrecompiledInitializer());
     Function& initializer = Function::Handle(thread->zone());
     {
-      NOT_IN_PRODUCT(
-        VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-        TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                                  "CompileStaticInitializer");
-        if (tds.enabled()) {
-          tds.SetNumArguments(1);
-          tds.CopyArgument(0, "field", field.ToCString());
-        }
-      )
+#if !defined(PRODUCT)
+      VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+      TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                                "CompileStaticInitializer");
+      if (tds.enabled()) {
+        tds.SetNumArguments(1);
+        tds.CopyArgument(0, "field", field.ToCString());
+      }
+#endif  // !defined(PRODUCT)
 
-      StackZone zone(thread);
-      ParsedFunction* parsed_function =
-          Parser::ParseStaticFieldInitializer(field);
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      ParsedFunction* parsed_function;
 
-      parsed_function->AllocateVariables();
+      // Create a one-time-use function to evaluate the initializer and invoke
+      // it immediately.
+      if (field.kernel_field() != NULL) {
+        parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
+      } else {
+        parsed_function = Parser::ParseStaticFieldInitializer(field);
+        parsed_function->AllocateVariables();
+      }
+
       // Non-optimized code generator.
       DartCompilationPipeline pipeline;
       CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
       helper.Compile(&pipeline);
       initializer = parsed_function->function().raw();
-      Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
-          Object::empty_var_descriptors());
+      Code::Handle(initializer.unoptimized_code())
+          .set_var_descriptors(Object::empty_var_descriptors());
     }
     // Invoke the function to evaluate the expression.
     return DartEntry::InvokeFunction(initializer, Object::empty_array());
@@ -1729,7 +1740,6 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   UNREACHABLE();
   return Object::null();
 }
-
 
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
@@ -1764,7 +1774,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(thread, kEvalConst)),
         RawFunction::kRegularFunction,
-        true,  // static function
+        true,   // static function
         false,  // not const function
         false,  // not abstract
         false,  // not external
@@ -1785,16 +1795,15 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     ParsedFunction* parsed_function = new ParsedFunction(thread, func);
     parsed_function->SetNodeSequence(fragment);
     fragment->scope()->AddVariable(parsed_function->EnsureExpressionTemp());
-    fragment->scope()->AddVariable(
-        parsed_function->current_context_var());
+    fragment->scope()->AddVariable(parsed_function->current_context_var());
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
     DartCompilationPipeline pipeline;
     CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
     helper.Compile(&pipeline);
-    Code::Handle(func.unoptimized_code()).set_var_descriptors(
-        Object::empty_var_descriptors());
+    Code::Handle(func.unoptimized_code())
+        .set_var_descriptors(Object::empty_var_descriptors());
 
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
@@ -1814,7 +1823,7 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   if (FLAG_trace_compiler) {
     THR_Print("ABORT background compilation: %s\n", msg);
   }
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   TimelineStream* stream = Timeline::GetCompilerStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
@@ -1824,7 +1833,7 @@ NOT_IN_PRODUCT(
     event->CopyArgument(0, "reason", msg);
     event->Complete();
   }
-)  // !PRODUCT
+#endif  // !defined(PRODUCT)
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(
       deopt_id, Object::background_compilation_error());
@@ -1835,9 +1844,7 @@ NOT_IN_PRODUCT(
 class QueueElement {
  public:
   explicit QueueElement(const Function& function)
-      : next_(NULL),
-        function_(function.raw()) {
-  }
+      : next_(NULL), function_(function.raw()) {}
 
   virtual ~QueueElement() {
     next_ = NULL;
@@ -1868,9 +1875,7 @@ class QueueElement {
 class BackgroundCompilationQueue {
  public:
   BackgroundCompilationQueue() : first_(NULL), last_(NULL) {}
-  virtual ~BackgroundCompilationQueue() {
-    Clear();
-  }
+  virtual ~BackgroundCompilationQueue() { Clear(); }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
     ASSERT(visitor != NULL);
@@ -1897,9 +1902,7 @@ class BackgroundCompilationQueue {
     ASSERT(first_ != NULL && last_ != NULL);
   }
 
-  QueueElement* Peek() const {
-    return first_;
-  }
+  QueueElement* Peek() const { return first_; }
 
   RawFunction* PeekFunction() const {
     QueueElement* e = Peek();
@@ -1948,8 +1951,11 @@ class BackgroundCompilationQueue {
 
 
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
-    : isolate_(isolate), running_(true), done_(new bool()),
-      queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
+    : isolate_(isolate),
+      running_(true),
+      done_(new bool()),
+      queue_monitor_(new Monitor()),
+      done_monitor_(new Monitor()),
       function_queue_(new BackgroundCompilationQueue()) {
   *done_ = false;
 }
@@ -1978,14 +1984,14 @@ void BackgroundCompiler::Run() {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
-      { MonitorLocker ml(queue_monitor_);
+      {
+        MonitorLocker ml(queue_monitor_);
         function = function_queue()->PeekFunction();
       }
       while (running_ && !function.IsNull() && !isolate_->IsTopLevelParsing()) {
         // Check that we have aggregated and cleared the stats.
         ASSERT(thread->compiler_stats()->IsCleared());
-        Compiler::CompileOptimizedFunction(thread,
-                                           function,
+        Compiler::CompileOptimizedFunction(thread, function,
                                            Compiler::kNoOSRDeoptId);
 #ifndef PRODUCT
         Isolate* isolate = thread->isolate();
@@ -1994,7 +2000,8 @@ void BackgroundCompiler::Run() {
 #endif  // PRODUCT
 
         QueueElement* qelem = NULL;
-        { MonitorLocker ml(queue_monitor_);
+        {
+          MonitorLocker ml(queue_monitor_);
           if (function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
@@ -2002,7 +2009,7 @@ void BackgroundCompiler::Run() {
             qelem = function_queue()->Remove();
             const Function& old = Function::Handle(qelem->Function());
             if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
-                 FLAG_stress_test_background_compilation) {
+                FLAG_stress_test_background_compilation) {
               if (Compiler::CanOptimizeFunction(thread, old)) {
                 QueueElement* repeat_qelem = new QueueElement(old);
                 function_queue()->Add(repeat_qelem);
@@ -2020,8 +2027,8 @@ void BackgroundCompiler::Run() {
     {
       // Wait to be notified when the work queue is not empty.
       MonitorLocker ml(queue_monitor_);
-      while ((function_queue()->IsEmpty() || isolate_->IsTopLevelParsing())
-              && running_) {
+      while ((function_queue()->IsEmpty() || isolate_->IsTopLevelParsing()) &&
+             running_) {
         ml.Wait();
       }
     }
@@ -2079,7 +2086,7 @@ void BackgroundCompiler::Stop(Isolate* isolate) {
     function_queue->Clear();
     // 'task' will be deleted by thread pool.
     task = NULL;
-    ml.Notify();   // Stop waiting for the queue.
+    ml.Notify();  // Stop waiting for the queue.
   }
 
   {
@@ -2135,11 +2142,10 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   ASSERT(thread->IsMutatorThread());
   // Finalize NoSuchMethodError, _Mint; occasionally needed in optimized
   // compilation.
-  Class& cls = Class::Handle(thread->zone(),
-      Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  Class& cls = Class::Handle(
+      thread->zone(), Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!cls.IsNull());
-  Error& error = Error::Handle(thread->zone(),
-      cls.EnsureIsFinalized(thread));
+  Error& error = Error::Handle(thread->zone(), cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   cls = Library::LookupCoreClass(Symbols::_Mint());
   ASSERT(!cls.IsNull());
@@ -2163,6 +2169,12 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
 
 
 #else  // DART_PRECOMPILED_RUNTIME
+
+
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
+  UNREACHABLE();
+  return false;
+}
 
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
@@ -2204,15 +2216,13 @@ RawError* Compiler::CompileClass(const Class& cls) {
 }
 
 
-RawError* Compiler::CompileFunction(Thread* thread,
-                                    const Function& function) {
+RawError* Compiler::CompileFunction(Thread* thread, const Function& function) {
   UNREACHABLE();
   return Error::null();
 }
 
 
-RawError* Compiler::ParseFunction(Thread* thread,
-                                  const Function& function) {
+RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
   UNREACHABLE();
   return Error::null();
 }
@@ -2233,8 +2243,7 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 }
 
 
-RawError* Compiler::CompileParsedFunction(
-    ParsedFunction* parsed_function) {
+RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
   UNREACHABLE();
   return Error::null();
 }

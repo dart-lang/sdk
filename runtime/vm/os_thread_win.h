@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_OS_THREAD_WIN_H_
-#define VM_OS_THREAD_WIN_H_
+#ifndef RUNTIME_VM_OS_THREAD_WIN_H_
+#define RUNTIME_VM_OS_THREAD_WIN_H_
 
-#if !defined(VM_OS_THREAD_H_)
+#if !defined(RUNTIME_VM_OS_THREAD_H_)
 #error Do not include os_thread_win.h directly; use os_thread.h instead.
 #endif
 
@@ -122,24 +122,18 @@ class MonitorData {
 };
 
 
-typedef void (*ThreadDestructor) (void* parameter);
+typedef void (*ThreadDestructor)(void* parameter);
 
 
 class ThreadLocalEntry {
  public:
   ThreadLocalEntry(ThreadLocalKey key, ThreadDestructor destructor)
-      : key_(key),
-        destructor_(destructor) {
-  }
+      : key_(key), destructor_(destructor) {}
 
-  ThreadLocalKey key() const {
-    return key_;
-  }
+  ThreadLocalKey key() const { return key_; }
 
 
-  ThreadDestructor destructor() const {
-    return destructor_;
-  }
+  ThreadDestructor destructor() const { return destructor_; }
 
  private:
   ThreadLocalKey key_;
@@ -149,7 +143,7 @@ class ThreadLocalEntry {
 };
 
 
-template<typename T>
+template <typename T>
 class MallocGrowableArray;
 
 
@@ -173,4 +167,4 @@ class ThreadLocalData : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_OS_THREAD_WIN_H_
+#endif  // RUNTIME_VM_OS_THREAD_WIN_H_

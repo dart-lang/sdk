@@ -4,15 +4,13 @@
 
 library analyzer.test.context.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'declared_variables_test.dart' as declared_variables;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('context tests', () {
+  defineReflectiveSuite(() {
     declared_variables.main();
-  });
+  }, name: 'context');
 }

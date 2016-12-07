@@ -8,9 +8,7 @@ library js_typed_interop_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   document.body.append(new ScriptElement()
@@ -71,7 +69,7 @@ _injectJs() {
     getA: function() { return this.a;}
   };
 
-  var selection = ["a", "b", "c", foo, bar];  
+  var selection = ["a", "b", "c", foo, bar];
 
   function returnNumArgs() { return arguments.length; };
   function returnLastArg() { return arguments[arguments.length-1]; };
@@ -105,6 +103,14 @@ class RegularClass {
 @JS()
 class ClassWithConstructor {
   external ClassWithConstructor(aParam, bParam);
+  external getA();
+  external get a;
+  external get b;
+}
+
+@JS('ClassWithConstructor')
+class ClassWithFactory {
+  external factory ClassWithFactory(aParam, bParam);
   external getA();
   external get a;
   external get b;
@@ -194,8 +200,6 @@ external num get propertyOnWindow;
 main() {
   _injectJs();
 
-  useHtmlIndividualConfiguration();
-
   group('object literal', () {
     test('simple', () {
       var l = new ExampleLiteral(x: 3, y: "foo");
@@ -219,6 +223,13 @@ main() {
   group('constructor', () {
     test('simple', () {
       var o = new ClassWithConstructor("foo", "bar");
+      expect(o.a, equals("foo"));
+      expect(o.b, equals("bar"));
+      expect(o.getA(), equals("foo"));
+    });
+
+    test('external factory', () {
+      var o = new ClassWithFactory("foo", "bar");
       expect(o.a, equals("foo"));
       expect(o.b, equals("bar"));
       expect(o.getA(), equals("foo"));
@@ -259,7 +270,7 @@ main() {
       Function multiplyByX = foo.multiplyByX;
       // Tearing off a JS closure doesn't bind this.
       // You will need to use the new method tearoff syntax to bind this.
-      expect(multiplyByX(4), isNaN);
+      expect(multiplyByX(4), double.NAN);
 
       MultiplyWithDefault multiplyWithDefault = foo.multiplyDefault2Function;
       expect(multiplyWithDefault(6, 6), equals(36));
@@ -273,7 +284,7 @@ main() {
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
-      expect(untypedFunction(), isNaN);
+      expect(untypedFunction(), double.NAN);
 
     });
   });

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_INSTRUCTIONS_H_
-#define VM_INSTRUCTIONS_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_H_
+#define RUNTIME_VM_INSTRUCTIONS_H_
 
 #include "vm/globals.h"
 
@@ -28,10 +28,8 @@ namespace dart {
 class Object;
 class Code;
 
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj);
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj);
 
 }  // namespace dart
 
-#endif  // VM_INSTRUCTIONS_H_
+#endif  // RUNTIME_VM_INSTRUCTIONS_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_MATH_H_
-#define PLATFORM_MATH_H_
+#ifndef RUNTIME_PLATFORM_MATH_H_
+#define RUNTIME_PLATFORM_MATH_H_
 
 // We must take these math functions from the C++ header file as long as we
 // are using the STL. Otherwise the Android build will break due to confusion
@@ -20,4 +20,4 @@
 #include <math.h>
 #endif
 
-#endif  // PLATFORM_MATH_H_
+#endif  // RUNTIME_PLATFORM_MATH_H_

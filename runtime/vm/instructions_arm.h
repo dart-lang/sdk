@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Classes that describe assembly patterns as used by inline caches.
 
-#ifndef VM_INSTRUCTIONS_ARM_H_
-#define VM_INSTRUCTIONS_ARM_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_ARM_H_
+#define RUNTIME_VM_INSTRUCTIONS_ARM_H_
 
-#ifndef VM_INSTRUCTIONS_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_H_
 #error Do not include instructions_arm.h directly; use instructions.h instead.
 #endif
 
@@ -56,13 +56,6 @@ class CallPattern : public ValueObject {
 
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& code) const;
-
-  // This constant length is only valid for inserted call patterns used for
-  // lazy deoptimization. Regular call pattern may vary in length.
-  static int DeoptCallPatternLengthInBytes();
-  static int DeoptCallPatternLengthInInstructions();
-
-  static void InsertDeoptCallAt(uword pc, uword target_address);
 
  private:
   const ObjectPool& object_pool_;
@@ -128,9 +121,7 @@ class ReturnPattern : public ValueObject {
   // bx_lr = 1.
   static const int kLengthInBytes = 1 * Instr::kInstrSize;
 
-  int pattern_length_in_bytes() const {
-    return kLengthInBytes;
-  }
+  int pattern_length_in_bytes() const { return kLengthInBytes; }
 
   bool IsValid() const;
 
@@ -140,4 +131,4 @@ class ReturnPattern : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_INSTRUCTIONS_ARM_H_
+#endif  // RUNTIME_VM_INSTRUCTIONS_ARM_H_

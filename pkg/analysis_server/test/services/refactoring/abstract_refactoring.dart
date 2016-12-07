@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../../abstract_single_unit.dart';
 

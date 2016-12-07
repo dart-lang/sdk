@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
 
@@ -98,8 +98,8 @@ class ElementFactory {
         constructor.nameEnd = definingClass.name.length + name.length + 1;
       }
     }
-    constructor.synthetic = name == null;
-    constructor.const2 = isConst;
+    constructor.isSynthetic = name == null;
+    constructor.isConst = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
       List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -140,17 +140,17 @@ class ElementFactory {
     InterfaceType stringType = typeProvider.stringType;
     String indexFieldName = "index";
     FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
-    indexField.final2 = true;
+    indexField.isFinal = true;
     indexField.type = intType;
     fields.add(indexField);
     String nameFieldName = "_name";
     FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
-    nameField.final2 = true;
+    nameField.isFinal = true;
     nameField.type = stringType;
     fields.add(nameField);
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
-    valuesField.static = true;
-    valuesField.const3 = true;
+    valuesField.isStatic = true;
+    valuesField.isConst = true;
     valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
     //
@@ -162,8 +162,8 @@ class ElementFactory {
         String constantName = constantNames[i];
         FieldElementImpl constantElement =
             new ConstFieldElementImpl(constantName, -1);
-        constantElement.static = true;
-        constantElement.const3 = true;
+        constantElement.isStatic = true;
+        constantElement.isConst = true;
         constantElement.type = enumType;
         HashMap<String, DartObjectImpl> fieldMap =
             new HashMap<String, DartObjectImpl>();
@@ -199,9 +199,9 @@ class ElementFactory {
     FieldElementImpl field = isConst
         ? new ConstFieldElementImpl(name, 0)
         : new FieldElementImpl(name, 0);
-    field.const3 = isConst;
-    field.final2 = isFinal;
-    field.static = isStatic;
+    field.isConst = isConst;
+    field.isFinal = isFinal;
+    field.isStatic = isStatic;
     field.type = type;
     if (isConst) {
       (field as ConstFieldElementImpl).constantInitializer = initializer;
@@ -391,17 +391,17 @@ class ElementFactory {
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
-    field.static = isStatic;
-    field.synthetic = true;
+    field.isStatic = isStatic;
+    field.isSynthetic = true;
     field.type = type;
-    field.final2 = true;
+    field.isFinal = true;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl(name, 0);
-    getter.synthetic = false;
+    getter.isSynthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
-    getter.static = isStatic;
+    getter.isStatic = isStatic;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;
@@ -526,8 +526,8 @@ class ElementFactory {
   static PropertyAccessorElementImpl setterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
-    field.static = isStatic;
-    field.synthetic = true;
+    field.isStatic = isStatic;
+    field.isSynthetic = true;
     field.type = type;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl(name, -1);
@@ -541,7 +541,7 @@ class ElementFactory {
     PropertyAccessorElementImpl setter =
         new PropertyAccessorElementImpl(name, -1);
     setter.setter = true;
-    setter.synthetic = true;
+    setter.isSynthetic = true;
     setter.variable = field;
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
@@ -562,10 +562,10 @@ class ElementFactory {
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
           new ConstTopLevelVariableElementImpl.forNode(
-              AstFactory.identifier3(name));
+              AstTestFactory.identifier3(name));
       InstanceCreationExpression initializer =
-          AstFactory.instanceCreationExpression2(
-              Keyword.CONST, AstFactory.typeName(type.element));
+          AstTestFactory.instanceCreationExpression2(
+              Keyword.CONST, AstTestFactory.typeName(type.element));
       if (type is InterfaceType) {
         ConstructorElement element = type.element.unnamedConstructor;
         initializer.staticElement = element;
@@ -576,9 +576,9 @@ class ElementFactory {
     } else {
       variable = new TopLevelVariableElementImpl(name, -1);
     }
-    variable.const3 = isConst;
-    variable.final2 = isFinal;
-    variable.synthetic = false;
+    variable.isConst = isConst;
+    variable.isFinal = isFinal;
+    variable.isSynthetic = false;
     variable.type = type;
     new PropertyAccessorElementImpl_ImplicitGetter(variable);
     if (!isConst && !isFinal) {

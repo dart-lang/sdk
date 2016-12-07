@@ -5,23 +5,16 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
+#include "vm/instructions.h"
+#include "vm/instructions_x64.h"
+
 #include "vm/cpu.h"
 #include "vm/constants_x64.h"
-#include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
 
-void ShortCallPattern::SetTargetAddress(uword target) const {
-  ASSERT(IsValid());
-  *reinterpret_cast<uint32_t*>(start() + 1) = target - start() - kLengthInBytes;
-  CPU::FlushICache(start() + 1, kWordSize);
-}
-
-
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj) {
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
 
   uint8_t* bytes = reinterpret_cast<uint8_t*>(pc);

@@ -35,6 +35,7 @@ dartdoc:third_party/pkg/dartdoc/lib
 dev_compiler:pkg/dev_compiler/lib
 expect:pkg/expect/lib
 fixnum:third_party/pkg/fixnum/lib
+front_end:pkg/front_end/lib
 func:third_party/pkg/func/lib
 glob:third_party/pkg/glob/lib
 html:third_party/pkg/html/lib
@@ -49,7 +50,7 @@ js:pkg/js/lib
 js_ast:pkg/js_ast/lib
 js_runtime:sdk/lib/_internal/js_runtime/lib
 json_rpc_2:third_party/pkg/json_rpc_2/lib
-kernel:third_party/pkg/kernel/lib
+kernel:pkg/kernel/lib
 linter:third_party/pkg/linter/lib
 logging:third_party/pkg/logging/lib
 lookup_map:pkg/lookup_map/lib
@@ -71,7 +72,6 @@ plugin:third_party/pkg/plugin/lib
 pool:third_party/pkg/pool/lib
 protobuf:third_party/pkg/protobuf/lib
 pub:third_party/pkg/pub/lib
-pub_cache:third_party/pkg/pub_cache/lib
 pub_semver:third_party/pkg/pub_semver/lib
 quiver:third_party/pkg/quiver/lib
 resource:third_party/pkg/resource/lib

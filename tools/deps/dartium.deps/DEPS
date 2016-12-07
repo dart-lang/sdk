@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 
 vars.update({
   "dartium_chromium_commit": "7558afb6379171d7f96b2db68ae9d2b64b2c5544",
-  "dartium_webkit_commit": "8c0535e2ee1f49410cb978bd7c18d4582a5fd886",
+  "dartium_webkit_commit": "e46ac6cf905ae6be30852fbee231cfd385c24420",
   "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
@@ -32,7 +32,7 @@ vars.update({
   "collection_tag": "@1.9.1",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
+  "dart2js_info_tag" : "@0.5.0",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
@@ -40,7 +40,6 @@ vars.update({
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
-  "kernel_rev": "@449803b82e850a41148e636db1a6e4a848284aed",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "matcher_tag": "@0.12.0",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
@@ -70,7 +69,7 @@ vars.update({
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
 
-  "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
+  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
 })
 
 deps.update({
@@ -93,7 +92,7 @@ deps.update({
   "src/dart/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   "src/dart/third_party/pkg/dart2js_info":
-      (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_rev"),
+      (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_tag"),
   "src/dart/third_party/pkg/collection":
       (Var("github_mirror") % "collection") + Var("collection_tag"),
   "src/dart/third_party/pkg/glob":
@@ -111,8 +110,6 @@ deps.update({
       (Var("github_mirror") % "http_parser") + Var("http_parser_rev"),
   "src/dart/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") + Var("http_throttle_rev"),
-  "src/dart/third_party/pkg/kernel":
-      (Var("github_mirror") % "kernel") + Var("kernel_rev"),
   "src/dart/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   "src/dart/third_party/pkg/matcher":

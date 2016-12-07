@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  operator ==(dynamic x) → core::bool
+    return false;
+}
+class X extends core::Object implements self::A, self::B {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method useAsA(self::A object) → void {
+  dynamic _ = object.{self::A::field};
+}
+static method useAsB(self::B object) → void {
+  dynamic _ = object.{self::B::field};
+  self::escape(object);
+}
+static method escape(dynamic x) → void {
+  x.==(null) ? x = "" : null;
+  x.==(null) ? x = 45 : null;
+  if(!(x is core::int) && !(x is core::String)) {
+    x.field = 45;
+  }
+}
+static method main() → dynamic {
+  self::X object = new self::X::•();
+  self::useAsA(new self::A::•());
+  self::useAsA(object);
+  self::useAsB(new self::B::•());
+  self::useAsB(object);
+}

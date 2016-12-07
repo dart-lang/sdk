@@ -1,0 +1,36 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_root = rebase_path("..")
+
+template("create_timestamp_file") {
+  assert(defined(invoker.path), "Must specify 'path'")
+  assert(defined(invoker.output), "Must specify 'output'")
+  new_base = "."
+  if (defined(invoker.new_base)) {
+    new_base = invoker.new_base
+  }
+  current_base = "."
+  if (defined(invoker.current_base)) {
+    current_base = invoker.current_base
+  }
+  path = invoker.path
+  output = invoker.output
+  action(target_name) {
+    list_args = [ path ]
+    if (defined(invoker.pattern)) {
+      list_args += [ invoker.pattern ]
+    }
+    files = exec_script("$_dart_root/tools/list_dart_files.py",
+                        list_args,
+                        "list lines")
+    inputs = [ "$_dart_root/tools/list_dart_files.py" ] +
+             rebase_path(files, new_base, current_base)
+    outputs = [
+      output,
+    ]
+    script = "$_dart_root/tools/create_timestamp_file.py"
+    args = [ rebase_path(output) ]
+  }
+}

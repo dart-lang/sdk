@@ -9,10 +9,10 @@
 // which will start execution in the Simulator or forwards to the real entry
 // on a ARM64 HW platform.
 
-#ifndef VM_SIMULATOR_ARM64_H_
-#define VM_SIMULATOR_ARM64_H_
+#ifndef RUNTIME_VM_SIMULATOR_ARM64_H_
+#define RUNTIME_VM_SIMULATOR_ARM64_H_
 
-#ifndef VM_SIMULATOR_H_
+#ifndef RUNTIME_VM_SIMULATOR_H_
 #error Do not include simulator_arm64.h directly; use simulator.h.
 #endif
 
@@ -50,8 +50,10 @@ class Simulator {
   // specifying the type. We also can't translate a dummy value for SPREG into
   // a real value because the architecture independent code expects SPREG to
   // be a real register value.
-  void set_register(
-      Instr* instr, Register reg, int64_t value, R31Type r31t = R31IsSP);
+  void set_register(Instr* instr,
+                    Register reg,
+                    int64_t value,
+                    R31Type r31t = R31IsSP);
   int64_t get_register(Register reg, R31Type r31t = R31IsSP) const;
   void set_wregister(Register reg, int32_t value, R31Type r31t = R31IsSP);
   int32_t get_wregister(Register reg, R31Type r31t = R31IsSP) const;
@@ -65,9 +67,7 @@ class Simulator {
   void get_vregister(VRegister reg, simd_value_t* value) const;
   void set_vregister(VRegister reg, const simd_value_t& value);
 
-  int64_t get_sp() const {
-    return get_register(SPREG);
-  }
+  int64_t get_sp() const { return get_register(SPREG); }
 
   int64_t get_pc() const;
   int64_t get_last_pc() const;
@@ -124,12 +124,7 @@ class Simulator {
 
   static uword FunctionForRedirect(uword redirect);
 
-  void Longjmp(uword pc,
-               uword sp,
-               uword fp,
-               RawObject* raw_exception,
-               RawObject* raw_stacktrace,
-               Thread* thread);
+  void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
  private:
   // Known bad pc value to ensure that the simulator does not execute
@@ -165,9 +160,7 @@ class Simulator {
   int64_t break_instr_;
 
   // Illegal memory access support.
-  static bool IsIllegalAddress(uword addr) {
-    return addr < 64*1024;
-  }
+  static bool IsIllegalAddress(uword addr) { return addr < 64 * 1024; }
   void HandleIllegalAccess(uword addr, Instr* instr);
 
   // Handles an unaligned memory access.
@@ -232,8 +225,10 @@ class Simulator {
 
   void SetNZFlagsX(int64_t val);
   bool CarryFromX(int64_t alu_out, int64_t left, int64_t right, bool addition);
-  bool OverflowFromX(
-      int64_t alu_out, int64_t left, int64_t right, bool addition);
+  bool OverflowFromX(int64_t alu_out,
+                     int64_t left,
+                     int64_t right,
+                     bool addition);
 
   void SetCFlag(bool val);
   void SetVFlag(bool val);
@@ -256,10 +251,9 @@ class Simulator {
 
   // Decode instructions.
   void InstructionDecode(Instr* instr);
-  #define DECODE_OP(op)                                                        \
-    void Decode##op(Instr* instr);
+#define DECODE_OP(op) void Decode##op(Instr* instr);
   APPLY_OP_LIST(DECODE_OP)
-  #undef DECODE_OP
+#undef DECODE_OP
 
   // Executes ARM64 instructions until the PC reaches kEndSimulatingPC.
   void Execute();
@@ -268,9 +262,7 @@ class Simulator {
   bool IsTracingExecution() const;
 
   // Longjmp support for exceptions.
-  SimulatorSetjmpBuffer* last_setjmp_buffer() {
-    return last_setjmp_buffer_;
-  }
+  SimulatorSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }
   void set_last_setjmp_buffer(SimulatorSetjmpBuffer* buffer) {
     last_setjmp_buffer_ = buffer;
   }
@@ -282,4 +274,4 @@ class Simulator {
 
 }  // namespace dart
 
-#endif  // VM_SIMULATOR_ARM64_H_
+#endif  // RUNTIME_VM_SIMULATOR_ARM64_H_

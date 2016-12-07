@@ -13,7 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
 /**
@@ -29,17 +29,34 @@ class MemoryResourceProvider implements ResourceProvider {
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
-  final Context _pathContext;
+  final pathos.Context _pathContext;
 
   @override
   final AbsolutePathContext absolutePathContext;
 
-  MemoryResourceProvider({bool isWindows: false})
-      : _pathContext = isWindows ? windows : posix,
-        absolutePathContext = new AbsolutePathContext(isWindows);
+  MemoryResourceProvider(
+      {pathos.Context context, @deprecated bool isWindows: false})
+      : _pathContext = (context ??= pathos.context),
+        absolutePathContext =
+            new AbsolutePathContext(context.style == pathos.Style.windows);
 
   @override
-  Context get pathContext => _pathContext;
+  pathos.Context get pathContext => _pathContext;
+
+  /**
+   * Convert the given posix [path] to conform to this provider's path context.
+   *
+   * This is a utility method for testing; paths passed in to other methods in
+   * this class are never converted automatically.
+   */
+  String convertPath(String path) {
+    if (pathContext.style == pathos.windows.style &&
+        path.startsWith(pathos.posix.separator)) {
+      path = r'C:' +
+          path.replaceAll(pathos.posix.separator, pathos.windows.separator);
+    }
+    return path;
+  }
 
   /**
    * Delete the file with the given path.
@@ -78,7 +95,13 @@ class MemoryResourceProvider implements ResourceProvider {
   File getFile(String path) => new _MemoryFile(this, path);
 
   @override
-  Folder getFolder(String path) => newFolder(path);
+  Folder getFolder(String path) {
+    path = pathContext.normalize(path);
+    if (!pathContext.isAbsolute(path)) {
+      throw new ArgumentError("Path must be absolute : $path");
+    }
+    return new _MemoryFolder(this, path);
+  }
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
@@ -213,6 +236,9 @@ class MemoryResourceProvider implements ResourceProvider {
   void _checkFileAtPath(String path) {
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFile) {
+      if (resource == null) {
+        throw new ArgumentError('File expected at "$path" but does not exist');
+      }
       throw new ArgumentError(
           'File expected at "$path" but ${resource.runtimeType} found');
     }
@@ -280,6 +306,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   bool get exists => false;
 
   @override
+  int get lengthSync {
+    throw new FileSystemException(path, 'File could not be read');
+  }
+
+  @override
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
@@ -324,9 +355,6 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
-  Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
-
-  @override
   void writeAsBytesSync(List<int> bytes) {
     throw new FileSystemException(path, 'File could not be written');
   }
@@ -346,6 +374,11 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   bool get exists => _provider._pathToResource[path] is _MemoryFile;
+
+  @override
+  int get lengthSync {
+    return readAsBytesSync().length;
+  }
 
   @override
   int get modificationStamp {
@@ -397,9 +430,6 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   File resolveSymbolicLinksSync() => this;
-
-  @override
-  Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
@@ -494,10 +524,6 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Folder resolveSymbolicLinksSync() => this;
-
-  @override
-  Uri toUri() =>
-      new Uri.directory(path, windows: _provider.pathContext == windows);
 }
 
 /**
@@ -535,7 +561,7 @@ abstract class _MemoryResource implements Resource {
     if (parentPath == path) {
       return null;
     }
-    return _provider.getResource(parentPath);
+    return _provider.getFolder(parentPath);
   }
 
   @override
@@ -551,4 +577,7 @@ abstract class _MemoryResource implements Resource {
 
   @override
   String toString() => path;
+
+  @override
+  Uri toUri() => _provider.pathContext.toUri(path);
 }

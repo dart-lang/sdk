@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library EventTest;
-import "package:expect/expect.dart";
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-// TODO(nweiz): Make this private to testEvents when Frog supports closures with
-// optional arguments.
+import 'package:expect/minitest.dart';
+
 eventTest(String name, Event eventFn(), void validate(Event),
     [String type = 'foo']) {
   test(name, () {
@@ -25,8 +21,6 @@ eventTest(String name, Event eventFn(), void validate(Event),
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Issue 1005.
   // eventTest('AnimationEvent', () => new AnimationEvent('foo', 'color', 0.5),
   //     (ev) {
@@ -101,7 +95,7 @@ main() {
 
   eventTest('MouseEvent',
       () => new MouseEvent('foo', view: window, detail: 1, screenX: 2,
-          screenY: 3, clientX: 4, clientY: 5, button: 6, 
+          screenY: 3, clientX: 4, clientY: 5, button: 6,
           ctrlKey: true, altKey: true, shiftKey: true,
           metaKey: true, relatedTarget: document.body),
       (ev) {

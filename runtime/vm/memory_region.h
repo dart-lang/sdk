@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_MEMORY_REGION_H_
-#define VM_MEMORY_REGION_H_
+#ifndef RUNTIME_VM_MEMORY_REGION_H_
+#define RUNTIME_VM_MEMORY_REGION_H_
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
@@ -16,8 +16,8 @@ namespace dart {
 // of the region.
 class MemoryRegion : public ValueObject {
  public:
-  MemoryRegion() : pointer_(NULL), size_(0) { }
-  MemoryRegion(void* pointer, uword size) : pointer_(pointer), size_(size) { }
+  MemoryRegion() : pointer_(NULL), size_(0) {}
+  MemoryRegion(void* pointer, uword size) : pointer_(pointer), size_(size) {}
   MemoryRegion(const MemoryRegion& other) : ValueObject() { *this = other; }
   MemoryRegion& operator=(const MemoryRegion& other) {
     pointer_ = other.pointer_;
@@ -34,15 +34,18 @@ class MemoryRegion : public ValueObject {
   uword start() const { return reinterpret_cast<uword>(pointer_); }
   uword end() const { return start() + size_; }
 
-  template<typename T> T Load(uword offset) const {
+  template <typename T>
+  T Load(uword offset) const {
     return *ComputeInternalPointer<T>(offset);
   }
 
-  template<typename T> void Store(uword offset, T value) const {
+  template <typename T>
+  void Store(uword offset, T value) const {
     *ComputeInternalPointer<T>(offset) = value;
   }
 
-  template<typename T> T* PointerTo(uword offset) const {
+  template <typename T>
+  T* PointerTo(uword offset) const {
     return ComputeInternalPointer<T>(offset);
   }
 
@@ -67,7 +70,8 @@ class MemoryRegion : public ValueObject {
   }
 
  private:
-  template<typename T> T* ComputeInternalPointer(uword offset) const {
+  template <typename T>
+  T* ComputeInternalPointer(uword offset) const {
     ASSERT(size() >= sizeof(T));
     ASSERT(offset <= size() - sizeof(T));
     return reinterpret_cast<T*>(start() + offset);
@@ -79,4 +83,4 @@ class MemoryRegion : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_MEMORY_REGION_H_
+#endif  // RUNTIME_VM_MEMORY_REGION_H_

@@ -5,12 +5,13 @@
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(NameFilterTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NameFilterTest);
+  });
 }
 
 @reflectiveTest

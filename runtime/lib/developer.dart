@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
+import 'dart:_internal';
 
 @patch bool debugger({bool when: true,
                      String message}) native "Developer_debugger";
@@ -148,3 +149,15 @@ _postResponse(SendPort replyPort,
   }
   replyPort.send(sb.toString());
 }
+
+@patch int _getServiceMajorVersion() native "Developer_getServiceMajorVersion";
+
+@patch int _getServiceMinorVersion() native "Developer_getServiceMinorVersion";
+
+@patch void _getServerInfo(SendPort sendPort) native "Developer_getServerInfo";
+
+@patch void _webServerControl(SendPort sendPort, bool enable)
+    native "Developer_webServerControl";
+
+@patch String _getIsolateIDFromSendPort(SendPort sendPort)
+    native "Developer_getIsolateIDFromSendPort";

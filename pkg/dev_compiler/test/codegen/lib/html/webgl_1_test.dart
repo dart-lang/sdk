@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library web_gl_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
 import 'dart:web_gl';
 import 'dart:web_gl' as gl;
 
+import 'package:expect/minitest.dart';
+
 // Test that WebGL is present in dart:web_gl API
 
-main() {
-  useHtmlIndividualConfiguration();
+final isRenderingContext = predicate((x) => x is RenderingContext);
+final isContextAttributes = predicate((x) => x is gl.ContextAttributes);
 
+main() {
   group('supported', () {
     test('supported', () {
       expect(RenderingContext.supported, isTrue);
@@ -27,7 +27,7 @@ main() {
       var context = canvas.getContext3d();
       if (RenderingContext.supported) {
         expect(context, isNotNull);
-        expect(context, new isInstanceOf<RenderingContext>());
+        expect(context, isRenderingContext);
       } else {
         expect(context, isNull);
       }
@@ -36,7 +36,8 @@ main() {
     if (RenderingContext.supported) {
       test('simple', () {
         var canvas = new CanvasElement();
-        var context = canvas.getContext('experimental-webgl');
+        var context =
+            canvas.getContext('experimental-webgl') as gl.RenderingContext;
         var shader = context.createShader(gl.VERTEX_SHADER);
         context.shaderSource(shader, 'void main() { }');
         context.compileShader(shader);
@@ -48,11 +49,11 @@ main() {
         var canvas = new CanvasElement();
         var context = canvas.getContext3d();
         expect(context, isNotNull);
-        expect(context, new isInstanceOf<RenderingContext>());
+        expect(context, isRenderingContext);
 
         context = canvas.getContext3d(depth: false);
         expect(context, isNotNull);
-        expect(context, new isInstanceOf<RenderingContext>());
+        expect(context, isRenderingContext);
       });
 
       test('texImage2D', () {
@@ -95,7 +96,7 @@ main() {
         var attributes = context.getContextAttributes();
 
         expect(attributes, isNotNull);
-        expect(attributes, new isInstanceOf<gl.ContextAttributes>());
+        expect(attributes, isContextAttributes);
 
         expect(attributes.alpha, isBoolean);
         expect(attributes.antialias, isBoolean);

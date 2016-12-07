@@ -31,14 +31,19 @@ import 'package:path/path.dart';
  */
 void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
     Set<LibraryElement> libraries) {
-  CompilationUnitElement libUnitElement = targetLibrary.definingCompilationUnit;
-  CompilationUnit libUnit = getParsedUnit(libUnitElement);
-  CorrectionUtils libUtils = new CorrectionUtils(libUnit);
+  CorrectionUtils libUtils;
+  try {
+    CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
+    CompilationUnit unitAst = getParsedUnit(unitElement);
+    libUtils = new CorrectionUtils(unitAst);
+  } catch (e) {
+    throw new CancelCorrectionException(exception: e);
+  }
   String eol = libUtils.endOfLine;
   // Prepare information about existing imports.
   LibraryDirective libraryDirective;
   List<_ImportDirectiveInfo> importDirectives = <_ImportDirectiveInfo>[];
-  for (Directive directive in libUnit.directives) {
+  for (Directive directive in libUtils.unit.directives) {
     if (directive is LibraryDirective) {
       libraryDirective = directive;
     } else if (directive is ImportDirective) {
@@ -664,6 +669,17 @@ Expression stepUpNamedExpression(Expression expression) {
 }
 
 /**
+ * This exception is thrown to cancel the current correction operation,
+ * such as quick assist or quick fix because an inconsistency was detected.
+ * These inconsistencies may happen as a part of normal workflow, e.g. because
+ * a resource was deleted, or an analysis result was invalidated.
+ */
+class CancelCorrectionException {
+  final Object exception;
+  CancelCorrectionException({this.exception});
+}
+
+/**
  * Describes the location for a newly created [ClassMember].
  */
 class ClassMemberLocation {
@@ -689,8 +705,12 @@ class CorrectionUtils {
 
   CorrectionUtils(this.unit) {
     CompilationUnitElement unitElement = unit.element;
+    AnalysisContext context = unitElement.context;
+    if (context == null) {
+      throw new CancelCorrectionException();
+    }
     this._library = unitElement.library;
-    this._buffer = unitElement.context.getContents(unitElement.source).data;
+    this._buffer = context.getContents(unitElement.source).data;
   }
 
   /**

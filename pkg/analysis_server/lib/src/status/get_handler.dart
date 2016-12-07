@@ -46,8 +46,6 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/task/options.dart'
-    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -60,6 +58,16 @@ import 'package:plugin/plugin.dart';
  * encoded).
  */
 typedef void HtmlGenerator(StringBuffer buffer);
+
+/**
+ * Instances of the class [AbstractGetHandler] handle GET requests.
+ */
+abstract class AbstractGetHandler {
+  /**
+   * Handle a GET request received by the HTTP server.
+   */
+  void handleGetRequest(HttpRequest request);
+}
 
 class ElementCounter extends RecursiveElementVisitor {
   Map<Type, int> counts = new HashMap<Type, int>();
@@ -199,7 +207,7 @@ class ElementCounter extends RecursiveElementVisitor {
 /**
  * Instances of the class [GetHandler] handle GET requests.
  */
-class GetHandler {
+class GetHandler implements AbstractGetHandler {
   /**
    * The path used to request overall performance information.
    */
@@ -413,7 +421,7 @@ class GetHandler {
    */
   String _encodeSdkDescriptor(SdkDescription descriptor) {
     StringBuffer buffer = new StringBuffer();
-    buffer.write(descriptor.options.encodeCrossContextOptions());
+    buffer.write(descriptor.options.encodeCrossContextOptions().join(','));
     for (String path in descriptor.paths) {
       buffer.write('+');
       buffer.write(path);
@@ -1407,9 +1415,6 @@ class GetHandler {
       buffer.write('<p>');
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-      _writeOption(buffer, 'Cache size', options.cacheSize);
-      _writeOption(
-          buffer, 'Enable generic methods', options.enableGenericMethods);
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
@@ -1453,8 +1458,7 @@ class GetHandler {
             });
           },
           (StringBuffer buffer) {
-            List<Linter> lints =
-                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            List<Linter> lints = context.analysisOptions.lintRules;
             buffer.write('<p><b>Lints</b></p>');
             if (lints.isEmpty) {
               buffer.write('<p>none</p>');
@@ -1467,7 +1471,7 @@ class GetHandler {
             }
 
             List<ErrorProcessor> errorProcessors =
-                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+                context.analysisOptions.errorProcessors;
             int processorCount = errorProcessors?.length ?? 0;
             buffer
                 .write('<p><b>Error Processor count</b>: $processorCount</p>');
@@ -2512,6 +2516,9 @@ class GetHandler {
       }
       buffer.write('<p>');
       buffer.write('Status: Running<br>');
+      buffer.write('New analysis driver: ');
+      buffer.write(analysisServer.options.enableNewAnalysisDriver);
+      buffer.write('<br>');
       buffer.write('Instrumentation: ');
       if (AnalysisEngine.instance.instrumentationService.isActive) {
         buffer.write('<span style="color:red">Active</span>');

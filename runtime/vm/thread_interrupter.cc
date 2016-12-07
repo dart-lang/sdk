@@ -47,8 +47,7 @@ namespace dart {
 // effect: if the thread is interrupted by a signal handler during a ThreadState
 // update the signal handler will immediately return.
 
-DEFINE_FLAG(bool, trace_thread_interrupter, false,
-            "Trace thread interrupter");
+DEFINE_FLAG(bool, trace_thread_interrupter, false, "Trace thread interrupter");
 
 bool ThreadInterrupter::initialized_ = false;
 bool ThreadInterrupter::shutdown_ = false;

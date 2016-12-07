@@ -15,7 +15,7 @@ import 'package:analyzer/src/summary/idl.dart';
  */
 UnlinkedConstructorInitializer serializeConstructorInitializer(
     ConstructorInitializer node,
-    UnlinkedConstBuilder serializeConstExpr(Expression expr)) {
+    UnlinkedExprBuilder serializeConstExpr(Expression expr)) {
   if (node is ConstructorFieldInitializer) {
     return new UnlinkedConstructorInitializerBuilder(
         kind: UnlinkedConstructorInitializerKind.field,
@@ -23,7 +23,7 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
         expression: serializeConstExpr(node.expression));
   }
 
-  List<UnlinkedConstBuilder> arguments = <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> arguments = <UnlinkedExprBuilder>[];
   List<String> argumentNames = <String>[];
   void serializeArguments(List<Expression> args) {
     for (Expression arg in args) {
@@ -61,43 +61,43 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
  */
 abstract class AbstractConstExprSerializer {
   /**
-   * See [UnlinkedConstBuilder.isValidConst].
+   * See [UnlinkedExprBuilder.isValidConst].
    */
   bool isValidConst = true;
 
   /**
-   * See [UnlinkedConstBuilder.nmae].
+   * See [UnlinkedExprBuilder.name].
    */
   String name = null;
 
   /**
-   * See [UnlinkedConstBuilder.operations].
+   * See [UnlinkedExprBuilder.operations].
    */
-  final List<UnlinkedConstOperation> operations = <UnlinkedConstOperation>[];
+  final List<UnlinkedExprOperation> operations = <UnlinkedExprOperation>[];
 
   /**
-   * See [UnlinkedConstBuilder.assignmentOperators].
+   * See [UnlinkedExprBuilder.assignmentOperators].
    */
   final List<UnlinkedExprAssignOperator> assignmentOperators =
       <UnlinkedExprAssignOperator>[];
 
   /**
-   * See [UnlinkedConstBuilder.ints].
+   * See [UnlinkedExprBuilder.ints].
    */
   final List<int> ints = <int>[];
 
   /**
-   * See [UnlinkedConstBuilder.doubles].
+   * See [UnlinkedExprBuilder.doubles].
    */
   final List<double> doubles = <double>[];
 
   /**
-   * See [UnlinkedConstBuilder.strings].
+   * See [UnlinkedExprBuilder.strings].
    */
   final List<String> strings = <String>[];
 
   /**
-   * See [UnlinkedConstBuilder.references].
+   * See [UnlinkedExprBuilder.references].
    */
   final List<EntityRefBuilder> references = <EntityRefBuilder>[];
 
@@ -163,7 +163,7 @@ abstract class AbstractConstExprSerializer {
       EntityRefBuilder constructor, ArgumentList argumentList) {
     _serializeArguments(argumentList);
     references.add(constructor);
-    operations.add(UnlinkedConstOperation.invokeConstructor);
+    operations.add(UnlinkedExprOperation.invokeConstructor);
   }
 
   /**
@@ -183,11 +183,11 @@ abstract class AbstractConstExprSerializer {
   }
 
   /**
-   * Return the [UnlinkedConstBuilder] that corresponds to the state of this
+   * Return the [UnlinkedExprBuilder] that corresponds to the state of this
    * serializer.
    */
-  UnlinkedConstBuilder toBuilder() {
-    return new UnlinkedConstBuilder(
+  UnlinkedExprBuilder toBuilder() {
+    return new UnlinkedExprBuilder(
         isValidConst: isValidConst,
         operations: operations,
         assignmentOperators: assignmentOperators,
@@ -232,24 +232,24 @@ abstract class AbstractConstExprSerializer {
     if (_isIdentifierSequence(expr)) {
       EntityRefBuilder ref = serializeIdentifierSequence(expr);
       references.add(ref);
-      operations.add(UnlinkedConstOperation.assignToRef);
+      operations.add(UnlinkedExprOperation.assignToRef);
     } else if (expr is PropertyAccess) {
       if (!expr.isCascaded) {
         _serialize(expr.target);
       }
       strings.add(expr.propertyName.name);
-      operations.add(UnlinkedConstOperation.assignToProperty);
+      operations.add(UnlinkedExprOperation.assignToProperty);
     } else if (expr is IndexExpression) {
       if (!expr.isCascaded) {
         _serialize(expr.target);
       }
       _serialize(expr.index);
-      operations.add(UnlinkedConstOperation.assignToIndex);
+      operations.add(UnlinkedExprOperation.assignToIndex);
     } else if (expr is PrefixedIdentifier) {
       strings.add(expr.prefix.name);
-      operations.add(UnlinkedConstOperation.pushParameter);
+      operations.add(UnlinkedExprOperation.pushParameter);
       strings.add(expr.identifier.name);
-      operations.add(UnlinkedConstOperation.assignToProperty);
+      operations.add(UnlinkedExprOperation.assignToProperty);
     } else {
       throw new StateError('Unsupported assignable: $expr');
     }
@@ -267,11 +267,12 @@ abstract class AbstractConstExprSerializer {
         numOfComponents++;
         ints.add(value & 0xFFFFFFFF);
       }
+
       pushComponents(value);
       ints[ints.length - 1 - numOfComponents] = numOfComponents;
-      operations.add(UnlinkedConstOperation.pushLongInt);
+      operations.add(UnlinkedExprOperation.pushLongInt);
     } else {
-      operations.add(UnlinkedConstOperation.pushInt);
+      operations.add(UnlinkedExprOperation.pushInt);
       ints.add(value);
     }
   }
@@ -283,34 +284,34 @@ abstract class AbstractConstExprSerializer {
     if (expr is IntegerLiteral) {
       _pushInt(expr.value);
     } else if (expr is DoubleLiteral) {
-      operations.add(UnlinkedConstOperation.pushDouble);
+      operations.add(UnlinkedExprOperation.pushDouble);
       doubles.add(expr.value);
     } else if (expr is BooleanLiteral) {
       if (expr.value) {
-        operations.add(UnlinkedConstOperation.pushTrue);
+        operations.add(UnlinkedExprOperation.pushTrue);
       } else {
-        operations.add(UnlinkedConstOperation.pushFalse);
+        operations.add(UnlinkedExprOperation.pushFalse);
       }
     } else if (expr is StringLiteral) {
       _serializeString(expr);
     } else if (expr is SymbolLiteral) {
       strings.add(expr.components.map((token) => token.lexeme).join('.'));
-      operations.add(UnlinkedConstOperation.makeSymbol);
+      operations.add(UnlinkedExprOperation.makeSymbol);
     } else if (expr is NullLiteral) {
-      operations.add(UnlinkedConstOperation.pushNull);
+      operations.add(UnlinkedExprOperation.pushNull);
     } else if (expr is Identifier) {
       if (expr is SimpleIdentifier && isParameterName(expr.name)) {
         strings.add(expr.name);
-        operations.add(UnlinkedConstOperation.pushParameter);
+        operations.add(UnlinkedExprOperation.pushParameter);
       } else if (expr is PrefixedIdentifier &&
           isParameterName(expr.prefix.name)) {
         strings.add(expr.prefix.name);
-        operations.add(UnlinkedConstOperation.pushParameter);
+        operations.add(UnlinkedExprOperation.pushParameter);
         strings.add(expr.identifier.name);
-        operations.add(UnlinkedConstOperation.extractProperty);
+        operations.add(UnlinkedExprOperation.extractProperty);
       } else {
         references.add(serializeIdentifier(expr));
-        operations.add(UnlinkedConstOperation.pushReference);
+        operations.add(UnlinkedExprOperation.pushReference);
       }
     } else if (expr is InstanceCreationExpression) {
       if (!expr.isConst) {
@@ -333,7 +334,7 @@ abstract class AbstractConstExprSerializer {
       _serialize(expr.condition);
       _serialize(expr.thenExpression);
       _serialize(expr.elseExpression);
-      operations.add(UnlinkedConstOperation.conditional);
+      operations.add(UnlinkedExprOperation.conditional);
     } else if (expr is PrefixExpression) {
       _serializePrefixExpression(expr);
     } else if (expr is PostfixExpression) {
@@ -346,7 +347,7 @@ abstract class AbstractConstExprSerializer {
       isValidConst = false;
       _serialize(expr.target);
       _serialize(expr.index);
-      operations.add(UnlinkedConstOperation.extractIndex);
+      operations.add(UnlinkedExprOperation.extractIndex);
     } else if (expr is AssignmentExpression) {
       _serializeAssignment(expr);
     } else if (expr is CascadeExpression) {
@@ -356,29 +357,33 @@ abstract class AbstractConstExprSerializer {
       List<int> indices = serializeFunctionExpression(expr);
       if (indices != null) {
         ints.addAll(serializeFunctionExpression(expr));
-        operations.add(UnlinkedConstOperation.pushLocalFunctionReference);
+        operations.add(UnlinkedExprOperation.pushLocalFunctionReference);
       } else {
         // Invalid expression; just push null.
-        operations.add(UnlinkedConstOperation.pushNull);
+        operations.add(UnlinkedExprOperation.pushNull);
       }
     } else if (expr is FunctionExpressionInvocation) {
       isValidConst = false;
       // TODO(scheglov) implement
-      operations.add(UnlinkedConstOperation.pushNull);
+      operations.add(UnlinkedExprOperation.pushNull);
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
       references.add(serializeTypeName(expr.type));
-      operations.add(UnlinkedConstOperation.typeCast);
+      operations.add(UnlinkedExprOperation.typeCast);
     } else if (expr is IsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
       references.add(serializeTypeName(expr.type));
-      operations.add(UnlinkedConstOperation.typeCheck);
+      operations.add(UnlinkedExprOperation.typeCheck);
     } else if (expr is ThrowExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      operations.add(UnlinkedConstOperation.throwException);
+      operations.add(UnlinkedExprOperation.throwException);
+    } else if (expr is AwaitExpression) {
+      isValidConst = false;
+      _serialize(expr.expression);
+      operations.add(UnlinkedExprOperation.await);
     } else {
       throw new StateError('Unknown expression type: $expr');
     }
@@ -448,43 +453,45 @@ abstract class AbstractConstExprSerializer {
     _serialize(expr.rightOperand);
     TokenType operator = expr.operator.type;
     if (operator == TokenType.EQ_EQ) {
-      operations.add(UnlinkedConstOperation.equal);
+      operations.add(UnlinkedExprOperation.equal);
     } else if (operator == TokenType.BANG_EQ) {
-      operations.add(UnlinkedConstOperation.notEqual);
+      operations.add(UnlinkedExprOperation.notEqual);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND) {
-      operations.add(UnlinkedConstOperation.and);
+      operations.add(UnlinkedExprOperation.and);
     } else if (operator == TokenType.BAR_BAR) {
-      operations.add(UnlinkedConstOperation.or);
+      operations.add(UnlinkedExprOperation.or);
     } else if (operator == TokenType.CARET) {
-      operations.add(UnlinkedConstOperation.bitXor);
+      operations.add(UnlinkedExprOperation.bitXor);
     } else if (operator == TokenType.AMPERSAND) {
-      operations.add(UnlinkedConstOperation.bitAnd);
+      operations.add(UnlinkedExprOperation.bitAnd);
     } else if (operator == TokenType.BAR) {
-      operations.add(UnlinkedConstOperation.bitOr);
+      operations.add(UnlinkedExprOperation.bitOr);
     } else if (operator == TokenType.GT_GT) {
-      operations.add(UnlinkedConstOperation.bitShiftRight);
+      operations.add(UnlinkedExprOperation.bitShiftRight);
     } else if (operator == TokenType.LT_LT) {
-      operations.add(UnlinkedConstOperation.bitShiftLeft);
+      operations.add(UnlinkedExprOperation.bitShiftLeft);
     } else if (operator == TokenType.PLUS) {
-      operations.add(UnlinkedConstOperation.add);
+      operations.add(UnlinkedExprOperation.add);
     } else if (operator == TokenType.MINUS) {
-      operations.add(UnlinkedConstOperation.subtract);
+      operations.add(UnlinkedExprOperation.subtract);
     } else if (operator == TokenType.STAR) {
-      operations.add(UnlinkedConstOperation.multiply);
+      operations.add(UnlinkedExprOperation.multiply);
     } else if (operator == TokenType.SLASH) {
-      operations.add(UnlinkedConstOperation.divide);
+      operations.add(UnlinkedExprOperation.divide);
     } else if (operator == TokenType.TILDE_SLASH) {
-      operations.add(UnlinkedConstOperation.floorDivide);
+      operations.add(UnlinkedExprOperation.floorDivide);
     } else if (operator == TokenType.GT) {
-      operations.add(UnlinkedConstOperation.greater);
+      operations.add(UnlinkedExprOperation.greater);
     } else if (operator == TokenType.LT) {
-      operations.add(UnlinkedConstOperation.less);
+      operations.add(UnlinkedExprOperation.less);
     } else if (operator == TokenType.GT_EQ) {
-      operations.add(UnlinkedConstOperation.greaterEqual);
+      operations.add(UnlinkedExprOperation.greaterEqual);
     } else if (operator == TokenType.LT_EQ) {
-      operations.add(UnlinkedConstOperation.lessEqual);
+      operations.add(UnlinkedExprOperation.lessEqual);
     } else if (operator == TokenType.PERCENT) {
-      operations.add(UnlinkedConstOperation.modulo);
+      operations.add(UnlinkedExprOperation.modulo);
+    } else if (operator == TokenType.QUESTION_QUESTION) {
+      operations.add(UnlinkedExprOperation.ifNull);
     } else {
       throw new StateError('Unknown operator: $operator');
     }
@@ -493,9 +500,9 @@ abstract class AbstractConstExprSerializer {
   void _serializeCascadeExpression(CascadeExpression expr) {
     _serialize(expr.target);
     for (Expression section in expr.cascadeSections) {
-      operations.add(UnlinkedConstOperation.cascadeSectionBegin);
+      operations.add(UnlinkedExprOperation.cascadeSectionBegin);
       _serialize(section);
-      operations.add(UnlinkedConstOperation.cascadeSectionEnd);
+      operations.add(UnlinkedExprOperation.cascadeSectionEnd);
     }
   }
 
@@ -506,9 +513,9 @@ abstract class AbstractConstExprSerializer {
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 1) {
       references.add(serializeTypeName(expr.typeArguments.arguments[0]));
-      operations.add(UnlinkedConstOperation.makeTypedList);
+      operations.add(UnlinkedExprOperation.makeTypedList);
     } else {
-      operations.add(UnlinkedConstOperation.makeUntypedList);
+      operations.add(UnlinkedExprOperation.makeUntypedList);
     }
   }
 
@@ -522,9 +529,9 @@ abstract class AbstractConstExprSerializer {
         expr.typeArguments.arguments.length == 2) {
       references.add(serializeTypeName(expr.typeArguments.arguments[0]));
       references.add(serializeTypeName(expr.typeArguments.arguments[1]));
-      operations.add(UnlinkedConstOperation.makeTypedMap);
+      operations.add(UnlinkedExprOperation.makeTypedMap);
     } else {
-      operations.add(UnlinkedConstOperation.makeUntypedMap);
+      operations.add(UnlinkedExprOperation.makeUntypedMap);
     }
   }
 
@@ -541,7 +548,7 @@ abstract class AbstractConstExprSerializer {
       _serializeArguments(argumentList);
       references.add(ref);
       _serializeTypeArguments(invocation.typeArguments);
-      operations.add(UnlinkedConstOperation.invokeMethodRef);
+      operations.add(UnlinkedExprOperation.invokeMethodRef);
     } else {
       if (!invocation.isCascaded) {
         _serialize(target);
@@ -549,7 +556,7 @@ abstract class AbstractConstExprSerializer {
       _serializeArguments(argumentList);
       strings.add(methodName.name);
       _serializeTypeArguments(invocation.typeArguments);
-      operations.add(UnlinkedConstOperation.invokeMethod);
+      operations.add(UnlinkedExprOperation.invokeMethod);
     }
   }
 
@@ -572,13 +579,13 @@ abstract class AbstractConstExprSerializer {
     Expression operand = expr.operand;
     if (operator == TokenType.BANG) {
       _serialize(operand);
-      operations.add(UnlinkedConstOperation.not);
+      operations.add(UnlinkedExprOperation.not);
     } else if (operator == TokenType.MINUS) {
       _serialize(operand);
-      operations.add(UnlinkedConstOperation.negate);
+      operations.add(UnlinkedExprOperation.negate);
     } else if (operator == TokenType.TILDE) {
       _serialize(operand);
-      operations.add(UnlinkedConstOperation.complement);
+      operations.add(UnlinkedExprOperation.complement);
     } else if (operator == TokenType.PLUS_PLUS) {
       _serializePrefixPostfixIncDec(
           operand, UnlinkedExprAssignOperator.prefixIncrement);
@@ -601,38 +608,38 @@ abstract class AbstractConstExprSerializer {
     if (_isIdentifierSequence(expr)) {
       EntityRefBuilder ref = serializeIdentifierSequence(expr);
       references.add(ref);
-      operations.add(UnlinkedConstOperation.pushReference);
+      operations.add(UnlinkedExprOperation.pushReference);
     } else {
       _serialize(expr.target);
       strings.add(expr.propertyName.name);
-      operations.add(UnlinkedConstOperation.extractProperty);
+      operations.add(UnlinkedExprOperation.extractProperty);
     }
   }
 
   void _serializeString(StringLiteral expr) {
     if (expr is AdjacentStrings) {
       if (expr.strings.every((string) => string is SimpleStringLiteral)) {
-        operations.add(UnlinkedConstOperation.pushString);
+        operations.add(UnlinkedExprOperation.pushString);
         strings.add(expr.stringValue);
       } else {
         expr.strings.forEach(_serializeString);
-        operations.add(UnlinkedConstOperation.concatenate);
+        operations.add(UnlinkedExprOperation.concatenate);
         ints.add(expr.strings.length);
       }
     } else if (expr is SimpleStringLiteral) {
-      operations.add(UnlinkedConstOperation.pushString);
+      operations.add(UnlinkedExprOperation.pushString);
       strings.add(expr.value);
     } else {
       StringInterpolation interpolation = expr as StringInterpolation;
       for (InterpolationElement element in interpolation.elements) {
         if (element is InterpolationString) {
-          operations.add(UnlinkedConstOperation.pushString);
+          operations.add(UnlinkedExprOperation.pushString);
           strings.add(element.value);
         } else {
           _serialize((element as InterpolationExpression).expression);
         }
       }
-      operations.add(UnlinkedConstOperation.concatenate);
+      operations.add(UnlinkedExprOperation.concatenate);
       ints.add(interpolation.elements.length);
     }
   }

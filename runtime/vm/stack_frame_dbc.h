@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_STACK_FRAME_DBC_H_
-#define VM_STACK_FRAME_DBC_H_
+#ifndef RUNTIME_VM_STACK_FRAME_DBC_H_
+#define RUNTIME_VM_STACK_FRAME_DBC_H_
 
 namespace dart {
 
@@ -43,7 +43,7 @@ static const int kFirstObjectSlotFromFp = -4;  // Used by GC to traverse stack.
 static const int kSavedCallerFpSlotFromFp = -1;
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 static const int kSavedCallerPcSlotFromFp = -2;
-static const int kCallerSpSlotFromFp = -kDartFrameFixedSize-1;
+static const int kCallerSpSlotFromFp = -kDartFrameFixedSize - 1;
 static const int kPcMarkerSlotFromFp = -3;
 static const int kFunctionSlotFromFp = -4;
 
@@ -84,4 +84,4 @@ static const uword kInterruptStackLimit = 0;
 
 }  // namespace dart
 
-#endif  // VM_STACK_FRAME_DBC_H_
+#endif  // RUNTIME_VM_STACK_FRAME_DBC_H_

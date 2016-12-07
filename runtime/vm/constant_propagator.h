@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CONSTANT_PROPAGATOR_H_
-#define VM_CONSTANT_PROPAGATOR_H_
+#ifndef RUNTIME_VM_CONSTANT_PROPAGATOR_H_
+#define RUNTIME_VM_CONSTANT_PROPAGATOR_H_
 
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
@@ -49,9 +49,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   // first one.
   void Join(Object* left, const Object& right);
 
-  bool IsUnknown(const Object& value) {
-    return value.raw() == unknown_.raw();
-  }
+  bool IsUnknown(const Object& value) { return value.raw() == unknown_.raw(); }
   bool IsNonConstant(const Object& value) {
     return value.raw() == non_constant_.raw();
   }
@@ -90,4 +88,4 @@ class ConstantPropagator : public FlowGraphVisitor {
 
 }  // namespace dart
 
-#endif  // VM_CONSTANT_PROPAGATOR_H_
+#endif  // RUNTIME_VM_CONSTANT_PROPAGATOR_H_

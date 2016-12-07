@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_REUSABLE_HANDLES_H_
-#define VM_REUSABLE_HANDLES_H_
+#ifndef RUNTIME_VM_REUSABLE_HANDLES_H_
+#define RUNTIME_VM_REUSABLE_HANDLES_H_
 
 #include "vm/allocation.h"
 #include "vm/handles.h"
@@ -35,8 +35,7 @@ namespace dart {
 #define REUSABLE_SCOPE(name)                                                   \
   class Reusable##name##HandleScope : public ValueObject {                     \
    public:                                                                     \
-    explicit Reusable##name##HandleScope(Thread* thread)                       \
-        : thread_(thread) {                                                    \
+    explicit Reusable##name##HandleScope(Thread* thread) : thread_(thread) {   \
       ASSERT(!thread->reusable_##name##_handle_scope_active());                \
       thread->set_reusable_##name##_handle_scope_active(true);                 \
     }                                                                          \
@@ -53,6 +52,7 @@ namespace dart {
       ASSERT(thread_->name##_handle_ != NULL);                                 \
       return *thread_->name##_handle_;                                         \
     }                                                                          \
+                                                                               \
    private:                                                                    \
     Thread* thread_;                                                           \
     DISALLOW_COPY_AND_ASSIGN(Reusable##name##HandleScope);                     \
@@ -62,18 +62,15 @@ namespace dart {
   class Reusable##name##HandleScope : public ValueObject {                     \
    public:                                                                     \
     explicit Reusable##name##HandleScope(Thread* thread)                       \
-        : handle_(thread->name##_handle_) {                                    \
-    }                                                                          \
+        : handle_(thread->name##_handle_) {}                                   \
     Reusable##name##HandleScope()                                              \
-        : handle_(Thread::Current()->name##_handle_) {                         \
-    }                                                                          \
-    ~Reusable##name##HandleScope() {                                           \
-      handle_->raw_ = name::null();                                            \
-    }                                                                          \
+        : handle_(Thread::Current()->name##_handle_) {}                        \
+    ~Reusable##name##HandleScope() { handle_->raw_ = name::null(); }           \
     name& Handle() const {                                                     \
       ASSERT(handle_ != NULL);                                                 \
       return *handle_;                                                         \
     }                                                                          \
+                                                                               \
    private:                                                                    \
     name* handle_;                                                             \
     DISALLOW_COPY_AND_ASSIGN(Reusable##name##HandleScope);                     \
@@ -93,15 +90,14 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
 #define REUSABLE_ERROR_HANDLESCOPE(thread)                                     \
   ReusableErrorHandleScope reused_error_handle(thread);
 #define REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread)                        \
-  ReusableExceptionHandlersHandleScope                                         \
-      reused_exception_handlers_handle(thread);
+  ReusableExceptionHandlersHandleScope reused_exception_handlers_handle(thread);
 #define REUSABLE_FIELD_HANDLESCOPE(thread)                                     \
   ReusableFieldHandleScope reused_field_handle(thread);
 #define REUSABLE_FUNCTION_HANDLESCOPE(thread)                                  \
   ReusableFunctionHandleScope reused_function_handle(thread);
 #define REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(thread)                     \
-  ReusableGrowableObjectArrayHandleScope                                       \
-      reused_growable_object_array_handle(thread)
+  ReusableGrowableObjectArrayHandleScope reused_growable_object_array_handle(  \
+      thread)
 #define REUSABLE_INSTANCE_HANDLESCOPE(thread)                                  \
   ReusableInstanceHandleScope reused_instance_handle(thread);
 #define REUSABLE_LIBRARY_HANDLESCOPE(thread)                                   \
@@ -121,4 +117,4 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
 
 }  // namespace dart
 
-#endif  // VM_REUSABLE_HANDLES_H_
+#endif  // RUNTIME_VM_REUSABLE_HANDLES_H_

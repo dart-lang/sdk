@@ -6,8 +6,8 @@
 
 #include "vm/regexp_bytecodes.h"
 
-#ifndef VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
-#define VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#ifndef RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#define RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
 
 namespace dart {
 
@@ -15,7 +15,7 @@ void BytecodeRegExpMacroAssembler::Emit(uint32_t byte,
                                         uint32_t twenty_four_bits) {
   uint32_t word = ((twenty_four_bits << BYTECODE_SHIFT) | byte);
   ASSERT(pc_ <= buffer_->length());
-  if (pc_  + 3 >= buffer_->length()) {
+  if (pc_ + 3 >= buffer_->length()) {
     Expand();
   }
   *reinterpret_cast<uint32_t*>(buffer_->data() + pc_) = word;
@@ -54,4 +54,4 @@ void BytecodeRegExpMacroAssembler::Emit32(uint32_t word) {
 
 }  // namespace dart
 
-#endif  // VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#endif  // RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_

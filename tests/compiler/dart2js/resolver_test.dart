@@ -16,6 +16,8 @@ import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/resolution_result.dart';
 import 'package:compiler/src/resolution/scope.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
+import 'package:compiler/src/universe/use.dart';
+import 'package:compiler/src/universe/world_impact.dart';
 
 import 'compiler_helper.dart';
 import 'link_helper.dart';
@@ -241,7 +243,9 @@ Future testSwitch() {
     compiler.resolveStatement("Foo foo;");
     ClassElement fooElement = compiler.mainApp.find("Foo");
     FunctionElement funElement = fooElement.lookupLocalMember("foo");
-    compiler.processQueue(compiler.enqueuer.resolution, funElement);
+    compiler.enqueuer.resolution.applyImpact(new WorldImpactBuilderImpl()
+      ..registerStaticUse(new StaticUse.foreignUse(funElement)));
+    compiler.processQueue(compiler.enqueuer.resolution, null);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(0, collector.warnings.length);
     Expect.equals(1, collector.errors.length);

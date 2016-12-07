@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_STUB_CODE_H_
-#define VM_STUB_CODE_H_
+#ifndef RUNTIME_VM_STUB_CODE_H_
+#define RUNTIME_VM_STUB_CODE_H_
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
@@ -25,7 +25,8 @@ class Deserializer;
 #if !defined(TARGET_ARCH_DBC)
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetStackPointer)                                                           \
-  V(JumpToExceptionHandler)                                                    \
+  V(JumpToFrame)                                                               \
+  V(RunExceptionHandler)                                                       \
   V(UpdateStoreBuffer)                                                         \
   V(PrintStopMessage)                                                          \
   V(CallToRuntime)                                                             \
@@ -67,16 +68,18 @@ class Deserializer;
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
   V(CallClosureNoSuchMethod)                                                   \
-  V(FrameAwaitingMaterialization)                                              \
+  V(FrameAwaitingMaterialization)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(LazyCompile)                                                               \
+  V(OptimizeFunction)                                                          \
+  V(RunExceptionHandler)                                                       \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
-  V(FrameAwaitingMaterialization)                                              \
+  V(FrameAwaitingMaterialization)
 
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -137,20 +140,16 @@ class StubCode : public AllStatic {
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
 
-  // Check if the specified pc is in the jump to exception handler stub.
-  static bool InJumpToExceptionHandlerStub(uword pc);
+  // Check if the specified pc is in the jump to frame stub.
+  static bool InJumpToFrameStub(uword pc);
 
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);
 
-  // Define the shared stub code accessors.
+// Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const StubEntry* name##_entry() {                                     \
-    return name##_entry_;                                                      \
-  }                                                                            \
-  static intptr_t name##Size() {                                               \
-    return name##_entry()->Size();                                             \
-  }
+  static const StubEntry* name##_entry() { return name##_entry_; }             \
+  static intptr_t name##Size() { return name##_entry()->Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
@@ -170,8 +169,7 @@ class StubCode : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
 #undef STUB_CODE_GENERATE
 
-#define STUB_CODE_ENTRY(name)                                                  \
-  static StubEntry* name##_entry_;
+#define STUB_CODE_ENTRY(name) static StubEntry* name##_entry_;
   VM_STUB_CODE_LIST(STUB_CODE_ENTRY);
 #undef STUB_CODE_ENTRY
 
@@ -195,12 +193,8 @@ class StubCode : public AllStatic {
 };
 
 
-enum DeoptStubKind {
-  kLazyDeoptFromReturn,
-  kLazyDeoptFromThrow,
-  kEagerDeopt
-};
+enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
 
 }  // namespace dart
 
-#endif  // VM_STUB_CODE_H_
+#endif  // RUNTIME_VM_STUB_CODE_H_

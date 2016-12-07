@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_UNIBROW_H_
-#define VM_UNIBROW_H_
+#ifndef RUNTIME_VM_UNIBROW_H_
+#define RUNTIME_VM_UNIBROW_H_
 
 #include <sys/types.h>
 
@@ -23,16 +23,16 @@ namespace unibrow {
 template <class T, intptr_t size = 256>
 class Mapping {
  public:
-  inline Mapping() { }
+  inline Mapping() {}
   inline intptr_t get(int32_t c, int32_t n, int32_t* result);
+
  private:
   friend class Test;
   intptr_t CalculateValue(int32_t c, int32_t n, int32_t* result);
   struct CacheEntry {
-    inline CacheEntry() : code_point_(kNoChar), offset_(0) { }
+    inline CacheEntry() : code_point_(kNoChar), offset_(0) {}
     inline CacheEntry(int32_t code_point, signed offset)
-      : code_point_(code_point),
-        offset_(offset) { }
+        : code_point_(code_point), offset_(offset) {}
     int32_t code_point_;
     signed offset_;
     static const intptr_t kNoChar = (1 << 21) - 1;
@@ -69,4 +69,4 @@ struct CanonicalizationRange {
 
 }  // namespace unibrow
 
-#endif  // VM_UNIBROW_H_
+#endif  // RUNTIME_VM_UNIBROW_H_

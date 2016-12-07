@@ -193,9 +193,9 @@ class _SendPortImpl implements SendPort {
   void _sendInternal(var message) native "SendPortImpl_sendInternal_";
 }
 
-typedef _MainFunction();
-typedef _MainFunctionArgs(args);
-typedef _MainFunctionArgsMessage(args, message);
+typedef _NullaryFunction();
+typedef _UnaryFunction(args);
+typedef _BinaryFunction(args, message);
 
 /**
  * Takes the real entry point as argument and invokes it with the
@@ -253,9 +253,9 @@ void _startIsolate(SendPort parentPort,
     port.close();
 
     if (isSpawnUri) {
-      if (entryPoint is _MainFunctionArgsMessage) {
+      if (entryPoint is _BinaryFunction) {
         entryPoint(args, message);
-      } else if (entryPoint is _MainFunctionArgs) {
+      } else if (entryPoint is _UnaryFunction) {
         entryPoint(args);
       } else {
         entryPoint();
@@ -310,6 +310,11 @@ void _startIsolate(SendPort parentPort,
     // `paused` isn't handled yet.
     RawReceivePort readyPort;
     try {
+      // Check for the type of `entryPoint` on the spawning isolate to make
+      // error-handling easier.
+      if (entryPoint is! _UnaryFunction) {
+        throw new ArgumentError(entryPoint);
+      }
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
 

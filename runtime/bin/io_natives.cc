@@ -157,9 +157,7 @@ static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
-} IOEntries[] = {
-  IO_NATIVE_LIST(REGISTER_FUNCTION)
-};
+} IOEntries[] = {IO_NATIVE_LIST(REGISTER_FUNCTION)};
 
 
 Dart_NativeFunction IONativeLookup(Dart_Handle name,

@@ -44,13 +44,9 @@ class UnoptimizedCall : public ValueObject {
            (code_bytes[2 * kMovInstructionSize] == 0xFF);
   }
 
-  uword return_address() const {
-    return start_ + kPatternSize;
-  }
+  uword return_address() const { return start_ + kPatternSize; }
 
-  uword call_address() const {
-    return start_ + 2 * kMovInstructionSize;
-  }
+  uword call_address() const { return start_ + 2 * kMovInstructionSize; }
 
  protected:
   uword start_;
@@ -62,8 +58,7 @@ class UnoptimizedCall : public ValueObject {
 
 class NativeCall : public UnoptimizedCall {
  public:
-  explicit NativeCall(uword return_address) : UnoptimizedCall(return_address) {
-  }
+  explicit NativeCall(uword return_address) : UnoptimizedCall(return_address) {}
 
   NativeFunction native_function() const {
     return *reinterpret_cast<NativeFunction*>(start_ + 1);
@@ -145,12 +140,10 @@ class StaticCall : public ValueObject {
 
  private:
   uword return_address() const {
-    return start_ + kMovInstructionSize +  kCallInstructionSize;
+    return start_ + kMovInstructionSize + kCallInstructionSize;
   }
 
-  uword call_address() const {
-    return start_ + kMovInstructionSize;
-  }
+  uword call_address() const { return start_ + kMovInstructionSize; }
 
   uword start_;
 
@@ -170,25 +163,21 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     const Code& new_target) {
   const Instructions& instrs = Instructions::Handle(code.instructions());
-  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
+  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   call.set_target(new_target);
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
-  // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::pattern_length_in_bytes() <= target);
-  *reinterpret_cast<uint8_t*>(start) = 0xE8;
-  CallPattern call(start);
-  call.SetTargetAddress(target);
-  CPU::FlushICache(start, CallPattern::pattern_length_in_bytes());
+void CodePatcher::InsertDeoptimizationCallAt(uword start) {
+  UNREACHABLE();
 }
 
 
-RawCode* CodePatcher::GetInstanceCallAt(
-    uword return_address, const Code& code, ICData* ic_data) {
+RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
+                                        const Code& code,
+                                        ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (ic_data != NULL) {
@@ -198,8 +187,9 @@ RawCode* CodePatcher::GetInstanceCallAt(
 }
 
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
-    uword return_address, const Code& code, ICData* ic_data_result) {
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                     const Code& code,
+                                                     ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
   UnoptimizedStaticCall static_call(return_address);
   ICData& ic_data = ICData::Handle();
@@ -250,7 +240,6 @@ RawCode* CodePatcher::GetNativeCallAt(uword return_address,
   UNREACHABLE();
   return NULL;
 }
-
 
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {

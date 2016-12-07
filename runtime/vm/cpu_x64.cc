@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/cpu.h"
+#include "vm/cpu_x64.h"
 
 #include "vm/assembler.h"
 #include "vm/constants_x64.h"
@@ -40,9 +40,8 @@ bool HostCPUFeatures::initialized_ = false;
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
-  sse4_1_supported_ =
-      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
-      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
+  sse4_1_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
+                      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
 
 #if defined(DEBUG)
   initialized_ = true;

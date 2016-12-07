@@ -9,17 +9,17 @@ import 'dart:async';
 import 'package:analysis_server/src/watch_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(WatchManagerTest);
-  defineReflectiveTests(WatchNodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(WatchManagerTest);
+    defineReflectiveTests(WatchNodeTest);
+  });
 }
 
 /**

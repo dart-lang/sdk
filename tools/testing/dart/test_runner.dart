@@ -221,6 +221,20 @@ class CompilationCommand extends ProcessCommand {
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
 }
 
+class KernelCompilationCommand extends CompilationCommand {
+  KernelCompilationCommand._(
+      String displayName,
+      String outputFile,
+      bool neverSkipCompilation,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides)
+      : super._(displayName, outputFile, neverSkipCompilation,
+                bootstrapDependencies, executable, arguments,
+                environmentOverrides);
+}
+
 /// This is just a Pair(String, Map) class with hashCode and operator ==
 class AddFlagsKey {
   final String flags;
@@ -350,12 +364,16 @@ class VmCommand extends ProcessCommand {
 
 class AdbPrecompilationCommand extends Command {
   final String precompiledRunnerFilename;
+  final String processTestFilename;
   final String precompiledTestDirectory;
   final List<String> arguments;
   final bool useBlobs;
 
   AdbPrecompilationCommand._(this.precompiledRunnerFilename,
-      this.precompiledTestDirectory, this.arguments, this.useBlobs)
+                             this.processTestFilename,
+                             this.precompiledTestDirectory,
+                             this.arguments,
+                             this.useBlobs)
       : super._("adb_precompilation");
 
   void _buildHashCode(HashCodeBuilder builder) {
@@ -650,6 +668,25 @@ class CommandBuilder {
     return _getUniqueCommand(command);
   }
 
+  CompilationCommand getKernelCompilationCommand(
+      String displayName,
+      outputFile,
+      neverSkipCompilation,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environment) {
+    var command = new KernelCompilationCommand._(
+        displayName,
+        outputFile,
+        neverSkipCompilation,
+        bootstrapDependencies,
+        executable,
+        arguments,
+        environment);
+    return _getUniqueCommand(command);
+  }
+
   AnalysisCommand getAnalysisCommand(
       String displayName, executable, arguments, environmentOverrides,
       {String flavor: 'dart2analyzer'}) {
@@ -665,9 +702,12 @@ class CommandBuilder {
   }
 
   AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
-      String testDirectory, List<String> arguments, bool useBlobs) {
+                                                    String processTest,
+                                                    String testDirectory,
+                                                    List<String> arguments,
+                                                    bool useBlobs) {
     var command = new AdbPrecompilationCommand._(
-        precompiledRunner, testDirectory, arguments, useBlobs);
+        precompiledRunner, processTest, testDirectory, arguments, useBlobs);
     return _getUniqueCommand(command);
   }
 
@@ -1609,6 +1649,29 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
+class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
+  KernelCompilationCommandOutputImpl(
+      Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr,
+      Duration time, bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+              compilationSkipped);
+
+  bool get canRunDependendCommands {
+    // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
+    // TODO(asgerf): When the frontend supports it, continue running even if
+    //   there were compile-time errors. See kernel_sdk issue #18.
+    return !hasCrashed && !timedOut && exitCode == 0;
+  }
+
+  // If the compiler was able to produce a Kernel IR file we want to run the
+  // result on the Dart VM.  We therefore mark the [KernelCompilationCommand] as
+  // successful.
+  // => This ensures we test that the DartVM produces correct CompileTime errors
+  //    as it is supposed to for our test suites.
+  bool get successful => canRunDependendCommands;
+}
+
 class JsCommandlineOutputImpl extends CommandOutputImpl
     with UnittestSuiteMessagesMixin {
   JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
@@ -1683,6 +1746,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is VmCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
+  } else if (command is KernelCompilationCommand) {
+    return new KernelCompilationCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
@@ -1788,6 +1854,7 @@ class RunningProcess {
   int pid;
   OutputLog stdout = new OutputLog();
   OutputLog stderr = new OutputLog();
+  List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
 
@@ -1851,42 +1918,34 @@ class RunningProcess {
 
           // Close stdin so that tests that try to block on input will fail.
           process.stdin.close();
-          void timeoutHandler() {
+          timeoutHandler() async {
             timedOut = true;
             if (process != null) {
+              var executable, arguments;
               if (io.Platform.isLinux) {
-                // Try to print stack traces of the timed out process.
-                io.Process.run('eu-stack', ['-p ${process.pid}'])
-                .then((result) {
-                  io.stdout.write(result.stdout);
-                  io.stderr.write(result.stderr);
-                })
-                .catchError(
-                    (error) => print("Error when printing stack trace: $error"))
-                .whenComplete(() {
-                  if (!process.kill()) {
-                    DebugLogger.error("Unable to kill ${process.pid}");
-                  }
-                });
+                executable = 'eu-stack';
+                arguments = ['-p ${process.pid}'];
               } else if (io.Platform.isMacOS) {
                 // Try to print stack traces of the timed out process.
-                io.Process.run('/usr/bin/sample',
-                               ['${process.pid}', '1', '1', '-mayDie'])
-                .then((result) {
-                  io.stdout.write(result.stdout);
-                  io.stderr.write(result.stderr);
-                })
-                .catchError(
-                    (error) => print("Error when printing stack trace: $error"))
-                .whenComplete(() {
-                  if (!process.kill()) {
-                    DebugLogger.error("Unable to kill ${process.pid}");
-                  }
-                });
-              } else {
-                if (!process.kill()) {
-                  DebugLogger.error("Unable to kill ${process.pid}");
+                // `sample` is a sampling profiler but we ask it sample for 1
+                // second with a 4 second delay between samples so that we only
+                // sample the threads once.
+                executable = '/usr/bin/sample';
+                arguments = ['${process.pid}', '1', '4000', '-mayDie'];
+              }
+
+              if (executable != null) {
+                try {
+                  var result = await io.Process.run(executable, arguments);
+                  diagnostics.addAll(result.stdout.split('\n'));
+                  diagnostics.addAll(result.stderr.split('\n'));
+                } catch (error) {
+                  diagnostics.add("Unable to capture stack traces: $error");
                 }
+              }
+
+              if (!process.kill()) {
+                diagnostics.add("Unable to kill ${process.pid}");
               }
             }
           }
@@ -1945,6 +2004,7 @@ class RunningProcess {
         new DateTime.now().difference(startTime),
         compilationSkipped,
         pid);
+    commandOutput.diagnostics.addAll(diagnostics);
     return commandOutput;
   }
 
@@ -2546,6 +2606,12 @@ class CommandExecutorImpl implements CommandExecutor {
 
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
+    } else if (command is KernelCompilationCommand) {
+      // For now, we always run dartk in batch mode.
+      var name = command.displayName;
+      assert(name == 'dartk');
+      return _getBatchRunner(name)
+          .runCommand(name, command, timeout, command.arguments);
     } else if (command is CompilationCommand && dart2jsBatchMode) {
       return _getBatchRunner("dart2js")
           .runCommand("dart2js", command, timeout, command.arguments);
@@ -2570,6 +2636,7 @@ class CommandExecutorImpl implements CommandExecutor {
   Future<CommandOutput> _runAdbPrecompilationCommand(
       AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
     var runner = command.precompiledRunnerFilename;
+    var processTest = command.processTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
     var devicedir = '/data/local/tmp/precompilation-testing';
@@ -2579,7 +2646,6 @@ class CommandExecutorImpl implements CommandExecutor {
     // directory.
     List<String> files = new io.Directory(testdir)
         .listSync()
-        .where((fse) => fse is io.File)
         .map((file) => file.path)
         .map((path) => path.substring(path.lastIndexOf('/') + 1))
         .toList();
@@ -2596,30 +2662,29 @@ class CommandExecutorImpl implements CommandExecutor {
     // timing).
     steps.add(() => device.runAdbCommand(
         ['push', runner, '$devicedir/dart_precompiled_runtime']));
+    steps.add(() => device.runAdbCommand(
+        ['push', processTest, '$devicedir/process_test']));
     steps.add(() => device.runAdbShellCommand(
-        ['chmod', '777', '$devicedir/dart_precompiled_runtime']));
+        ['chmod', '777', '$devicedir/dart_precompiled_runtime $devicedir/process_test']));
 
     for (var file in files) {
       steps.add(() => device
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
-    if (command.useBlobs) {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir',
-            '--use-blobs'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
-    } else {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
+    var args = new List();
+    args.addAll(arguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = "$deviceTestDir/out.aotsnapshot";
+      }
     }
+
+    steps.add(() => device.runAdbShellCommand(
+        [
+          '$devicedir/dart_precompiled_runtime',
+        ]..addAll(args),
+        timeout: timeoutDuration));
 
     var stopwatch = new Stopwatch()..start();
     var writer = new StringBuffer();

@@ -16,9 +16,7 @@ namespace dart {
 class MIPSDecoder : public ValueObject {
  public:
   MIPSDecoder(char* buffer, size_t buffer_size)
-      : buffer_(buffer),
-        buffer_size_(buffer_size),
-        buffer_pos_(0) {
+      : buffer_(buffer), buffer_size_(buffer_size), buffer_pos_(0) {
     buffer_[buffer_pos_] = '\0';
   }
 
@@ -53,9 +51,9 @@ class MIPSDecoder : public ValueObject {
   char* current_position_in_buffer() { return buffer_ + buffer_pos_; }
   size_t remaining_size_in_buffer() { return buffer_size_ - buffer_pos_; }
 
-  char* buffer_;  // Decode instructions into this buffer.
+  char* buffer_;        // Decode instructions into this buffer.
   size_t buffer_size_;  // The size of the character buffer.
-  size_t buffer_pos_;  // Current character position in buffer.
+  size_t buffer_pos_;   // Current character position in buffer.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MIPSDecoder);
@@ -63,7 +61,7 @@ class MIPSDecoder : public ValueObject {
 
 
 // Support for assertions in the MIPSDecoder formatting functions.
-#define STRING_STARTS_WITH(string, compare_string) \
+#define STRING_STARTS_WITH(string, compare_string)                             \
   (strncmp(string, compare_string, strlen(compare_string)) == 0)
 
 
@@ -79,18 +77,16 @@ void MIPSDecoder::Print(const char* str) {
 
 
 static const char* reg_names[kNumberOfCpuRegisters] = {
-  "zr", "at", "v0", "v1" , "a0", "a1", "a2", "a3",
-  "t0", "t1", "t2", "t3" , "t4", "t5", "t6", "t7",
-  "s0", "s1", "s2", "thr", "s4", "s5", "s6", "pp",
-  "t8", "t9", "k0", "k1" , "gp", "sp", "fp", "ra",
+    "zr", "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0",  "t1", "t2",
+    "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "thr", "s4", "s5",
+    "s6", "pp", "t8", "t9", "k0", "k1", "gp", "sp", "fp",  "ra",
 };
 
 
 static const char* freg_names[kNumberOfFRegisters] = {
-  "f0" , "f1" , "f2" , "f3" , "f4" , "f5" , "f6" , "f7" ,
-  "f8" , "f9" , "f10", "f11", "f12", "f13", "f14", "f15",
-  "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
-  "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
+    "f0",  "f1",  "f2",  "f3",  "f4",  "f5",  "f6",  "f7",  "f8",  "f9",  "f10",
+    "f11", "f12", "f13", "f14", "f15", "f16", "f17", "f18", "f19", "f20", "f21",
+    "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
 };
 
 
@@ -152,7 +148,7 @@ int MIPSDecoder::FormatFRegister(Instr* instr, const char* format) {
 }
 
 
-void MIPSDecoder::PrintFormat(Instr *instr) {
+void MIPSDecoder::PrintFormat(Instr* instr) {
   switch (instr->FormatField()) {
     case FMT_S: {
       Print("s");
@@ -191,10 +187,9 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
   switch (format[0]) {
     case 'c': {
       ASSERT(STRING_STARTS_WITH(format, "code"));
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                remaining_size_in_buffer(),
-                                "0x%x",
-                                 instr->BreakCodeField());
+      buffer_pos_ +=
+          OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                      "0x%x", instr->BreakCodeField());
       return 4;
     }
     case 'h': {
@@ -203,12 +198,10 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
         // The high bit of the SA field is the only one that means something for
         // JALR and JR. TODO(zra): Fill in the other cases for PREF if needed.
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   ".hb");
+                                   remaining_size_in_buffer(), ".hb");
       } else if (instr->SaField() != 0) {
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                           remaining_size_in_buffer(),
-                           ".unknown");
+                                   remaining_size_in_buffer(), ".unknown");
       }
       return 4;
     }
@@ -217,10 +210,9 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
       int off = instr->SImmField() << 2;
       uword destination =
           reinterpret_cast<uword>(instr) + off + Instr::kInstrSize;
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "%#" Px "",
-                                 destination);
+      buffer_pos_ +=
+          OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                      "%#" Px "", destination);
       return 4;
     }
     case 'i': {
@@ -228,16 +220,12 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
       if (format[3] == 'u') {
         int32_t imm = instr->UImmField();
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "0x%x",
-                                   imm);
+                                   remaining_size_in_buffer(), "0x%x", imm);
       } else {
         ASSERT(STRING_STARTS_WITH(format, "imms"));
         int32_t imm = instr->SImmField();
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "%d",
-                                   imm);
+                                   remaining_size_in_buffer(), "%d", imm);
       }
       return 4;
     }
@@ -255,15 +243,12 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
     }
     case 's': {
       ASSERT(STRING_STARTS_WITH(format, "sa"));
-      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                 remaining_size_in_buffer(),
-                                 "%d",
-                                 instr->SaField());
+      buffer_pos_ +=
+          OS::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                      "%d", instr->SaField());
       return 2;
     }
-    default: {
-      UNREACHABLE();
-    }
+    default: { UNREACHABLE(); }
   }
   UNREACHABLE();
   return -1;
@@ -283,7 +268,7 @@ void MIPSDecoder::Format(Instr* instr, const char* format) {
     }
     cur = *format++;
   }
-  buffer_[buffer_pos_]  = '\0';
+  buffer_[buffer_pos_] = '\0';
 }
 
 
@@ -310,10 +295,9 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       if (instr->BreakCodeField() == Instr::kStopMessageCode) {
         const char* message = *reinterpret_cast<const char**>(
             reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   " ; \"%s\"",
-                                   message);
+        buffer_pos_ +=
+            OS::SNPrint(current_position_in_buffer(),
+                        remaining_size_in_buffer(), " ; \"%s\"", message);
       }
       break;
     }
@@ -390,8 +374,7 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       break;
     }
     case SLL: {
-      if ((instr->RdField() == R0) &&
-          (instr->RtField() == R0) &&
+      if ((instr->RdField() == R0) && (instr->RtField() == R0) &&
           (instr->SaField() == 0)) {
         Format(instr, "nop");
       } else {
@@ -777,10 +760,14 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
 }
 
 
-void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                     char* human_buffer, intptr_t human_size,
-                                     int* out_instr_len, const Code& code,
-                                     Object** object, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer,
+                                     intptr_t hex_size,
+                                     char* human_buffer,
+                                     intptr_t human_size,
+                                     int* out_instr_len,
+                                     const Code& code,
+                                     Object** object,
+                                     uword pc) {
   MIPSDecoder decoder(human_buffer, human_size);
   Instr* instr = Instr::At(pc);
   decoder.InstructionDecode(instr);

@@ -5,8 +5,7 @@
 // Test the feature where the native string declares the native method's name.
 // #3. The name does not get
 
-import "package:expect/expect.dart";
-import 'dart:_js_helper' show Native, JSName;
+import 'native_testing.dart';
 
 @Native("A")
 class A {
@@ -49,13 +48,15 @@ B.prototype.fooB = function(){return 200;};
 
 makeA = function(){return new A};
 makeB = function(){return new B};
+
+self.nativeConstructor(A);
+self.nativeConstructor(B);
 """;
 
 testDynamic() {
-  var things = [makeA(), makeB(), new Decoy()];
-  var a = things[0];
-  var b = things[1];
-  var d = things[2];
+  var a = confuse(makeA());
+  var b = confuse(makeB());
+  var d = confuse(new Decoy());
 
   Expect.equals(100, a.foo());
   Expect.equals(200, b.foo());
@@ -87,6 +88,7 @@ testTyped() {
 }
 
 main() {
+  nativeTesting();
   setup();
 
   testDynamic();

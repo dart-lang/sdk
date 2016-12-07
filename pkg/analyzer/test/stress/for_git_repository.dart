@@ -27,7 +27,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   new StressTest().run();
@@ -244,12 +244,13 @@ class StressTest {
     pathContext = resourceProvider.pathContext;
     fs.Folder sdkDirectory =
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
-    sdkManager = new DartSdkManager(sdkDirectory.path, false,
-        (_) => new FolderBasedDartSdk(resourceProvider, sdkDirectory));
+    sdkManager = new DartSdkManager(sdkDirectory.path, false);
     contentCache = new ContentCache();
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
-    builder.defaultOptions = new AnalysisOptionsImpl();
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = new AnalysisOptionsImpl();
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
     expectedContext = builder.buildContext(folderPath);
     actualContext = builder.buildContext(folderPath);
     expectedContext.analysisOptions =

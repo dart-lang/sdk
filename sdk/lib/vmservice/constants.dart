@@ -9,4 +9,6 @@ class Constants {
   static const int SERVICE_EXIT_MESSAGE_ID = 0;
   static const int ISOLATE_STARTUP_MESSAGE_ID = 1;
   static const int ISOLATE_SHUTDOWN_MESSAGE_ID = 2;
+  static const int WEB_SERVER_CONTROL_MESSAGE_ID = 3;
+  static const int SERVER_INFO_MESSAGE_ID = 4;
 }

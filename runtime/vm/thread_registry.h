@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_THREAD_REGISTRY_H_
-#define VM_THREAD_REGISTRY_H_
+#ifndef RUNTIME_VM_THREAD_REGISTRY_H_
+#define RUNTIME_VM_THREAD_REGISTRY_H_
 
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -43,7 +43,7 @@ class ThreadRegistry {
   // we need to iterate over threads (both active and free) in an isolate.
   Monitor* threads_lock_;
   Thread* active_list_;  // List of active threads in the isolate.
-  Thread* free_list_;  // Free list of Thread objects that can be reused.
+  Thread* free_list_;    // Free list of Thread objects that can be reused.
 
   // TODO(asiva): Currently we treat a mutator thread as a special thread
   // and always schedule execution of Dart code on the same mutator thread
@@ -67,4 +67,4 @@ class ThreadRegistry {
 
 }  // namespace dart
 
-#endif  // VM_THREAD_REGISTRY_H_
+#endif  // RUNTIME_VM_THREAD_REGISTRY_H_

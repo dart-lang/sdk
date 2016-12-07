@@ -11,6 +11,7 @@ class HeapSnapshot implements M.HeapSnapshot {
   int get references => graph.edgeCount;
   int get size => graph.size;
   HeapSnapshotDominatorNode dominatorTree;
+  HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<MergedVertex> classReferences;
 
   static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
@@ -36,6 +37,8 @@ class HeapSnapshot implements M.HeapSnapshot {
       });
       await stream.last;
       dominatorTree = new HeapSnapshotDominatorNode(isolate, graph.root);
+      mergedDominatorTree =
+          new HeapSnapshotMergedDominatorNode(isolate, graph.mergedRoot);
       classReferences = await buildMergedVertices(isolate, graph, signal);
       progress.close();
     }());
@@ -121,6 +124,8 @@ class HeapSnapshotDominatorNode implements M.HeapSnapshotDominatorNode {
   final S.Isolate isolate;
   S.HeapObject _preloaded;
 
+  bool get isStack => v.isStack;
+
   Future<S.HeapObject> get object {
     if (_preloaded != null) {
       return new Future.value(_preloaded);
@@ -147,6 +152,38 @@ class HeapSnapshotDominatorNode implements M.HeapSnapshotDominatorNode {
   int get shallowSize => v.shallowSize;
 
   HeapSnapshotDominatorNode(S.Isolate isolate, ObjectVertex vertex)
+      : isolate = isolate,
+        v = vertex;
+}
+
+class HeapSnapshotMergedDominatorNode
+    implements M.HeapSnapshotMergedDominatorNode {
+  final MergedObjectVertex v;
+  final S.Isolate isolate;
+
+  bool get isStack => v.isStack;
+
+  Future<S.HeapObject> get klass {
+    return new Future.value(isolate.getClassByCid(v.vmCid));
+  }
+
+  Iterable<HeapSnapshotMergedDominatorNode> _children;
+  Iterable<HeapSnapshotMergedDominatorNode> get children {
+    if (_children != null) {
+      return _children;
+    } else {
+      return _children =
+          new List.unmodifiable(v.dominatorTreeChildren().map((v) {
+        return new HeapSnapshotMergedDominatorNode(isolate, v);
+      }));
+    }
+  }
+
+  int get instanceCount => v.instanceCount;
+  int get retainedSize => v.retainedSize;
+  int get shallowSize => v.shallowSize;
+
+  HeapSnapshotMergedDominatorNode(S.Isolate isolate, MergedObjectVertex vertex)
       : isolate = isolate,
         v = vertex;
 }

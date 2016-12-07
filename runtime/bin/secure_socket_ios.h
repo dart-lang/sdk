@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_SECURE_SOCKET_IOS_H_
-#define BIN_SECURE_SOCKET_IOS_H_
+#ifndef RUNTIME_BIN_SECURE_SOCKET_IOS_H_
+#define RUNTIME_BIN_SECURE_SOCKET_IOS_H_
 
-#if !defined(BIN_SECURE_SOCKET_H_)
+#if !defined(RUNTIME_BIN_SECURE_SOCKET_H_)
 #error Do not include secure_socket_macos.h directly. Use secure_socket.h.
 #endif
 
@@ -35,13 +35,13 @@ namespace bin {
 // thread. Setters return false if the field was already set.
 class SSLCertContext : public ReferenceCounted<SSLCertContext> {
  public:
-  SSLCertContext() :
-      ReferenceCounted(),
-      mutex_(new Mutex()),
-      trusted_certs_(NULL),
-      identity_(NULL),
-      cert_chain_(NULL),
-      trust_builtin_(false) {}
+  SSLCertContext()
+      : ReferenceCounted(),
+        mutex_(new Mutex()),
+        trusted_certs_(NULL),
+        identity_(NULL),
+        cert_chain_(NULL),
+        trust_builtin_(false) {}
 
   ~SSLCertContext() {
     {
@@ -150,8 +150,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
         connected_(false),
         bad_cert_(false),
         is_server_(false),
-        hostname_(NULL) {
-  }
+        hostname_(NULL) {}
 
   ~SSLFilter();
 
@@ -237,4 +236,4 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_SECURE_SOCKET_IOS_H_
+#endif  // RUNTIME_BIN_SECURE_SOCKET_IOS_H_

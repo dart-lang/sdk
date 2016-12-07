@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef LIB_INVOCATION_MIRROR_H_
-#define LIB_INVOCATION_MIRROR_H_
+#ifndef RUNTIME_LIB_INVOCATION_MIRROR_H_
+#define RUNTIME_LIB_INVOCATION_MIRROR_H_
 
 #include "vm/allocation.h"
 
@@ -20,7 +20,7 @@ class InvocationMirror : public AllStatic {
     kMethod = 0,
     kGetter = 1,
     kSetter = 2,
-    kField  = 3,
+    kField = 3,
     kLocalVar = 4,
     kTypeShift = 0,
     kTypeBits = 3,
@@ -32,7 +32,7 @@ class InvocationMirror : public AllStatic {
     // NoSuchMethodError for compile-time resolution failures.
     kDynamic = 0,
     kSuper = 1,
-    kStatic  = 2,
+    kStatic = 2,
     kConstructor = 3,
     kTopLevel = 4,
     kCallShift = kTypeBits,
@@ -47,4 +47,4 @@ class InvocationMirror : public AllStatic {
 
 }  // namespace dart
 
-#endif  // LIB_INVOCATION_MIRROR_H_
+#endif  // RUNTIME_LIB_INVOCATION_MIRROR_H_

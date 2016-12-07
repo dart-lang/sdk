@@ -14,8 +14,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
 void main(List<String> argv) {
+  var self = path.relative(path.fromUri(Platform.script));
   if (argv.length < 2) {
-    var self = path.relative(path.fromUri(Platform.script));
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
 
     var inputExample = path.join(toolDir, 'input_sdk');
@@ -27,6 +27,8 @@ void main(List<String> argv) {
     print('\$ $self $inputExample $outExample');
     exit(1);
   }
+
+  var selfModifyTime = new File(self).lastModifiedSync().millisecondsSinceEpoch;
 
   var input = argv[0];
   var sdkLibIn = path.join(input, 'lib');
@@ -71,8 +73,8 @@ void main(List<String> argv) {
       var outPaths = <String>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
 
-      int inputModifyTime =
-          libraryFile.lastModifiedSync().millisecondsSinceEpoch;
+      int inputModifyTime = math.max(selfModifyTime,
+          libraryFile.lastModifiedSync().millisecondsSinceEpoch);
       var partFiles = <File>[];
       for (var part in parseDirectives(libraryContents).directives) {
         if (part is PartDirective) {
@@ -262,6 +264,15 @@ class PatchApplier extends GeneralizingAstVisitor {
     Annotation patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
     int start = patchMeta.endToken.next.offset;
     var code = patch.contents.substring(start, patchNode.end);
+
+    // Const factory constructors can't be legally parsed from the patch file,
+    // so we need to omit the "const" there, but still preserve it.
+    if (node is ConstructorDeclaration &&
+        node.constKeyword != null &&
+        patchNode is ConstructorDeclaration &&
+        patchNode.constKeyword == null) {
+      code = 'const $code';
+    }
 
     // For some node like static fields, the node's offset doesn't include
     // the external keyword. Also starting from the keyword lets us preserve

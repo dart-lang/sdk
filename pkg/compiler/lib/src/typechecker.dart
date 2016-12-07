@@ -686,11 +686,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           message: 'Missing element for identifier'));
       assert(invariant(
           node,
-          element.isVariable ||
-              element.isRegularParameter ||
-              element.isField ||
-              (element.isInitializingFormal &&
-                  compiler.options.enableInitializingFormalAccess),
+          element.isVariable || element.isParameter || element.isField,
           message: 'Unexpected context element ${element}'));
       return element.computeType(resolution);
     }
@@ -775,10 +771,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return access;
     }
     if (receiverElement != null &&
-        (receiverElement.isVariable ||
-            receiverElement.isRegularParameter ||
-            (receiverElement.isInitializingFormal &&
-                compiler.options.enableInitializingFormalAccess))) {
+        (receiverElement.isVariable || receiverElement.isParameter)) {
       Link<TypePromotion> typePromotions = typePromotionsMap[receiverElement];
       if (typePromotions != null) {
         while (!typePromotions.isEmpty) {
@@ -1095,10 +1088,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   ElementAccess createPromotedAccess(Element element) {
-    if (element.isVariable ||
-        element.isRegularParameter ||
-        (element.isInitializingFormal &&
-            compiler.options.enableInitializingFormalAccess)) {
+    if (element.isVariable || element.isParameter) {
       TypePromotion typePromotion = getKnownTypePromotion(element);
       if (typePromotion != null) {
         return new PromotedAccess(element, typePromotion.type);
@@ -1215,11 +1205,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           }
         }
 
-        if (variable != null &&
-            (variable.isVariable ||
-                variable.isRegularParameter ||
-                (variable.isInitializingFormal &&
-                    compiler.options.enableInitializingFormalAccess))) {
+        if (variable != null && (variable.isVariable || variable.isParameter)) {
           DartType knownType = getKnownType(variable);
           if (!knownType.isDynamic) {
             DartType shownType = elements.getType(node.arguments.head);

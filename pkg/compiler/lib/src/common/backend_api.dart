@@ -17,7 +17,7 @@ import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
-    show ClassElement, Element, FunctionElement, LibraryElement;
+    show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -33,7 +33,6 @@ import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilder;
 import 'codegen.dart' show CodegenWorkItem;
-import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;
 
 abstract class Backend extends Target {
@@ -83,20 +82,21 @@ abstract class Backend extends Target {
 
   void initializeHelperClasses() {}
 
-  void enqueueHelpers(ResolutionEnqueuer world, Registry registry);
+  /// Compute the [WorldImpact] for backend helper methods.
+  WorldImpact computeHelpersImpact();
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
-  Enqueuer createCodegenEnqueuer(Compiler compiler);
+  Enqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler);
 
   WorldImpact codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
   // default, so tools like dart2dart can ignore the native classes.
-  native.NativeEnqueuer nativeResolutionEnqueuer(world) {
+  native.NativeEnqueuer nativeResolutionEnqueuer() {
     return new native.NativeEnqueuer();
   }
 
-  native.NativeEnqueuer nativeCodegenEnqueuer(world) {
+  native.NativeEnqueuer nativeCodegenEnqueuer() {
     return new native.NativeEnqueuer();
   }
 
@@ -117,71 +117,78 @@ abstract class Backend extends Target {
 
   /// Enable deferred loading. Returns `true` if the backend supports deferred
   /// loading.
-  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry);
+  bool enableDeferredLoadingIfSupported(Spannable node);
+
+  /// Returns the [WorldImpact] of enabling deferred loading.
+  WorldImpact computeDeferredLoadingImpact() => const WorldImpact();
 
   /// Called during codegen when [constant] has been used.
   void computeImpactForCompileTimeConstant(ConstantValue constant,
       WorldImpactBuilder impactBuilder, bool isForResolution) {}
 
-  /// Called to notify to the backend that a class is being instantiated.
-  // TODO(johnniwinther): Remove this. It's only called once for each [cls] and
-  // only with [Compiler.globalDependencies] as [registry].
-  void registerInstantiatedClass(
-      ClassElement cls, Enqueuer enqueuer, Registry registry) {}
+  /// Called to notify to the backend that a class is being instantiated. Any
+  /// backend specific [WorldImpact] of this is returned.
+  WorldImpact registerInstantiatedClass(ClassElement cls,
+          {bool forResolution}) =>
+      const WorldImpact();
 
   /// Called to notify to the backend that a class is implemented by an
-  /// instantiated class.
-  void registerImplementedClass(
-      ClassElement cls, Enqueuer enqueuer, Registry registry) {}
+  /// instantiated class. Any backend specific [WorldImpact] of this is
+  /// returned.
+  WorldImpact registerImplementedClass(ClassElement cls,
+          {bool forResolution}) =>
+      const WorldImpact();
 
   /// Called to instruct to the backend register [type] as instantiated on
   /// [enqueuer].
-  void registerInstantiatedType(
-      InterfaceType type, Enqueuer enqueuer, Registry registry,
-      {bool mirrorUsage: false}) {
-    registry.registerDependency(type.element);
-    enqueuer.registerInstantiatedType(type, mirrorUsage: mirrorUsage);
-  }
+  void registerInstantiatedType(InterfaceType type) {}
 
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound) {}
 
-  /**
-   * Call this to register that an instantiated generic class has a call
-   * method.
-   */
-  void registerCallMethodWithFreeTypeVariables(
-      Element callMethod, Enqueuer enqueuer, Registry registry) {}
+  /// Called to register that an instantiated generic class has a call method.
+  /// Any backend specific [WorldImpact] of this is returned.
+  ///
+  /// Note: The [callMethod] is registered even thought it doesn't reference
+  /// the type variables.
+  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
+          {bool forResolution}) =>
+      const WorldImpact();
 
   /// Called to instruct the backend to register that a closure exists for a
-  /// function on an instantiated generic class.
-  void registerClosureWithFreeTypeVariables(
-      Element closure, Enqueuer enqueuer, Registry registry) {}
+  /// function on an instantiated generic class. Any backend specific
+  /// [WorldImpact] of this is returned.
+  WorldImpact registerClosureWithFreeTypeVariables(Element closure,
+          {bool forResolution}) =>
+      const WorldImpact();
 
-  /// Call this to register that a member has been closurized.
-  void registerBoundClosure(Enqueuer enqueuer) {}
+  /// Called to register that a member has been closurized. Any backend specific
+  /// [WorldImpact] of this is returned.
+  WorldImpact registerBoundClosure() => const WorldImpact();
 
-  /// Call this to register that a static function has been closurized.
-  void registerGetOfStaticFunction(Enqueuer enqueuer) {}
+  /// Called to register that a static function has been closurized. Any backend
+  /// specific [WorldImpact] of this is returned.
+  WorldImpact registerGetOfStaticFunction() => const WorldImpact();
 
-  /**
-   * Call this to register that the [:runtimeType:] property has been accessed.
-   */
-  void registerRuntimeType(Enqueuer enqueuer, Registry registry) {}
+  /// Called to register that the `runtimeType` property has been accessed. Any
+  /// backend specific [WorldImpact] of this is returned.
+  WorldImpact registerRuntimeType() => const WorldImpact();
 
-  /// Call this to register a `noSuchMethod` implementation.
+  /// Called to register a `noSuchMethod` implementation.
   void registerNoSuchMethod(FunctionElement noSuchMethodElement) {}
 
-  /// Call this method to enable support for `noSuchMethod`.
-  void enableNoSuchMethod(Enqueuer enqueuer) {}
+  /// Called to enable support for `noSuchMethod`. Any backend specific
+  /// [WorldImpact] of this is returned.
+  WorldImpact enableNoSuchMethod() => const WorldImpact();
 
   /// Returns whether or not `noSuchMethod` support has been enabled.
   bool get enabledNoSuchMethod => false;
 
-  /// Call this method to enable support for isolates.
-  void enableIsolateSupport(Enqueuer enqueuer) {}
+  /// Called to enable support for isolates. Any backend specific [WorldImpact]
+  /// of this is returned.
+  WorldImpact enableIsolateSupport({bool forResolution});
 
   void registerConstSymbol(String name) {}
 
@@ -213,7 +220,10 @@ abstract class Backend extends Target {
     return false;
   }
 
-  void registerStaticUse(Element element, Enqueuer enqueuer) {}
+  /// Called to register that [element] is statically known to be used. Any
+  /// backend specific [WorldImpact] of this is returned.
+  WorldImpact registerStaticUse(Element element, {bool forResolution}) =>
+      const WorldImpact();
 
   /// This method is called immediately after the [LibraryElement] [library] has
   /// been created.
@@ -320,10 +330,10 @@ abstract class Backend extends Target {
 
   void forgetElement(Element element) {}
 
-  void registerMainHasArguments(Enqueuer enqueuer) {}
-
-  void registerAsyncMarker(
-      FunctionElement element, Enqueuer enqueuer, Registry registry) {}
+  /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
+  WorldImpact computeMainImpact(MethodElement mainMethod,
+          {bool forResolution}) =>
+      const WorldImpact();
 
   /// Returns the location of the patch-file associated with [libraryName]
   /// resolved from [plaformConfigUri].
@@ -368,7 +378,8 @@ abstract class ForeignResolver {
 class ImpactTransformer {
   /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
   /// backend dependencies for features used in [worldImpact].
-  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
+  WorldImpact transformResolutionImpact(
+      ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
     return worldImpact;
   }
 

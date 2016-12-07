@@ -4,9 +4,8 @@
 
 library test.channel.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
-import '../utils.dart';
 import 'byte_stream_channel_test.dart' as byte_stream_channel_test;
 import 'web_socket_channel_test.dart' as web_socket_channel_test;
 
@@ -14,7 +13,6 @@ import 'web_socket_channel_test.dart' as web_socket_channel_test;
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
   group('computer', () {
     byte_stream_channel_test.main();
     web_socket_channel_test.main();

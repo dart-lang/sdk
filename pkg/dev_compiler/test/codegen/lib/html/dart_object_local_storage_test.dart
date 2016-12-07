@@ -1,7 +1,6 @@
-library DartObjectLocalStorageTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
 
 // TODO(vsm): Rename this to wrapper_caching_test or similar.  It's
 // basically a port of dom/dart_object_local_storage_test.dart.  For
@@ -9,8 +8,6 @@ import 'dart:html';
 // effectively testing dart_object_local_storage in the underlying dom
 // object.
 main() {
-  useHtmlConfiguration();
-
   BodyElement body = document.body;
   Storage localStorage = window.localStorage;
   Storage sessionStorage = window.sessionStorage;

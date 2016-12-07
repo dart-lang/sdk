@@ -24,8 +24,7 @@ static void SetupFunction(const char* test_library_name,
 
   // Setup a dart class and function.
   char script_chars[1024];
-  OS::SNPrint(script_chars,
-              sizeof(script_chars),
+  OS::SNPrint(script_chars, sizeof(script_chars),
               "class Base {\n"
               "  dynCall() { return 3; }\n"
               "  static statCall() { return 4; }\n"
@@ -34,17 +33,15 @@ static void SetupFunction(const char* test_library_name,
               "class %s extends Base {\n"
               "  %s %s(String s, int i) { return i; }\n"
               "}\n",
-              test_class_name,
-              is_static ? "static" : "",
+              test_class_name, is_static ? "static" : "",
               test_static_function_name);
 
-  String& url = String::Handle(zone,
-      is_static ?
-          String::New("dart-test:DartStaticResolve") :
-          String::New("dart-test:DartDynamicResolve"));
+  String& url = String::Handle(
+      zone, is_static ? String::New("dart-test:DartStaticResolve")
+                      : String::New("dart-test:DartDynamicResolve"));
   String& source = String::Handle(zone, String::New(script_chars));
-  Script& script = Script::Handle(zone,
-      Script::New(url, source, RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(zone, Script::New(url, source, RawScript::kScriptTag));
   const String& lib_name = String::Handle(zone, String::New(test_library_name));
   Library& lib = Library::Handle(zone, Library::New(lib_name));
   lib.Register(thread);
@@ -58,9 +55,7 @@ static void SetupStaticFunction(const char* test_library_name,
                                 const char* test_class_name,
                                 const char* test_static_function_name) {
   // Setup a static dart class and function.
-  SetupFunction(test_library_name,
-                test_class_name,
-                test_static_function_name,
+  SetupFunction(test_library_name, test_class_name, test_static_function_name,
                 true);
 }
 
@@ -70,10 +65,7 @@ static void SetupInstanceFunction(const char* test_library_name,
                                   const char* test_class_name,
                                   const char* test_function_name) {
   // Setup a static dart class and function.
-  SetupFunction(test_library_name,
-                test_class_name,
-                test_function_name,
-                false);
+  SetupFunction(test_library_name, test_class_name, test_function_name, false);
 }
 
 
@@ -84,8 +76,7 @@ TEST_CASE(DartStaticResolve) {
   const int kTestValue = 42;
 
   // Setup a static function which can be invoked.
-  SetupStaticFunction(test_library_name,
-                      test_class_name,
+  SetupStaticFunction(test_library_name, test_class_name,
                       test_static_function_name);
 
   const String& library_name = String::Handle(String::New(test_library_name));
@@ -99,11 +90,8 @@ TEST_CASE(DartStaticResolve) {
   {
     const int kNumArguments = 2;
     const Function& function = Function::Handle(
-        Resolver::ResolveStatic(library,
-                                class_name,
-                                static_function_name,
-                                kNumArguments,
-                                Object::empty_array()));
+        Resolver::ResolveStatic(library, class_name, static_function_name,
+                                kNumArguments, Object::empty_array()));
     EXPECT(!function.IsNull());  // No ambiguity error expected.
     const Array& args = Array::Handle(Array::New(kNumArguments));
     const String& arg0 = String::Handle(String::New("junk"));
@@ -119,11 +107,8 @@ TEST_CASE(DartStaticResolve) {
   {
     const int kNumArguments = 1;
     const Function& bad_function = Function::Handle(
-        Resolver::ResolveStatic(library,
-                                class_name,
-                                static_function_name,
-                                kNumArguments,
-                                Object::empty_array()));
+        Resolver::ResolveStatic(library, class_name, static_function_name,
+                                kNumArguments, Object::empty_array()));
     EXPECT(bad_function.IsNull());  // No ambiguity error expected.
   }
 
@@ -133,12 +118,9 @@ TEST_CASE(DartStaticResolve) {
         String::Handle(String::New("statCall"));
     const String& super_class_name = String::Handle(String::New("Base"));
     const int kNumArguments = 0;
-    const Function& super_function = Function::Handle(
-        Resolver::ResolveStatic(library,
-                                super_class_name,
-                                super_static_function_name,
-                                kNumArguments,
-                                Object::empty_array()));
+    const Function& super_function = Function::Handle(Resolver::ResolveStatic(
+        library, super_class_name, super_static_function_name, kNumArguments,
+        Object::empty_array()));
     EXPECT(!super_function.IsNull());  // No ambiguity error expected.
   }
 }
@@ -151,18 +133,16 @@ TEST_CASE(DartDynamicResolve) {
   const int kTestValue = 42;
 
   // Setup a function which can be invoked.
-  SetupInstanceFunction(test_library_name,
-                        test_class_name,
-                        test_function_name);
+  SetupInstanceFunction(test_library_name, test_class_name, test_function_name);
 
   // Now create an instance object of the class and try to
   // resolve a function in it.
   const String& lib_name = String::Handle(String::New(test_library_name));
-  const Library& lib = Library::Handle(Library::LookupLibrary(thread,
-                                                              lib_name));
+  const Library& lib =
+      Library::Handle(Library::LookupLibrary(thread, lib_name));
   ASSERT(!lib.IsNull());
-  const Class& cls = Class::Handle(lib.LookupClass(
-      String::Handle(Symbols::New(thread, test_class_name))));
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(thread, test_class_name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   Instance& receiver = Instance::Handle(Instance::New(cls));
@@ -174,9 +154,7 @@ TEST_CASE(DartDynamicResolve) {
     ArgumentsDescriptor args_desc(
         Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
     const Function& function = Function::Handle(
-        Resolver::ResolveDynamic(receiver,
-                                 function_name,
-                                 args_desc));
+        Resolver::ResolveDynamic(receiver, function_name, args_desc));
     EXPECT(!function.IsNull());
     const Array& args = Array::Handle(Array::New(kNumArguments));
     args.SetAt(0, receiver);
@@ -195,9 +173,7 @@ TEST_CASE(DartDynamicResolve) {
     ArgumentsDescriptor args_desc(
         Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
     const Function& bad_function = Function::Handle(
-        Resolver::ResolveDynamic(receiver,
-                                 function_name,
-                                 args_desc));
+        Resolver::ResolveDynamic(receiver, function_name, args_desc));
     EXPECT(bad_function.IsNull());
   }
 
@@ -206,12 +182,9 @@ TEST_CASE(DartDynamicResolve) {
     const int kNumArguments = 1;
     ArgumentsDescriptor args_desc(
         Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
-    const String& super_function_name =
-        String::Handle(String::New("dynCall"));
+    const String& super_function_name = String::Handle(String::New("dynCall"));
     const Function& super_function = Function::Handle(
-        Resolver::ResolveDynamic(receiver,
-                                 super_function_name,
-                                 args_desc));
+        Resolver::ResolveDynamic(receiver, super_function_name, args_desc));
     EXPECT(!super_function.IsNull());
   }
 }

@@ -15,6 +15,9 @@ part of dart._internal;
 class Symbol implements core.Symbol {
   final String _name;
 
+  // Used internally by DDC to map ES6 symbols to Dart.
+  final dynamic _nativeSymbol;
+
   /**
    * Source of RegExp matching Dart reserved words.
    *
@@ -95,22 +98,28 @@ class Symbol implements core.Symbol {
    * The empty symbol is handled before this regexp is used, and is not
    * accepted.
    */
-  static final RegExp symbolPattern = new RegExp(
-      '^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
+  static final RegExp symbolPattern =
+      new RegExp('^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
 
   external const Symbol(String name);
+
+  external const Symbol.es6(String name, nativeSymbol);
 
   /**
    * Platform-private method used by the mirror system to create
    * otherwise invalid names.
    */
-  const Symbol.unvalidated(this._name);
+  const Symbol.unvalidated(this._name) : this._nativeSymbol = null;
 
   // This is called by dart2js.
   Symbol.validated(String name)
-      : this._name = validatePublicSymbol(name);
+      : this._name = validatePublicSymbol(name),
+        this._nativeSymbol = null;
 
-  bool operator ==(Object other) => other is Symbol && _name == other._name;
+  bool operator ==(Object other) =>
+      other is Symbol &&
+      _name == other._name &&
+      _nativeSymbol == other._nativeSymbol;
 
   external int get hashCode;
 
@@ -118,6 +127,8 @@ class Symbol implements core.Symbol {
 
   /// Platform-private accessor which cannot be called from user libraries.
   static String getName(Symbol symbol) => symbol._name;
+
+  static dynamic getNativeSymbol(Symbol symbol) => symbol._nativeSymbol;
 
   static String validatePublicSymbol(String name) {
     if (name.isEmpty || publicSymbolPattern.hasMatch(name)) return name;
@@ -127,8 +138,7 @@ class Symbol implements core.Symbol {
       // message.
       throw new ArgumentError('"$name" is a private identifier');
     }
-    throw new ArgumentError(
-        '"$name" is not a valid (qualified) symbol name');
+    throw new ArgumentError('"$name" is not a valid (qualified) symbol name');
   }
 
   /**

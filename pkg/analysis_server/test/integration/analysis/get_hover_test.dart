@@ -7,16 +7,16 @@ library test.integration.analysis.get.hover;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisGetHoverIntegrationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisGetHoverIntegrationTest);
+  });
 }
 
 @reflectiveTest
@@ -78,7 +78,7 @@ main() {
       expect(info.offset, equals(offset));
       expect(info.length, equals(length));
       if (isCore) {
-        expect(basename(info.containingLibraryPath), equals('core.dart'));
+        expect(path.basename(info.containingLibraryPath), equals('core.dart'));
         expect(info.containingLibraryName, equals('dart.core'));
       } else if (isLocal || isLiteral) {
         expect(info.containingLibraryPath, isNull);

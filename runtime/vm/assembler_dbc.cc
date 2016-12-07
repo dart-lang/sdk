@@ -26,11 +26,10 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   }
 }
 
-#define DEFINE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2)  \
-  void Assembler::Name(PARAMS_##Signature) {            \
-    Emit(Bytecode::FENCODE_##Signature(                 \
-        Bytecode::k##Name ENCODE_##Signature));         \
-  }                                                     \
+#define DEFINE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2)                         \
+  void Assembler::Name(PARAMS_##Signature) {                                   \
+    Emit(Bytecode::FENCODE_##Signature(Bytecode::k##Name ENCODE_##Signature)); \
+  }
 
 
 #define PARAMS_0
@@ -131,8 +130,7 @@ void Assembler::LoadConstant(uintptr_t ra, const Object& obj) {
 
 
 intptr_t Assembler::AddConstant(const Object& obj) {
-  return object_pool_wrapper().FindObject(
-      Object::ZoneHandle(obj.raw()));
+  return object_pool_wrapper().FindObject(Object::ZoneHandle(obj.raw()));
 }
 
 

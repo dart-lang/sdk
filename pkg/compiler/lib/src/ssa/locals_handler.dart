@@ -186,7 +186,7 @@ class LocalsHandler {
   void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     closureData = _compiler.closureToClassMapper
-        .computeClosureToClassMapping(element.resolvedAst);
+        .getClosureToClassMapping(element.resolvedAst);
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;

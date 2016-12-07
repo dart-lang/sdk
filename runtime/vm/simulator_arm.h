@@ -9,10 +9,10 @@
 // which will start execution in the Simulator or forwards to the real entry
 // on a ARM HW platform.
 
-#ifndef VM_SIMULATOR_ARM_H_
-#define VM_SIMULATOR_ARM_H_
+#ifndef RUNTIME_VM_SIMULATOR_ARM_H_
+#define RUNTIME_VM_SIMULATOR_ARM_H_
 
-#ifndef VM_SIMULATOR_H_
+#ifndef RUNTIME_VM_SIMULATOR_H_
 #error Do not include simulator_arm.h directly; use simulator.h.
 #endif
 
@@ -52,9 +52,7 @@ class Simulator {
   void set_register(Register reg, int32_t value);
   int32_t get_register(Register reg) const;
 
-  int32_t get_sp() const {
-    return get_register(SPREG);
-  }
+  int32_t get_sp() const { return get_register(SPREG); }
 
   // Special case of set_register and get_register to access the raw PC value.
   void set_pc(int32_t value);
@@ -129,12 +127,7 @@ class Simulator {
 
   static uword FunctionForRedirect(uword redirect);
 
-  void Longjmp(uword pc,
-               uword sp,
-               uword fp,
-               RawObject* raw_exception,
-               RawObject* raw_stacktrace,
-               Thread* thread);
+  void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
  private:
   // Known bad pc value to ensure that the simulator does not execute
@@ -177,9 +170,7 @@ class Simulator {
   int32_t break_instr_;
 
   // Illegal memory access support.
-  static bool IsIllegalAddress(uword addr) {
-    return addr < 64*1024;
-  }
+  static bool IsIllegalAddress(uword addr) { return addr < 64 * 1024; }
   void HandleIllegalAccess(uword addr, Instr* instr);
 
   // Handles a legal instruction that the simulator does not implement.
@@ -273,9 +264,7 @@ class Simulator {
   bool IsTracingExecution() const;
 
   // Longjmp support for exceptions.
-  SimulatorSetjmpBuffer* last_setjmp_buffer() {
-    return last_setjmp_buffer_;
-  }
+  SimulatorSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }
   void set_last_setjmp_buffer(SimulatorSetjmpBuffer* buffer) {
     last_setjmp_buffer_ = buffer;
   }
@@ -287,4 +276,4 @@ class Simulator {
 
 }  // namespace dart
 
-#endif  // VM_SIMULATOR_ARM_H_
+#endif  // RUNTIME_VM_SIMULATOR_ARM_H_

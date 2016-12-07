@@ -1,11 +1,10 @@
-library ElementTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
+
 import 'utils.dart';
 
 main() {
-  useHtmlConfiguration();
   test('InnerHTML', () {
     Element element = new Element.tag('div');
     element.id = 'test';
@@ -17,7 +16,7 @@ main() {
     element.remove();
   });
   test('HTMLTable', () {
-    Element table = new Element.tag('table');
+    TableElement table = new Element.tag('table');
 
     TableRowElement row = new Element.tag('tr');
     table.append(row);

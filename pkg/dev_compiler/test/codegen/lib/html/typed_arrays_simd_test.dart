@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library TypedArraysSimdTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
+
+import 'package:expect/minitest.dart';
 
 const _FLOATING_POINT_ERROR = 0.0000000001;
 floatEquals(value) => closeTo(value, _FLOATING_POINT_ERROR);
@@ -19,8 +18,6 @@ class MyFloat32x4 {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Only perform tests if ArrayBuffer is supported.
   if (!Platform.supportsTypedData) {
     return;

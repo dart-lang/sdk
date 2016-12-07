@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_BIT_SET_H_
-#define VM_BIT_SET_H_
+#ifndef RUNTIME_VM_BIT_SET_H_
+#define RUNTIME_VM_BIT_SET_H_
 
 #include "platform/utils.h"
 #include "vm/globals.h"
@@ -12,12 +12,10 @@ namespace dart {
 
 // Just like its namesake in the STL, a BitSet object contains a fixed
 // length sequence of bits.
-template<intptr_t N>
+template <intptr_t N>
 class BitSet {
  public:
-  BitSet() {
-    Reset();
-  }
+  BitSet() { Reset(); }
 
   void Set(intptr_t i, bool value) {
     ASSERT(i >= 0);
@@ -85,13 +83,9 @@ class BitSet {
     }
   }
 
-  void Reset() {
-    memset(data_, 0, sizeof(data_));
-  }
+  void Reset() { memset(data_, 0, sizeof(data_)); }
 
-  intptr_t Size() const {
-    return N;
-  }
+  intptr_t Size() const { return N; }
 
  private:
   static const int kLengthInWords = 1 + ((N - 1) / kBitsPerWord);
@@ -100,4 +94,4 @@ class BitSet {
 
 }  // namespace dart
 
-#endif  // VM_BIT_SET_H_
+#endif  // RUNTIME_VM_BIT_SET_H_

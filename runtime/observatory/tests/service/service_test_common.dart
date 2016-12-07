@@ -144,6 +144,8 @@ bool isEventOfKind(M.Event event, String kind) {
       return event is M.PauseExitEvent;
     case ServiceEvent.kPauseStart:
       return event is M.PauseStartEvent;
+    case ServiceEvent.kPausePostRequest:
+      return event is M.PausePostRequestEvent;
     default:
       return false;
   }
@@ -155,7 +157,7 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == kind) {
+        if ((isolate == event.isolate) && (event.kind == kind)) {
           if (completer != null) {
             // Reload to update isolate.pauseEvent.
             print('Paused with $kind');
@@ -188,6 +190,10 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseBreakpoint);
 }
 
+Future<Isolate> hasStoppedPostRequest(Isolate isolate) {
+  return hasPausedFor(isolate, ServiceEvent.kPausePostRequest);
+}
+
 Future<Isolate> hasStoppedWithUnhandledException(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseException);
 }
@@ -198,6 +204,16 @@ Future<Isolate> hasStoppedAtExit(Isolate isolate) {
 
 Future<Isolate> hasPausedAtStart(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseStart);
+}
+
+IsolateTest reloadSources([bool pause = false]) {
+    return (Isolate isolate) async {
+      Map<String, dynamic> params = <String, dynamic>{ };
+      if (pause == true) {
+        params['pause'] = pause;
+      }
+      return isolate.invokeRpc('reloadSources', params);
+    };
 }
 
 // Currying is your friend.
@@ -332,6 +348,11 @@ Future<Isolate> stepOut(Isolate isolate) async {
   return hasStoppedAtBreakpoint(isolate);
 }
 
+
+Future isolateIsRunning(Isolate isolate) async {
+  await isolate.reload();
+  expect(isolate.running, true);
+}
 
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();

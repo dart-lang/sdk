@@ -46,7 +46,7 @@ abstract class RuntimeTypes {
   ///
   /// This function must be called after all is-checks have been registered.
   void addImplicitChecks(
-      Universe universe, Iterable<ClassElement> classesUsingChecks);
+      WorldBuilder universe, Iterable<ClassElement> classesUsingChecks);
 
   /// Return all classes that are referenced in the type of the function, i.e.,
   /// in the return type or the argument types.
@@ -170,7 +170,7 @@ class _RuntimeTypes implements RuntimeTypes {
    */
   @override
   void addImplicitChecks(
-      Universe universe, Iterable<ClassElement> classesUsingChecks) {
+      WorldBuilder universe, Iterable<ClassElement> classesUsingChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
@@ -181,7 +181,7 @@ class _RuntimeTypes implements RuntimeTypes {
         InterfaceType interface = type;
         do {
           for (DartType argument in interface.typeArguments) {
-            universe.registerIsCheck(argument, compiler);
+            universe.registerIsCheck(argument, compiler.resolution);
           }
           interface = interface.element.supertype;
         } while (interface != null && !instantiatedTypes.contains(interface));
@@ -204,7 +204,7 @@ class _RuntimeTypes implements RuntimeTypes {
             InterfaceType instance = current.asInstanceOf(cls);
             if (instance == null) break;
             for (DartType argument in instance.typeArguments) {
-              universe.registerIsCheck(argument, compiler);
+              universe.registerIsCheck(argument, compiler.resolution);
             }
             current = current.element.supertype;
           } while (current != null && !instantiatedTypes.contains(current));
@@ -364,7 +364,8 @@ class _RuntimeTypes implements RuntimeTypes {
         computeChecks(allInstantiatedArguments, checkedArguments);
   }
 
-  Set<DartType> computeInstantiatedTypesAndClosures(CodegenUniverse universe) {
+  Set<DartType> computeInstantiatedTypesAndClosures(
+      CodegenWorldBuilder universe) {
     Set<DartType> instantiatedTypes =
         new Set<DartType>.from(universe.instantiatedTypes);
     for (DartType instantiatedType in universe.instantiatedTypes) {

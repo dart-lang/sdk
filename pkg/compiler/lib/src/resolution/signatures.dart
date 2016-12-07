@@ -370,7 +370,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       returnType = element.enclosingClass.thisType;
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(returnType));
+      registry.registerCheckedModeCheck(returnType);
     } else {
       AsyncMarker asyncMarker = AsyncMarker.SYNC;
       if (isFunctionExpression) {

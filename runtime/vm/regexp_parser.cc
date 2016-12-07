@@ -21,15 +21,17 @@ RegExpBuilder::RegExpBuilder()
       text_(),
       alternatives_()
 #ifdef DEBUG
-    , last_added_(ADD_NONE)
+      ,
+      last_added_(ADD_NONE)
 #endif
-  {}
+{
+}
 
 
 void RegExpBuilder::FlushCharacters() {
   pending_empty_ = false;
   if (characters_ != NULL) {
-    RegExpTree* atom = new(Z) RegExpAtom(characters_);
+    RegExpTree* atom = new (Z) RegExpAtom(characters_);
     characters_ = NULL;
     text_.Add(atom);
     LAST(ADD_ATOM);
@@ -45,7 +47,7 @@ void RegExpBuilder::FlushText() {
   } else if (num_text == 1) {
     terms_.Add(text_.Last());
   } else {
-    RegExpText* text = new(Z) RegExpText();
+    RegExpText* text = new (Z) RegExpText();
     for (intptr_t i = 0; i < num_text; i++)
       text_[i]->AppendToText(text);
     terms_.Add(text);
@@ -57,7 +59,7 @@ void RegExpBuilder::FlushText() {
 void RegExpBuilder::AddCharacter(uint16_t c) {
   pending_empty_ = false;
   if (characters_ == NULL) {
-    characters_ = new(Z) ZoneGrowableArray<uint16_t>(4);
+    characters_ = new (Z) ZoneGrowableArray<uint16_t>(4);
   }
   characters_->Add(c);
   LAST(ADD_CHAR);
@@ -107,11 +109,11 @@ void RegExpBuilder::FlushTerms() {
     alternative = terms_.Last();
   } else {
     ZoneGrowableArray<RegExpTree*>* terms =
-        new(Z) ZoneGrowableArray<RegExpTree*>();
+        new (Z) ZoneGrowableArray<RegExpTree*>();
     for (intptr_t i = 0; i < terms_.length(); i++) {
       terms->Add(terms_[i]);
     }
-    alternative = new(Z) RegExpAlternative(terms);
+    alternative = new (Z) RegExpAlternative(terms);
   }
   alternatives_.Add(alternative);
   terms_.Clear();
@@ -129,11 +131,11 @@ RegExpTree* RegExpBuilder::ToRegExp() {
     return alternatives_.Last();
   }
   ZoneGrowableArray<RegExpTree*>* alternatives =
-      new(Z) ZoneGrowableArray<RegExpTree*>();
+      new (Z) ZoneGrowableArray<RegExpTree*>();
   for (intptr_t i = 0; i < alternatives_.length(); i++) {
     alternatives->Add(alternatives_[i]);
   }
-  return new(Z) RegExpDisjunction(alternatives);
+  return new (Z) RegExpDisjunction(alternatives);
 }
 
 
@@ -150,23 +152,23 @@ void RegExpBuilder::AddQuantifierToAtom(
     DEBUG_ASSERT(last_added_ == ADD_CHAR);
     // Last atom was character.
 
-    ZoneGrowableArray<uint16_t> *char_vector =
-        new(Z) ZoneGrowableArray<uint16_t>();
+    ZoneGrowableArray<uint16_t>* char_vector =
+        new (Z) ZoneGrowableArray<uint16_t>();
     char_vector->AddArray(*characters_);
     intptr_t num_chars = char_vector->length();
     if (num_chars > 1) {
-      ZoneGrowableArray<uint16_t> *prefix =
-          new(Z) ZoneGrowableArray<uint16_t>();
+      ZoneGrowableArray<uint16_t>* prefix =
+          new (Z) ZoneGrowableArray<uint16_t>();
       for (intptr_t i = 0; i < num_chars - 1; i++) {
         prefix->Add(char_vector->At(i));
       }
-      text_.Add(new(Z) RegExpAtom(prefix));
-      ZoneGrowableArray<uint16_t> *tail = new(Z) ZoneGrowableArray<uint16_t>();
+      text_.Add(new (Z) RegExpAtom(prefix));
+      ZoneGrowableArray<uint16_t>* tail = new (Z) ZoneGrowableArray<uint16_t>();
       tail->Add(char_vector->At(num_chars - 1));
       char_vector = tail;
     }
     characters_ = NULL;
-    atom = new(Z) RegExpAtom(char_vector);
+    atom = new (Z) RegExpAtom(char_vector);
     FlushText();
   } else if (text_.length() > 0) {
     DEBUG_ASSERT(last_added_ == ADD_ATOM);
@@ -189,16 +191,14 @@ void RegExpBuilder::AddQuantifierToAtom(
     UNREACHABLE();
     return;
   }
-  terms_.Add(new(Z) RegExpQuantifier(min, max, quantifier_type, atom));
+  terms_.Add(new (Z) RegExpQuantifier(min, max, quantifier_type, atom));
   LAST(ADD_TERM);
 }
 
 // ----------------------------------------------------------------------------
 // Implementation of Parser
 
-RegExpParser::RegExpParser(const String& in,
-                           String* error,
-                           bool multiline)
+RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
     : zone_(Thread::Current()->zone()),
       error_(error),
       captures_(NULL),
@@ -216,7 +216,7 @@ RegExpParser::RegExpParser(const String& in,
 }
 
 
-bool RegExpParser::ParseFunction(ParsedFunction *parsed_function) {
+bool RegExpParser::ParseFunction(ParsedFunction* parsed_function) {
   VMTagScope tagScope(parsed_function->thread(),
                       VMTag::kCompileParseRegExpTagId);
   Zone* zone = parsed_function->zone();
@@ -225,7 +225,7 @@ bool RegExpParser::ParseFunction(ParsedFunction *parsed_function) {
   const String& pattern = String::Handle(regexp.pattern());
   const bool multiline = regexp.is_multi_line();
 
-  RegExpCompileData* compile_data = new(zone) RegExpCompileData();
+  RegExpCompileData* compile_data = new (zone) RegExpCompileData();
   if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
     // Parsing failures are handled in the RegExp factory constructor.
     UNREACHABLE();
@@ -327,314 +327,325 @@ RegExpTree* RegExpParser::ParseDisjunction() {
   RegExpBuilder* builder = initial_state.builder();
   while (true) {
     switch (current()) {
-    case kEndMarker:
-      if (stored_state->IsSubexpression()) {
-        // Inside a parenthesized group when hitting end of input.
-        ReportError("Unterminated group");
-        UNREACHABLE();
-      }
-      ASSERT(INITIAL == stored_state->group_type());
-      // Parsing completed successfully.
-      return builder->ToRegExp();
-    case ')': {
-      if (!stored_state->IsSubexpression()) {
-        ReportError("Unmatched ')'");
-        UNREACHABLE();
-      }
-      ASSERT(INITIAL != stored_state->group_type());
-
-      Advance();
-      // End disjunction parsing and convert builder content to new single
-      // regexp atom.
-      RegExpTree* body = builder->ToRegExp();
-
-      intptr_t end_capture_index = captures_started();
-
-      intptr_t capture_index = stored_state->capture_index();
-      SubexpressionType group_type = stored_state->group_type();
-
-      // Restore previous state.
-      stored_state = stored_state->previous_state();
-      builder = stored_state->builder();
-
-      // Build result of subexpression.
-      if (group_type == CAPTURE) {
-        RegExpCapture* capture = new(Z) RegExpCapture(body, capture_index);
-        (*captures_)[capture_index - 1] = capture;
-        body = capture;
-      } else if (group_type != GROUPING) {
-        ASSERT(group_type == POSITIVE_LOOKAHEAD ||
-               group_type == NEGATIVE_LOOKAHEAD);
-        bool is_positive = (group_type == POSITIVE_LOOKAHEAD);
-        body = new(Z) RegExpLookahead(body,
-                                      is_positive,
-                                      end_capture_index - capture_index,
-                                      capture_index);
-      }
-      builder->AddAtom(body);
-      // For compatibility with JSC and ES3, we allow quantifiers after
-      // lookaheads, and break in all cases.
-      break;
-    }
-    case '|': {
-      Advance();
-      builder->NewAlternative();
-      continue;
-    }
-    case '*':
-    case '+':
-    case '?':
-      ReportError("Nothing to repeat");
-      UNREACHABLE();
-    case '^': {
-      Advance();
-      if (multiline_) {
-        builder->AddAssertion(
-            new(Z) RegExpAssertion(RegExpAssertion::START_OF_LINE));
-      } else {
-        builder->AddAssertion(
-            new(Z) RegExpAssertion(RegExpAssertion::START_OF_INPUT));
-        set_contains_anchor();
-      }
-      continue;
-    }
-    case '$': {
-      Advance();
-      RegExpAssertion::AssertionType assertion_type =
-          multiline_ ? RegExpAssertion::END_OF_LINE :
-                       RegExpAssertion::END_OF_INPUT;
-      builder->AddAssertion(new RegExpAssertion(assertion_type));
-      continue;
-    }
-    case '.': {
-      Advance();
-      // everything except \x0a, \x0d, \u2028 and \u2029
-      ZoneGrowableArray<CharacterRange>* ranges =
-          new ZoneGrowableArray<CharacterRange>(2);
-      CharacterRange::AddClassEscape('.', ranges);
-      RegExpTree* atom = new RegExpCharacterClass(ranges, false);
-      builder->AddAtom(atom);
-      break;
-    }
-    case '(': {
-      SubexpressionType subexpr_type = CAPTURE;
-      Advance();
-      if (current() == '?') {
-        switch (Next()) {
-          case ':':
-            subexpr_type = GROUPING;
-            break;
-          case '=':
-            subexpr_type = POSITIVE_LOOKAHEAD;
-            break;
-          case '!':
-            subexpr_type = NEGATIVE_LOOKAHEAD;
-            break;
-          default:
-            ReportError("Invalid group");
-            UNREACHABLE();
-        }
-        Advance(2);
-      } else {
-        if (captures_ == NULL) {
-          captures_ = new ZoneGrowableArray<RegExpCapture*>(2);
-        }
-        if (captures_started() >= kMaxCaptures) {
-          ReportError("Too many captures");
+      case kEndMarker:
+        if (stored_state->IsSubexpression()) {
+          // Inside a parenthesized group when hitting end of input.
+          ReportError("Unterminated group");
           UNREACHABLE();
         }
-        captures_->Add(NULL);
+        ASSERT(INITIAL == stored_state->group_type());
+        // Parsing completed successfully.
+        return builder->ToRegExp();
+      case ')': {
+        if (!stored_state->IsSubexpression()) {
+          ReportError("Unmatched ')'");
+          UNREACHABLE();
+        }
+        ASSERT(INITIAL != stored_state->group_type());
+
+        Advance();
+        // End disjunction parsing and convert builder content to new single
+        // regexp atom.
+        RegExpTree* body = builder->ToRegExp();
+
+        intptr_t end_capture_index = captures_started();
+
+        intptr_t capture_index = stored_state->capture_index();
+        SubexpressionType group_type = stored_state->group_type();
+
+        // Restore previous state.
+        stored_state = stored_state->previous_state();
+        builder = stored_state->builder();
+
+        // Build result of subexpression.
+        if (group_type == CAPTURE) {
+          RegExpCapture* capture = new (Z) RegExpCapture(body, capture_index);
+          (*captures_)[capture_index - 1] = capture;
+          body = capture;
+        } else if (group_type != GROUPING) {
+          ASSERT(group_type == POSITIVE_LOOKAHEAD ||
+                 group_type == NEGATIVE_LOOKAHEAD);
+          bool is_positive = (group_type == POSITIVE_LOOKAHEAD);
+          body = new (Z)
+              RegExpLookahead(body, is_positive,
+                              end_capture_index - capture_index, capture_index);
+        }
+        builder->AddAtom(body);
+        // For compatibility with JSC and ES3, we allow quantifiers after
+        // lookaheads, and break in all cases.
+        break;
       }
-      // Store current state and begin new disjunction parsing.
-      stored_state = new RegExpParserState(stored_state, subexpr_type,
-                                           captures_started(), Z);
-      builder = stored_state->builder();
-      continue;
-    }
-    case '[': {
-      RegExpTree* atom = ParseCharacterClass();
-      builder->AddAtom(atom);
-      break;
-    }
-    // Atom ::
-    //   \ AtomEscape
-    case '\\':
-      switch (Next()) {
-      case kEndMarker:
-        ReportError("\\ at end of pattern");
+      case '|': {
+        Advance();
+        builder->NewAlternative();
+        continue;
+      }
+      case '*':
+      case '+':
+      case '?':
+        ReportError("Nothing to repeat");
         UNREACHABLE();
-      case 'b':
-        Advance(2);
-        builder->AddAssertion(
-            new RegExpAssertion(RegExpAssertion::BOUNDARY));
+      case '^': {
+        Advance();
+        if (multiline_) {
+          builder->AddAssertion(
+              new (Z) RegExpAssertion(RegExpAssertion::START_OF_LINE));
+        } else {
+          builder->AddAssertion(
+              new (Z) RegExpAssertion(RegExpAssertion::START_OF_INPUT));
+          set_contains_anchor();
+        }
         continue;
-      case 'B':
-        Advance(2);
-        builder->AddAssertion(
-            new RegExpAssertion(RegExpAssertion::NON_BOUNDARY));
+      }
+      case '$': {
+        Advance();
+        RegExpAssertion::AssertionType assertion_type =
+            multiline_ ? RegExpAssertion::END_OF_LINE
+                       : RegExpAssertion::END_OF_INPUT;
+        builder->AddAssertion(new RegExpAssertion(assertion_type));
         continue;
-      // AtomEscape ::
-      //   CharacterClassEscape
-      //
-      // CharacterClassEscape :: one of
-      //   d D s S w W
-      case 'd': case 'D': case 's': case 'S': case 'w': case 'W': {
-        uint32_t c = Next();
-        Advance(2);
+      }
+      case '.': {
+        Advance();
+        // everything except \x0a, \x0d, \u2028 and \u2029
         ZoneGrowableArray<CharacterRange>* ranges =
             new ZoneGrowableArray<CharacterRange>(2);
-        CharacterRange::AddClassEscape(c, ranges);
+        CharacterRange::AddClassEscape('.', ranges);
         RegExpTree* atom = new RegExpCharacterClass(ranges, false);
         builder->AddAtom(atom);
         break;
       }
-      case '1': case '2': case '3': case '4': case '5': case '6':
-      case '7': case '8': case '9': {
-        intptr_t index = 0;
-        if (ParseBackReferenceIndex(&index)) {
-          RegExpCapture* capture = NULL;
-          if (captures_ != NULL && index <= captures_->length()) {
-            capture = captures_->At(index - 1);
+      case '(': {
+        SubexpressionType subexpr_type = CAPTURE;
+        Advance();
+        if (current() == '?') {
+          switch (Next()) {
+            case ':':
+              subexpr_type = GROUPING;
+              break;
+            case '=':
+              subexpr_type = POSITIVE_LOOKAHEAD;
+              break;
+            case '!':
+              subexpr_type = NEGATIVE_LOOKAHEAD;
+              break;
+            default:
+              ReportError("Invalid group");
+              UNREACHABLE();
           }
-          if (capture == NULL) {
-            builder->AddEmpty();
+          Advance(2);
+        } else {
+          if (captures_ == NULL) {
+            captures_ = new ZoneGrowableArray<RegExpCapture*>(2);
+          }
+          if (captures_started() >= kMaxCaptures) {
+            ReportError("Too many captures");
+            UNREACHABLE();
+          }
+          captures_->Add(NULL);
+        }
+        // Store current state and begin new disjunction parsing.
+        stored_state = new RegExpParserState(stored_state, subexpr_type,
+                                             captures_started(), Z);
+        builder = stored_state->builder();
+        continue;
+      }
+      case '[': {
+        RegExpTree* atom = ParseCharacterClass();
+        builder->AddAtom(atom);
+        break;
+      }
+      // Atom ::
+      //   \ AtomEscape
+      case '\\':
+        switch (Next()) {
+          case kEndMarker:
+            ReportError("\\ at end of pattern");
+            UNREACHABLE();
+          case 'b':
+            Advance(2);
+            builder->AddAssertion(
+                new RegExpAssertion(RegExpAssertion::BOUNDARY));
+            continue;
+          case 'B':
+            Advance(2);
+            builder->AddAssertion(
+                new RegExpAssertion(RegExpAssertion::NON_BOUNDARY));
+            continue;
+          // AtomEscape ::
+          //   CharacterClassEscape
+          //
+          // CharacterClassEscape :: one of
+          //   d D s S w W
+          case 'd':
+          case 'D':
+          case 's':
+          case 'S':
+          case 'w':
+          case 'W': {
+            uint32_t c = Next();
+            Advance(2);
+            ZoneGrowableArray<CharacterRange>* ranges =
+                new ZoneGrowableArray<CharacterRange>(2);
+            CharacterRange::AddClassEscape(c, ranges);
+            RegExpTree* atom = new RegExpCharacterClass(ranges, false);
+            builder->AddAtom(atom);
             break;
           }
-          RegExpTree* atom = new RegExpBackReference(capture);
-          builder->AddAtom(atom);
-          break;
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9': {
+            intptr_t index = 0;
+            if (ParseBackReferenceIndex(&index)) {
+              RegExpCapture* capture = NULL;
+              if (captures_ != NULL && index <= captures_->length()) {
+                capture = captures_->At(index - 1);
+              }
+              if (capture == NULL) {
+                builder->AddEmpty();
+                break;
+              }
+              RegExpTree* atom = new RegExpBackReference(capture);
+              builder->AddAtom(atom);
+              break;
+            }
+            uint32_t first_digit = Next();
+            if (first_digit == '8' || first_digit == '9') {
+              // Treat as identity escape
+              builder->AddCharacter(first_digit);
+              Advance(2);
+              break;
+            }
+          }
+          // FALLTHROUGH
+          case '0': {
+            Advance();
+            uint32_t octal = ParseOctalLiteral();
+            builder->AddCharacter(octal);
+            break;
+          }
+          // ControlEscape :: one of
+          //   f n r t v
+          case 'f':
+            Advance(2);
+            builder->AddCharacter('\f');
+            break;
+          case 'n':
+            Advance(2);
+            builder->AddCharacter('\n');
+            break;
+          case 'r':
+            Advance(2);
+            builder->AddCharacter('\r');
+            break;
+          case 't':
+            Advance(2);
+            builder->AddCharacter('\t');
+            break;
+          case 'v':
+            Advance(2);
+            builder->AddCharacter('\v');
+            break;
+          case 'c': {
+            Advance();
+            uint32_t controlLetter = Next();
+            // Special case if it is an ASCII letter.
+            // Convert lower case letters to uppercase.
+            uint32_t letter = controlLetter & ~('a' ^ 'A');
+            if (letter < 'A' || 'Z' < letter) {
+              // controlLetter is not in range 'A'-'Z' or 'a'-'z'.
+              // This is outside the specification. We match JSC in
+              // reading the backslash as a literal character instead
+              // of as starting an escape.
+              builder->AddCharacter('\\');
+            } else {
+              Advance(2);
+              builder->AddCharacter(controlLetter & 0x1f);
+            }
+            break;
+          }
+          case 'x': {
+            Advance(2);
+            uint32_t value;
+            if (ParseHexEscape(2, &value)) {
+              builder->AddCharacter(value);
+            } else {
+              builder->AddCharacter('x');
+            }
+            break;
+          }
+          case 'u': {
+            Advance(2);
+            uint32_t value;
+            if (ParseHexEscape(4, &value)) {
+              builder->AddCharacter(value);
+            } else {
+              builder->AddCharacter('u');
+            }
+            break;
+          }
+          default:
+            // Identity escape.
+            builder->AddCharacter(Next());
+            Advance(2);
+            break;
         }
-        uint32_t first_digit = Next();
-        if (first_digit == '8' || first_digit == '9') {
-          // Treat as identity escape
-          builder->AddCharacter(first_digit);
-          Advance(2);
-          break;
+        break;
+      case '{': {
+        intptr_t dummy;
+        if (ParseIntervalQuantifier(&dummy, &dummy)) {
+          ReportError("Nothing to repeat");
+          UNREACHABLE();
         }
-      }
-      // FALLTHROUGH
-      case '0': {
-        Advance();
-        uint32_t octal = ParseOctalLiteral();
-        builder->AddCharacter(octal);
-        break;
-      }
-      // ControlEscape :: one of
-      //   f n r t v
-      case 'f':
-        Advance(2);
-        builder->AddCharacter('\f');
-        break;
-      case 'n':
-        Advance(2);
-        builder->AddCharacter('\n');
-        break;
-      case 'r':
-        Advance(2);
-        builder->AddCharacter('\r');
-        break;
-      case 't':
-        Advance(2);
-        builder->AddCharacter('\t');
-        break;
-      case 'v':
-        Advance(2);
-        builder->AddCharacter('\v');
-        break;
-      case 'c': {
-        Advance();
-        uint32_t controlLetter = Next();
-        // Special case if it is an ASCII letter.
-        // Convert lower case letters to uppercase.
-        uint32_t letter = controlLetter & ~('a' ^ 'A');
-        if (letter < 'A' || 'Z' < letter) {
-          // controlLetter is not in range 'A'-'Z' or 'a'-'z'.
-          // This is outside the specification. We match JSC in
-          // reading the backslash as a literal character instead
-          // of as starting an escape.
-          builder->AddCharacter('\\');
-        } else {
-          Advance(2);
-          builder->AddCharacter(controlLetter & 0x1f);
-        }
-        break;
-      }
-      case 'x': {
-        Advance(2);
-        uint32_t value;
-        if (ParseHexEscape(2, &value)) {
-          builder->AddCharacter(value);
-        } else {
-          builder->AddCharacter('x');
-        }
-        break;
-      }
-      case 'u': {
-        Advance(2);
-        uint32_t value;
-        if (ParseHexEscape(4, &value)) {
-          builder->AddCharacter(value);
-        } else {
-          builder->AddCharacter('u');
-        }
-        break;
+        // fallthrough
       }
       default:
-        // Identity escape.
-        builder->AddCharacter(Next());
-        Advance(2);
+        builder->AddCharacter(current());
+        Advance();
         break;
-      }
-      break;
-    case '{': {
-      intptr_t dummy;
-      if (ParseIntervalQuantifier(&dummy, &dummy)) {
-        ReportError("Nothing to repeat");
-        UNREACHABLE();
-      }
-      // fallthrough
-    }
-    default:
-      builder->AddCharacter(current());
-      Advance();
-      break;
     }  // end switch(current())
 
     intptr_t min;
     intptr_t max;
     switch (current()) {
-    // QuantifierPrefix ::
-    //   *
-    //   +
-    //   ?
-    //   {
-    case '*':
-      min = 0;
-      max = RegExpTree::kInfinity;
-      Advance();
-      break;
-    case '+':
-      min = 1;
-      max = RegExpTree::kInfinity;
-      Advance();
-      break;
-    case '?':
-      min = 0;
-      max = 1;
-      Advance();
-      break;
-    case '{':
-      if (ParseIntervalQuantifier(&min, &max)) {
-        if (max < min) {
-          ReportError("numbers out of order in {} quantifier.");
-          UNREACHABLE();
-        }
+      // QuantifierPrefix ::
+      //   *
+      //   +
+      //   ?
+      //   {
+      case '*':
+        min = 0;
+        max = RegExpTree::kInfinity;
+        Advance();
         break;
-      } else {
+      case '+':
+        min = 1;
+        max = RegExpTree::kInfinity;
+        Advance();
+        break;
+      case '?':
+        min = 0;
+        max = 1;
+        Advance();
+        break;
+      case '{':
+        if (ParseIntervalQuantifier(&min, &max)) {
+          if (max < min) {
+            ReportError("numbers out of order in {} quantifier.");
+            UNREACHABLE();
+          }
+          break;
+        } else {
+          continue;
+        }
+      default:
         continue;
-      }
-    default:
-      continue;
     }
     RegExpQuantifier::QuantifierType quantifier_type = RegExpQuantifier::GREEDY;
     if (current() == '?') {
@@ -654,9 +665,12 @@ RegExpTree* RegExpParser::ParseDisjunction() {
 // Currently only used in an ASSERT.
 static bool IsSpecialClassEscape(uint32_t c) {
   switch (c) {
-    case 'd': case 'D':
-    case 's': case 'S':
-    case 'w': case 'W':
+    case 'd':
+    case 'D':
+    case 's':
+    case 'S':
+    case 'w':
+    case 'W':
       return true;
     default:
       return false;
@@ -843,7 +857,7 @@ static inline intptr_t HexValue(uint32_t c) {
 }
 
 
-bool RegExpParser::ParseHexEscape(intptr_t length, uint32_t *value) {
+bool RegExpParser::ParseHexEscape(intptr_t length, uint32_t* value) {
   intptr_t start = position();
   uint32_t val = 0;
   bool done = false;
@@ -896,8 +910,7 @@ uint32_t RegExpParser::ParseClassCharacterEscape() {
       // For compatibility with JSC, inside a character class
       // we also accept digits and underscore as control characters.
       if ((controlLetter >= '0' && controlLetter <= '9') ||
-          controlLetter == '_' ||
-          (letter >= 'A' && letter <= 'Z')) {
+          controlLetter == '_' || (letter >= 'A' && letter <= 'Z')) {
         Advance(2);
         // Control letters mapped to ASCII control characters in the range
         // 0x00-0x1f.
@@ -907,8 +920,14 @@ uint32_t RegExpParser::ParseClassCharacterEscape() {
       // character instead of as starting an escape.
       return '\\';
     }
-    case '0': case '1': case '2': case '3': case '4': case '5':
-    case '6': case '7':
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
       // For compatibility, we interpret a decimal escape that isn't
       // a back reference (and therefore either \0 or not valid according
       // to the specification) as a 1..3 digit octal character code.
@@ -951,7 +970,12 @@ CharacterRange RegExpParser::ParseClassAtom(uint16_t* char_class) {
   uint32_t first = current();
   if (first == '\\') {
     switch (Next()) {
-      case 'w': case 'W': case 'd': case 'D': case 's': case 'S': {
+      case 'w':
+      case 'W':
+      case 'd':
+      case 'D':
+      case 's':
+      case 'S': {
         *char_class = Next();
         Advance(2);
         return CharacterRange::Singleton(0);  // Return dummy value.
@@ -998,7 +1022,7 @@ RegExpTree* RegExpParser::ParseCharacterClass() {
     Advance();
   }
   ZoneGrowableArray<CharacterRange>* ranges =
-      new(Z) ZoneGrowableArray<CharacterRange>(2);
+      new (Z) ZoneGrowableArray<CharacterRange>(2);
   while (has_more() && current() != ']') {
     uint16_t char_class = kNoCharClass;
     CharacterRange first = ParseClassAtom(&char_class);
@@ -1040,7 +1064,7 @@ RegExpTree* RegExpParser::ParseCharacterClass() {
     ranges->Add(CharacterRange::Everything());
     is_negated = !is_negated;
   }
-  return new(Z) RegExpCharacterClass(ranges, is_negated);
+  return new (Z) RegExpCharacterClass(ranges, is_negated);
 }
 
 
@@ -1067,8 +1091,8 @@ bool RegExpParser::ParseRegExp(const String& input,
     Thread::Current()->clear_sticky_error();
 
     // Throw a FormatException on parsing failures.
-    const String& message = String::Handle(
-          String::Concat(result->error, input));
+    const String& message =
+        String::Handle(String::Concat(result->error, input));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, message);
 

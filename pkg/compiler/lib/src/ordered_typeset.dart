@@ -94,7 +94,9 @@ class OrderedTypeSet {
       Link<DartType> pointer = _levels[level];
       Link<DartType> end =
           level > 0 ? _levels[level - 1] : const Link<DartType>();
-      while (!identical(pointer, end)) {
+      // TODO(het): checking `isNotEmpty` should be unnecessary, remove when
+      // constants are properly canonicalized
+      while (pointer.isNotEmpty && !identical(pointer, end)) {
         f(pointer.head);
         pointer = pointer.tail;
       }
@@ -107,7 +109,9 @@ class OrderedTypeSet {
       Link<DartType> pointer = _levels[level];
       Link<DartType> end =
           level > 0 ? _levels[level - 1] : const Link<DartType>();
-      while (!identical(pointer, end)) {
+      // TODO(het): checking `isNotEmpty` should be unnecessary, remove when
+      // constants are properly canonicalized
+      while (pointer.isNotEmpty && !identical(pointer, end)) {
         if (cls == pointer.head.element) {
           return pointer.head;
         }

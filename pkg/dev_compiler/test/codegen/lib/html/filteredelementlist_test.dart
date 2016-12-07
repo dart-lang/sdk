@@ -1,9 +1,7 @@
-library filteredelementlist_test;
-
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 import 'dart:html_common';
+
+import 'package:expect/minitest.dart';
 
 main() {
   var t1 = new Text('T1'),
@@ -27,8 +25,6 @@ main() {
       ..append(t4);
     return testDiv;
   }
-
-  useHtmlConfiguration();
 
   test('FilteredElementList.insert test', () {
     var i = new DivElement();
@@ -95,8 +91,8 @@ main() {
  test('FilteredElementList.insertAndRemove', () {
     var emptyDiv = new DivElement();
     var elementList = new FilteredElementList(emptyDiv);
-    expect(() => elementList[0], throwsA(isRangeError));
-    expect(() => elementList.insert(2, new BRElement()), throwsA(isRangeError));
+    expect(() => elementList[0], throwsRangeError);
+    expect(() => elementList.insert(2, new BRElement()), throwsRangeError);
     var br = new BRElement();
     elementList.insert(0, br);
     expect(elementList.removeLast(), br);
@@ -106,6 +102,6 @@ main() {
     elementList.add(br);
     expect(elementList.remove(br2), isFalse);
     expect(elementList[0], br);
-    expect(() => elementList[1], throwsA(isRangeError));
+    expect(() => elementList[1], throwsRangeError);
  });
 }

@@ -8,7 +8,6 @@ library compiler.src.js_backend.lookup_map_analysis;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../common.dart';
-import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart'
     show
@@ -22,7 +21,7 @@ import '../dart_types.dart' show DartType;
 import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
-import '../enqueue.dart';
+import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
 import 'js_backend.dart' show JavaScriptBackend;
@@ -121,16 +120,23 @@ class LookupMapAnalysis {
   /// entry with that key.
   final _pending = <ConstantValue, List<_LookupMapInfo>>{};
 
-  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+  final StagedWorldImpactBuilder impactBuilderForResolution =
+      new StagedWorldImpactBuilder();
+  final StagedWorldImpactBuilder impactBuilderForCodegen =
+      new StagedWorldImpactBuilder();
 
   /// Whether the backend is currently processing the codegen queue.
   bool _inCodegen = false;
 
   LookupMapAnalysis(this.backend, this.reporter);
 
-  void onQueueEmpty(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) return;
-    enqueuer.applyImpact(null, impactBuilder.flush());
+  /// Compute the [WorldImpact] for the constants registered since last flush.
+  WorldImpact flush({bool forResolution}) {
+    if (forResolution) {
+      return impactBuilderForResolution.flush();
+    } else {
+      return impactBuilderForCodegen.flush();
+    }
   }
 
   /// Whether this analysis and optimization is enabled.
@@ -151,8 +157,8 @@ class LookupMapAnalysis {
       reporter.reportInfo(
           library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
     } else {
-      backend.compiler.enqueuer.resolution
-          .addToWorkList(lookupMapVersionVariable);
+      impactBuilderForResolution.registerStaticUse(
+          new StaticUse.foreignUse(lookupMapVersionVariable));
     }
   }
 
@@ -277,7 +283,8 @@ class LookupMapAnalysis {
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
         backend.computeImpactForInstantiatedConstantType(
-            backend.backendClasses.typeImplementation.rawType, impactBuilder);
+            backend.backendClasses.typeImplementation.rawType,
+            impactBuilderForCodegen);
         _addGenerics(arg);
       }
     }
@@ -418,7 +425,7 @@ class _LookupMapInfo {
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
     analysis.backend.computeImpactForCompileTimeConstant(
-        constant, analysis.impactBuilder, false);
+        constant, analysis.impactBuilderForCodegen, false);
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.

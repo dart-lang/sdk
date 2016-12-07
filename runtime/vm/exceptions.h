@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_EXCEPTIONS_H_
-#define VM_EXCEPTIONS_H_
+#ifndef RUNTIME_VM_EXCEPTIONS_H_
+#define RUNTIME_VM_EXCEPTIONS_H_
 
 #include "vm/allocation.h"
 #include "vm/token_position.h"
@@ -80,10 +80,15 @@ class Exceptions : AllStatic {
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);
 
+  static void JumpToFrame(Thread* thread,
+                          uword program_counter,
+                          uword stack_pointer,
+                          uword frame_pointer);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);
 };
 
 }  // namespace dart
 
-#endif  // VM_EXCEPTIONS_H_
+#endif  // RUNTIME_VM_EXCEPTIONS_H_

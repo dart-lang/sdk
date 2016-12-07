@@ -42,8 +42,10 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   }
 
   Identifier visitIdentifier(Identifier node) {
-    // The variable is initialized to null.
-    registry.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
+    if (!resolver.inCatchParameters) {
+      // The variable is initialized to null.
+      registry.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
+    }
     if (definitions.modifiers.isConst) {
       if (resolver.inLoopVariable) {
         reporter.reportErrorMessage(node, MessageKind.CONST_LOOP_VARIABLE);

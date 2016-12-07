@@ -49,13 +49,13 @@ class AbstractContextTest {
   AnalysisContext context;
 
   Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [(provider.newFolder('/pubcache/$packageName'))];
-    File file = provider.newFile('/pubcache/$packageName/$filePath', content);
+    packageMap[packageName] = [(newFolder('/pubcache/$packageName'))];
+    File file = newFile('/pubcache/$packageName/$filePath', content);
     return file.createSource();
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    File file = provider.newFile(path, content);
+    File file = newFile(path, content);
     Source source = file.createSource(uri);
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
@@ -63,6 +63,12 @@ class AbstractContextTest {
     context.setContents(source, content);
     return source;
   }
+
+  File newFile(String path, [String content]) =>
+      provider.newFile(provider.convertPath(path), content ?? '');
+
+  Folder newFolder(String path) =>
+      provider.newFolder(provider.convertPath(path));
 
   /**
    * Performs all analysis tasks in [context].

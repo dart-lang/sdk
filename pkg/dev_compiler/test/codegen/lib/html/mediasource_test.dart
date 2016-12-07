@@ -1,14 +1,9 @@
-library mediasource_test;
-
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
-import 'dart:async';
+
+import 'package:expect/minitest.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   var isMediaSource = predicate((x) => x is MediaSource, 'is a MediaSource');
 
   group('supported', () {

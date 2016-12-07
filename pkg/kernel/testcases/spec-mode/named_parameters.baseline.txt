@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Superclass extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo({dynamic alpha, dynamic beta}) → dynamic {}
+  method bar({dynamic beta, dynamic alpha}) → dynamic {}
+  method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic {
+    callback.call(alpha: "one", beta: 2);
+    callback.call(beta: 1, alpha: "two");
+  }
+}
+class Subclass extends self::Superclass {
+  constructor •() → void
+    : super self::Superclass::•()
+    ;
+  method foo({dynamic beta, dynamic alpha}) → dynamic {}
+  method bar({dynamic alpha, dynamic beta}) → dynamic {}
+  method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic {}
+}
+static method topLevelNamed(dynamic beta, dynamic alpha, {dynamic gamma, dynamic delta}) → dynamic {}
+static method topLevelOptional(dynamic beta, dynamic alpha, [dynamic gamma, dynamic delta]) → dynamic {}
+static method main() → dynamic {
+  new self::Subclass::•().foo(beta: 1, alpha: 2);
+  new self::Subclass::•().foo(alpha: 1, beta: 2);
+  self::topLevelNamed(1, 2, gamma: 3, delta: 4);
+  self::topLevelNamed(1, 2, delta: 3, gamma: 4);
+}

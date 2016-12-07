@@ -10,7 +10,7 @@ import 'dart:collection';
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show SyncIterable, BooleanConversionAssertionError,
-  CastErrorImplementation, TypeErrorImplementation, 
+  CastErrorImplementation, TypeErrorImplementation,
   StrongModeCastError, StrongModeTypeError, StrongModeErrorImplementation,
   getTraceFromException, Primitives;
 
@@ -25,10 +25,3 @@ part 'utils.dart';
 @JSExportName('global')
 final global_ = JS('', 'typeof window == "undefined" ? global : window');
 final JsSymbol = JS('', 'Symbol');
-
-// TODO(vsm): This is referenced (as init.globalState) from
-// isolate_helper.dart.  Where should it go?
-// See: https://github.com/dart-lang/dev_compiler/issues/164
-// exports.globalState = null;
-// TODO(ochafik).
-// _js_helper.checkNum = operations.notNull;

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_HASHMAP_H_
-#define PLATFORM_HASHMAP_H_
+#ifndef RUNTIME_PLATFORM_HASHMAP_H_
+#define RUNTIME_PLATFORM_HASHMAP_H_
 
 #include "platform/globals.h"
 
@@ -11,9 +11,9 @@ namespace dart {
 
 class HashMap {
  public:
-  typedef bool (*MatchFun) (void* key1, void* key2);
+  typedef bool (*MatchFun)(void* key1, void* key2);
 
-  typedef void (*ClearFun) (void* value);
+  typedef void (*ClearFun)(void* value);
 
   // initial_capacity is the size of the initial hash map;
   // it must be a power of 2 (and thus must not be 0).
@@ -21,9 +21,7 @@ class HashMap {
 
   ~HashMap();
 
-  static bool SamePointerValue(void* key1, void* key2) {
-    return key1 == key2;
-  }
+  static bool SamePointerValue(void* key1, void* key2) { return key1 == key2; }
 
   static uint32_t StringHash(char* key) {
     uint32_t hash_ = 0;
@@ -105,4 +103,4 @@ class HashMap {
 
 }  // namespace dart
 
-#endif  // PLATFORM_HASHMAP_H_
+#endif  // RUNTIME_PLATFORM_HASHMAP_H_

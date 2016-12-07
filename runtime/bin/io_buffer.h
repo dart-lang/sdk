@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_IO_BUFFER_H_
-#define BIN_IO_BUFFER_H_
+#ifndef RUNTIME_BIN_IO_BUFFER_H_
+#define RUNTIME_BIN_IO_BUFFER_H_
 
 #include "include/dart_api.h"
 #include "platform/globals.h"
@@ -15,7 +15,7 @@ class IOBuffer {
  public:
   // Allocate an IO buffer dart object (of type Uint8List) backed by
   // an external byte array.
-  static Dart_Handle Allocate(intptr_t size, uint8_t **buffer);
+  static Dart_Handle Allocate(intptr_t size, uint8_t** buffer);
 
   // Allocate IO buffer storage.
   static uint8_t* Allocate(intptr_t size);
@@ -41,4 +41,4 @@ class IOBuffer {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_IO_BUFFER_H_
+#endif  // RUNTIME_BIN_IO_BUFFER_H_

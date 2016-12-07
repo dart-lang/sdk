@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_VIRTUAL_MEMORY_H_
-#define VM_VIRTUAL_MEMORY_H_
+#ifndef RUNTIME_VM_VIRTUAL_MEMORY_H_
+#define RUNTIME_VM_VIRTUAL_MEMORY_H_
 
 #include "platform/utils.h"
 #include "vm/globals.h"
@@ -32,9 +32,7 @@ class VirtualMemory {
 
   static void InitOnce();
 
-  bool Contains(uword addr) const {
-    return region_.Contains(addr);
-  }
+  bool Contains(uword addr) const { return region_.Contains(addr); }
 
   // Commits the virtual memory area, which is guaranteed to be zeroed. Returns
   // true on success and false on failure (e.g., out-of-memory).
@@ -44,15 +42,11 @@ class VirtualMemory {
 
   // Changes the protection of the virtual memory area.
   static bool Protect(void* address, intptr_t size, Protection mode);
-  bool Protect(Protection mode) {
-    return Protect(address(), size(), mode);
-  }
+  bool Protect(Protection mode) { return Protect(address(), size(), mode); }
 
   // Reserves a virtual memory segment with size. If a segment of the requested
   // size cannot be allocated NULL is returned.
-  static VirtualMemory* Reserve(intptr_t size) {
-    return ReserveInternal(size);
-  }
+  static VirtualMemory* Reserve(intptr_t size) { return ReserveInternal(size); }
 
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
@@ -83,11 +77,11 @@ class VirtualMemory {
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
-  explicit VirtualMemory(const MemoryRegion& region, int32_t handle = 0) :
-      region_(region.pointer(), region.size()),
-      reserved_size_(region.size()),
-      handle_(handle),
-      embedder_allocated_(false) { }
+  explicit VirtualMemory(const MemoryRegion& region, int32_t handle = 0)
+      : region_(region.pointer(), region.size()),
+        reserved_size_(region.size()),
+        handle_(handle),
+        embedder_allocated_(false) {}
 
   MemoryRegion region_;
 
@@ -107,4 +101,4 @@ class VirtualMemory {
 
 }  // namespace dart
 
-#endif  // VM_VIRTUAL_MEMORY_H_
+#endif  // RUNTIME_VM_VIRTUAL_MEMORY_H_

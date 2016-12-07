@@ -7,15 +7,15 @@ library test.search.top_level_declarations;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'abstract_search_domain.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(TopLevelDeclarationsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(TopLevelDeclarationsTest);
+  });
 }
 
 @reflectiveTest
@@ -57,6 +57,11 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
+  test_invalidRegex() async {
+    var result = await findTopLevelDeclarations('[A');
+    expect(result, new isInstanceOf<RequestError>());
+  }
+
   test_startEndPattern() async {
     addTestFile('''
 class A {} // A
@@ -73,10 +78,5 @@ class ABC {}
     assertHasDeclaration(ElementKind.FUNCTION, 'D');
     assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'E');
     assertNoDeclaration(ElementKind.CLASS, 'ABC');
-  }
-
-  test_invalidRegex() async {
-    var result = await findTopLevelDeclarations('[A');
-    expect(result, new isInstanceOf<RequestError>());
   }
 }

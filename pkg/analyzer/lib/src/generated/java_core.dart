@@ -138,6 +138,7 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   String toString() => name;
 }
 
+@deprecated
 class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = new StringBuffer();
 

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_RESOLVER_H_
-#define VM_RESOLVER_H_
+#ifndef RUNTIME_VM_RESOLVER_H_
+#define RUNTIME_VM_RESOLVER_H_
 
 #include "vm/allocation.h"
 
@@ -36,11 +36,10 @@ class Resolver : public AllStatic {
       bool allow_add = true);
 
   // If 'allow_add' is true we may add a function to the class during lookup.
-  static RawFunction* ResolveDynamicAnyArgs(
-      Zone* zone,
-      const Class& receiver_class,
-      const String& function_name,
-      bool allow_add = true);
+  static RawFunction* ResolveDynamicAnyArgs(Zone* zone,
+                                            const Class& receiver_class,
+                                            const String& function_name,
+                                            bool allow_add = true);
 
   // Resolve specified dart static function. If library.IsNull, use
   // either application library or core library if no application library
@@ -56,14 +55,14 @@ class Resolver : public AllStatic {
 
   // Resolve specified dart static function with specified arity. Only resolves
   // public functions.
-  static RawFunction* ResolveStatic(const Class&  cls,
+  static RawFunction* ResolveStatic(const Class& cls,
                                     const String& function_name,
                                     intptr_t num_arguments,
                                     const Array& argument_names);
 
   // Resolve specified dart static function with specified arity. Resolves both
   // public and private functions.
-  static RawFunction* ResolveStaticAllowPrivate(const Class&  cls,
+  static RawFunction* ResolveStaticAllowPrivate(const Class& cls,
                                                 const String& function_name,
                                                 intptr_t num_arguments,
                                                 const Array& argument_names);
@@ -71,4 +70,4 @@ class Resolver : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_RESOLVER_H_
+#endif  // RUNTIME_VM_RESOLVER_H_

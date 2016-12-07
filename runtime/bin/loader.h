@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_LOADER_H_
-#define BIN_LOADER_H_
+#ifndef RUNTIME_BIN_LOADER_H_
+#define RUNTIME_BIN_LOADER_H_
 
 #include "bin/isolate_data.h"
 #include "include/dart_api.h"
@@ -22,6 +22,8 @@ class Loader {
 
   static void InitForSnapshot(const char* snapshot_uri);
 
+  static Dart_Handle ReloadNativeExtensions();
+
   // Loads contents of the specified url.
   static Dart_Handle LoadUrlContents(Dart_Handle url,
                                      uint8_t** payload,
@@ -33,9 +35,7 @@ class Loader {
                                        Dart_Handle library,
                                        Dart_Handle url);
 
-  Dart_Handle error() const {
-    return error_;
-  }
+  Dart_Handle error() const { return error_; }
 
   static void InitOnce();
 
@@ -86,8 +86,7 @@ class Loader {
             const char* root_script_uri);
 
   // Send a request for a dart-ext: import to the service isolate.
-  void SendImportExtensionRequest(Dart_Handle url,
-                                  Dart_Handle library_url);
+  void SendImportExtensionRequest(Dart_Handle url, Dart_Handle library_url);
 
   // Send a request from the tag handler to the service isolate.
   void SendRequest(Dart_LibraryTag tag,
@@ -146,4 +145,4 @@ class Loader {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_LOADER_H_
+#endif  // RUNTIME_BIN_LOADER_H_

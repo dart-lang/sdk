@@ -7,27 +7,14 @@ library test.completion.support;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'completion_test_support.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
   CompletionTestBuilder builder = new CompletionTestBuilder();
   builder.buildAll();
 }
-
-/**
- * Assigning the name of a single test to this string causes just that test to
- * be run.  Assigning null to this string causes all tests to be run.
- */
-const String SOLO_TEST = null;
-
-/**
- * Type of functions used to create tests.
- */
-typedef void _Tester(String spec, TestFunction body);
 
 /**
  * A builder that builds the completion tests.
@@ -2848,7 +2835,8 @@ class A {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"], failingTests: '1');
+        <String>["1+length"],
+        failingTests: '1');
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
@@ -2977,10 +2965,9 @@ class A<Z extends X> {
     }
     for (LocationSpec spec in completionTests) {
       String testName = '$baseName-${spec.id}';
-      _Tester tester = testName == SOLO_TEST ? solo_test : test;
       if (failingTests.contains(spec.id)) {
         ++expectedFailCount;
-        tester("$testName (expected failure $expectedFailCount)", () {
+        test("$testName (expected failure $expectedFailCount)", () {
           CompletionTestCase test = new CompletionTestCase();
           return new Future(() => test.runTest(spec, extraFiles)).then((_) {
             fail('Test passed - expected to fail.');
@@ -2988,7 +2975,7 @@ class A<Z extends X> {
         });
       } else {
         ++expectedPassCount;
-        tester(testName, () {
+        test(testName, () {
           CompletionTestCase test = new CompletionTestCase();
           return test.runTest(spec, extraFiles);
         });

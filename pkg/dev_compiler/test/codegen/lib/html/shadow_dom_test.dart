@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ShadowDOMTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   group('supported', () {
     test('supported', () {
       expect(ShadowRoot.supported, true);
@@ -17,7 +14,6 @@ main() {
   });
 
   group('ShadowDOM_tests', () {
-
     var div1, div2, shadowRoot, paragraph1, paragraph2;
 
     init() {

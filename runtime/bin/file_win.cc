@@ -7,10 +7,10 @@
 
 #include "bin/file.h"
 
-#include <fcntl.h>  // NOLINT
-#include <io.h>  // NOLINT
-#include <stdio.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <fcntl.h>     // NOLINT
+#include <io.h>        // NOLINT
+#include <stdio.h>     // NOLINT
+#include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <WinIoCtl.h>  // NOLINT
 
@@ -25,8 +25,8 @@ namespace bin {
 
 class FileHandle {
  public:
-  explicit FileHandle(int fd) : fd_(fd) { }
-  ~FileHandle() { }
+  explicit FileHandle(int fd) : fd_(fd) {}
+  ~FileHandle() {}
   int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
@@ -38,8 +38,8 @@ class FileHandle {
 
 
 File::~File() {
-  if (!IsClosed() &&
-      handle_->fd() != _fileno(stdout) && handle_->fd() != _fileno(stderr)) {
+  if (!IsClosed() && handle_->fd() != _fileno(stdout) &&
+      handle_->fd() != _fileno(stderr)) {
     Close();
   }
   delete handle_;
@@ -74,9 +74,43 @@ bool File::IsClosed() {
 }
 
 
-void* File::MapExecutable(intptr_t* len) {
-  UNIMPLEMENTED();
-  return NULL;
+void* File::Map(File::MapType type, int64_t position, int64_t length) {
+  DWORD prot_alloc;
+  DWORD prot_final;
+  switch (type) {
+    case File::kReadOnly:
+      prot_alloc = PAGE_READWRITE;
+      prot_final = PAGE_READONLY;
+      break;
+    case File::kReadExecute:
+      prot_alloc = PAGE_EXECUTE_READWRITE;
+      prot_final = PAGE_EXECUTE_READ;
+      break;
+    default:
+      return NULL;
+  }
+
+  void* addr = VirtualAlloc(NULL, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
+  if (addr == NULL) {
+    Log::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+    return NULL;
+  }
+
+  SetPosition(position);
+  if (!ReadFully(addr, length)) {
+    Log::PrintErr("ReadFully failed %d\n", GetLastError());
+    VirtualFree(addr, 0, MEM_RELEASE);
+    return NULL;
+  }
+
+  DWORD old_prot;
+  bool result = VirtualProtect(addr, length, prot_final, &old_prot);
+  if (!result) {
+    Log::PrintErr("VirtualProtect failed %d\n", GetLastError());
+    VirtualFree(addr, 0, MEM_RELEASE);
+    return NULL;
+  }
+  return addr;
 }
 
 
@@ -150,8 +184,7 @@ bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
           (lock == File::kLockBlockingExclusive)) {
         flags |= LOCKFILE_EXCLUSIVE_LOCK;
       }
-      rc = LockFileEx(handle, flags, 0,
-                      length_low, length_high, &overlapped);
+      rc = LockFileEx(handle, flags, 0, length_low, length_high, &overlapped);
       break;
     }
     default:
@@ -199,21 +232,9 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 }
 
 
-File* File::ScopedOpen(const char* name, FileOpenMode mode) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-  return FileOpenW(system_name, mode);
-}
-
-
 File* File::Open(const char* path, FileOpenMode mode) {
-  int path_len = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
-  wchar_t* system_name = new wchar_t[path_len];
-  if (system_name == NULL) {
-    return NULL;
-  }
-  MultiByteToWideChar(CP_UTF8, 0, path, -1, system_name, path_len);
-  File* file = FileOpenW(system_name, mode);
-  delete[] system_name;
+  Utf8ToWideScope system_name(path);
+  File* file = FileOpenW(system_name.wide(), mode);
   return file;
 }
 
@@ -236,8 +257,8 @@ File* File::OpenStdio(int fd) {
 
 bool File::Exists(const char* name) {
   struct __stat64 st;
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-  bool stat_status = _wstat64(system_name, &st);
+  Utf8ToWideScope system_name(name);
+  bool stat_status = _wstat64(system_name.wide(), &st);
   if (stat_status == 0) {
     return ((st.st_mode & S_IFMT) == S_IFREG);
   } else {
@@ -247,8 +268,8 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-  int fd = _wopen(system_name, O_RDONLY | O_CREAT, 0666);
+  Utf8ToWideScope system_name(name);
+  int fd = _wopen(system_name.wide(), O_RDONLY | O_CREAT, 0666);
   if (fd < 0) {
     return false;
   }
@@ -258,32 +279,32 @@ bool File::Create(const char* name) {
 
 // This structure is needed for creating and reading Junctions.
 typedef struct _REPARSE_DATA_BUFFER {
-    ULONG  ReparseTag;
-    USHORT ReparseDataLength;
-    USHORT Reserved;
+  ULONG ReparseTag;
+  USHORT ReparseDataLength;
+  USHORT Reserved;
 
-    union {
-        struct {
-            USHORT  SubstituteNameOffset;
-            USHORT  SubstituteNameLength;
-            USHORT  PrintNameOffset;
-            USHORT  PrintNameLength;
-            ULONG   Flags;
-            WCHAR   PathBuffer[1];
-        } SymbolicLinkReparseBuffer;
+  union {
+    struct {
+      USHORT SubstituteNameOffset;
+      USHORT SubstituteNameLength;
+      USHORT PrintNameOffset;
+      USHORT PrintNameLength;
+      ULONG Flags;
+      WCHAR PathBuffer[1];
+    } SymbolicLinkReparseBuffer;
 
-        struct {
-            USHORT  SubstituteNameOffset;
-            USHORT  SubstituteNameLength;
-            USHORT  PrintNameOffset;
-            USHORT  PrintNameLength;
-            WCHAR   PathBuffer[1];
-        } MountPointReparseBuffer;
+    struct {
+      USHORT SubstituteNameOffset;
+      USHORT SubstituteNameLength;
+      USHORT PrintNameOffset;
+      USHORT PrintNameLength;
+      WCHAR PathBuffer[1];
+    } MountPointReparseBuffer;
 
-        struct {
-            UCHAR   DataBuffer[1];
-        } GenericReparseBuffer;
-    };
+    struct {
+      UCHAR DataBuffer[1];
+    } GenericReparseBuffer;
+  };
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
 
@@ -292,29 +313,26 @@ static const int kMountPointHeaderSize = 4 * sizeof USHORT;
 
 
 bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
-  const wchar_t* name = StringUtilsWin::Utf8ToWide(utf8_name);
-  int create_status = CreateDirectoryW(name, NULL);
+  Utf8ToWideScope name(utf8_name);
+  int create_status = CreateDirectoryW(name.wide(), NULL);
   // If the directory already existed, treat it as a success.
   if ((create_status == 0) &&
       ((GetLastError() != ERROR_ALREADY_EXISTS) ||
-       ((GetFileAttributesW(name) & FILE_ATTRIBUTE_DIRECTORY) != 0))) {
+       ((GetFileAttributesW(name.wide()) & FILE_ATTRIBUTE_DIRECTORY) != 0))) {
     return false;
   }
 
   HANDLE dir_handle = CreateFileW(
-      name,
-      GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-      NULL,
-      OPEN_EXISTING,
-      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+      name.wide(), GENERIC_READ | GENERIC_WRITE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
       NULL);
   if (dir_handle == INVALID_HANDLE_VALUE) {
     return false;
   }
 
-  const wchar_t* target = StringUtilsWin::Utf8ToWide(utf8_target);
-  int target_len = wcslen(target);
+  Utf8ToWideScope target(utf8_target);
+  int target_len = wcslen(target.wide());
   if (target_len > MAX_PATH - 1) {
     CloseHandle(dir_handle);
     return false;
@@ -323,13 +341,13 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
   int reparse_data_buffer_size =
       sizeof REPARSE_DATA_BUFFER + 2 * MAX_PATH * sizeof WCHAR;
   REPARSE_DATA_BUFFER* reparse_data_buffer =
-      reinterpret_cast<REPARSE_DATA_BUFFER*>(Dart_ScopeAllocate(
-          reparse_data_buffer_size));
+      reinterpret_cast<REPARSE_DATA_BUFFER*>(malloc(reparse_data_buffer_size));
   reparse_data_buffer->ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
-  wcscpy(reparse_data_buffer->MountPointReparseBuffer.PathBuffer, target);
+  wcscpy(reparse_data_buffer->MountPointReparseBuffer.PathBuffer,
+         target.wide());
   wcscpy(
       reparse_data_buffer->MountPointReparseBuffer.PathBuffer + target_len + 1,
-      target);
+      target.wide());
   reparse_data_buffer->MountPointReparseBuffer.SubstituteNameOffset = 0;
   reparse_data_buffer->MountPointReparseBuffer.SubstituteNameLength =
       target_len * sizeof WCHAR;
@@ -341,14 +359,10 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
       (target_len + 1) * 2 * sizeof WCHAR + kMountPointHeaderSize;
   DWORD dummy_received_bytes;
   int result = DeviceIoControl(
-      dir_handle,
-      FSCTL_SET_REPARSE_POINT,
-      reparse_data_buffer,
-      reparse_data_buffer->ReparseDataLength + kReparseDataHeaderSize,
-      NULL,
-      0,
-      &dummy_received_bytes,
-      NULL);
+      dir_handle, FSCTL_SET_REPARSE_POINT, reparse_data_buffer,
+      reparse_data_buffer->ReparseDataLength + kReparseDataHeaderSize, NULL, 0,
+      &dummy_received_bytes, NULL);
+  free(reparse_data_buffer);
   if (CloseHandle(dir_handle) == 0) {
     return false;
   }
@@ -357,20 +371,20 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
 
 
 bool File::Delete(const char* name) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-  int status = _wremove(system_name);
+  Utf8ToWideScope system_name(name);
+  int status = _wremove(system_name.wide());
   return status != -1;
 }
 
 
 bool File::DeleteLink(const char* name) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
+  Utf8ToWideScope system_name(name);
   bool result = false;
-  DWORD attributes = GetFileAttributesW(system_name);
+  DWORD attributes = GetFileAttributesW(system_name.wide());
   if ((attributes != INVALID_FILE_ATTRIBUTES) &&
       (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     // It's a junction(link), delete it.
-    result = (RemoveDirectoryW(system_name) != 0);
+    result = (RemoveDirectoryW(system_name.wide()) != 0);
   } else {
     SetLastError(ERROR_NOT_A_REPARSE_POINT);
   }
@@ -381,11 +395,11 @@ bool File::DeleteLink(const char* name) {
 bool File::Rename(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsFile) {
-    const wchar_t* system_old_path = StringUtilsWin::Utf8ToWide(old_path);
-    const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
+    Utf8ToWideScope system_old_path(old_path);
+    Utf8ToWideScope system_new_path(new_path);
     DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
     int move_status =
-        MoveFileExW(system_old_path, system_new_path, flags);
+        MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
     return (move_status != 0);
   } else {
     SetLastError(ERROR_FILE_NOT_FOUND);
@@ -397,11 +411,11 @@ bool File::Rename(const char* old_path, const char* new_path) {
 bool File::RenameLink(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsLink) {
-    const wchar_t* system_old_path = StringUtilsWin::Utf8ToWide(old_path);
-    const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
+    Utf8ToWideScope system_old_path(old_path);
+    Utf8ToWideScope system_new_path(new_path);
     DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
     int move_status =
-        MoveFileExW(system_old_path, system_new_path, flags);
+        MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
     return (move_status != 0);
   } else {
     SetLastError(ERROR_FILE_NOT_FOUND);
@@ -413,14 +427,10 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
 bool File::Copy(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsFile) {
-    const wchar_t* system_old_path = StringUtilsWin::Utf8ToWide(old_path);
-    const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
-    bool success = CopyFileExW(system_old_path,
-                               system_new_path,
-                               NULL,
-                               NULL,
-                               NULL,
-                               0) != 0;
+    Utf8ToWideScope system_old_path(old_path);
+    Utf8ToWideScope system_new_path(new_path);
+    bool success = CopyFileExW(system_old_path.wide(), system_new_path.wide(),
+                               NULL, NULL, NULL, 0) != 0;
     return success;
   } else {
     SetLastError(ERROR_FILE_NOT_FOUND);
@@ -431,8 +441,8 @@ bool File::Copy(const char* old_path, const char* new_path) {
 
 int64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-  int stat_status = _wstat64(system_name, &st);
+  Utf8ToWideScope system_name(name);
+  int stat_status = _wstat64(system_name.wide(), &st);
   if (stat_status == 0) {
     return st.st_size;
   }
@@ -443,12 +453,9 @@ int64_t File::LengthFromPath(const char* name) {
 const char* File::LinkTarget(const char* pathname) {
   const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
   HANDLE dir_handle = CreateFileW(
-      name,
-      GENERIC_READ,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-      NULL,
-      OPEN_EXISTING,
-      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+      name, GENERIC_READ,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
       NULL);
   if (dir_handle == INVALID_HANDLE_VALUE) {
     return NULL;
@@ -456,18 +463,11 @@ const char* File::LinkTarget(const char* pathname) {
 
   int buffer_size =
       sizeof REPARSE_DATA_BUFFER + 2 * (MAX_PATH + 1) * sizeof WCHAR;
-  REPARSE_DATA_BUFFER* buffer = reinterpret_cast<REPARSE_DATA_BUFFER*>(
-      Dart_ScopeAllocate(buffer_size));
+  REPARSE_DATA_BUFFER* buffer =
+      reinterpret_cast<REPARSE_DATA_BUFFER*>(Dart_ScopeAllocate(buffer_size));
   DWORD received_bytes;  // Value is not used.
-  int result = DeviceIoControl(
-      dir_handle,
-      FSCTL_GET_REPARSE_POINT,
-      NULL,
-      0,
-      buffer,
-      buffer_size,
-      &received_bytes,
-      NULL);
+  int result = DeviceIoControl(dir_handle, FSCTL_GET_REPARSE_POINT, NULL, 0,
+                               buffer, buffer_size, &received_bytes, NULL);
   if (result == 0) {
     DWORD error = GetLastError();
     CloseHandle(dir_handle);
@@ -502,23 +502,11 @@ const char* File::LinkTarget(const char* pathname) {
     target += 4;
     target_length -= 4;
   }
-  int utf8_length = WideCharToMultiByte(CP_UTF8,
-                                        0,
-                                        target,
-                                        target_length,
-                                        NULL,
-                                        0,
-                                        NULL,
-                                        NULL);
+  int utf8_length = WideCharToMultiByte(CP_UTF8, 0, target, target_length, NULL,
+                                        0, NULL, NULL);
   char* utf8_target = DartUtils::ScopedCString(utf8_length + 1);
-  if (0 == WideCharToMultiByte(CP_UTF8,
-                               0,
-                               target,
-                               target_length,
-                               utf8_target,
-                               utf8_length,
-                               NULL,
-                               NULL)) {
+  if (0 == WideCharToMultiByte(CP_UTF8, 0, target, target_length, utf8_target,
+                               utf8_length, NULL, NULL)) {
     return NULL;
   }
   utf8_target[utf8_length] = '\0';
@@ -531,8 +519,8 @@ void File::Stat(const char* name, int64_t* data) {
   data[kType] = type;
   if (type != kDoesNotExist) {
     struct _stat64 st;
-    const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-    int stat_status = _wstat64(system_name, &st);
+    Utf8ToWideScope system_name(name);
+    int stat_status = _wstat64(system_name.wide(), &st);
     if (stat_status == 0) {
       data[kCreatedTime] = st.st_ctime * 1000;
       data[kModifiedTime] = st.st_mtime * 1000;
@@ -548,8 +536,8 @@ void File::Stat(const char* name, int64_t* data) {
 
 time_t File::LastModified(const char* name) {
   struct __stat64 st;
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
-  int stat_status = _wstat64(system_name, &st);
+  Utf8ToWideScope system_name(name);
+  int stat_status = _wstat64(system_name.wide(), &st);
   if (stat_status == 0) {
     return st.st_mtime;
   }
@@ -562,30 +550,22 @@ bool File::IsAbsolutePath(const char* pathname) {
   if (pathname == NULL) {
     return false;
   }
-  return ((strlen(pathname) > 2) &&
-      (pathname[1] == ':') &&
-      ((pathname[2] == '\\') || (pathname[2] == '/')));
+  return ((strlen(pathname) > 2) && (pathname[1] == ':') &&
+          ((pathname[2] == '\\') || (pathname[2] == '/')));
 }
 
 
 const char* File::GetCanonicalPath(const char* pathname) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(pathname);
-  HANDLE file_handle = CreateFileW(
-        system_name,
-        0,
-        FILE_SHARE_READ,
-        NULL,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS,
-        NULL);
+  Utf8ToWideScope system_name(pathname);
+  HANDLE file_handle =
+      CreateFileW(system_name.wide(), 0, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+                  FILE_FLAG_BACKUP_SEMANTICS, NULL);
   if (file_handle == INVALID_HANDLE_VALUE) {
     return NULL;
   }
   wchar_t dummy_buffer[1];
-  int required_size = GetFinalPathNameByHandle(file_handle,
-                                               dummy_buffer,
-                                               0,
-                                               VOLUME_NAME_DOS);
+  int required_size =
+      GetFinalPathNameByHandle(file_handle, dummy_buffer, 0, VOLUME_NAME_DOS);
   if (required_size == 0) {
     DWORD error = GetLastError();
     CloseHandle(file_handle);
@@ -595,17 +575,14 @@ const char* File::GetCanonicalPath(const char* pathname) {
   wchar_t* path;
   path = reinterpret_cast<wchar_t*>(
       Dart_ScopeAllocate(required_size * sizeof(*path)));
-  int result_size = GetFinalPathNameByHandle(file_handle,
-                                             path,
-                                             required_size,
+  int result_size = GetFinalPathNameByHandle(file_handle, path, required_size,
                                              VOLUME_NAME_DOS);
   ASSERT(result_size <= required_size - 1);
   // Remove leading \\?\ if possible, unless input used it.
   char* result;
-  if ((result_size < MAX_PATH - 1 + 4) &&
-      (result_size > 4) &&
+  if ((result_size < MAX_PATH - 1 + 4) && (result_size > 4) &&
       (wcsncmp(path, L"\\\\?\\", 4) == 0) &&
-      (wcsncmp(system_name, L"\\\\?\\", 4) != 0)) {
+      (wcsncmp(system_name.wide(), L"\\\\?\\", 4) != 0)) {
     result = StringUtilsWin::WideToUtf8(path + 4);
   } else {
     result = StringUtilsWin::WideToUtf8(path);
@@ -635,21 +612,18 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
-  const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
-  DWORD attributes = GetFileAttributesW(name);
+  // Convert to wchar_t string.
+  Utf8ToWideScope name(pathname);
+  DWORD attributes = GetFileAttributesW(name.wide());
   File::Type result = kIsFile;
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     result = kDoesNotExist;
   } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     if (follow_links) {
-      HANDLE dir_handle = CreateFileW(
-          name,
-          0,
-          FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-          NULL,
-          OPEN_EXISTING,
-          FILE_FLAG_BACKUP_SEMANTICS,
-          NULL);
+      HANDLE dir_handle =
+          CreateFileW(name.wide(), 0,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
       if (dir_handle == INVALID_HANDLE_VALUE) {
         result = File::kIsLink;
       } else {
@@ -668,17 +642,14 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
 
 File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
   BY_HANDLE_FILE_INFORMATION file_info[2];
-  const char* file_names[2] = { file_1, file_2 };
+  const char* file_names[2] = {file_1, file_2};
   for (int i = 0; i < 2; ++i) {
-    const wchar_t* wide_name = StringUtilsWin::Utf8ToWide(file_names[i]);
+    Utf8ToWideScope wide_name(file_names[i]);
     HANDLE file_handle = CreateFileW(
-        wide_name,
-        0,
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        NULL,
+        wide_name.wide(), 0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
         OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-        NULL);
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, NULL);
     if (file_handle == INVALID_HANDLE_VALUE) {
       return File::kError;
     }
@@ -694,7 +665,7 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
     }
   }
   if ((file_info[0].dwVolumeSerialNumber ==
-          file_info[1].dwVolumeSerialNumber) &&
+       file_info[1].dwVolumeSerialNumber) &&
       (file_info[0].nFileIndexHigh == file_info[1].nFileIndexHigh) &&
       (file_info[0].nFileIndexLow == file_info[1].nFileIndexLow)) {
     return kIdentical;

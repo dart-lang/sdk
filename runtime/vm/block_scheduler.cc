@@ -40,8 +40,7 @@ static void SetEdgeWeight(BlockEntryInstr* block,
   } else {
     GotoInstr* jump = block->last_instruction()->AsGoto();
     if (jump != NULL) {
-      intptr_t count =
-          GetEdgeCount(edge_counters, block->preorder_number());
+      intptr_t count = GetEdgeCount(edge_counters, block->preorder_number());
       if ((count >= 0) && (entry_count != 0)) {
         double weight =
             static_cast<double>(count) / static_cast<double>(entry_count);
@@ -57,12 +56,13 @@ void BlockScheduler::AssignEdgeWeights() const {
     return;
   }
 
-  const Array& ic_data_array = Array::Handle(flow_graph()->zone(),
-      flow_graph()->parsed_function().function().ic_data_array());
+  const Array& ic_data_array =
+      Array::Handle(flow_graph()->zone(),
+                    flow_graph()->parsed_function().function().ic_data_array());
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-        "BlockScheduler: ICData array cleared");
+    Compiler::AbortBackgroundCompilation(
+        Thread::kNoDeoptId, "BlockScheduler: ICData array cleared");
   }
   if (ic_data_array.IsNull()) {
     ASSERT(Isolate::Current()->HasAttemptedReload());
@@ -77,8 +77,7 @@ void BlockScheduler::AssignEdgeWeights() const {
   flow_graph()->graph_entry()->set_entry_count(entry_count);
 
   for (BlockIterator it = flow_graph()->reverse_postorder_iterator();
-       !it.Done();
-       it.Advance()) {
+       !it.Done(); it.Advance()) {
     BlockEntryInstr* block = it.Current();
     Instruction* last = block->last_instruction();
     for (intptr_t i = 0; i < last->SuccessorCount(); ++i) {
@@ -92,7 +91,7 @@ void BlockScheduler::AssignEdgeWeights() const {
 // A weighted control-flow graph edge.
 struct Edge {
   Edge(BlockEntryInstr* source, BlockEntryInstr* target, double weight)
-      : source(source), target(target), weight(weight) { }
+      : source(source), target(target), weight(weight) {}
 
   static int LowestWeightFirst(const Edge* a, const Edge* b);
 
@@ -104,7 +103,7 @@ struct Edge {
 
 // A linked list node in a chain of blocks.
 struct Link : public ZoneAllocated {
-  Link(BlockEntryInstr* block, Link* next) : block(block), next(next) { }
+  Link(BlockEntryInstr* block, Link* next) : block(block), next(next) {}
 
   BlockEntryInstr* block;
   Link* next;
@@ -115,7 +114,7 @@ struct Link : public ZoneAllocated {
 // a length to support adding a shorter chain's links to a longer chain.
 struct Chain : public ZoneAllocated {
   explicit Chain(BlockEntryInstr* block)
-      : first(new Link(block, NULL)), last(first), length(1) { }
+      : first(new Link(block, NULL)), last(first), length(1) {}
 
   Link* first;
   Link* last;
@@ -168,8 +167,7 @@ void BlockScheduler::ReorderBlocks() const {
   // shared ones).  Find(n) is simply chains[n].
   GrowableArray<Chain*> chains(block_count);
 
-  for (BlockIterator it = flow_graph()->postorder_iterator();
-       !it.Done();
+  for (BlockIterator it = flow_graph()->postorder_iterator(); !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
     chains.Add(new Chain(block));

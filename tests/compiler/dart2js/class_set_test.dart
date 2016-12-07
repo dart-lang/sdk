@@ -529,7 +529,7 @@ testForEach() async {
   checkForEach(X, [X, A, B, D, C, G, F, I, H, E],
       skipSubclasses: [D], forEachSubtype: true);
   checkForEach(X, [A, D, C, G, F, I, H, E],
-      forEachSubtype: true, mask: ClassHierarchyNode.DIRECTLY_INSTANTIATED);
+      forEachSubtype: true, mask: ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
   checkForEach(X, [A, B, D, C, G, F, I, H, E],
       forEachSubtype: true, mask: ClassHierarchyNode.INSTANTIATED);
 

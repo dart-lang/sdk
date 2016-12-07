@@ -8,10 +8,8 @@ import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:path/path.dart' as path;
 
 import 'resource_utils.dart';
-import 'utils.dart';
 
 abstract class EmbedderRelatedTest {
   final String emptyPath = '/home/.pub-cache/empty';
@@ -22,8 +20,7 @@ abstract class EmbedderRelatedTest {
   ResourceProvider resourceProvider;
 
   buildResourceProvider() {
-    MemoryResourceProvider rawProvider =
-        new MemoryResourceProvider(isWindows: isWindows);
+    MemoryResourceProvider rawProvider = new MemoryResourceProvider();
     resourceProvider = new TestResourceProvider(rawProvider);
     pathTranslator = new TestPathTranslator(rawProvider)
       ..newFolder('/home/.pub-cache/empty')
@@ -47,12 +44,10 @@ embedded_libs:
   }
 
   void setUp() {
-    initializeTestEnvironment(path.context);
     buildResourceProvider();
   }
 
   void tearDown() {
-    initializeTestEnvironment();
     clearResourceProvider();
   }
 }

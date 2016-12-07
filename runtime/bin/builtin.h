@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_BUILTIN_H_
-#define BIN_BUILTIN_H_
+#ifndef RUNTIME_BIN_BUILTIN_H_
+#define RUNTIME_BIN_BUILTIN_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +17,7 @@ namespace dart {
 namespace bin {
 
 #define FUNCTION_NAME(name) Builtin_##name
-#define REGISTER_FUNCTION(name, count)                                         \
-  { ""#name, FUNCTION_NAME(name), count },
+#define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
 #define DECLARE_FUNCTION(name, count)                                          \
   extern void FUNCTION_NAME(name)(Dart_NativeArguments args);
 
@@ -103,4 +102,4 @@ class Builtin {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_BUILTIN_H_
+#endif  // RUNTIME_BIN_BUILTIN_H_

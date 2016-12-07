@@ -11,8 +11,8 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:bazel_worker/testing.dart';
 import 'package:protobuf/protobuf.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 main() {
   defineReflectiveTests(WorkerLoopTest);

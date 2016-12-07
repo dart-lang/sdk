@@ -10,9 +10,9 @@
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_win.h"
 
-#include <fcntl.h>  // NOLINT
-#include <io.h>  // NOLINT
-#include <mswsock.h>  // NOLINT
+#include <fcntl.h>     // NOLINT
+#include <io.h>        // NOLINT
+#include <mswsock.h>   // NOLINT
 #include <winsock2.h>  // NOLINT
 #include <ws2tcpip.h>  // NOLINT
 
@@ -36,7 +36,7 @@ static const int kMaxUDPPackageLength = 64 * 1024;
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
   OverlappedBuffer* buffer =
-      new(buffer_size) OverlappedBuffer(buffer_size, operation);
+      new (buffer_size) OverlappedBuffer(buffer_size, operation);
   return buffer;
 }
 
@@ -129,8 +129,7 @@ Handle::Handle(intptr_t handle)
       read_thread_handle_(NULL),
       read_thread_starting_(false),
       read_thread_finished_(false),
-      monitor_(new Monitor()) {
-}
+      monitor_(new Monitor()) {}
 
 
 Handle::~Handle() {
@@ -139,10 +138,8 @@ Handle::~Handle() {
 
 
 bool Handle::CreateCompletionPort(HANDLE completion_port) {
-  completion_port_ = CreateIoCompletionPort(handle(),
-                                            completion_port,
-                                            reinterpret_cast<ULONG_PTR>(this),
-                                            0);
+  completion_port_ = CreateIoCompletionPort(
+      handle(), completion_port, reinterpret_cast<ULONG_PTR>(this), 0);
   return (completion_port_ != NULL);
 }
 
@@ -280,19 +277,14 @@ void Handle::ReadSyncCompleteAsync() {
   }
   char* buffer_start = pending_read_->GetBufferStart();
   DWORD bytes_read = 0;
-  BOOL ok = ReadFile(handle_,
-                     buffer_start,
-                     buffer_size,
-                     &bytes_read,
-                     NULL);
+  BOOL ok = ReadFile(handle_, buffer_start, buffer_size, &bytes_read, NULL);
   if (!ok) {
     bytes_read = 0;
   }
   OVERLAPPED* overlapped = pending_read_->GetCleanOverlapped();
-  ok = PostQueuedCompletionStatus(event_handler_->completion_port(),
-                                  bytes_read,
-                                  reinterpret_cast<ULONG_PTR>(this),
-                                  overlapped);
+  ok =
+      PostQueuedCompletionStatus(event_handler_->completion_port(), bytes_read,
+                                 reinterpret_cast<ULONG_PTR>(this), overlapped);
   if (!ok) {
     FATAL("PostQueuedCompletionStatus failed");
   }
@@ -307,11 +299,9 @@ bool Handle::IssueRead() {
   if (SupportsOverlappedIO()) {
     ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
 
-    BOOL ok = ReadFile(handle_,
-                       buffer->GetBufferStart(),
-                       buffer->GetBufferSize(),
-                       NULL,
-                       buffer->GetCleanOverlapped());
+    BOOL ok =
+        ReadFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
+                 NULL, buffer->GetCleanOverlapped());
     if (ok || (GetLastError() == ERROR_IO_PENDING)) {
       // Completing asynchronously.
       pending_read_ = buffer;
@@ -324,8 +314,7 @@ bool Handle::IssueRead() {
     // Completing asynchronously through thread.
     pending_read_ = buffer;
     read_thread_starting_ = true;
-    int result = Thread::Start(ReadFileThread,
-                               reinterpret_cast<uword>(this));
+    int result = Thread::Start(ReadFileThread, reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start read file thread %d", result);
     }
@@ -347,11 +336,9 @@ bool Handle::IssueWrite() {
   ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
   OverlappedBuffer* buffer = pending_write_;
-  BOOL ok = WriteFile(handle_,
-                      buffer->GetBufferStart(),
-                      buffer->GetBufferSize(),
-                      NULL,
-                      buffer->GetCleanOverlapped());
+  BOOL ok =
+      WriteFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
+                NULL, buffer->GetCleanOverlapped());
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
     pending_write_ = buffer;
@@ -433,14 +420,9 @@ bool DirectoryWatchHandle::IssueRead() {
   }
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
-  BOOL ok = ReadDirectoryChangesW(handle_,
-                                  buffer->GetBufferStart(),
-                                  buffer->GetBufferSize(),
-                                  recursive_,
-                                  events_,
-                                  NULL,
-                                  buffer->GetCleanOverlapped(),
-                                  NULL);
+  BOOL ok = ReadDirectoryChangesW(handle_, buffer->GetBufferStart(),
+                                  buffer->GetBufferSize(), recursive_, events_,
+                                  NULL, buffer->GetCleanOverlapped(), NULL);
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
     pending_read_ = buffer;
@@ -479,15 +461,9 @@ bool ListenSocket::LoadAcceptEx() {
   // Load the AcceptEx function into memory using WSAIoctl.
   GUID guid_accept_ex = WSAID_ACCEPTEX;
   DWORD bytes;
-  int status = WSAIoctl(socket(),
-                        SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guid_accept_ex,
-                        sizeof(guid_accept_ex),
-                        &AcceptEx_,
-                        sizeof(AcceptEx_),
-                        &bytes,
-                        NULL,
-                        NULL);
+  int status = WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+                        &guid_accept_ex, sizeof(guid_accept_ex), &AcceptEx_,
+                        sizeof(AcceptEx_), &bytes, NULL, NULL);
   return (status != SOCKET_ERROR);
 }
 
@@ -507,14 +483,10 @@ bool ListenSocket::IssueAccept() {
       OverlappedBuffer::AllocateAcceptBuffer(2 * kAcceptExAddressStorageSize);
   DWORD received;
   BOOL ok;
-  ok = AcceptEx_(socket(),
-                 buffer->client(),
-                 buffer->GetBufferStart(),
+  ok = AcceptEx_(socket(), buffer->client(), buffer->GetBufferStart(),
                  0,  // For now don't receive data with accept.
-                 kAcceptExAddressStorageSize,
-                 kAcceptExAddressStorageSize,
-                 &received,
-                 buffer->GetCleanOverlapped());
+                 kAcceptExAddressStorageSize, kAcceptExAddressStorageSize,
+                 &received, buffer->GetCleanOverlapped());
   if (!ok) {
     if (WSAGetLastError() != WSA_IO_PENDING) {
       int error = WSAGetLastError();
@@ -537,9 +509,7 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
   if (!IsClosing()) {
     // Update the accepted socket to support the full range of API calls.
     SOCKET s = socket();
-    int rc = setsockopt(buffer->client(),
-                        SOL_SOCKET,
-                        SO_UPDATE_ACCEPT_CONTEXT,
+    int rc = setsockopt(buffer->client(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
       // Insert the accepted socket into the list.
@@ -582,7 +552,7 @@ void ListenSocket::DoClose() {
   handle_ = INVALID_HANDLE_VALUE;
   while (CanAccept()) {
     // Get rid of connections already accepted.
-    ClientSocket *client = Accept();
+    ClientSocket* client = Accept();
     if (client != NULL) {
       client->Close();
       DeleteIfClosed(client);
@@ -602,7 +572,7 @@ bool ListenSocket::CanAccept() {
 ClientSocket* ListenSocket::Accept() {
   MonitorLocker ml(monitor_);
 
-  ClientSocket *result = NULL;
+  ClientSocket* result = NULL;
 
   if (accepted_head_ != NULL) {
     result = accepted_head_;
@@ -660,8 +630,8 @@ intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
   if (data_ready_ == NULL) {
     return 0;
   }
-  num_bytes = data_ready_->Read(
-      buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
+  num_bytes =
+      data_ready_->Read(buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
   if (data_ready_->IsEmpty()) {
     OverlappedBuffer::DisposeBuffer(data_ready_);
     data_ready_ = NULL;
@@ -673,14 +643,16 @@ intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Handle::RecvFrom(
-    void* buffer, intptr_t num_bytes, struct sockaddr* sa, socklen_t sa_len) {
+intptr_t Handle::RecvFrom(void* buffer,
+                          intptr_t num_bytes,
+                          struct sockaddr* sa,
+                          socklen_t sa_len) {
   MonitorLocker ml(monitor_);
   if (data_ready_ == NULL) {
     return 0;
   }
-  num_bytes = data_ready_->Read(
-      buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
+  num_bytes =
+      data_ready_->Read(buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
   if (data_ready_->from()->sa_family == AF_INET) {
     ASSERT(sa_len >= sizeof(struct sockaddr_in));
     memmove(sa, data_ready_->from(), sizeof(struct sockaddr_in));
@@ -777,20 +749,16 @@ void StdHandle::WriteSyncCompleteAsync() {
   ASSERT(pending_write_ != NULL);
 
   DWORD bytes_written = -1;
-  BOOL ok = WriteFile(handle_,
-                      pending_write_->GetBufferStart(),
-                      pending_write_->GetBufferSize(),
-                      &bytes_written,
-                      NULL);
+  BOOL ok = WriteFile(handle_, pending_write_->GetBufferStart(),
+                      pending_write_->GetBufferSize(), &bytes_written, NULL);
   if (!ok) {
     bytes_written = 0;
   }
   thread_wrote_ += bytes_written;
   OVERLAPPED* overlapped = pending_write_->GetCleanOverlapped();
-  ok = PostQueuedCompletionStatus(event_handler_->completion_port(),
-                                  bytes_written,
-                                  reinterpret_cast<ULONG_PTR>(this),
-                                  overlapped);
+  ok = PostQueuedCompletionStatus(
+      event_handler_->completion_port(), bytes_written,
+      reinterpret_cast<ULONG_PTR>(this), overlapped);
   if (!ok) {
     FATAL("PostQueuedCompletionStatus failed");
   }
@@ -818,8 +786,7 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
   }
   if (!write_thread_exists_) {
     write_thread_exists_ = true;
-    int result = Thread::Start(
-        WriteFileThread, reinterpret_cast<uword>(this));
+    int result = Thread::Start(WriteFileThread, reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start write file thread %d", result);
     }
@@ -859,15 +826,10 @@ bool ClientSocket::LoadDisconnectEx() {
   // Load the DisconnectEx function into memory using WSAIoctl.
   GUID guid_disconnect_ex = WSAID_DISCONNECTEX;
   DWORD bytes;
-  int status = WSAIoctl(socket(),
-                        SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guid_disconnect_ex,
-                        sizeof(guid_disconnect_ex),
-                        &DisconnectEx_,
-                        sizeof(DisconnectEx_),
-                        &bytes,
-                        NULL,
-                        NULL);
+  int status =
+      WSAIoctl(socket(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+               &guid_disconnect_ex, sizeof(guid_disconnect_ex), &DisconnectEx_,
+               sizeof(DisconnectEx_), &bytes, NULL, NULL);
   return (status != SOCKET_ERROR);
 }
 
@@ -906,13 +868,8 @@ bool ClientSocket::IssueRead() {
 
   DWORD flags;
   flags = 0;
-  int rc = WSARecv(socket(),
-                   buffer->GetWASBUF(),
-                   1,
-                   NULL,
-                   &flags,
-                   buffer->GetCleanOverlapped(),
-                   NULL);
+  int rc = WSARecv(socket(), buffer->GetWASBUF(), 1, NULL, &flags,
+                   buffer->GetCleanOverlapped(), NULL);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     pending_read_ = buffer;
     return true;
@@ -930,13 +887,8 @@ bool ClientSocket::IssueWrite() {
   ASSERT(pending_write_ != NULL);
   ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
 
-  int rc = WSASend(socket(),
-                   pending_write_->GetWASBUF(),
-                   1,
-                   NULL,
-                   0,
-                   pending_write_->GetCleanOverlapped(),
-                   NULL);
+  int rc = WSASend(socket(), pending_write_->GetWASBUF(), 1, NULL, 0,
+                   pending_write_->GetCleanOverlapped(), NULL);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     return true;
   }
@@ -949,8 +901,8 @@ bool ClientSocket::IssueWrite() {
 
 void ClientSocket::IssueDisconnect() {
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateDisconnectBuffer();
-  BOOL ok = DisconnectEx_(
-    socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
+  BOOL ok =
+      DisconnectEx_(socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
   // DisconnectEx works like other OverlappedIO APIs, where we can get either an
   // immediate success or delayed operation by WSA_IO_PENDING being set.
   if (ok || (WSAGetLastError() != WSA_IO_PENDING)) {
@@ -1009,15 +961,8 @@ bool DatagramSocket::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
   ASSERT(pending_write_ != NULL);
   ASSERT(pending_write_->operation() == OverlappedBuffer::kSendTo);
 
-  int rc = WSASendTo(socket(),
-                     pending_write_->GetWASBUF(),
-                     1,
-                     NULL,
-                     0,
-                     sa,
-                     sa_len,
-                     pending_write_->GetCleanOverlapped(),
-                     NULL);
+  int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, NULL, 0, sa,
+                     sa_len, pending_write_->GetCleanOverlapped(), NULL);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     return true;
   }
@@ -1038,15 +983,9 @@ bool DatagramSocket::IssueRecvFrom() {
 
   DWORD flags;
   flags = 0;
-  int rc = WSARecvFrom(socket(),
-                       buffer->GetWASBUF(),
-                       1,
-                       NULL,
-                       &flags,
-                       buffer->from(),
-                       buffer->from_len_addr(),
-                       buffer->GetCleanOverlapped(),
-                       NULL);
+  int rc = WSARecvFrom(socket(), buffer->GetWASBUF(), 1, NULL, &flags,
+                       buffer->from(), buffer->from_len_addr(),
+                       buffer->GetCleanOverlapped(), NULL);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
     pending_read_ = buffer;
     return true;
@@ -1096,8 +1035,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
     ASSERT(handle != NULL);
 
     if (handle->is_listen_socket()) {
-      ListenSocket* listen_socket =
-          reinterpret_cast<ListenSocket*>(handle);
+      ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(handle);
       listen_socket->EnsureInitialized(this);
 
       MonitorLocker ml(listen_socket->monitor_);
@@ -1116,8 +1054,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         // We only close the socket file descriptor from the operating
         // system if there are no other dart socket objects which
         // are listening on the same (address, port) combination.
-        ListeningSocketRegistry *registry =
-            ListeningSocketRegistry::Instance();
+        ListeningSocketRegistry* registry = ListeningSocketRegistry::Instance();
         MutexLocker locker(registry->mutex());
         if (registry->CloseSafe(reinterpret_cast<intptr_t>(listen_socket))) {
           ASSERT(listen_socket->Mask() == 0);
@@ -1213,12 +1150,11 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
 
 
 void EventHandlerImplementation::TryDispatchingPendingAccepts(
-    ListenSocket *listen_socket) {
+    ListenSocket* listen_socket) {
   if (!listen_socket->IsClosing() && listen_socket->CanAccept()) {
     intptr_t event_mask = 1 << kInEvent;
-    for (int i = 0;
-         (i < listen_socket->accepted_count()) &&
-         (listen_socket->Mask() == event_mask);
+    for (int i = 0; (i < listen_socket->accepted_count()) &&
+                    (listen_socket->Mask() == event_mask);
          i++) {
       Dart_Port port = listen_socket->NextNotifyDartPort(event_mask);
       DartUtils::PostInt32(port, event_mask);
@@ -1298,19 +1234,17 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
 }
 
 
-void EventHandlerImplementation::HandleDisconnect(
-    ClientSocket* client_socket,
-    int bytes,
-    OverlappedBuffer* buffer) {
+void EventHandlerImplementation::HandleDisconnect(ClientSocket* client_socket,
+                                                  int bytes,
+                                                  OverlappedBuffer* buffer) {
   client_socket->DisconnectComplete(buffer);
   DeleteIfClosed(client_socket);
 }
 
 
-void EventHandlerImplementation::HandleConnect(
-    ClientSocket* client_socket,
-    int bytes,
-    OverlappedBuffer* buffer) {
+void EventHandlerImplementation::HandleConnect(ClientSocket* client_socket,
+                                               int bytes,
+                                               OverlappedBuffer* buffer) {
   if (bytes < 0) {
     HandleError(client_socket);
     OverlappedBuffer::DisposeBuffer(buffer);
@@ -1400,8 +1334,8 @@ int64_t EventHandlerImplementation::GetTimeout() {
   if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
   }
-  int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentMonotonicMillis();
+  int64_t millis =
+      timeout_queue_.CurrentTimeout() - TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -1413,8 +1347,8 @@ void EventHandlerImplementation::SendData(intptr_t id,
   msg->id = id;
   msg->dart_port = dart_port;
   msg->data = data;
-  BOOL ok = PostQueuedCompletionStatus(
-      completion_port_, 0, NULL, reinterpret_cast<OVERLAPPED*>(msg));
+  BOOL ok = PostQueuedCompletionStatus(completion_port_, 0, NULL,
+                                       reinterpret_cast<OVERLAPPED*>(msg));
   if (!ok) {
     FATAL("PostQueuedCompletionStatus failed");
   }
@@ -1444,11 +1378,9 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       millis = kMaxInt32;
     }
     ASSERT(sizeof(int32_t) == sizeof(DWORD));
-    BOOL ok = GetQueuedCompletionStatus(handler_impl->completion_port(),
-                                        &bytes,
-                                        &key,
-                                        &overlapped,
-                                        static_cast<DWORD>(millis));
+    BOOL ok =
+        GetQueuedCompletionStatus(handler_impl->completion_port(), &bytes, &key,
+                                  &overlapped, static_cast<DWORD>(millis));
 
     if (!ok && (overlapped == NULL)) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
@@ -1495,8 +1427,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = Thread::Start(EventHandlerEntry,
-                             reinterpret_cast<uword>(handler));
+  int result =
+      Thread::Start(EventHandlerEntry, reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

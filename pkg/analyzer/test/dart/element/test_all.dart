@@ -4,15 +4,15 @@
 
 library analyzer.test.dart.element.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
+import 'builder_test.dart' as builder;
 import 'element_test.dart' as element;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('element tests', () {
+  defineReflectiveSuite(() {
+    builder.main();
     element.main();
-  });
+  }, name: 'element');
 }

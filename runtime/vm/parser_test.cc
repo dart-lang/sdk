@@ -21,8 +21,8 @@ DECLARE_FLAG(bool, show_invisible_frames);
 static void DumpFunction(const Library& lib,
                          const char* cname,
                          const char* fname) {
-  const String& classname = String::Handle(Symbols::New(Thread::Current(),
-                                                        cname));
+  const String& classname =
+      String::Handle(Symbols::New(Thread::Current(), cname));
   String& funcname = String::Handle(String::New(fname));
 
   bool retval;
@@ -32,7 +32,7 @@ static void DumpFunction(const Library& lib,
     Class& cls = Class::Handle(lib.LookupClass(classname));
     EXPECT(!cls.IsNull());
     Function& function =
-      Function::ZoneHandle(cls.LookupStaticFunction(funcname));
+        Function::ZoneHandle(cls.LookupStaticFunction(funcname));
     EXPECT(!function.IsNull());
     ParsedFunction* parsed_function =
         new ParsedFunction(Thread::Current(), function);
@@ -58,8 +58,8 @@ void CheckField(const Library& lib,
                 const char* field_name,
                 bool expect_static,
                 bool is_final) {
-  const String& classname = String::Handle(Symbols::New(Thread::Current(),
-                                                        class_name));
+  const String& classname =
+      String::Handle(Symbols::New(Thread::Current(), class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 
@@ -94,8 +94,8 @@ void CheckFunction(const Library& lib,
                    const char* class_name,
                    const char* function_name,
                    bool expect_static) {
-  const String& classname = String::Handle(Symbols::New(Thread::Current(),
-                                                        class_name));
+  const String& classname =
+      String::Handle(Symbols::New(Thread::Current(), class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 
@@ -126,9 +126,8 @@ TEST_CASE(ParseClassDefinition) {
 
   String& url = String::Handle(String::New("dart-test:Parser_TopLevel"));
   String& source = String::Handle(String::New(script_chars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = Library::ZoneHandle(Library::CoreLibrary());
 
   script.Tokenize(String::Handle(String::New("")));
@@ -161,9 +160,8 @@ TEST_CASE(Parser_TopLevel) {
 
   String& url = String::Handle(String::New("dart-test:Parser_TopLevel"));
   String& source = String::Handle(String::New(script_chars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = Library::ZoneHandle(Library::CoreLibrary());
 
   script.Tokenize(String::Handle(String::New("")));
@@ -217,8 +215,7 @@ static char* SkipIndex(const char* input) {
 static void SaveVars(Dart_IsolateId isolate_id,
                      intptr_t bp_id,
                      const Dart_CodeLocation& loc) {
-  DebuggerStackTrace* stack =
-      Isolate::Current()->debugger()->StackTrace();
+  DebuggerStackTrace* stack = Isolate::Current()->debugger()->StackTrace();
   intptr_t num_frames = stack->Length();
   const int kBufferLen = 2048;
   char* buffer = new char[kBufferLen];
@@ -228,13 +225,12 @@ static void SaveVars(Dart_IsolateId isolate_id,
     ActivationFrame* frame = stack->FrameAt(i);
     var_desc = frame->code().GetLocalVarDescriptors();
     const char* var_str = SkipIndex(var_desc.ToCString());
-    const char* function_str = String::Handle(
-        frame->function().QualifiedUserVisibleName()).ToCString();
-    pos += OS::SNPrint(pos, (kBufferLen - (pos - buffer)),
-                       "%s\n%s",
-                       function_str,
-                       var_str);
-    delete [] var_str;
+    const char* function_str =
+        String::Handle(frame->function().QualifiedUserVisibleName())
+            .ToCString();
+    pos += OS::SNPrint(pos, (kBufferLen - (pos - buffer)), "%s\n%s",
+                       function_str, var_str);
+    delete[] var_str;
   }
   pos[0] = '\0';
   saved_vars = buffer;

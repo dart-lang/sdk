@@ -35,10 +35,13 @@ class MyInferrer extends TypeGraphInferrer {
 
 void main() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST, uri);
-  var inferrer = new MyInferrer(compiler, compiler.commonMasks);
-  compiler.globalInference.typesInferrer = inferrer;
+  var compiler = compilerFor(TEST, uri, analyzeOnly: true);
   asyncTest(() => compiler.run(uri).then((_) {
+        compiler.closeResolution();
+        var inferrer =
+            new MyInferrer(compiler, compiler.closedWorld.commonMasks);
+        compiler.globalInference.typesInferrerInternal = inferrer;
+        compiler.globalInference.runGlobalTypeInference(compiler.mainFunction);
         var mainElement = findElement(compiler, 'main');
         var classA = findElement(compiler, 'A');
         var fieldA = classA.lookupLocalMember('field');

@@ -7,14 +7,15 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'summarize_ast_test.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(LinkerUnitTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LinkerUnitTest);
+  });
 }
 
 @reflectiveTest
@@ -237,6 +238,33 @@ const x = [const C()];
     expect(classC.unnamedConstructor.isCycleFree, false);
   }
 
+  void test_covariance() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // may need to be changed.
+    createLinker('''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
+}
+''');
+    testLibrary.libraryCycleForLink.ensureLinked();
+    ClassElementForLink classA = testLibrary.getContainedName('A');
+    MethodElementForLink methodAF = classA.getContainedName('f');
+    ParameterElementForLink parameterAFT = methodAF.parameters[0];
+    expect(parameterAFT.isCovariant, isTrue);
+    expect(parameterAFT.inheritsCovariant, isFalse);
+    ClassElementForLink classB = testLibrary.getContainedName('B');
+    MethodElementForLink methodBF = classB.getContainedName('f');
+    ParameterElementForLink parameterBFT = methodBF.parameters[0];
+    expect(parameterAFT.isCovariant, isTrue);
+    expect(parameterBFT.inheritsCovariant, isTrue);
+  }
+
   void test_createPackageBundle_withPackageUri() {
     PackageBundle bundle = createPackageBundle(
         '''
@@ -251,8 +279,9 @@ class C extends B {
     UnlinkedExecutable cf = bundle.unlinkedUnits[0].classes[1].executables[0];
     UnlinkedParam cfi = cf.parameters[0];
     expect(cfi.inferredTypeSlot, isNot(0));
-    EntityRef typeRef =
-        bundle.linkedLibraries[0].units[0].types[cfi.inferredTypeSlot];
+    EntityRef typeRef = _lookupInferredType(
+        bundle.linkedLibraries[0].units[0], cfi.inferredTypeSlot);
+    expect(typeRef, isNotNull);
     expect(bundle.unlinkedUnits[0].references[typeRef.reference].name, 'int');
   }
 
@@ -320,6 +349,20 @@ var y = C.x;
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
         '(D) → E');
+  }
+
+  void test_inferredType_instanceField_conditional_genericFunctions() {
+    createLinker('''
+class C {
+  final f = true ? <T>(T t) => 0 : <T>(T t) => 1;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('C');
+    expect(cls.fields, hasLength(1));
+    var field = cls.fields[0];
+    expect(field.type.toString(), '(<bottom>) → dynamic');
   }
 
   void test_inferredType_instanceField_dynamic() {
@@ -915,5 +958,17 @@ var v = 0;
 
   VariableElementForLink _getVariable(ReferenceableElementForLink element) {
     return (element as PropertyAccessorElementForLink_Variable).variable;
+  }
+
+  /**
+   * Finds the first inferred type stored in [unit] whose slot matches [slot].
+   */
+  EntityRef _lookupInferredType(LinkedUnit unit, int slot) {
+    for (EntityRef ref in unit.types) {
+      if (ref.slot == slot) {
+        return ref;
+      }
+    }
+    return null;
   }
 }

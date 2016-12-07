@@ -41,7 +41,6 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 }
 
 
-
 void CodeSourceMapBuilder::AddEntry(intptr_t pc_offset,
                                     TokenPosition token_pos) {
   // Require pc offset to monotonically increase.
@@ -119,19 +118,13 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
       // Check it is uninitialized.
       ASSERT((list_[i].outer_try_index == -1) &&
              (list_[i].pc_offset == ExceptionHandlers::kInvalidPcOffset));
-      handlers.SetHandlerInfo(i,
-                              list_[i].outer_try_index,
-                              list_[i].pc_offset,
-                              list_[i].needs_stacktrace,
-                              has_catch_all);
+      handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
+                              list_[i].needs_stacktrace, has_catch_all);
       handlers.SetHandledTypes(i, Array::empty_array());
     } else {
       const bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
-      handlers.SetHandlerInfo(i,
-                              list_[i].outer_try_index,
-                              list_[i].pc_offset,
-                              list_[i].needs_stacktrace,
-                              has_catch_all);
+      handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
+                              list_[i].needs_stacktrace, has_catch_all);
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
   }

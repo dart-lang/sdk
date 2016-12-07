@@ -5,14 +5,13 @@
 library analyzer.test.src.util.fast_uri_test;
 
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(_FastUriTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(_FastUriTest);
+  });
 }
 
 @reflectiveTest
@@ -116,6 +115,17 @@ class _FastUriTest {
     Uri uri3 = uri1.resolveUri(uri2);
     expect(uri3, isFastUri);
     _compareUris(uri3, Uri.parse('package:analyzer/aaa/bbbb/dd/eeee.dart'));
+  }
+
+  void test_resolveUri_short_absolute() {
+    // Check the case where the URI being resolved is a "short absolute" uri
+    // (starts with a "/" but doesn't start with "file://").  Such URIs are not
+    // actually valid URIs but we still want to handle them in a way that's
+    // consistent with the behavior of Uri.
+    String containing = 'file:///foo/bar';
+    String relative = '/a.dart';
+    String expectedResult = Uri.parse(containing).resolve(relative).toString();
+    _checkResolveUri(containing, relative, expectedResult);
   }
 
   void _checkResolveUri(String srcText, String relText, String targetText) {

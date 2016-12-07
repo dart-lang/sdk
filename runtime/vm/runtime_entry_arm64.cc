@@ -25,8 +25,7 @@ uword RuntimeEntry::GetEntryPoint() const {
   // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
   // in registers (maximum 2 double arguments for leaf float runtime calls).
   ASSERT(argument_count() >= 0);
-  ASSERT(!is_leaf() ||
-         (!is_float() && (argument_count() <= 4)) ||
+  ASSERT(!is_leaf() || (!is_float() && (argument_count() <= 4)) ||
          (argument_count() <= 2));
   Simulator::CallKind call_kind =
       is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall

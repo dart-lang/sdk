@@ -6,25 +6,22 @@
 // Move constructors that fail on some configuration to their own
 // element_constructor_foo_test.dart file.
 
-library ElementConstructorTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
-  var isAnchorElement = 
+main() {
+  var isAnchorElement =
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
-  var isAreaElement = 
+  var isAreaElement =
       predicate((x) => x is AreaElement, 'is an AreaElement');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
-  var isCanvasElement = 
+  var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
   var isParagraphElement =
       predicate((x) => x is ParagraphElement, 'is a ParagraphElement');
   var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElement');
-  var isSelectElement = 
+  var isSelectElement =
       predicate((x) => x is SelectElement, 'is a SelectElement');
 
   test('anchor1', () {
@@ -35,7 +32,7 @@ main() {
   test('anchor2', () {
       var e = new AnchorElement(href: '#blah');
       expect(e, isAnchorElement);
-      expect(e.href, endsWith('#blah'));
+      expect(e.href.endsWith('#blah'), isTrue);
     });
 
   test('area', () {

@@ -7,15 +7,15 @@ library test.domain.analysis.hover;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisHoverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisHoverTest);
+  });
 }
 
 @reflectiveTest
@@ -29,7 +29,7 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     Request request =
         new AnalysisGetHoverParams(testFile, offset).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new AnalysisGetHoverResult.fromResponse(response);
     List<HoverInformation> hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;

@@ -1,14 +1,11 @@
-library HiddenDom2Test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
 
 // Test that the dart:html API does not leak native jsdom methods:
 //   appendChild operation.
 
 main() {
-  useHtmlConfiguration();
-
   test('test1', () {
     document.body.children.add(new Element.html(r'''
 <div id='div1'>
@@ -18,7 +15,7 @@ Hello World!
     Element e2 = new Element.html(r"<div id='xx'>XX</div>");
     expect(e, isNotNull);
 
-    checkNoSuchMethod(() { confuse(e).appendChild(e2); });
+    expect(() { confuse(e).appendChild(e2); }, throwsNoSuchMethodError);
 
   });
 }
@@ -29,20 +26,5 @@ class Decoy {
 
 confuse(x) => opaqueTrue() ? x : (opaqueTrue() ? new Object() : new Decoy());
 
-/** Returns [:true:], but in a way that confuses the compiler. */
+/** Returns `true`, but in a way that confuses the compiler. */
 opaqueTrue() => true;  // Expand as needed.
-
-checkNoSuchMethod(action()) {
-  var ex = null;
-  bool threw = false;
-  try {
-    action();
-  } catch (e) {
-    threw = true;
-    ex = e;
-  }
-  if (!threw)
-    expect(false, isTrue, reason: 'Action should have thrown exception');
-
-  expect(ex, isNoSuchMethodError);
-}

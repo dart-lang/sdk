@@ -7,13 +7,13 @@
 
 #include "bin/file.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <libgen.h>  // NOLINT
-#include <sys/mman.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
+#include <errno.h>      // NOLINT
+#include <fcntl.h>      // NOLINT
+#include <libgen.h>     // NOLINT
+#include <sys/mman.h>   // NOLINT
+#include <sys/stat.h>   // NOLINT
 #include <sys/types.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -25,8 +25,8 @@ namespace bin {
 
 class FileHandle {
  public:
-  explicit FileHandle(int fd) : fd_(fd) { }
-  ~FileHandle() { }
+  explicit FileHandle(int fd) : fd_(fd) {}
+  ~FileHandle() {}
   int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
@@ -75,7 +75,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::MapExecutable(intptr_t* len) {
+void* File::Map(MapType type, int64_t position, int64_t length) {
   UNIMPLEMENTED();
   return NULL;
 }
@@ -164,7 +164,7 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 }
 
 
-File* File::ScopedOpen(const char* name, FileOpenMode mode) {
+File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -198,12 +198,6 @@ File* File::ScopedOpen(const char* name, FileOpenMode mode) {
     }
   }
   return new File(new FileHandle(fd));
-}
-
-
-File* File::Open(const char* path, FileOpenMode mode) {
-  // ScopedOpen doesn't actually need a scope.
-  return ScopedOpen(path, mode);
 }
 
 
@@ -441,9 +435,9 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
     return File::kError;
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
-          (file_1_info.st_dev == file_2_info.st_dev)) ?
-      File::kIdentical :
-      File::kDifferent;
+          (file_1_info.st_dev == file_2_info.st_dev))
+             ? File::kIdentical
+             : File::kDifferent;
 }
 
 }  // namespace bin

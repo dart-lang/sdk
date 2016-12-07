@@ -19,6 +19,7 @@ module.exports = function(config) {
       {pattern: 'gen/codegen_output/corelib/**/*.js', included: false},
       {pattern: 'gen/codegen_output/lib/**/*.js', included: false},
       {pattern: 'test/browser/*.js', included: false},
+      {pattern: 'node_modules/is_js/*.js', included: false},      
       'test-main.js',
     ],
 
@@ -62,12 +63,12 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     customLaunchers: {
-      chrome_travis: {
+      ChromeTravis: {
         base: 'Chrome',
         flags: [ '--no-sandbox' ]
       },
 
-      chrome_canary_travis: {
+      ChromeCanaryTravis: {
         base: 'ChromeCanary',
         flags: [ '--no-sandbox' ]
       },
@@ -81,7 +82,7 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_canary_travis'];
+    configuration.browsers = ['ChromeTravis'];
     configuration.autoWatch = false;
     // Enable this for more logging on Travis.  It is too much for Travis to
     // automatically display, but still results in a downloadable raw log.

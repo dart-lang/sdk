@@ -24,8 +24,7 @@ namespace dart {
 
 class SourcePositionTest : public ValueObject {
  public:
-  SourcePositionTest(Thread* thread,
-                     const char* script)
+  SourcePositionTest(Thread* thread, const char* script)
       : thread_(thread),
         isolate_(thread->isolate()),
         script_(script),
@@ -40,8 +39,8 @@ class SourcePositionTest : public ValueObject {
     EXPECT_VALID(lib);
     root_lib_ ^= Api::UnwrapHandle(lib);
     EXPECT(!root_lib_.IsNull());
-    root_script_ ^= root_lib_.LookupScript(
-        String::Handle(String::New(USER_TEST_URI)));
+    root_script_ ^=
+        root_lib_.LookupScript(String::Handle(String::New(USER_TEST_URI)));
     EXPECT(!root_script_.IsNull());
   }
 
@@ -57,15 +56,12 @@ class SourcePositionTest : public ValueObject {
         Function::Handle(GetFunction(root_lib_, function_name));
     ZoneGrowableArray<const ICData*>* ic_data_array =
         new ZoneGrowableArray<const ICData*>();
-    ParsedFunction* parsed_function = new ParsedFunction(
-        thread_, Function::ZoneHandle(function.raw()));
+    ParsedFunction* parsed_function =
+        new ParsedFunction(thread_, Function::ZoneHandle(function.raw()));
     Parser::ParseFunction(parsed_function);
     parsed_function->AllocateVariables();
-    FlowGraphBuilder builder(
-        *parsed_function,
-        *ic_data_array,
-        NULL,
-        Compiler::kNoOSRDeoptId);
+    FlowGraphBuilder builder(*parsed_function, *ic_data_array, NULL,
+                             Compiler::kNoOSRDeoptId);
     graph_ = builder.BuildGraph();
     EXPECT(graph_ != NULL);
     blocks_ = graph_->CodegenBlockOrder(optimized);
@@ -98,9 +94,7 @@ class SourcePositionTest : public ValueObject {
   }
 
   // Expect to find an instance call at |line| and |column|.
-  void InstanceCallAt(const char* needle,
-                      intptr_t line,
-                      intptr_t column = -1) {
+  void InstanceCallAt(const char* needle, intptr_t line, intptr_t column = -1) {
     ZoneGrowableArray<Instruction*>* instructions =
         FindInstructionsAt(line, column);
     intptr_t count = 0;
@@ -119,9 +113,7 @@ class SourcePositionTest : public ValueObject {
 
   // Expect to find at least one static call at |line| and |column|. The
   // static call will have |needle| in its |ToCString| representation.
-  void StaticCallAt(const char* needle,
-                    intptr_t line,
-                    intptr_t column = -1) {
+  void StaticCallAt(const char* needle, intptr_t line, intptr_t column = -1) {
     ZoneGrowableArray<Instruction*>* instructions =
         FindInstructionsAt(line, column);
     intptr_t count = 0;
@@ -196,20 +188,13 @@ class SourcePositionTest : public ValueObject {
     }
     intptr_t token_line = -1;
     intptr_t token_column = -1;
-    root_script_.GetTokenLocation(token_pos,
-                                  &token_line,
-                                  &token_column,
-                                  NULL);
+    root_script_.GetTokenLocation(token_pos, &token_line, &token_column, NULL);
     if (synthetic) {
-      THR_Print("      *%02d:%02d -- %s\n",
-                static_cast<int>(token_line),
-                static_cast<int>(token_column),
-                instr->ToCString());
+      THR_Print("      *%02d:%02d -- %s\n", static_cast<int>(token_line),
+                static_cast<int>(token_column), instr->ToCString());
     } else {
-      THR_Print("       %02d:%02d -- %s\n",
-                static_cast<int>(token_line),
-                static_cast<int>(token_column),
-                instr->ToCString());
+      THR_Print("       %02d:%02d -- %s\n", static_cast<int>(token_line),
+                static_cast<int>(token_column), instr->ToCString());
     }
   }
 
@@ -222,8 +207,8 @@ class SourcePositionTest : public ValueObject {
     return instructions->At(0);
   }
 
-  ZoneGrowableArray<Instruction*>* FindInstructionsAt(
-      intptr_t line, intptr_t column) {
+  ZoneGrowableArray<Instruction*>* FindInstructionsAt(intptr_t line,
+                                                      intptr_t column) {
     ZoneGrowableArray<Instruction*>* instructions =
         new ZoneGrowableArray<Instruction*>();
     for (intptr_t i = 0; i < blocks_->length(); i++) {
@@ -239,9 +224,7 @@ class SourcePositionTest : public ValueObject {
         }
         intptr_t token_line = -1;
         intptr_t token_column = -1;
-        root_script_.GetTokenLocation(token_pos,
-                                      &token_line,
-                                      &token_column,
+        root_script_.GetTokenLocation(token_pos, &token_line, &token_column,
                                       NULL);
         if (token_line == line) {
           if ((column < 0) || (column == token_column)) {
@@ -269,15 +252,15 @@ class SourcePositionTest : public ValueObject {
   }
 
   RawFunction* GetFunction(const Library& lib, const char* name) {
-    const Function& result = Function::Handle(lib.LookupFunctionAllowPrivate(
-        String::Handle(String::New(name))));
+    const Function& result = Function::Handle(
+        lib.LookupFunctionAllowPrivate(String::Handle(String::New(name))));
     EXPECT(!result.IsNull());
     return result.raw();
   }
 
   RawFunction* GetFunction(const Class& cls, const char* name) {
-    const Function& result = Function::Handle(cls.LookupFunctionAllowPrivate(
-        String::Handle(String::New(name))));
+    const Function& result = Function::Handle(
+        cls.LookupFunctionAllowPrivate(String::Handle(String::New(name))));
     EXPECT(!result.IsNull());
     return result.raw();
   }
@@ -656,22 +639,22 @@ TEST_CASE(SourcePosition_Switch) {
   spt.FuzzyInstructionMatchAt("StoreLocal(:switch_expr", 4, 11);
 
   spt.FuzzyInstructionMatchAt("Constant(#1", 5, 10);
-  spt.FuzzyInstructionMatchAt("LoadLocal(:switch_expr", 5, 5);   // 'c'
-  spt.InstanceCallAt(5, 10, Token::kEQ);                         // '1'
+  spt.FuzzyInstructionMatchAt("LoadLocal(:switch_expr", 5, 5);  // 'c'
+  spt.InstanceCallAt(5, 10, Token::kEQ);                        // '1'
 
-  spt.FuzzyInstructionMatchAt("Constant(#3", 5, 20);             // '3'
+  spt.FuzzyInstructionMatchAt("Constant(#3", 5, 20);  // '3'
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 13);
   spt.FuzzyInstructionMatchAt("Return", 5, 13);
 
   spt.FuzzyInstructionMatchAt("Constant(#2", 6, 10);
-  spt.FuzzyInstructionMatchAt("LoadLocal(:switch_expr", 6, 5);   // 'c'
-  spt.InstanceCallAt(6, 10, Token::kEQ);                         // '2'
+  spt.FuzzyInstructionMatchAt("LoadLocal(:switch_expr", 6, 5);  // 'c'
+  spt.InstanceCallAt(6, 10, Token::kEQ);                        // '2'
 
-  spt.FuzzyInstructionMatchAt("Constant(#4", 6, 20);             // '4'
+  spt.FuzzyInstructionMatchAt("Constant(#4", 6, 20);  // '4'
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 6, 13);
   spt.FuzzyInstructionMatchAt("Return", 6, 13);
 
-  spt.FuzzyInstructionMatchAt("Constant(#5", 7, 21);             // '5'
+  spt.FuzzyInstructionMatchAt("Constant(#5", 7, 21);  // '5'
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 7, 14);
   spt.FuzzyInstructionMatchAt("Return", 7, 14);
 
@@ -700,32 +683,32 @@ TEST_CASE(SourcePosition_TryCatchFinally) {
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
   spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
 
-  spt.FuzzyInstructionMatchAt("LoadLocal(:current_context", 4, 3);     // 't'
+  spt.FuzzyInstructionMatchAt("LoadLocal(:current_context", 4, 3);  // 't'
   spt.FuzzyInstructionMatchAt("StoreLocal(:saved_try_context", 4, 3);
 
-  spt.FuzzyInstructionMatchAt("Constant(#A", 5, 11);                   // 'A'
-  spt.FuzzyInstructionMatchAt("Throw", 5, 5);                          // 't'
+  spt.FuzzyInstructionMatchAt("Constant(#A", 5, 11);  // 'A'
+  spt.FuzzyInstructionMatchAt("Throw", 5, 5);         // 't'
 
-  spt.FuzzyInstructionMatchAt("LoadLocal(:saved_try_context", 6, 5);   // 'c'
-  spt.FuzzyInstructionMatchAt("StoreLocal(:current_context", 6, 5);    // 'c'
-  spt.FuzzyInstructionMatchAt("LoadLocal(:exception_var", 6, 5);       // 'c'
-  spt.FuzzyInstructionMatchAt("StoreLocal(e", 6, 5);                   // 'c'
+  spt.FuzzyInstructionMatchAt("LoadLocal(:saved_try_context", 6, 5);  // 'c'
+  spt.FuzzyInstructionMatchAt("StoreLocal(:current_context", 6, 5);   // 'c'
+  spt.FuzzyInstructionMatchAt("LoadLocal(:exception_var", 6, 5);      // 'c'
+  spt.FuzzyInstructionMatchAt("StoreLocal(e", 6, 5);                  // 'c'
 
-  spt.FuzzyInstructionMatchAt("LoadLocal(e", 7, 11);                   // 'e'
+  spt.FuzzyInstructionMatchAt("LoadLocal(e", 7, 11);  // 'e'
 
-  spt.FuzzyInstructionMatchAt("StaticCall", 7, 5);                     // 'p'
+  spt.FuzzyInstructionMatchAt("StaticCall", 7, 5);  // 'p'
 
-  spt.FuzzyInstructionMatchAt("Constant(#77", 8, 12);                  // '7'
-  spt.FuzzyInstructionMatchAt("StoreLocal(:finally_ret_val", 8, 5);    // 'r'
+  spt.FuzzyInstructionMatchAt("Constant(#77", 8, 12);                // '7'
+  spt.FuzzyInstructionMatchAt("StoreLocal(:finally_ret_val", 8, 5);  // 'r'
 
-  spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);                 // '9'
-  spt.FuzzyInstructionMatchAt("Return", 10, 5);                        // 'r'
+  spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);  // '9'
+  spt.FuzzyInstructionMatchAt("Return", 10, 5);         // 'r'
 
   spt.FuzzyInstructionMatchAt("LoadLocal(:saved_try_context", 9, 13);  // '{'
   spt.FuzzyInstructionMatchAt("StoreLocal(:current_context", 9, 13);   // '{'
 
-  spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);                 // '9'
-  spt.FuzzyInstructionMatchAt("Return", 10, 5);                        // 'r'
+  spt.FuzzyInstructionMatchAt("Constant(#99", 10, 12);  // '9'
+  spt.FuzzyInstructionMatchAt("Return", 10, 5);         // 'r'
 
   spt.EnsureSourcePositions();
 }
@@ -746,14 +729,14 @@ TEST_CASE(SourcePosition_InstanceFields) {
 
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
-  spt.FuzzyInstructionMatchAt("AllocateObject(A)", 6, 15);       // 'A'
-  spt.FuzzyInstructionMatchAt("StaticCall", 6, 15);              // 'A'
-  spt.FuzzyInstructionMatchAt("StoreLocal(z", 6, 9);             // '='
-  spt.InstanceCallAt("set:x", 7, 5);                             // 'x'
-  spt.InstanceCallAt("get:x", 8, 11);                            // 'x'
-  spt.InstanceCallAt("set:y", 8, 5);                             // 'y'
+  spt.FuzzyInstructionMatchAt("AllocateObject(A)", 6, 15);  // 'A'
+  spt.FuzzyInstructionMatchAt("StaticCall", 6, 15);         // 'A'
+  spt.FuzzyInstructionMatchAt("StoreLocal(z", 6, 9);        // '='
+  spt.InstanceCallAt("set:x", 7, 5);                        // 'x'
+  spt.InstanceCallAt("get:x", 8, 11);                       // 'x'
+  spt.InstanceCallAt("set:y", 8, 5);                        // 'y'
 
-  spt.InstanceCallAt("get:y", 9, 12);                            // 'y'
+  spt.InstanceCallAt("get:y", 9, 12);  // 'y'
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 9, 3);
   spt.FuzzyInstructionMatchAt("Return", 9, 3);
 
@@ -808,4 +791,3 @@ UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
 }
 
 }  // namespace dart
-

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_LOCKERS_H_
-#define BIN_LOCKERS_H_
+#ifndef RUNTIME_BIN_LOCKERS_H_
+#define RUNTIME_BIN_LOCKERS_H_
 
 #include "bin/thread.h"
 #include "platform/assert.h"
@@ -11,16 +11,14 @@
 namespace dart {
 namespace bin {
 
-class MutexLocker  {
+class MutexLocker {
  public:
   explicit MutexLocker(Mutex* mutex) : mutex_(mutex) {
     ASSERT(mutex != NULL);
     mutex_->Lock();
   }
 
-  virtual ~MutexLocker() {
-    mutex_->Unlock();
-  }
+  virtual ~MutexLocker() { mutex_->Unlock(); }
 
  private:
   Mutex* const mutex_;
@@ -36,21 +34,15 @@ class MonitorLocker {
     monitor_->Enter();
   }
 
-  virtual ~MonitorLocker() {
-    monitor_->Exit();
-  }
+  virtual ~MonitorLocker() { monitor_->Exit(); }
 
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout) {
     return monitor_->Wait(millis);
   }
 
-  void Notify() {
-    monitor_->Notify();
-  }
+  void Notify() { monitor_->Notify(); }
 
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
+  void NotifyAll() { monitor_->NotifyAll(); }
 
  private:
   Monitor* const monitor_;
@@ -61,4 +53,4 @@ class MonitorLocker {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_LOCKERS_H_
+#endif  // RUNTIME_BIN_LOCKERS_H_

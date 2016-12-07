@@ -5,15 +5,15 @@
 library test.integration.analysis.highlights;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisHighlightsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisHighlightsTest);
+  });
 }
 
 @reflectiveTest
@@ -99,6 +99,7 @@ int topLevelVariable;
         expect(highlights[type], equals(expected.toSet()));
         highlights.remove(type);
       }
+
       check(HighlightRegionType.ANNOTATION, ['@override']);
       check(HighlightRegionType.BUILT_IN,
           ['as', 'get', 'import', 'set', 'static', 'typedef']);

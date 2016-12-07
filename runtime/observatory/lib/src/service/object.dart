@@ -1333,9 +1333,19 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('getSourceReport', params);
   }
 
-  Future<ServiceMap> reloadSources() {
-    return invokeRpc('_reloadSources', {}).then((_) {
+  Future<ServiceMap> reloadSources(
+      {String rootLibUri,
+       bool pause}) {
+    Map<String, dynamic> params = <String, dynamic>{};
+    if (rootLibUri != null) {
+      params['rootLibUri'] = rootLibUri;
+    }
+    if (pause != null) {
+      params['pause'] = pause;
+    }
+    return invokeRpc('reloadSources', params).then((result) {
       reloading = true;
+      return result;
     });
   }
 
@@ -1521,12 +1531,21 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
   }
 
-  Stream fetchHeapSnapshot(collectGarbage) {
+  static String _rootsToString(M.HeapSnapshotRoots roots) {
+    switch (roots) {
+      case M.HeapSnapshotRoots.user: return "User";
+      case M.HeapSnapshotRoots.vm: return "VM";
+    }
+    return null;
+  }
+
+  Stream fetchHeapSnapshot(M.HeapSnapshotRoots roots, bool collectGarbage) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       _snapshotFetch = new StreamController.broadcast();
       // isolate.vm.streamListen('_Graph');
-      isolate.invokeRpcNoUpgrade(
-          '_requestHeapSnapshot', {'collectGarbage': collectGarbage});
+      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
+                                 {'roots': _rootsToString(roots),
+                                  'collectGarbage': collectGarbage});
     }
     return _snapshotFetch.stream;
   }
@@ -1675,6 +1694,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       case ServiceEvent.kPauseBreakpoint:
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
+      case ServiceEvent.kPausePostRequest:
       case ServiceEvent.kNone:
       case ServiceEvent.kResume:
         assert((pauseEvent == null) ||
@@ -2017,6 +2037,7 @@ class ServiceEvent extends ServiceObject {
   static const kPauseBreakpoint = 'PauseBreakpoint';
   static const kPauseInterrupted = 'PauseInterrupted';
   static const kPauseException = 'PauseException';
+  static const kPausePostRequest = 'PausePostRequest';
   static const kNone = 'None';
   static const kResume = 'Resume';
   static const kBreakpointAdded = 'BreakpointAdded';
@@ -2067,6 +2088,7 @@ class ServiceEvent extends ServiceObject {
         kind == kPauseBreakpoint ||
         kind == kPauseInterrupted ||
         kind == kPauseException ||
+        kind == kPausePostRequest ||
         kind == kNone);
   }
 
@@ -3251,6 +3273,7 @@ class Script extends HeapObject implements M.Script {
 
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
+  /// Retrieves line number [line] if it exists.
   ScriptLine getLine(int line) {
     assert(_loaded);
     assert(line >= 1);
@@ -3258,10 +3281,12 @@ class Script extends HeapObject implements M.Script {
   }
 
   /// This function maps a token position to a line number.
+  /// The VM considers the first line to be line 1.
   int tokenToLine(int tokenPos) => _tokenToLine[tokenPos];
   Map _tokenToLine = {};
 
   /// This function maps a token position to a column number.
+  /// The VM considers the first column to be column 1.
   int tokenToCol(int tokenPos) => _tokenToCol[tokenPos];
   Map _tokenToCol = {};
 
@@ -3324,7 +3349,7 @@ class Script extends HeapObject implements M.Script {
 
   static bool _isIdentifierChar(int c) {
     if (_isInitialIdentifierChar(c)) return true;
-    return c >= 48 && c <= 75; // Digit
+    return c >= 48 && c <= 57; // Digit
   }
 
   void _update(Map map, bool mapIsRef) {
@@ -3402,6 +3427,28 @@ class Script extends HeapObject implements M.Script {
       if (bpt.location.script == this) {
         _addBreakpoint(bpt);
       }
+    }
+  }
+
+  // Note, this may return source beyond the token length if [guessTokenLength]
+  // fails.
+  String getToken(int tokenPos) {
+    final int line = tokenToLine(tokenPos);
+    int column = tokenToCol(tokenPos);
+    if ((line == null) || (column == null)) {
+      return null;
+    }
+    // Line and column numbers start at 1 in the VM.
+    column -= 1;
+    String sourceLine = getLine(line).text;
+    if (sourceLine == null) {
+      return null;
+    }
+    final int length = guessTokenLength(line, column);
+    if (length == null) {
+      return sourceLine.substring(column);
+    } else {
+      return sourceLine.substring(column, column + length);
     }
   }
 
@@ -3607,13 +3654,20 @@ class LocalVarDescriptor implements M.LocalVarDescriptorsRef {
   final String id;
   final String name;
   final int index;
+  final int declarationPos;
   final int beginPos;
   final int endPos;
   final int scopeId;
   final String kind;
 
-  LocalVarDescriptor(this.id, this.name, this.index, this.beginPos, this.endPos,
-      this.scopeId, this.kind);
+  LocalVarDescriptor(this.id,
+                     this.name,
+                     this.index,
+                     this.declarationPos,
+                     this.beginPos,
+                     this.endPos,
+                     this.scopeId,
+                     this.kind);
 }
 
 class LocalVarDescriptors extends ServiceObject {
@@ -3635,12 +3689,13 @@ class LocalVarDescriptors extends ServiceObject {
       var id = descriptor['name'];
       var name = descriptor['name'];
       var index = descriptor['index'];
-      var beginPos = descriptor['beginPos'];
-      var endPos = descriptor['endPos'];
+      var declarationPos = descriptor['declarationTokenPos'];
+      var beginPos = descriptor['scopeStartTokenPos'];
+      var endPos = descriptor['scopeEndTokenPos'];
       var scopeId = descriptor['scopeId'];
       var kind = descriptor['kind'].trim();
       descriptors.add(new LocalVarDescriptor(
-          id, name, index, beginPos, endPos, scopeId, kind));
+          id, name, index, declarationPos, beginPos, endPos, scopeId, kind));
     }
   }
 }

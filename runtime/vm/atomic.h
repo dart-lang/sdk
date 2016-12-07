@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ATOMIC_H_
-#define VM_ATOMIC_H_
+#ifndef RUNTIME_VM_ATOMIC_H_
+#define RUNTIME_VM_ATOMIC_H_
 
 #include "platform/globals.h"
 
@@ -48,8 +48,9 @@ class AtomicOperations : public AllStatic {
   //
   // NOTE: OK to use with memory locations that are accessed by generated code
   static uword CompareAndSwapWord(uword* ptr, uword old_value, uword new_value);
-  static uint32_t CompareAndSwapUint32(
-      uint32_t* ptr, uint32_t old_value, uint32_t new_value);
+  static uint32_t CompareAndSwapUint32(uint32_t* ptr,
+                                       uint32_t old_value,
+                                       uint32_t new_value);
 
   // Performs a load of a word from 'ptr', but without any guarantees about
   // memory order (i.e., no load barriers/fences).
@@ -86,4 +87,4 @@ class AtomicOperations : public AllStatic {
 #error Unknown target os.
 #endif
 
-#endif  // VM_ATOMIC_H_
+#endif  // RUNTIME_VM_ATOMIC_H_

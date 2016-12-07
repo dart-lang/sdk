@@ -4,9 +4,7 @@
 
 // Test that exception unwrapping handle cases like ({foo:null}).foo().
 
-import "dart:_js_helper";
-
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 typedef void MyFunctionType();
 
@@ -25,9 +23,12 @@ A.prototype.setClosure = function(f) { this.f = f; };
 A.prototype.check = function(f) { return this.f === f; };
 A.prototype.invoke = function() { return this.f(); };
 makeA = function(){return new A;};
+
+self.nativeConstructor(A);
 """;
 
 main() {
+  nativeTesting();
   setup();
   A a = makeA();
   a.setClosure(null);
@@ -35,7 +36,7 @@ main() {
   bool caughtException = false;
   try {
     a.invoke();
-  } on JsNoSuchMethodError catch (e) {
+  } on NoSuchMethodError catch (e) {
     print(e);
     caughtException = true;
   }

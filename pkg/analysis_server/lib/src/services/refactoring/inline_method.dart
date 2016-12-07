@@ -191,11 +191,18 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 }
 
 /**
+ * Completes with the resolved [CompilationUnit] that contains the [element].
+ */
+typedef Future<CompilationUnit> GetResolvedUnitContainingElement(
+    Element element);
+
+/**
  * [InlineMethodRefactoring] implementation.
  */
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
+  final GetResolvedUnitContainingElement getResolvedUnit;
   final CompilationUnit unit;
   final int offset;
   CorrectionUtils utils;
@@ -216,8 +223,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
   List<_ReferenceProcessor> _referenceProcessors = [];
+  Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
 
-  InlineMethodRefactoringImpl(this.searchEngine, this.unit, this.offset) {
+  InlineMethodRefactoringImpl(
+      this.searchEngine, this.getResolvedUnit, this.unit, this.offset) {
     utils = new CorrectionUtils(unit);
   }
 
@@ -278,13 +287,18 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkInitialConditions() async {
     RefactoringStatus result = new RefactoringStatus();
     // prepare method information
-    result.addStatus(_prepareMethod());
+    result.addStatus(await _prepareMethod());
     if (result.hasFatalError) {
       return new Future<RefactoringStatus>.value(result);
     }
     // maybe operator
     if (_methodElement.isOperator) {
       result = new RefactoringStatus.fatal('Cannot inline operator.');
+      return new Future<RefactoringStatus>.value(result);
+    }
+    // maybe [a]sync*
+    if (_methodElement.isGenerator) {
+      result = new RefactoringStatus.fatal('Cannot inline a generator.');
       return new Future<RefactoringStatus>.value(result);
     }
     // analyze method body
@@ -295,6 +309,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     _referenceProcessors.clear();
     for (SearchMatch reference in references) {
       _ReferenceProcessor processor = new _ReferenceProcessor(this, reference);
+      await processor.init();
       _referenceProcessors.add(processor);
     }
     return result;
@@ -321,7 +336,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /**
    * Initializes [_methodElement] and related fields.
    */
-  RefactoringStatus _prepareMethod() {
+  Future<RefactoringStatus> _prepareMethod() async {
     _methodElement = null;
     _methodParameters = null;
     _methodBody = null;
@@ -346,7 +361,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element as ExecutableElement;
     _isAccessor = element is PropertyAccessorElement;
-    _methodUnit = element.unit;
+    _methodUnit = await getResolvedUnit(element);
     _methodUtils = new CorrectionUtils(_methodUnit);
     // class member
     bool isClassMember = element.enclosingElement is ClassElement;
@@ -429,6 +444,7 @@ class _ParameterOccurrence {
  */
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
+  final SearchMatch reference;
 
   Element refElement;
   CorrectionUtils _refUtils;
@@ -436,10 +452,12 @@ class _ReferenceProcessor {
   SourceRange _refLineRange;
   String _refPrefix;
 
-  _ReferenceProcessor(this.ref, SearchMatch reference) {
+  _ReferenceProcessor(this.ref, this.reference);
+
+  Future<Null> init() async {
     refElement = reference.element;
     // prepare CorrectionUtils
-    CompilationUnit refUnit = refElement.unit;
+    CompilationUnit refUnit = await ref.getResolvedUnit(refElement);
     _refUtils = new CorrectionUtils(refUnit);
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);
@@ -559,6 +577,33 @@ class _ReferenceProcessor {
     // may be only single place should be inlined
     if (!_shouldProcess()) {
       return;
+    }
+    // If the element being inlined is async, ensure that the function
+    // body that encloses the method is also async.
+    if (ref._methodElement.isAsynchronous) {
+      FunctionBody body = _node.getAncestor((n) => n is FunctionBody);
+      if (body != null) {
+        if (body.isSynchronous) {
+          if (body.isGenerator) {
+            status.addFatalError(
+                'Cannot inline async into sync*.', newLocation_fromNode(_node));
+            return;
+          }
+          if (refElement is ExecutableElement) {
+            var executable = refElement as ExecutableElement;
+            if (!executable.returnType.isDartAsyncFuture) {
+              status.addFatalError(
+                  'Cannot inline async into a function that does not return a Future.',
+                  newLocation_fromNode(_node));
+              return;
+            }
+          }
+          if (ref._alreadyMadeAsync.add(body)) {
+            SourceRange bodyStart = rangeStartLength(body.offset, 0);
+            _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
+          }
+        }
+      }
     }
     // may be invocation of inline method
     if (nodeParent is MethodInvocation) {

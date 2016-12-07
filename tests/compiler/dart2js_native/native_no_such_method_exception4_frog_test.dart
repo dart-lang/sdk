@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:mirrors" show reflect;
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 class GetName {
   foo(x, y) => "foo";
@@ -29,9 +28,11 @@ makeA() native ;
 setup() native """
   function A() {}
   makeA = function() { return new A; }
+  self.nativeConstructor(A);
 """;
 
 main() {
+  nativeTesting();
   setup();
   var a = makeA();
   a.bar();

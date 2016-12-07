@@ -5,12 +5,82 @@
 /**
  * A representation of the contents of an instrumentation log.
  */
-library analysis_server.tool.instrumentation.log;
+library analysis_server.tool.instrumentation.log.log;
 
-import 'dart:collection';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
+
+/**
+ * A boolean-valued function of one argument.
+ */
+typedef bool Predicate<T>(T value);
+
+/**
+ * A description of a group of log entries.
+ */
+class EntryGroup {
+  /**
+   * A list of all of the instances of this class.
+   */
+  static final List<EntryGroup> groups = <EntryGroup>[
+    new EntryGroup._(
+        'nonTask', 'Non-task', (LogEntry entry) => entry is! TaskEntry),
+    new EntryGroup._(
+        'errors',
+        'Errors',
+        (LogEntry entry) =>
+            entry is ErrorEntry ||
+            entry is ExceptionEntry ||
+            (entry is NotificationEntry && entry.isServerError)),
+    new EntryGroup._('malformed', 'Malformed',
+        (LogEntry entry) => entry is MalformedLogEntry),
+    new EntryGroup._('all', 'All', (LogEntry entry) => true),
+  ];
+
+  /**
+   * The unique id of the group.
+   */
+  final String id;
+
+  /**
+   * The human-readable name of the group.
+   */
+  final String name;
+
+  /**
+   * The filter used to determine which entries belong to the group. The filter
+   * should return `true` for members and `false` for non-members.
+   */
+  final Predicate<LogEntry> filter;
+
+  /**
+   * Initialize a newly created entry group with the given state.
+   */
+  EntryGroup._(this.id, this.name, this.filter);
+
+  /**
+   * Given a list of [entries], return all of the entries in the list that are
+   * members of this group.
+   */
+  List<LogEntry> computeMembers(List<LogEntry> entries) {
+    return entries.where(filter).toList();
+  }
+
+  /**
+   * Return the entry group with the given [id], or `null` if there is no group
+   * with the given id.
+   */
+  static EntryGroup withId(String id) {
+    for (EntryGroup group in groups) {
+      if (group.id == id) {
+        return group;
+      }
+    }
+    return null;
+  }
+}
 
 /**
  * A range of log entries, represented by the index of the first and last
@@ -107,34 +177,33 @@ class InstrumentationLog {
   List<LogEntry> logEntries;
 
   /**
-   * The entries in the instrumentation log that are not instances of
-   * [TaskEntry].
+   * A table mapping the entry groups that have been computed to the list of
+   * entries in that group.
    */
-  List<LogEntry> nonTaskEntries;
+  Map<EntryGroup, List<LogEntry>> entryGroups = <EntryGroup, List<LogEntry>>{};
 
   /**
    * A table mapping entries that are paired with another entry to the entry
    * with which they are paired.
    */
-  Map<LogEntry, LogEntry> _pairedEntries = new HashMap<LogEntry, LogEntry>();
+  Map<LogEntry, LogEntry> _pairedEntries = <LogEntry, LogEntry>{};
 
   /**
    * A table mapping the id's of requests to the entry representing the request.
    */
-  Map<String, RequestEntry> _requestMap = new HashMap<String, RequestEntry>();
+  Map<String, RequestEntry> _requestMap = <String, RequestEntry>{};
 
   /**
    * A table mapping the id's of responses to the entry representing the
    * response.
    */
-  Map<String, ResponseEntry> _responseMap =
-      new HashMap<String, ResponseEntry>();
+  Map<String, ResponseEntry> _responseMap = <String, ResponseEntry>{};
 
   /**
    * A table mapping the ids of completion events to the events with those ids.
    */
   Map<String, List<NotificationEntry>> _completionMap =
-      new HashMap<String, List<NotificationEntry>>();
+      <String, List<NotificationEntry>>{};
 
   /**
    * The ranges of entries that are between analysis start and analysis end
@@ -156,6 +225,12 @@ class InstrumentationLog {
    */
   List<NotificationEntry> completionEventsWithId(String id) =>
       _completionMap[id];
+
+  /**
+   * Return the log entries that are contained in the given [group].
+   */
+  List<LogEntry> entriesInGroup(EntryGroup group) =>
+      entryGroups.putIfAbsent(group, () => group.computeMembers(logEntries));
 
   /**
    * Return the entry that is paired with the given [entry], or `null` if there
@@ -181,7 +256,7 @@ class InstrumentationLog {
    */
   List<TaskEntry> taskEntriesFor(int startIndex) {
     List<TaskEntry> taskEntries = <TaskEntry>[];
-    NotificationEntry startEntry = nonTaskEntries[startIndex];
+    NotificationEntry startEntry = logEntries[startIndex];
     LogEntry endEntry = pairedEntry(startEntry);
     int lastIndex = endEntry == null ? logEntries.length : endEntry.index;
     for (int i = startEntry.index + 1; i < lastIndex; i++) {
@@ -191,6 +266,18 @@ class InstrumentationLog {
       }
     }
     return taskEntries;
+  }
+
+  /**
+   * Return `true` if the given [logContent] appears to be from session data.
+   */
+  bool _isSessionData(List<String> logContent) {
+    if (logContent.length < 2) {
+      return false;
+    }
+    String firstLine = logContent[0];
+    return firstLine.startsWith('-----') && logContent[1].startsWith('~') ||
+        firstLine.startsWith('~');
   }
 
   /**
@@ -218,14 +305,21 @@ class InstrumentationLog {
         if (extraLines.isNotEmpty) {
           logContent[i] = merge(line, extraLines);
         }
+        extraLines.clear();
       } else {
         logContent.removeAt(i);
         extraLines.insert(0, line);
       }
     }
     if (extraLines.isNotEmpty) {
-      throw new StateError(
-          '${extraLines.length} non-entry lines before any entry');
+      int count = math.min(extraLines.length, 10);
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeln('${extraLines.length} non-entry lines before any entry');
+      buffer.writeln('First $count lines:');
+      for (int i = 0; i < count; i++) {
+        buffer.writeln(extraLines[i]);
+      }
+      throw new StateError(buffer.toString());
     }
   }
 
@@ -233,9 +327,18 @@ class InstrumentationLog {
    * Parse the given [logContent] into a list of log entries.
    */
   void _parseLogContent(List<String> logContent) {
-    _mergeEntries(logContent);
+    if (_isSessionData(logContent)) {
+      if (logContent[0].startsWith('-----')) {
+        logContent.removeAt(0);
+      }
+      int lastIndex = logContent.length - 1;
+      if (logContent[lastIndex].startsWith('extraction complete')) {
+        logContent.removeAt(lastIndex);
+      }
+    } else {
+      _mergeEntries(logContent);
+    }
     logEntries = <LogEntry>[];
-    nonTaskEntries = <LogEntry>[];
     analysisRanges = <EntryRange>[];
     NotificationEntry analysisStartEntry = null;
     int analysisStartIndex = -1;
@@ -244,9 +347,6 @@ class InstrumentationLog {
       LogEntry entry = new LogEntry.from(logEntries.length, line);
       if (entry != null) {
         logEntries.add(entry);
-        if (entry is! TaskEntry) {
-          nonTaskEntries.add(entry);
-        }
         if (entry is RequestEntry) {
           _requestMap[entry.id] = entry;
         } else if (entry is ResponseEntry) {
@@ -439,6 +539,7 @@ abstract class LogEntry {
     'Err': 'Error',
     'Ex': 'Exception',
     'Log': 'Log message',
+    'Mal': 'Malformed entry',
     'Noti': 'Notification',
     'Read': 'Read file',
     'Req': 'Request',
@@ -479,47 +580,54 @@ abstract class LogEntry {
     if (entry.isEmpty) {
       return null;
     }
-    List<String> components = _parseComponents(entry);
-    int timeStamp;
     try {
-      timeStamp = int.parse(components[0]);
-    } catch (exception) {
-      print('Invalid time stamp in "${components[0]}"; entry = "$entry"');
-      return null;
-    }
-    String entryKind = components[1];
-    if (entryKind == InstrumentationService.TAG_ANALYSIS_TASK) {
-      return new TaskEntry(index, timeStamp, components[2], components[3]);
-    } else if (entryKind == InstrumentationService.TAG_ERROR) {
-      return new ErrorEntry(index, timeStamp, entryKind, components.sublist(2));
-    } else if (entryKind == InstrumentationService.TAG_EXCEPTION) {
-      return new ExceptionEntry(
+      List<String> components = _parseComponents(entry);
+      int timeStamp;
+      String component = components[0];
+      if (component.startsWith('~')) {
+        component = component.substring(1);
+      }
+      timeStamp = int.parse(component);
+      String entryKind = components[1];
+      if (entryKind == InstrumentationService.TAG_ANALYSIS_TASK) {
+        return new TaskEntry(index, timeStamp, components[2], components[3]);
+      } else if (entryKind == InstrumentationService.TAG_ERROR) {
+        return new ErrorEntry(
+            index, timeStamp, entryKind, components.sublist(2));
+      } else if (entryKind == InstrumentationService.TAG_EXCEPTION) {
+        return new ExceptionEntry(
+            index, timeStamp, entryKind, components.sublist(2));
+      } else if (entryKind == InstrumentationService.TAG_FILE_READ) {
+        // Fall through
+      } else if (entryKind == InstrumentationService.TAG_LOG_ENTRY) {
+        // Fall through
+      } else if (entryKind == InstrumentationService.TAG_NOTIFICATION) {
+        Map requestData = JSON.decode(components[2]);
+        return new NotificationEntry(index, timeStamp, requestData);
+      } else if (entryKind == InstrumentationService.TAG_PERFORMANCE) {
+        // Fall through
+      } else if (entryKind == InstrumentationService.TAG_REQUEST) {
+        Map requestData = JSON.decode(components[2]);
+        return new RequestEntry(index, timeStamp, requestData);
+      } else if (entryKind == InstrumentationService.TAG_RESPONSE) {
+        Map responseData = JSON.decode(components[2]);
+        return new ResponseEntry(index, timeStamp, responseData);
+      } else if (entryKind == InstrumentationService.TAG_SUBPROCESS_START) {
+        // Fall through
+      } else if (entryKind == InstrumentationService.TAG_SUBPROCESS_RESULT) {
+        // Fall through
+      } else if (entryKind == InstrumentationService.TAG_VERSION) {
+        // Fall through
+      } else if (entryKind == InstrumentationService.TAG_WATCH_EVENT) {
+        // Fall through
+      }
+      return new GenericEntry(
           index, timeStamp, entryKind, components.sublist(2));
-    } else if (entryKind == InstrumentationService.TAG_FILE_READ) {
-      // Fall through
-    } else if (entryKind == InstrumentationService.TAG_LOG_ENTRY) {
-      // Fall through
-    } else if (entryKind == InstrumentationService.TAG_NOTIFICATION) {
-      Map requestData = JSON.decode(components[2]);
-      return new NotificationEntry(index, timeStamp, requestData);
-    } else if (entryKind == InstrumentationService.TAG_PERFORMANCE) {
-      // Fall through
-    } else if (entryKind == InstrumentationService.TAG_REQUEST) {
-      Map requestData = JSON.decode(components[2]);
-      return new RequestEntry(index, timeStamp, requestData);
-    } else if (entryKind == InstrumentationService.TAG_RESPONSE) {
-      Map responseData = JSON.decode(components[2]);
-      return new ResponseEntry(index, timeStamp, responseData);
-    } else if (entryKind == InstrumentationService.TAG_SUBPROCESS_START) {
-      // Fall through
-    } else if (entryKind == InstrumentationService.TAG_SUBPROCESS_RESULT) {
-      // Fall through
-    } else if (entryKind == InstrumentationService.TAG_VERSION) {
-      // Fall through
-    } else if (entryKind == InstrumentationService.TAG_WATCH_EVENT) {
-      // Fall through
+    } catch (exception) {
+      LogEntry logEntry = new MalformedLogEntry(index, entry);
+      logEntry.recordProblem(exception.toString());
+      return logEntry;
     }
-    return new GenericEntry(index, timeStamp, entryKind, components.sublist(2));
   }
 
   /**
@@ -608,6 +716,25 @@ abstract class LogEntry {
 }
 
 /**
+ * A representation of a malformed log entry.
+ */
+class MalformedLogEntry extends LogEntry {
+  final String entry;
+
+  MalformedLogEntry(int index, this.entry) : super(index, -1);
+
+  @override
+  String get kind => 'Mal';
+
+  @override
+  void _appendDetails(StringBuffer buffer) {
+    super._appendDetails(buffer);
+    buffer.write(entry);
+    buffer.write('<br>');
+  }
+}
+
+/**
  * A log entry representing a notification that was sent from the server to the
  * client.
  */
@@ -623,6 +750,11 @@ class NotificationEntry extends JsonBasedEntry {
    * Return the event field of the request.
    */
   String get event => data['event'];
+
+  /**
+   * Return `true` if this is a server error notification.
+   */
+  bool get isServerError => event == 'server.error';
 
   /**
    * Return `true` if this is a server status notification.

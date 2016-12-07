@@ -57,7 +57,7 @@ void CodeBreakpoint::RestoreCode() {
   is_enabled_ = false;
 }
 
-#endif   // !PRODUCT
+#endif  // !PRODUCT
 
 }  // namespace dart
 

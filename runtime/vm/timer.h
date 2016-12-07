@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_TIMER_H_
-#define VM_TIMER_H_
+#ifndef RUNTIME_VM_TIMER_H_
+#define RUNTIME_VM_TIMER_H_
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -16,8 +16,7 @@ namespace dart {
 // Timer class allows timing of specific operations in the VM.
 class Timer : public ValueObject {
  public:
-  Timer(bool report, const char* message)
-      : report_(report), message_(message) {
+  Timer(bool report, const char* message) : report_(report), message_(message) {
     Reset();
   }
   ~Timer() {}
@@ -69,7 +68,7 @@ class Timer : public ValueObject {
 
   bool IsReset() const {
     return (start_ == 0) && (stop_ == 0) && (total_ == 0) &&
-        (max_contiguous_ == 0) && !running_;
+           (max_contiguous_ == 0) && !running_;
   }
 
   void AddTotal(const Timer& other) {
@@ -111,9 +110,7 @@ class Timer : public ValueObject {
 class TimerScope : public StackResource {
  public:
   TimerScope(bool flag, Timer* timer, Thread* thread = NULL)
-      : StackResource(thread),
-        nested_(false),
-        timer_(flag ? timer : NULL) {
+      : StackResource(thread), nested_(false), timer_(flag ? timer : NULL) {
     Init();
   }
 
@@ -146,9 +143,7 @@ class TimerScope : public StackResource {
 class PauseTimerScope : public StackResource {
  public:
   PauseTimerScope(bool flag, Timer* timer, Thread* thread = NULL)
-      : StackResource(thread),
-        nested_(false),
-        timer_(flag ? timer : NULL) {
+      : StackResource(thread), nested_(false), timer_(flag ? timer : NULL) {
     if (timer_) {
       if (timer_->running()) {
         timer_->Stop();
@@ -174,7 +169,6 @@ class PauseTimerScope : public StackResource {
 };
 
 
-
 }  // namespace dart
 
-#endif  // VM_TIMER_H_
+#endif  // RUNTIME_VM_TIMER_H_

@@ -22,6 +22,7 @@
 #include "bin/vmservice_impl.h"
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 #include "platform/hashmap.h"
 #include "platform/globals.h"
@@ -140,8 +141,8 @@ static bool ProcessEnvironmentOption(const char* arg) {
     name[name_len] = '\0';
     value = strdup(equals_pos + 1);
   }
-  HashMap::Entry* entry = environment->Lookup(
-      GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
+  HashMap::Entry* entry = environment->Lookup(GetHashmapKeyFromString(name),
+                                              HashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
   entry->value = value;
   return true;
@@ -162,10 +163,9 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
     name_chars[utf8_len] = '\0';
     const char* value = NULL;
     if (environment != NULL) {
-      HashMap::Entry* entry = environment->Lookup(
-          GetHashmapKeyFromString(name_chars),
-          HashMap::StringHash(name_chars),
-          false);
+      HashMap::Entry* entry =
+          environment->Lookup(GetHashmapKeyFromString(name_chars),
+                              HashMap::StringHash(name_chars), false);
       if (entry != NULL) {
         value = reinterpret_cast<char*>(entry->value);
       }
@@ -178,7 +178,6 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   }
   return result;
 }
-
 
 
 static const char* ProcessOption(const char* option, const char* name) {
@@ -311,10 +310,8 @@ static int ParseArguments(int argc,
         ProcessInstructionsBlobOption(argv[i]) ||
         ProcessRodataBlobOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
-        ProcessURLmappingOption(argv[i]) ||
-        ProcessPackageRootOption(argv[i]) ||
-        ProcessPackagesOption(argv[i]) ||
-        ProcessEnvironmentOption(argv[i])) {
+        ProcessURLmappingOption(argv[i]) || ProcessPackageRootOption(argv[i]) ||
+        ProcessPackagesOption(argv[i]) || ProcessEnvironmentOption(argv[i])) {
       i += 1;
       continue;
     }
@@ -333,8 +330,9 @@ static int ParseArguments(int argc,
   // Verify consistency of arguments.
   if ((commandline_package_root != NULL) &&
       (commandline_packages_file != NULL)) {
-    Log::PrintErr("Specifying both a packages directory and a packages "
-                  "file is invalid.\n");
+    Log::PrintErr(
+        "Specifying both a packages directory and a packages "
+        "file is invalid.\n");
     return -1;
   }
 
@@ -349,25 +347,24 @@ static int ParseArguments(int argc,
   }
 
   bool precompiled_as_assembly = assembly_filename != NULL;
-  bool precompiled_as_blobs = (instructions_blob_filename != NULL) ||
-                              (rodata_blob_filename != NULL);
+  bool precompiled_as_blobs =
+      (instructions_blob_filename != NULL) || (rodata_blob_filename != NULL);
   if (precompiled_as_assembly && precompiled_as_blobs) {
     Log::PrintErr(
-      "Cannot request a precompiled snapshot simultaneously as "
-      "assembly (--assembly=<output.file>) and as blobs "
-      "(--instructions-blob=<output.file> and "
-      "--rodata-blob=<output.file>)\n\n");
+        "Cannot request a precompiled snapshot simultaneously as "
+        "assembly (--assembly=<output.file>) and as blobs "
+        "(--instructions-blob=<output.file> and "
+        "--rodata-blob=<output.file>)\n\n");
     return -1;
   }
   if ((instructions_blob_filename != NULL) != (rodata_blob_filename != NULL)) {
     Log::PrintErr(
-      "Requesting a precompiled snapshot as blobs requires both "
-      "(--instructions-blob=<output.file> and "
-      "--rodata-blob=<output.file>)\n\n");
+        "Requesting a precompiled snapshot as blobs requires both "
+        "(--instructions-blob=<output.file> and "
+        "--rodata-blob=<output.file>)\n\n");
     return -1;
   }
-  if (IsSnapshottingForPrecompilation() &&
-      (entry_points_files->count() == 0)) {
+  if (IsSnapshottingForPrecompilation() && (entry_points_files->count() == 0)) {
     Log::PrintErr(
         "Specifying an instructions snapshot filename indicates precompilation"
         ". But no embedder entry points manifest was specified.\n\n");
@@ -382,7 +379,12 @@ static void WriteSnapshotFile(const char* filename,
                               const uint8_t* buffer,
                               const intptr_t size) {
   File* file = File::Open(filename, File::kWriteTruncate);
-  ASSERT(file != NULL);
+  if (file == NULL) {
+    Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(kErrorExitCode);
+  }
   if (!file->WriteFully(buffer, size)) {
     Log::PrintErr("Error: Failed to write snapshot file.\n\n");
   }
@@ -429,9 +431,8 @@ static Dart_Handle LoadUrlContents(const char* uri_string) {
     UriResolverIsolateScope scope;
 
     Dart_Handle resolved_uri = Dart_NewStringFromCString(uri_string);
-    Dart_Handle result =  Loader::LoadUrlContents(resolved_uri,
-                                                  &payload,
-                                                  &payload_length);
+    Dart_Handle result =
+        Loader::LoadUrlContents(resolved_uri, &payload, &payload_length);
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -470,8 +471,8 @@ static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
     }
   }
 
-  Dart_Handle result = failed ? Dart_NewApiError(result_string) :
-                                DartUtils::NewString(result_string);
+  Dart_Handle result = failed ? Dart_NewApiError(result_string)
+                              : DartUtils::NewString(result_string);
   free(result_string);
   return result;
 }
@@ -486,7 +487,8 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   }
   // Now load the contents of the specified uri.
   const char* resolved_uri_string = DartUtils::GetStringValue(resolved_uri);
-  Dart_Handle source =  LoadUrlContents(resolved_uri_string);
+  Dart_Handle source = LoadUrlContents(resolved_uri_string);
+
   if (Dart_IsError(source)) {
     return source;
   }
@@ -520,8 +522,8 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return Dart_NewApiError("accessing library url failed");
   }
   const char* library_url_string = DartUtils::GetStringValue(library_url);
-  const char* mapped_library_url_string = DartUtils::MapLibraryUrl(
-      library_url_string);
+  const char* mapped_library_url_string =
+      DartUtils::MapLibraryUrl(library_url_string);
   if (mapped_library_url_string != NULL) {
     library_url = ResolveUriInWorkingDirectory(mapped_library_url_string);
     library_url_string = DartUtils::GetStringValue(library_url);
@@ -559,7 +561,8 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     // Special case for parting sources of a builtin library.
     if (tag == Dart_kSourceTag) {
       return Dart_LoadSource(library, url, Dart_Null(),
-          Builtin::PartSource(libraryBuiltinId, url_string), 0, 0);
+                             Builtin::PartSource(libraryBuiltinId, url_string),
+                             0, 0);
     }
     ASSERT(tag == Dart_kImportTag);
     return DartUtils::NewError("Unable to import '%s' ", url_string);
@@ -574,7 +577,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     }
   }
   const char* resolved_uri_string = DartUtils::GetStringValue(resolved_url);
-  Dart_Handle source =  LoadUrlContents(resolved_uri_string);
+  Dart_Handle source = LoadUrlContents(resolved_uri_string);
   if (Dart_IsError(source)) {
     return source;
   }
@@ -602,6 +605,7 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
 }
 
 
+// clang-format off
 static void PrintUsage() {
   Log::PrintErr(
 "Usage:                                                                      \n"
@@ -663,6 +667,7 @@ static void PrintUsage() {
 "                                      points into Dart code from the C API. \n"
 "\n");
 }
+// clang-format on
 
 
 static void VerifyLoaded(Dart_Handle library) {
@@ -680,7 +685,8 @@ static const char StubNativeFunctionName[] = "StubNativeFunction";
 
 void StubNativeFunction(Dart_NativeArguments arguments) {
   // This is a stub function for the resolver
-  UNREACHABLE();
+  Dart_SetReturnValue(
+      arguments, Dart_NewApiError("<EMBEDDER DID NOT SETUP NATIVE RESOLVER>"));
 }
 
 
@@ -692,7 +698,7 @@ static Dart_NativeFunction StubNativeLookup(Dart_Handle name,
 
 
 static const uint8_t* StubNativeSymbol(Dart_NativeFunction nf) {
-  return reinterpret_cast<const uint8_t *>(StubNativeFunctionName);
+  return reinterpret_cast<const uint8_t*>(StubNativeFunctionName);
 }
 
 
@@ -709,20 +715,15 @@ static void SetupStubNativeResolver(size_t lib_index,
     static const uint32_t kLoadBufferMaxSize = 128;
     char* load_buffer =
         reinterpret_cast<char*>(calloc(kLoadBufferMaxSize, sizeof(char)));
-    snprintf(load_buffer,
-             kLoadBufferMaxSize,
-             "import '%s';",
+    snprintf(load_buffer, kLoadBufferMaxSize, "import '%s';",
              DartUtils::GetStringValue(library_string));
     Dart_Handle script_handle = Dart_NewStringFromCString(load_buffer);
     memset(load_buffer, 0, kLoadBufferMaxSize);
-    snprintf(load_buffer,
-             kLoadBufferMaxSize,
-             "dart:_snapshot_%zu",
-             lib_index);
+    snprintf(load_buffer, kLoadBufferMaxSize, "dart:_snapshot_%zu", lib_index);
     Dart_Handle script_url = Dart_NewStringFromCString(load_buffer);
     free(load_buffer);
-    Dart_Handle loaded = Dart_LoadLibrary(script_url, Dart_Null(),
-                                          script_handle, 0, 0);
+    Dart_Handle loaded =
+        Dart_LoadLibrary(script_url, Dart_Null(), script_handle, 0, 0);
     DART_CHECK_VALID(loaded);
 
     // Do a fresh lookup
@@ -730,10 +731,30 @@ static void SetupStubNativeResolver(size_t lib_index,
   }
 
   DART_CHECK_VALID(library);
-  Dart_Handle result =  Dart_SetNativeResolver(library,
-                                               &StubNativeLookup,
-                                               &StubNativeSymbol);
+  Dart_Handle result =
+      Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
   DART_CHECK_VALID(result);
+}
+
+
+// Iterate over all libraries and setup the stub native lookup. This must be
+// run after |SetupStubNativeResolversForPrecompilation| because the former
+// loads some libraries.
+static void SetupStubNativeResolvers() {
+  Dart_Handle libraries = Dart_GetLoadedLibraries();
+  intptr_t libraries_length;
+  Dart_ListLength(libraries, &libraries_length);
+  for (intptr_t i = 0; i < libraries_length; i++) {
+    Dart_Handle library = Dart_ListGetAt(libraries, i);
+    DART_CHECK_VALID(library);
+    Dart_NativeEntryResolver old_resolver = NULL;
+    Dart_GetNativeResolver(library, &old_resolver);
+    if (old_resolver == NULL) {
+      Dart_Handle result =
+          Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
+      DART_CHECK_VALID(result);
+    }
+  }
 }
 
 
@@ -762,7 +783,6 @@ static void ImportNativeEntryPointLibrariesIntoRoot(
 
 static void SetupStubNativeResolversForPrecompilation(
     const Dart_QualifiedFunctionName* entries) {
-
   if (entries == NULL) {
     return;
   }
@@ -781,7 +801,7 @@ static void SetupStubNativeResolversForPrecompilation(
 }
 
 
-static void CleanupEntryPointItem(const Dart_QualifiedFunctionName *entry) {
+static void CleanupEntryPointItem(const Dart_QualifiedFunctionName* entry) {
   if (entry == NULL) {
     return;
   }
@@ -842,7 +862,9 @@ const char* ParseEntryNameForIndex(uint8_t index) {
 
 
 static bool ParseEntryPointsManifestSingleLine(
-    const char* line, Dart_QualifiedFunctionName* entry, char** error) {
+    const char* line,
+    Dart_QualifiedFunctionName* entry,
+    char** error) {
   bool success = true;
   size_t offset = 0;
   for (uint8_t i = 0; i < 3; i++) {
@@ -996,7 +1018,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
-    exit(255);
+    exit(kErrorExitCode);
   }
   return entries;
 }
@@ -1011,20 +1033,15 @@ static void CreateAndWriteSnapshot() {
   intptr_t isolate_size = 0;
 
   // First create a snapshot.
-  result = Dart_CreateSnapshot(&vm_isolate_buffer,
-                               &vm_isolate_size,
-                               &isolate_buffer,
-                               &isolate_size);
+  result = Dart_CreateSnapshot(&vm_isolate_buffer, &vm_isolate_size,
+                               &isolate_buffer, &isolate_size);
   CHECK_RESULT(result);
 
   // Now write the vm isolate and isolate snapshots out to the
   // specified file and exit.
-  WriteSnapshotFile(vm_isolate_snapshot_filename,
-                    vm_isolate_buffer,
+  WriteSnapshotFile(vm_isolate_snapshot_filename, vm_isolate_buffer,
                     vm_isolate_size);
-  WriteSnapshotFile(isolate_snapshot_filename,
-                    isolate_buffer,
-                    isolate_size);
+  WriteSnapshotFile(isolate_snapshot_filename, isolate_buffer, isolate_size);
   Dart_ExitScope();
 
   // Shutdown the isolate.
@@ -1036,16 +1053,6 @@ static void CreateAndWritePrecompiledSnapshot(
     Dart_QualifiedFunctionName* standalone_entry_points) {
   ASSERT(IsSnapshottingForPrecompilation());
   Dart_Handle result;
-  uint8_t* vm_isolate_buffer = NULL;
-  intptr_t vm_isolate_size = 0;
-  uint8_t* isolate_buffer = NULL;
-  intptr_t isolate_size = 0;
-  uint8_t* assembly_buffer = NULL;
-  intptr_t assembly_size = 0;
-  uint8_t* instructions_blob_buffer = NULL;
-  intptr_t instructions_blob_size = 0;
-  uint8_t* rodata_blob_buffer = NULL;
-  intptr_t rodata_blob_size = 0;
 
   // Precompile with specified embedder entry points
   result = Dart_Precompile(standalone_entry_points, true);
@@ -1054,44 +1061,35 @@ static void CreateAndWritePrecompiledSnapshot(
   // Create a precompiled snapshot.
   bool as_assembly = assembly_filename != NULL;
   if (as_assembly) {
-    result = Dart_CreatePrecompiledSnapshotAssembly(&vm_isolate_buffer,
-                                                    &vm_isolate_size,
-                                                    &isolate_buffer,
-                                                    &isolate_size,
-                                                    &assembly_buffer,
+    uint8_t* assembly_buffer = NULL;
+    intptr_t assembly_size = 0;
+    result = Dart_CreatePrecompiledSnapshotAssembly(&assembly_buffer,
                                                     &assembly_size);
     CHECK_RESULT(result);
+    WriteSnapshotFile(assembly_filename, assembly_buffer, assembly_size);
   } else {
-    result = Dart_CreatePrecompiledSnapshotBlob(&vm_isolate_buffer,
-                                                &vm_isolate_size,
-                                                &isolate_buffer,
-                                                &isolate_size,
-                                                &instructions_blob_buffer,
-                                                &instructions_blob_size,
-                                                &rodata_blob_buffer,
-                                                &rodata_blob_size);
+    uint8_t* vm_isolate_buffer = NULL;
+    intptr_t vm_isolate_size = 0;
+    uint8_t* isolate_buffer = NULL;
+    intptr_t isolate_size = 0;
+    uint8_t* instructions_blob_buffer = NULL;
+    intptr_t instructions_blob_size = 0;
+    uint8_t* rodata_blob_buffer = NULL;
+    intptr_t rodata_blob_size = 0;
+    result = Dart_CreatePrecompiledSnapshotBlob(
+        &vm_isolate_buffer, &vm_isolate_size, &isolate_buffer, &isolate_size,
+        &instructions_blob_buffer, &instructions_blob_size, &rodata_blob_buffer,
+        &rodata_blob_size);
     CHECK_RESULT(result);
-  }
-
-  // Now write the snapshot pieces out to the specified files and exit.
-  WriteSnapshotFile(vm_isolate_snapshot_filename,
-                    vm_isolate_buffer,
-                    vm_isolate_size);
-  WriteSnapshotFile(isolate_snapshot_filename,
-                    isolate_buffer,
-                    isolate_size);
-  if (as_assembly) {
-    WriteSnapshotFile(assembly_filename,
-                      assembly_buffer,
-                      assembly_size);
-  } else {
-    WriteSnapshotFile(instructions_blob_filename,
-                      instructions_blob_buffer,
+    WriteSnapshotFile(vm_isolate_snapshot_filename, vm_isolate_buffer,
+                      vm_isolate_size);
+    WriteSnapshotFile(isolate_snapshot_filename, isolate_buffer, isolate_size);
+    WriteSnapshotFile(instructions_blob_filename, instructions_blob_buffer,
                       instructions_blob_size);
-    WriteSnapshotFile(rodata_blob_filename,
-                      rodata_blob_buffer,
+    WriteSnapshotFile(rodata_blob_filename, rodata_blob_buffer,
                       rodata_blob_size);
   }
+
   Dart_ExitScope();
 
   // Shutdown the isolate.
@@ -1106,7 +1104,7 @@ static void SetupForUriResolution() {
     Log::PrintErr("%s", Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    exit(255);
+    exit(kErrorExitCode);
   }
   // This is a generic dart snapshot which needs builtin library setup.
   Dart_Handle library =
@@ -1126,7 +1124,7 @@ static void SetupForGenericSnapshotCreation() {
     Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    exit(255);
+    exit(kErrorExitCode);
   }
 }
 
@@ -1138,16 +1136,11 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          Dart_IsolateFlags* flags,
                                          void* data,
                                          char** error) {
-  IsolateData* isolate_data = new IsolateData(script_uri,
-                                              package_root,
-                                              package_config);
+  IsolateData* isolate_data =
+      new IsolateData(script_uri, package_root, package_config);
   Dart_Isolate isolate = NULL;
-  isolate = Dart_CreateIsolate(script_uri,
-                               main,
-                               NULL,
-                               NULL,
-                               isolate_data,
-                               error);
+  isolate =
+      Dart_CreateIsolate(script_uri, main, NULL, NULL, isolate_data, error);
 
   if (isolate == NULL) {
     Log::PrintErr("Error: Could not create service isolate");
@@ -1170,9 +1163,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
   ASSERT(Dart_IsServiceIsolate(isolate));
   // Load embedder specific bits and return. Will not start http server.
-  if (!VmService::Setup("127.0.0.1",
-                        -1,
-                        false /* running_precompiled */,
+  if (!VmService::Setup("127.0.0.1", -1, false /* running_precompiled */,
                         false /* server dev mode */)) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
@@ -1196,12 +1187,9 @@ int main(int argc, char** argv) {
   entry_points_files = &entry_points_files_array;
 
   // Parse command line arguments.
-  if (ParseArguments(argc,
-                     argv,
-                     &vm_options,
-                     &app_script_name) < 0) {
+  if (ParseArguments(argc, argv, &vm_options, &app_script_name) < 0) {
     PrintUsage();
-    return 255;
+    return kErrorExitCode;
   }
 
   Thread::InitOnce();
@@ -1218,6 +1206,7 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
+    vm_options.AddArgument("--print_snapshot_sizes");
 #if TARGET_ARCH_ARM
     // This is for the iPod Touch 5th Generation (and maybe other older devices)
     vm_options.AddArgument("--no-use_integer_division");
@@ -1248,18 +1237,17 @@ int main(int argc, char** argv) {
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);
-    return 255;
+    return kErrorExitCode;
   }
 
-  IsolateData* isolate_data = new IsolateData(NULL,
-                                              commandline_package_root,
+  IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file);
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, NULL, NULL, isolate_data, &error);
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
-    exit(255);
+    exit(kErrorExitCode);
   }
 
   Dart_Handle result;
@@ -1302,11 +1290,26 @@ int main(int argc, char** argv) {
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
     isolate_data = new IsolateData(NULL, NULL, NULL);
-    if (Dart_CreateIsolate(
-            NULL, NULL, NULL, NULL, isolate_data, &error) == NULL) {
-      fprintf(stderr, "%s", error);
+    const uint8_t* kernel = NULL;
+    intptr_t kernel_length = 0;
+    const bool is_kernel_file =
+        TryReadKernel(app_script_name, &kernel, &kernel_length);
+
+    void* kernel_program = NULL;
+    if (is_kernel_file) {
+      kernel_program = Dart_ReadKernelBinary(kernel, kernel_length);
+      free(const_cast<uint8_t*>(kernel));
+    }
+
+    Dart_Isolate isolate =
+        is_kernel_file
+            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
+                                           isolate_data, &error)
+            : Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
+    if (isolate == NULL) {
+      Log::PrintErr("%s", error);
       free(error);
-      exit(255);
+      exit(kErrorExitCode);
     }
     Dart_EnterScope();
     result = Dart_SetEnvironmentCallback(EnvironmentCallback);
@@ -1320,13 +1323,27 @@ int main(int argc, char** argv) {
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
 
+    if (is_kernel_file) {
+      Dart_Handle library = Dart_LoadKernel(kernel_program);
+      if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
+    } else {
+      // Set up the library tag handler in such a manner that it will use the
+      // URL mapping specified on the command line to load the libraries.
+      result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
+      CHECK_RESULT(result);
+    }
+
     SetupStubNativeResolversForPrecompilation(entry_points);
 
-    // Load the specified script.
-    library = LoadSnapshotCreationScript(app_script_name);
-    VerifyLoaded(library);
+    SetupStubNativeResolvers();
 
-    ImportNativeEntryPointLibrariesIntoRoot(entry_points);
+    if (!is_kernel_file) {
+      // Load the specified script.
+      library = LoadSnapshotCreationScript(app_script_name);
+      VerifyLoaded(library);
+
+      ImportNativeEntryPointLibrariesIntoRoot(entry_points);
+    }
 
     // Ensure that we mark all libraries as loaded.
     result = Dart_FinalizeLoading(false);

@@ -43,9 +43,10 @@ class KernelStringBuilder extends ir.Visitor {
       return;
     }
 
-    // TODO(het): If toString method is guaranteed to return a string, then call
-    // it directly instead of stringify. Or, better yet, do this later in the
-    // optimization phase.
+    // TODO(efortuna): If we decide to do inlining before finishing constructing
+    // the control flow graph, we'd want to do the optimization of
+    // calling toString here if the type is provably a string rather than in the
+    // optimization phase (which is where we currently do it).
 
     append(stringify(expression));
   }

@@ -1,12 +1,8 @@
-library XSLTProcessorTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
+import 'package:expect/minitest.dart';
+
 main() {
-
-  useHtmlIndividualConfiguration();
-
   group('supported', () {
     test('supported', () {
       expect(XsltProcessor.supported, true);

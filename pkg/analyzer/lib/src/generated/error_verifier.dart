@@ -347,6 +347,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAssertInitializer(AssertInitializer node) {
+    _checkForNonBoolExpression(node);
+    _checkAssertMessage(node);
+    return super.visitAssertInitializer(node);
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
     _checkAssertMessage(node);
@@ -924,6 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
+    _checkForTypeAnnotationGenericFunctionParameter(node.type);
     return super.visitIsExpression(node);
   }
 
@@ -1294,11 +1302,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * If the given assert [statement] specifies a message, verify that support
+   * If the given [assertion] specifies a message, verify that support
    * for assertions with messages is enabled.
    */
-  void _checkAssertMessage(AssertStatement statement) {
-    Expression expression = statement.message;
+  void _checkAssertMessage(Assertion assertion) {
+    Expression expression = assertion.message;
     if (expression != null && !enableAssertMessage) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
@@ -1754,7 +1762,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         int count = params1.length;
         if (params2.length != count) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+              HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
               errorNameTarget, [
             count,
             params2.length,
@@ -1788,7 +1796,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           pFresh.bound = bound2;
           if (!_typeSystem.isSubtypeOf(bound2, bound1)) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
+                HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
                 errorNameTarget, [
               p1.displayName,
               p1.bound,
@@ -2355,7 +2363,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       libraryNames.sort();
       _errorReporter.reportErrorForNode(StaticWarningCode.AMBIGUOUS_IMPORT,
           node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
-    } else {
+    } else if (element != null) {
       List<Element> sdkElements =
           node.getProperty(LibraryImportScope.conflictingSdkElements);
       if (sdkElements != null) {
@@ -2596,7 +2604,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // no other switch member after this one
     } else {
-      Statement statement = statements[statements.length - 1];
+      Statement statement = statements.last;
+      if (statement is Block && statement.statements.isNotEmpty) {
+        Block block = statement;
+        statement = block.statements.last;
+      }
       // terminated with statement
       if (statement is BreakStatement ||
           statement is ContinueStatement ||
@@ -2606,7 +2618,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // terminated with 'throw' expression
       if (statement is ExpressionStatement) {
         Expression expression = statement.expression;
-        if (expression is ThrowExpression) {
+        if (expression is ThrowExpression || expression is RethrowExpression) {
           return;
         }
       }
@@ -2618,7 +2630,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Verify that the switch cases in the given switch [statement] are terminated
-   * with 'break', 'continue', 'return' or 'throw'.
+   * with 'break', 'continue', 'rethrow', 'return' or 'throw'.
    *
    * See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
    */
@@ -3767,16 +3779,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInNativeClass || list.isSynthetic) {
       return;
     }
-
+    bool isConst = list.isConst;
+    if (!(isConst || list.isFinal)) {
+      return;
+    }
     NodeList<VariableDeclaration> variables = list.variables;
     for (VariableDeclaration variable in variables) {
       if (variable.initializer == null) {
-        if (list.isConst) {
+        if (isConst) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               variable.name,
               [variable.name.name]);
-        } else if (list.isFinal) {
+        } else {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.FINAL_NOT_INITIALIZED,
               variable.name,
@@ -4256,7 +4271,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
           name,
-          [name.name]);
+          [name.name, _getKind(element), element.enclosingElement.name]);
     }
   }
 
@@ -4952,7 +4967,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
-        [superType.displayName]);
+        [superType.displayName, _enclosingClass.displayName]);
   }
 
   /**
@@ -5155,13 +5170,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given assert [statement] has either a 'bool' or
-   * '() -> bool' input.
+   * Verify that the given [assertion] has either a 'bool' or '() -> bool'
+   * condition.
    *
    * See [StaticTypeWarningCode.NON_BOOL_EXPRESSION].
    */
-  void _checkForNonBoolExpression(AssertStatement statement) {
-    Expression expression = statement.condition;
+  void _checkForNonBoolExpression(Assertion assertion) {
+    Expression expression = assertion.condition;
     DartType type = getStaticType(expression);
     if (type is InterfaceType) {
       if (!_typeSystem.isAssignableTo(type, _boolType)) {
@@ -5682,6 +5697,29 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Verify that the given type [name] is not a type parameter in a generic
+   * method.
+   *
+   * See [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER].
+   */
+  void _checkForTypeAnnotationGenericFunctionParameter(TypeName typeName) {
+    if (typeName == null) {
+      return;
+    }
+    Identifier name = typeName.name;
+    if (name is SimpleIdentifier) {
+      Element element = name.staticElement;
+      if (element is TypeParameterElement &&
+          element.enclosingElement is ExecutableElement) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER,
+            name,
+            [name.name]);
+      }
+    }
+  }
+
+  /**
    * Verify that the type arguments in the given [typeName] are all within
    * their bounds.
    *
@@ -5773,7 +5811,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _errorReporter.reportErrorForNode(
         StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
         parameter,
-        [element.displayName]);
+        [element.displayName, bound.displayName]);
   }
 
   /**
@@ -5868,14 +5906,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (enclosingElement is! ClassElement) {
       return;
     }
-    if ((element is MethodElement && !element.isStatic) ||
-        (element is PropertyAccessorElement && !element.isStatic)) {
+    if (element is ExecutableElement && !element.isStatic) {
       return;
     }
     _errorReporter.reportErrorForNode(
         StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
         name,
-        [name.name]);
+        [enclosingElement.name]);
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
@@ -6314,6 +6351,32 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Return a human-readable representation of the kind of the [element].
+   */
+  String _getKind(ExecutableElement element) {
+    if (element is MethodElement) {
+      return 'method';
+    } else if (element is PropertyAccessorElement) {
+      if (element.isSynthetic) {
+        PropertyInducingElement variable = element.variable;
+        if (variable is FieldElement) {
+          return 'field';
+        }
+        return 'variable';
+      } else if (element.isGetter) {
+        return 'getter';
+      } else {
+        return 'setter';
+      }
+    } else if (element is ConstructorElement) {
+      return 'constructor';
+    } else if (element is FunctionElement) {
+      return 'function';
+    }
+    return 'member';
+  }
+
+  /**
    * Return the name of the library that defines given [element].
    */
   String _getLibraryName(Element element) {
@@ -6372,7 +6435,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     String name = member.name;
     ClassElement superclass = classElement.supertype?.element;
     while (superclass != null) {
-      ExecutableElement member = superclass.getMethod(name) ?? superclass.getGetter(name) ?? superclass.getSetter(name);
+      ExecutableElement member = superclass.getMethod(name) ??
+          superclass.getGetter(name) ??
+          superclass.getSetter(name);
       if (member != null) {
         return member;
       }

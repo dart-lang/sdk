@@ -12,16 +12,16 @@ import 'package:analysis_server/src/services/completion/dart/imported_reference_
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ImportedReferenceContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ImportedReferenceContributorTest);
+  });
 }
 
 @reflectiveTest

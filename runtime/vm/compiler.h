@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_COMPILER_H_
-#define VM_COMPILER_H_
+#ifndef RUNTIME_VM_COMPILER_H_
+#define RUNTIME_VM_COMPILER_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -27,6 +27,7 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function);
 
 class CompilationPipeline : public ZoneAllocated {
  public:
@@ -39,7 +40,7 @@ class CompilationPipeline : public ZoneAllocated {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) = 0;
   virtual void FinalizeCompilation(FlowGraph* flow_graph) = 0;
-  virtual ~CompilationPipeline() { }
+  virtual ~CompilationPipeline() {}
 };
 
 
@@ -59,7 +60,7 @@ class DartCompilationPipeline : public CompilationPipeline {
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
  public:
-  IrregexpCompilationPipeline() : backtrack_goto_(NULL) { }
+  IrregexpCompilationPipeline() : backtrack_goto_(NULL) {}
 
   virtual void ParseFunction(ParsedFunction* parsed_function);
 
@@ -111,10 +112,9 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   // If 'result_code' is not NULL, then the generated code is returned but
   // not installed.
-  static RawError* CompileOptimizedFunction(
-      Thread* thread,
-      const Function& function,
-      intptr_t osr_id = kNoOSRDeoptId);
+  static RawError* CompileOptimizedFunction(Thread* thread,
+                                            const Function& function,
+                                            intptr_t osr_id = kNoOSRDeoptId);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.
@@ -189,8 +189,8 @@ class BackgroundCompiler : public ThreadPool::Task {
   virtual void Run();
 
   Isolate* isolate_;
-  bool running_;       // While true, will try to read queue and compile.
-  bool* done_;         // True if the thread is done.
+  bool running_;            // While true, will try to read queue and compile.
+  bool* done_;              // True if the thread is done.
   Monitor* queue_monitor_;  // Controls access to the queue.
   Monitor* done_monitor_;   // Notify/wait that the thread is done.
 
@@ -201,4 +201,4 @@ class BackgroundCompiler : public ThreadPool::Task {
 
 }  // namespace dart
 
-#endif  // VM_COMPILER_H_
+#endif  // RUNTIME_VM_COMPILER_H_

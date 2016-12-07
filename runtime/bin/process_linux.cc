@@ -9,14 +9,14 @@
 
 #include "bin/process.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <poll.h>  // NOLINT
-#include <stdio.h>  // NOLINT
-#include <stdlib.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <errno.h>     // NOLINT
+#include <fcntl.h>     // NOLINT
+#include <poll.h>      // NOLINT
+#include <stdio.h>     // NOLINT
+#include <stdlib.h>    // NOLINT
+#include <string.h>    // NOLINT
 #include <sys/wait.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>    // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -27,13 +27,14 @@
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
-extern char **environ;
+extern char** environ;
 
 namespace dart {
 namespace bin {
 
 int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = new Mutex();
+Process::ExitHook Process::exit_hook_ = NULL;
 
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
@@ -41,7 +42,7 @@ Mutex* Process::global_exit_code_mutex_ = new Mutex();
 // ProcessInfoList.
 class ProcessInfo {
  public:
-  ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) { }
+  ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) {}
   ~ProcessInfo() {
     int closed = TEMP_FAILURE_RETRY(close(fd_));
     if (closed != 0) {
@@ -205,7 +206,7 @@ class ExitCodeHandler {
         }
         intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
         if (exit_code_fd != 0) {
-          int message[2] = { exit_code, negative };
+          int message[2] = {exit_code, negative};
           ssize_t result =
               FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
           // If the process has been closed, the read end of the exit
@@ -545,8 +546,8 @@ class ProcessStarter {
     // Read exec result from child. If no data is returned the exec was
     // successful and the exec call closed the pipe. Otherwise the errno
     // is written to the pipe.
-    bytes_read = FDUtils::ReadFromBlocking(
-        exec_control_[0], &child_errno, sizeof(child_errno));
+    bytes_read = FDUtils::ReadFromBlocking(exec_control_[0], &child_errno,
+                                           sizeof(child_errno));
     if (bytes_read == sizeof(child_errno)) {
       ReadChildError();
       return child_errno;
@@ -557,7 +558,7 @@ class ProcessStarter {
   }
 
 
-  int ReadDetachedExecResult(pid_t *pid) {
+  int ReadDetachedExecResult(pid_t* pid) {
     int child_errno;
     int bytes_read = -1;
     // Read exec result from child. If only pid data is returned the exec was
@@ -620,10 +621,8 @@ class ProcessStarter {
       max_fds = _POSIX_OPEN_MAX;
     }
     for (int fd = 0; fd < max_fds; fd++) {
-      if ((fd != exec_control_[1]) &&
-          (fd != write_out_[0]) &&
-          (fd != read_in_[1]) &&
-          (fd != read_err_[1])) {
+      if ((fd != exec_control_[1]) && (fd != write_out_[0]) &&
+          (fd != read_in_[1]) && (fd != read_err_[1])) {
         VOID_TEMP_FAILURE_RETRY(close(fd));
       }
     }
@@ -673,11 +672,11 @@ class ProcessStarter {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
     char* os_error_message = Utils::StrError(errno, error_buf, kBufferSize);
-    int bytes_written = FDUtils::WriteToBlocking(
-        exec_control_[1], &child_errno, sizeof(child_errno));
+    int bytes_written = FDUtils::WriteToBlocking(exec_control_[1], &child_errno,
+                                                 sizeof(child_errno));
     if (bytes_written == sizeof(child_errno)) {
-      FDUtils::WriteToBlocking(
-          exec_control_[1], os_error_message, strlen(os_error_message) + 1);
+      FDUtils::WriteToBlocking(exec_control_[1], os_error_message,
+                               strlen(os_error_message) + 1);
     }
     VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
     exit(1);
@@ -726,9 +725,9 @@ class ProcessStarter {
   }
 
 
-  int read_in_[2];  // Pipe for stdout to child process.
-  int read_err_[2];  // Pipe for stderr to child process.
-  int write_out_[2];  // Pipe for stdin to child process.
+  int read_in_[2];       // Pipe for stdout to child process.
+  int read_err_[2];      // Pipe for stderr to child process.
+  int write_out_[2];     // Pipe for stdin to child process.
   int exec_control_[2];  // Pipe to get the result from exec.
 
   char** program_arguments_;
@@ -762,24 +761,14 @@ int Process::Start(const char* path,
                    intptr_t* id,
                    intptr_t* exit_event,
                    char** os_error_message) {
-  ProcessStarter starter(path,
-                         arguments,
-                         arguments_length,
-                         working_directory,
-                         environment,
-                         environment_length,
-                         mode,
-                         in,
-                         out,
-                         err,
-                         id,
-                         exit_event,
-                         os_error_message);
+  ProcessStarter starter(path, arguments, arguments_length, working_directory,
+                         environment, environment_length, mode, in, out, err,
+                         id, exit_event, os_error_message);
   return starter.Start();
 }
 
 
-class BufferList: public BufferListBase {
+class BufferList : public BufferListBase {
  public:
   BufferList() {}
 
@@ -792,10 +781,8 @@ class BufferList: public BufferListBase {
       ASSERT(free_size_ > 0);
       ASSERT(free_size_ <= kBufferSize);
       intptr_t block_size = dart::Utils::Minimum(free_size_, available);
-      intptr_t bytes = TEMP_FAILURE_RETRY(read(
-          fd,
-          reinterpret_cast<void*>(FreeSpaceAddress()),
-          block_size));
+      intptr_t bytes = TEMP_FAILURE_RETRY(
+          read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
       if (bytes < 0) {
         return false;
       }
@@ -871,8 +858,8 @@ bool Process::Wait(intptr_t pid,
           }
         } else if (fds[i].fd == exit_event) {
           if (avail == 8) {
-            intptr_t b = TEMP_FAILURE_RETRY(read(exit_event,
-                                                 exit_code_data.bytes, 8));
+            intptr_t b =
+                TEMP_FAILURE_RETRY(read(exit_event, exit_code_data.bytes, 8));
             if (b != 8) {
               return CloseProcessBuffers(fds);
             }
@@ -926,13 +913,8 @@ static Mutex* signal_mutex = new Mutex();
 static SignalInfo* signal_handlers = NULL;
 static const int kSignalsCount = 7;
 static const int kSignals[kSignalsCount] = {
-  SIGHUP,
-  SIGINT,
-  SIGTERM,
-  SIGUSR1,
-  SIGUSR2,
-  SIGWINCH,
-  SIGQUIT  // Allow VMService to listen on SIGQUIT.
+    SIGHUP, SIGINT, SIGTERM, SIGUSR1, SIGUSR2, SIGWINCH,
+    SIGQUIT  // Allow VMService to listen on SIGQUIT.
 };
 
 

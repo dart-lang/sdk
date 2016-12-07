@@ -147,8 +147,6 @@ class A<T> implements B {
 }
 class B<S> implements C {
   const factory B({field1}) = A<B<S>>;
-  // TODO(johnniwinther): Enable this when the constructor evaluator doesn't 
-  // crash:
   const factory B.named() = A<S>;
 }
 class C<U> {

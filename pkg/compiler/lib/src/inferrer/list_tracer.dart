@@ -5,6 +5,7 @@
 library compiler.src.inferrer.list_tracer;
 
 import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
 import 'node_tracer.dart';
@@ -164,7 +165,8 @@ class ListTracerVisitor extends TracerVisitor<ListTypeInformation> {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     Element called = info.calledElement;
-    if (compiler.backend.isForeign(called) && called.name == 'JS') {
+    if (compiler.backend.isForeign(called) &&
+        called.name == BackendHelpers.JS) {
       bailout('Used in JS ${info.call}');
     }
   }

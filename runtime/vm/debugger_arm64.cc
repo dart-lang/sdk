@@ -36,7 +36,7 @@ void CodeBreakpoint::PatchCode() {
       UNREACHABLE();
   }
   const Code& code = Code::Handle(code_);
-  saved_value_ =  CodePatcher::GetStaticCallTargetAt(pc_, code);
+  saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
   CodePatcher::PatchPoolPointerCallAt(pc_, code, stub_target);
   is_enabled_ = true;
 }
@@ -49,8 +49,8 @@ void CodeBreakpoint::RestoreCode() {
     case RawPcDescriptors::kIcCall:
     case RawPcDescriptors::kUnoptStaticCall:
     case RawPcDescriptors::kRuntimeCall: {
-      CodePatcher::PatchPoolPointerCallAt(
-          pc_, code, Code::Handle(saved_value_));
+      CodePatcher::PatchPoolPointerCallAt(pc_, code,
+                                          Code::Handle(saved_value_));
       break;
     }
     default:

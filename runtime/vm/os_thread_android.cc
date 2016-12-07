@@ -9,7 +9,7 @@
 
 #include "vm/os_thread.h"
 
-#include <errno.h>  // NOLINT
+#include <errno.h>     // NOLINT
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
@@ -20,13 +20,13 @@
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result) \
-  if (result != 0) { \
-    const int kBufferSize = 1024; \
-    char error_message[kBufferSize]; \
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /* native_stack_trace */)); \
-    Utils::StrError(result, error_message, kBufferSize); \
-    FATAL2("pthread error: %d (%s)", result, error_message); \
+#define VALIDATE_PTHREAD_RESULT(result)                                        \
+  if (result != 0) {                                                           \
+    const int kBufferSize = 1024;                                              \
+    char error_message[kBufferSize];                                           \
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
+    Utils::StrError(result, error_message, kBufferSize);                       \
+    FATAL2("pthread error: %d (%s)", result, error_message);                   \
   }
 
 
@@ -39,17 +39,17 @@ namespace dart {
 
 
 #ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) { \
-    const int kBufferSize = 1024; \
-    char error_message[kBufferSize]; \
-    Utils::StrError(result, error_message, kBufferSize); \
-    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
-            __FILE__, __LINE__, result, error_message); \
-    return result; \
+#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
+  if (result != 0) {                                                           \
+    const int kBufferSize = 1024;                                              \
+    char error_message[kBufferSize];                                           \
+    Utils::StrError(result, error_message, kBufferSize);                       \
+    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
+            result, error_message);                                            \
+    return result;                                                             \
   }
 #else
-#define RETURN_ON_PTHREAD_FAILURE(result) \
+#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) return result;
 #endif
 

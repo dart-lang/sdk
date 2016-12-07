@@ -2,21 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library QueryTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   final div = new DivElement();
   final canvas = new CanvasElement(width: 200, height: 200);
   canvas.id = 'testcanvas';
   final element =
       new Element.html("<div><br/><img/><input/><img/></div>");
   document.body.nodes.addAll([div, canvas,  element]);
-  
+
   var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
   var isImageElement =
@@ -47,7 +44,7 @@ main() {
       expect(l.length, 2);
       expect(l[0], isImageElement);
       expect(l[1], isImageElement);
-      expect(l[0], isNot(equals(l[1])));
+      expect(l[0] == l[1], isFalse);
     });
 
   test('queryAll (None)', () {

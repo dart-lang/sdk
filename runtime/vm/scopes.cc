@@ -10,7 +10,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, share_enclosing_context, true,
+DEFINE_FLAG(bool,
+            share_enclosing_context,
+            true,
             "Allocate captured variables in the existing context of an "
             "enclosing scope (up to innermost loop) and spare the allocation "
             "of a local context.");
@@ -201,7 +203,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   ASSERT(num_parameters >= 0);
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_parameters <= num_variables());
-  int pos = 0;  // Current variable position.
+  int pos = 0;                              // Current variable position.
   int frame_index = first_parameter_index;  // Current free frame index.
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
@@ -241,13 +243,11 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   int min_frame_index = frame_index;  // Frame index decreases with allocations.
   LocalScope* child = this->child();
   while (child != NULL) {
-    int const dummy_parameter_index = 0;  // Ignored, since no parameters.
+    int const dummy_parameter_index = 0;    // Ignored, since no parameters.
     int const num_parameters_in_child = 0;  // No parameters in children scopes.
-    int child_frame_index = child->AllocateVariables(dummy_parameter_index,
-                                                     num_parameters_in_child,
-                                                     frame_index,
-                                                     context_owner,
-                                                     found_captured_variables);
+    int child_frame_index = child->AllocateVariables(
+        dummy_parameter_index, num_parameters_in_child, frame_index,
+        context_owner, found_captured_variables);
     if (child_frame_index < min_frame_index) {
       min_frame_index = child_frame_index;
     }
@@ -288,6 +288,7 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
       desc.name = &name;
       desc.info.set_kind(kind);
       desc.info.scope_id = context_scope.ContextLevelAt(i);
+      desc.info.declaration_pos = context_scope.DeclarationTokenIndexAt(i);
       desc.info.begin_pos = begin_token_pos();
       desc.info.end_pos = end_token_pos();
       ASSERT(desc.info.begin_pos <= desc.info.end_pos);
@@ -336,6 +337,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.name = &var->name();
         desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
+        desc.info.declaration_pos = TokenPosition::kMinSource;
         desc.info.begin_pos = TokenPosition::kMinSource;
         desc.info.end_pos = TokenPosition::kMinSource;
         desc.info.set_index(var->index());
@@ -353,6 +355,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
           desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
           desc.info.scope_id = *scope_id;
         }
+        desc.info.declaration_pos = var->declaration_token_pos();
         desc.info.begin_pos = var->token_pos();
         desc.info.end_pos = var->owner()->end_token_pos();
         desc.info.set_index(var->index());
@@ -459,7 +462,7 @@ SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
           (label->kind() == SourceLabel::kFor) ||
           (label->kind() == SourceLabel::kDoWhile) ||
           ((jump_kind == Token::kBREAK) &&
-              (label->kind() == SourceLabel::kSwitch))) {
+           (label->kind() == SourceLabel::kSwitch))) {
         return label;
       }
     }
@@ -530,8 +533,8 @@ int LocalScope::NumCapturedVariables() const {
 }
 
 
-RawContextScope* LocalScope::PreserveOuterScope(int current_context_level)
-    const {
+RawContextScope* LocalScope::PreserveOuterScope(
+    int current_context_level) const {
   // Since code generation for nested functions is postponed until first
   // invocation, the function level of the closure scope can only be 1.
   ASSERT(function_level() == 1);
@@ -551,6 +554,8 @@ RawContextScope* LocalScope::PreserveOuterScope(int current_context_level)
     // Preserve the aliases of captured variables belonging to outer scopes.
     if (variable->owner()->function_level() != 1) {
       context_scope.SetTokenIndexAt(captured_idx, variable->token_pos());
+      context_scope.SetDeclarationTokenIndexAt(
+          captured_idx, variable->declaration_token_pos());
       context_scope.SetNameAt(captured_idx, variable->name());
       context_scope.SetIsFinalAt(captured_idx, variable->is_final());
       context_scope.SetIsConstAt(captured_idx, variable->IsConst());
@@ -582,15 +587,18 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   for (int i = 0; i < context_scope.num_variables(); i++) {
     LocalVariable* variable;
     if (context_scope.IsConstAt(i)) {
-      variable = new LocalVariable(context_scope.TokenIndexAt(i),
-          String::ZoneHandle(context_scope.NameAt(i)),
-          Object::dynamic_type());
+      variable = new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
+                                   context_scope.TokenIndexAt(i),
+                                   String::ZoneHandle(context_scope.NameAt(i)),
+                                   Object::dynamic_type());
       variable->SetConstValue(
           Instance::ZoneHandle(context_scope.ConstValueAt(i)));
     } else {
-      variable = new LocalVariable(context_scope.TokenIndexAt(i),
-          String::ZoneHandle(context_scope.NameAt(i)),
-          AbstractType::ZoneHandle(context_scope.TypeAt(i)));
+      variable =
+          new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
+                            context_scope.TokenIndexAt(i),
+                            String::ZoneHandle(context_scope.NameAt(i)),
+                            AbstractType::ZoneHandle(context_scope.TypeAt(i)));
     }
     variable->set_is_captured();
     variable->set_index(context_scope.ContextIndexAt(i));
@@ -616,7 +624,8 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
   while (scope != top_scope->parent()) {
     for (intptr_t i = 0; i < scope->num_variables(); i++) {
       LocalVariable* variable = scope->VariableAt(i);
-      if ((variable->name().raw() == Symbols::StackTraceVar().raw()) ||
+      if (variable->is_forced_stack() ||
+          (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
           (variable->name().raw() == Symbols::SavedTryContextVar().raw())) {
         // Don't capture those variables because the VM expects them to be on
@@ -639,6 +648,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
 
   // Create a descriptor for 'this' variable.
   context_scope.SetTokenIndexAt(0, func.token_pos());
+  context_scope.SetDeclarationTokenIndexAt(0, func.token_pos());
   context_scope.SetNameAt(0, Symbols::This());
   context_scope.SetIsFinalAt(0, true);
   context_scope.SetIsConstAt(0, false);

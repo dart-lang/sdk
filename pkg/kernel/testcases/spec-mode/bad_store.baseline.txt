@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method identity(dynamic x) → dynamic
+  return x;
+static method use(dynamic x) → void {}
+static method main(core::List<core::String> args) → dynamic {
+  dynamic foo = self::identity(new self::Foo::•());
+  if(args.length.>(1)) {
+    foo.field = "string";
+    dynamic first = foo.field;
+    self::use(first);
+    foo.noField = "string";
+    dynamic second = foo.noField;
+    self::use(second);
+  }
+}

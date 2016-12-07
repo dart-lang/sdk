@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-library NodeListTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isElement = predicate((x) => x is Element, 'is an Element');
   var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
@@ -45,7 +42,7 @@ main() {
     });
 
   test('queryAll-canvas', () {
-      List<CanvasElement> all = queryAll('canvas');
+      var all = queryAll('canvas');
       for (var e in all) {
         expect(e, isCanvasElement);
       }
@@ -61,7 +58,7 @@ main() {
 
   test('queryAll-where', () {
       List<Element> all = queryAll('*');
-      Iterable<CanvasElement> canvases = all.where((e) => e is CanvasElement);
+      var canvases = all.where((e) => e is CanvasElement);
       for (var e in canvases) {
         expect(e is CanvasElement, isTrue);
       }

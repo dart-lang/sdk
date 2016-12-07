@@ -13,8 +13,6 @@ part of dart.convert;
  *
  * Fused codecs generally attempt to optimize the operations and can be faster
  * than executing each step of an encoding separately.
- *
- * *Codecs are still experimental and are subject to change without notice.*
  */
 abstract class Codec<S, T> {
   const Codec();
@@ -62,8 +60,8 @@ abstract class Codec<S, T> {
    */
   // TODO(floitsch): use better example with line-splitter once that one is
   // in this library.
-  Codec<S, dynamic> fuse(Codec<T, dynamic> other) {
-    return new _FusedCodec<S, T, dynamic>(this, other);
+  Codec<S, dynamic/*=R*/> fuse/*<R>*/(Codec<T, dynamic/*=R*/> other) {
+    return new _FusedCodec<S, T, dynamic/*=R*/>(this, other);
   }
 
   /**

@@ -11,16 +11,16 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NonErrorResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonErrorResolverTest);
+  });
 }
 
 @reflectiveTest
@@ -31,6 +31,28 @@ enum E { ONE }
 E e() {
   return E.TWO;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void
+      test_abstractSuperMemberReference_superHasConcrete_mixinHasAbstract_method() {
+    Source source = addSource('''
+class A {
+  void method() {}
+}
+
+abstract class B {
+  void method();
+}
+
+class C extends A with B {
+  void method() {
+    super.method();
+  }
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -1704,6 +1726,19 @@ Map _globalMap = {
 
   void test_duplicateDefinition_getter() {
     Source source = addSource("bool get a => true;");
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_duplicatePart() {
+    addNamedSource('/part1.dart', 'part of lib;');
+    addNamedSource('/part2.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -3703,6 +3738,18 @@ class B extends A {
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  void test_nativeConstConstructor() {
+    Source source = addSource(r'''
+import 'dart-ext:x';
+class Foo {
+  const Foo() native 'Foo_Foo';
+  const factory Foo.foo() native 'Foo_Foo_foo';
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    // Cannot verify the AST because the import's URI cannot be resolved.
   }
 
   void test_nativeFunctionBodyInNonSDKCode_function() {

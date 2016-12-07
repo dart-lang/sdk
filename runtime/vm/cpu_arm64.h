@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CPU_ARM64_H_
-#define VM_CPU_ARM64_H_
+#ifndef RUNTIME_VM_CPU_ARM64_H_
+#define RUNTIME_VM_CPU_ARM64_H_
 
 #include "vm/allocation.h"
 #include "vm/simulator.h"
@@ -18,7 +18,7 @@ namespace dart {
 // additionally mock the options needed for the target architecture so that
 // they may be altered for testing.
 
-class HostCPUFeatures: public AllStatic {
+class HostCPUFeatures : public AllStatic {
  public:
   static void InitOnce();
   static void Cleanup();
@@ -36,20 +36,12 @@ class HostCPUFeatures: public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static bool double_truncate_round_supported() {
-    return false;
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static bool double_truncate_round_supported() { return false; }
 };
 
 }  // namespace dart
 
-#endif  // VM_CPU_ARM64_H_
+#endif  // RUNTIME_VM_CPU_ARM64_H_

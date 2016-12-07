@@ -27,9 +27,9 @@ Dart_Handle Builtin::SetLoadPort(Dart_Port port) {
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   RETURN_IF_ERROR(builtin_lib);
   // Set the _isolateId field.
-  Dart_Handle result = Dart_SetField(builtin_lib,
-                                     DartUtils::NewString("_isolateId"),
-                                     Dart_NewInteger(Dart_GetMainPortId()));
+  Dart_Handle result =
+      Dart_SetField(builtin_lib, DartUtils::NewString("_isolateId"),
+                    Dart_NewInteger(Dart_GetMainPortId()));
   RETURN_IF_ERROR(result);
   load_port_ = port;
   ASSERT(load_port_ != ILLEGAL_PORT);

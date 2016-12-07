@@ -56,11 +56,9 @@ class ThreadInterrupterWin : public AllStatic {
 
   static void Interrupt(OSThread* os_thread) {
     ASSERT(!OSThread::Compare(GetCurrentThreadId(), os_thread->id()));
-    HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
-                               THREAD_QUERY_INFORMATION |
-                               THREAD_SUSPEND_RESUME,
-                               false,
-                               os_thread->id());
+    HANDLE handle = OpenThread(
+        THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION | THREAD_SUSPEND_RESUME,
+        false, os_thread->id());
     ASSERT(handle != NULL);
     DWORD result = SuspendThread(handle);
     if (result == kThreadError) {

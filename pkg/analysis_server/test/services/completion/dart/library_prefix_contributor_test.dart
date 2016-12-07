@@ -7,15 +7,15 @@ library test.services.completion.contributor.dart.library_prefix;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LibraryPrefixContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LibraryPrefixContributorTest);
+  });
 }
 
 @reflectiveTest

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_SECURE_SOCKET_BORINGSSL_H_
-#define BIN_SECURE_SOCKET_BORINGSSL_H_
+#ifndef RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
+#define RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
 
-#if !defined(BIN_SECURE_SOCKET_H_)
+#if !defined(RUNTIME_BIN_SECURE_SOCKET_H_)
 #error Do not include secure_socket_boringssl.h directly. Use secure_socket.h.
 #endif
 
@@ -35,10 +35,8 @@ extern unsigned int root_certificates_pem_length;
 
 class SSLContext {
  public:
-  explicit SSLContext(SSL_CTX* context) :
-      context_(context),
-      alpn_protocol_string_(NULL) {
-  }
+  explicit SSLContext(SSL_CTX* context)
+      : context_(context), alpn_protocol_string_(NULL) {}
 
   ~SSLContext() {
     SSL_CTX_free(context_);
@@ -92,7 +90,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
         handshake_complete_(NULL),
         bad_certificate_callback_(NULL),
         in_handshake_(false),
-        hostname_(NULL) { }
+        hostname_(NULL) {}
 
   ~SSLFilter();
 
@@ -162,4 +160,4 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_SECURE_SOCKET_BORINGSSL_H_
+#endif  // RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_

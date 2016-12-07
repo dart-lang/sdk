@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CODE_DESCRIPTORS_H_
-#define VM_CODE_DESCRIPTORS_H_
+#ifndef RUNTIME_VM_CODE_DESCRIPTORS_H_
+#define RUNTIME_VM_CODE_DESCRIPTORS_H_
 
 #include "vm/ast.h"
 #include "vm/code_generator.h"
@@ -16,12 +16,12 @@ namespace dart {
 class DescriptorList : public ZoneAllocated {
  public:
   explicit DescriptorList(intptr_t initial_capacity)
-    : encoded_data_(initial_capacity),
-      prev_pc_offset(0),
-      prev_deopt_id(0),
-      prev_token_pos(0) {}
+      : encoded_data_(initial_capacity),
+        prev_pc_offset(0),
+        prev_deopt_id(0),
+        prev_token_pos(0) {}
 
-  ~DescriptorList() { }
+  ~DescriptorList() {}
 
   void AddDescriptor(RawPcDescriptors::Kind kind,
                      intptr_t pc_offset,
@@ -45,11 +45,9 @@ class DescriptorList : public ZoneAllocated {
 class CodeSourceMapBuilder : public ZoneAllocated {
  public:
   explicit CodeSourceMapBuilder(intptr_t initial_capacity = 64)
-    : encoded_data_(initial_capacity),
-      prev_pc_offset(0),
-      prev_token_pos(0) {}
+      : encoded_data_(initial_capacity), prev_pc_offset(0), prev_token_pos(0) {}
 
-  ~CodeSourceMapBuilder() { }
+  ~CodeSourceMapBuilder() {}
 
   void AddEntry(intptr_t pc_offset, TokenPosition token_pos);
 
@@ -70,8 +68,8 @@ class StackmapTableBuilder : public ZoneAllocated {
   StackmapTableBuilder()
       : stack_map_(Stackmap::ZoneHandle()),
         list_(GrowableObjectArray::ZoneHandle(
-            GrowableObjectArray::New(Heap::kOld))) { }
-  ~StackmapTableBuilder() { }
+            GrowableObjectArray::New(Heap::kOld))) {}
+  ~StackmapTableBuilder() {}
 
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
@@ -94,17 +92,15 @@ class StackmapTableBuilder : public ZoneAllocated {
 class ExceptionHandlerList : public ZoneAllocated {
  public:
   struct HandlerDesc {
-    intptr_t outer_try_index;  // Try block in which this try block is nested.
-    intptr_t pc_offset;        // Handler PC offset value.
-    const Array* handler_types;   // Catch clause guards.
+    intptr_t outer_try_index;    // Try block in which this try block is nested.
+    intptr_t pc_offset;          // Handler PC offset value.
+    const Array* handler_types;  // Catch clause guards.
     bool needs_stacktrace;
   };
 
   ExceptionHandlerList() : list_() {}
 
-  intptr_t Length() const {
-    return list_.length();
-  }
+  intptr_t Length() const { return list_.length(); }
 
   void AddPlaceHolder() {
     struct HandlerDesc data;
@@ -165,4 +161,4 @@ class ExceptionHandlerList : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_CODE_DESCRIPTORS_H_
+#endif  // RUNTIME_VM_CODE_DESCRIPTORS_H_

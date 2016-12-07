@@ -449,13 +449,9 @@ applyHooksTransformer(transformer, hooks) {
 
 const _baseHooks = const JS_CONST(r'''
 function() {
-  function typeNameInChrome(o) {
-    var constructor = o.constructor;
-    if (constructor) {
-      var name = constructor.name;
-      if (name) return name;
-    }
-    var s = Object.prototype.toString.call(o);
+  var toStringFunction = Object.prototype.toString;
+  function getTag(o) {
+    var s = toStringFunction.call(o);
     return s.substring(8, s.length - 1);
   }
   function getUnknownTag(object, tag) {
@@ -463,7 +459,7 @@ function() {
     // here allows [getUnknownTag] to be tested on d8.
     if (/^HTML[A-Z].*Element$/.test(tag)) {
       // Check that it is not a simple JavaScript object.
-      var name = Object.prototype.toString.call(object);
+      var name = toStringFunction.call(object);
       if (name == "[object Object]") return null;
       return "HTMLElement";
     }
@@ -484,7 +480,7 @@ function() {
   var isBrowser = typeof navigator == "object";
 
   return {
-    getTag: typeNameInChrome,
+    getTag: getTag,
     getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,
     prototypeForTag: prototypeForTag,
     discriminator: discriminator };
@@ -501,30 +497,6 @@ function() {
  */
 const _constructorNameFallback = const JS_CONST(r'''
 function getTagFallback(o) {
-  var constructor = o.constructor;
-  if (typeof constructor == "function") {
-    var name = constructor.name;
-    // If the name is a non-empty string, we use that as the type name of this
-    // object.  There are various cases where that does not work, so we have to
-    // detect them and fall through to the toString() based implementation.
-
-    if (typeof name == "string" &&
-
-        // Sometimes the string is empty.  This test also catches minified
-        // shadow dom polyfil wrapper for Window on Firefox where the faked
-        // constructor name does not 'stick'.  The shortest real DOM object
-        // names have three characters (e.g. URL, CSS).
-        name.length > 2 &&
-
-        // On Firefox we often get "Object" as the constructor name, even for
-        // more specialized DOM objects.
-        name !== "Object" &&
-
-        // This can happen in Opera.
-        name !== "Function.prototype") {
-      return name;
-    }
-  }
   var s = Object.prototype.toString.call(o);
   return s.substring(8, s.length - 1);
 }''');

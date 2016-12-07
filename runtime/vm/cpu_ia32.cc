@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/cpu.h"
+#include "vm/cpu_ia32.h"
 
 #include "vm/assembler.h"
 #include "vm/constants_ia32.h"
@@ -40,9 +41,8 @@ void HostCPUFeatures::InitOnce() {
 
   hardware_ = CpuInfo::GetCpuModel();
   sse2_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse2");
-  sse4_1_supported_ =
-      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
-      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
+  sse4_1_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
+                      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
 
 #if defined(DEBUG)
   initialized_ = true;

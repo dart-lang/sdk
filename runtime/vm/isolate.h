@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ISOLATE_H_
-#define VM_ISOLATE_H_
+#ifndef RUNTIME_VM_ISOLATE_H_
+#define RUNTIME_VM_ISOLATE_H_
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -19,6 +19,7 @@
 #include "vm/os_thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
+#include "vm/growable_array.h"
 
 namespace dart {
 
@@ -70,6 +71,19 @@ class ThreadRegistry;
 class UserTag;
 
 
+class PendingLazyDeopt {
+ public:
+  PendingLazyDeopt(uword fp, uword pc) : fp_(fp), pc_(pc) {}
+  uword fp() { return fp_; }
+  uword pc() { return pc_; }
+  void set_pc(uword pc) { pc_ = pc; }
+
+ private:
+  uword fp_;
+  uword pc_;
+};
+
+
 class IsolateVisitor {
  public:
   IsolateVisitor() {}
@@ -87,6 +101,7 @@ class NoOOBMessageScope : public StackResource {
  public:
   explicit NoOOBMessageScope(Thread* thread);
   ~NoOOBMessageScope();
+
  private:
   DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
 };
@@ -146,6 +161,8 @@ class Isolate : public BaseIsolate {
   // Visit all object pointers.
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
                              bool validate_frames);
+  void IterateStackPointers(ObjectPointerVisitor* visitor,
+                            bool validate_frames);
 
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
@@ -192,8 +209,7 @@ class Isolate : public BaseIsolate {
   }
   Dart_Port origin_id() const { return origin_id_; }
   void set_origin_id(Dart_Port id) {
-    ASSERT((id == main_port_ && origin_id_ == 0) ||
-           (origin_id_ == main_port_));
+    ASSERT((id == main_port_ && origin_id_ == 0) || (origin_id_ == main_port_));
     origin_id_ = id;
   }
   void set_pause_capability(uint64_t value) { pause_capability_ = value; }
@@ -207,20 +223,18 @@ class Isolate : public BaseIsolate {
 
   Heap* heap() const { return heap_; }
   void set_heap(Heap* value) { heap_ = value; }
-  static intptr_t heap_offset() { return OFFSET_OF(Isolate, heap_); }
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
+  static intptr_t object_store_offset() {
+    return OFFSET_OF(Isolate, object_store_);
+  }
 
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 
-  void set_init_callback_data(void* value) {
-    init_callback_data_ = value;
-  }
-  void* init_callback_data() const {
-    return init_callback_data_;
-  }
+  void set_init_callback_data(void* value) { init_callback_data_ = value; }
+  void* init_callback_data() const { return init_callback_data_; }
 
   Dart_EnvironmentCallback environment_callback() const {
     return environment_callback_;
@@ -238,8 +252,7 @@ class Isolate : public BaseIsolate {
 
   void SetupInstructionsSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
-  void SetupDataSnapshotPage(
-      const uint8_t* instructions_snapshot_buffer);
+  void SetupDataSnapshotPage(const uint8_t* instructions_snapshot_buffer);
 
   void ScheduleMessageInterrupts();
 
@@ -251,6 +264,8 @@ class Isolate : public BaseIsolate {
   // the caller to delete is separately if it is still needed.
   bool ReloadSources(JSONStream* js,
                      bool force_reload,
+                     const char* root_script_url = NULL,
+                     const char* packages_url = NULL,
                      bool dont_delete_reload_context = false);
 
   bool MakeRunnable();
@@ -278,9 +293,7 @@ class Isolate : public BaseIsolate {
   Mutex* constant_canonicalization_mutex() const {
     return constant_canonicalization_mutex_;
   }
-  Mutex* megamorphic_lookup_mutex() const {
-    return megamorphic_lookup_mutex_;
-  }
+  Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -309,9 +322,7 @@ class Isolate : public BaseIsolate {
     last_resume_timestamp_ = OS::GetCurrentTimeMillis();
   }
 
-  int64_t last_resume_timestamp() const {
-    return last_resume_timestamp_;
-  }
+  int64_t last_resume_timestamp() const { return last_resume_timestamp_; }
 
   // Returns whether the vm service has requested that the debugger
   // resume execution.
@@ -383,13 +394,15 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
-  void set_object_id_ring(ObjectIdRing* ring) {
-    object_id_ring_ = ring;
-  }
-  ObjectIdRing* object_id_ring() {
-    return object_id_ring_;
-  }
+  void set_object_id_ring(ObjectIdRing* ring) { object_id_ring_ = ring; }
+  ObjectIdRing* object_id_ring() { return object_id_ring_; }
 
+  void AddPendingDeopt(uword fp, uword pc);
+  uword FindPendingDeopt(uword fp) const;
+  void ClearPendingDeoptsAtOrBelow(uword fp) const;
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts() const {
+    return pending_deopts_;
+  }
   bool IsDeoptimizing() const { return deopt_context_ != NULL; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
@@ -409,14 +422,13 @@ class Isolate : public BaseIsolate {
   void enable_background_compiler() {
     background_compiler_disabled_depth_--;
     if (background_compiler_disabled_depth_ < 0) {
-      FATAL("Mismatched number of calls to disable_background_compiler and "
-            "enable_background_compiler.");
+      FATAL(
+          "Mismatched number of calls to disable_background_compiler and "
+          "enable_background_compiler.");
     }
   }
 
-  void disable_background_compiler() {
-    background_compiler_disabled_depth_++;
-  }
+  void disable_background_compiler() { background_compiler_disabled_depth_++; }
 
   bool is_background_compiler_disabled() const {
     return background_compiler_disabled_depth_ > 0;
@@ -463,39 +475,37 @@ class Isolate : public BaseIsolate {
     return mutator_thread()->compiler_stats();
   }
 
-  VMTagCounters* vm_tag_counters() {
-    return &vm_tag_counters_;
-  }
+  VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
-  bool IsReloading() const {
-    return reload_context_ != NULL;
-  }
+  bool IsReloading() const { return reload_context_ != NULL; }
 
-  IsolateReloadContext* reload_context() {
-    return reload_context_;
-  }
+  IsolateReloadContext* reload_context() { return reload_context_; }
 
   void DeleteReloadContext();
 
-  bool HasAttemptedReload() const {
-    return has_attempted_reload_;
-  }
+  bool HasAttemptedReload() const { return has_attempted_reload_; }
 
   bool CanReload() const;
 
   void set_last_reload_timestamp(int64_t value) {
     last_reload_timestamp_ = value;
   }
-  int64_t last_reload_timestamp() const {
-    return last_reload_timestamp_;
+  int64_t last_reload_timestamp() const { return last_reload_timestamp_; }
+
+  bool IsPaused() const;
+
+  bool should_pause_post_service_request() const {
+    return should_pause_post_service_request_;
+  }
+  void set_should_pause_post_service_request(
+      bool should_pause_post_service_request) {
+    should_pause_post_service_request_ = should_pause_post_service_request;
   }
 
-  uword user_tag() const {
-    return user_tag_;
-  }
-  static intptr_t user_tag_offset() {
-    return OFFSET_OF(Isolate, user_tag_);
-  }
+  void PausePostRequest();
+
+  uword user_tag() const { return user_tag_; }
+  static intptr_t user_tag_offset() { return OFFSET_OF(Isolate, user_tag_); }
   static intptr_t current_tag_offset() {
     return OFFSET_OF(Isolate, current_tag_);
   }
@@ -521,13 +531,9 @@ class Isolate : public BaseIsolate {
 
   void set_ic_miss_code(const Code& code);
 
-  Metric* metrics_list_head() {
-    return metrics_list_head_;
-  }
+  Metric* metrics_list_head() { return metrics_list_head_; }
 
-  void set_metrics_list_head(Metric* metric) {
-    metrics_list_head_ = metric;
-  }
+  void set_metrics_list_head(Metric* metric) { metrics_list_head_ = metric; }
 
   RawGrowableObjectArray* deoptimized_code_array() const {
     return deoptimized_code_array_;
@@ -542,15 +548,11 @@ class Isolate : public BaseIsolate {
   void clear_sticky_error();
 
   bool compilation_allowed() const { return compilation_allowed_; }
-  void set_compilation_allowed(bool allowed) {
-    compilation_allowed_ = allowed;
-  }
+  void set_compilation_allowed(bool allowed) { compilation_allowed_ = allowed; }
 
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const { return all_classes_finalized_; }
-  void set_all_classes_finalized(bool value) {
-    all_classes_finalized_ = value;
-  }
+  void set_all_classes_finalized(bool value) { all_classes_finalized_ = value; }
 
   // True during top level parsing.
   bool IsTopLevelParsing() {
@@ -588,11 +590,11 @@ class Isolate : public BaseIsolate {
 #ifndef PRODUCT
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
-                           const String& method_name,
-                           const Array& parameter_keys,
-                           const Array& parameter_values,
-                           const Instance& reply_port,
-                           const Instance& id);
+                                  const String& method_name,
+                                  const Array& parameter_keys,
+                                  const Array& parameter_values,
+                                  const Instance& reply_port,
+                                  const Instance& id);
   void RegisterServiceExtensionHandler(const String& name,
                                        const Instance& closure);
   RawInstance* LookupServiceExtensionHandler(const String& name);
@@ -621,7 +623,7 @@ class Isolate : public BaseIsolate {
   bool asserts() const { return FLAG_enable_asserts; }
   bool error_on_bad_type() const { return FLAG_error_on_bad_type; }
   bool error_on_bad_override() const { return FLAG_error_on_bad_override; }
-#else  // defined(PRODUCT)
+#else   // defined(PRODUCT)
   bool type_checks() const { return type_checks_; }
   bool asserts() const { return asserts_; }
   bool error_on_bad_type() const { return error_on_bad_type_; }
@@ -644,7 +646,7 @@ class Isolate : public BaseIsolate {
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
  private:
-  friend class Dart;  // Init, InitOnce, Shutdown.
+  friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
@@ -667,10 +669,9 @@ class Isolate : public BaseIsolate {
   // Visit all object pointers. Caller must ensure concurrent sweeper is not
   // running, and the visitor must not allocate.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitStackPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
-  void set_user_tag(uword tag) {
-    user_tag_ = tag;
-  }
+  void set_user_tag(uword tag) { user_tag_ = tag; }
 
   RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
   RawGrowableObjectArray* pending_service_extension_calls() const {
@@ -685,8 +686,9 @@ class Isolate : public BaseIsolate {
 
   Monitor* threads_lock() const;
   Thread* ScheduleThread(bool is_mutator, bool bypass_safepoint = false);
-  void UnscheduleThread(
-      Thread* thread, bool is_mutator, bool bypass_safepoint = false);
+  void UnscheduleThread(Thread* thread,
+                        bool is_mutator,
+                        bool bypass_safepoint = false);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
@@ -702,9 +704,9 @@ class Isolate : public BaseIsolate {
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
   RawCode* ic_miss_code_;
+  ObjectStore* object_store_;
   ClassTable class_table_;
   bool single_step_;
-  bool skip_step_;  // skip the next single step.
 
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
@@ -717,8 +719,6 @@ class Isolate : public BaseIsolate {
   uint64_t pause_capability_;
   uint64_t terminate_capability_;
   bool errors_fatal_;
-  ObjectStore* object_store_;
-  uword top_exit_frame_info_;
   void* init_callback_data_;
   Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
@@ -729,9 +729,9 @@ class Isolate : public BaseIsolate {
   bool has_compiled_code_;  // Can check that no compilation occured.
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // Protects compiler stats.
+  Mutex* mutex_;          // Protects compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
-  Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
+  Mutex* type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
   Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
   MessageHandler* message_handler_;
@@ -740,21 +740,18 @@ class Isolate : public BaseIsolate {
   Dart_GcPrologueCallback gc_prologue_callback_;
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_;
 
   bool is_service_isolate_;
 
-  // Isolate-specific flags.
-  NOT_IN_PRODUCT(
-    bool type_checks_;
-    bool asserts_;
-    bool error_on_bad_type_;
-    bool error_on_bad_override_;
-  )
-
-  // Status support.
-  char* stacktrace_;
-  intptr_t stack_frame_index_;
+// Isolate-specific flags.
+#if !defined(PRODUCT)
+  bool type_checks_;
+  bool asserts_;
+  bool error_on_bad_type_;
+  bool error_on_bad_override_;
+#endif  // !defined(PRODUCT)
 
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_;
@@ -821,6 +818,11 @@ class Isolate : public BaseIsolate {
   Monitor* spawn_count_monitor_;
   intptr_t spawn_count_;
 
+#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
+  type metric_##variable##_;
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
+#undef ISOLATE_METRIC_VARIABLE
+
   // Has a reload ever been attempted?
   bool has_attempted_reload_;
   intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
@@ -828,12 +830,8 @@ class Isolate : public BaseIsolate {
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
   int64_t last_reload_timestamp_;
-
-#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
-  type metric_##variable##_;
-  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
-#undef ISOLATE_METRIC_VARIABLE
-
+  // Should we pause in the debug message loop after this request?
+  bool should_pause_post_service_request_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
@@ -851,10 +849,10 @@ class Isolate : public BaseIsolate {
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
-REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+  REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
-  friend class Become;  // VisitObjectPointers
+  friend class Become;    // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class Scavenger;  // VisitObjectPointers
@@ -996,4 +994,4 @@ class IsolateSpawnState {
 
 }  // namespace dart
 
-#endif  // VM_ISOLATE_H_
+#endif  // RUNTIME_VM_ISOLATE_H_

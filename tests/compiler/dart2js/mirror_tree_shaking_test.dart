@@ -16,15 +16,18 @@ main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
     Compiler compiler = result.compiler;
+    JavaScriptBackend backend = compiler.backend;
     Expect.isTrue(collector.errors.isEmpty);
     Expect.isTrue(collector.infos.isEmpty);
     Expect.isFalse(compiler.compilationFailed);
-    Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveElements);
+    Expect.isFalse(backend
+        .mirrorsAnalysis.resolutionHandler.hasEnqueuedReflectiveElements);
+    Expect.isFalse(backend
+        .mirrorsAnalysis.resolutionHandler.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(
-        compiler.enqueuer.resolution.hasEnqueuedReflectiveStaticFields);
-    JavaScriptBackend backend = compiler.backend;
-    Expect.isFalse(backend.codegenEnqueuer.hasEnqueuedReflectiveElements);
-    Expect.isFalse(backend.codegenEnqueuer.hasEnqueuedReflectiveStaticFields);
+        backend.mirrorsAnalysis.codegenHandler.hasEnqueuedReflectiveElements);
+    Expect.isFalse(backend
+        .mirrorsAnalysis.codegenHandler.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(compiler.disableTypeInference);
     Expect.isFalse(backend.hasRetainedMetadata);
   });

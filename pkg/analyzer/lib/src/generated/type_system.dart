@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
@@ -170,7 +171,7 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool canPromoteToType(DartType to, DartType from) {
+  DartType tryPromoteToType(DartType to, DartType from) {
     // Allow promoting to a subtype, for example:
     //
     //     f(Base b) {
@@ -182,25 +183,17 @@ class StrongTypeSystemImpl extends TypeSystem {
     // This allows the variable to be used wherever the supertype (here `Base`)
     // is expected, while gaining a more precise type.
     if (isSubtypeOf(to, from)) {
-      return true;
+      return to;
     }
-    // For a type parameter `T extends U`, allow promoting from the upper bound
-    // `U` to `S` where `S <: U`.
-    //
-    // This does restrict the variable, because `S </: T`, it can no longer be
-    // used as a `T` without another cast.
-    //
-    // However the members you could access from a variable of type `T`, were
-    // already those on the upper bound `U`. So all members on `U` will be
-    // accessible, as well as those on `S`. Pragmatically this feels like a
-    // useful enough trade-off to allow promotion.
-    //
-    // (In general we would need union types to support this feature precisely.)
+    // For a type parameter `T extends U`, allow promoting the upper bound
+    // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      return isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance));
+      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
+        return new TypeParameterMember(from.element, null, to).type;
+      }
     }
 
-    return false;
+    return null;
   }
 
   @override
@@ -226,7 +219,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     List<ParameterElement> parameters = t.parameters.map(shave).toList();
     FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
+    function.isSynthetic = true;
     function.returnType = t.returnType;
     function.shareTypeParameters(t.typeFormals);
     function.shareParameters(parameters);
@@ -419,16 +412,6 @@ class StrongTypeSystemImpl extends TypeSystem {
         new _StrongInferenceTypeSystem(typeProvider, this, typeFormals);
 
     if (returnContextType != null) {
-      // If we're in a future union context, choose either the Future<T>
-      // or the T based on the declared return type.
-      if (returnContextType is FutureUnionType) {
-        var futureUnion = returnContextType as FutureUnionType;
-        returnContextType =
-            isSubtypeOf(declaredReturnType, typeProvider.futureDynamicType)
-                ? futureUnion.futureOfType
-                : futureUnion.type;
-      }
-
       inferringTypeSystem.isSubtypeOf(declaredReturnType, returnContextType);
     }
 
@@ -851,7 +834,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     if (identical(i1, i2)) {
       return true;
     }
-    
+
     // Guard recursive calls
     _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype = _guard(
         (DartType i1, DartType i2, Set<Element> visited) =>
@@ -932,7 +915,9 @@ class StrongTypeSystemImpl extends TypeSystem {
     //  True if T == S
     //  Or true if bound of S is S' and S' <: T
     if (t1 is TypeParameterType) {
-      if (t1 == t2) {
+      if (t2 is TypeParameterType &&
+          t1.definition == t2.definition &&
+          guardedSubtype(t1.bound, t2.bound, visited)) {
         return true;
       }
       if (guardedInferTypeParameter(t1, t2, visited)) {
@@ -944,6 +929,19 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     if (t2 is TypeParameterType) {
       return guardedInferTypeParameter(t1, t2, visited);
+    }
+
+    if (t1 is FutureUnionType) {
+      // given t1 is Future<A> | A, then:
+      // (Future<A> | A) <: t2 iff t2 <: Future<A> and t2 <: A.
+      return guardedSubtype(t1.futureOfType, t2, visited) &&
+          guardedSubtype(t1.type, t2, visited);
+    }
+    if (t2 is FutureUnionType) {
+      // given t2 is Future<A> | A, then:
+      // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
+      return guardedSubtype(t1, t2.futureOfType, visited) ||
+          guardedSubtype(t1, t2.type, visited);
     }
 
     // Void only appears as the return type of a function, and we handle it
@@ -1048,15 +1046,18 @@ class StrongTypeSystemImpl extends TypeSystem {
  */
 abstract class TypeSystem {
   /**
-   * Returns `true` if we can promote to the first type from the second type.
+   * Tries to promote from the first type from the second type, and returns the
+   * promoted type if it succeeds, otherwise null.
    *
-   * In the standard Dart type system, it is not possible to promote from or to
+   * In the Dart 1 type system, it is not possible to promote from or to
    * `dynamic`, and we must be promoting to a more specific type, see
-   * [isMoreSpecificThan].
+   * [isMoreSpecificThan]. Also it will always return the promote [to] type or
+   * null.
    *
-   * In strong mode, this is equivalent to [isSubtypeOf].
+   * In strong mode, this can potentially return a different type, see
+   * the override in [StrongTypeSystemImpl].
    */
-  bool canPromoteToType(DartType to, DartType from);
+  DartType tryPromoteToType(DartType to, DartType from);
 
   /**
    * Make a function type concrete.
@@ -1422,11 +1423,15 @@ class TypeSystemImpl extends TypeSystem {
   TypeSystemImpl();
 
   @override
-  bool canPromoteToType(DartType to, DartType from) {
+  DartType tryPromoteToType(DartType to, DartType from) {
     // Declared type should not be "dynamic".
     // Promoted type should not be "dynamic".
     // Promoted type should be more specific than declared.
-    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
+    if (!from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from)) {
+      return to;
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -1577,6 +1582,39 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       _TypeParameterBound bound = _bounds[typeParam];
       DartType lowerBound = bound.lower;
       DartType upperBound = bound.upper;
+
+      // Collapse future unions if we inferred them somehow.
+      //
+      // TODO(jmesserly): in our initial upward phase it would be fine to
+      // keep the FutureUnionType for the argument downward context.
+      //
+      // We need to track in `inferGenericFunctionCall` whether we are going up
+      // or down. This would also allow for an improved heuristic: if we are
+      // doing our final inference, the downward context can take priority.
+      if (lowerBound is FutureUnionType) {
+        // lowerBound <: T, where lowerBound is Future<A> | A.
+        // So we choose lowerBound as LUB(A, Future<A>).
+        //
+        // This will typically lead to top with the current rules, but it will
+        // work with `bottom` or if we remove Future flattening.
+        var f = lowerBound as FutureUnionType;
+        lowerBound = _typeSystem.getLeastUpperBound(
+            _typeProvider, f.futureOfType, f.type);
+      }
+      if (upperBound is FutureUnionType) {
+        // T <: upperBound, where upperBound is Future<A> | A.
+        // Therefore we need T <: Future<A> or T <: A.
+        //
+        // This is just an arbitrarily heuristic.
+        var f = upperBound as FutureUnionType;
+        if (_typeSystem.isSubtypeOf(lowerBound, f.type)) {
+          upperBound = f.type;
+        } else if (_typeSystem.isSubtypeOf(lowerBound, f.futureOfType)) {
+          upperBound = f.futureOfType;
+        } else {
+          upperBound = f.type;
+        }
+      }
 
       // See if the bounds can be satisfied.
       // TODO(jmesserly): also we should have an error for unconstrained type

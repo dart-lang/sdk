@@ -218,12 +218,12 @@ class Selector {
   }
 
   bool appliesUnnamed(Element element) {
-    assert(sameNameHack(element));
+    assert(name == element.name);
     return appliesUntyped(element);
   }
 
   bool appliesUntyped(Element element) {
-    assert(sameNameHack(element));
+    assert(name == element.name);
     if (Elements.isUnresolved(element)) return false;
     if (memberName.isPrivate && memberName.library != element.library) {
       // TODO(johnniwinther): Maybe this should be
@@ -247,13 +247,8 @@ class Selector {
     return callStructure.signatureApplies(function.functionSignature);
   }
 
-  bool sameNameHack(Element element) {
-    // TODO(ngeoffray): Remove workaround checks.
-    return element.isConstructor || name == element.name;
-  }
-
   bool applies(Element element) {
-    if (!sameNameHack(element)) return false;
+    if (name != element.name) return false;
     return appliesUnnamed(element);
   }
 

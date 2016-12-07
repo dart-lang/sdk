@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CPU_MIPS_H_
-#define VM_CPU_MIPS_H_
+#ifndef RUNTIME_VM_CPU_MIPS_H_
+#define RUNTIME_VM_CPU_MIPS_H_
 
 #include "vm/allocation.h"
 
@@ -23,7 +23,7 @@ enum MIPSVersion {
   MIPSvUnknown,
 };
 
-class HostCPUFeatures: public AllStatic {
+class HostCPUFeatures : public AllStatic {
  public:
   static void InitOnce();
   static void Cleanup();
@@ -46,23 +46,13 @@ class HostCPUFeatures: public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static bool double_truncate_round_supported() {
-    return false;
-  }
-  static MIPSVersion mips_version() {
-    return HostCPUFeatures::mips_version();
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static bool double_truncate_round_supported() { return false; }
+  static MIPSVersion mips_version() { return HostCPUFeatures::mips_version(); }
 };
 
 }  // namespace dart
 
-#endif  // VM_CPU_MIPS_H_
+#endif  // RUNTIME_VM_CPU_MIPS_H_

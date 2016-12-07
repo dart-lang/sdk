@@ -247,9 +247,7 @@ class ResolverTask extends CompilerTask {
         // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver =
             new InitializerResolver(visitor, element, tree);
-        FunctionElement redirection = resolver.resolveInitializers(
-            enableInitializingFormalAccess:
-                options.enableInitializingFormalAccess);
+        FunctionElement redirection = resolver.resolveInitializers();
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
@@ -315,11 +313,22 @@ class ResolverTask extends CompilerTask {
           // Ensure the signature of the synthesized element is
           // resolved. This is the only place where the resolver is
           // seeing this element.
-          element.computeType(resolution);
+          FunctionType type = element.computeType(resolution);
           if (!target.isMalformed) {
             registry.registerStaticUse(new StaticUse.superConstructorInvoke(
-                target, CallStructure.NO_ARGS));
+                // TODO(johnniwinther): Provide the right call structure for
+                // forwarding constructors.
+                target,
+                CallStructure.NO_ARGS));
           }
+          // TODO(johnniwinther): Remove this substitution when synthesized
+          // constructors handle type variables correctly.
+          type = type.substByContext(
+              constructor.enclosingClass.asInstanceOf(target.enclosingClass));
+          type.parameterTypes.forEach(registry.registerCheckedModeCheck);
+          type.optionalParameterTypes
+              .forEach(registry.registerCheckedModeCheck);
+          type.namedParameterTypes.forEach(registry.registerCheckedModeCheck);
           return registry.impactBuilder;
         } else {
           assert(element.isDeferredLoaderGetter || element.isMalformed);
@@ -382,6 +391,8 @@ class ResolverTask extends CompilerTask {
         // happens for enum fields where the type is known but is not in the
         // synthesized AST.
         element.variables.type = const DynamicType();
+      } else {
+        registry.registerCheckedModeCheck(element.variables.type);
       }
 
       Expression initializer = element.initializer;
@@ -412,7 +423,8 @@ class ResolverTask extends CompilerTask {
           }
         });
         if (initializer != null) {
-          if (!element.modifiers.isConst) {
+          if (!element.modifiers.isConst &&
+              initializer.asLiteralNull() == null) {
             // TODO(johnniwinther): Determine the const-ness eagerly to avoid
             // unnecessary registrations.
             registry.registerFeature(Feature.LAZY_FIELD);
@@ -430,16 +442,18 @@ class ResolverTask extends CompilerTask {
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
-    DartType type = resolveReturnType(element, annotation);
+    DartType type = _resolveReturnType(element, annotation);
     if (type.isVoid) {
       reporter.reportErrorMessage(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }
 
-  DartType resolveReturnType(Element element, TypeAnnotation annotation) {
+  DartType _resolveReturnType(Element element, TypeAnnotation annotation) {
     if (annotation == null) return const DynamicType();
     DartType result = visitorFor(element).resolveTypeAnnotation(annotation);
+    assert(invariant(annotation, result != null,
+        message: "No type computed for $annotation."));
     if (result == null) {
       // TODO(karklose): warning.
       return const DynamicType();

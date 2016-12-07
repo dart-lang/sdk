@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_LOCKERS_H_
-#define VM_LOCKERS_H_
+#ifndef RUNTIME_VM_LOCKERS_H_
+#define RUNTIME_VM_LOCKERS_H_
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
@@ -170,19 +170,16 @@ class MonitorLocker : public ValueObject {
   }
 
   Monitor::WaitResult WaitWithSafepointCheck(
-      Thread* thread, int64_t millis = Monitor::kNoTimeout);
+      Thread* thread,
+      int64_t millis = Monitor::kNoTimeout);
 
   Monitor::WaitResult WaitMicros(int64_t micros = Monitor::kNoTimeout) {
     return monitor_->WaitMicros(micros);
   }
 
-  void Notify() {
-    monitor_->Notify();
-  }
+  void Notify() { monitor_->Notify(); }
 
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
+  void NotifyAll() { monitor_->NotifyAll(); }
 
  private:
   Monitor* const monitor_;
@@ -212,9 +209,7 @@ class MonitorLocker : public ValueObject {
 class SafepointMutexLocker : public ValueObject {
  public:
   explicit SafepointMutexLocker(Mutex* mutex);
-  virtual ~SafepointMutexLocker() {
-    mutex_->Unlock();
-  }
+  virtual ~SafepointMutexLocker() { mutex_->Unlock(); }
 
  private:
   Mutex* const mutex_;
@@ -243,9 +238,7 @@ class SafepointMutexLocker : public ValueObject {
 class SafepointMonitorLocker : public ValueObject {
  public:
   explicit SafepointMonitorLocker(Monitor* monitor);
-  virtual ~SafepointMonitorLocker() {
-    monitor_->Exit();
-  }
+  virtual ~SafepointMonitorLocker() { monitor_->Exit(); }
 
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 
@@ -258,4 +251,4 @@ class SafepointMonitorLocker : public ValueObject {
 }  // namespace dart
 
 
-#endif  // VM_LOCKERS_H_
+#endif  // RUNTIME_VM_LOCKERS_H_

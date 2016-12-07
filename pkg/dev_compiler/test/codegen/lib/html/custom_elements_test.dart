@@ -48,7 +48,7 @@ main() {
       var tag = nextTag;
       document.registerElement(tag, CustomType);
 
-      var element = new Element.tag(tag);
+      var element = new Element.tag(tag) as CustomType;
       expect(element, isNotNull);
       expect(element is CustomType, isTrue);
       expect(element.createdCalled, isTrue);
@@ -64,7 +64,7 @@ main() {
       var newTag = nextTag;
       document.registerElement(newTag, CustomType);
 
-      var element = new Element.tag(newTag);
+      var element = new Element.tag(newTag) as CustomType;
       expect(element, isNotNull);
       expect(element is CustomType, isTrue);
     });
@@ -138,7 +138,7 @@ main() {
           treeSanitizer: new NullTreeSanitizer());
 	  upgradeCustomElements(element);
       document.body.nodes.add(element);
-      var queried = query(tag);
+      var queried = query(tag) as CustomType;
 
       expect(queried, isNotNull);
       expect(queried is CustomType, isTrue);
@@ -153,7 +153,7 @@ main() {
           treeSanitizer: new NullTreeSanitizer());
 	  upgradeCustomElements(element);
       document.body.nodes.add(element);
-      var queried = query('#someid');
+      var queried = query('#someid') as CustomType;
 
       expect(queried, isNotNull);
       expect(queried is CustomType, isTrue);
@@ -180,7 +180,7 @@ main() {
       var tag = nextTag;
       document.registerElement(tag, CustomType);
 
-      var element = new Element.tag(tag);
+      var element = new Element.tag(tag) as CustomType;
       element.invokeMixinMethod();
       expect(element.mixinMethodCalled, isTrue);
     });

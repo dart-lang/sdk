@@ -22,10 +22,9 @@ static void RangeCheck(intptr_t offset_in_bytes,
   if (!Utils::RangeCheck(offset_in_bytes, access_size, length_in_bytes)) {
     const intptr_t index =
         (offset_in_bytes + access_size) / element_size_in_bytes;
-    const intptr_t length =
-        length_in_bytes / element_size_in_bytes;
-    Exceptions::ThrowRangeError(
-        "index", Integer::Handle(Integer::New(index)), 0, length);
+    const intptr_t length = length_in_bytes / element_size_in_bytes;
+    Exceptions::ThrowRangeError("index", Integer::Handle(Integer::New(index)),
+                                0, length);
   }
 }
 
@@ -34,8 +33,7 @@ static void RangeCheck(intptr_t offset_in_bytes,
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
     const String& error = String::Handle(String::NewFormatted(
-        "Length (%" Pd ") of object must be in range [0..%" Pd "]",
-        len, max));
+        "Length (%" Pd ") of object must be in range [0..%" Pd "]", len, max));
     Exceptions::ThrowArgumentError(error);
   }
 }
@@ -44,8 +42,8 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
   if (instance.IsTypedData()) {
-     const TypedData& array = TypedData::Cast(instance);
-     return Smi::New(array.Length());
+    const TypedData& array = TypedData::Cast(instance);
+    return Smi::New(array.Length());
   }
   if (instance.IsExternalTypedData()) {
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);
@@ -59,8 +57,10 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
 
 
 template <typename DstType, typename SrcType>
-static RawBool* CopyData(const Instance& dst, const Instance& src,
-                         const Smi& dst_start, const Smi& src_start,
+static RawBool* CopyData(const Instance& dst,
+                         const Instance& src,
+                         const Smi& dst_start,
+                         const Smi& src_start,
                          const Smi& length,
                          bool clamped) {
   const DstType& dst_array = DstType::Cast(dst);
@@ -68,18 +68,17 @@ static RawBool* CopyData(const Instance& dst, const Instance& src,
   const intptr_t dst_offset_in_bytes = dst_start.Value();
   const intptr_t src_offset_in_bytes = src_start.Value();
   const intptr_t length_in_bytes = length.Value();
-  ASSERT(Utils::RangeCheck(
-      src_offset_in_bytes, length_in_bytes, src_array.LengthInBytes()));
-  ASSERT(Utils::RangeCheck(
-      dst_offset_in_bytes, length_in_bytes, dst_array.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
+                           src_array.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
+                           dst_array.LengthInBytes()));
   if (clamped) {
     TypedData::ClampedCopy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
                                              src_array, src_offset_in_bytes,
                                              length_in_bytes);
   } else {
-    TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
-                                      src_array, src_offset_in_bytes,
-                                      length_in_bytes);
+    TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes, src_array,
+                                      src_offset_in_bytes, length_in_bytes);
   }
   return Bool::True().raw();
 }
@@ -132,8 +131,8 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
   const bool needs_clamping = IsClamped(to_cid) && !IsUint8(from_cid);
   if (dst.IsTypedData()) {
     if (src.IsTypedData()) {
-      return CopyData<TypedData, TypedData>(
-          dst, src, dst_start, src_start, length, needs_clamping);
+      return CopyData<TypedData, TypedData>(dst, src, dst_start, src_start,
+                                            length, needs_clamping);
     } else if (src.IsExternalTypedData()) {
       return CopyData<TypedData, ExternalTypedData>(
           dst, src, dst_start, src_start, length, needs_clamping);
@@ -158,83 +157,79 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 // on whether the underlying architecture is 32-bit or 64-bit.
 // Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
-DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                               \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));        \
-  intptr_t cid = kTypedData##name##Cid;                                        \
-  intptr_t len = length.Value();                                               \
-  intptr_t max = TypedData::MaxElements(cid);                                  \
-  LengthCheck(len, max);                                                       \
-  return TypedData::New(cid, len);                                             \
-}                                                                              \
+  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                             \
+    GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));      \
+    intptr_t cid = kTypedData##name##Cid;                                      \
+    intptr_t len = length.Value();                                             \
+    intptr_t max = TypedData::MaxElements(cid);                                \
+    LengthCheck(len, max);                                                     \
+    return TypedData::New(cid, len);                                           \
+  }
 
 
-#define TYPED_DATA_NEW_NATIVE(name)                                            \
-  TYPED_DATA_NEW(name)                                                         \
+#define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)
 
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
 #define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
-DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
-  if (instance.IsTypedData()) {                                                \
-    const TypedData& array = TypedData::Cast(instance);                        \
-    RangeCheck(offsetInBytes.Value(), access_size,                             \
-               array.LengthInBytes(), access_size);                            \
-    return object::ctor(array.getter(offsetInBytes.Value()));                  \
-  }                                                                            \
-  if (instance.IsExternalTypedData()) {                                        \
-    const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    RangeCheck(offsetInBytes.Value(), access_size,                             \
-               array.LengthInBytes(), access_size);                            \
-    return object::ctor(array.getter(offsetInBytes.Value()));                  \
-  }                                                                            \
-  const String& error = String::Handle(String::NewFormatted(                   \
-      "Expected a TypedData object but found %s", instance.ToCString()));      \
-  Exceptions::ThrowArgumentError(error);                                       \
-  return object::null();                                                       \
-}                                                                              \
-
-
-#define TYPED_DATA_SETTER(setter,                                              \
-                          object,                                              \
-                          get_object_value,                                    \
-                          access_size,                                         \
-                          access_type)                                         \
-DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));      \
-  if (instance.IsTypedData()) {                                                \
-    const TypedData& array = TypedData::Cast(instance);                        \
-    RangeCheck(offsetInBytes.Value(), access_size,                             \
-               array.LengthInBytes(), access_size);                            \
-    array.setter(offsetInBytes.Value(),                                        \
-                 static_cast<access_type>(value.get_object_value()));          \
-  } else if (instance.IsExternalTypedData()) {                                 \
-    const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    RangeCheck(offsetInBytes.Value(), access_size,                             \
-               array.LengthInBytes(), access_size);                            \
-    array.setter(offsetInBytes.Value(),                                        \
-                 static_cast<access_type>(value.get_object_value()));          \
-  } else {                                                                     \
+  DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                 \
+    GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
+                                 arguments->NativeArgAt(0));                   \
+    GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
+                                 arguments->NativeArgAt(1));                   \
+    if (instance.IsTypedData()) {                                              \
+      const TypedData& array = TypedData::Cast(instance);                      \
+      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
+                 access_size);                                                 \
+      return object::ctor(array.getter(offsetInBytes.Value()));                \
+    }                                                                          \
+    if (instance.IsExternalTypedData()) {                                      \
+      const ExternalTypedData& array = ExternalTypedData::Cast(instance);      \
+      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
+                 access_size);                                                 \
+      return object::ctor(array.getter(offsetInBytes.Value()));                \
+    }                                                                          \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \
     Exceptions::ThrowArgumentError(error);                                     \
-  }                                                                            \
-  return Object::null();                                                       \
-}
+    return object::null();                                                     \
+  }
 
-#define TYPED_DATA_NATIVES(type_name,                                          \
-                           object,                                             \
-                           ctor,                                               \
-                           get_object_value,                                   \
-                           access_size,                                        \
-                           access_type)                                        \
+
+#define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
+                          access_type)                                         \
+  DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                 \
+    GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
+                                 arguments->NativeArgAt(0));                   \
+    GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
+                                 arguments->NativeArgAt(1));                   \
+    GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));    \
+    if (instance.IsTypedData()) {                                              \
+      const TypedData& array = TypedData::Cast(instance);                      \
+      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
+                 access_size);                                                 \
+      array.setter(offsetInBytes.Value(),                                      \
+                   static_cast<access_type>(value.get_object_value()));        \
+    } else if (instance.IsExternalTypedData()) {                               \
+      const ExternalTypedData& array = ExternalTypedData::Cast(instance);      \
+      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
+                 access_size);                                                 \
+      array.setter(offsetInBytes.Value(),                                      \
+                   static_cast<access_type>(value.get_object_value()));        \
+    } else {                                                                   \
+      const String& error = String::Handle(String::NewFormatted(               \
+          "Expected a TypedData object but found %s", instance.ToCString()));  \
+      Exceptions::ThrowArgumentError(error);                                   \
+    }                                                                          \
+    return Object::null();                                                     \
+  }
+
+#define TYPED_DATA_NATIVES(type_name, object, ctor, get_object_value,          \
+                           access_size, access_type)                           \
   TYPED_DATA_GETTER(Get##type_name, object, ctor, access_size)                 \
-  TYPED_DATA_SETTER(Set##type_name, object,                                    \
-      get_object_value, access_size, access_type)                              \
+  TYPED_DATA_SETTER(Set##type_name, object, get_object_value, access_size,     \
+                    access_type)
 
 TYPED_DATA_NATIVES(Int8, Integer, New, AsTruncatedUint32Value, 1, int8_t)
 TYPED_DATA_NATIVES(Uint8, Integer, New, AsTruncatedUint32Value, 1, uint8_t)
@@ -243,11 +238,15 @@ TYPED_DATA_NATIVES(Uint16, Integer, New, AsTruncatedUint32Value, 2, uint16_t)
 TYPED_DATA_NATIVES(Int32, Integer, New, AsTruncatedUint32Value, 4, int32_t)
 TYPED_DATA_NATIVES(Uint32, Integer, New, AsTruncatedUint32Value, 4, uint32_t)
 TYPED_DATA_NATIVES(Int64, Integer, New, AsTruncatedInt64Value, 8, int64_t)
-TYPED_DATA_NATIVES(
-    Uint64, Integer, NewFromUint64, AsTruncatedInt64Value, 8, uint64_t)
+TYPED_DATA_NATIVES(Uint64,
+                   Integer,
+                   NewFromUint64,
+                   AsTruncatedInt64Value,
+                   8,
+                   uint64_t)
 TYPED_DATA_NATIVES(Float32, Double, New, value, 4, float)
 TYPED_DATA_NATIVES(Float64, Double, New, value, 8, double)
-TYPED_DATA_NATIVES(Float32x4, Float32x4, New,  value, 16, simd128_value_t)
+TYPED_DATA_NATIVES(Float32x4, Float32x4, New, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, 16, simd128_value_t)
 
@@ -344,11 +343,11 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat32, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
   float value = host_value.value();
   if (little_endian.value()) {
-    value = bit_cast<float>(
-        Utils::HostToLittleEndian32(bit_cast<uint32_t>(value)));
+    value =
+        bit_cast<float>(Utils::HostToLittleEndian32(bit_cast<uint32_t>(value)));
   } else {
-    value = bit_cast<float>(
-        Utils::HostToBigEndian32(bit_cast<uint32_t>(value)));
+    value =
+        bit_cast<float>(Utils::HostToBigEndian32(bit_cast<uint32_t>(value)));
   }
   return Double::New(value);
 }
@@ -362,8 +361,8 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat64, 2) {
     value = bit_cast<double>(
         Utils::HostToLittleEndian64(bit_cast<uint64_t>(value)));
   } else {
-    value = bit_cast<double>(
-        Utils::HostToBigEndian64(bit_cast<uint64_t>(value)));
+    value =
+        bit_cast<double>(Utils::HostToBigEndian64(bit_cast<uint64_t>(value)));
   }
   return Double::New(value);
 }

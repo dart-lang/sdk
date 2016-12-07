@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource, InputPackagesResultProvider, SummaryDataStore;
+import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
@@ -93,8 +94,25 @@ class ModuleCompiler {
     context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
     context.resultProvider =
         new InputPackagesResultProvider(context, summaryData);
+    options.declaredVariables.forEach(context.declaredVariables.define);
+    context.declaredVariables.define('dart.isVM', 'false');
 
     return new ModuleCompiler.withContext(context, summaryData);
+  }
+
+  bool _isFatalError(AnalysisError e, CompilerOptions options) {
+    if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
+
+    // These errors are not fatal in the REPL compile mode as we
+    // allow access to private members across library boundaries
+    // and those accesses will show up as undefined members unless
+    // additional analyzer changes are made to support them.
+    // TODO(jacobr): consider checking that the identifier name
+    // referenced by the error is private.
+    return !options.replCompile ||
+        (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
   /// Compiles a single Dart build unit into a JavaScript module.
@@ -159,6 +177,7 @@ class ModuleCompiler {
     }
 
     sortErrors(context, errors);
+
     var messages = <String>[];
     for (var e in errors) {
       var m = formatError(context, e);
@@ -166,10 +185,9 @@ class ModuleCompiler {
     }
 
     if (!options.unsafeForceCompile &&
-        errors.any((e) => errorSeverity(context, e) == ErrorSeverity.ERROR)) {
+        errors.any((e) => _isFatalError(e, options))) {
       return new JSModuleFile.invalid(unit.name, messages, options);
     }
-
     var codeGenerator =
         new CodeGenerator(context, summaryData, options, _extensionTypes);
     return codeGenerator.compile(unit, trees, messages);
@@ -203,6 +221,10 @@ class CompilerOptions {
 
   /// Whether to force compilation of code with static errors.
   final bool unsafeForceCompile;
+
+  /// Whether to compile code in a more permissive REPL mode allowing access
+  /// to private members across library boundaries.
+  final bool replCompile;
 
   /// Whether to emit Closure Compiler-friendly code.
   final bool closure;
@@ -241,6 +263,10 @@ class CompilerOptions {
   /// source maps.
   final Map<String, String> bazelMapping;
 
+  /// If specified, the path to write the summary file.
+  /// Used when building the SDK.
+  final String summaryOutPath;
+
   const CompilerOptions(
       {this.sourceMap: true,
       this.sourceMapComment: true,
@@ -248,6 +274,7 @@ class CompilerOptions {
       this.summarizeApi: true,
       this.summaryExtension: 'sum',
       this.unsafeForceCompile: false,
+      this.replCompile: false,
       this.emitMetadata: false,
       this.closure: false,
       this.destructureNamedParams: false,
@@ -256,7 +283,8 @@ class CompilerOptions {
       this.nameTypeTests: true,
       this.hoistTypeTests: true,
       this.useAngular2Whitelist: false,
-      this.bazelMapping: const {}});
+      this.bazelMapping: const {},
+      this.summaryOutPath});
 
   CompilerOptions.fromArguments(ArgResults args)
       : sourceMap = args['source-map'],
@@ -265,6 +293,7 @@ class CompilerOptions {
         summarizeApi = args['summarize'],
         summaryExtension = args['summary-extension'],
         unsafeForceCompile = args['unsafe-force-compile'],
+        replCompile = args['repl-compile'],
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
         destructureNamedParams = args['destructure-named-params'],
@@ -273,7 +302,8 @@ class CompilerOptions {
         nameTypeTests = args['name-type-tests'],
         hoistTypeTests = args['hoist-type-tests'],
         useAngular2Whitelist = args['unsafe-angular2-whitelist'],
-        bazelMapping = _parseBazelMappings(args['bazel-mapping']);
+        bazelMapping = _parseBazelMappings(args['bazel-mapping']),
+        summaryOutPath = args['summary-out'];
 
   static void addArguments(ArgParser parser) {
     parser
@@ -303,6 +333,11 @@ class CompilerOptions {
               'This has undefined behavior!',
           defaultsTo: false,
           hide: true)
+      ..addFlag('repl-compile',
+          help: 'Compile code more permissively when in REPL mode allowing '
+              'access to private members across library boundaries.',
+          defaultsTo: false,
+          hide: true)
       ..addFlag('hoist-instance-creation',
           help: 'Hoist the class type from generic instance creations',
           defaultsTo: true,
@@ -322,7 +357,9 @@ class CompilerOptions {
               'to/library.dart as the path for library.dart in source maps.',
           allowMultiple: true,
           splitCommas: false,
-          hide: true);
+          hide: true)
+      ..addOption('summary-out',
+          help: 'location to write the summary file', hide: true);
   }
 
   static Map<String, String> _parseBazelMappings(Iterable argument) {
@@ -400,8 +437,8 @@ class JSModuleFile {
   //
   // TODO(jmesserly): this should match our old logic, but I'm not sure we are
   // correctly handling the pointer from the .js file to the .map file.
-  JSModuleCode getCode(
-      ModuleFormat format, bool singleOutFile, String jsUrl, String mapUrl) {
+  JSModuleCode getCode(ModuleFormat format, String jsUrl, String mapUrl,
+      {bool singleOutFile: false}) {
     var opts = new JS.JavaScriptPrintingOptions(
         emitTypes: options.closure,
         allowKeywordsInProperties: true,
@@ -416,7 +453,8 @@ class JSModuleFile {
       printer = new JS.SimpleJavaScriptPrintingContext();
     }
 
-    var tree = transformModuleFormat(format, singleOutFile, moduleTree);
+    var tree =
+        transformModuleFormat(format, moduleTree, singleOutFile: singleOutFile);
     tree.accept(
         new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
 
@@ -450,24 +488,35 @@ class JSModuleFile {
   ///
   /// If [mapPath] is not supplied but [options.sourceMap] is set, mapPath
   /// will default to [jsPath].map.
-  void writeCodeSync(ModuleFormat format, bool singleOutFile, String jsPath) {
+  void writeCodeSync(ModuleFormat format, String jsPath,
+      {bool singleOutFile: false}) {
     String mapPath = jsPath + '.map';
-    var code = getCode(format, singleOutFile, jsPath, mapPath);
+    var code = getCode(format, jsPath, mapPath, singleOutFile: singleOutFile);
     var c = code.code;
     if (singleOutFile) {
       // In singleOutFile mode we wrap each module in an eval statement to
       // leverage sourceURL to improve the debugging experience when source maps
       // are not enabled.
-      c += '\n//# sourceURL=${name}.js\n';
+      //
+      // Note: We replace all `/` with `.` so that we don't break relative urls
+      // to sources in the original sourcemap. The name of this file is bogus
+      // anyways, so it has very little effect on things.
+      c += '\n//# sourceURL=${name.replaceAll("/", ".")}.js\n';
       c = 'eval(${JSON.encode(c)});\n';
     }
-    new File(jsPath).writeAsStringSync(c);
+
+    var file = new File(jsPath);
+    if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+    file.writeAsStringSync(c);
+
     // TODO(jacobr): it is a bit strange we are writing the source map to a file
     // even when options.inlineSourceMap is true. To be consistent perhaps we
     // should also write a copy of the source file without a sourcemap even when
     // inlineSourceMap is true.
     if (code.sourceMap != null) {
-      new File(mapPath).writeAsStringSync(JSON.encode(code.sourceMap));
+      file = new File(mapPath);
+      if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+      file.writeAsStringSync(JSON.encode(code.sourceMap));
     }
   }
 }

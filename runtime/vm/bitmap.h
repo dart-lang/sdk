@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_BITMAP_H_
-#define VM_BITMAP_H_
+#ifndef RUNTIME_VM_BITMAP_H_
+#define RUNTIME_VM_BITMAP_H_
 
 #include "vm/allocation.h"
 #include "vm/isolate.h"
@@ -24,8 +24,7 @@ class BitmapBuilder : public ZoneAllocated {
   BitmapBuilder()
       : length_(0),
         data_size_in_bytes_(kInitialSizeInBytes),
-        data_(Thread::Current()->zone()->Alloc<uint8_t>(
-            kInitialSizeInBytes)) {
+        data_(Thread::Current()->zone()->Alloc<uint8_t>(kInitialSizeInBytes)) {
     memset(data_, 0, kInitialSizeInBytes);
   }
 
@@ -55,8 +54,10 @@ class BitmapBuilder : public ZoneAllocated {
 
   bool InRange(intptr_t offset) const {
     if (offset < 0) {
-      FATAL1("Fatal error in BitmapBuilder::InRange :"
-             " invalid bit_offset, %" Pd "\n", offset);
+      FATAL1(
+          "Fatal error in BitmapBuilder::InRange :"
+          " invalid bit_offset, %" Pd "\n",
+          offset);
     }
     return (offset < length_);
   }
@@ -77,4 +78,4 @@ class BitmapBuilder : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_BITMAP_H_
+#endif  // RUNTIME_VM_BITMAP_H_

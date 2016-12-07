@@ -44,8 +44,8 @@ LocationSummary* LocationSummary::Make(
     intptr_t input_count,
     Location out,
     LocationSummary::ContainsCall contains_call) {
-  LocationSummary* summary = new(zone) LocationSummary(
-      zone, input_count, 0, contains_call);
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, input_count, 0, contains_call);
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }
@@ -73,48 +73,48 @@ PairLocation* Location::AsPairLocation() const {
 Location Location::RegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
-      ? Location::Constant(constant)
-      : Location::RequiresRegister();
+             ? Location::Constant(constant)
+             : Location::RequiresRegister();
 }
 
 
 Location Location::RegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
-      ? Location::Constant(constant)
-      : Location::RequiresRegister();
+             ? Location::Constant(constant)
+             : Location::RequiresRegister();
 }
 
 
 Location Location::WritableRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
-      ? Location::Constant(constant)
-      : Location::WritableRegister();
+             ? Location::Constant(constant)
+             : Location::WritableRegister();
 }
 
 
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
-      ? Location::Constant(constant)
-      : Location::RegisterLocation(reg);
+             ? Location::Constant(constant)
+             : Location::RegisterLocation(reg);
 }
 
 
 Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
-      ? Location::Constant(constant)
-      : Location::RegisterLocation(reg);
+             ? Location::Constant(constant)
+             : Location::RegisterLocation(reg);
 }
 
 
 Location Location::AnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
-      ? Location::Constant(constant)
-      : Location::Any();
+             ? Location::Constant(constant)
+             : Location::Any();
 }
 
 
@@ -125,7 +125,7 @@ Address Location::ToStackSlotAddress() const {
   const Register base = base_reg();
   if (base == FPREG) {
     if (index < 0) {
-      const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
+      const intptr_t offset = (kParamEndSlotFromFp - index) * kWordSize;
       return Address(base, offset);
     } else {
       const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
@@ -142,7 +142,7 @@ intptr_t Location::ToStackSlotOffset() const {
   const intptr_t index = stack_index();
   if (base_reg() == FPREG) {
     if (index < 0) {
-      const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
+      const intptr_t offset = (kParamEndSlotFromFp - index) * kWordSize;
       return offset;
     } else {
       const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
@@ -162,12 +162,18 @@ const Object& Location::constant() const {
 
 const char* Location::Name() const {
   switch (kind()) {
-    case kInvalid: return "?";
-    case kRegister: return Assembler::RegisterName(reg());
-    case kFpuRegister: return Assembler::FpuRegisterName(fpu_reg());
-    case kStackSlot: return "S";
-    case kDoubleStackSlot: return "DS";
-    case kQuadStackSlot: return "QS";
+    case kInvalid:
+      return "?";
+    case kRegister:
+      return Assembler::RegisterName(reg());
+    case kFpuRegister:
+      return Assembler::FpuRegisterName(fpu_reg());
+    case kStackSlot:
+      return "S";
+    case kDoubleStackSlot:
+      return "DS";
+    case kQuadStackSlot:
+      return "QS";
     case kUnallocated:
       switch (policy()) {
         case kAny:

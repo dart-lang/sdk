@@ -138,6 +138,21 @@ class PauseInterruptedEvent implements M.PauseInterruptedEvent {
   }
 }
 
+
+class PausePostRequestEvent implements M.PausePostRequestEvent {
+  final DateTime timestamp;
+  final M.IsolateRef isolate;
+  final M.Frame topFrame;
+  final bool atAsyncSuspension;
+  PausePostRequestEvent(
+      this.timestamp, this.isolate, this.topFrame, this.atAsyncSuspension) {
+    assert(timestamp != null);
+    assert(isolate != null);
+    assert(atAsyncSuspension != null);
+  }
+}
+
+
 class PauseExceptionEvent implements M.PauseExceptionEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
@@ -303,6 +318,12 @@ M.Event createEventFromServiceEvent(S.ServiceEvent event) {
       return new PauseStartEvent(event.timestamp, event.isolate);
     case S.ServiceEvent.kPauseExit:
       return new PauseExitEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kPausePostRequest:
+      return new PausePostRequestEvent(
+          event.timestamp,
+          event.isolate,
+          event.topFrame,
+          event.atAsyncSuspension);
     case S.ServiceEvent.kPauseBreakpoint:
       return new PauseBreakpointEvent(
           event.timestamp,

@@ -326,6 +326,10 @@ class _TakeStream<T> extends _ForwardingStream<T, T> {
       Function onError,
       void onDone(),
       bool cancelOnError) {
+    if (_count == 0) {
+      _source.listen(null).cancel();
+      return new _DoneStreamSubscription<T>(onDone);
+    }
     return new _StateStreamSubscription<T>(
         this, onData, onError, onDone, cancelOnError, _count);
   }

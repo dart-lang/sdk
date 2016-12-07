@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
@@ -26,15 +27,18 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
+export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -355,6 +359,7 @@ abstract class AnalysisContext {
    *
    * See [setConfigurationData].
    */
+  @deprecated
   Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key);
 
   /**
@@ -622,6 +627,7 @@ abstract class AnalysisContext {
    *
    * See [getConfigurationData].
    */
+  @deprecated
   void setConfigurationData(ResultDescriptor key, Object data);
 
   /**
@@ -1055,21 +1061,40 @@ class AnalysisNotScheduledError implements Exception {}
  */
 abstract class AnalysisOptions {
   /**
+   * The length of the list returned by [encodeCrossContextOptions].
+   */
+  static const int crossContextOptionsLength = 2;
+
+  /**
    * Function that returns `true` if analysis is to parse and analyze function
    * bodies for a given source.
    */
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
-   * Return the maximum number of sources for which AST structures should be
+   * DEPRECATED: Return the maximum number of sources for which AST structures should be
    * kept in the cache.
+   *
+   * This setting no longer has any effect.
    */
+  @deprecated
   int get cacheSize;
 
   /**
    * Return `true` if analysis is to generate dart2js related hint results.
    */
   bool get dart2jsHint;
+
+  /**
+   * Return `true` if cache flushing should be disabled.  Setting this option to
+   * `true` can improve analysis speed at the expense of memory usage.  It may
+   * also be useful for working around bugs.
+   *
+   * This option should not be used when the analyzer is part of a long running
+   * process (such as the analysis server) because it has the potential to
+   * prevent memory from being reclaimed.
+   */
+  bool get disableCacheFlushing;
 
   /**
    * Return `true` if the parser is to parse asserts in the initializer list of
@@ -1097,12 +1122,14 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable generic methods (DEP 22).
    */
+  @deprecated
   bool get enableGenericMethods => null;
 
   /**
    * Return `true` if access to field formal parameters should be allowed in a
    * constructor's initializer list.
    */
+  @deprecated
   bool get enableInitializingFormalAccess;
 
   /**
@@ -1127,6 +1154,23 @@ abstract class AnalysisOptions {
    * Return `true` if timing data should be gathered during execution.
    */
   bool get enableTiming;
+
+  /**
+   * Return `true` to enable the use of URIs in part-of directives.
+   */
+  bool get enableUriInPartOf;
+
+  /**
+   * Return a list of error processors that are to be used when reporting
+   * errors in some analysis context.
+   */
+  List<ErrorProcessor> get errorProcessors;
+
+  /**
+   * Return a list of exclude patterns used to exclude some sources from
+   * analysis.
+   */
+  List<String> get excludePatterns;
 
   /**
    * A flag indicating whether finer grained dependencies should be used
@@ -1177,6 +1221,18 @@ abstract class AnalysisOptions {
   bool get lint;
 
   /**
+   * Return a list of the lint rules that are to be run in an analysis context
+   * if [lint] returns `true`.
+   */
+  List<Linter> get lintRules;
+
+  /**
+   * Return the "platform" bit mask which should be used to apply patch files,
+   * or `0` if no patch files should be applied.
+   */
+  int get patchPlatform;
+
+  /**
    * Return `true` if analysis is to parse comments.
    */
   bool get preserveComments;
@@ -1195,17 +1251,42 @@ abstract class AnalysisOptions {
   bool get trackCacheDependencies;
 
   /**
-   * Return an integer encoding of the values of the options that need to be the
-   * same across all of the contexts associated with partitions that are to be
-   * shared by a single analysis context.
+   * Return a list of integers encoding of the values of the options that need
+   * to be the same across all of the contexts associated with partitions that
+   * are to be shared by a single analysis context.
+   *
+   * The length of the list is guaranteed to equal [crossContextOptionsLength].
    */
-  int encodeCrossContextOptions();
+  List<int> encodeCrossContextOptions();
+
+  /**
+   * Reset the state of this set of analysis options to its original state.
+   */
+  void resetToDefaults();
 
   /**
    * Set the values of the cross-context options to match those in the given set
    * of [options].
    */
   void setCrossContextOptionsFrom(AnalysisOptions options);
+
+  /**
+   * Determine whether two lists returned by [encodeCrossContextOptions] are
+   * equal.
+   */
+  static bool crossContextOptionsEqual(List<int> a, List<int> b) {
+    assert(a.length == crossContextOptionsLength);
+    assert(b.length == crossContextOptionsLength);
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /**
@@ -1214,12 +1295,16 @@ abstract class AnalysisOptions {
  */
 class AnalysisOptionsImpl implements AnalysisOptions {
   /**
-   * The maximum number of sources for which data should be kept in the cache.
+   * DEPRECATED: The maximum number of sources for which data should be kept in
+   * the cache.
+   *
+   * This constant no longer has any effect.
    */
+  @deprecated
   static const int DEFAULT_CACHE_SIZE = 64;
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
-  static const int ENABLE_GENERIC_METHODS_FLAG = 0x02;
+  static const int ENABLE_LAZY_ASSIGNMENT_OPERATORS = 0x02;
   static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
   static const int ENABLE_STRONG_MODE_FLAG = 0x08;
   static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
@@ -1238,7 +1323,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _analyzeAllFunctionBodies;
 
   @override
-  int cacheSize = DEFAULT_CACHE_SIZE;
+  @deprecated
+  int cacheSize = 64;
 
   @override
   bool dart2jsHint = false;
@@ -1248,12 +1334,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableAssertMessage = false;
-
-  @override
-  bool enableGenericMethods = false;
-
-  @override
-  bool enableInitializingFormalAccess = false;
 
   @override
   bool enableLazyAssignmentOperators = false;
@@ -1266,6 +1346,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableTiming = false;
+
+  /**
+   * A list of error processors that are to be used when reporting errors in
+   * some analysis context.
+   */
+  List<ErrorProcessor> _errorProcessors;
+
+  /**
+   * A list of exclude patterns used to exclude some sources from analysis.
+   */
+  List<String> _excludePatterns;
+
+  @override
+  bool enableUriInPartOf = false;
 
   @override
   bool generateImplicitErrors = true;
@@ -1288,6 +1382,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool lint = false;
 
+  /**
+   * The lint rules that are to be run in an analysis context if [lint] returns
+   * `true`.
+   */
+  List<Linter> _lintRules;
+
+  @override
+  int patchPlatform = 0;
+
   @override
   bool preserveComments = true;
 
@@ -1304,6 +1407,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool trackCacheDependencies = true;
+
+  @override
+  bool disableCacheFlushing = false;
 
   /**
    * A flag indicating whether implicit casts are allowed in [strongMode]
@@ -1346,15 +1452,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
-    cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
-    enableGenericMethods = options.enableGenericMethods;
-    enableInitializingFormalAccess = options.enableInitializingFormalAccess;
+    enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
+    errorProcessors = options.errorProcessors;
+    excludePatterns = options.excludePatterns;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
@@ -1362,6 +1468,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incrementalApi = options.incrementalApi;
     incrementalValidation = options.incrementalValidation;
     lint = options.lint;
+    lintRules = options.lintRules;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
@@ -1371,7 +1478,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
+    disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
+    patchPlatform = options.patchPlatform;
   }
 
   bool get analyzeFunctionBodies {
@@ -1420,24 +1529,107 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set enableConditionalDirectives(_) {}
 
   @override
-  int encodeCrossContextOptions() =>
-      (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
-      (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
-      (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
-      (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
-      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0) |
-      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0);
+  @deprecated
+  bool get enableGenericMethods => true;
+
+  @deprecated
+  void set enableGenericMethods(bool enable) {}
+
+  @deprecated
+  @override
+  bool get enableInitializingFormalAccess => true;
+
+  @deprecated
+  void set enableInitializingFormalAccess(bool enable) {}
+
+  @override
+  List<ErrorProcessor> get errorProcessors =>
+      _errorProcessors ??= const <ErrorProcessor>[];
+
+  /**
+   * Set the list of error [processors] that are to be used when reporting
+   * errors in some analysis context.
+   */
+  void set errorProcessors(List<ErrorProcessor> processors) {
+    _errorProcessors = processors;
+  }
+
+  @override
+  List<String> get excludePatterns => _excludePatterns ??= const <String>[];
+
+  /**
+   * Set the exclude patterns used to exclude some sources from analysis to
+   * those in the given list of [patterns].
+   */
+  void set excludePatterns(List<String> patterns) {
+    _excludePatterns = patterns;
+  }
+
+  @override
+  List<Linter> get lintRules => _lintRules ??= const <Linter>[];
+
+  /**
+   * Set the lint rules that are to be run in an analysis context if [lint]
+   * returns `true`.
+   */
+  void set lintRules(List<Linter> rules) {
+    _lintRules = rules;
+  }
+
+  @override
+  List<int> encodeCrossContextOptions() {
+    int flags = (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
+        (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
+        (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+        (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
+        (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
+        (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
+    return <int>[flags, patchPlatform];
+  }
+
+  @override
+  void resetToDefaults() {
+    dart2jsHint = false;
+    disableCacheFlushing = false;
+    enableAssertInitializer = false;
+    enableAssertMessage = false;
+    enableLazyAssignmentOperators = false;
+    enableStrictCallChecks = false;
+    enableSuperMixins = false;
+    enableTiming = false;
+    enableUriInPartOf = false;
+    _errorProcessors = null;
+    _excludePatterns = null;
+    finerGrainedInvalidation = false;
+    generateImplicitErrors = true;
+    generateSdkErrors = false;
+    hint = true;
+    implicitCasts = true;
+    implicitDynamic = true;
+    incremental = false;
+    incrementalApi = false;
+    incrementalValidation = false;
+    lint = false;
+    _lintRules = null;
+    nonnullableTypes = NONNULLABLE_TYPES;
+    patchPlatform = 0;
+    preserveComments = true;
+    strongMode = false;
+    strongModeHints = false;
+    trackCacheDependencies = true;
+  }
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableAssertMessage = options.enableAssertMessage;
-    enableGenericMethods = options.enableGenericMethods;
+    enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+    patchPlatform = options.patchPlatform;
   }
 
   /**
@@ -1445,39 +1637,36 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * encoded in the given [encoding], presumably from invoking the method
    * [encodeCrossContextOptions].
    */
-  static String decodeCrossContextOptions(int encoding) {
-    if (encoding == 0) {
+  static String decodeCrossContextOptions(List<int> encoding) {
+    List<String> parts = [];
+    int flags = encoding[0];
+    if (flags & ENABLE_ASSERT_FLAG > 0) {
+      parts.add('assert');
+    }
+    if (flags & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
+      parts.add('lazyAssignmentOperators');
+    }
+    if (flags & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
+      parts.add('strictCallChecks');
+    }
+    if (flags & ENABLE_SUPER_MIXINS_FLAG > 0) {
+      parts.add('superMixins');
+    }
+    if (flags & ENABLE_STRONG_MODE_FLAG > 0) {
+      parts.add('strongMode');
+    }
+    if (flags & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
+      parts.add('strongModeHints');
+    }
+    int patchPlatform = encoding[1];
+    if (patchPlatform != 0) {
+      parts.add('patchPlatform=$patchPlatform');
+    }
+    if (parts.isEmpty) {
       return 'none';
+    } else {
+      return parts.join(', ');
     }
-    StringBuffer buffer = new StringBuffer();
-    bool needsSeparator = false;
-    void add(String optionName) {
-      if (needsSeparator) {
-        buffer.write(', ');
-      }
-      buffer.write(optionName);
-      needsSeparator = true;
-    }
-
-    if (encoding & ENABLE_ASSERT_FLAG > 0) {
-      add('assert');
-    }
-    if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
-      add('genericMethods');
-    }
-    if (encoding & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
-      add('strictCallChecks');
-    }
-    if (encoding & ENABLE_STRONG_MODE_FLAG > 0) {
-      add('strongMode');
-    }
-    if (encoding & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
-      add('strongModeHints');
-    }
-    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
-      add('superMixins');
-    }
-    return buffer.toString();
   }
 
   /**
@@ -2656,25 +2845,4 @@ class SourcesChangedEvent {
   bool get wereSourcesRemoved =>
       _changeSet.removedSources.length > 0 ||
       _changeSet.removedContainers.length > 0;
-}
-
-/**
- * Analysis data for which we have a modification time.
- */
-class TimestampedData<E> {
-  /**
-   * The modification time of the source from which the data was created.
-   */
-  final int modificationTime;
-
-  /**
-   * The data that was created from the source.
-   */
-  final E data;
-
-  /**
-   * Initialize a newly created holder to associate the given [data] with the
-   * given [modificationTime].
-   */
-  TimestampedData(this.modificationTime, this.data);
 }

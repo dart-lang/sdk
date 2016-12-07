@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=http_client_stays_alive_test.dart
+
 import 'dart:io';
 
 import "package:async_helper/async_helper.dart";
@@ -39,7 +41,9 @@ void runServerProcess() {
     });
 
     var sw = new Stopwatch()..start();
-    var arguments = packageOptions()..add(Platform.script.toString())..add(url);
+    var script = Platform.script.resolve('http_client_stays_alive_test.dart')
+        .toFilePath();
+    var arguments = packageOptions()..add(script)..add(url);
     Process.run(Platform.executable, arguments).then((res) {
       subscription.cancel();
       if (res.exitCode != 0) {

@@ -198,6 +198,12 @@ class Parser {
   bool _enableNnbd = false;
 
   /**
+   * A flag indicating whether the parser is to allow URI's in part-of
+   * directives.
+   */
+  bool _enableUriInPartOf = false;
+
+  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -238,6 +244,7 @@ class Parser {
   /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
+  @deprecated
   bool parseGenericMethods = false;
 
   /**
@@ -293,13 +300,27 @@ class Parser {
   }
 
   /**
+   * Return `true` if the parser is to allow URI's in part-of directives.
+   */
+  bool get enableUriInPartOf => _enableUriInPartOf;
+
+  /**
+   * Set whether the parser is to allow URI's in part-of directives to the given
+   * [enable] flag.
+   */
+  void set enableUriInPartOf(bool enable) {
+    _enableUriInPartOf = enable;
+  }
+
+  /**
    * Return `true` if the current token is the first token of a return type that
    * is followed by an identifier, possibly followed by a list of type
    * parameters, followed by a left-parenthesis. This is used by
    * [parseTypeAlias] to determine whether or not to parse a return type.
    */
-  @deprecated
   bool get hasReturnTypeInTypeAlias {
+    // TODO(brianwilkerson) This is too expensive as implemented and needs to be
+    // re-implemented or removed.
     Token next = skipReturnType(_currentToken);
     if (next == null) {
       return false;
@@ -780,6 +801,13 @@ class Parser {
         }
         Token operator = getAndAdvance();
         return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
+      } else if (type == TokenType.INDEX) {
+        _splitIndex();
+        Token leftBracket = getAndAdvance();
+        Expression index = parseSimpleIdentifier();
+        Token rightBracket = getAndAdvance();
+        return new IndexExpression.forTarget(
+            prefix, leftBracket, index, rightBracket);
       } else {
         if (!optional) {
           // Report the missing selector.
@@ -1393,7 +1421,7 @@ class Parser {
       // function type alias that was parsed.
       _parseFunctionTypeAlias(commentAndMetadata, getAndAdvance());
       return null;
-    } else if (parseGenericMethods) {
+    } else {
       Token token = _skipTypeParameterList(_peek());
       if (token != null && _tokenMatches(token, TokenType.OPEN_PAREN)) {
         return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
@@ -1482,7 +1510,7 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (parseGenericMethods && _tokenMatches(next, TokenType.LT)) {
+    } else if (_tokenMatches(next, TokenType.LT)) {
       return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type);
     } else if (_tokenMatches(next, TokenType.OPEN_CURLY_BRACKET)) {
@@ -2780,6 +2808,7 @@ class Parser {
    *         normalFormalParameter ('=' expression)?
    *
    *     defaultNamedParameter ::=
+   *         normalFormalParameter ('=' expression)?
    *         normalFormalParameter (':' expression)?
    */
   FormalParameter parseFormalParameter(ParameterKind kind) {
@@ -2788,12 +2817,10 @@ class Parser {
     if (type == TokenType.EQ) {
       Token separator = getAndAdvance();
       Expression defaultValue = parseExpression2();
-      if (kind == ParameterKind.NAMED) {
-        _reportErrorForToken(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, separator);
-      } else if (kind == ParameterKind.REQUIRED) {
+      if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.POSITIONAL;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -2807,6 +2834,7 @@ class Parser {
       } else if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.NAMED;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -3512,19 +3540,9 @@ class Parser {
    */
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     if (_matches(TokenType.INDEX)) {
-      // Split the token into two separate tokens.
-      BeginToken leftBracket = _createToken(
-          _currentToken, TokenType.OPEN_SQUARE_BRACKET,
-          isBegin: true);
-      Token rightBracket =
-          new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
-      leftBracket.endToken = rightBracket;
-      rightBracket.setNext(_currentToken.next);
-      leftBracket.setNext(rightBracket);
-      _currentToken.previous.setNext(leftBracket);
-      _currentToken = _currentToken.next;
+      _splitIndex();
       return new ListLiteral(
-          modifier, typeArguments, leftBracket, null, rightBracket);
+          modifier, typeArguments, getAndAdvance(), null, getAndAdvance());
     }
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
@@ -4121,7 +4139,8 @@ class Parser {
         type == TokenType.PERIOD ||
         type == TokenType.QUESTION_PERIOD ||
         type == TokenType.OPEN_PAREN ||
-        (parseGenericMethods && type == TokenType.LT)) {
+        type == TokenType.LT ||
+        type == TokenType.INDEX) {
       do {
         if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
@@ -4145,7 +4164,8 @@ class Parser {
       } while (type == TokenType.OPEN_SQUARE_BRACKET ||
           type == TokenType.PERIOD ||
           type == TokenType.QUESTION_PERIOD ||
-          type == TokenType.OPEN_PAREN);
+          type == TokenType.OPEN_PAREN ||
+          type == TokenType.INDEX);
       return operand;
     }
     if (!_currentToken.type.isIncrementOperator) {
@@ -4272,6 +4292,9 @@ class Parser {
         _inInitializer = wasInInitializer;
       }
     } else if (type == TokenType.LT || _injectGenericCommentTypeList()) {
+      if (isFunctionExpression(currentToken)) {
+        return parseFunctionExpression();
+      }
       return parseListOrMapLiteral(null);
     } else if (type == TokenType.OPEN_CURLY_BRACKET) {
       return parseMapLiteral(null, null);
@@ -5761,9 +5784,6 @@ class Parser {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = skipTypeArgumentList(_currentToken);
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -5822,9 +5842,6 @@ class Parser {
   }
 
   bool _isPeekGenericTypeParametersAndOpenParen() {
-    if (!parseGenericMethods) {
-      return false;
-    }
     Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
@@ -5979,9 +5996,7 @@ class Parser {
    *     assertInitializer ::=
    *         'assert' '(' expression [',' expression] ')'
    */
-  void _parseAssertInitializer() {
-    // TODO(brianwilkerson) Capture the syntax in the AST using a new class,
-    // such as AssertInitializer
+  AssertInitializer _parseAssertInitializer() {
     Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
@@ -5992,8 +6007,8 @@ class Parser {
       message = parseExpression2();
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
-//    return new AssertInitializer(
-//        keyword, leftParen, expression, comma, message, rightParen);
+    return new AssertInitializer(
+        keyword, leftParen, expression, comma, message, rightParen);
   }
 
   /**
@@ -6228,7 +6243,7 @@ class Parser {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
         } else if (_enableAssertInitializer &&
             _matchesKeyword(Keyword.ASSERT)) {
-          _parseAssertInitializer();
+          initializers.add(_parseAssertInitializer());
         } else {
           initializers.add(parseConstructorFieldInitializer(false));
         }
@@ -6254,7 +6269,8 @@ class Parser {
           parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null &&
           factoryKeyword != null &&
-          externalKeyword == null) {
+          externalKeyword == null &&
+          body is! NativeFunctionBody) {
         _reportErrorForToken(ParserErrorCode.CONST_FACTORY, factoryKeyword);
       } else if (body is EmptyFunctionBody) {
         if (factoryKeyword != null &&
@@ -6264,7 +6280,7 @@ class Parser {
               ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword);
         }
       } else {
-        if (constKeyword != null) {
+        if (constKeyword != null && body is! NativeFunctionBody) {
           _reportErrorForNode(
               ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body);
         } else if (externalKeyword != null) {
@@ -6432,7 +6448,8 @@ class Parser {
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
             _reportErrorForCurrentToken(
-                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+                ['}', ']']);
             rightCurlyBracket = rightSquareBracket;
             rightSquareBracket = null;
           } else {
@@ -6447,7 +6464,8 @@ class Parser {
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
             _reportErrorForCurrentToken(
-                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+                [']', '}']);
             rightSquareBracket = rightCurlyBracket;
             rightCurlyBracket = null;
           } else {
@@ -6613,8 +6631,7 @@ class Parser {
    * See [parseGenericMethodComments].
    */
   TypeParameterList _parseGenericMethodTypeParameters() {
-    if (parseGenericMethods && _matches(TokenType.LT) ||
-        _injectGenericCommentTypeList()) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return parseTypeParameterList();
     }
     return null;
@@ -6829,6 +6846,14 @@ class Parser {
           keyword != Keyword.OPERATOR &&
           (_tokenMatchesIdentifier(next) ||
               _tokenMatches(next, TokenType.LT))) {
+        Token afterTypeParameters = _skipTypeParameterList(next);
+        if (afterTypeParameters != null &&
+            _tokenMatches(afterTypeParameters, TokenType.OPEN_PAREN)) {
+          // If the identifier is followed by type parameters and a parenthesis,
+          // then the identifier is the name of a generic method, not a return
+          // type.
+          return null;
+        }
         return parseReturnType();
       }
       Token next2 = next.next;
@@ -6893,6 +6918,18 @@ class Parser {
   Directive _parsePartOfDirective(CommentAndMetadata commentAndMetadata) {
     Token partKeyword = getAndAdvance();
     Token ofKeyword = getAndAdvance();
+    if (enableUriInPartOf && _matches(TokenType.STRING)) {
+      StringLiteral libraryUri = _parseUri();
+      Token semicolon = _expect(TokenType.SEMICOLON);
+      return new PartOfDirective(
+          commentAndMetadata.comment,
+          commentAndMetadata.metadata,
+          partKeyword,
+          ofKeyword,
+          libraryUri,
+          null,
+          semicolon);
+    }
     LibraryIdentifier libraryName = _parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
     Token semicolon = _expect(TokenType.SEMICOLON);
@@ -6901,6 +6938,7 @@ class Parser {
         commentAndMetadata.metadata,
         partKeyword,
         ofKeyword,
+        null,
         libraryName,
         semicolon);
   }
@@ -7584,6 +7622,24 @@ class Parser {
   }
 
   /**
+   * Assuming that the current token is an index token ('[]'), split it into two
+   * tokens ('[' and ']'), leaving the left bracket as the current token.
+   */
+  void _splitIndex() {
+    // Split the token into two separate tokens.
+    BeginToken leftBracket = _createToken(
+        _currentToken, TokenType.OPEN_SQUARE_BRACKET,
+        isBegin: true);
+    Token rightBracket =
+        new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
+    leftBracket.endToken = rightBracket;
+    rightBracket.setNext(_currentToken.next);
+    leftBracket.setNext(rightBracket);
+    _currentToken.previous.setNext(leftBracket);
+    _currentToken = leftBracket;
+  }
+
+  /**
    * Return `true` if the given [token] has the given [type].
    */
   bool _tokenMatches(Token token, TokenType type) => token.type == type;
@@ -7844,7 +7900,7 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of [modifiers] is appropriate for a class and
+   * Validate that the given set of [modifiers] is appropriate for an enum and
    * return the 'abstract' keyword if there is one.
    */
   void _validateModifiersForEnum(Modifiers modifiers) {

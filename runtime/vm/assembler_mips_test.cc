@@ -320,6 +320,160 @@ ASSEMBLER_TEST_RUN(Lw, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
+  __ LoadHalfWordUnaligned(V0, A0, TMP);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[4] = {
+      0x89, 0xAB, 0xCD, 0xEF,
+  };
+
+  EXPECT_EQ(
+      static_cast<int16_t>(static_cast<uint16_t>(0xAB89)),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadHalfWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(
+      static_cast<int16_t>(static_cast<uint16_t>(0xCDAB)),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadHalfWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[1])));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
+  __ LoadHalfWordUnsignedUnaligned(V0, A0, TMP);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[4] = {
+      0x89, 0xAB, 0xCD, 0xEF,
+  };
+
+  EXPECT_EQ(0xAB89, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        LoadHalfWordUnsignedUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0xCDAB, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        LoadHalfWordUnsignedUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[1])));
+}
+
+
+ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
+  __ LoadImmediate(A1, 0xABCD);
+  __ StoreWordUnaligned(A1, A0, TMP);
+  __ mov(V0, A1);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[4] = {
+      0, 0, 0, 0,
+  };
+
+  EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        StoreHalfWordUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0xCD, buffer[0]);
+  EXPECT_EQ(0xAB, buffer[1]);
+  EXPECT_EQ(0, buffer[2]);
+
+  EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        StoreHalfWordUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(0xCD, buffer[1]);
+  EXPECT_EQ(0xAB, buffer[2]);
+  EXPECT_EQ(0, buffer[3]);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
+  __ LoadWordUnaligned(V0, A0, TMP);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*LoadWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[8] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
+
+  EXPECT_EQ(
+      static_cast<intptr_t>(0x78563412),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0x9A785634),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0xBC9A7856),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[2])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0xDEBC9A78),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[3])));
+}
+
+
+ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
+  __ LoadImmediate(A1, 0x12345678);
+  __ StoreWordUnaligned(A1, A0, TMP);
+  __ mov(V0, A1);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*StoreWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0x78, buffer[0]);
+  EXPECT_EQ(0x56, buffer[1]);
+  EXPECT_EQ(0x34, buffer[2]);
+  EXPECT_EQ(0x12, buffer[3]);
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(0x78, buffer[1]);
+  EXPECT_EQ(0x56, buffer[2]);
+  EXPECT_EQ(0x34, buffer[3]);
+  EXPECT_EQ(0x12, buffer[4]);
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[2])));
+  EXPECT_EQ(0x78, buffer[2]);
+  EXPECT_EQ(0x56, buffer[3]);
+  EXPECT_EQ(0x34, buffer[4]);
+  EXPECT_EQ(0x12, buffer[5]);
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[3])));
+  EXPECT_EQ(0x78, buffer[3]);
+  EXPECT_EQ(0x56, buffer[4]);
+  EXPECT_EQ(0x34, buffer[5]);
+  EXPECT_EQ(0x12, buffer[6]);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Lui, assembler) {
   __ lui(V0, Immediate(42));
   __ jr(RA);
@@ -636,7 +790,7 @@ ASSEMBLER_TEST_RUN(Sltu, test) {
 ASSEMBLER_TEST_GENERATE(Slti, assembler) {
   __ LoadImmediate(T1, -2);
   __ slti(A0, T1, Immediate(-1));  // -2 < -1 -> 1.
-  __ slti(A1, T1, Immediate(0));  // -2 < 0 -> 1.
+  __ slti(A1, T1, Immediate(0));   // -2 < 0 -> 1.
   __ and_(V0, A0, A1);
   __ jr(RA);
 }
@@ -652,7 +806,7 @@ ASSEMBLER_TEST_GENERATE(Sltiu, assembler) {
   __ LoadImmediate(T1, -1);
   __ LoadImmediate(T2, 0x10000);
   __ sltiu(A0, T1, Immediate(-2));  // 0xffffffffUL < 0xfffffffeUL -> 0.
-  __ sltiu(A1, T1, Immediate(0));  // 0xffffffffUL < 0 -> 0.
+  __ sltiu(A1, T1, Immediate(0));   // 0xffffffffUL < 0 -> 0.
   __ sltiu(A2, T2, Immediate(-2));  // 0x10000UL < 0xfffffffeUL -> 1.
   __ addiu(A2, A2, Immediate(-1));
   __ or_(V0, A0, A1);
@@ -2042,7 +2196,7 @@ ASSEMBLER_TEST_RUN(Cop1TruncWD_Inf, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Overflow, assembler) {
-  __ LoadImmediate(D1, 2.0*kMaxInt32);
+  __ LoadImmediate(D1, 2.0 * kMaxInt32);
   __ truncwd(F0, D1);
   __ mfc1(V0, F0);
   __ Ret();
@@ -2057,7 +2211,7 @@ ASSEMBLER_TEST_RUN(Cop1TruncWD_Overflow, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Underflow, assembler) {
-  __ LoadImmediate(D1, 2.0*kMinInt32);
+  __ LoadImmediate(D1, 2.0 * kMinInt32);
   __ truncwd(F0, D1);
   __ mfc1(V0, F0);
   __ Ret();
@@ -2130,8 +2284,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ sw(THR, Address(SP, 1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));
   __ mov(THR, A2);
-  __ StoreIntoObject(A1,
-                     FieldAddress(A1, GrowableObjectArray::data_offset()),
+  __ StoreIntoObject(A1, FieldAddress(A1, GrowableObjectArray::data_offset()),
                      A0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(THR, Address(SP, 1 * kWordSize));
@@ -2153,7 +2306,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ sc(T2, Address(SP));  // T1 == 1, success
   __ LoadImmediate(T3, 1);
   __ bne(T2, T3, &retry);  // NE if context switch occurred between ll and sc
-  __ Pop(V0);  // 42
+  __ Pop(V0);              // 42
   __ LeaveFrameAndReturn();
 }
 

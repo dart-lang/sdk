@@ -5,6 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "platform/floating_point_win.h"
+
 #include <limits>  // NOLINT
 
 // Taken from third_party/v8/src/platform-win32.cc
@@ -36,9 +38,8 @@ double atan2_ieee(double x, double y) {
     // Same is with index_y.
     int index_x = (cls_x & _FPCLASS_PINF) != 0 ? 0 : 1;
     int index_y = (cls_y & _FPCLASS_PINF) != 0 ? 0 : 1;
-    static double atans_at_infinities[2][2] =
-      { { atan2(1.,  1.), atan2(1.,  -1.) },
-        { atan2(-1., 1.), atan2(-1., -1.) } };
+    static double atans_at_infinities[2][2] = {
+        {atan2(1., 1.), atan2(1., -1.)}, {atan2(-1., 1.), atan2(-1., -1.)}};
     return atans_at_infinities[index_x][index_y];
   } else {
     return atan2(x, y);

@@ -138,17 +138,11 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
 class DeserializedResolutionWorkItem implements ResolutionWorkItem {
   final Element element;
   final WorldImpact worldImpact;
-  bool _isAnalyzed = false;
 
   DeserializedResolutionWorkItem(this.element, this.worldImpact);
 
   @override
-  bool get isAnalyzed => _isAnalyzed;
-
-  @override
-  WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
-    _isAnalyzed = true;
-    world.registerProcessedElement(element);
+  WorldImpact run() {
     return worldImpact;
   }
 }

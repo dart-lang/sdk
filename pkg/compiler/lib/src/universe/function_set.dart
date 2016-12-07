@@ -11,17 +11,15 @@ import '../types/types.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'selector.dart' show Selector;
-import 'universe.dart' show ReceiverConstraint;
+import 'world_builder.dart' show ReceiverConstraint;
 
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
   final Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
-  FunctionSet(this.compiler);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  FunctionSet(this.closedWorld);
 
   FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 
@@ -51,8 +49,10 @@ class FunctionSet {
     return (node != null) ? node.contains(element) : false;
   }
 
-  /// Returns an object that allows iterating over all the functions
-  /// that may be invoked with the given [selector].
+  /// Returns all the functions that may be invoked with the [selector] on a
+  /// receiver with the given [constraint]. The returned elements may include
+  /// noSuchMethod handlers that are potential targets indirectly through the
+  /// noSuchMethod mechanism.
   Iterable<Element> filter(Selector selector, ReceiverConstraint constraint) {
     return query(selector, constraint).functions;
   }

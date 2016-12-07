@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_EVENTHANDLER_ANDROID_H_
-#define BIN_EVENTHANDLER_ANDROID_H_
+#ifndef RUNTIME_BIN_EVENTHANDLER_ANDROID_H_
+#define RUNTIME_BIN_EVENTHANDLER_ANDROID_H_
 
-#if !defined(BIN_EVENTHANDLER_H_)
+#if !defined(RUNTIME_BIN_EVENTHANDLER_H_)
 #error Do not include eventhandler_android.h directly;
 #error use eventhandler.h instead.
 #endif
@@ -23,9 +23,9 @@ namespace bin {
 
 class DescriptorInfo : public DescriptorInfoBase {
  public:
-  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) { }
+  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) {}
 
-  virtual ~DescriptorInfo() { }
+  virtual ~DescriptorInfo() {}
 
   intptr_t GetPollEvents();
 
@@ -39,8 +39,7 @@ class DescriptorInfo : public DescriptorInfoBase {
 };
 
 
-class DescriptorInfoSingle
-    : public DescriptorInfoSingleMixin<DescriptorInfo> {
+class DescriptorInfoSingle : public DescriptorInfoSingleMixin<DescriptorInfo> {
  public:
   explicit DescriptorInfoSingle(intptr_t fd)
       : DescriptorInfoSingleMixin(fd, false) {}
@@ -68,7 +67,7 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
-  void UpdateEpollInstance(intptr_t old_mask, DescriptorInfo *di);
+  void UpdateEpollInstance(intptr_t old_mask, DescriptorInfo* di);
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
@@ -101,4 +100,4 @@ class EventHandlerImplementation {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_EVENTHANDLER_ANDROID_H_
+#endif  // RUNTIME_BIN_EVENTHANDLER_ANDROID_H_

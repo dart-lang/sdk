@@ -5,15 +5,15 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32)
 
-#include "vm/cpu.h"
 #include "vm/instructions.h"
+#include "vm/instructions_ia32.h"
+
+#include "vm/cpu.h"
 #include "vm/object.h"
 
 namespace dart {
 
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj) {
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
   return false;
 }

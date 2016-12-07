@@ -78,6 +78,9 @@ class ImpactSerializer implements WorldImpactVisitor {
     object.setEnum(Key.KIND, staticUse.kind);
     serializeElementReference(
         element, Key.ELEMENT, Key.NAME, object, staticUse.element);
+    if (staticUse.type != null) {
+      object.setType(Key.TYPE, staticUse.type);
+    }
   }
 
   @override
@@ -113,6 +116,9 @@ class DeserializedResolutionImpact extends WorldImpact
       this.nativeData: const <dynamic>[]})
       : this._features = features;
 
+  @override
+  bool get isEmpty => false;
+
   Iterable<Feature> get features {
     return _features != null
         ? _features.iterable(Feature.values)
@@ -131,7 +137,8 @@ class ImpactDeserializer {
       StaticUseKind kind = object.getEnum(Key.KIND, StaticUseKind.values);
       Element usedElement =
           deserializeElementReference(element, Key.ELEMENT, Key.NAME, object);
-      staticUses.add(new StaticUse.internal(usedElement, kind));
+      DartType type = object.getType(Key.TYPE, isOptional: true);
+      staticUses.add(new StaticUse.internal(usedElement, kind, type));
     }
 
     ListDecoder dynamicUseDecoder = objectDecoder.getList(Key.DYNAMIC_USES);

@@ -9,28 +9,20 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart' show formatList;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(StaticTypeWarningCodeTest);
-  defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StaticTypeWarningCodeTest);
+    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  });
 }
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  void fail_inaccessibleSetter() {
-    // TODO(rnystrom): This doesn't look right.
-    assertErrorsInCode(
-        r'''
-''',
-        [StaticTypeWarningCode.INACCESSIBLE_SETTER]);
-  }
-
   void fail_method_lookup_mixin_of_extends() {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
@@ -2439,7 +2431,7 @@ main() {
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(
-        source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+        source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       if (error.errorCode ==
           StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS) {

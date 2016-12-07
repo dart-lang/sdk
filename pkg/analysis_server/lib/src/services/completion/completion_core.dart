@@ -8,13 +8,17 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * The information about a requested list of completions.
  */
 class CompletionRequestImpl implements CompletionRequest {
+  @override
+  final AnalysisResult result;
+
   @override
   final AnalysisContext context;
 
@@ -63,25 +67,31 @@ class CompletionRequestImpl implements CompletionRequest {
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(AnalysisContext context, this.resourceProvider,
-      this.searchEngine, Source source, int offset, this.performance)
+  CompletionRequestImpl(
+      this.result,
+      AnalysisContext context,
+      this.resourceProvider,
+      this.searchEngine,
+      Source source,
+      int offset,
+      this.performance)
       : this.context = context,
         this.source = source,
         this.offset = offset,
         replacementOffset = offset,
         replacementLength = 0,
-        sourceModificationStamp = context.getModificationStamp(source);
+        sourceModificationStamp = context?.getModificationStamp(source);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
    * that can be used to filter the suggestions on the server side.
    */
   String get filterText {
-    return context
-        .getContents(source)
-        .data
-        .substring(replacementOffset, offset);
+    return sourceContents.substring(replacementOffset, offset);
   }
+
+  @override
+  String get sourceContents => context.getContents(source)?.data;
 
   /**
    * Abort the current completion request.
@@ -95,7 +105,7 @@ class CompletionRequestImpl implements CompletionRequest {
     if (_aborted) {
       throw new AbortCompletion();
     }
-    if (sourceModificationStamp != context.getModificationStamp(source)) {
+    if (sourceModificationStamp != context?.getModificationStamp(source)) {
       _aborted = true;
       throw new AbortCompletion();
     }

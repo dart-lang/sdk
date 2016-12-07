@@ -11,7 +11,7 @@ import 'package:analyzer_cli/src/boot_loader.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'utils.dart';
 
@@ -42,8 +42,6 @@ main() {
   setUp(() => _setUp());
 
   tearDown(() => _tearDown());
-
-  initializeTestEnvironment();
 
   group('Bootloader', () {
     group('plugin processing', () {

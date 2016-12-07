@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SCOPE_TIMER_H_
-#define VM_SCOPE_TIMER_H_
+#ifndef RUNTIME_VM_SCOPE_TIMER_H_
+#define RUNTIME_VM_SCOPE_TIMER_H_
 
 #include "platform/globals.h"
 
@@ -13,10 +13,8 @@ namespace dart {
 class ScopeTimer : public ValueObject {
  public:
   explicit ScopeTimer(const char* name, bool enabled = true)
-      : enabled_(enabled),
-        name_(name),
-        start_(0) {
-    if (!enabled_)     {
+      : enabled_(enabled), name_(name), start_(0) {
+    if (!enabled_) {
       return;
     }
     start_ = OS::GetCurrentTimeMicros();
@@ -45,4 +43,4 @@ class ScopeTimer : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_SCOPE_TIMER_H_
+#endif  // RUNTIME_VM_SCOPE_TIMER_H_

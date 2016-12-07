@@ -72,6 +72,8 @@ if (host_os == "win") {
   _host_executable_suffix = ""
 }
 
+_dart_root = rebase_path("..")
+
 template("compiled_action") {
   assert(defined(invoker.tool), "tool must be defined for $target_name")
   assert(defined(invoker.outputs), "outputs must be defined for $target_name")
@@ -85,7 +87,7 @@ template("compiled_action") {
       visibility = invoker.visibility
     }
 
-    script = "//build/gn_run_binary.py"
+    script = "$_dart_root/build/gn_run_binary.py"
 
     if (defined(invoker.inputs)) {
       inputs = invoker.inputs
@@ -118,7 +120,10 @@ template("compiled_action") {
 
     # The script takes as arguments the binary to run, and then the arguments
     # to pass it.
-    args = [ rebase_path(host_executable, root_build_dir) ] + invoker.args
+    args = [
+      "compiled_action",
+      rebase_path(host_executable, root_build_dir)
+    ] + invoker.args
   }
 }
 
@@ -134,7 +139,7 @@ template("compiled_action_foreach") {
       visibility = invoker.visibility
     }
 
-    script = "//build/gn_run_binary.py"
+    script = "$_dart_root/build/gn_run_binary.py"
     sources = invoker.sources
 
     if (defined(invoker.inputs)) {
@@ -168,6 +173,9 @@ template("compiled_action_foreach") {
 
     # The script takes as arguments the binary to run, and then the arguments
     # to pass it.
-    args = [ rebase_path(host_executable, root_build_dir) ] + invoker.args
+    args = [
+      "compiled_action",
+      rebase_path(host_executable, root_build_dir)
+    ] + invoker.args
   }
 }

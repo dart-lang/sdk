@@ -52,11 +52,11 @@ class FieldTest {
     // The tests below are a little cumbersome because not
     // everything is implemented yet.
     var o = new Second();
-    // 'a' getter is overriden, always returns -12.
+    // 'a' getter is overridden, always returns -12.
     Expect.equals(-12, o.a);
     o.a = 2;
     Expect.equals(-12, o.a);
-    // 'b' setter is overriden to write 12 to field 'c'.
+    // 'b' setter is overridden to write 12 to field 'c'.
     o.b = o;
     Expect.equals(12, o.c);
   }

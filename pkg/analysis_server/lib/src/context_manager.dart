@@ -16,7 +16,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/config.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
@@ -24,6 +23,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -88,6 +88,11 @@ class ContextInfo {
    * is no longer relevant.
    */
   Set<String> _dependencies = new Set<String>();
+
+  /**
+   * The analysis driver that was created for the [folder].
+   */
+  AnalysisDriver analysisDriver;
 
   /**
    * The analysis context that was created for the [folder].
@@ -246,6 +251,11 @@ abstract class ContextManager {
   void set callbacks(ContextManagerCallbacks value);
 
   /**
+   * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
+   */
+  Map<Folder, AnalysisDriver> get driverMap;
+
+  /**
    * Return the list of excluded paths (folders and files) most recently passed
    * to [setRoots].
    */
@@ -320,6 +330,12 @@ abstract class ContextManager {
  * modified.
  */
 abstract class ContextManagerCallbacks {
+  /**
+   * Create and return a new analysis driver rooted at the given [folder], with
+   * the given analysis [options].
+   */
+  AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options);
+
   /**
    * Create and return a new analysis context rooted at the given [folder], with
    * the given analysis [options].
@@ -460,10 +476,6 @@ class ContextManagerImpl implements ContextManager {
    */
   final PubPackageMapProvider _packageMapProvider;
 
-  /// Provider of analysis options.
-  AnalysisOptionsProvider analysisOptionsProvider =
-      new AnalysisOptionsProvider();
-
   /**
    * A list of the globs used to determine which files should be analyzed.
    */
@@ -479,6 +491,8 @@ class ContextManagerImpl implements ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
+  final bool enableNewAnalysisDriver;
+
   @override
   ContextManagerCallbacks callbacks;
 
@@ -488,11 +502,14 @@ class ContextManagerImpl implements ContextManager {
    */
   final ContextInfo rootInfo = new ContextInfo._root();
 
+  @override
+  final Map<Folder, AnalysisDriver> driverMap =
+      new HashMap<Folder, AnalysisDriver>();
+
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
    */
-  @override
-  final Map<Folder, AnalysisContext> folderMap =
+  final Map<Folder, AnalysisContext> _folderMap =
       new HashMap<Folder, AnalysisContext>();
 
   /**
@@ -509,13 +526,22 @@ class ContextManagerImpl implements ContextManager {
       this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
-      this.defaultContextOptions) {
+      this.defaultContextOptions,
+      this.enableNewAnalysisDriver) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
 
   @override
   Iterable<AnalysisContext> get analysisContexts => folderMap.values;
+
+  Map<Folder, AnalysisContext> get folderMap {
+    if (enableNewAnalysisDriver) {
+      throw new StateError('Should not be used with the new analysis driver');
+    } else {
+      return _folderMap;
+    }
+  }
 
   @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
@@ -650,13 +676,82 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
+   * Process [options] for the given context [info].
+   */
+  void processOptionsForDriver(ContextInfo info, Map<String, Object> options,
+      {bool optionsRemoved: false}) {
+    if (options == null && !optionsRemoved) {
+      return;
+    }
+    AnalysisOptions analysisOptions = info.analysisDriver.analysisOptions;
+
+    // In case options files are removed, revert to defaults.
+    if (optionsRemoved) {
+      // Start with defaults.
+      analysisOptions.resetToDefaults();
+
+      // Apply inherited options.
+      options = _toStringMap(_getEmbeddedOptions(info));
+      if (options != null) {
+        applyToAnalysisOptions(analysisOptions, options);
+      }
+    } else {
+      // Check for embedded options.
+      Map embeddedOptions = _getEmbeddedOptions(info);
+      if (embeddedOptions != null) {
+        options = _toStringMap(new Merger().merge(embeddedOptions, options));
+      }
+    }
+
+    // TODO(brianwilkerson) Figure out what to do here.
+//    // Notify options processors.
+//    AnalysisEngine.instance.optionsPlugin.optionsProcessors
+//        .forEach((OptionsProcessor p) {
+//      try {
+//        p.optionsProcessed(info.context, options);
+//      } catch (e, stacktrace) {
+//        AnalysisEngine.instance.logger.logError(
+//            'Error processing analysis options',
+//            new CaughtException(e, stacktrace));
+//      }
+//    });
+
+    applyToAnalysisOptions(analysisOptions, options);
+
+    // Nothing more to do.
+    if (options == null) {
+      return;
+    }
+
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is Map) {
+      // Set ignore patterns.
+      YamlList exclude = analyzer[AnalyzerOptions.exclude];
+      List<String> excludeList = toStringList(exclude);
+      if (excludeList != null) {
+        setIgnorePatternsForContext(info, excludeList);
+      }
+    }
+  }
+
+  /**
    * Return the options from the analysis options file in the given [folder]
    * if exists, or in one of the parent folders, or `null` if no analysis
    * options file is found or if the contents of the file are not valid YAML.
    */
-  Map<String, Object> readOptions(Folder folder) {
+  Map<String, Object> readOptions(Folder folder, Packages packages) {
     try {
-      return analysisOptionsProvider.getOptions(folder, crawlUp: true);
+      Map<String, List<Folder>> packageMap =
+          new ContextBuilder(resourceProvider, null, null)
+              .convertPackagesToMap(packages);
+      List<UriResolver> resolvers = <UriResolver>[
+        new ResourceUriResolver(resourceProvider),
+        new PackageMapUriResolver(resourceProvider, packageMap),
+      ];
+      SourceFactory sourceFactory =
+          new SourceFactory(resolvers, packages, resourceProvider);
+      return new AnalysisOptionsProvider(sourceFactory)
+          .getOptions(folder, crawlUp: true);
     } catch (_) {
       // Parse errors are reported by GenerateOptionsErrorsTask.
     }
@@ -885,7 +980,8 @@ class ContextManagerImpl implements ContextManager {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       var analysisContext = info.context;
       if (analysisContext is context.AnalysisContextImpl) {
-        Map<String, Object> options = readOptions(info.folder);
+        Map<String, Object> options =
+            readOptions(info.folder, info.disposition.packages);
         processOptionsForContext(info, options,
             optionsRemoved: changeType == ChangeType.REMOVE);
         analysisContext.sourceFactory = _createSourceFactory(
@@ -918,20 +1014,31 @@ class ContextManagerImpl implements ContextManager {
    * file.)
    */
   List<String> _computeFlushedFiles(ContextInfo info) {
-    AnalysisContext context = info.context;
-    HashSet<String> flushedFiles = new HashSet<String>();
-    for (Source source in context.sources) {
-      flushedFiles.add(source.fullName);
-    }
-    for (ContextInfo contextInfo in rootInfo.descendants) {
-      AnalysisContext contextN = contextInfo.context;
-      if (context != contextN) {
-        for (Source source in contextN.sources) {
-          flushedFiles.remove(source.fullName);
+    if (enableNewAnalysisDriver) {
+      Set<String> flushedFiles = info.analysisDriver.knownFiles.toSet();
+      for (ContextInfo contextInfo in rootInfo.descendants) {
+        AnalysisDriver other = contextInfo.analysisDriver;
+        if (other != info.analysisDriver) {
+          flushedFiles.removeAll(other.knownFiles);
         }
       }
+      return flushedFiles.toList(growable: false);
+    } else {
+      AnalysisContext context = info.context;
+      HashSet<String> flushedFiles = new HashSet<String>();
+      for (Source source in context.sources) {
+        flushedFiles.add(source.fullName);
+      }
+      for (ContextInfo contextInfo in rootInfo.descendants) {
+        AnalysisContext contextN = contextInfo.context;
+        if (context != contextN) {
+          for (Source source in contextN.sources) {
+            flushedFiles.remove(source.fullName);
+          }
+        }
+      }
+      return flushedFiles.toList(growable: false);
     }
-    return flushedFiles.toList(growable: false);
   }
 
   /**
@@ -1027,15 +1134,20 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path], disposition);
 
-    Map<String, Object> optionMap = readOptions(info.folder);
+    Map<String, Object> optionMap =
+        readOptions(info.folder, disposition.packages);
     AnalysisOptions options =
         new AnalysisOptionsImpl.from(defaultContextOptions);
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
-    info.context = callbacks.addContext(folder, options);
-    folderMap[folder] = info.context;
-    info.context.name = folder.path;
+    if (enableNewAnalysisDriver) {
+      info.analysisDriver = callbacks.addAnalysisDriver(folder, options);
+    } else {
+      info.context = callbacks.addContext(folder, options);
+      _folderMap[folder] = info.context;
+      info.context.name = folder.path;
+    }
 
     // Look for pubspec-specified analysis configuration.
     File pubspec;
@@ -1050,15 +1162,12 @@ class ContextManagerImpl implements ContextManager {
         pubspec = child;
       }
     }
-    if (pubspec != null) {
-      File pubSource = resourceProvider.getFile(pubspec.path);
-      setConfiguration(
-          info.context,
-          new AnalysisConfiguration.fromPubspec(
-              pubSource, resourceProvider, disposition.packages));
-    }
 
-    processOptionsForContext(info, optionMap);
+    if (enableNewAnalysisDriver) {
+      processOptionsForDriver(info, optionMap);
+    } else {
+      processOptionsForContext(info, optionMap);
+    }
 
     return info;
   }
@@ -1210,18 +1319,6 @@ class ContextManagerImpl implements ContextManager {
     if (maps.length == 1) {
       embeddedOptions = maps.first;
     }
-
-    AnalysisConfiguration configuration = getConfiguration(info.context);
-    if (configuration != null) {
-      Map configMap = configuration.options;
-      if (configMap != null) {
-        if (embeddedOptions != null) {
-          embeddedOptions = new Merger().merge(embeddedOptions, configMap);
-        } else {
-          embeddedOptions = configMap;
-        }
-      }
-    }
     return embeddedOptions;
   }
 
@@ -1336,11 +1433,15 @@ class ContextManagerImpl implements ContextManager {
         if (resource is File) {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
-            ChangeSet changeSet = new ChangeSet();
-            Source source = createSourceInContext(info.context, file);
-            changeSet.addedSource(source);
-            callbacks.applyChangesToContext(info.folder, changeSet);
-            info.sources[path] = source;
+            if (enableNewAnalysisDriver) {
+              info.analysisDriver.addFile(path);
+            } else {
+              ChangeSet changeSet = new ChangeSet();
+              Source source = createSourceInContext(info.context, file);
+              changeSet.addedSource(source);
+              callbacks.applyChangesToContext(info.folder, changeSet);
+              info.sources[path] = source;
+            }
           }
         }
         break;
@@ -1377,24 +1478,34 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.removedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
-          info.sources.remove(path);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.removeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.removedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+            info.sources.remove(path);
+          }
         }
         break;
       case ChangeType.MODIFY:
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.changedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
+        if (enableNewAnalysisDriver) {
+          for (AnalysisDriver driver in driverMap.values) {
+            driver.changeFile(path);
+          }
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.changedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+          }
         }
         break;
     }

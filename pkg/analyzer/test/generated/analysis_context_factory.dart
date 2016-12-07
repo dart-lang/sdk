@@ -21,13 +21,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 /**
  * The class `AnalysisContextFactory` defines utility methods used to create analysis contexts
@@ -157,11 +156,11 @@ class AnalysisContextFactory {
             "override", true, false, overrideClassElement.type);
     {
       ClassElement deprecatedElement = provider.deprecatedType.element;
-      InstanceCreationExpression initializer = AstFactory
+      InstanceCreationExpression initializer = AstTestFactory
           .instanceCreationExpression2(
               Keyword.CONST,
-              AstFactory.typeName(deprecatedElement),
-              [AstFactory.string2('next release')]);
+              AstTestFactory.typeName(deprecatedElement),
+              [AstTestFactory.string2('next release')]);
       ConstructorElement constructor = deprecatedElement.constructors.single;
       initializer.staticElement = constructor;
       initializer.constructorName.staticElement = constructor;
@@ -178,13 +177,13 @@ class AnalysisContextFactory {
       proxyTopLevelVariableElt
     ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
+        coreContext, AstTestFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
     //
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
+        coreContext, AstTestFactory.libraryIdentifier2(["dart", "async"]));
     CompilationUnitElementImpl asyncUnit =
         new CompilationUnitElementImpl("async.dart");
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
@@ -210,7 +209,7 @@ class AnalysisContextFactory {
     }
     FunctionElementImpl thenOnValue = ElementFactory.functionElement3('onValue',
         DynamicElementImpl.instance, [futureElement.typeParameters[0]], null);
-    thenOnValue.synthetic = true;
+    thenOnValue.isSynthetic = true;
 
     DartType futureRType = futureElement.type.instantiate([futureThenR.type]);
     MethodElementImpl thenMethod = ElementFactory
@@ -249,7 +248,7 @@ class AnalysisContextFactory {
         VoidTypeImpl.instance.element,
         <TypeDefiningElement>[streamElement.typeParameters[0]],
         null);
-    listenOnData.synthetic = true;
+    listenOnData.isSynthetic = true;
     List<DartType> parameterTypes = <DartType>[
       listenOnData.type,
     ];
@@ -329,8 +328,8 @@ class AnalysisContextFactory {
             "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(coreContext,
+        AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     //
     // dart:math
@@ -391,7 +390,7 @@ class AnalysisContextFactory {
     ];
     mathUnit.types = <ClassElement>[randomElement];
     LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "math"]));
+        coreContext, AstTestFactory.libraryIdentifier2(["dart", "math"]));
     mathLibrary.definingCompilationUnit = mathUnit;
     //
     // Set empty sources for the rest of the libraries.
@@ -489,25 +488,24 @@ class AnalysisContextForTests extends AnalysisContextImpl {
  * Helper for creating and managing single [AnalysisContext].
  */
 class AnalysisContextHelper {
-  ResourceProvider resourceProvider;
+  MemoryResourceProvider resourceProvider;
   AnalysisContext context;
 
   /**
    * Creates new [AnalysisContext] using [AnalysisContextFactory].
    */
   AnalysisContextHelper(
-      [AnalysisOptionsImpl options, ResourceProvider provider]) {
+      [AnalysisOptionsImpl options, MemoryResourceProvider provider]) {
     resourceProvider = provider ?? new MemoryResourceProvider();
-    if (options == null) {
-      options = new AnalysisOptionsImpl();
-    }
-    options.cacheSize = 256;
-    context = AnalysisContextFactory.contextWithCoreAndOptions(options,
+    context = AnalysisContextFactory.contextWithCoreAndOptions(
+        options ?? new AnalysisOptionsImpl(),
         resourceProvider: resourceProvider);
   }
 
   Source addSource(String path, String code) {
-    Source source = new FileSource(resourceProvider.getFile(path));
+    Source source = resourceProvider
+        .getFile(resourceProvider.convertPath(path))
+        .createSource();
     if (path.endsWith(".dart") || path.endsWith(".html")) {
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(source);

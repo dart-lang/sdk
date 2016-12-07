@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library TypedArraysRangeCheckTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
+
+import 'package:expect/minitest.dart';
 
 const N = 1024;
 
@@ -28,35 +27,13 @@ _obfuscatedList() {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Only perform tests if ArrayBuffer is supported.
   if (!Platform.supportsTypedData) {
     return;
   }
 
-  test('outOfRangeAccess_dynamic', () {
+  test('outOfRangeAccess', () {
       var a = _obfuscatedList();
-
-      expect(() => a[a.length], throws);
-      expect(() => a[a.length + 1], throws);
-      expect(() => a[a.length + N], throws);
-
-      expect(() => a[-1], throws);
-      expect(() => a[1.5], throws);
-      expect(() => a['length'], throws);
-
-      expect(() => a[a.length] = 0xdeadbeef, throws);
-      expect(() => a[a.length + 1] = 0xdeadbeef, throws);
-      expect(() => a[a.length + N] = 0xdeadbeef, throws);
-
-      expect(() => a[-1] = 0xdeadbeef, throws);
-      expect(() => a[1.5] = 0xdeadbeef, throws);
-      expect(() => a['length'] = 1, throws);
-  });
-
-  test('outOfRange_typed', () {
-      Uint8List a = new Uint8List(N);
 
       expect(() => a[a.length], throws);
       expect(() => a[a.length + 1], throws);

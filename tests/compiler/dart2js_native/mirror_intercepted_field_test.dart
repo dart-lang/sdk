@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors';
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 @Native("B")
 class B {
@@ -20,6 +19,7 @@ class A {
 const symF = const Symbol('f');
 
 main() {
+  JS('B', '(null)'); // B appears to be created.
   var a = new A();
 
   InstanceMirror mirror = reflect(a);

@@ -17,10 +17,12 @@ library dart.developer;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 
 part 'extension.dart';
 part 'profiler.dart';
 part 'timeline.dart';
+part 'service.dart';
 
 /// If [when] is true, stop the program as if a breakpoint were hit at the
 /// following statement.

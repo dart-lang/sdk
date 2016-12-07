@@ -19,7 +19,7 @@ void Log::VPrint(const char* format, va_list args) {
 
 void Log::VPrintErr(const char* format, va_list args) {
   vfprintf(stderr, format, args);
-  fflush(stdout);
+  fflush(stderr);
 }
 
 }  // namespace bin

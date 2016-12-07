@@ -7,10 +7,8 @@ library js_typed_interop_test;
 
 import 'dart:html';
 
-import 'package:expect/expect.dart' show NoInline;
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   document.body.append(new ScriptElement()
@@ -34,7 +32,6 @@ class Foo {
 
 main() {
   _injectJs();
-  useHtmlConfiguration();
 
   test('call directly from dart', () {
     expect(Foo.get42(2), 2);

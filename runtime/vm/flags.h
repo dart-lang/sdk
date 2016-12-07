@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLAGS_H_
-#define VM_FLAGS_H_
+#ifndef RUNTIME_VM_FLAGS_H_
+#define RUNTIME_VM_FLAGS_H_
 
 #include "platform/assert.h"
 #include "vm/flag_list.h"
@@ -11,14 +11,11 @@
 
 typedef const char* charp;
 
-#define DECLARE_FLAG(type, name)                                               \
-  extern type FLAG_##name
+#define DECLARE_FLAG(type, name) extern type FLAG_##name
 
 #define DEFINE_FLAG(type, name, default_value, comment)                        \
-  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
-                                            #name,                             \
-                                            default_value,                     \
-                                            comment);
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 
 #define DEFINE_FLAG_HANDLER(handler, name, comment)                            \
   bool DUMMY_##name = Flags::Register_func(handler, #name, comment);
@@ -71,9 +68,7 @@ class Flags {
   static void PrintJSON(JSONStream* js);
 #endif  // !PRODUCT
 
-  static bool SetFlag(const char* name,
-                      const char* value,
-                      const char** error);
+  static bool SetFlag(const char* name, const char* value, const char** error);
 
  private:
   static Flag** flags_;
@@ -103,7 +98,7 @@ class Flags {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Flags);
 };
 
-#define PRODUCT_FLAG_MARCO(name, type, default_value, comment) \
+#define PRODUCT_FLAG_MARCO(name, type, default_value, comment)                 \
   extern type FLAG_##name;
 
 #if defined(DEBUG)
@@ -157,4 +152,4 @@ FLAG_LIST(PRODUCT_FLAG_MARCO,
 
 }  // namespace dart
 
-#endif  // VM_FLAGS_H_
+#endif  // RUNTIME_VM_FLAGS_H_

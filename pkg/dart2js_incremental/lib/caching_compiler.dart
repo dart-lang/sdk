@@ -35,17 +35,19 @@ Future<CompilerImpl> reuseCompiler(
     environment = {};
   }
   CompilerImpl compiler = cachedCompiler;
+  JavaScriptBackend backend = compiler?.backend;
   if (compiler == null ||
       compiler.libraryRoot != libraryRoot ||
       !compiler.options.hasIncrementalSupport ||
       compiler.hasCrashed ||
-      compiler.enqueuer.resolution.hasEnqueuedReflectiveElements ||
+      backend.mirrorsAnalysis.resolutionHandler.hasEnqueuedReflectiveElements ||
       compiler.deferredLoadTask.isProgramSplit) {
     if (compiler != null && compiler.options.hasIncrementalSupport) {
       print('***FLUSH***');
       if (compiler.hasCrashed) {
         print('Unable to reuse compiler due to crash.');
-      } else if (compiler.enqueuer.resolution.hasEnqueuedReflectiveElements) {
+      } else if (backend.mirrorsAnalysis.resolutionHandler
+                     .hasEnqueuedReflectiveElements) {
         print('Unable to reuse compiler due to dart:mirrors.');
       } else if (compiler.deferredLoadTask.isProgramSplit) {
         print('Unable to reuse compiler due to deferred loading.');
@@ -64,7 +66,7 @@ Future<CompilerImpl> reuseCompiler(
             packageConfig: packageConfig,
             options: options,
             environment: environment));
-    JavaScriptBackend backend = compiler.backend;
+    backend = compiler.backend;
 
     full.Emitter emitter = backend.emitter.emitter;
 
@@ -82,9 +84,8 @@ Future<CompilerImpl> reuseCompiler(
       return compiler.libraryLoader.loadLibrary(core).then((_) {
         // Likewise, always be prepared for runtimeType support.
         // TODO(johnniwinther): Add global switch to force RTI.
-        compiler.enabledRuntimeType = true;
-        backend.registerRuntimeType(
-            compiler.enqueuer.resolution, compiler.globalDependencies);
+        compiler.resolverWorld.hasRuntimeTypeSupport = true;
+        compiler.enqueuer.resolution.applyImpact(backend.registerRuntimeType());
         return compiler;
       });
     });

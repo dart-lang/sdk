@@ -4,9 +4,8 @@
 
 library test.src.serialization.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'api_signature_test.dart' as api_signature_test;
 import 'bazel_summary_test.dart' as bazel_summary_test;
 import 'flat_buffers_test.dart' as flat_buffers_test;
@@ -22,8 +21,7 @@ import 'summarize_ast_test.dart' as summarize_ast_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('summary tests', () {
+  defineReflectiveSuite(() {
     api_signature_test.main();
     bazel_summary_test.main();
     flat_buffers_test.main();
@@ -36,5 +34,5 @@ main() {
     resynthesize_ast_test.main();
     summarize_ast_strong_test.main();
     summarize_ast_test.main();
-  });
+  }, name: 'summary');
 }

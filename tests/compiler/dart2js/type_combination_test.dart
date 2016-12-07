@@ -8,6 +8,8 @@ import 'package:compiler/src/js_backend/backend_helpers.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
+import 'package:compiler/src/universe/use.dart';
+import 'package:compiler/src/universe/world_impact.dart';
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
 
@@ -736,24 +738,26 @@ void main() {
     """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    ClosedWorld world = compiler.openWorld.closeWorld();
+    ClosedWorld world = compiler.openWorld.closeWorld(compiler.reporter);
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     helpers.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);
-        backend.registerInstantiatedType(element.rawType,
-            compiler.enqueuer.resolution, compiler.globalDependencies);
+        impactBuilder
+            .registerTypeUse(new TypeUse.instantiation(element.rawType));
       }
     });
     ClassElement patternImplClass = compiler.mainApp.find('PatternImpl');
     patternImplClass.ensureResolved(compiler.resolution);
 
-    backend.registerInstantiatedType(compiler.coreTypes.mapType(),
-        compiler.enqueuer.resolution, compiler.globalDependencies);
-    backend.registerInstantiatedType(compiler.coreTypes.functionType,
-        compiler.enqueuer.resolution, compiler.globalDependencies);
-    backend.registerInstantiatedType(patternImplClass.rawType,
-        compiler.enqueuer.resolution, compiler.globalDependencies);
-    compiler.openWorld.closeWorld();
+    impactBuilder.registerTypeUse(
+        new TypeUse.instantiation(compiler.coreTypes.mapType()));
+    impactBuilder.registerTypeUse(
+        new TypeUse.instantiation(compiler.coreTypes.functionType));
+    impactBuilder
+        .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
+    compiler.enqueuer.resolution.applyImpact(impactBuilder);
+    compiler.openWorld.closeWorld(compiler.reporter);
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.

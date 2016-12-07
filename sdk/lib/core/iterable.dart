@@ -368,7 +368,7 @@ abstract class Iterable<E> {
    * Some iterables have a more efficient way to find the number of elements.
    */
   int get length {
-    assert(this is! EfficientLength);
+    assert(this is! EfficientLengthIterable);
     int count = 0;
     Iterator it = iterator;
     while (it.moveNext()) {

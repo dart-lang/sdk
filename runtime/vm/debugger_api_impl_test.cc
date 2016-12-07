@@ -16,7 +16,7 @@ DECLARE_FLAG(bool, trace_shutdown);
 #ifndef PRODUCT
 
 static bool breakpoint_hit = false;
-static int  breakpoint_hit_counter = 0;
+static int breakpoint_hit_counter = 0;
 static Dart_Handle script_lib = NULL;
 
 static const bool verbose = true;
@@ -31,9 +31,8 @@ static void SetBreakpointAtEntry(const char* cname, const char* fname) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
-  Dart_Handle res = Dart_SetBreakpointAtEntry(script_lib,
-                        NewString(cname),
-                        NewString(fname));
+  Dart_Handle res =
+      Dart_SetBreakpointAtEntry(script_lib, NewString(cname), NewString(fname));
   EXPECT(Dart_IsInteger(res));
 }
 
@@ -104,8 +103,8 @@ static char const* BreakpointInfo(Dart_StackTrace trace) {
   Dart_Handle url;
   intptr_t line_number = 0;
   intptr_t library_id = 0;
-  res = Dart_ActivationFrameInfo(
-            frame, &func_name, &url, &line_number, &library_id);
+  res = Dart_ActivationFrameInfo(frame, &func_name, &url, &line_number,
+                                 &library_id);
   EXPECT_TRUE(res);
   OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%" Pd ")",
               ToCString(func_name), ToCString(url), line_number);
@@ -389,10 +388,9 @@ static void SaveStackTrace(Dart_StackTrace trace) {
 
   for (intptr_t frame_index = 0; frame_index < trace_len; frame_index++) {
     EXPECT_VALID(Dart_GetActivationFrame(trace, frame_index, &frame));
-    EXPECT_VALID(Dart_ActivationFrameInfo(frame, &func_name,
-                                          NULL, NULL, NULL));
-    int pos = OS::SNPrint(buffer, buffer_size, "[%" Pd "] %s { ",
-                          frame_index, ToCString(func_name));
+    EXPECT_VALID(Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL));
+    int pos = OS::SNPrint(buffer, buffer_size, "[%" Pd "] %s { ", frame_index,
+                          ToCString(func_name));
     buffer += pos;
     buffer_size -= pos;
 
@@ -415,8 +413,7 @@ static void SaveStackTrace(Dart_StackTrace trace) {
       const char* value_cstr = NULL;
       EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
       EXPECT_VALID(Dart_StringToCString(value_str, &value_cstr));
-      pos = OS::SNPrint(buffer, buffer_size, "%s = %s ",
-                        name_cstr, value_cstr);
+      pos = OS::SNPrint(buffer, buffer_size, "%s = %s ", name_cstr, value_cstr);
       buffer += pos;
       buffer_size -= pos;
     }
@@ -493,22 +490,24 @@ static void InspectStackTest(bool optimize) {
   dart_args[1] = Dart_NewInteger(kLowThreshold);
   EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
   if (optimize) {
-    EXPECT_STREQ("[0] breakpointNow { }\n"
-                 "[1] helper { a = 5 b = 99 stop = <optimized out> }\n"
-                 "[2] anotherMiddleMan { one = <optimized out> "
-                 "two = <optimized out> stop = <optimized out> }\n"
-                 "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
-                 " i = 99 }\n"
-                 "[4] test { stop = true limit = 100 }\n",
-                 stack_buffer);
+    EXPECT_STREQ(
+        "[0] breakpointNow { }\n"
+        "[1] helper { a = 5 b = 99 stop = <optimized out> }\n"
+        "[2] anotherMiddleMan { one = <optimized out> "
+        "two = <optimized out> stop = <optimized out> }\n"
+        "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
+        " i = 99 }\n"
+        "[4] test { stop = true limit = 100 }\n",
+        stack_buffer);
   } else {
-    EXPECT_STREQ("[0] breakpointNow { }\n"
-                 "[1] helper { a = 5 b = 99 stop = true }\n"
-                 "[2] anotherMiddleMan { one = 5 two = 99 stop = true }\n"
-                 "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
-                 " i = 99 }\n"
-                 "[4] test { stop = true limit = 100 }\n",
-                 stack_buffer);
+    EXPECT_STREQ(
+        "[0] breakpointNow { }\n"
+        "[1] helper { a = 5 b = 99 stop = true }\n"
+        "[2] anotherMiddleMan { one = 5 two = 99 stop = true }\n"
+        "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
+        " i = 99 }\n"
+        "[4] test { stop = true limit = 100 }\n",
+        stack_buffer);
   }
 
   FLAG_optimization_counter_threshold = saved_threshold;
@@ -587,26 +586,28 @@ static void InspectStackWithClosureTest(bool optimize) {
   dart_args[1] = Dart_NewInteger(kLowThreshold);
   EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
   if (optimize) {
-    EXPECT_STREQ("[0] breakpointNow { }\n"
-                 "[1] helper { a = 50 b = 99 stop = <optimized out> }\n"
-                 "[2] <anonymous closure> { x = 5 i = 99 stop = true"
-                 " value = <optimized out> }\n"
-                 "[3] anotherMiddleMan { func = <optimized out> }\n"
-                 "[4] middleMan { x = 5 limit = 100 stop = true"
-                 " value = 242550 i = 99 }\n"
-                 "[5] test { stop = true limit = 100 }\n",
-                 stack_buffer);
+    EXPECT_STREQ(
+        "[0] breakpointNow { }\n"
+        "[1] helper { a = 50 b = 99 stop = <optimized out> }\n"
+        "[2] <anonymous closure> { x = 5 i = 99 stop = true"
+        " value = <optimized out> }\n"
+        "[3] anotherMiddleMan { func = <optimized out> }\n"
+        "[4] middleMan { x = 5 limit = 100 stop = true"
+        " value = 242550 i = 99 }\n"
+        "[5] test { stop = true limit = 100 }\n",
+        stack_buffer);
   } else {
-    EXPECT_STREQ("[0] breakpointNow { }\n"
-                 "[1] helper { a = 50 b = 99 stop = true }\n"
-                 "[2] <anonymous closure> { x = 5 i = 99 stop = true"
-                 " value = 10 }\n"
-                 "[3] anotherMiddleMan {"
-                 " func = Closure: (dynamic) => dynamic }\n"
-                 "[4] middleMan { x = 5 limit = 100 stop = true"
-                 " value = 242550 i = 99 }\n"
-                 "[5] test { stop = true limit = 100 }\n",
-                 stack_buffer);
+    EXPECT_STREQ(
+        "[0] breakpointNow { }\n"
+        "[1] helper { a = 50 b = 99 stop = true }\n"
+        "[2] <anonymous closure> { x = 5 i = 99 stop = true"
+        " value = 10 }\n"
+        "[3] anotherMiddleMan {"
+        " func = Closure: (dynamic) => dynamic }\n"
+        "[4] middleMan { x = 5 limit = 100 stop = true"
+        " value = 242550 i = 99 }\n"
+        "[5] test { stop = true limit = 100 }\n",
+        stack_buffer);
   }
 
   FLAG_optimization_counter_threshold = saved_threshold;
@@ -691,22 +692,22 @@ TEST_CASE(Debug_StepOut) {
 }
 
 static const char* step_into_expected_bpts[] = {
-    "main",        // entry
-    "main",        // call foo
-      "foo",       // entry
-      "foo",       // call f1
-        "f1",      // entry
-        "f1",      // return
-      "foo",       // call initializer
-      "foo",       // call kvmk
-        "X.kvmk",  // entry
-        "X.kvmk",  // call
-          "f2",    // entry
-          "f2",    // return
-        "X.kvmk",  // call +
-        "X.kvmk",  // return
-      "foo",       // return
-    "main"         // return
+    "main",    // entry
+    "main",    // call foo
+    "foo",     // entry
+    "foo",     // call f1
+    "f1",      // entry
+    "f1",      // return
+    "foo",     // call initializer
+    "foo",     // call kvmk
+    "X.kvmk",  // entry
+    "X.kvmk",  // call
+    "f2",      // entry
+    "f2",      // return
+    "X.kvmk",  // call +
+    "X.kvmk",  // return
+    "foo",     // return
+    "main"     // return
 };
 
 void TestStepIntoHandler(Dart_IsolateId isolate_id,
@@ -785,8 +786,8 @@ static void StepIntoHandler(Dart_IsolateId isolate_id,
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
   if (verbose) {
-    OS::Print(">>> Breakpoint nr. %d in %s <<<\n",
-              breakpoint_hit_counter, BreakpointInfo(trace));
+    OS::Print(">>> Breakpoint nr. %d in %s <<<\n", breakpoint_hit_counter,
+              BreakpointInfo(trace));
     PrintStackTrace(trace);
   }
   breakpoint_hit = true;
@@ -867,8 +868,8 @@ void TestSingleStepHandler(Dart_IsolateId isolate_id,
                            const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
-  const char* expected_bpts[] = {
-      "moo", "moo", "foo", "moo", "moo", "foo", "moo", "moo", "foo", "main"};
+  const char* expected_bpts[] = {"moo", "moo", "foo", "moo", "moo",
+                                 "foo", "moo", "moo", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
@@ -1086,17 +1087,15 @@ TEST_CASE(Debug_BreakpointStubPatching) {
       "}                               \n";
 
   LoadScript(kScriptChars);
-  Dart_Handle result = Dart_SetNativeResolver(script_lib,
-                                              &NoopNativeResolver,
-                                              NULL);
+  Dart_Handle result =
+      Dart_SetNativeResolver(script_lib, &NoopNativeResolver, NULL);
   EXPECT_VALID(result);
   Dart_SetPausedEventHandler(&TestBreakpointHandlerWithVerify);
 
   Dart_Handle script_url = NewString(TestCase::url());
 
   const intptr_t num_breakpoints = 9;
-  intptr_t breakpoint_lines[num_breakpoints] =
-      {5, 6, 7, 8, 9, 10, 11, 12, 13};
+  intptr_t breakpoint_lines[num_breakpoints] = {5, 6, 7, 8, 9, 10, 11, 12, 13};
 
   for (intptr_t i = 0; i < num_breakpoints; i++) {
     result = Dart_SetBreakpoint(script_url, breakpoint_lines[i]);
@@ -1202,14 +1201,12 @@ static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
   struct {
     const char* field_name;
     const char* field_value;
-  } expected[] = {
-    // Expected values at first breakpoint.
-    { "bla", "yada yada yada"},
-    { "u", "null" },
-    // Expected values at second breakpoint.
-    { "bla", "silence is golden" },
-    { "u", "442" }
-  };
+  } expected[] = {// Expected values at first breakpoint.
+                  {"bla", "yada yada yada"},
+                  {"u", "null"},
+                  // Expected values at second breakpoint.
+                  {"bla", "silence is golden"},
+                  {"u", "442"}};
   ASSERT(breakpoint_hit_counter < 2);
   int expected_idx = breakpoint_hit_counter * expected_num_fields;
   breakpoint_hit_counter++;
@@ -1248,19 +1245,19 @@ static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
 
 TEST_CASE(Debug_InspectStaticField) {
   const char* kScriptChars =
-    " class A {                                 \n"
-    "   static var bla = 'yada yada yada';      \n"
-    "   static var u;                           \n"
-    " }                                         \n"
-    "                                           \n"
-    " debugBreak() { }                          \n"
-    " main() {                                  \n"
-    "   var a = new A();                        \n"
-    "   debugBreak();                           \n"
-    "   A.u = 442;                              \n"
-    "   A.bla = 'silence is golden';            \n"
-    "   debugBreak();                           \n"
-    " }                                         \n";
+      " class A {                                 \n"
+      "   static var bla = 'yada yada yada';      \n"
+      "   static var u;                           \n"
+      " }                                         \n"
+      "                                           \n"
+      " debugBreak() { }                          \n"
+      " main() {                                  \n"
+      "   var a = new A();                        \n"
+      "   debugBreak();                           \n"
+      "   A.u = 442;                              \n"
+      "   A.bla = 'silence is golden';            \n"
+      "   debugBreak();                           \n"
+      " }                                         \n";
 
   LoadScript(kScriptChars);
   Dart_SetPausedEventHandler(&InspectStaticFieldHandler);
@@ -1274,18 +1271,18 @@ TEST_CASE(Debug_InspectStaticField) {
 
 TEST_CASE(Debug_InspectObject) {
   const char* kScriptChars =
-    " class A {                                 \n"
-    "   var a_field = 'a';                      \n"
-    "   static var bla = 'yada yada yada';      \n"
-    "   static var error = unresolvedName();    \n"
-    "   var d = 42.1;                           \n"
-    " }                                         \n"
-    " class B extends A {                       \n"
-    "   var oneDay = const Duration(hours: 24); \n"
-    "   static var bla = 'blah blah';           \n"
-    " }                                         \n"
-    " get_b() { return new B(); }               \n"
-    " get_int() { return 666; }                 \n";
+      " class A {                                 \n"
+      "   var a_field = 'a';                      \n"
+      "   static var bla = 'yada yada yada';      \n"
+      "   static var error = unresolvedName();    \n"
+      "   var d = 42.1;                           \n"
+      " }                                         \n"
+      " class B extends A {                       \n"
+      "   var oneDay = const Duration(hours: 24); \n"
+      "   static var bla = 'blah blah';           \n"
+      " }                                         \n"
+      " get_b() { return new B(); }               \n"
+      " get_int() { return 666; }                 \n";
 
   // Number of instance fields in an object of class B.
   const intptr_t kNumObjectFields = 3;
@@ -1528,9 +1525,8 @@ static void InterruptIsolateRun(uword unused) {
   Dart_EnterScope();
   LoadScript(kScriptChars);
 
-  Dart_Handle result = Dart_SetNativeResolver(script_lib,
-                                              &InterruptNativeResolver,
-                                              NULL);
+  Dart_Handle result =
+      Dart_SetNativeResolver(script_lib, &InterruptNativeResolver, NULL);
   EXPECT_VALID(result);
 
   Dart_Handle retval = Invoke("main");
@@ -1590,18 +1586,14 @@ TEST_CASE(Debug_InterruptIsolate) {
 
 
 static void StackTraceDump1BreakpointHandler(
-                Dart_IsolateId isolate_id,
-                intptr_t bp_id,
-                const Dart_CodeLocation& location) {
+    Dart_IsolateId isolate_id,
+    intptr_t bp_id,
+    const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
   const int kStackTraceLen = 4;
   static const char* expected_trace[kStackTraceLen] = {
-    "local_to_main",
-    "Test.local1_to_func1",
-    "Test.func1",
-    "main"
-  };
+      "local_to_main", "Test.local1_to_func1", "Test.func1", "main"};
 
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
@@ -1672,15 +1664,11 @@ static void StackTraceDump1BreakpointHandler(
   Dart_ListSetAt(frame3_locals, 12, NewString("main_local"));
   Dart_ListSetAt(frame3_locals, 13, Dart_Null());
 
-  Dart_Handle expected_locals[] = {
-    frame0_locals,
-    frame1_locals,
-    frame2_locals,
-    frame3_locals
-  };
+  Dart_Handle expected_locals[] = {frame0_locals, frame1_locals, frame2_locals,
+                                   frame3_locals};
   breakpoint_hit_counter++;
-  VerifyStackTrace(trace, expected_trace, expected_locals,
-                   kStackTraceLen, true);
+  VerifyStackTrace(trace, expected_trace, expected_locals, kStackTraceLen,
+                   true);
 }
 
 
@@ -1751,12 +1739,8 @@ static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
                                             Dart_StackTrace trace) {
   const int kStackTraceLen = 5;
   static const char* expected_trace[kStackTraceLen] = {
-    "Object._noSuchMethod",
-    "Object.noSuchMethod",
-    "Test.local1_to_func1",
-    "Test.func1",
-    "main"
-  };
+      "Object._noSuchMethod", "Object.noSuchMethod", "Test.local1_to_func1",
+      "Test.func1", "main"};
 
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
@@ -1838,16 +1822,11 @@ static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
   Dart_ListSetAt(frame4_locals, 10, NewString("func1"));
   Dart_ListSetAt(frame4_locals, 11, Dart_Null());
 
-  Dart_Handle expected_locals[] = {
-    frame0_locals,
-    frame1_locals,
-    frame2_locals,
-    frame3_locals,
-    frame4_locals
-  };
+  Dart_Handle expected_locals[] = {frame0_locals, frame1_locals, frame2_locals,
+                                   frame3_locals, frame4_locals};
   breakpoint_hit_counter++;
-  VerifyStackTrace(trace, expected_trace, expected_locals,
-                   kStackTraceLen, true);
+  VerifyStackTrace(trace, expected_trace, expected_locals, kStackTraceLen,
+                   true);
 }
 
 
@@ -2028,7 +2007,7 @@ TEST_CASE(Debug_EvaluateExpr) {
   closure = Dart_EvaluateExpr(script_lib, NewString("(x) => l.length + x"));
   EXPECT_VALID(closure);
   EXPECT(Dart_IsClosure(closure));
-  Dart_Handle args[1] = { Dart_NewInteger(1) };
+  Dart_Handle args[1] = {Dart_NewInteger(1)};
   len = Dart_InvokeClosure(closure, 1, args);
   EXPECT_VALID(len);
   EXPECT(Dart_IsNumber(len));
@@ -2077,8 +2056,8 @@ TEST_CASE(Debug_EvaluateInActivationOfEvaluate) {
   Dart_SetExceptionPauseInfo(kPauseOnAllExceptions);
   breakpoint_hit_counter = 0;
 
-  Dart_Handle result = Dart_EvaluateExpr(script_lib, NewString(
-      "() { var p = new Point(3, 4); throw p; } ())"));
+  Dart_Handle result = Dart_EvaluateExpr(
+      script_lib, NewString("() { var p = new Point(3, 4); throw p; } ())"));
   EXPECT(Dart_IsError(result));
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
@@ -2206,26 +2185,20 @@ TEST_CASE(Debug_GetSupertype) {
   Dart_Handle Test1_type = Dart_GetType(script_lib, Test1_name, 0, NULL);
   Dart_Handle type_args = Dart_NewList(1);
   Dart_ListSetAt(type_args, 0, int_type);
-  Dart_Handle Test2_int_type = Dart_GetType(script_lib,
-                                            Test2_name,
-                                            1,
-                                            &type_args);
+  Dart_Handle Test2_int_type =
+      Dart_GetType(script_lib, Test2_name, 1, &type_args);
   Dart_Handle Test3_type = Dart_GetType(script_lib, Test3_name, 0, NULL);
   type_args = Dart_NewList(2);
   Dart_ListSetAt(type_args, 0, int_type);
   Dart_ListSetAt(type_args, 1, Test_type);
-  Dart_Handle Test4_int_type = Dart_GetType(script_lib,
-                                            Test4_name,
-                                            2,
-                                            &type_args);
+  Dart_Handle Test4_int_type =
+      Dart_GetType(script_lib, Test4_name, 2, &type_args);
   type_args = Dart_NewList(3);
   Dart_ListSetAt(type_args, 0, int_type);
   Dart_ListSetAt(type_args, 1, Test_type);
   Dart_ListSetAt(type_args, 2, int_type);
-  Dart_Handle Test5_int_type = Dart_GetType(script_lib,
-                                            Test5_name,
-                                            3,
-                                            &type_args);
+  Dart_Handle Test5_int_type =
+      Dart_GetType(script_lib, Test5_name, 3, &type_args);
   {
     Dart_Handle super_type = Dart_GetSupertype(object_type);
     EXPECT(super_type == Dart_Null());
@@ -2257,9 +2230,10 @@ TEST_CASE(Debug_GetSupertype) {
   {
     Dart_Handle set_type = Dart_GetType(core_lib, set_name, 0, NULL);
     Dart_Handle super_type = Dart_GetSupertype(set_type);
+    Dart_Handle super2_type = Dart_GetSupertype(super_type);
     Dart_Handle iterable_type = Dart_GetType(core_lib, iterable_name, 0, NULL);
     const Type& expected_type = Api::UnwrapTypeHandle(zone, iterable_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super2_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {

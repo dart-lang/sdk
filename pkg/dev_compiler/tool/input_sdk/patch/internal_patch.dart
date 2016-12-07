@@ -11,7 +11,11 @@ import 'dart:_foreign_helper' show JS;
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name)
-      : this._name = name;
+      : this._name = name, this._nativeSymbol = null;
+
+  @patch
+  const Symbol.es6(String name, dynamic nativeSymbol)
+      : this._name = name, this._nativeSymbol = nativeSymbol;
 
   @patch
   int get hashCode {

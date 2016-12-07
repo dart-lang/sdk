@@ -15,13 +15,10 @@ namespace dart {
 DECLARE_FLAG(bool, trace_timeline_analysis);
 DECLARE_FLAG(bool, timing);
 
-TimelineAnalysisThread::TimelineAnalysisThread(ThreadId id)
-    : id_(id) {
-}
+TimelineAnalysisThread::TimelineAnalysisThread(ThreadId id) : id_(id) {}
 
 
-TimelineAnalysisThread::~TimelineAnalysisThread() {
-}
+TimelineAnalysisThread::~TimelineAnalysisThread() {}
 
 
 void TimelineAnalysisThread::AddBlock(TimelineEventBlock* block) {
@@ -43,8 +40,7 @@ void TimelineAnalysisThread::Finalize() {
   blocks_.Sort(CompareBlocksLowerTimeBound);
   if (FLAG_trace_timeline_analysis) {
     THR_Print("Thread %" Px " has %" Pd " blocks\n",
-              OSThread::ThreadIdToIntPtr(id_),
-              blocks_.length());
+              OSThread::ThreadIdToIntPtr(id_), blocks_.length());
   }
 }
 
@@ -120,8 +116,7 @@ TimelineAnalysis::TimelineAnalysis(Zone* zone,
 }
 
 
-TimelineAnalysis::~TimelineAnalysis() {
-}
+TimelineAnalysis::~TimelineAnalysis() {}
 
 
 void TimelineAnalysis::BuildThreads() {
@@ -166,11 +161,15 @@ void TimelineAnalysis::DiscoverThreads() {
     }
     if (!block->CheckBlock()) {
       if (FLAG_trace_timeline_analysis) {
-        THR_Print("DiscoverThreads block %" Pd " "
-                  "violates invariants.\n", block->block_index());
+        THR_Print("DiscoverThreads block %" Pd
+                  " "
+                  "violates invariants.\n",
+                  block->block_index());
       }
-      SetError("Block %" Pd " violates invariants. See "
-               "TimelineEventBlock::CheckBlock", block->block_index());
+      SetError("Block %" Pd
+               " violates invariants. See "
+               "TimelineEventBlock::CheckBlock",
+               block->block_index());
       return;
     }
     TimelineAnalysisThread* thread = GetOrAddThread(block->thread_id());
@@ -268,8 +267,7 @@ void TimelineLabelPauseInfo::Aggregate(
 TimelinePauses::TimelinePauses(Zone* zone,
                                Isolate* isolate,
                                TimelineEventRecorder* recorder)
-    : TimelineAnalysis(zone, isolate, recorder) {
-}
+    : TimelineAnalysis(zone, isolate, recorder) {}
 
 
 void TimelinePauses::Setup() {
@@ -376,8 +374,7 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
   PopFinishedDurations(kMaxInt64);
   if (FLAG_trace_timeline_analysis) {
     THR_Print("<<< TimelinePauses::ProcessThread %" Px " had %" Pd " events\n",
-              OSThread::ThreadIdToIntPtr(thread->id()),
-              event_count);
+              OSThread::ThreadIdToIntPtr(thread->id()), event_count);
   }
 }
 
@@ -410,10 +407,8 @@ void TimelinePauses::PopFinishedDurations(int64_t start) {
       // Top of stack completes before |start|.
       stack_.RemoveLast();
       if (FLAG_trace_timeline_analysis) {
-        THR_Print("Popping %s (%" Pd64 " <= %" Pd64 ")\n",
-                  top.event->label(),
-                  top.event->TimeEnd(),
-                  start);
+        THR_Print("Popping %s (%" Pd64 " <= %" Pd64 ")\n", top.event->label(),
+                  top.event->TimeEnd(), start);
       }
     } else {
       return;
@@ -440,26 +435,22 @@ void TimelinePauses::PopBegin(const char* label, int64_t end) {
   const int64_t duration = end - start;
   // Sanity checks.
   if (strcmp(top_label, label) != 0) {
-    SetError("PopBegin(%s, ...) called with %s at the top of stack",
-             label, top.event->label());
+    SetError("PopBegin(%s, ...) called with %s at the top of stack", label,
+             top.event->label());
     return;
   }
   if (!top_is_begin) {
-    SetError("kEnd event not paired with kBegin event for label %s",
-             label);
+    SetError("kEnd event not paired with kBegin event for label %s", label);
     return;
   }
   // Pop this event.
   // Add duration to exclusive micros.
   if (FLAG_trace_timeline_analysis) {
-    THR_Print("Popping %s (%" Pd64 ")\n",
-              top.event->label(),
-              duration);
+    THR_Print("Popping %s (%" Pd64 ")\n", top.event->label(), duration);
   }
   const int64_t exclusive_micros = top.exclusive_micros + duration;
   stack_.RemoveLast();
-  top.pause_info->OnBeginPop(duration,
-                             exclusive_micros,
+  top.pause_info->OnBeginPop(duration, exclusive_micros,
                              IsLabelOnStack(top_label));
   if (StackDepth() > 0) {
     StackItem& top = GetStackTop();
@@ -474,8 +465,7 @@ void TimelinePauses::Push(TimelineEvent* event) {
   ASSERT(pause_info != NULL);
   // |pause_info| will be running for |event->TimeDuration()|.
   if (FLAG_trace_timeline_analysis) {
-    THR_Print("Pushing %s %" Pd64 " us\n",
-              pause_info->name(),
+    THR_Print("Pushing %s %" Pd64 " us\n", pause_info->name(),
               event->TimeDuration());
   }
   if (event->IsDuration()) {
@@ -541,12 +531,10 @@ TimelineLabelPauseInfo* TimelinePauses::GetOrAddLabelPauseInfo(
 }
 
 
-TimelinePauseTrace::TimelinePauseTrace() {
-}
+TimelinePauseTrace::TimelinePauseTrace() {}
 
 
-TimelinePauseTrace::~TimelinePauseTrace() {
-}
+TimelinePauseTrace::~TimelinePauseTrace() {}
 
 
 void TimelinePauseTrace::Print() {
@@ -561,16 +549,14 @@ void TimelinePauseTrace::Print() {
   TimelinePauses pauses(zone, isolate, recorder);
   pauses.Setup();
 
-  THR_Print("Timing for isolate %s (from %" Pd " threads)\n",
-            isolate->name(),
+  THR_Print("Timing for isolate %s (from %" Pd " threads)\n", isolate->name(),
             pauses.NumThreads());
   THR_Print("\n");
   for (intptr_t t_idx = 0; t_idx < pauses.NumThreads(); t_idx++) {
     TimelineAnalysisThread* tat = pauses.At(t_idx);
     ASSERT(tat != NULL);
     pauses.CalculatePauseTimesForThread(tat->id());
-    THR_Print("Thread %" Pd " (%" Px "):\n",
-              t_idx,
+    THR_Print("Thread %" Pd " (%" Px "):\n", t_idx,
               OSThread::ThreadIdToIntPtr(tat->id()));
     for (intptr_t j = 0; j < pauses.NumPauseInfos(); j++) {
       const TimelineLabelPauseInfo* pause_info = pauses.PauseInfoAt(j);

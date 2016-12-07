@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SCOPES_H_
-#define VM_SCOPES_H_
+#ifndef RUNTIME_VM_SCOPES_H_
+#define RUNTIME_VM_SCOPES_H_
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -21,25 +21,29 @@ class LocalScope;
 
 class LocalVariable : public ZoneAllocated {
  public:
-  LocalVariable(TokenPosition token_pos,
+  LocalVariable(TokenPosition declaration_pos,
+                TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type)
-    : token_pos_(token_pos),
-      name_(name),
-      owner_(NULL),
-      type_(type),
-      const_value_(NULL),
-      is_final_(false),
-      is_captured_(false),
-      is_invisible_(false),
-      is_captured_parameter_(false),
-      index_(LocalVariable::kUninitializedIndex) {
+      : declaration_pos_(declaration_pos),
+        token_pos_(token_pos),
+        name_(name),
+        owner_(NULL),
+        type_(type),
+        const_value_(NULL),
+        is_final_(false),
+        is_captured_(false),
+        is_invisible_(false),
+        is_captured_parameter_(false),
+        is_forced_stack_(false),
+        index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
   }
 
   TokenPosition token_pos() const { return token_pos_; }
+  TokenPosition declaration_token_pos() const { return declaration_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -55,9 +59,14 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured() const { return is_captured_; }
   void set_is_captured() { is_captured_ = true; }
 
-  bool HasIndex() const {
-    return index_ != kUninitializedIndex;
-  }
+  // Variables marked as forced to stack are skipped and not captured by
+  // CaptureLocalVariables - which iterates scope chain between two scopes
+  // and indiscriminately marks all variables as captured.
+  // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
+  bool is_forced_stack() const { return is_forced_stack_; }
+  void set_is_forced_stack() { is_forced_stack_ = true; }
+
+  bool HasIndex() const { return index_ != kUninitializedIndex; }
   int index() const {
     ASSERT(HasIndex());
     return index_;
@@ -69,24 +78,16 @@ class LocalVariable : public ZoneAllocated {
     index_ = index;
   }
 
-  void set_invisible(bool value) {
-    is_invisible_ = value;
-  }
+  void set_invisible(bool value) { is_invisible_ = value; }
   bool is_invisible() const { return is_invisible_; }
 
   bool is_captured_parameter() const { return is_captured_parameter_; }
-  void set_is_captured_parameter(bool value) {
-    is_captured_parameter_ = value;
-  }
+  void set_is_captured_parameter(bool value) { is_captured_parameter_ = value; }
 
   // By convention, internal variables start with a colon.
-  bool IsInternal() const {
-    return name_.CharAt(0) == ':';
-  }
+  bool IsInternal() const { return name_.CharAt(0) == ':'; }
 
-  bool IsConst() const {
-    return const_value_ != NULL;
-  }
+  bool IsConst() const { return const_value_ != NULL; }
 
   void SetConstValue(const Instance& value) {
     ASSERT(value.IsZoneHandle() || value.IsReadOnlyHandle());
@@ -109,19 +110,21 @@ class LocalVariable : public ZoneAllocated {
  private:
   static const int kUninitializedIndex = INT_MIN;
 
+  const TokenPosition declaration_pos_;
   const TokenPosition token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
   const AbstractType& type_;  // Declaration type of local variable.
 
-  const Instance* const_value_;   // NULL or compile-time const value.
+  const Instance* const_value_;  // NULL or compile-time const value.
 
-  bool is_final_;  // If true, this variable is readonly.
+  bool is_final_;     // If true, this variable is readonly.
   bool is_captured_;  // If true, this variable lives in the context, otherwise
                       // in the stack frame.
   bool is_invisible_;
   bool is_captured_parameter_;
+  bool is_forced_stack_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 
@@ -133,13 +136,13 @@ class LocalVariable : public ZoneAllocated {
 class NameReference : public ZoneAllocated {
  public:
   NameReference(TokenPosition token_pos, const String& name)
-    : token_pos_(token_pos),
-      name_(name) {
+      : token_pos_(token_pos), name_(name) {
     ASSERT(name.IsSymbol());
   }
   const String& name() const { return name_; }
   TokenPosition token_pos() const { return token_pos_; }
   void set_token_pos(TokenPosition value) { token_pos_ = value; }
+
  private:
   TokenPosition token_pos_;
   const String& name_;
@@ -161,10 +164,7 @@ class SourceLabel : public ZoneAllocated {
   };
 
   SourceLabel(TokenPosition token_pos, const String& name, Kind kind)
-    : token_pos_(token_pos),
-      name_(name),
-      owner_(NULL),
-      kind_(kind) {
+      : token_pos_(token_pos), name_(name), owner_(NULL), kind_(kind) {
     ASSERT(name.IsSymbol());
   }
 
@@ -172,18 +172,14 @@ class SourceLabel : public ZoneAllocated {
     if (name != NULL) {
       return new SourceLabel(token_pos, *name, kind);
     } else {
-      return new SourceLabel(token_pos,
-                             Symbols::DefaultLabel(),
-                             kind);
+      return new SourceLabel(token_pos, Symbols::DefaultLabel(), kind);
     }
   }
 
   TokenPosition token_pos() const { return token_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
-  void set_owner(LocalScope* owner) {
-    owner_ = owner;
-  }
+  void set_owner(LocalScope* owner) { owner_ = owner; }
 
   Kind kind() const { return kind_; }
 
@@ -331,7 +327,7 @@ class LocalScope : public ZoneAllocated {
   RawContextScope* PreserveOuterScope(int current_context_level) const;
 
   // Mark all local variables that are accessible from this scope up to
-  // top_scope (included) as captured.
+  // top_scope (included) as captured unless they are marked as forced to stack.
   void CaptureLocalVariables(LocalScope* top_scope);
 
   // Creates a LocalScope representing the outer scope of a local function to be
@@ -366,10 +362,10 @@ class LocalScope : public ZoneAllocated {
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;
-  int function_level_;  // Reflects the nesting level of local functions.
-  int loop_level_;      // Reflects the loop nesting level.
-  int context_level_;   // Reflects the level of the runtime context.
-  int num_context_variables_;   // Only set if this scope is a context owner.
+  int function_level_;         // Reflects the nesting level of local functions.
+  int loop_level_;             // Reflects the loop nesting level.
+  int context_level_;          // Reflects the level of the runtime context.
+  int num_context_variables_;  // Only set if this scope is a context owner.
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
@@ -384,4 +380,4 @@ class LocalScope : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_SCOPES_H_
+#endif  // RUNTIME_VM_SCOPES_H_

@@ -352,6 +352,7 @@ def CreateMD5ChecksumFile(filename, mangled_filename=None):
   with open(checksum_filename, 'w') as f:
     f.write('%s *%s' % (checksum, mangled_filename))
 
+  print "MD5 checksum of %s is %s" % (filename, checksum)
   return checksum_filename
 
 def CreateSha256ChecksumFile(filename, mangled_filename=None):
@@ -365,6 +366,7 @@ def CreateSha256ChecksumFile(filename, mangled_filename=None):
   with open(checksum_filename, 'w') as f:
     f.write('%s *%s' % (checksum, mangled_filename))
 
+  print "SHA256 checksum of %s is %s" % (filename, checksum)
   return checksum_filename
 
 def GetChannelFromName(name):

@@ -11,25 +11,27 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-import '../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   if (!new bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
-    defineReflectiveTests(PhysicalResourceProviderTest);
-    defineReflectiveTests(FileTest);
-    defineReflectiveTests(FolderTest);
+    defineReflectiveSuite(() {
+      defineReflectiveTests(PhysicalResourceProviderTest);
+      defineReflectiveTests(FileTest);
+      defineReflectiveTests(FolderTest);
+    });
   }
 }
 
 var _isFile = new isInstanceOf<File>();
 var _isFileSystemException = new isInstanceOf<FileSystemException>();
 var _isFolder = new isInstanceOf<Folder>();
+
+String join(String part1, [String part2, String part3]) =>
+    pathos.join(part1, part2, part3);
 
 @reflectiveTest
 class FileTest extends _BaseTest {
@@ -93,6 +95,19 @@ class FileTest extends _BaseTest {
     File file = PhysicalResourceProvider.INSTANCE.getResource(path);
     expect(file.isOrContains(path), isTrue);
     expect(file.isOrContains('foo'), isFalse);
+  }
+
+  void test_lengthSync_doesNotExist() {
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(() {
+      file.lengthSync;
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_lengthSync_exists() {
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    new io.File(path).writeAsBytesSync(bytes);
+    expect(file.lengthSync, bytes.length);
   }
 
   void test_modificationStamp_doesNotExist() {
@@ -181,7 +196,7 @@ class FileTest extends _BaseTest {
   }
 
   void test_resolveSymbolicLinksSync_links() {
-    Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    pathos.Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     String pathA = pathContext.join(tempPath, 'a');
     String pathB = pathContext.join(pathA, 'b');
     new io.Directory(pathB).createSync(recursive: true);
@@ -441,7 +456,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
   test_getFolder_trailingSeparator() {
     String path = tempPath;
     PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
-    Folder folder = provider.getFolder('$path$separator');
+    Folder folder = provider.getFolder('$path${pathos.separator}');
     expect(folder.path, path);
   }
 

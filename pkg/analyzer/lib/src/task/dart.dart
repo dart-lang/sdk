@@ -16,16 +16,18 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show NamespaceDirectiveImpl, UriBasedDirectiveImpl;
+    show NamespaceDirectiveImpl, UriBasedDirectiveImpl, UriValidationCode;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
@@ -1510,6 +1512,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
     bool hasPartDirective = false;
+    Set<Source> seenPartSources = new Set<Source>();
     FunctionElement entryPoint =
         _findEntryPoint(definingCompilationUnitElement);
     List<Directive> directivesToResolve = <Directive>[];
@@ -1533,32 +1536,58 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           partElement.uriEnd = partUri.end;
           partElement.uri = directive.uriContent;
           //
+          // Validate that the part source is unique in the library.
+          //
+          if (!seenPartSources.add(partSource)) {
+            errors.add(new AnalysisError(
+                librarySource,
+                partUri.offset,
+                partUri.length,
+                CompileTimeErrorCode.DUPLICATE_PART,
+                [partSource.uri]));
+          }
+          //
           // Validate that the part contains a part-of directive with the same
           // name as the library.
           //
           if (context.exists(partSource)) {
-            String partLibraryName =
-                _getPartLibraryName(partSource, partUnit, directivesToResolve);
-            if (partLibraryName == null) {
+            _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
+                context, partSource, partUnit, directivesToResolve);
+            if (nameOrSource == null) {
               errors.add(new AnalysisError(
                   librarySource,
                   partUri.offset,
                   partUri.length,
                   CompileTimeErrorCode.PART_OF_NON_PART,
                   [partUri.toSource()]));
-            } else if (libraryNameNode == null) {
-              if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
-                partsLibraryName = partLibraryName;
-              } else if (partsLibraryName != partLibraryName) {
-                partsLibraryName = null;
+            } else {
+              String name = nameOrSource.name;
+              if (name != null) {
+                if (libraryNameNode == null) {
+                  if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
+                    partsLibraryName = name;
+                  } else if (partsLibraryName != name) {
+                    partsLibraryName = null;
+                  }
+                } else if (libraryNameNode.name != name) {
+                  errors.add(new AnalysisError(
+                      librarySource,
+                      partUri.offset,
+                      partUri.length,
+                      StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                      [libraryNameNode.name, name]));
+                }
+              } else {
+                Source source = nameOrSource.source;
+                if (source != librarySource) {
+                  errors.add(new AnalysisError(
+                      librarySource,
+                      partUri.offset,
+                      partUri.length,
+                      StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                      [librarySource.uri.toString(), source.uri.toString()]));
+                }
               }
-            } else if (libraryNameNode.name != partLibraryName) {
-              errors.add(new AnalysisError(
-                  librarySource,
-                  partUri.offset,
-                  partUri.length,
-                  StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
-                  [libraryNameNode.name, partLibraryName]));
             }
           }
           if (entryPoint == null) {
@@ -1613,7 +1642,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     if (libraryElement == null) {
       libraryElement =
           new LibraryElementImpl.forNode(owningContext, libraryNameNode);
-      libraryElement.synthetic = modificationTime < 0;
+      libraryElement.isSynthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
@@ -1665,7 +1694,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    * Return the name of the library that the given part is declared to be a
    * part of, or `null` if the part does not contain a part-of directive.
    */
-  String _getPartLibraryName(Source partSource, CompilationUnit partUnit,
+  _NameOrSource _getPartLibraryNameOrUri(
+      AnalysisContext context,
+      Source partSource,
+      CompilationUnit partUnit,
       List<Directive> directivesToResolve) {
     NodeList<Directive> directives = partUnit.directives;
     int length = directives.length;
@@ -1675,7 +1707,15 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         directivesToResolve.add(directive);
         LibraryIdentifier libraryName = directive.libraryName;
         if (libraryName != null) {
-          return libraryName.name;
+          return new _NameOrSource(libraryName.name, null);
+        }
+        String uri = directive.uri?.stringValue;
+        if (uri != null) {
+          Source librarySource =
+              context.sourceFactory.resolveUri(partSource, uri);
+          if (librarySource != null) {
+            return new _NameOrSource(null, librarySource);
+          }
         }
       }
     }
@@ -2198,8 +2238,10 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
     // re-run if anything reachable from this target has been invalidated,
     // and the invalidation code (invalidateLibraryCycles) will ensure that
     // element model results will be re-used here only if they are still valid.
-    if (context.analysisOptions.strongMode) {
-      LibraryElement library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
+    LibraryElement library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
+    if (context.analysisOptions.strongMode &&
+        !LibraryElementImpl.hasResolutionCapability(
+            library, LibraryResolutionCapability.resolvedTypeNames)) {
       List<LibraryElement> component = library.libraryCycle;
       Set<LibraryElement> filter = component.toSet();
       Set<CompilationUnitElement> deps = new Set<CompilationUnitElement>();
@@ -3237,12 +3279,10 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(RESOLVED_UNIT_INPUT);
-
     //
     // Generate lints.
     //
     List<AstVisitor> visitors = <AstVisitor>[];
-
     bool timeVisits = analysisOptions.enableTiming;
     List<Linter> linters = getLints(context);
     int length = linters.length;
@@ -3257,10 +3297,9 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
         visitors.add(visitor);
       }
     }
-
-    DelegatingAstVisitor dv = new DelegatingAstVisitor(visitors);
-    unit.accept(dv);
-
+    AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
+        visitors, ExceptionHandlingDelegatingAstVisitor.logException);
+    unit.accept(visitor);
     //
     // Record outputs.
     //
@@ -4007,10 +4046,15 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.enableAssertInitializer = options.enableAssertInitializer;
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
-    parser.parseGenericMethods = options.enableGenericMethods;
     parser.parseGenericMethodComments = options.strongMode;
+    parser.enableUriInPartOf = options.enableUriInPartOf;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
+
+    if (options.patchPlatform != 0 && _source.uri.scheme == 'dart') {
+      new SdkPatcher().patch(context.sourceFactory.dartSdk,
+          options.patchPlatform, errorListener, _source, unit);
+    }
 
     bool hasNonPartOfDirective = false;
     bool hasPartOfDirective = false;
@@ -6222,8 +6266,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * Check the given [directive] to see if the referenced source exists and
    * report an error if it does not.
    */
-  void validateReferencedSource(UriBasedDirective directive) {
-    if (directive is NamespaceDirective) {
+  void validateReferencedSource(UriBasedDirectiveImpl directive) {
+    if (directive is NamespaceDirectiveImpl) {
       for (Configuration configuration in directive.configurations) {
         Source source = configuration.uriSource;
         StringLiteral uriLiteral = configuration.uri;
@@ -6360,6 +6404,18 @@ class _ImportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   TaskInputBuilder<List<Source>> createBuilder() =>
       new _SourceClosureTaskInputBuilder(
           target, _SourceClosureKind.IMPORT, resultDescriptor);
+}
+
+/**
+ * An object holding either the name or the source associated with a part-of
+ * directive.
+ */
+class _NameOrSource {
+  final String name;
+
+  final Source source;
+
+  _NameOrSource(this.name, this.source);
 }
 
 /**

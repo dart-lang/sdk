@@ -7,11 +7,11 @@
 
 #include "bin/directory.h"
 
-#include <errno.h>  // NOLINT
-#include <stdlib.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <errno.h>     // NOLINT
+#include <stdlib.h>    // NOLINT
+#include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>    // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/file.h"
@@ -60,13 +60,9 @@ bool PathBuffer::Add(const char* name) {
     return false;
   }
   char* data = AsString();
-  int written = snprintf(data + length_,
-                         PATH_MAX - length_,
-                         "%s",
-                         name);
+  int written = snprintf(data + length_, PATH_MAX - length_, "%s", name);
   data[PATH_MAX] = '\0';
-  if ((written <= (PATH_MAX - length_)) &&
-      (written > 0) &&
+  if ((written <= (PATH_MAX - length_)) && (written > 0) &&
       (static_cast<size_t>(written) == strnlen(name, PATH_MAX + 1))) {
     length_ += written;
     return true;
@@ -109,19 +105,14 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
       return DOES_NOT_EXIST;
     }
   } else {
-    if ((errno == EACCES) ||
-        (errno == EBADF) ||
-        (errno == EFAULT) ||
-        (errno == ENOMEM) ||
-        (errno == EOVERFLOW)) {
+    if ((errno == EACCES) || (errno == EBADF) || (errno == EFAULT) ||
+        (errno == ENOMEM) || (errno == EOVERFLOW)) {
       // Search permissions denied for one of the directories in the
       // path or a low level error occured. We do not know if the
       // directory exists.
       return UNKNOWN;
     }
-    ASSERT((errno == ELOOP) ||
-           (errno == ENAMETOOLONG) ||
-           (errno == ENOENT) ||
+    ASSERT((errno == ELOOP) || (errno == ENAMETOOLONG) || (errno == ENOENT) ||
            (errno == ENOTDIR));
     return DOES_NOT_EXIST;
   }
@@ -231,4 +222,4 @@ bool Directory::Rename(const char* path, const char* new_path) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(TARGET_OS_FUCHSIA)

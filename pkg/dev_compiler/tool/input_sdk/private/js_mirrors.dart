@@ -71,60 +71,110 @@ dynamic _defaultConstructorType(type) {
   return JS('', '#.definiteFunctionType(#, [])', _dart, type);
 }
 
+dynamic _getMixins(type) {
+  return JS('', '#.getMixins(#, [])', _dart, type);
+}
+
 typedef T _Lazy<T>();
 
-Map _getConstructors(obj) {
+dynamic _getESSymbol(Symbol symbol) =>
+    _internal.Symbol.getNativeSymbol(symbol as _internal.Symbol);
+
+dynamic _getMember(Symbol symbol) {
+  var privateSymbol = _getESSymbol(symbol);
+  if (privateSymbol != null) {
+    return privateSymbol;
+  }
+  return getName(symbol);
+}
+
+String _getNameForESSymbol(member) {
+  // Convert private JS symbol "Symbol(_foo)" to string "_foo".
+  assert(JS('bool', 'typeof # == "symbol"', member));
+  var str = member.toString();
+  assert(str.startsWith('Symbol(') && str.endsWith(')'));
+  return str.substring(7, str.length - 1);
+}
+
+Symbol _getSymbolForESSymbol(member) {
+  var name = _getNameForESSymbol(member);
+  return new _internal.Symbol.es6(name, member);
+}
+
+// The [member] must be either a string (public) or an ES6 symbol (private).
+Symbol _getSymbolForMember(member) {
+  if (member is String) {
+    return new Symbol(member);
+  } else {
+    var name = _getNameForESSymbol(member);
+    return new _internal.Symbol.es6(name, member);
+  }
+}
+
+Map<Symbol, dynamic> _toDartMap(data) {
+  if (data == null) return {};
+  var map = new Map<Symbol, dynamic>();
+  // Note: we recorded a map from fields/methods to their type and metadata.
+  // The key is a string name for public members but an ES6 symbol for private
+  // ones.  That's works nicely for dynamic operations, but dart:mirrors expects
+  // Dart symbols, so we convert here.
+  var publicMembers = JS('', 'Object.getOwnPropertyNames(#)', data);
+  for (var member in publicMembers) {
+    var symbol = new Symbol(member);
+    map[symbol] = JS('', '#[#]', data, member);
+  }
+
+  var privateMembers = JS('', 'Object.getOwnPropertySymbols(#)', data);
+  for (var member in privateMembers) {
+    var symbol = _getSymbolForESSymbol(member);
+    map[symbol] = JS('', '#[#]', data, member);
+  }
+  return map;
+}
+
+Map<Symbol, dynamic> _getConstructors(obj) {
   List sig = JS('', '#.getConstructorSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getFields(obj) {
+Map<Symbol, dynamic> _getFields(obj) {
   List sig = JS('', '#.getFieldSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getMethods(obj) {
+Map<Symbol, dynamic> _getMethods(obj) {
   List sig = JS('', '#.getMethodSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getGetters(obj) {
+Map<Symbol, dynamic> _getGetters(obj) {
   List sig = JS('', '#.getGetterSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getSetters(obj) {
+Map<Symbol, dynamic> _getSetters(obj) {
   List sig = JS('', '#.getSetterSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getStaticFields(obj) {
+Map<Symbol, dynamic> _getStaticFields(obj) {
   List sig = JS('', '#.getStaticFieldSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getStatics(obj) {
+Map<Symbol, dynamic> _getStatics(obj) {
   List sig = JS('', '#.getStaticSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getStaticGetters(obj) {
+Map<Symbol, dynamic> _getStaticGetters(obj) {
   List sig = JS('', '#.getStaticGetterSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
-Map _getStaticSetters(obj) {
+Map<Symbol, dynamic> _getStaticSetters(obj) {
   List sig = JS('', '#.getStaticSetterSig(#)', _dart, obj);
-  if (sig == null) return {};
-  return JS('', '#.map(#)', _dart, sig);
+  return _toDartMap(sig);
 }
 
 // TODO(vsm): These methods need to validate whether we really have a
@@ -134,8 +184,19 @@ dynamic _unwrap(obj) => JS('', '#.unwrapType(#)', _dart, obj);
 
 dynamic _wrap(obj) => JS('', '#.wrapType(#)', _dart, obj);
 
+dynamic _runtimeType(obj) =>
+  _wrap(JS('', '#.getReifiedType(#)', _dart, obj));
+
 _unimplemented(Type t, Invocation i) {
-  throw new UnimplementedError('$t.${i.memberName} unimplemented');
+  throw new UnimplementedError('$t.${getName(i.memberName)} unimplemented');
+}
+
+dynamic _toJsMap(Map<Symbol, dynamic> map) {
+  var obj = JS('', '{}');
+  map.forEach((Symbol key, value) {
+    JS('', '#[#] = #', obj, getName(key), value);
+  });
+  return obj;
 }
 
 class JsMirror implements Mirror {
@@ -169,7 +230,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // The spec guarantees that `null` is the singleton instance of the `Null`
     // class.
     if (reflectee == null) return reflectClass(Null);
-    return reflectType(reflectee.runtimeType);
+    return reflectType(_runtimeType(reflectee));
   }
 
   JsInstanceMirror._(this.reflectee);
@@ -184,21 +245,27 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return identityHashCode(reflectee) ^ 0x36363636;
   }
 
+  // Returns a String for public members or an ES6 symbol for private members.
+  _getAccessor(dynamic reflectee, Symbol symbol, [List<dynamic> args,
+      Map<Symbol, dynamic> namedArgs]) {
+    return _getMember(symbol);
+  }
+
   InstanceMirror getField(Symbol symbol) {
-    var name = getName(symbol);
+    var name = _getAccessor(reflectee, symbol);
     var field = _dload(reflectee, name);
     return reflect(field);
   }
 
   InstanceMirror setField(Symbol symbol, Object value) {
-    var name = getName(symbol);
+    var name = _getAccessor(reflectee, symbol);
     _dput(reflectee, name, value);
     return reflect(value);
   }
 
   InstanceMirror invoke(Symbol symbol, List<dynamic> args,
       [Map<Symbol, dynamic> namedArgs]) {
-    var name = getName(symbol);
+    var name = _getAccessor(reflectee, symbol, args, namedArgs);
     if (namedArgs != null) {
       args = new List.from(args);
       args.add(_toJsMap(namedArgs));
@@ -207,13 +274,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return reflect(result);
   }
 
-  dynamic _toJsMap(Map<Symbol, dynamic> map) {
-    var obj = JS('', '{}');
-    map.forEach((Symbol key, value) {
-      JS('', '#[#] = #', obj, getName(key), value);
-    });
-    return obj;
-  }
+  String toString() => "InstanceMirror on '$reflectee'";
 }
 
 class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
@@ -237,7 +298,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
   final dynamic _raw;
 
   // TODO(vsm): Do this properly
-  final ClassMirror mixin = null;
+  ClassMirror _mixin = null;
   List<TypeMirror> _typeArguments;
 
   List<InstanceMirror> _metadata;
@@ -246,7 +307,12 @@ class JsClassMirror extends JsMirror implements ClassMirror {
   List<InstanceMirror> get metadata {
     if (_metadata == null) {
       // Load metadata.
-      var fn = JS('Function', '#[dart.metadata]', _unwrap(_cls));
+      var unwrapped = _unwrap(_cls);
+      // Only get metadata directly embedded on this class, not its
+      // superclasses.
+      var fn = JS('Function',
+        'Object.hasOwnProperty.call(#, dart.metadata) ? #[dart.metadata] : null',
+        unwrapped, unwrapped);
       _metadata = (fn == null)
           ? const <InstanceMirror>[]
           : new List<InstanceMirror>.unmodifiable(
@@ -262,67 +328,67 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       _declarations = new Map<Symbol, DeclarationMirror>();
       var unwrapped = _unwrap(_cls);
       var constructors = _getConstructors(unwrapped);
-      constructors.forEach((String name, ft) {
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._constructor(this, name, ft);
+      constructors.forEach((symbol, ft) {
+        var name = getName(symbol);
+        _declarations[symbol] = new JsMethodMirror._constructor(this, symbol, ft);
       });
       if (constructors.isEmpty) {
         // Add a default
         var name = 'new';
         var ft = _defaultConstructorType(_unwrap(_cls));
         var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._constructor(this, name, ft);
+        _declarations[symbol] = new JsMethodMirror._constructor(this, symbol, ft);
       }
       var fields = _getFields(unwrapped);
-      fields.forEach((String name, t) {
-        var symbol = new Symbol(name);
+      fields.forEach((symbol, t) {
         var metadata = [];
         if (t is List) {
           metadata = t.skip(1).toList();
           t = t[0];
         }
-        _declarations[symbol] = new JsVariableMirror._(name, _wrap(t), metadata);
+        _declarations[symbol] = new JsVariableMirror._(symbol, _wrap(t), metadata);
       });
       var methods = _getMethods(unwrapped);
-      methods.forEach((String name, ft) {
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._instanceMethod(this, name, ft);
+      methods.forEach((symbol, ft) {
+        var name = getName(symbol);
+        _declarations[symbol] = new JsMethodMirror._instanceMethod(this, symbol, ft);
       });
       var getters = _getGetters(unwrapped);
-      getters.forEach((String name, ft) {
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._instanceMethod(this, name, ft);
+      getters.forEach((symbol, ft) {
+        var name = getName(symbol);
+        _declarations[symbol] = new JsMethodMirror._instanceMethod(this, symbol, ft);
       });
       var setters = _getSetters(unwrapped);
-      setters.forEach((String name, ft) {
-        name += '=';
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._instanceMethod(this, name, ft);
+      setters.forEach((symbol, ft) {
+        var name = getName(symbol) + '=';
+        // Create a separate symbol for the setter.
+        symbol = new _internal.Symbol.es6(name, _getESSymbol(symbol));
+        _declarations[symbol] = new JsMethodMirror._instanceMethod(this, symbol, ft);
       });
       var staticFields = _getStaticFields(unwrapped);
-      staticFields.forEach((String name, t) {
-        var symbol = new Symbol(name);
+      staticFields.forEach((symbol, t) {
+        var name = getName(symbol);
         var metadata = [];
         if (t is List) {
           metadata = t.skip(1).toList();
           t = t[0];
         }
-        _declarations[symbol] = new JsVariableMirror._(name, _wrap(t), metadata);
+        _declarations[symbol] = new JsVariableMirror._(symbol, _wrap(t), metadata);
       });
       var statics = _getStatics(unwrapped);
-      statics.forEach((String name, ft) {
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._staticMethod(this, name, ft);
+      statics.forEach((symbol, ft) {
+        var name = getName(symbol);
+        _declarations[symbol] = new JsMethodMirror._staticMethod(this, symbol, ft);
       });
       var staticGetters = _getStaticGetters(unwrapped);
-      staticGetters.forEach((String name, ft) {
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._staticMethod(this, name, ft);
+      staticGetters.forEach((symbol, ft) {
+        var name = getName(symbol);
+        _declarations[symbol] = new JsMethodMirror._staticMethod(this, symbol, ft);
       });
       var staticSetters = _getStaticSetters(unwrapped);
-      staticSetters.forEach((String name, ft) {
-        var symbol = new Symbol(name);
-        _declarations[symbol] = new JsMethodMirror._staticMethod(this, name, ft);
+      staticSetters.forEach((symbol, ft) {
+        var name = getName(symbol);
+        _declarations[symbol] = new JsMethodMirror._staticMethod(this, symbol, ft);
       });
       _declarations = new Map<Symbol, DeclarationMirror>.unmodifiable(_declarations);
     }
@@ -350,6 +416,32 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       ? JS('', 'new #(...#)', _unwrap(_cls), args)
       : JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
     return reflect(instance);
+  }
+
+  // TODO(vsm): Need to check for NSM, types on accessors below.  Unlike the
+  // InstanceMirror case, there is no dynamic helper to delegate to - we never
+  // need a dload, etc. on a static.
+
+  InstanceMirror getField(Symbol symbol) {
+    var name = getName(symbol);
+    return reflect(JS('', '#[#]', _unwrap(_cls), name));
+  }
+
+  InstanceMirror setField(Symbol symbol, Object value) {
+    var name = getName(symbol);
+    JS('', '#[#] = #', _unwrap(_cls), name, value);
+    return reflect(value);
+  }
+
+  InstanceMirror invoke(Symbol symbol, List<dynamic> args,
+      [Map<Symbol, dynamic> namedArgs]) {
+    var name = getName(symbol);
+    if (namedArgs != null) {
+      args = new List.from(args);
+      args.add(_toJsMap(namedArgs));
+    }
+    var result = JS('', '#.#(...#)', _unwrap(_cls), name, args);
+    return reflect(result);
   }
 
   List<ClassMirror> get superinterfaces {
@@ -385,33 +477,60 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       return reflectType(_wrap(JS('Type', '#.__proto__', _unwrap(_cls))));
     }
   }
+
+  ClassMirror get mixin {
+    if (_mixin != null) {
+      return _mixin;
+    }
+    var mixins = _getMixins(_unwrap(_cls));
+    if (mixins == null || mixins.isEmpty) {
+      // If there is no mixin, return this mirror per API.
+      _mixin = this;
+      return _mixin;
+    }
+    if (mixins.length > 1) {
+      throw new UnsupportedError("ClassMirror.mixin not yet supported for "
+        "classes ($_cls) with multiple mixins");
+    }
+    _mixin = reflectType(_wrap(mixins[0]));
+    return _mixin;
+  }
+
+  String toString() => "ClassMirror on '$_cls'";
 }
 
 class JsVariableMirror extends JsMirror implements VariableMirror {
+  final Symbol _symbol;
   final String _name;
   final TypeMirror type;
   final List<InstanceMirror> metadata;
 
   // TODO(vsm): Refactor this out.
-  Symbol get simpleName => new Symbol(_name);
+  Symbol get simpleName => _symbol;
 
   // TODO(vsm): Fix this
   final bool isStatic = false;
   final bool isFinal = false;
 
-  JsVariableMirror._(this._name, Type t, List annotations)
-      : type = reflectType(t),
+  JsVariableMirror._(Symbol symbol, Type t, List annotations)
+      : _symbol = symbol,
+        _name = getName(symbol),
+        type = reflectType(t),
         metadata = new List<InstanceMirror>.unmodifiable(
             annotations.map((a) => reflect(a)));
+
+  String toString() => "VariableMirror on '$_name'";
 }
 
 class JsParameterMirror extends JsVariableMirror implements ParameterMirror {
-  JsParameterMirror._(String name, Type t, List annotations)
-      : super._(name, t, annotations);
+  JsParameterMirror._(Symbol member, Type t, List annotations)
+      : super._(member, t, annotations);
+
+  String toString() => "ParameterMirror on '$_name'";
 }
 
 class JsMethodMirror extends JsMirror implements MethodMirror {
-  // TODO(vsm): This could be a JS symbol for private methods
+  final Symbol _symbol;
   final String _name;
   List<ParameterMirror> _params;
   List<InstanceMirror> _metadata;
@@ -424,25 +543,25 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
   bool get isPrivate => _name.startsWith('_');
 
   // TODO(vsm): Refactor this out.
-  Symbol get simpleName => new Symbol(_name);
+  Symbol get simpleName => _symbol;
 
-  JsMethodMirror._constructor(JsClassMirror cls, String name, ftype)
-    : _name = name, isConstructor = true, isStatic = false {
+  JsMethodMirror._constructor(JsClassMirror cls, Symbol symbol, ftype)
+    : _symbol = symbol, _name = getName(symbol), isConstructor = true, isStatic = false {
       _createParameterMirrorList(ftype);
   }
 
-  JsMethodMirror._instanceMethod(JsClassMirror cls, String name, ftype)
-    : _name = name, isConstructor = false, isStatic = false {
+  JsMethodMirror._instanceMethod(JsClassMirror cls, Symbol symbol, ftype)
+    : _symbol = symbol, _name = getName(symbol), isConstructor = false, isStatic = false {
       _createParameterMirrorList(ftype);
   }
 
-  JsMethodMirror._staticMethod(JsClassMirror cls, String name, ftype)
-    : _name = name, isConstructor = false, isStatic = true {
+  JsMethodMirror._staticMethod(JsClassMirror cls, Symbol symbol, ftype)
+    : _symbol = symbol, _name = getName(symbol), isConstructor = false, isStatic = true {
       _createParameterMirrorList(ftype);
   }
 
   // TODO(vsm): Support named constructors.
-  Symbol get constructorName => isConstructor ? new Symbol(_name) : null;
+  Symbol get constructorName => isConstructor ? _symbol : null;
   List<ParameterMirror> get parameters => _params;
   List<InstanceMirror> get metadata => _metadata;
 
@@ -453,13 +572,23 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
       _metadata = const [];
       return;
     }
-    if (ftype is List) {
+
+    // TODO(vsm): Why does generic function type trigger true for List?
+    if (ftype is! Function && ftype is List) {
       // Record metadata
       _metadata = new List<InstanceMirror>.unmodifiable(
           ftype.skip(1).map((a) => reflect(a)));
       ftype = ftype[0];
     } else {
       _metadata = const [];
+    }
+
+    // TODO(vsm): Handle generic function types properly.  Or deprecate mirrors
+    // before we need to!
+    if (JS('bool', 'typeof(#) == "function"', ftype)) {
+      // Instantiate the generic version.
+      // TODO(vsm): Can't use arguments.length on arrow function.
+      ftype = JS('', '#.apply(null, #)', ftype, [dynamic, dynamic, dynamic]);
     }
 
     // TODO(vsm): Add named args.
@@ -471,7 +600,7 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
       var type = args[i];
       var metadata = ftype.metadata[i];
       // TODO(vsm): Recover the param name.
-      var param = new JsParameterMirror._('', _wrap(type), metadata);
+      var param = new JsParameterMirror._(new Symbol(''), _wrap(type), metadata);
       params[i] = param;
     }
 
@@ -479,10 +608,12 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
       var type = opts[i];
       var metadata = ftype.metadata[args.length + i];
       // TODO(vsm): Recover the param name.
-      var param = new JsParameterMirror._('', _wrap(type), metadata);
+      var param = new JsParameterMirror._(new Symbol(''), _wrap(type), metadata);
       params[i + args.length] = param;
     }
 
     _params = new List.unmodifiable(params);
   }
+
+  String toString() => "MethodMirror on '$_name'";
 }

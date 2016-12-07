@@ -24,7 +24,7 @@ import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'universe.dart' show ReceiverConstraint;
+import 'world_builder.dart' show ReceiverConstraint;
 
 enum DynamicUseKind { INVOKE, GET, SET, }
 
@@ -71,6 +71,11 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CONSTRUCTOR_INVOKE,
+  CONST_CONSTRUCTOR_INVOKE,
+  REDIRECTION,
+  DIRECT_INVOKE,
+  DIRECT_USE,
 }
 
 /// Statically known use of an [Element].
@@ -80,11 +85,14 @@ class StaticUse {
   final Element element;
   final StaticUseKind kind;
   final int hashCode;
+  final DartType type;
 
-  StaticUse.internal(Element element, StaticUseKind kind)
+  StaticUse.internal(Element element, StaticUseKind kind,
+      [DartType type = null])
       : this.element = element,
         this.kind = kind,
-        this.hashCode = Hashing.objectHash(element, Hashing.objectHash(kind)) {
+        this.type = type,
+        this.hashCode = Hashing.objectsHash(element, kind, type) {
     assert(invariant(element, element.isDeclaration,
         message: "Static use element $element must be "
             "the declaration element."));
@@ -202,6 +210,35 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
+  /// Direct invocation of a method [element] with the given [callStructure].
+  factory StaticUse.directInvoke(
+      MethodElement element, CallStructure callStructure) {
+    // TODO(johnniwinther): Use the [callStructure].
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct invoke element $element must be an instance member."));
+    assert(invariant(element, element.isFunction,
+        message: "Direct invoke element $element must be a method."));
+    return new StaticUse.internal(element, StaticUseKind.DIRECT_INVOKE);
+  }
+
+  /// Direct read access of a field or getter [element].
+  factory StaticUse.directGet(MemberElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct get element $element must be an instance member."));
+    assert(invariant(element, element.isField || element.isGetter,
+        message: "Direct get element $element must be a field or a getter."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Direct write access of a field [element].
+  factory StaticUse.directSet(FieldElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct set element $element must be an instance member."));
+    assert(invariant(element, element.isField,
+        message: "Direct set element $element must be a field."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
       ConstructorElement element, CallStructure callStructure) {
@@ -209,9 +246,34 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
-  /// Constructor redirection to [element].
-  factory StaticUse.constructorRedirect(ConstructorElement element) {
-    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  /// Constructor invocation of [element] with the given [callStructure] on
+  /// [type].
+  factory StaticUse.typedConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    // TODO(johnniwinther): Use the [callStructure].
+    return new StaticUse.internal(
+        element, StaticUseKind.CONSTRUCTOR_INVOKE, type);
+  }
+
+  /// Constant constructor invocation of [element] with the given
+  /// [callStructure] on [type].
+  factory StaticUse.constConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    // TODO(johnniwinther): Use the [callStructure].
+    return new StaticUse.internal(
+        element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE, type);
+  }
+
+  /// Constructor redirection to [element] on [type].
+  factory StaticUse.constructorRedirect(
+      ConstructorElement element, InterfaceType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    return new StaticUse.internal(element, StaticUseKind.REDIRECTION, type);
   }
 
   /// Initialization of an instance field [element].
@@ -250,13 +312,18 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
+  /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
+  factory StaticUse.directUse(Element element) {
+    return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
+  }
+
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StaticUse) return false;
-    return element == other.element && kind == other.kind;
+    return element == other.element && kind == other.kind && type == other.type;
   }
 
-  String toString() => 'StaticUse($element,$kind)';
+  String toString() => 'StaticUse($element,$kind,$type)';
 }
 
 enum TypeUseKind {
@@ -266,6 +333,8 @@ enum TypeUseKind {
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
+  MIRROR_INSTANTIATION,
+  NATIVE_INSTANTIATION,
 }
 
 /// Use of a [DartType].
@@ -307,6 +376,16 @@ class TypeUse {
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
+  }
+
+  /// [type] used in an instantiation through mirrors.
+  factory TypeUse.mirrorInstantiation(InterfaceType type) {
+    return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
+  }
+
+  /// [type] used in a native instantiation.
+  factory TypeUse.nativeInstantiation(InterfaceType type) {
+    return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
   }
 
   bool operator ==(other) {

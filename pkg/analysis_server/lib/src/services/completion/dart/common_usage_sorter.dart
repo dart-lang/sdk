@@ -46,18 +46,24 @@ class CommonUsageSorter implements DartContributionSorter {
   }
 
   CompletionTarget _getCompletionTarget(CompletionRequest request) {
-    // TODO (danrubel) get cached completion target
-    var libSrcs = request.context.getLibrariesContaining(request.source);
-    if (libSrcs.length == 0) {
-      return null;
-    }
-    var libElem = request.context.getResult(libSrcs[0], LIBRARY_ELEMENT1);
-    if (libElem is LibraryElement) {
-      var unit = request.context.getResult(
-          new LibrarySpecificUnit(libElem.source, request.source),
-          RESOLVED_UNIT5);
-      if (unit is CompilationUnit) {
-        return new CompletionTarget.forOffset(unit, request.offset);
+    if (request.result != null) {
+      var unit = request.result.unit;
+      return new CompletionTarget.forOffset(unit, request.offset);
+    } else {
+      // TODO (danrubel) get cached completion target
+      var libSrcs = request.context.getLibrariesContaining(request.source);
+      if (libSrcs.length == 0) {
+        return null;
+      }
+      LibraryElement libElem =
+          request.context.getResult(libSrcs[0], LIBRARY_ELEMENT1);
+      if (libElem is LibraryElement) {
+        var unit = request.context.getResult(
+            new LibrarySpecificUnit(libElem.source, request.source),
+            RESOLVED_UNIT5);
+        if (unit is CompilationUnit) {
+          return new CompletionTarget.forOffset(unit, request.offset);
+        }
       }
     }
     return null;

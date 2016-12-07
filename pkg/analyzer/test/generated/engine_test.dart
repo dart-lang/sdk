@@ -22,15 +22,84 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SourcesChangedEventTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisOptionsImplTest);
+    defineReflectiveTests(SourcesChangedEventTest);
+  });
+}
+
+@reflectiveTest
+class AnalysisOptionsImplTest {
+  test_resetToDefaults() {
+    // Note that this only tests options visible from the interface.
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    AnalysisOptionsImpl modifiedOptions = new AnalysisOptionsImpl();
+    modifiedOptions.dart2jsHint = true;
+    modifiedOptions.disableCacheFlushing = true;
+    modifiedOptions.enableAssertInitializer = true;
+    modifiedOptions.enableAssertMessage = true;
+    modifiedOptions.enableLazyAssignmentOperators = true;
+    modifiedOptions.enableStrictCallChecks = true;
+    modifiedOptions.enableSuperMixins = true;
+    modifiedOptions.enableTiming = true;
+    modifiedOptions.enableUriInPartOf = true;
+    modifiedOptions.errorProcessors = [null];
+    modifiedOptions.excludePatterns = ['a'];
+    modifiedOptions.finerGrainedInvalidation = true;
+    modifiedOptions.generateImplicitErrors = false;
+    modifiedOptions.generateSdkErrors = true;
+    modifiedOptions.hint = false;
+    modifiedOptions.incremental = true;
+    modifiedOptions.incrementalApi = true;
+    modifiedOptions.incrementalValidation = true;
+    modifiedOptions.lint = true;
+    modifiedOptions.lintRules = [null];
+    modifiedOptions.patchPlatform = 3;
+    modifiedOptions.preserveComments = false;
+    modifiedOptions.strongMode = true;
+    modifiedOptions.trackCacheDependencies = false;
+
+    modifiedOptions.resetToDefaults();
+
+    expect(modifiedOptions.dart2jsHint, defaultOptions.dart2jsHint);
+    expect(modifiedOptions.disableCacheFlushing,
+        defaultOptions.disableCacheFlushing);
+    expect(modifiedOptions.enableAssertInitializer,
+        defaultOptions.enableAssertInitializer);
+    expect(modifiedOptions.enableAssertMessage,
+        defaultOptions.enableAssertMessage);
+    expect(modifiedOptions.enableLazyAssignmentOperators,
+        defaultOptions.enableLazyAssignmentOperators);
+    expect(modifiedOptions.enableStrictCallChecks,
+        defaultOptions.enableStrictCallChecks);
+    expect(modifiedOptions.enableSuperMixins, defaultOptions.enableSuperMixins);
+    expect(modifiedOptions.enableTiming, defaultOptions.enableTiming);
+    expect(modifiedOptions.enableUriInPartOf, defaultOptions.enableUriInPartOf);
+    expect(modifiedOptions.errorProcessors, defaultOptions.errorProcessors);
+    expect(modifiedOptions.excludePatterns, defaultOptions.excludePatterns);
+    expect(modifiedOptions.finerGrainedInvalidation,
+        defaultOptions.finerGrainedInvalidation);
+    expect(modifiedOptions.generateImplicitErrors,
+        defaultOptions.generateImplicitErrors);
+    expect(modifiedOptions.generateSdkErrors, defaultOptions.generateSdkErrors);
+    expect(modifiedOptions.hint, defaultOptions.hint);
+    expect(modifiedOptions.incremental, defaultOptions.incremental);
+    expect(modifiedOptions.incrementalApi, defaultOptions.incrementalApi);
+    expect(modifiedOptions.incrementalValidation,
+        defaultOptions.incrementalValidation);
+    expect(modifiedOptions.lint, defaultOptions.lint);
+    expect(modifiedOptions.lintRules, defaultOptions.lintRules);
+    expect(modifiedOptions.patchPlatform, defaultOptions.patchPlatform);
+    expect(modifiedOptions.preserveComments, defaultOptions.preserveComments);
+    expect(modifiedOptions.strongMode, defaultOptions.strongMode);
+    expect(modifiedOptions.trackCacheDependencies,
+        defaultOptions.trackCacheDependencies);
+  }
 }
 
 /**
@@ -484,6 +553,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
 
+  @deprecated
   @override
   Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) {
     fail("Unexpected invocation of getConfigurationData");
@@ -686,6 +756,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of setChangedContents");
   }
 
+  @deprecated
   @override
   void setConfigurationData(ResultDescriptor key, Object data) {
     fail("Unexpected invocation of setConfigurationData");

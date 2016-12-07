@@ -895,6 +895,15 @@ _BeingInitialized_ [Sentinel](#sentinel).
 class BoundVariable {
   string name;
   @Instance|Sentinel value;
+
+  // The token position where this variable was declared.
+  int declarationTokenPos;
+
+  // The first token position where this variable is visible to the scope.
+  int scopeStartTokenPos;
+
+  // The last token position where this variable is visible to the scope.
+  int scopeEndTokenPos;
 }
 ```
 
@@ -2528,4 +2537,6 @@ version | comments
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
 3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
+3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable.
+
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

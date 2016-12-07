@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -211,13 +211,13 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
             new LibraryElementImpl(context, '', -1, 0);
-        libraryElement.synthetic = true;
+        libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl(librarySource.shortName);
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
-        return libraryElement..synthetic = true;
+        return libraryElement..isSynthetic = true;
       }
       UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
       if (unlinkedSummary == null) {
@@ -301,12 +301,12 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
 }
 
 /**
- * Builder of [Expression]s from [UnlinkedConst]s.
+ * Builder of [Expression]s from [UnlinkedExpr]s.
  */
 class _ConstExprBuilder {
   final _UnitResynthesizer resynthesizer;
   final ElementImpl context;
-  final UnlinkedConst uc;
+  final UnlinkedExpr uc;
 
   int intPtr = 0;
   int doublePtr = 0;
@@ -331,48 +331,48 @@ class _ConstExprBuilder {
 
   Expression build() {
     if (!uc.isValidConst) {
-      return AstFactory.identifier3(r'$$invalidConstExpr$$');
+      return AstTestFactory.identifier3(r'$$invalidConstExpr$$');
     }
-    for (UnlinkedConstOperation operation in uc.operations) {
+    for (UnlinkedExprOperation operation in uc.operations) {
       switch (operation) {
-        case UnlinkedConstOperation.pushNull:
-          _push(AstFactory.nullLiteral());
+        case UnlinkedExprOperation.pushNull:
+          _push(AstTestFactory.nullLiteral());
           break;
         // bool
-        case UnlinkedConstOperation.pushFalse:
-          _push(AstFactory.booleanLiteral(false));
+        case UnlinkedExprOperation.pushFalse:
+          _push(AstTestFactory.booleanLiteral(false));
           break;
-        case UnlinkedConstOperation.pushTrue:
-          _push(AstFactory.booleanLiteral(true));
+        case UnlinkedExprOperation.pushTrue:
+          _push(AstTestFactory.booleanLiteral(true));
           break;
         // literals
-        case UnlinkedConstOperation.pushInt:
+        case UnlinkedExprOperation.pushInt:
           int value = uc.ints[intPtr++];
-          _push(AstFactory.integer(value));
+          _push(AstTestFactory.integer(value));
           break;
-        case UnlinkedConstOperation.pushLongInt:
+        case UnlinkedExprOperation.pushLongInt:
           int value = 0;
           int count = uc.ints[intPtr++];
           for (int i = 0; i < count; i++) {
             int next = uc.ints[intPtr++];
             value = value << 32 | next;
           }
-          _push(AstFactory.integer(value));
+          _push(AstTestFactory.integer(value));
           break;
-        case UnlinkedConstOperation.pushDouble:
+        case UnlinkedExprOperation.pushDouble:
           double value = uc.doubles[doublePtr++];
-          _push(AstFactory.doubleLiteral(value));
+          _push(AstTestFactory.doubleLiteral(value));
           break;
-        case UnlinkedConstOperation.makeSymbol:
+        case UnlinkedExprOperation.makeSymbol:
           String component = uc.strings[stringPtr++];
-          _push(AstFactory.symbolLiteral([component]));
+          _push(AstTestFactory.symbolLiteral([component]));
           break;
         // String
-        case UnlinkedConstOperation.pushString:
+        case UnlinkedExprOperation.pushString:
           String value = uc.strings[stringPtr++];
-          _push(AstFactory.string2(value));
+          _push(AstTestFactory.string2(value));
           break;
-        case UnlinkedConstOperation.concatenate:
+        case UnlinkedExprOperation.concatenate:
           int count = uc.ints[intPtr++];
           List<InterpolationElement> elements = <InterpolationElement>[];
           for (int i = 0; i < count; i++) {
@@ -380,133 +380,141 @@ class _ConstExprBuilder {
             InterpolationElement element = _newInterpolationElement(expr);
             elements.insert(0, element);
           }
-          _push(AstFactory.string(elements));
+          _push(AstTestFactory.string(elements));
           break;
         // binary
-        case UnlinkedConstOperation.equal:
+        case UnlinkedExprOperation.equal:
           _pushBinary(TokenType.EQ_EQ);
           break;
-        case UnlinkedConstOperation.notEqual:
+        case UnlinkedExprOperation.notEqual:
           _pushBinary(TokenType.BANG_EQ);
           break;
-        case UnlinkedConstOperation.and:
+        case UnlinkedExprOperation.and:
           _pushBinary(TokenType.AMPERSAND_AMPERSAND);
           break;
-        case UnlinkedConstOperation.or:
+        case UnlinkedExprOperation.or:
           _pushBinary(TokenType.BAR_BAR);
           break;
-        case UnlinkedConstOperation.bitXor:
+        case UnlinkedExprOperation.bitXor:
           _pushBinary(TokenType.CARET);
           break;
-        case UnlinkedConstOperation.bitAnd:
+        case UnlinkedExprOperation.bitAnd:
           _pushBinary(TokenType.AMPERSAND);
           break;
-        case UnlinkedConstOperation.bitOr:
+        case UnlinkedExprOperation.bitOr:
           _pushBinary(TokenType.BAR);
           break;
-        case UnlinkedConstOperation.bitShiftLeft:
+        case UnlinkedExprOperation.bitShiftLeft:
           _pushBinary(TokenType.LT_LT);
           break;
-        case UnlinkedConstOperation.bitShiftRight:
+        case UnlinkedExprOperation.bitShiftRight:
           _pushBinary(TokenType.GT_GT);
           break;
-        case UnlinkedConstOperation.add:
+        case UnlinkedExprOperation.add:
           _pushBinary(TokenType.PLUS);
           break;
-        case UnlinkedConstOperation.subtract:
+        case UnlinkedExprOperation.subtract:
           _pushBinary(TokenType.MINUS);
           break;
-        case UnlinkedConstOperation.multiply:
+        case UnlinkedExprOperation.multiply:
           _pushBinary(TokenType.STAR);
           break;
-        case UnlinkedConstOperation.divide:
+        case UnlinkedExprOperation.divide:
           _pushBinary(TokenType.SLASH);
           break;
-        case UnlinkedConstOperation.floorDivide:
+        case UnlinkedExprOperation.floorDivide:
           _pushBinary(TokenType.TILDE_SLASH);
           break;
-        case UnlinkedConstOperation.modulo:
+        case UnlinkedExprOperation.modulo:
           _pushBinary(TokenType.PERCENT);
           break;
-        case UnlinkedConstOperation.greater:
+        case UnlinkedExprOperation.greater:
           _pushBinary(TokenType.GT);
           break;
-        case UnlinkedConstOperation.greaterEqual:
+        case UnlinkedExprOperation.greaterEqual:
           _pushBinary(TokenType.GT_EQ);
           break;
-        case UnlinkedConstOperation.less:
+        case UnlinkedExprOperation.less:
           _pushBinary(TokenType.LT);
           break;
-        case UnlinkedConstOperation.lessEqual:
+        case UnlinkedExprOperation.lessEqual:
           _pushBinary(TokenType.LT_EQ);
           break;
         // prefix
-        case UnlinkedConstOperation.complement:
+        case UnlinkedExprOperation.complement:
           _pushPrefix(TokenType.TILDE);
           break;
-        case UnlinkedConstOperation.negate:
+        case UnlinkedExprOperation.negate:
           _pushPrefix(TokenType.MINUS);
           break;
-        case UnlinkedConstOperation.not:
+        case UnlinkedExprOperation.not:
           _pushPrefix(TokenType.BANG);
           break;
         // conditional
-        case UnlinkedConstOperation.conditional:
+        case UnlinkedExprOperation.conditional:
           Expression elseExpr = _pop();
           Expression thenExpr = _pop();
           Expression condition = _pop();
-          _push(
-              AstFactory.conditionalExpression(condition, thenExpr, elseExpr));
+          _push(AstTestFactory.conditionalExpression(
+              condition, thenExpr, elseExpr));
           break;
         // invokeMethodRef
-        case UnlinkedConstOperation.invokeMethodRef:
+        case UnlinkedExprOperation.invokeMethodRef:
           _pushInvokeMethodRef();
           break;
         // containers
-        case UnlinkedConstOperation.makeUntypedList:
+        case UnlinkedExprOperation.makeUntypedList:
           _pushList(null);
           break;
-        case UnlinkedConstOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedList:
           TypeName itemType = _newTypeName();
-          _pushList(AstFactory.typeArgumentList(<TypeName>[itemType]));
+          _pushList(AstTestFactory.typeArgumentList(<TypeName>[itemType]));
           break;
-        case UnlinkedConstOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedMap:
           _pushMap(null);
           break;
-        case UnlinkedConstOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap:
           TypeName keyType = _newTypeName();
           TypeName valueType = _newTypeName();
-          _pushMap(AstFactory.typeArgumentList(<TypeName>[keyType, valueType]));
+          _pushMap(
+              AstTestFactory.typeArgumentList(<TypeName>[keyType, valueType]));
           break;
-        case UnlinkedConstOperation.pushReference:
+        case UnlinkedExprOperation.pushReference:
           _pushReference();
           break;
-        case UnlinkedConstOperation.extractProperty:
+        case UnlinkedExprOperation.extractProperty:
           _pushExtractProperty();
           break;
-        case UnlinkedConstOperation.invokeConstructor:
+        case UnlinkedExprOperation.invokeConstructor:
           _pushInstanceCreation();
           break;
-        case UnlinkedConstOperation.pushParameter:
+        case UnlinkedExprOperation.pushParameter:
           String name = uc.strings[stringPtr++];
-          SimpleIdentifier identifier = AstFactory.identifier3(name);
+          SimpleIdentifier identifier = AstTestFactory.identifier3(name);
           identifier.staticElement = _enclosingConstructor.parameters
               .firstWhere((parameter) => parameter.name == name,
                   orElse: () => throw new StateError(
                       'Unable to resolve constructor parameter: $name'));
           _push(identifier);
           break;
-        case UnlinkedConstOperation.assignToRef:
-        case UnlinkedConstOperation.assignToProperty:
-        case UnlinkedConstOperation.assignToIndex:
-        case UnlinkedConstOperation.extractIndex:
-        case UnlinkedConstOperation.invokeMethod:
-        case UnlinkedConstOperation.cascadeSectionBegin:
-        case UnlinkedConstOperation.cascadeSectionEnd:
-        case UnlinkedConstOperation.typeCast:
-        case UnlinkedConstOperation.typeCheck:
-        case UnlinkedConstOperation.throwException:
-        case UnlinkedConstOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.ifNull:
+          _pushBinary(TokenType.QUESTION_QUESTION);
+          break;
+        case UnlinkedExprOperation.await:
+          Expression expression = _pop();
+          _push(AstTestFactory.awaitExpression(expression));
+          break;
+        case UnlinkedExprOperation.assignToRef:
+        case UnlinkedExprOperation.assignToProperty:
+        case UnlinkedExprOperation.assignToIndex:
+        case UnlinkedExprOperation.extractIndex:
+        case UnlinkedExprOperation.invokeMethod:
+        case UnlinkedExprOperation.cascadeSectionBegin:
+        case UnlinkedExprOperation.cascadeSectionEnd:
+        case UnlinkedExprOperation.typeCast:
+        case UnlinkedExprOperation.typeCheck:
+        case UnlinkedExprOperation.throwException:
+        case UnlinkedExprOperation.pushLocalFunctionReference:
           throw new UnimplementedError(
               'Unexpected $operation in a constant expression.');
       }
@@ -525,7 +533,8 @@ class _ConstExprBuilder {
       for (int i = 0; i < numNamedArgs; i++) {
         String name = uc.strings[stringPtr++];
         int index = numPositionalArgs + i;
-        arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
+        arguments[index] =
+            AstTestFactory.namedExpression2(name, arguments[index]);
       }
     }
     return arguments;
@@ -545,16 +554,16 @@ class _ConstExprBuilder {
       element = _getStringLengthElement();
     }
     if (enclosing == null) {
-      return AstFactory.identifier3(info.name)..staticElement = element;
+      return AstTestFactory.identifier3(info.name)..staticElement = element;
     }
     if (enclosing is SimpleIdentifier) {
-      SimpleIdentifier identifier = AstFactory.identifier3(info.name)
+      SimpleIdentifier identifier = AstTestFactory.identifier3(info.name)
         ..staticElement = element;
-      return AstFactory.identifier(enclosing, identifier);
+      return AstTestFactory.identifier(enclosing, identifier);
     }
-    SimpleIdentifier property = AstFactory.identifier3(info.name)
+    SimpleIdentifier property = AstTestFactory.identifier3(info.name)
       ..staticElement = element;
-    return AstFactory.propertyAccess(enclosing, property);
+    return AstTestFactory.propertyAccess(enclosing, property);
   }
 
   TypeName _buildTypeAst(DartType type) {
@@ -568,7 +577,7 @@ class _ConstExprBuilder {
             : typeArguments.map(_buildTypeAst).toList();
       }
     }
-    TypeName node = AstFactory.typeName4(type.name, argumentNodes);
+    TypeName node = AstTestFactory.typeName4(type.name, argumentNodes);
     node.type = type;
     (node.name as SimpleIdentifier).staticElement = type.element;
     return node;
@@ -608,18 +617,18 @@ class _ConstExprBuilder {
   void _pushBinary(TokenType operator) {
     Expression right = _pop();
     Expression left = _pop();
-    _push(AstFactory.binaryExpression(left, operator, right));
+    _push(AstTestFactory.binaryExpression(left, operator, right));
   }
 
   void _pushExtractProperty() {
     Expression target = _pop();
     String name = uc.strings[stringPtr++];
-    SimpleIdentifier propertyNode = AstFactory.identifier3(name);
+    SimpleIdentifier propertyNode = AstTestFactory.identifier3(name);
     // Only String.length property access can be potentially resolved.
     if (name == 'length') {
       propertyNode.staticElement = _getStringLengthElement();
     }
-    _push(AstFactory.propertyAccess(target, propertyNode));
+    _push(AstTestFactory.propertyAccess(target, propertyNode));
   }
 
   void _pushInstanceCreation() {
@@ -646,29 +655,29 @@ class _ConstExprBuilder {
     } else {
       if (info.enclosing != null) {
         if (info.enclosing.enclosing != null) {
-          PrefixedIdentifier typeName = AstFactory.identifier5(
+          PrefixedIdentifier typeName = AstTestFactory.identifier5(
               info.enclosing.enclosing.name, info.enclosing.name);
           typeName.prefix.staticElement = info.enclosing.enclosing.element;
           typeName.identifier.staticElement = info.enclosing.element;
           typeName.identifier.staticType = info.enclosing.type;
-          typeNode = AstFactory.typeName3(typeName);
+          typeNode = AstTestFactory.typeName3(typeName);
           typeNode.type = info.enclosing.type;
           constructorName = info.name;
         } else if (info.enclosing.element != null) {
           SimpleIdentifier typeName =
-              AstFactory.identifier3(info.enclosing.name);
+              AstTestFactory.identifier3(info.enclosing.name);
           typeName.staticElement = info.enclosing.element;
           typeName.staticType = info.enclosing.type;
-          typeNode = AstFactory.typeName3(typeName);
+          typeNode = AstTestFactory.typeName3(typeName);
           typeNode.type = info.enclosing.type;
           constructorName = info.name;
         } else {
-          typeNode = AstFactory.typeName3(
-              AstFactory.identifier5(info.enclosing.name, info.name));
+          typeNode = AstTestFactory.typeName3(
+              AstTestFactory.identifier5(info.enclosing.name, info.name));
           constructorName = null;
         }
       } else {
-        typeNode = AstFactory.typeName4(info.name);
+        typeNode = AstTestFactory.typeName4(info.name);
       }
     }
     // prepare arguments
@@ -676,14 +685,15 @@ class _ConstExprBuilder {
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
-      constructorNode = AstFactory.constructorName(typeNode, constructorName);
+      constructorNode =
+          AstTestFactory.constructorName(typeNode, constructorName);
       constructorNode.name.staticElement = constructorElement;
     } else {
-      constructorNode = AstFactory.constructorName(typeNode, null);
+      constructorNode = AstTestFactory.constructorName(typeNode, null);
     }
     constructorNode.staticElement = constructorElement;
     // create InstanceCreationExpression
-    InstanceCreationExpression instanceCreation = AstFactory
+    InstanceCreationExpression instanceCreation = AstTestFactory
         .instanceCreationExpression(Keyword.CONST, constructorNode, arguments);
     instanceCreation.staticElement = constructorElement;
     _push(instanceCreation);
@@ -701,7 +711,7 @@ class _ConstExprBuilder {
       for (int i = 0; i < numTypeArguments; i++) {
         typeNames[i] = _newTypeName();
       }
-      typeArguments = AstFactory.typeArgumentList(typeNames);
+      typeArguments = AstTestFactory.typeArgumentList(typeNames);
     }
     if (node is SimpleIdentifier) {
       _push(new MethodInvocation(
@@ -709,7 +719,7 @@ class _ConstExprBuilder {
           TokenFactory.tokenFromType(TokenType.PERIOD),
           node,
           typeArguments,
-          AstFactory.argumentList(arguments)));
+          AstTestFactory.argumentList(arguments)));
     } else {
       throw new UnimplementedError('For ${node?.runtimeType}: $node');
     }
@@ -721,7 +731,7 @@ class _ConstExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
-    _push(AstFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
+    _push(AstTestFactory.listLiteral2(Keyword.CONST, typeArguments, elements));
   }
 
   void _pushMap(TypeArgumentList typeArguments) {
@@ -730,14 +740,14 @@ class _ConstExprBuilder {
     for (int i = 0; i < count; i++) {
       Expression value = _pop();
       Expression key = _pop();
-      entries.insert(0, AstFactory.mapLiteralEntry2(key, value));
+      entries.insert(0, AstTestFactory.mapLiteralEntry2(key, value));
     }
-    _push(AstFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
+    _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries));
   }
 
   void _pushPrefix(TokenType operator) {
     Expression operand = _pop();
-    _push(AstFactory.prefixExpression(operator, operand));
+    _push(AstTestFactory.prefixExpression(operator, operand));
   }
 
   void _pushReference() {
@@ -1160,10 +1170,12 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   }
 
   LibraryElementHandle _getLibraryByRelativeUri(String depUri) {
-    String absoluteUri = resynthesizer.summaryResynthesizer.sourceFactory
-        .resolveUri(resynthesizer.librarySource, depUri)
-        .uri
-        .toString();
+    Source source = resynthesizer.summaryResynthesizer.sourceFactory
+        .resolveUri(resynthesizer.librarySource, depUri);
+    if (source == null) {
+      return null;
+    }
+    String absoluteUri = source.uri.toString();
     return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
         new ElementLocationImpl.con3(<String>[absoluteUri]));
   }
@@ -1368,12 +1380,12 @@ class _ResynthesizerContext implements ResynthesizerContext {
   _ResynthesizerContext(this._unitResynthesizer);
 
   @override
-  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc) {
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
     return _unitResynthesizer.buildAnnotation(context, uc);
   }
 
   @override
-  Expression buildExpression(ElementImpl context, UnlinkedConst uc) {
+  Expression buildExpression(ElementImpl context, UnlinkedExpr uc) {
     return _unitResynthesizer._buildConstExpression(context, uc);
   }
 
@@ -1385,6 +1397,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   @override
   UnitExplicitTopLevelVariables buildTopLevelVariables() {
     return _unitResynthesizer.buildUnitExplicitTopLevelVariables();
+  }
+
+  @override
+  bool inheritsCovariant(int slot) {
+    return _unitResynthesizer.parametersInheritingCovariant.contains(slot);
   }
 
   @override
@@ -1453,6 +1470,12 @@ class _UnitResynthesizer {
    */
   Set<int> constCycles;
 
+  /**
+   * Set of slot ids corresponding to parameters that inherit `@covariant`
+   * behavior.
+   */
+  Set<int> parametersInheritingCovariant;
+
   int numLinkedReferences;
   int numUnlinkedReferences;
 
@@ -1481,6 +1504,8 @@ class _UnitResynthesizer {
       linkedTypeMap[t.slot] = t;
     }
     constCycles = linkedUnit.constCycles.toSet();
+    parametersInheritingCovariant =
+        linkedUnit.parametersInheritingCovariant.toSet();
     numLinkedReferences = linkedUnit.references.length;
     numUnlinkedReferences = unlinkedUnit.references.length;
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
@@ -1492,14 +1517,14 @@ class _UnitResynthesizer {
   TypeProvider get typeProvider => summaryResynthesizer.typeProvider;
 
   /**
-   * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
+   * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
    */
-  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc) {
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
     Expression constExpr = _buildConstExpression(context, uc);
     if (constExpr is Identifier) {
       elementAnnotation.element = constExpr.staticElement;
-      elementAnnotation.annotationAst = AstFactory.annotation(constExpr);
+      elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
     } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
       Identifier typeName = constExpr.constructorName.type.name;
@@ -1507,11 +1532,12 @@ class _UnitResynthesizer {
       if (typeName is SimpleIdentifier && constructorName != null) {
         // E.g. `@cls.ctor()`.  Since `cls.ctor` would have been parsed as
         // a PrefixedIdentifier, we need to resynthesize it as one.
-        typeName = AstFactory.identifier(typeName, constructorName);
+        typeName = AstTestFactory.identifier(typeName, constructorName);
         constructorName = null;
       }
-      elementAnnotation.annotationAst = AstFactory.annotation2(
-          typeName, constructorName, constExpr.argumentList);
+      elementAnnotation.annotationAst = AstTestFactory.annotation2(
+          typeName, constructorName, constExpr.argumentList)
+        ..element = constExpr.staticElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');
@@ -1629,10 +1655,10 @@ class _UnitResynthesizer {
           variable.enclosingElement = unit;
           implicitVariables[name] = variable;
           accessorsData.implicitVariables.add(variable);
-          variable.synthetic = true;
-          variable.final2 = kind == UnlinkedExecutableKind.getter;
+          variable.isSynthetic = true;
+          variable.isFinal = kind == UnlinkedExecutableKind.getter;
         } else {
-          variable.final2 = false;
+          variable.isFinal = false;
         }
         accessor.variable = variable;
         // link
@@ -1788,13 +1814,14 @@ class _UnitResynthesizer {
     return result;
   }
 
-  Expression _buildConstExpression(ElementImpl context, UnlinkedConst uc) {
+  Expression _buildConstExpression(ElementImpl context, UnlinkedExpr uc) {
     return new _ConstExprBuilder(this, context, uc).build();
   }
 
   /**
    * Return the defining type for a [ConstructorElement] by applying
-   * [typeArgumentRefs] to the given linked [info].
+   * [typeArgumentRefs] to the given linked [info].  Return [DynamicTypeImpl]
+   * if the [info] is unresolved.
    */
   DartType _createConstructorDefiningType(
       TypeParameterizedElementMixin typeParameterContext,
@@ -1802,6 +1829,9 @@ class _UnitResynthesizer {
       List<EntityRef> typeArgumentRefs) {
     bool isClass = info.element is ClassElement;
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    if (classInfo == null) {
+      return DynamicTypeImpl.instance;
+    }
     List<DartType> typeArguments = typeArgumentRefs
         .map((t) => buildType(t, typeParameterContext))
         .toList();

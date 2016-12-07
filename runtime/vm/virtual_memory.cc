@@ -19,7 +19,7 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   ASSERT((new_size & (PageSize() - 1)) == 0);
   ASSERT(new_size <= size());
   if (try_unmap &&
-      (reserved_size_ == size()) &&  /* Don't create holes in reservation. */
+      (reserved_size_ == size()) && /* Don't create holes in reservation. */
       FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
                      size() - new_size)) {
     reserved_size_ = new_size;

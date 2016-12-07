@@ -1,6 +1,13 @@
 // Copyright (c) 2013, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
+// OtherResources=certificates/untrusted_server_chain.pem
+// OtherResources=certificates/untrusted_server_key.pem
+// OtherResources=certificates/trusted_certs.pem
+// OtherResources=https_unauthorized_client.dart
 
 // This test verifies that secure connections that fail due to
 // unauthenticated certificates throw exceptions in HttpClient.
@@ -35,9 +42,7 @@ Future<SecureServerSocket> runServer() {
 }
 
 void main() {
-  var clientScript = Platform.script
-                             .resolve('https_unauthorized_client.dart')
-                             .toFilePath();
+  var clientScript = localFile('https_unauthorized_client.dart');
   Future clientProcess(int port) {
     return Process.run(Platform.executable,
         [clientScript, port.toString()])

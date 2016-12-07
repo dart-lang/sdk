@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_METHOD_RECOGNIZER_H_
-#define VM_METHOD_RECOGNIZER_H_
+#ifndef RUNTIME_VM_METHOD_RECOGNIZER_H_
+#define RUNTIME_VM_METHOD_RECOGNIZER_H_
 
 #include "vm/allocation.h"
 
 namespace dart {
 
+// clang-format off
 // (class-name, function-name, recognized enum, result type, fingerprint).
 // When adding a new function add a 0 as fingerprint, build and run to get the
 // correct fingerprint from the mismatch error.
@@ -156,6 +157,7 @@ namespace dart {
   V(_Double, *, Double_mul, Double, 0x23d068d8)                                \
   V(_Double, /, Double_div, Double, 0x48bac1dc)                                \
   V(_Double, get:isNaN, Double_getIsNaN, Bool, 0x0af8ebeb)                     \
+  V(_Double, get:isInfinite, Double_getIsInfinite, Bool, 0x0f79e289)           \
   V(_Double, get:isNegative, Double_getIsNegative, Bool, 0x3a58ff36)           \
   V(_Double, _mulFromInteger, Double_mulFromInteger, Double, 0x330e9a36)       \
   V(_Double, .fromInteger, DoubleFromInteger, Double, 0x7ef45843)              \
@@ -164,8 +166,11 @@ namespace dart {
     0x25a786de)                                                                \
   V(_GrowableList, add, GrowableArray_add, Dynamic, 0x0d1358ed)                \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, Dynamic, 0x6036d7fa)          \
+  V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, Dynamic,          \
+    0x71c67f7d)                                                                \
   V(Object, ==, ObjectEquals, Bool, 0x11662ed8)                                \
   V(Object, get:runtimeType, ObjectRuntimeType, Type, 0x00e7c26b)              \
+  V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, Bool, 0x72aad7e2) \
   V(_StringBase, get:hashCode, String_getHashCode, Smi, 0x78c2eb88)            \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, Bool, 0x74c21fca)             \
   V(_StringBase, _substringMatches, StringBaseSubstringMatches, Bool,          \
@@ -488,6 +493,9 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x4765edda)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x7cca4533)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x7631bdbc)              \
+  V(Object, get:runtimeType, ObjectRuntimeType, 0x00e7c26b)
+
+// clang-format on
 
 // Forward declarations.
 class Function;
@@ -499,11 +507,11 @@ class MethodRecognizer : public AllStatic {
  public:
   enum Kind {
     kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, type, fp) \
-    k##enum_name,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, type, fp)       \
+  k##enum_name,
     RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
-    kNumRecognizedMethods
+        kNumRecognizedMethods
   };
 
   static Kind RecognizeKind(const Function& function);
@@ -512,21 +520,23 @@ class MethodRecognizer : public AllStatic {
   static intptr_t ResultCid(const Function& function);
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
-#if defined(DART_NO_SNAPSHOT)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static void InitializeState();
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 
-#if defined(DART_NO_SNAPSHOT)
-#define CHECK_FINGERPRINT2(f, p0, p1, fp) \
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
 
-#define CHECK_FINGERPRINT3(f, p0, p1, p2, fp) \
+#define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
+// clang-format off
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
@@ -544,8 +554,9 @@ class MethodRecognizer : public AllStatic {
   V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 0x2c093004)                 \
   V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 0x501be4f1)               \
   V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 0x738e124b)               \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 0x7a7dd718)           \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 0x7a7dd718)
 
+// clang-format on
 
 // Class that recognizes factories and returns corresponding result cid.
 class FactoryRecognizer : public AllStatic {
@@ -556,4 +567,4 @@ class FactoryRecognizer : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_METHOD_RECOGNIZER_H_
+#endif  // RUNTIME_VM_METHOD_RECOGNIZER_H_

@@ -38,8 +38,9 @@ static bool HasLoadFromPool(Instr instr) {
 }
 
 
-static bool GetLoadedObjectAt(
-    uword pc, const ObjectPool& object_pool, Object* obj) {
+static bool GetLoadedObjectAt(uword pc,
+                              const ObjectPool& object_pool,
+                              Object* obj) {
   Instr instr = Bytecode::At(pc);
   if (HasLoadFromPool(instr)) {
     uint16_t index = Bytecode::DecodeD(instr);
@@ -64,18 +65,6 @@ CallPattern::CallPattern(uword pc, const Code& code)
   ASSERT(Bytecode::IsCallOpcode(call_instr));
   ic_data_load_end_ = call_pc;
   target_code_pool_index_ = Bytecode::DecodeD(call_instr);
-}
-
-
-int CallPattern::DeoptCallPatternLengthInInstructions() {
-  UNIMPLEMENTED();
-  return 0;
-}
-
-
-int CallPattern::DeoptCallPatternLengthInBytes() {
-  UNIMPLEMENTED();
-  return 0;
 }
 
 
@@ -108,7 +97,7 @@ NativeFunction NativeCallPattern::native_function() const {
 
 void NativeCallPattern::set_native_function(NativeFunction func) const {
   object_pool_.SetRawValueAt(native_function_pool_index_,
-      reinterpret_cast<uword>(func));
+                             reinterpret_cast<uword>(func));
 }
 
 
@@ -152,9 +141,7 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj) {
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
   const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
   return GetLoadedObjectAt(pc, pool, obj);
@@ -181,9 +168,10 @@ void CallPattern::SetTargetCode(const Code& target_code) const {
 }
 
 
-void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
-  const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc)) ?
-      Bytecode::DecodeArgc(Bytecode::At(pc)) : 0;
+void CallPattern::InsertDeoptCallAt(uword pc) {
+  const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc))
+                           ? Bytecode::DecodeArgc(Bytecode::At(pc))
+                           : 0;
   *reinterpret_cast<Instr*>(pc) = Bytecode::Encode(Bytecode::kDeopt, argc, 0);
 }
 
@@ -202,8 +190,7 @@ RawObject* SwitchableCallPattern::data() const {
 
 
 RawCode* SwitchableCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_pool_index_));
+  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
 
 

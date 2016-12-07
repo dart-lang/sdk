@@ -1577,11 +1577,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
       NodeList<TypeName> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
-        _resolver.errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-            node,
-            [invokeType, parameters.length, arguments?.length ?? 0]);
-
+        if (_resolver.strongMode) {
+          _resolver.errorReporter.reportErrorForNode(
+              StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+              node,
+              [invokeType, parameters.length, arguments?.length ?? 0]);
+        } else {
+          _resolver.errorReporter.reportErrorForNode(
+              HintCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+              node,
+              [invokeType, parameters.length, arguments?.length ?? 0]);
+        }
         // Wrong number of type arguments. Ignore them.
         arguments = null;
       }

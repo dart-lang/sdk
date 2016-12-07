@@ -61,6 +61,8 @@ class Baz extends Foo<int> with Bar {
 
 void main(args) {}
 
+var closure = () { return; };
+
 const String some_top_level_constant = "abc";
 final String some_top_level_final = "abc";
 String some_top_level_var = "abc";

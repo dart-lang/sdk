@@ -1,7 +1,6 @@
-library input_element_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
 
 void check(InputElement element, String type, [bool supported = true]) {
   expect(element is InputElement, true);
@@ -13,8 +12,6 @@ void check(InputElement element, String type, [bool supported = true]) {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('supported_search', () {
     test('supported', () {
       expect(SearchInputElement.supported, true);

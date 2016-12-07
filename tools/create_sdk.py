@@ -47,12 +47,14 @@
 # ......_internal/
 #.........spec.sum
 #.........strong.sum
+#.........dev_compiler/
 # ......analysis_server/
 # ......analyzer/
 # ......async/
 # ......collection/
 # ......convert/
 # ......core/
+# ......front_end/
 # ......html/
 # ......internal/
 # ......io/
@@ -144,7 +146,7 @@ def CopySnapshots(snapshots, sdk_root):
              join(sdk_root, 'bin', 'snapshots', snapshot))
 
 def CopyAnalyzerSources(home, lib_dir):
-  for library in ['analyzer', 'analysis_server']:
+  for library in ['analyzer', 'analysis_server', 'front_end']:
     copytree(join(home, 'pkg', library), join(lib_dir, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore', 'packages'))
@@ -169,6 +171,11 @@ def CopyAnalysisSummaries(snapshots, lib):
   copyfile(join(snapshots, 'strong.sum'),
            join(lib, '_internal', 'strong.sum'))
 
+def CopyDevCompilerSdk(home, lib):
+  copyfile(join(home, 'pkg', 'dev_compiler', 'lib', 'sdk', 'ddc_sdk.sum'),
+           join(lib, '_internal', 'ddc_sdk.sum'))
+  copytree(join(home, 'pkg', 'dev_compiler', 'lib', 'js'),
+           join(lib, 'dev_compiler'))
 
 def Main():
   # Pull in all of the gypi files which will be munged into the sdk.
@@ -304,6 +311,7 @@ def Main():
   CopyDartdocResources(HOME, SDK_tmp)
   CopyAnalyzerSources(HOME, LIB)
   CopyAnalysisSummaries(SNAPSHOT, LIB)
+  CopyDevCompilerSdk(HOME, LIB)
 
   # Write the 'version' file
   version = utils.GetVersion()

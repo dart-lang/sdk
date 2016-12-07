@@ -51,6 +51,10 @@ then
 fi
 
 PKG_FILE="${ROOT_DIR}/pkg/analysis_server/.packages"
+if [[ !(-e $PKG_FILE) ]];
+then
+  PKG_FILE="${ROOT_DIR}/.packages"
+fi
 
 DART="${BUILD_DIR}/dart-sdk/bin/dart"
 

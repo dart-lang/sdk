@@ -12,7 +12,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 bool get isWindows => path.Style.platform == path.Style.windows;
 

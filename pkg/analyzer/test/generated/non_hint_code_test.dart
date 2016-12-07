@@ -6,19 +6,37 @@ library analyzer.test.generated.non_hint_code_test;
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NonHintCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonHintCodeTest);
+  });
 }
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
+  void test_() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+abstract class A {
+  void test();
+}
+class B extends A {
+  void test() {
+    super.test;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_afterTryCatch() {
     Source source = addSource('''
 main() {
@@ -392,7 +410,7 @@ f() {}''',
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''
-    ], ErrorCode.EMPTY_LIST);
+    ], const <ErrorCode>[]);
   }
 
   void test_issue20904BuggyTypePromotionAtIfJoin_1() {

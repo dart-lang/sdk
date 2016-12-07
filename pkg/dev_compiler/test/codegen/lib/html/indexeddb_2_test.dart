@@ -69,7 +69,7 @@ main() {
   obj4['a'] = 100;
   obj4['b'] = 's';
 
-  var cyclic_list = [1, 2, 3];
+  var cyclic_list = <Object>[1, 2, 3];
   cyclic_list[1] = cyclic_list;
 
   go(name, data) => test(name,

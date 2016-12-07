@@ -6,6 +6,7 @@
 
 namespace dart {
 
+// clang-format off
 const uint8_t CaseMapping::stage1_[261] = {
   0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 6, 6, 6,
   6, 6, 6, 6, 6, 6, 6, 6, 6, 8, 9, 10, 6, 11, 6, 6, 12, 6, 6, 6,
@@ -679,5 +680,6 @@ const int32_t CaseMapping::stage2_exception_[22][2] = {
   { 0, -10783 },  // U+2C6F
   { 0, -35332 },  // U+A77D
 };
+// clang-format on
 
 }  // namespace dart

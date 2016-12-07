@@ -32,7 +32,8 @@ import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
     show Namer, JavaScriptBackend, JavaScriptConstantCompiler, StringBackedName;
 import '../../universe/selector.dart' show Selector;
-import '../../universe/universe.dart' show CodegenUniverse, SelectorConstraints;
+import '../../universe/world_builder.dart'
+    show CodegenWorldBuilder, SelectorConstraints;
 import '../js_emitter.dart'
     show
         ClassStubGenerator,
@@ -79,7 +80,7 @@ class ProgramBuilder {
 
   JavaScriptBackend get backend => _compiler.backend;
   BackendHelpers get helpers => backend.helpers;
-  CodegenUniverse get universe => _compiler.codegenWorld;
+  CodegenWorldBuilder get universe => _compiler.codegenWorld;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -168,8 +169,8 @@ class ProgramBuilder {
 
     List<Holder> holders = _registry.holders.toList(growable: false);
 
-    bool needsNativeSupport = _compiler.enqueuer.codegen.nativeEnqueuer
-        .hasInstantiatedNativeClasses;
+    bool needsNativeSupport =
+        _compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses;
 
     assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 
@@ -674,7 +675,7 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
-    return _compiler.enabledFunctionApply &&
+    return _compiler.hasFunctionApplySupport &&
         _compiler.closedWorld.getMightBePassedToApply(method);
   }
 

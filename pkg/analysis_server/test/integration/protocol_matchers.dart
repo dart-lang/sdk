@@ -11,7 +11,7 @@
  */
 library test.integration.protocol.matchers;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 

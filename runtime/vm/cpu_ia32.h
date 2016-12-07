@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CPU_IA32_H_
-#define VM_CPU_IA32_H_
+#ifndef RUNTIME_VM_CPU_IA32_H_
+#define RUNTIME_VM_CPU_IA32_H_
 
 #include "vm/allocation.h"
 #include "vm/flags.h"
@@ -42,26 +42,14 @@ class HostCPUFeatures : public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static bool sse2_supported() {
-    return HostCPUFeatures::sse2_supported();
-  }
-  static bool sse4_1_supported() {
-    return HostCPUFeatures::sse4_1_supported();
-  }
-  static bool double_truncate_round_supported() {
-    return sse4_1_supported();
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static bool sse2_supported() { return HostCPUFeatures::sse2_supported(); }
+  static bool sse4_1_supported() { return HostCPUFeatures::sse4_1_supported(); }
+  static bool double_truncate_round_supported() { return sse4_1_supported(); }
 };
 
 }  // namespace dart
 
-#endif  // VM_CPU_IA32_H_
+#endif  // RUNTIME_VM_CPU_IA32_H_

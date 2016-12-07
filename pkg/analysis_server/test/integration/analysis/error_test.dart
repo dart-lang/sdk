@@ -5,15 +5,15 @@
 library test.integration.analysis.error;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisErrorIntegrationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisErrorIntegrationTest);
+  });
 }
 
 @reflectiveTest
@@ -63,11 +63,11 @@ abstract class C extends B {
     expect(
         allErrorMessages,
         contains(
-            "The class 'C' cannot be used as a mixin because it extends a class other than Object"));
+            "The class 'C' can't be used as a mixin because it extends a class other than Object."));
     expect(
         allErrorMessages,
         contains(
-            "The class 'C' cannot be used as a mixin because it references 'super'"));
+            "The class 'C' can't be used as a mixin because it references 'super'."));
   }
 
   test_super_mixins_enabled() async {

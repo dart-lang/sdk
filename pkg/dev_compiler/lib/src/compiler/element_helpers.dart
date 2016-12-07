@@ -51,7 +51,7 @@ class Tuple2<T0, T1> {
 ///
 DartObject findAnnotation(Element element, bool test(DartObjectImpl value)) {
   for (var metadata in element.metadata) {
-    var value = metadata.constantValue;
+    var value = metadata.computeConstantValue();
     if (value != null && test(value)) return value;
   }
   return null;

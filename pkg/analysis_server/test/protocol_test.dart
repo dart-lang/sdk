@@ -9,17 +9,16 @@ import 'dart:convert';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NotificationTest);
-  defineReflectiveTests(RequestTest);
-  defineReflectiveTests(RequestErrorTest);
-  defineReflectiveTests(ResponseTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NotificationTest);
+    defineReflectiveTests(RequestTest);
+    defineReflectiveTests(RequestErrorTest);
+    defineReflectiveTests(ResponseTest);
+  });
 }
 
 Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());

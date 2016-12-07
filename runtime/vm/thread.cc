@@ -56,8 +56,7 @@ Thread::~Thread() {
 #define REUSABLE_HANDLE_SCOPE_INIT(object)
 #endif  // defined(DEBUG)
 
-#define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
-  object##_handle_(NULL),
+#define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(NULL),
 
 
 Thread::Thread(Isolate* isolate)
@@ -94,30 +93,30 @@ Thread::Thread(Isolate* isolate)
       type_range_cache_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
+      active_exception_(Object::null()),
+      active_stacktrace_(Object::null()),
+      resume_pc_(0),
       sticky_error_(Error::null()),
       compiler_stats_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
-      safepoint_state_(0),
+          REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
       execution_state_(kThreadInNative),
       next_(NULL) {
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   dart_stream_ = Timeline::GetDartStream();
   ASSERT(dart_stream_ != NULL);
-)
+#endif
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
-CACHED_CONSTANTS_LIST(DEFAULT_INIT)
+  CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-#define DEFAULT_INIT(name)                                                     \
-  name##_entry_point_ = 0;
-RUNTIME_ENTRY_LIST(DEFAULT_INIT)
+#define DEFAULT_INIT(name) name##_entry_point_ = 0;
+  RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-#define DEFAULT_INIT(returntype, name, ...)                                    \
-  name##_entry_point_ = 0;
-LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
+#define DEFAULT_INIT(returntype, name, ...) name##_entry_point_ = 0;
+  LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
   // We cannot initialize the VM constants here for the vm isolate thread
@@ -138,73 +137,67 @@ LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 static const struct ALIGN16 {
   uint64_t a;
   uint64_t b;
-} double_negate_constant =
-    {0x8000000000000000LL, 0x8000000000000000LL};
+} double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
 
 static const struct ALIGN16 {
   uint64_t a;
   uint64_t b;
-} double_abs_constant =
-    {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
+} double_abs_constant = {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
 
 static const struct ALIGN16 {
   uint32_t a;
   uint32_t b;
   uint32_t c;
   uint32_t d;
-} float_not_constant =
-    { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+} float_not_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
 
 static const struct ALIGN16 {
   uint32_t a;
   uint32_t b;
   uint32_t c;
   uint32_t d;
-} float_negate_constant =
-    { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+} float_negate_constant = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
 
 static const struct ALIGN16 {
   uint32_t a;
   uint32_t b;
   uint32_t c;
   uint32_t d;
-} float_absolute_constant =
-    { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+} float_absolute_constant = {0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
 
 static const struct ALIGN16 {
   uint32_t a;
   uint32_t b;
   uint32_t c;
   uint32_t d;
-} float_zerow_constant =
-    { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
+} float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
 
 void Thread::InitVMConstants() {
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());
-CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
+  CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
 #undef ASSERT_VM_HEAP
 
 #define INIT_VALUE(type_name, member_name, init_expr, default_init_value)      \
   ASSERT(member_name == default_init_value);                                   \
   member_name = (init_expr);
-CACHED_CONSTANTS_LIST(INIT_VALUE)
+  CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
 #define INIT_VALUE(name)                                                       \
   ASSERT(name##_entry_point_ == 0);                                            \
   name##_entry_point_ = k##name##RuntimeEntry.GetEntryPoint();
-RUNTIME_ENTRY_LIST(INIT_VALUE)
+  RUNTIME_ENTRY_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
 #define INIT_VALUE(returntype, name, ...)                                      \
   ASSERT(name##_entry_point_ == 0);                                            \
   name##_entry_point_ = k##name##RuntimeEntry.GetEntryPoint();
-LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
+  LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
-  // Setup the thread specific reusable handles.
+// Setup the thread specific reusable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
   this->object##_handle_ = this->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
@@ -222,6 +215,17 @@ RawGrowableObjectArray* Thread::pending_functions() {
 
 void Thread::clear_pending_functions() {
   pending_functions_ = GrowableObjectArray::null();
+}
+
+
+void Thread::set_active_exception(const Object& value) {
+  ASSERT(!value.IsNull());
+  active_exception_ = value.raw();
+}
+
+
+void Thread::set_active_stacktrace(const Object& value) {
+  active_stacktrace_ = value.raw();
 }
 
 
@@ -280,8 +284,8 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
                                   bool bypass_safepoint) {
   ASSERT(kind != kMutatorTask);
   const bool kIsNotMutatorThread = false;
-  Thread* thread = isolate->ScheduleThread(kIsNotMutatorThread,
-                                           bypass_safepoint);
+  Thread* thread =
+      isolate->ScheduleThread(kIsNotMutatorThread, bypass_safepoint);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
     // TODO(koda): Use StoreBufferAcquire once we properly flush
@@ -326,14 +330,14 @@ void Thread::PrepareForGC() {
 
 
 void Thread::SetStackLimitFromStackBase(uword stack_base) {
-  // Set stack limit.
+// Set stack limit.
 #if !defined(TARGET_ARCH_DBC)
 #if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
   Simulator* sim = Simulator::Current();  // May allocate a simulator.
   ASSERT(isolate()->simulator() == sim);  // Isolate's simulator is current one.
   stack_base = sim->StackTop();
-  // The overflow area is accounted for by the simulator.
+// The overflow area is accounted for by the simulator.
 #endif
   SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
 #else
@@ -370,7 +374,7 @@ uword Thread::GetCurrentStackPointer() {
 #else
   uword (*func)() = NULL;
 #endif
-  // But for performance (and to support simulators), we normally use a local.
+// But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
   uword current_sp = func();
@@ -506,8 +510,10 @@ RawError* Thread::HandleInterrupts() {
       // False result from HandleOOBMessages signals that the isolate should
       // be terminating.
       if (FLAG_trace_isolates) {
-        OS::Print("[!] Terminating isolate due to OOB message:\n"
-                  "\tisolate:    %s\n", isolate()->name());
+        OS::Print(
+            "[!] Terminating isolate due to OOB message:\n"
+            "\tisolate:    %s\n",
+            isolate()->name());
       }
       Thread* thread = Thread::Current();
       const Error& error = Error::Handle(thread->sticky_error());
@@ -578,18 +584,16 @@ bool Thread::CanCollectGarbage() const {
 
 
 bool Thread::IsExecutingDartCode() const {
-  return (top_exit_frame_info() == 0) &&
-         (vm_tag() == VMTag::kDartTagId);
+  return (top_exit_frame_info() == 0) && (vm_tag() == VMTag::kDartTagId);
 }
 
 
 bool Thread::HasExitedDartCode() const {
-  return (top_exit_frame_info() != 0) &&
-         (vm_tag() != VMTag::kDartTagId);
+  return (top_exit_frame_info() != 0) && (vm_tag() != VMTag::kDartTagId);
 }
 
 
-template<class C>
+template <class C>
 C* Thread::AllocateReusableHandle() {
   C* handle = reinterpret_cast<C*>(reusable_handles_.AllocateScopedHandle());
   C::initializeHandle(handle, C::null());
@@ -598,8 +602,7 @@ C* Thread::AllocateReusableHandle() {
 
 
 void Thread::ClearReusableHandles() {
-#define CLEAR_REUSABLE_HANDLE(object)                                          \
-  *object##_handle_ = object::null();
+#define CLEAR_REUSABLE_HANDLE(object) *object##_handle_ = object::null();
   REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE)
 #undef CLEAR_REUSABLE_HANDLE
 }
@@ -616,10 +619,10 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  visitor->VisitPointer(
-      reinterpret_cast<RawObject**>(&pending_functions_));
-  visitor->VisitPointer(
-      reinterpret_cast<RawObject**>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
@@ -629,8 +632,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 
   // Iterate over all the stack frames and visit objects on the stack.
-  StackFrameIterator frames_iterator(top_exit_frame_info(),
-                                     validate_frames);
+  StackFrameIterator frames_iterator(top_exit_frame_info(), validate_frames);
   StackFrame* frame = frames_iterator.NextFrame();
   while (frame != NULL) {
     frame->VisitObjectPointers(visitor);
@@ -642,7 +644,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
 bool Thread::CanLoadFromThread(const Object& object) {
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
   if (object.raw() == expr) return true;
-CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
+  CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
 #undef CHECK_OBJECT
   return false;
 }
@@ -652,7 +654,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
   ASSERT((expr)->IsVMHeapObject());                                            \
   if (object.raw() == expr) return Thread::member_name##offset();
-CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+  CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
   UNREACHABLE();
   return -1;
@@ -671,7 +673,7 @@ bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
     *object = expr;                                                            \
     return true;                                                               \
   }
-CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+  CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
   return false;
 }
@@ -679,17 +681,17 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 
 intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 #define COMPUTE_OFFSET(name)                                                   \
-  if (runtime_entry->function() == k##name##RuntimeEntry.function())         { \
+  if (runtime_entry->function() == k##name##RuntimeEntry.function()) {         \
     return Thread::name##_entry_point_offset();                                \
   }
-RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
+  RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
 
 #define COMPUTE_OFFSET(returntype, name, ...)                                  \
-  if (runtime_entry->function() == k##name##RuntimeEntry.function())         { \
+  if (runtime_entry->function() == k##name##RuntimeEntry.function()) {         \
     return Thread::name##_entry_point_offset();                                \
   }
-LEAF_RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
+  LEAF_RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
 
   UNREACHABLE();
@@ -735,8 +737,7 @@ void Thread::UnwindScopes(uword stack_marker) {
   // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
   // under the same top_exit_frame_info.
   ApiLocalScope* scope = api_top_scope_;
-  while (scope != NULL &&
-         scope->stack_marker() != 0 &&
+  while (scope != NULL && scope->stack_marker() != 0 &&
          scope->stack_marker() == stack_marker) {
     api_top_scope_ = scope->previous();
     delete scope;

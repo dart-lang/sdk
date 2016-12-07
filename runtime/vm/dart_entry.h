@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_DART_ENTRY_H_
-#define VM_DART_ENTRY_H_
+#ifndef RUNTIME_VM_DART_ENTRY_H_
+#define RUNTIME_VM_DART_ENTRY_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -37,6 +37,7 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t PositionalCount() const;
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;
+  intptr_t PositionAt(intptr_t i) const;
   bool MatchesNameAt(intptr_t i, const String& other) const;
 
   // Generated code support.
@@ -50,8 +51,7 @@ class ArgumentsDescriptor : public ValueObject {
   // Allocate and return an arguments descriptor.  The first
   // (count - optional_arguments_names.Length()) arguments are
   // positional and the remaining ones are named optional arguments.
-  static RawArray* New(intptr_t count,
-                       const Array& optional_arguments_names);
+  static RawArray* New(intptr_t count, const Array& optional_arguments_names);
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional.
@@ -60,9 +60,7 @@ class ArgumentsDescriptor : public ValueObject {
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void InitOnce();
 
-  enum {
-    kCachedDescriptorCount = 32
-  };
+  enum { kCachedDescriptorCount = 32 };
 
  private:
   // Absolute indexes into the array.
@@ -88,15 +86,11 @@ class ArgumentsDescriptor : public ValueObject {
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
-    return kFirstNamedEntryIndex +
-           (index * kNamedEntrySize) +
-           kNameOffset;
+    return kFirstNamedEntryIndex + (index * kNamedEntrySize) + kNameOffset;
   }
 
   static intptr_t position_index(intptr_t index) {
-    return kFirstNamedEntryIndex +
-           (index * kNamedEntrySize) +
-           kPositionOffset;
+    return kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
   }
 
   const Array& array_;
@@ -194,4 +188,4 @@ class DartLibraryCalls : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_DART_ENTRY_H_
+#endif  // RUNTIME_VM_DART_ENTRY_H_

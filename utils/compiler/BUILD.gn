@@ -1,0 +1,76 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("//build/compiled_action.gni")
+import("../create_timestamp.gni")
+import("../application_snapshot.gni")
+
+create_timestamp_file("dart2js_files_stamp") {
+  path = rebase_path("../../pkg/compiler/lib")
+  output = "$root_gen_dir/dart2js_files.stamp"
+}
+
+create_timestamp_file("runtime_lib_files_stamp") {
+  path = rebase_path("../../runtime/lib")
+  output = "$target_gen_dir/runtime_lib_files.stamp"
+}
+
+create_timestamp_file("dartdoc_files_stamp") {
+  path = rebase_path("../../sdk/lib/_internal/dartdoc")
+  output = "$target_gen_dir/dartdoc_files.stamp"
+}
+
+compiled_action("dart2js_create_snapshot_entries") {
+  tool = "../../runtime/bin:dart"
+  deps = [
+    ":dart2js_files_stamp",
+    ":dartdoc_files_stamp",
+    ":runtime_lib_files_stamp",
+  ]
+
+  dot_packages = rebase_path("../../.packages")
+  create_snapshot_entry = rebase_path("create_snapshot_entry.dart")
+  output_dir = rebase_path(root_gen_dir)
+
+  inputs = [
+    "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
+    create_snapshot_entry,
+    "$root_gen_dir/dart2js_files.stamp",
+    "../../tools/VERSION",
+  ]
+
+  utils_output = "$root_gen_dir/utils_wrapper.dart"
+  dart2js_output = "$root_gen_dir/dart2js.dart"
+  outputs = [
+    utils_output,
+    dart2js_output,
+  ]
+
+  args = [
+    "--packages=$dot_packages",
+    create_snapshot_entry,
+    "--output_dir=$output_dir",
+    "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
+  ]
+}
+
+application_snapshot("dart2js") {
+  deps = [
+    ":dart2js_create_snapshot_entries",
+  ]
+  main_dart = "$root_gen_dir/dart2js.dart"
+  training_args = [
+    "--library-root=" + rebase_path("../../sdk"),
+    "--categories=all",
+    rebase_path("$root_gen_dir/dart2js.dart"),
+  ]
+}
+
+application_snapshot("utils_wrapper") {
+  deps = [
+    ":dart2js_create_snapshot_entries",
+  ]
+  main_dart = "$root_gen_dir/utils_wrapper.dart"
+  training_args = [ "--help" ]
+}

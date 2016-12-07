@@ -4,15 +4,13 @@
 
 library analyzer.test.src.source.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'source_resource_test.dart' as source_resource_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('context tests', () {
+  defineReflectiveSuite(() {
     source_resource_test.main();
-  });
+  }, name: 'source');
 }

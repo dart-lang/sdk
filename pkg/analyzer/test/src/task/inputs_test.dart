@@ -7,26 +7,26 @@ library analyzer.test.src.task.inputs_test;
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ConstantTaskInputBuilderTest);
-  defineReflectiveTests(ConstantTaskInputTest);
-  defineReflectiveTests(ListTaskInputImplTest);
-  defineReflectiveTests(ListToListTaskInputTest);
-  defineReflectiveTests(ListToListTaskInputBuilderTest);
-  defineReflectiveTests(ListToMapTaskInputBuilderTest);
-  defineReflectiveTests(ListToMapTaskInputTest);
-  defineReflectiveTests(ObjectToListTaskInputBuilderTest);
-  defineReflectiveTests(ObjectToListTaskInputTest);
-  defineReflectiveTests(SimpleTaskInputTest);
-  defineReflectiveTests(SimpleTaskInputBuilderTest);
-  defineReflectiveTests(TopLevelTaskInputBuilderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConstantTaskInputBuilderTest);
+    defineReflectiveTests(ConstantTaskInputTest);
+    defineReflectiveTests(ListTaskInputImplTest);
+    defineReflectiveTests(ListToListTaskInputTest);
+    defineReflectiveTests(ListToListTaskInputBuilderTest);
+    defineReflectiveTests(ListToMapTaskInputBuilderTest);
+    defineReflectiveTests(ListToMapTaskInputTest);
+    defineReflectiveTests(ObjectToListTaskInputBuilderTest);
+    defineReflectiveTests(ObjectToListTaskInputTest);
+    defineReflectiveTests(SimpleTaskInputTest);
+    defineReflectiveTests(SimpleTaskInputBuilderTest);
+    defineReflectiveTests(TopLevelTaskInputBuilderTest);
+  });
 }
 
 @reflectiveTest

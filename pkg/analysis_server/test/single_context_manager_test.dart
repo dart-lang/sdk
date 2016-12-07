@@ -14,20 +14,19 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'context_manager_test.dart' show TestContextManagerCallbacks;
-import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SingleContextManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SingleContextManagerTest);
+  });
 }
 
 @reflectiveTest
@@ -44,18 +43,18 @@ class SingleContextManagerTest {
       '**/*.${AnalysisEngine.SUFFIX_HTML}',
     ];
     return patterns
-        .map((pattern) => new Glob(posix.separator, pattern))
+        .map((pattern) => new Glob(path.posix.separator, pattern))
         .toList();
   }
 
   String newFile(List<String> pathComponents, [String content = '']) {
-    String filePath = posix.joinAll(pathComponents);
+    String filePath = path.posix.joinAll(pathComponents);
     resourceProvider.newFile(filePath, content);
     return filePath;
   }
 
   String newFolder(List<String> pathComponents) {
-    String folderPath = posix.joinAll(pathComponents);
+    String folderPath = path.posix.joinAll(pathComponents);
     resourceProvider.newFolder(folderPath);
     return folderPath;
   }
@@ -64,8 +63,7 @@ class SingleContextManagerTest {
     packageResolver = new TestUriResolver();
 
     _processRequiredPlugins();
-    DartSdkManager sdkManager =
-        new DartSdkManager('', false, (_) => new MockSdk());
+    DartSdkManager sdkManager = new DartSdkManager('', false);
     manager = new SingleContextManager(resourceProvider, sdkManager,
         (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);
@@ -74,12 +72,14 @@ class SingleContextManagerTest {
 
   void test_isIgnored_false() {
     String project = '/project';
+    resourceProvider.newFolder(project);
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     expect(manager.isIgnored('$project/file.dart'), isFalse);
   }
 
   void test_isIgnored_true_inDotFolder() {
     String project = '/project';
+    resourceProvider.newFolder(project);
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     expect(manager.isIgnored('$project/foo/.bar/file.dart'), isTrue);
   }
@@ -87,6 +87,7 @@ class SingleContextManagerTest {
   void test_isIgnored_true_inExcludedPath() {
     String project = '/project';
     String excludedPath = '/project/excluded';
+    resourceProvider.newFolder(project);
     manager.setRoots(
         <String>[project], <String>[excludedPath], <String, String>{});
     expect(manager.isIgnored('$excludedPath/file.dart'), isTrue);
@@ -95,13 +96,16 @@ class SingleContextManagerTest {
   void test_isIgnored_true_notInRoot() {
     String root1 = '/context/root1';
     String root2 = '/context/root2';
+    resourceProvider.newFolder(root1);
+    resourceProvider.newFolder(root2);
     manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
-    expect(manager.isIgnored('$context/root3/file.dart'), isTrue);
+    expect(manager.isIgnored('/context/root3/file.dart'), isTrue);
   }
 
   void test_isInAnalysisRoot_false_inExcludedPath() {
     String project = '/project';
     String excludedPath = '/project/excluded';
+    resourceProvider.newFolder(project);
     manager.setRoots(
         <String>[project], <String>[excludedPath], <String, String>{});
     expect(manager.isInAnalysisRoot('$excludedPath/file.dart'), isFalse);
@@ -110,12 +114,15 @@ class SingleContextManagerTest {
   void test_isInAnalysisRoot_false_notInRoot() {
     String root1 = '/context/root1';
     String root2 = '/context/root2';
+    resourceProvider.newFolder(root1);
+    resourceProvider.newFolder(root2);
     manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
-    expect(manager.isInAnalysisRoot('$context/root3/file.dart'), isFalse);
+    expect(manager.isInAnalysisRoot('/context/root3/file.dart'), isFalse);
   }
 
   void test_isInAnalysisRoot_true() {
     String project = '/project';
+    resourceProvider.newFolder(project);
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     expect(manager.isInAnalysisRoot('$project/file.dart'), isTrue);
   }
@@ -371,6 +378,7 @@ class SingleContextManagerTest {
 
   test_watch_addFile() async {
     String project = '/project';
+    resourceProvider.newFolder(project);
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     // empty folder initially
     callbacks.assertContextFiles(project, []);
@@ -388,6 +396,8 @@ class SingleContextManagerTest {
     String root2 = '$contextPath/root2';
     String file1 = '$root1/file1.dart';
     String file2 = '$root2/file2.dart';
+    resourceProvider.newFolder(root1);
+    resourceProvider.newFolder(root2);
     manager.setRoots(<String>[root1], <String>[], <String, String>{});
     manager.setRoots(<String>[root2], <String>[], <String, String>{});
     manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
@@ -459,8 +469,9 @@ class SingleContextManagerTest {
     callbacks.assertContextFiles(project, [fileA]);
   }
 
-  test_watch_addFileInSubfolder() async {
+  test_watch_addFileInSubFolder() async {
     String project = '/project';
+    resourceProvider.newFolder(project);
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     // empty folder initially
     callbacks.assertContextFiles(project, []);

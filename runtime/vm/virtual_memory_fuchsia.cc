@@ -7,7 +7,6 @@
 
 #include "vm/virtual_memory.h"
 
-#include <magenta/process.h>
 #include <magenta/syscalls.h>
 #include <unistd.h>  // NOLINT
 
@@ -26,20 +25,19 @@ void VirtualMemory::InitOnce() {
 
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  mx_handle_t vmo = mx_vmo_create(size);
-  if (vmo <= 0) {
+  mx_handle_t vmo = MX_HANDLE_INVALID;
+  mx_status_t status = mx_vmo_create(size, 0u, &vmo);
+  if (status != NO_ERROR) {
     return NULL;
   }
 
   // TODO(zra): map with PERM_NONE, when that works, and relax with
   // Commit and Protect when they are implemented.
   // Issue MG-161.
-  const int prot = MX_VM_FLAG_PERM_READ |
-                   MX_VM_FLAG_PERM_WRITE |
-                   MX_VM_FLAG_PERM_EXECUTE;
+  const int prot =
+      MX_VM_FLAG_PERM_READ | MX_VM_FLAG_PERM_WRITE | MX_VM_FLAG_PERM_EXECUTE;
   uintptr_t addr;
-  mx_status_t status = mx_process_map_vm(
-      mx_process_self(), vmo, 0, size, &addr, prot);
+  status = mx_process_map_vm(mx_process_self(), vmo, 0, size, &addr, prot);
   if (status != NO_ERROR) {
     mx_handle_close(vmo);
     FATAL("VirtualMemory::ReserveInternal FAILED");
@@ -56,8 +54,8 @@ VirtualMemory::~VirtualMemory() {
     // TODO(zra): Use reserved_size_.
     // Issue MG-162.
     uintptr_t addr = reinterpret_cast<uintptr_t>(address());
-    mx_status_t status = mx_process_unmap_vm(
-        mx_process_self(), addr, 0 /*reserved_size_*/);
+    mx_status_t status =
+        mx_process_unmap_vm(mx_process_self(), addr, 0 /*reserved_size_*/);
     if (status != NO_ERROR) {
       FATAL("VirtualMemory::~VirtualMemory: unamp FAILED");
     }

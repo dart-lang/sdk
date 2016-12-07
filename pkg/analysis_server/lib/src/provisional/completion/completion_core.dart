@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 
@@ -71,6 +72,12 @@ abstract class CompletionRequest {
   ResourceProvider get resourceProvider;
 
   /**
+   * The analysis result for the file in which the completion is being
+   * requested.
+   */
+  AnalysisResult get result;
+
+  /**
    * Return the search engine.
    */
   SearchEngine get searchEngine;
@@ -79,6 +86,12 @@ abstract class CompletionRequest {
    * Return the source in which the completion is being requested.
    */
   Source get source;
+
+  /**
+   * Return the content of the [source] in which the completion is being
+   * requested, or `null` if the content could not be accessed.
+   */
+  String get sourceContents;
 
   /**
    * Throw [AbortCompletion] if the completion request has been aborted.

@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Callable extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(dynamic/core::int* {int} x) → dynamic/core::String* {string} {
+    return "string";
+  }
+}
+class CallableGetter extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get call() → dynamic/self::Callable! {other}
+    return new self::Callable::•();
+}
+static method main() → dynamic/Null {
+  dynamic/core::Function* {other} closure = (dynamic/core::int* {int} x) → dynamic/core::int* {int} => x;
+  dynamic/core::int* {int} int1 = closure.call(1);
+  dynamic/core::int* {int} int2 = closure.call(1);
+  dynamic/core::int* {int} int3 = closure.call.call(1);
+  dynamic/core::int* {int} int4 = closure.call.call.call(1);
+  dynamic/self::Callable! {other} callable = new self::Callable::•();
+  dynamic/core::String* {string} string1 = callable.call(1);
+  dynamic/core::String* {string} string2 = callable.call(1);
+  dynamic/core::String* {string} string3 = callable.call.call(1);
+  dynamic/core::String* {string} string4 = callable.call.call.call(1);
+  dynamic/self::CallableGetter! {other} callableGetter = new self::CallableGetter::•();
+  dynamic/core::String* {string} string5 = callableGetter.call(1);
+  dynamic/core::String* {string} string6 = callableGetter.call(1);
+  dynamic/core::String* {string} string7 = callableGetter.call.call(1);
+  dynamic/core::String* {string} string8 = callableGetter.call.call.call(1);
+  dynamic/Nothing nothing1 = closure.call();
+  dynamic/Nothing nothing2 = closure.call();
+  dynamic/Nothing nothing3 = closure.call.call();
+  dynamic/Nothing nothing4 = closure.call.call.call();
+  dynamic/Nothing nothing5 = callable.call();
+  dynamic/Nothing nothing6 = callable.call();
+  dynamic/Nothing nothing7 = callable.call.call();
+  dynamic/Nothing nothing8 = callable.call.call.call();
+  dynamic/Nothing nothing9 = callableGetter.call();
+  dynamic/Nothing nothing10 = callableGetter.call();
+  dynamic/Nothing nothing11 = callableGetter.call.call();
+  dynamic/Nothing nothing12 = callableGetter.call.call.call();
+}

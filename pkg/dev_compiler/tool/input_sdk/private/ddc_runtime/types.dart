@@ -56,7 +56,9 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 // TODO(jmesserly): we shouldn't implement Type here. It should be moved down
 // to AbstractFunctionType.
 class TypeRep implements Type {
-  TypeRep() { _initialize; }
+  TypeRep() {
+    _initialize;
+  }
   String get name => this.toString();
 }
 
@@ -64,12 +66,64 @@ class Dynamic extends TypeRep {
   toString() => 'dynamic';
 }
 
+class LazyJSType implements Type {
+  final _jsTypeCallback;
+  final _dartName;
+
+  LazyJSType(this._jsTypeCallback, this._dartName);
+
+  get _rawJSType => JS('', '#()', _jsTypeCallback);
+
+  toString() => _jsTypeCallback != null ? typeName(_rawJSType) : _dartName;
+}
+
+void _warn(arg) {
+  JS('void', 'console.warn(#)', arg);
+}
+
+_isInstanceOfLazyJSType(o, LazyJSType t) {
+  if (t._jsTypeCallback != null) {
+    if (t._rawJSType == null) {
+      var expected = t._dartName;
+      var actual = typeName(getReifiedType(o));
+      _warn('Cannot find native JavaScript type ($expected) '
+          'to type check $actual');
+      return true;
+    }
+    return JS('bool', 'dart.is(#, #)', o, t._rawJSType);
+  }
+  if (o == null) return false;
+  // Anonymous case: match any JS type.
+  return _isJSObject(o);
+}
+
+_asInstanceOfLazyJSType(o, LazyJSType t) {
+  if (t._jsTypeCallback != null) {
+    if (t._rawJSType == null) {
+      var expected = t._dartName;
+      var actual = typeName(getReifiedType(o));
+      _warn('Cannot find native JavaScript type ($expected) '
+          'to type check $actual');
+      return o;
+    }
+    return JS('bool', 'dart.as(#, #)', o, t._rawJSType);
+  }
+  // Anonymous case: allow any JS type.
+  if (o == null) return null;
+  if (!_isJSObject(o)) _throwCastError(o, t, true);
+  return o;
+}
+
+bool _isJSObject(o) => JS('bool', '!dart.getReifiedType(o)[dart._runtimeType]');
+
 @JSExportName('dynamic')
 final _dynamic = new Dynamic();
 
 final _initialize = _initialize2();
 
-_initialize2() => JS('', '''(() => {
+_initialize2() => JS(
+    '',
+    '''(() => {
   // JavaScript API forwards to runtime library.
   $TypeRep.prototype.is = function is_T(object) {
     return dart.is(object, this);
@@ -91,6 +145,16 @@ _initialize2() => JS('', '''(() => {
   $Dynamic.prototype._check = function check_Dynamic(object) {
     return object;
   };
+
+  $LazyJSType.prototype.is = function is_T(object) {
+    return $_isInstanceOfLazyJSType(object, this);
+  };
+  $LazyJSType.prototype.as = function as_T(object) {
+    return $_asInstanceOfLazyJSType(object, this);
+  };
+  $LazyJSType.prototype._check = function check_T(object) {
+    return $_asInstanceOfLazyJSType(object, this);
+  };
 })()''');
 
 class Void extends TypeRep {
@@ -103,6 +167,7 @@ final _void = new Void();
 class Bottom extends TypeRep {
   toString() => 'bottom';
 }
+
 final bottom = new Bottom();
 
 class JSObject extends TypeRep {
@@ -117,7 +182,9 @@ class WrappedType extends Type {
   toString() => typeName(_wrappedType);
 }
 
-final AbstractFunctionType = JS('', '''
+final AbstractFunctionType = JS(
+    '',
+    '''
   class AbstractFunctionType extends $TypeRep {
     constructor() {
       super();
@@ -172,6 +239,7 @@ final AbstractFunctionType = JS('', '''
 /// reached via this path (if any) is the canonical representative
 /// for this packet.
 final _fnTypeNamedArgMap = JS('', 'new Map()');
+
 /// Memo table for positional argument groups. A positional argument
 /// packet [type1, ..., typen] (required or optional) corresponds to
 /// the path n, type1, ...., typen.  The element reached via
@@ -179,11 +247,13 @@ final _fnTypeNamedArgMap = JS('', 'new Map()');
 /// packet. Note that required and optional parameters packages
 /// may have the same canonical representation.
 final _fnTypeArrayArgMap = JS('', 'new Map()');
+
 /// Memo table for function types. The index path consists of the
 /// path length - 1, the returnType, the canonical positional argument
 /// packet, and if present, the canonical optional or named argument
 /// packet.  A level of indirection could be avoided here if desired.
 final _fnTypeTypeMap = JS('', 'new Map()');
+
 /// Memo table for small function types with no optional or named
 /// arguments and less than a fixed n (currently 3) number of
 /// required arguments.  Indexing into this table by the number
@@ -192,7 +262,9 @@ final _fnTypeTypeMap = JS('', 'new Map()');
 /// index path (if present) is the canonical function type.
 final _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
 
-final FunctionType = JS('', '''
+final FunctionType = JS(
+    '',
+    '''
   class FunctionType extends $AbstractFunctionType {
     static _memoizeArray(map, arr, create) {
       let len = arr.length;
@@ -346,8 +418,9 @@ final FunctionType = JS('', '''
   }
 ''');
 
-
-final Typedef = JS('', '''
+final Typedef = JS(
+    '',
+    '''
   class Typedef extends $AbstractFunctionType {
     constructor(name, closure) {
       super();
@@ -391,7 +464,9 @@ final Typedef = JS('', '''
 
 final _typeFormalCount = JS('', 'Symbol("_typeFormalCount")');
 
-_functionType(definite, returnType, args, extra) => JS('', '''(() => {
+_functionType(definite, returnType, args, extra) => JS(
+    '',
+    '''(() => {
   // TODO(jmesserly): this is a bit of a retrofit, to easily fit
   // generic functions into all of the existing ways we generate function
   // signatures. Given `(T) => [T, [T]]` we'll return a function that does
@@ -427,7 +502,9 @@ definiteFunctionType(returnType, args, extra) =>
 
 typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
 
-typeName(type) => JS('', '''(() => {
+typeName(type) => JS(
+    '',
+    '''(() => {
   if ($type === void 0) return "undefined type";
   if ($type === null) return "null type";
   // Non-instance types
@@ -480,9 +557,16 @@ getImplicitFunctionType(type) {
   return getMethodTypeFromType(type, 'call');
 }
 
-bool isFunctionType(type) =>
-    JS('bool', '# instanceof # || # === #',
-        type, AbstractFunctionType, type, Function);
+bool isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
+    AbstractFunctionType, type, Function);
+
+isLazyJSSubtype(LazyJSType t1, LazyJSType t2, covariant) {
+  if (t1 == t2) return true;
+
+  // All anonymous JS types are subtypes of each other.
+  if (t1._jsTypeCallback == null || t2._jsTypeCallback == null) return true;
+  return isClassSubType(t1._rawJSType, t2._rawJSType, covariant);
+}
 
 /// Returns true if [ft1] <: [ft2].
 /// Returns false if [ft1] </: [ft2] in both spec and strong mode
@@ -491,7 +575,9 @@ bool isFunctionType(type) =>
 /// If [covariant] is true, then we are checking subtyping in a covariant
 /// position, and hence the direction of the check for function types
 /// corresponds to the direction of the check according to the Dart spec.
-isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
+isFunctionSubtype(ft1, ft2, covariant) => JS(
+    '',
+    '''(() => {
   if ($ft2 === $Function) {
     return true;
   }
@@ -571,7 +657,9 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
 /// TODO(leafp): This duplicates code in operations.dart.
 /// I haven't found a way to factor it out that makes the
 /// code generator happy though.
-_subtypeMemo(f) => JS('', '''(() => {
+_subtypeMemo(f) => JS(
+    '',
+    '''(() => {
   let memo = new Map();
   return (t1, t2) => {
     let map = memo.get(t1);
@@ -592,14 +680,16 @@ _subtypeMemo(f) => JS('', '''(() => {
 /// Returns false if [t1] </: [t2] in both spec and strong mode
 /// Returns undefined if [t1] </: [t2] in strong mode, but spec
 ///  mode may differ
-final isSubtype =
-    JS('', '$_subtypeMemo((t1, t2) => (t1 === t2) || $_isSubtype(t1, t2, true))');
+final isSubtype = JS(
+    '', '$_subtypeMemo((t1, t2) => (t1 === t2) || $_isSubtype(t1, t2, true))');
 
 _isBottom(type) => JS('bool', '# == #', type, bottom);
 
 _isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamic);
 
-_isSubtype(t1, t2, covariant) => JS('', '''(() => {
+_isSubtype(t1, t2, covariant) => JS(
+    '',
+    '''(() => {
   if ($t1 === $t2) return true;
 
   // Trivially true.
@@ -633,10 +723,17 @@ _isSubtype(t1, t2, covariant) => JS('', '''(() => {
   if ($isFunctionType($t1) && $isFunctionType($t2)) {
     return $isFunctionSubtype($t1, $t2, $covariant);
   }
+  
+  if ($t1 instanceof $LazyJSType && $t2 instanceof $LazyJSType) {
+    return $isLazyJSSubtype($t1, $t2, $covariant);
+  }
+  
   return false;
 })()''');
 
-isClassSubType(t1, t2, covariant) => JS('', '''(() => {
+isClassSubType(t1, t2, covariant) => JS(
+    '',
+    '''(() => {
   // We support Dart's covariant generics with the caveat that we do not
   // substitute bottom for dynamic in subtyping rules.
   // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:
@@ -717,7 +814,9 @@ isClassSubType(t1, t2, covariant) => JS('', '''(() => {
 // TODO(jmesserly): this isn't currently used, but it could be if we want
 // `obj is NonGroundType<T,S>` to be rejected at runtime instead of compile
 // time.
-isGroundType(type) => JS('', '''(() => {
+isGroundType(type) => JS(
+    '',
+    '''(() => {
   // TODO(vsm): Cache this if we start using it at runtime.
 
   if ($type instanceof $AbstractFunctionType) {

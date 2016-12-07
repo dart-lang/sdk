@@ -1,11 +1,8 @@
-library AudioElementTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test('constructorTest1', () {
       var audio = new AudioElement();
       expect(audio, isNotNull);
@@ -16,7 +13,7 @@ main() {
       var audio = new AudioElement('IntentionallyMissingFileURL');
       expect(audio, isNotNull);
       expect(audio is AudioElement, isTrue);
-      expect(audio.src, contains('IntentionallyMissingFileURL'));
+      expect(audio.src.contains('IntentionallyMissingFileURL'), isTrue);
     });
 
   test('canPlayTypeTest', () {

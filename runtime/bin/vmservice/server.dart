@@ -126,11 +126,19 @@ class Server {
   final bool _originCheckDisabled;
   HttpServer _server;
   bool get running => _server != null;
-  bool _displayMessages = false;
 
-  Server(this._service, this._ip, this._port, this._originCheckDisabled) {
-    _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
+  /// Returns the server address including the auth token.
+  Uri get serverAddress {
+    if (!running) {
+      return null;
+    }
+    var ip = _server.address.address;
+    var port = _server.port;
+    var path = useAuthToken ? "$serviceAuthToken/" : "/";
+    return new Uri(scheme: 'http', host: ip, port: port, path: path);
   }
+
+  Server(this._service, this._ip, this._port, this._originCheckDisabled);
 
   bool _isAllowedOrigin(String origin) {
     Uri uri;
@@ -143,6 +151,7 @@ class Server {
     // Explicitly add localhost and 127.0.0.1 on any port (necessary for
     // adb port forwarding).
     if ((uri.host == 'localhost') ||
+        (uri.host == '::1') ||
         (uri.host == '127.0.0.1')) {
       return true;
     }
@@ -179,6 +188,28 @@ class Server {
     return false;
   }
 
+  /// Checks the [requestUri] for the service auth token and returns the path.
+  /// If the service auth token check fails, returns null.
+  String _checkAuthTokenAndGetPath(Uri requestUri) {
+    if (!useAuthToken) {
+      return requestUri.path == '/' ? ROOT_REDIRECT_PATH : requestUri.path;
+    }
+    final List<String> requestPathSegments = requestUri.pathSegments;
+    if (requestPathSegments.length < 2) {
+      // Malformed.
+      return null;
+    }
+    // Check that we were given the auth token.
+    final String authToken = requestPathSegments[0];
+    if (authToken != serviceAuthToken) {
+      // Malformed.
+      return null;
+    }
+    // Construct the actual request path by chopping off the auth token.
+    return (requestPathSegments[1] == '') ?
+        ROOT_REDIRECT_PATH : '/${requestPathSegments.sublist(1).join('/')}';
+  }
+
   Future _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
@@ -190,15 +221,23 @@ class Server {
 
       List fsNameList;
       List fsPathList;
+      List fsPathBase64List;
       Object fsName;
       Object fsPath;
 
       try {
         // Extract the fs name and fs path from the request headers.
         fsNameList = request.headers['dev_fs_name'];
-        fsPathList = request.headers['dev_fs_path'];
         fsName = fsNameList[0];
-        fsPath = fsPathList[0];
+
+        fsPathList = request.headers['dev_fs_path'];
+        fsPathBase64List = request.headers['dev_fs_path_b64'];
+        // If the 'dev_fs_path_b64' header field was sent, use that instead.
+        if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+          fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
+        } else {
+          fsPath = fsPathList[0];
+        }
       } catch (e) { /* ignore */ }
 
       String result;
@@ -223,8 +262,12 @@ class Server {
       return;
     }
 
-    final String path =
-          request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
+    final String path = _checkAuthTokenAndGetPath(request.uri);
+    if (path == null) {
+      // Malformed.
+      request.response.close();
+      return;
+    }
 
     if (path == WEBSOCKET_PATH) {
       WebSocketTransformer.upgrade(request).then(
@@ -255,32 +298,34 @@ class Server {
     }
   }
 
-  Future startup() {
+  Future startup() async {
     if (_server != null) {
       // Already running.
-      return new Future.value(this);
+      return this;
     }
 
-    var address = new InternetAddress(_ip);
     // Startup HTTP server.
-    return HttpServer.bind(address, _port).then((s) {
-      _server = s;
-      _server.listen(_requestHandler, cancelOnError: true);
-      var ip = _server.address.address;
-      var port = _server.port;
-      if (_displayMessages) {
-        print('Observatory listening on http://$ip:$port');
+    try {
+      var addresses = await InternetAddress.lookup(_ip);
+      var address;
+      // Prefer IPv4 addresses.
+      for (var i = 0; i < addresses.length; i++) {
+        address = addresses[i];
+        if (address.type == InternetAddressType.IP_V4) break;
       }
+      _server = await HttpServer.bind(address, _port);
+      _server.listen(_requestHandler, cancelOnError: true);
+      print('Observatory listening on $serverAddress');
       // Server is up and running.
-      _notifyServerState(ip, _server.port);
-      onServerAddressChange('http://$ip:$port');
+      _notifyServerState(serverAddress.toString());
+      onServerAddressChange('$serverAddress');
       return this;
-    }).catchError((e, st) {
+    } catch (e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
-    });
+    }
   }
 
   Future cleanup(bool force) {
@@ -296,24 +341,18 @@ class Server {
       return new Future.value(this);
     }
 
-    // Force displaying of status messages if we are forcibly shutdown.
-    _displayMessages = _displayMessages || forced;
-
     // Shutdown HTTP server and subscription.
-    var ip = _server.address.address.toString();
-    var port = _server.port.toString();
+    Uri oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
-      if (_displayMessages) {
-        print('Observatory no longer listening on http://$ip:$port');
-      }
+      print('Observatory no longer listening on $oldServerAddress');
       _server = null;
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
       print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     });
@@ -321,5 +360,5 @@ class Server {
 
 }
 
-void _notifyServerState(String ip, int port)
+void _notifyServerState(String uri)
     native "VMServiceIO_NotifyServerState";

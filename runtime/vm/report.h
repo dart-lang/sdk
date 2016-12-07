@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_REPORT_H_
-#define VM_REPORT_H_
+#ifndef RUNTIME_VM_REPORT_H_
+#define RUNTIME_VM_REPORT_H_
 
 #include "vm/allocation.h"
 #include "vm/token_position.h"
@@ -36,23 +36,29 @@ class Report : AllStatic {
 
   // Concatenate and report an already formatted error and a new error message.
   static void LongJumpF(const Error& prev_error,
-                        const Script& script, TokenPosition token_pos,
-                        const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
+                        const Script& script,
+                        TokenPosition token_pos,
+                        const char* format,
+                        ...) PRINTF_ATTRIBUTE(4, 5);
   static void LongJumpV(const Error& prev_error,
-                        const Script& script, TokenPosition token_pos,
-                        const char* format, va_list args);
+                        const Script& script,
+                        TokenPosition token_pos,
+                        const char* format,
+                        va_list args);
 
   // Report a warning/jswarning/error/bailout message.
   static void MessageF(Kind kind,
                        const Script& script,
                        TokenPosition token_pos,
                        bool report_after_token,
-                       const char* format, ...) PRINTF_ATTRIBUTE(5, 6);
+                       const char* format,
+                       ...) PRINTF_ATTRIBUTE(5, 6);
   static void MessageV(Kind kind,
                        const Script& script,
                        TokenPosition token_pos,
                        bool report_after_token,
-                       const char* format, va_list args);
+                       const char* format,
+                       va_list args);
 
   // Prepend a source snippet to the message.
   // A null script means no source and a negative token_pos means no position.
@@ -68,5 +74,4 @@ class Report : AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_REPORT_H_
-
+#endif  // RUNTIME_VM_REPORT_H_

@@ -12,9 +12,7 @@ import 'dart:indexed_db' show IdbFactory, KeyRange;
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
-
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   final script = new ScriptElement();
@@ -114,7 +112,6 @@ bool hasOwnProperty(o, String name) {
 
 main() {
   _injectJs();
-  useHtmlIndividualConfiguration();
 
   group('js_util.jsify()', () {
     test('convert a List', () {
@@ -148,7 +145,7 @@ main() {
     });
 
     test('deep convert a complex object', () {
-      final object = {
+      dynamic object = {
         'a': [
           1,
           [2, 3]
@@ -175,8 +172,7 @@ main() {
     });
 
     test('throws if object is not a Map or Iterable', () {
-      expect(() => js_util.jsify('a'),
-          throwsA(new isInstanceOf<ArgumentError>()));
+      expect(() => js_util.jsify('a'), throwsArgumentError);
     });
   });
 
@@ -287,7 +283,7 @@ main() {
 
   group('callMethod', () {
     test('html object', () {
-      var canvas = new Element.tag('canvas');
+      var canvas = new CanvasElement();
       expect(
           identical(canvas.getContext('2d'),
               js_util.callMethod(canvas, 'getContext', ['2d'])),

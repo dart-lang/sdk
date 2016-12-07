@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_LOG_H_
-#define VM_LOG_H_
+#ifndef RUNTIME_VM_LOG_H_
+#define RUNTIME_VM_LOG_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -15,15 +15,12 @@ class LogBlock;
 class Thread;
 
 #if defined(_MSC_VER)
-#define THR_Print(format, ...) \
-    Log::Current()->Print(format, __VA_ARGS__)
+#define THR_Print(format, ...) Log::Current()->Print(format, __VA_ARGS__)
 #else
-#define THR_Print(format, ...) \
-    Log::Current()->Print(format, ##__VA_ARGS__)
+#define THR_Print(format, ...) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
-#define THR_VPrint(format, args) \
-    Log::Current()->VPrint(format, args)
+#define THR_VPrint(format, args) Log::Current()->VPrint(format, args)
 
 typedef void (*LogPrinter)(const char* str, ...);
 
@@ -98,4 +95,4 @@ class LogBlock : public StackResource {
 
 }  // namespace dart
 
-#endif  // VM_LOG_H_
+#endif  // RUNTIME_VM_LOG_H_

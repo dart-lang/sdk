@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SNAPSHOT_IDS_H_
-#define VM_SNAPSHOT_IDS_H_
+#ifndef RUNTIME_VM_SNAPSHOT_IDS_H_
+#define RUNTIME_VM_SNAPSHOT_IDS_H_
 
 #include "vm/raw_object.h"
 #include "vm/dart_entry.h"
@@ -53,10 +53,11 @@ enum {
   kEmptyExceptionHandlers,
   kCachedArgumentsDescriptor0,
   kCachedArgumentsDescriptorN = (kCachedArgumentsDescriptor0 +
-      ArgumentsDescriptor::kCachedDescriptorCount - 1),
+                                 ArgumentsDescriptor::kCachedDescriptorCount -
+                                 1),
   kCachedICDataArray0,
-  kCachedICDataArrayN = (kCachedICDataArray0 +
-      ICData::kCachedICDataArrayCount - 1),
+  kCachedICDataArrayN =
+      (kCachedICDataArray0 + ICData::kCachedICDataArrayCount - 1),
 
   kInstanceObjectId,
   kStaticImplicitClosureObjectId,
@@ -66,4 +67,4 @@ enum {
 
 }  // namespace dart
 
-#endif  // VM_SNAPSHOT_IDS_H_
+#endif  // RUNTIME_VM_SNAPSHOT_IDS_H_

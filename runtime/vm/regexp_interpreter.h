@@ -4,8 +4,8 @@
 
 // A simple interpreter for the Irregexp byte code.
 
-#ifndef VM_REGEXP_INTERPRETER_H_
-#define VM_REGEXP_INTERPRETER_H_
+#ifndef RUNTIME_VM_REGEXP_INTERPRETER_H_
+#define RUNTIME_VM_REGEXP_INTERPRETER_H_
 
 #include "vm/allocation.h"
 #include "vm/object.h"
@@ -15,11 +15,7 @@ namespace dart {
 
 class IrregexpInterpreter : public AllStatic {
  public:
-  enum IrregexpResult {
-    RE_FAILURE = 0,
-    RE_SUCCESS = 1,
-    RE_EXCEPTION = -1
-  };
+  enum IrregexpResult { RE_FAILURE = 0, RE_SUCCESS = 1, RE_EXCEPTION = -1 };
 
   static IrregexpResult Match(const TypedData& bytecode,
                               const String& subject,
@@ -30,4 +26,4 @@ class IrregexpInterpreter : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_REGEXP_INTERPRETER_H_
+#endif  // RUNTIME_VM_REGEXP_INTERPRETER_H_

@@ -4,23 +4,23 @@
 
 library analyzer.test.src.task.model_test;
 
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisTaskTest);
-  defineReflectiveTests(ResultDescriptorImplTest);
-  defineReflectiveTests(SimpleResultCachingPolicyTest);
-  defineReflectiveTests(TaskDescriptorImplTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisTaskTest);
+    defineReflectiveTests(ResultDescriptorImplTest);
+    defineReflectiveTests(SimpleResultCachingPolicyTest);
+    defineReflectiveTests(TaskDescriptorImplTest);
+  });
 }
 
 @reflectiveTest

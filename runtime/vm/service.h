@@ -2,16 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SERVICE_H_
-#define VM_SERVICE_H_
+#ifndef RUNTIME_VM_SERVICE_H_
+#define RUNTIME_VM_SERVICE_H_
 
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
+#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 
 namespace dart {
+
+#define SERVICE_PROTOCOL_MAJOR_VERSION 3
+#define SERVICE_PROTOCOL_MINOR_VERSION 5
 
 class Array;
 class EmbedderServiceHandler;
@@ -37,6 +41,7 @@ class ServiceIdZone {
  private:
 };
 
+#define ISOLATE_SERVICE_ID_FORMAT_STRING "isolates/%" Pd64 ""
 
 class RingServiceIdZone : public ServiceIdZone {
  public:
@@ -48,13 +53,9 @@ class RingServiceIdZone : public ServiceIdZone {
   // Returned string will be zone allocated.
   virtual char* GetServiceId(const Object& obj);
 
-  void set_policy(ObjectIdRing::IdPolicy policy) {
-    policy_ = policy;
-  }
+  void set_policy(ObjectIdRing::IdPolicy policy) { policy_ = policy; }
 
-  ObjectIdRing::IdPolicy policy() const {
-    return policy_;
-  }
+  ObjectIdRing::IdPolicy policy() const { return policy_; }
 
  private:
   ObjectIdRing* ring_;
@@ -96,10 +97,9 @@ class Service : public AllStatic {
       Dart_ServiceRequestCallback callback,
       void* user_data);
 
-  static void RegisterRootEmbedderCallback(
-      const char* name,
-      Dart_ServiceRequestCallback callback,
-      void* user_data);
+  static void RegisterRootEmbedderCallback(const char* name,
+                                           Dart_ServiceRequestCallback callback,
+                                           void* user_data);
 
   static void SetEmbedderStreamCallbacks(
       Dart_ServiceStreamListenCallback listen_callback,
@@ -109,7 +109,9 @@ class Service : public AllStatic {
       Dart_GetVMServiceAssetsArchive get_service_assets);
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
-  static void SendGraphEvent(Thread* thread, bool collect_garbage);
+  static void SendGraphEvent(Thread* thread,
+                             ObjectGraph::SnapshotRoots roots,
+                             bool collect_garbage);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
   static void SendEmbedderEvent(Isolate* isolate,
@@ -164,6 +166,8 @@ class Service : public AllStatic {
 
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
+  static void CheckForPause(Isolate* isolate, JSONStream* stream);
+
  private:
   static void InvokeMethod(Isolate* isolate,
                            const Array& message,
@@ -199,6 +203,8 @@ class Service : public AllStatic {
                         const char* kind,
                         JSONStream* event);
 
+  static void MaybePause(Isolate* isolate);
+
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
   static Dart_ServiceStreamListenCallback stream_listen_callback_;
@@ -214,4 +220,4 @@ class Service : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_SERVICE_H_
+#endif  // RUNTIME_VM_SERVICE_H_

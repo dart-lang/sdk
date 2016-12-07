@@ -8,8 +8,7 @@
 // This could be done by renaming the Dart constructor or by being able to check
 // that objects are Dart classes.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 class A {}
 
@@ -23,9 +22,11 @@ makeZ() native ;
 void setup() native """
 function A(){}
 makeZ = function(){return new A};
+self.nativeConstructor(A);
 """;
 
 main() {
+  nativeTesting();
   setup();
 
   var a = new A();

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-library CanvasTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
+
+import 'package:expect/minitest.dart';
 
 // We have aliased the legacy type CanvasPixelArray with the new type
 // Uint8ClampedArray by mapping the CanvasPixelArray type tag to
@@ -16,9 +15,6 @@ import 'dart:typed_data';
 var inscrutable;
 
 main() {
-
-  useHtmlIndividualConfiguration();
-
   inscrutable = (x) => x;
 
   int width = 100;
@@ -39,7 +35,7 @@ main() {
       expect(inscrutable(data) is List<int>, isTrue,
           reason: 'canvas array type');
 
-      expect(data, hasLength(40000));
+      expect(data.length, 40000);
       checkPixel(data, 0, [0, 0, 0, 0]);
       checkPixel(data, width * height - 1, [0, 0, 0, 0]);
 

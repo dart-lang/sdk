@@ -10,7 +10,7 @@
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
-#include <errno.h>  // NOLINT
+#include <errno.h>     // NOLINT
 #include <sys/stat.h>  // NOLINT
 
 #include "bin/dartutils.h"
@@ -50,20 +50,17 @@ const char* PathBuffer::AsScopedString() const {
 
 
 bool PathBuffer::Add(const char* name) {
-  const wchar_t* wide_name = StringUtilsWin::Utf8ToWide(name);
-  return AddW(wide_name);
+  Utf8ToWideScope wide_name(name);
+  return AddW(wide_name.wide());
 }
 
 
 bool PathBuffer::AddW(const wchar_t* name) {
   wchar_t* data = AsStringW();
-  int written = _snwprintf(data + length_,
-                           MAX_LONG_PATH - length_,
-                           L"%s",
-                           name);
+  int written =
+      _snwprintf(data + length_, MAX_LONG_PATH - length_, L"%s", name);
   data[MAX_LONG_PATH] = L'\0';
-  if ((written <= MAX_LONG_PATH - length_) &&
-      (written >= 0) &&
+  if ((written <= MAX_LONG_PATH - length_) && (written >= 0) &&
       (static_cast<size_t>(written) == wcsnlen(name, MAX_LONG_PATH + 1))) {
     length_ += written;
     return true;
@@ -84,13 +81,8 @@ void PathBuffer::Reset(intptr_t new_length) {
 // points to an invalid target.
 static bool IsBrokenLink(const wchar_t* link_name) {
   HANDLE handle = CreateFileW(
-      link_name,
-      0,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-      NULL,
-      OPEN_EXISTING,
-      FILE_FLAG_BACKUP_SEMANTICS,
-      NULL);
+      link_name, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
   if (handle == INVALID_HANDLE_VALUE) {
     return true;
   } else {
@@ -124,14 +116,10 @@ static ListType HandleFindFile(DirectoryListing* listing,
     if (!listing->follow_links()) {
       return kListLink;
     }
-    HANDLE handle = CreateFileW(
-        listing->path_buffer().AsStringW(),
-        0,
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        NULL,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS,
-        NULL);
+    HANDLE handle =
+        CreateFileW(listing->path_buffer().AsStringW(), 0,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                    NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
       // Report as (broken) link.
       return kListLink;
@@ -199,8 +187,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
 
     path_length_ = listing->path_buffer().length() - 1;
 
-    HANDLE find_handle = FindFirstFileW(listing->path_buffer().AsStringW(),
-                                        &find_file_data);
+    HANDLE find_handle =
+        FindFirstFileW(listing->path_buffer().AsStringW(), &find_file_data);
 
     if (find_handle == INVALID_HANDLE_VALUE) {
       done_ = true;
@@ -285,8 +273,7 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
 
 
 static bool DeleteDir(wchar_t* dir_name, PathBuffer* path) {
-  if ((wcscmp(dir_name, L".") == 0) ||
-      (wcscmp(dir_name, L"..") == 0)) {
+  if ((wcscmp(dir_name, L".") == 0) || (wcscmp(dir_name, L"..") == 0)) {
     return true;
   }
   return path->AddW(dir_name) && DeleteRecursively(path);
@@ -377,8 +364,8 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(dir_name);
-  return ExistsHelper(system_name);
+  Utf8ToWideScope system_name(dir_name);
+  return ExistsHelper(system_name.wide());
 }
 
 
@@ -389,8 +376,8 @@ char* Directory::CurrentNoScope() {
   }
   wchar_t* current = new wchar_t[length + 1];
   GetCurrentDirectoryW(length + 1, current);
-  int utf8_len = WideCharToMultiByte(
-      CP_UTF8, 0, current, -1, NULL, 0, NULL, NULL);
+  int utf8_len =
+      WideCharToMultiByte(CP_UTF8, 0, current, -1, NULL, 0, NULL, NULL);
   char* result = reinterpret_cast<char*>(malloc(utf8_len));
   WideCharToMultiByte(CP_UTF8, 0, current, -1, result, utf8_len, NULL, NULL);
   delete[] current;
@@ -412,19 +399,18 @@ const char* Directory::Current() {
 
 
 bool Directory::SetCurrent(const char* path) {
-  const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path);
-  bool result = SetCurrentDirectoryW(system_path) != 0;
+  Utf8ToWideScope system_path(path);
+  bool result = SetCurrentDirectoryW(system_path.wide()) != 0;
   return result;
 }
 
 
 bool Directory::Create(const char* dir_name) {
-  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(dir_name);
-  int create_status = CreateDirectoryW(system_name, NULL);
+  Utf8ToWideScope system_name(dir_name);
+  int create_status = CreateDirectoryW(system_name.wide(), NULL);
   // If the directory already existed, treat it as a success.
-  if ((create_status == 0) &&
-      (GetLastError() == ERROR_ALREADY_EXISTS) &&
-      (ExistsHelper(system_name) == EXISTS)) {
+  if ((create_status == 0) && (GetLastError() == ERROR_ALREADY_EXISTS) &&
+      (ExistsHelper(system_name.wide()) == EXISTS)) {
     return true;
   }
   return (create_status != 0);
@@ -446,8 +432,8 @@ const char* Directory::CreateTemp(const char* prefix) {
   // descriptor inherited from its parent directory.
   // The return value is Dart_ScopeAllocated.
   PathBuffer path;
-  const wchar_t* system_prefix = StringUtilsWin::Utf8ToWide(prefix);
-  if (!path.AddW(system_prefix)) {
+  Utf8ToWideScope system_prefix(prefix);
+  if (!path.AddW(system_prefix.wide())) {
     return NULL;
   }
 
@@ -481,16 +467,16 @@ const char* Directory::CreateTemp(const char* prefix) {
 
 bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
-  const wchar_t* system_dir_name = StringUtilsWin::Utf8ToWide(dir_name);
+  Utf8ToWideScope system_dir_name(dir_name);
   if (!recursive) {
     if (File::GetType(dir_name, true) == File::kIsDirectory) {
-      result = (RemoveDirectoryW(system_dir_name) != 0);
+      result = (RemoveDirectoryW(system_dir_name.wide()) != 0);
     } else {
       SetLastError(ERROR_FILE_NOT_FOUND);
     }
   } else {
     PathBuffer path;
-    if (path.AddW(system_dir_name)) {
+    if (path.AddW(system_dir_name.wide())) {
       result = DeleteRecursively(&path);
     }
   }
@@ -499,13 +485,13 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
 
 
 bool Directory::Rename(const char* path, const char* new_path) {
-  const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path);
-  const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
-  ExistsResult exists = ExistsHelper(system_path);
+  Utf8ToWideScope system_path(path);
+  Utf8ToWideScope system_new_path(new_path);
+  ExistsResult exists = ExistsHelper(system_path.wide());
   if (exists != EXISTS) {
     return false;
   }
-  ExistsResult new_exists = ExistsHelper(system_new_path);
+  ExistsResult new_exists = ExistsHelper(system_new_path.wide());
   // MoveFile does not allow replacing exising directories. Therefore,
   // if the new_path is currently a directory we need to delete it
   // first.
@@ -517,7 +503,7 @@ bool Directory::Rename(const char* path, const char* new_path) {
   }
   DWORD flags = MOVEFILE_WRITE_THROUGH;
   int move_status =
-      MoveFileExW(system_path, system_new_path, flags);
+      MoveFileExW(system_path.wide(), system_new_path.wide(), flags);
   return (move_status != 0);
 }
 

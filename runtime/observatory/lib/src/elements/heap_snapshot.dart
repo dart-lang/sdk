@@ -17,6 +17,7 @@ import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -24,7 +25,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/utils.dart';
 
-enum HeapSnapshotTreeMode { dominatorTree, groupByClass }
+enum HeapSnapshotTreeMode { dominatorTree, mergedDominatorTree, groupByClass }
 
 class HeapSnapshotElement extends HtmlElement implements Renderable {
   static const tag =
@@ -51,6 +52,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   M.HeapSnapshot _snapshot;
   Stream<M.HeapSnapshotLoadingProgressEvent> _progressStream;
   M.HeapSnapshotLoadingProgress _progress;
+  M.HeapSnapshotRoots _roots = M.HeapSnapshotRoots.user;
   HeapSnapshotTreeMode _mode = HeapSnapshotTreeMode.dominatorTree;
 
   M.IsolateRef get isolate => _isolate;
@@ -138,7 +140,9 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
 
   Future _refresh() async {
     _progress = null;
-    _progressStream = _snapshots.get(isolate);
+    _progressStream = _snapshots.get(isolate,
+                                     roots: _roots,
+                                     gc: true);
     _r.dirty();
     _progressStream.listen((e) {
       _progress = e.progress;
@@ -233,6 +237,16 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
                 ..children = [
                   new DivElement()
                     ..classes = ['memberName']
+                    ..text = 'Roots ',
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..children = _createRootsSelect()
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'Analysis ',
                   new DivElement()
                     ..classes = ['memberName']
@@ -266,6 +280,23 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           _tree
         ]);
         break;
+      case HeapSnapshotTreeMode.mergedDominatorTree:
+        _tree = new VirtualTreeElement(
+            _createMergedDominator, _updateMergedDominator,
+            _getChildrenMergedDominator,
+            items: _getChildrenMergedDominator(_snapshot.mergedDominatorTree),
+            queue: _r.queue);
+        _tree.expand(_snapshot.mergedDominatorTree);
+        final text = 'A heap dominator tree, where siblings with the same class'
+                     ' have been merged into a single node.';
+        report.addAll([
+          new DivElement()
+            ..classes = ['content-centered-big', 'explanation']
+            ..text = text
+            ..title = text,
+          _tree
+        ]);
+        break;
       case HeapSnapshotTreeMode.groupByClass:
         final items = _snapshot.classReferences.toList();
         items.sort((a, b) => b.shallowSize - a.shallowSize);
@@ -282,6 +313,24 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   }
 
   static Element _createDominator(toggle) {
+    return new DivElement()
+      ..classes = ['tree-item']
+      ..children = [
+        new SpanElement()
+          ..classes = ['size']
+          ..title = 'retained size',
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()
+          ..classes = ['expander']
+          ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
+        new SpanElement()
+          ..classes = ['percentage']
+          ..title = 'percentage of heap being retained',
+        new SpanElement()..classes = ['name']
+      ];
+  }
+
+  static Element _createMergedDominator(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
       ..children = [
@@ -327,6 +376,13 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         .where((child) => child.retainedSize >= kMinRetainedSize)
         .take(kMaxChildren);
   }
+  static _getChildrenMergedDominator(M.HeapSnapshotMergedDominatorNode node) {
+    final list = node.children.toList();
+    list.sort((a, b) => b.retainedSize - a.retainedSize);
+    return list
+        .where((child) => child.retainedSize >= kMinRetainedSize)
+        .take(kMaxChildren);
+  }
 
   static _getChildrenGroup(item) {
     if (item is M.HeapSnapshotClassReferences) {
@@ -354,11 +410,54 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ..classes = ['name']
       ..text = 'Loading...';
     element.children[4] = wrapper;
-    node.object.then((object) {
+    if (node.isStack) {
       wrapper
         ..text = ''
-        ..children = [anyRef(_isolate, object, _instances, queue: _r.queue)];
-    });
+        ..children = [
+          new AnchorElement(href: Uris.debugger(isolate))
+            ..text = 'stack frames'
+        ];
+    } else {
+      node.object.then((object) {
+        wrapper
+          ..text = ''
+          ..children = [anyRef(_isolate, object, _instances, queue: _r.queue)];
+      });
+    }
+  }
+
+  void _updateMergedDominator(
+      HtmlElement element, M.HeapSnapshotMergedDominatorNode node, int depth) {
+    element.children[0].text = Utils.formatSize(node.retainedSize);
+    _updateLines(element.children[1].children, depth);
+    if (_getChildrenMergedDominator(node).isNotEmpty) {
+      element.children[2].text = _tree.isExpanded(node) ? '▼' : '►';
+    } else {
+      element.children[2].text = '';
+    }
+    element.children[3].text =
+        Utils.formatPercentNormalized(node.retainedSize * 1.0 / _snapshot.size);
+    final wrapper = new SpanElement()
+      ..classes = ['name']
+      ..text = 'Loading...';
+    element.children[4] = wrapper;
+    if (node.isStack) {
+      wrapper
+        ..text = ''
+        ..children = [
+          new AnchorElement(href: Uris.debugger(isolate))
+            ..text = 'stack frames'
+        ];
+    } else {
+      node.klass.then((klass) {
+        wrapper
+          ..text = ''
+          ..children = [
+            new SpanElement()..text = '${node.instanceCount} instances of ',
+            anyRef(_isolate, klass, _instances, queue: _r.queue)
+          ];
+      });
+    }
   }
 
   void _updateGroup(HtmlElement element, item, int depth) {
@@ -420,14 +519,44 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     }
   }
 
+  static String rootsToString(M.HeapSnapshotRoots roots) {
+    switch (roots) {
+      case M.HeapSnapshotRoots.user:
+        return 'User';
+      case M.HeapSnapshotRoots.vm:
+        return 'VM';
+    }
+    throw new Exception('Unknown HeapSnapshotRoots');
+  }
+
+  List<Element> _createRootsSelect() {
+    var s;
+    return [
+      s = new SelectElement()
+        ..classes = ['roots-select']
+        ..value = rootsToString(_roots)
+        ..children = M.HeapSnapshotRoots.values.map((roots) {
+          return new OptionElement(
+              value: rootsToString(roots),
+              selected: _roots == roots)..text = rootsToString(roots);
+        }).toList(growable: false)
+        ..onChange.listen((_) {
+          _roots = M.HeapSnapshotRoots.values[s.selectedIndex];
+          _refresh();
+        })
+    ];
+  }
+
   static String modeToString(HeapSnapshotTreeMode mode) {
     switch (mode) {
       case HeapSnapshotTreeMode.dominatorTree:
         return 'Dominator tree';
+      case HeapSnapshotTreeMode.mergedDominatorTree:
+        return 'Dominator tree (merged siblings by class)';
       case HeapSnapshotTreeMode.groupByClass:
         return 'Group by class';
     }
-    throw new Exception('Unknown ProfileTreeMode');
+    throw new Exception('Unknown HeapSnapshotTreeMode');
   }
 
   List<Element> _createModeSelect() {

@@ -6,7 +6,7 @@
 
 library kernel.debug;
 
-import 'package:kernel/kernel.dart';
+import 'package:kernel/ast.dart';
 import 'package:kernel/visitor.dart';
 
 import '../util/util.dart' show Indentation, Tagging;
@@ -43,9 +43,14 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
   }
 
   @override
+  void visitStaticGet(StaticGet node) {
+    openAndCloseNode(node, '${node.runtimeType}', {'target': '${node.target}'});
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     openNode(node, '${node.runtimeType}', {
-      'name': '${node.name}',
+      'name': '${node.name ?? '--unnamed--'}',
       'isFinal': '${node.isFinal}',
       'isConst': '${node.isConst}'
     });

@@ -139,7 +139,7 @@ typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime != jsshell && $runtime != safarimobilesim && $runtime != safari && $runtime != ff &&  $runtime != ie10 && ($runtime != chrome || $system != linux) ]
+[ $compiler == dart2js && ($runtime == d8 || $runtime == drt || $runtime == ie11) ]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
@@ -189,6 +189,7 @@ async/stream_transformation_broadcast_test: RuntimeError # Timer interface not s
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_subscription_cancel_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_take_test: Fail # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
 [ $compiler == dart2js && $checked ]
@@ -258,6 +259,7 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeo
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
+mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 
 [ $compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
@@ -267,6 +269,7 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
 async/multiple_timer_test: Fail, Pass # Issue 15487
@@ -278,6 +281,9 @@ mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
+
+[ $compiler == none && $runtime == dartium && $system == macos ]
+convert/streamed_conversion_utf8_decode_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
@@ -391,11 +397,6 @@ mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
-[ $arch == simdbc || $arch == simdbc64 ]
-# TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
-# version.
-mirrors/accessor_cache_overflow_test: Skip
-
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
@@ -412,7 +413,7 @@ mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
-mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
 mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
+async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.

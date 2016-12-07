@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SAFEPOINT_H_
-#define VM_SAFEPOINT_H_
+#ifndef RUNTIME_VM_SAFEPOINT_H_
+#define RUNTIME_VM_SAFEPOINT_H_
 
 #include "vm/globals.h"
 #include "vm/lockers.h"
@@ -320,8 +320,7 @@ class TransitionNativeToVM : public TransitionSafepointState {
 class TransitionToGenerated : public TransitionSafepointState {
  public:
   explicit TransitionToGenerated(Thread* T)
-      : TransitionSafepointState(T),
-        execution_state_(T->execution_state()) {
+      : TransitionSafepointState(T), execution_state_(T->execution_state()) {
     ASSERT(T == Thread::Current());
     ASSERT((execution_state_ == Thread::kThreadInVM) ||
            (execution_state_ == Thread::kThreadInNative));
@@ -357,8 +356,8 @@ class TransitionToGenerated : public TransitionSafepointState {
 // transition set up.
 class TransitionToVM : public TransitionSafepointState {
  public:
-  explicit TransitionToVM(Thread* T) : TransitionSafepointState(T),
-                                       execution_state_(T->execution_state()) {
+  explicit TransitionToVM(Thread* T)
+      : TransitionSafepointState(T), execution_state_(T->execution_state()) {
     ASSERT(T == Thread::Current());
     ASSERT((execution_state_ == Thread::kThreadInVM) ||
            (execution_state_ == Thread::kThreadInNative));
@@ -384,4 +383,4 @@ class TransitionToVM : public TransitionSafepointState {
 
 }  // namespace dart
 
-#endif  // VM_SAFEPOINT_H_
+#endif  // RUNTIME_VM_SAFEPOINT_H_

@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
-
+import 'native_testing.dart';
 @Native("A")
 class A {}
 
-makeA() native ;
+A makeA() native ;
 
 void setup() native """
 function A() {};
 A.prototype.foo = function() { return  42; }
 makeA = function() { return new A; }
+self.nativeConstructor(A);
 """;
 
 class B {
@@ -31,23 +30,24 @@ class C {
 }
 
 typedContext() {
-  var things = [makeA(), new B()];
-  A a = things[0];
+  A a = makeA();
   Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);
 }
 
 untypedContext() {
-  var things = [makeA(), new B()];
-  var a = things[0];
+  var a = confuse(makeA());
   Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);
 }
 
 main() {
+  nativeTesting();
   setup();
+  confuse(new B()).foo();
+  confuse(new C()).foo(1);
   typedContext();
   untypedContext();
 }

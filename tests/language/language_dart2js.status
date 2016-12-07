@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+deferred_not_loaded_check_test: Fail # Issue 27577
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
@@ -35,6 +36,8 @@ accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
+
+duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
@@ -76,22 +79,6 @@ async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
-
-# Experimental feature: Syntactic support for generic methods.
-generic_functions_test: CompileTimeError # DartOptions not passed to compiler.
-generic_local_functions_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_test: CompileTimeError # DartOptions not passed to compiler.
-generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_new_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_function_type_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_type_expression_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_generic_function_parameter_test: CompiletimeError # DartOptions not passed to compiler.
-
-# Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: CompiletimeError # DartOptions not passed to compiler.
-initializing_formal_capture_test: CompiletimeError # DartOptions not passed to compiler.
-initializing_formal_final_test: CompiletimeError # DartOptions not passed to compiler.
-initializing_formal_type_test: CompiletimeError # DartOptions not passed to compiler.
 
 library_env_test/has_no_io_support: Pass # Issue 27398
 library_env_test/has_io_support: RuntimeError # Issue 27398
@@ -263,7 +250,10 @@ round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) && $system == windows ]
+string_literals_test: RuntimeError # Issue 27533
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
 call_through_getter_test: Fail, OK
 
@@ -281,8 +271,6 @@ generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 method_override5_test: RuntimeError # Issue 12809
-super_no_such_method4_test/01: RuntimeError # Issue 25716
-super_no_such_method5_test/01: RuntimeError # Issue 25716
 
 [ $compiler == dart2js && $runtime != drt && $runtime != dartium ]
 issue23244_test: RuntimeError # 23244
@@ -366,3 +354,6 @@ regress_26855_test/1: Crash # Issue 26867
 regress_26855_test/2: Crash # Issue 26867
 regress_26855_test/3: Crash # Issue 26867
 regress_26855_test/4: Crash # Issue 26867
+
+[ $compiler != dart2analyzer]
+switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status

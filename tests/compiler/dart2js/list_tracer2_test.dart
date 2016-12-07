@@ -24,7 +24,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkType(String name, type) {
           var element = findElement(compiler, name);
@@ -32,6 +32,6 @@ void main() {
           Expect.equals(type, simplify(mask.elementType, compiler), name);
         }
 
-        checkType('myList', compiler.commonMasks.uint31Type);
+        checkType('myList', compiler.closedWorld.commonMasks.uint31Type);
       }));
 }

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CHA_H_
-#define VM_CHA_H_
+#ifndef RUNTIME_VM_CHA_H_
+#define RUNTIME_VM_CHA_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -13,7 +13,8 @@ namespace dart {
 
 class Class;
 class Function;
-template <typename T> class ZoneGrowableArray;
+template <typename T>
+class ZoneGrowableArray;
 class String;
 
 class CHA : public StackResource {
@@ -38,7 +39,7 @@ class CHA : public StackResource {
   // Collect the concrete subclasses of 'cls' into 'class_ids'. Return true if
   // the result is valid (may be invalid because we don't track the subclasses
   // of classes allocated in the VM isolate or class Object).
-  bool ConcreteSubclasses(const Class& cls, GrowableArray<intptr_t> *class_ids);
+  bool ConcreteSubclasses(const Class& cls, GrowableArray<intptr_t>* class_ids);
 
   // Return true if the class is implemented by some other class.
   static bool IsImplemented(const Class& cls);
@@ -85,4 +86,4 @@ class CHA : public StackResource {
 
 }  // namespace dart
 
-#endif  // VM_CHA_H_
+#endif  // RUNTIME_VM_CHA_H_

@@ -65,9 +65,10 @@ void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
         allowMultiple: allowMultiple,
         defaultsTo: 'amd')
     ..addFlag('single-out-file',
-        help: 'emit output so that libraries can be concatenated together into '
-            'a single file. Only compatible with legacy and amd module formats.',
-        defaultsTo: false);
+        help: 'emit modules that can be concatenated into one file.\n'
+            'Only compatible with legacy and amd module formats.',
+        defaultsTo: false,
+        hide: true);
 }
 
 /// Transforms an ES6 [module] into a given module [format].
@@ -78,17 +79,21 @@ void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the top-level module items, especially [ImportDeclaration]s and
 /// [ExportDeclaration]s.
-Program transformModuleFormat(
-    ModuleFormat format, bool singleOutFile, Program module) {
+Program transformModuleFormat(ModuleFormat format, Program module,
+    {bool singleOutFile: false}) {
   switch (format) {
     case ModuleFormat.legacy:
-      return new LegacyModuleBuilder(singleOutFile).build(module);
+      // Legacy format always generates output compatible with single file mode.
+      return new LegacyModuleBuilder().build(module);
     case ModuleFormat.common:
-      return new CommonJSModuleBuilder(singleOutFile).build(module);
+      assert(!singleOutFile);
+      return new CommonJSModuleBuilder().build(module);
     case ModuleFormat.amd:
-      return new AmdModuleBuilder(singleOutFile).build(module);
+      // TODO(jmesserly): encode singleOutFile as a module format?
+      // Since it's irrelevant except for AMD.
+      return new AmdModuleBuilder(singleOutFile: singleOutFile).build(module);
     case ModuleFormat.es6:
-      assert(singleOutFile == false);
+      assert(!singleOutFile);
       return module;
   }
   return null; // unreachable. suppresses a bogus analyzer message
@@ -137,10 +142,6 @@ abstract class _ModuleBuilder {
 /// Generates modules for with our legacy `dart_library.js` loading mechanism.
 // TODO(jmesserly): remove this and replace with something that interoperates.
 class LegacyModuleBuilder extends _ModuleBuilder {
-  /// The legacy module format always generates output compatible with a single
-  /// file mode.
-  LegacyModuleBuilder(bool singleOutFile);
-
   Program build(Program module) {
     // Collect imports/exports/statements.
     visitProgram(module);
@@ -198,14 +199,6 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 
 /// Generates CommonJS modules (used by Node.js).
 class CommonJSModuleBuilder extends _ModuleBuilder {
-  final bool singleOutFile;
-
-  CommonJSModuleBuilder(this.singleOutFile) {
-    // singleOutFile mode is not currently supported by the CommonJS module
-    // builder.
-    assert(singleOutFile == false);
-  }
-
   Program build(Program module) {
     var importStatements = <Statement>[];
 
@@ -257,7 +250,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
 class AmdModuleBuilder extends _ModuleBuilder {
   final bool singleOutFile;
 
-  AmdModuleBuilder(this.singleOutFile);
+  AmdModuleBuilder({this.singleOutFile: false});
 
   Program build(Program module) {
     var importStatements = <Statement>[];

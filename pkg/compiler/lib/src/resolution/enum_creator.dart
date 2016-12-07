@@ -244,7 +244,7 @@ class EnumCreator {
         requiredParameters: [indexFormal],
         requiredParameterCount: 1,
         type: new FunctionType(
-            constructor, const VoidType(), <DartType>[intType]));
+            constructor, const DynamicType(), <DartType>[intType]));
     constructor.functionSignature = constructorSignature;
     enumClass.addMember(constructor, reporter);
 

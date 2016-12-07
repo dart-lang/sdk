@@ -14,7 +14,7 @@ by the community and the Dart team.
 
 ## Building Dart
 
-Learn how to [get the source](https://github.com/dart-lang/sdk/wiki/Getting-The-Source)
+Learn how to [get the source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source)
 and [prepare your machine to build the SDK](https://github.com/dart-lang/sdk/wiki/Preparing-your-machine-to-build-the-Dart-SDK).
 
 There are more documents on our [wiki](https://github.com/dart-lang/sdk/wiki).

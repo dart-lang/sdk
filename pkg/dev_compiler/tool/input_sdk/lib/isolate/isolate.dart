@@ -312,7 +312,7 @@ class Isolate {
    * [AS_EVENT].
    * The shutdown is performed at different times depending on the priority:
    *
-   * * `IMMEDIATE`: The the isolate shuts down as soon as possible.
+   * * `IMMEDIATE`: The isolate shuts down as soon as possible.
    *     Control messages are handled in order, so all previously sent control
    *     events from this isolate will all have been processed.
    *     The shutdown should happen no later than if sent with
@@ -345,7 +345,7 @@ class Isolate {
    * [AS_EVENT].
    * The response is sent at different times depending on the ping type:
    *
-   * * `IMMEDIATE`: The the isolate responds as soon as it receives the
+   * * `IMMEDIATE`: The isolate responds as soon as it receives the
    *     control message. This is after any previous control message
    *     from the same isolate has been received.
    * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time

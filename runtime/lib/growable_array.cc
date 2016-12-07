@@ -17,11 +17,10 @@ DEFINE_NATIVE_ENTRY(GrowableList_allocate, 2) {
       TypeArguments::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   if (data.Length() <= 0) {
-    Exceptions::ThrowRangeError(
-        "length",
-        Integer::Handle(Integer::New(data.Length())),
-        0,  // This is the limit the user sees.
-        Array::kMaxElements);
+    Exceptions::ThrowRangeError("length",
+                                Integer::Handle(Integer::New(data.Length())),
+                                0,  // This is the limit the user sees.
+                                Array::kMaxElements);
   }
   const GrowableObjectArray& new_array =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data));

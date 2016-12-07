@@ -18,8 +18,9 @@ intptr_t WeakTable::SizeFor(intptr_t count, intptr_t size) {
     // Increase the capacity.
     result = size * 2;
     if (result < size) {
-      FATAL("Reached impossible state of having more weak table entries"
-            " than memory available for heap objects.");
+      FATAL(
+          "Reached impossible state of having more weak table entries"
+          " than memory available for heap objects.");
     }
   }
   if (result < kMinSize) {
@@ -91,8 +92,8 @@ void WeakTable::Rehash() {
 
   intptr_t new_size = SizeFor(count(), size());
   ASSERT(Utils::IsPowerOfTwo(new_size));
-  intptr_t* new_data = reinterpret_cast<intptr_t*>(
-      calloc(new_size, kEntrySize * kWordSize));
+  intptr_t* new_data =
+      reinterpret_cast<intptr_t*>(calloc(new_size, kEntrySize * kWordSize));
 
   intptr_t mask = new_size - 1;
   set_used(0);

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_VERIFIER_H_
-#define VM_VERIFIER_H_
+#ifndef RUNTIME_VM_VERIFIER_H_
+#define RUNTIME_VM_VERIFIER_H_
 
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -18,22 +18,17 @@ class ObjectSet;
 class RawObject;
 
 
-enum MarkExpectation {
-  kForbidMarked,
-  kAllowMarked,
-  kRequireMarked
-};
+enum MarkExpectation { kForbidMarked, kAllowMarked, kRequireMarked };
 
 
 class VerifyObjectVisitor : public ObjectVisitor {
  public:
   VerifyObjectVisitor(Isolate* isolate,
-                     ObjectSet* allocated_set,
-                     MarkExpectation mark_expectation)
+                      ObjectSet* allocated_set,
+                      MarkExpectation mark_expectation)
       : isolate_(isolate),
         allocated_set_(allocated_set),
-        mark_expectation_(mark_expectation) {
-  }
+        mark_expectation_(mark_expectation) {}
 
   virtual void VisitObject(RawObject* obj);
 
@@ -50,9 +45,7 @@ class VerifyObjectVisitor : public ObjectVisitor {
 class VerifyPointersVisitor : public ObjectPointerVisitor {
  public:
   explicit VerifyPointersVisitor(Isolate* isolate, ObjectSet* allocated_set)
-      : ObjectPointerVisitor(isolate),
-        allocated_set_(allocated_set) {
-  }
+      : ObjectPointerVisitor(isolate), allocated_set_(allocated_set) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
@@ -67,9 +60,7 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
 class VerifyWeakPointersVisitor : public HandleVisitor {
  public:
   explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
-      :  HandleVisitor(Thread::Current()),
-         visitor_(visitor) {
-  }
+      : HandleVisitor(Thread::Current()), visitor_(visitor) {}
 
   virtual void VisitHandle(uword addr);
 
@@ -98,4 +89,4 @@ class VerifyCanonicalVisitor : public ObjectVisitor {
 
 }  // namespace dart
 
-#endif  // VM_VERIFIER_H_
+#endif  // RUNTIME_VM_VERIFIER_H_

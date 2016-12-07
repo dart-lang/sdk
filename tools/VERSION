@@ -1,3 +1,4 @@
+
 # This file is used by tools/utils.py to generate version strings.
 # The numbers are changed as follows:
 #
@@ -25,7 +26,7 @@
 #
 CHANNEL stable
 MAJOR 1
-MINOR 20
-PATCH 1
+MINOR 21
+PATCH 0
 PRERELEASE 0
 PRERELEASE_PATCH 0

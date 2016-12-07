@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CONSTANTS_DBC_H_
-#define VM_CONSTANTS_DBC_H_
+#ifndef RUNTIME_VM_CONSTANTS_DBC_H_
+#define RUNTIME_VM_CONSTANTS_DBC_H_
 
 #include "platform/globals.h"
 #include "platform/assert.h"
@@ -12,6 +12,7 @@
 
 namespace dart {
 
+// clang-format off
 // List of Dart Bytecode instructions.
 //
 // INTERPRETER STATE
@@ -230,6 +231,16 @@ namespace dart {
 //    Convert the unboxed float or double in FP[rD] as indicated, and store the
 //    result in FP[rA].
 //
+//  - DoubleIsNaN rA, rD
+//
+//    If the unboxed double in FP[rD] is a NaN, then writes Bool::True().raw()
+//    into FP[rA], and Bool::False().raw() otherwise.
+//
+//  - DoubleIsInfinite rA, rD
+//
+//    If the unboxed double in FP[rD] is + or - infinity, then
+//    writes Bool::True().raw() into FP[rA], and Bool::False().raw() otherwise.
+//
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
 //    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
@@ -396,6 +407,12 @@ namespace dart {
 //
 //    Store value FP[rC] into object FP[rA] at offset (in words) B.
 //
+//  - StoreFieldExt rA, rD
+//
+//    Store value FP[rD] into object FP[rA] at offset (in words)
+//    stored in the following Nop instruction. Used to access fields with
+//    large offsets.
+//
 //  - StoreFieldTOS D
 //
 //    Store value SP[0] into object SP[-1] at offset (in words) D.
@@ -403,6 +420,12 @@ namespace dart {
 //  - LoadField rA, rB, C
 //
 //    Load value at offset (in words) C from object FP[rB] into FP[rA].
+//
+//  - LoadFieldExt rA, rD
+//
+//    Load value from object FP[rD] at offset (in words) stored in the
+//    following Nop instruction into FP[rA]. Used to access fields with
+//    large offsets.
 //
 //  - LoadUntagged rA, rB, C
 //
@@ -514,10 +537,16 @@ namespace dart {
 //    (A = 1) a subtype of SP[-1] using SubtypeTestCache SP[0], with result
 //    placed at top of stack.
 //
-//  - AssertAssignable D
+//  - AssertAssignable A, D
 //
 //    Assert that SP[-3] is assignable to variable named SP[0] of type
 //    SP[-1] with type arguments SP[-2] using SubtypeTestCache PP[D].
+//    If A is 1, then the instance may be a Smi.
+//
+//  - BadTypeError
+//
+//    If SP[-3] is non-null, throws a BadType error by calling into the runtime.
+//    Assumes that the stack is arranged the same as for AssertAssignable.
 //
 //  - AssertBoolean A
 //
@@ -701,6 +730,8 @@ namespace dart {
   V(DCeil,                         A_D, reg, reg, ___) \
   V(DoubleToFloat,                 A_D, reg, reg, ___) \
   V(FloatToDouble,                 A_D, reg, reg, ___) \
+  V(DoubleIsNaN,                     A, reg, ___, ___) \
+  V(DoubleIsInfinite,                A, reg, ___, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -729,7 +760,7 @@ namespace dart {
   V(IfEqNull,                        A, reg, ___, ___) \
   V(IfNeNull,                        A, reg, ___, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
-  V(CreateArrayOpt,              A_B_C, reg, reg, ___) \
+  V(CreateArrayOpt,              A_B_C, reg, reg, reg) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
   V(AllocateOpt,                   A_D, reg, lit, ___) \
@@ -758,8 +789,10 @@ namespace dart {
   V(LoadIndexedOneByteString,    A_B_C, reg, reg, reg) \
   V(LoadIndexedTwoByteString,    A_B_C, reg, reg, reg) \
   V(StoreField,                  A_B_C, reg, num, reg) \
+  V(StoreFieldExt,                 A_D, reg, reg, ___) \
   V(StoreFieldTOS,                   D, num, ___, ___) \
   V(LoadField,                   A_B_C, reg, reg, num) \
+  V(LoadFieldExt,                  A_D, reg, reg, ___) \
   V(LoadUntagged,                A_B_C, reg, reg, num) \
   V(LoadFieldTOS,                    D, num, ___, ___) \
   V(BooleanNegateTOS,                0, ___, ___, ___) \
@@ -777,7 +810,8 @@ namespace dart {
   V(InstantiateType,                 D, lit, ___, ___) \
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
   V(InstanceOf,                      A, num, ___, ___) \
-  V(AssertAssignable,                D, num, lit, ___) \
+  V(BadTypeError,                    0, ___, ___, ___) \
+  V(AssertAssignable,              A_D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(TestSmi,                       A_D, reg, reg, ___) \
   V(TestCids,                      A_D, reg, num, ___) \
@@ -785,11 +819,13 @@ namespace dart {
   V(CheckEitherNonSmi,             A_D, reg, reg, ___) \
   V(CheckClassId,                  A_D, reg, num, ___) \
   V(CheckDenseSwitch,              A_D, reg, num, ___) \
-  V(CheckCids,                   A_B_C, reg, num, ___) \
+  V(CheckCids,                   A_B_C, reg, num, num) \
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \
-  V(Deopt,                         A_D, num, num, ___) \
+  V(Deopt,                         A_D, num, num, ___)
+
+// clang-format on
 
 typedef uint32_t Instr;
 
@@ -797,7 +833,7 @@ class Bytecode {
  public:
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,
-BYTECODES_LIST(DECLARE_BYTECODE)
+    BYTECODES_LIST(DECLARE_BYTECODE)
 #undef DECLARE_BYTECODE
   };
 
@@ -835,9 +871,7 @@ BYTECODES_LIST(DECLARE_BYTECODE)
     return op | (x << kAShift);
   }
 
-  static Instr Encode(Opcode op) {
-    return op;
-  }
+  static Instr Encode(Opcode op) { return op; }
 
   DART_FORCE_INLINE static uint8_t DecodeA(Instr bc) {
     return (bc >> kAShift) & kAMask;
@@ -933,4 +967,4 @@ enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE };
 
 }  // namespace dart
 
-#endif  // VM_CONSTANTS_DBC_H_
+#endif  // RUNTIME_VM_CONSTANTS_DBC_H_

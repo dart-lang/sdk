@@ -22,7 +22,8 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 
 class ThreadInterrupterMacOS : public AllStatic {
  public:
-  static void ThreadInterruptSignalHandler(int signal, siginfo_t* info,
+  static void ThreadInterruptSignalHandler(int signal,
+                                           siginfo_t* info,
                                            void* context_) {
     if (signal != SIGPROF) {
       return;

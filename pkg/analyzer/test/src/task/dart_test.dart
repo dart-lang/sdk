@@ -26,8 +26,8 @@ import 'package:analyzer/src/task/strong/ast_properties.dart' as strong_ast;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/resolver_test_case.dart';
 import '../../generated/test_support.dart';
@@ -35,46 +35,47 @@ import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(BuildCompilationUnitElementTaskTest);
-  defineReflectiveTests(BuildDirectiveElementsTaskTest);
-  defineReflectiveTests(BuildEnumMemberElementsTaskTest);
-  defineReflectiveTests(BuildExportNamespaceTaskTest);
-  defineReflectiveTests(BuildLibraryElementTaskTest);
-  defineReflectiveTests(BuildPublicNamespaceTaskTest);
-  defineReflectiveTests(BuildSourceExportClosureTaskTest);
-  defineReflectiveTests(BuildTypeProviderTaskTest);
-  defineReflectiveTests(ComputeConstantDependenciesTaskTest);
-  defineReflectiveTests(ComputeConstantValueTaskTest);
-  defineReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
-  defineReflectiveTests(ComputeLibraryCycleTaskTest);
-  defineReflectiveTests(ContainingLibrariesTaskTest);
-  defineReflectiveTests(DartErrorsTaskTest);
-  defineReflectiveTests(EvaluateUnitConstantsTaskTest);
-  defineReflectiveTests(GatherUsedImportedElementsTaskTest);
-  defineReflectiveTests(GatherUsedLocalElementsTaskTest);
-  defineReflectiveTests(GenerateHintsTaskTest);
-  defineReflectiveTests(GenerateLintsTaskTest);
-  defineReflectiveTests(InferInstanceMembersInUnitTaskTest);
-  defineReflectiveTests(InferStaticVariableTypesInUnitTaskTest);
-  defineReflectiveTests(InferStaticVariableTypeTaskTest);
-  defineReflectiveTests(LibraryErrorsReadyTaskTest);
-  defineReflectiveTests(LibraryUnitErrorsTaskTest);
-  defineReflectiveTests(ParseDartTaskTest);
-  defineReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
-  defineReflectiveTests(ReferencedNamesBuilderTest);
-  defineReflectiveTests(ResolveDirectiveElementsTaskTest);
-  defineReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
-  defineReflectiveTests(ResolveLibraryTaskTest);
-  defineReflectiveTests(ResolveLibraryTypeNamesTaskTest);
-  defineReflectiveTests(ResolveTopLevelUnitTypeBoundsTaskTest);
-  defineReflectiveTests(ResolveUnitTaskTest);
-  defineReflectiveTests(ResolveUnitTypeNamesTaskTest);
-  defineReflectiveTests(ResolveVariableReferencesTaskTest);
-  defineReflectiveTests(ScanDartTaskTest);
-  defineReflectiveTests(StrongModeInferenceTest);
-  defineReflectiveTests(StrongModeVerifyUnitTaskTest);
-  defineReflectiveTests(VerifyUnitTaskTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(BuildCompilationUnitElementTaskTest);
+    defineReflectiveTests(BuildDirectiveElementsTaskTest);
+    defineReflectiveTests(BuildEnumMemberElementsTaskTest);
+    defineReflectiveTests(BuildExportNamespaceTaskTest);
+    defineReflectiveTests(BuildLibraryElementTaskTest);
+    defineReflectiveTests(BuildPublicNamespaceTaskTest);
+    defineReflectiveTests(BuildSourceExportClosureTaskTest);
+    defineReflectiveTests(BuildTypeProviderTaskTest);
+    defineReflectiveTests(ComputeConstantDependenciesTaskTest);
+    defineReflectiveTests(ComputeConstantValueTaskTest);
+    defineReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
+    defineReflectiveTests(ComputeLibraryCycleTaskTest);
+    defineReflectiveTests(ContainingLibrariesTaskTest);
+    defineReflectiveTests(DartErrorsTaskTest);
+    defineReflectiveTests(EvaluateUnitConstantsTaskTest);
+    defineReflectiveTests(GatherUsedImportedElementsTaskTest);
+    defineReflectiveTests(GatherUsedLocalElementsTaskTest);
+    defineReflectiveTests(GenerateHintsTaskTest);
+    defineReflectiveTests(GenerateLintsTaskTest);
+    defineReflectiveTests(InferInstanceMembersInUnitTaskTest);
+    defineReflectiveTests(InferStaticVariableTypesInUnitTaskTest);
+    defineReflectiveTests(InferStaticVariableTypeTaskTest);
+    defineReflectiveTests(LibraryErrorsReadyTaskTest);
+    defineReflectiveTests(LibraryUnitErrorsTaskTest);
+    defineReflectiveTests(ParseDartTaskTest);
+    defineReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
+    defineReflectiveTests(ReferencedNamesBuilderTest);
+    defineReflectiveTests(ResolveDirectiveElementsTaskTest);
+    defineReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
+    defineReflectiveTests(ResolveLibraryTaskTest);
+    defineReflectiveTests(ResolveLibraryTypeNamesTaskTest);
+    defineReflectiveTests(ResolveTopLevelUnitTypeBoundsTaskTest);
+    defineReflectiveTests(ResolveUnitTaskTest);
+    defineReflectiveTests(ResolveUnitTypeNamesTaskTest);
+    defineReflectiveTests(ResolveVariableReferencesTaskTest);
+    defineReflectiveTests(ScanDartTaskTest);
+    defineReflectiveTests(StrongModeInferenceTest);
+    defineReflectiveTests(StrongModeVerifyUnitTaskTest);
+    defineReflectiveTests(VerifyUnitTaskTest);
+  });
 }
 
 isInstanceOf isBuildCompilationUnitElementTask =
@@ -796,6 +797,7 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   LibraryElement libraryElement;
 
   test_perform() {
+    enableUriInPartOf();
     _performBuildTask({
       '/lib.dart': '''
 library lib;
@@ -806,7 +808,7 @@ part 'part2.dart';
 part of lib;
 ''',
       '/part2.dart': '''
-part of lib;
+part of 'lib.dart';
 '''
     });
     expect(outputs, hasLength(3));
@@ -926,10 +928,13 @@ part 'part.dart';
   }
 
   test_perform_invalidUri_part() {
+    String invalidUri = resourceProvider.pathContext.separator == '/'
+        ? '//////////'
+        : '\\\\\\\\\\\\';
     _performBuildTask({
       '/lib.dart': '''
 library lib;
-part '//////////';
+part '$invalidUri';
 '''
     });
     expect(libraryElement.parts, isEmpty);
@@ -3375,7 +3380,9 @@ class B {}''');
 
   void _performParseTask(String content) {
     if (content == null) {
-      source = resourceProvider.getFile('/test.dart').createSource();
+      source = resourceProvider
+          .getFile(resourceProvider.convertPath('/test.dart'))
+          .createSource();
     } else {
       source = newSource('/test.dart', content);
     }
@@ -3538,9 +3545,7 @@ class C {
 class ReferencedNamesBuilderTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
-    context.analysisOptions = new AnalysisOptionsImpl()
-      ..enableGenericMethods = true
-      ..strongMode = true;
+    context.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
   }
 
   test_class_constructor() {
@@ -5370,7 +5375,7 @@ B b = new A();
 
     var errors = errorListener.errors;
     expect(errors.length, 1);
-    expect(errors[0].errorCode.name, "STRONG_MODE_STATIC_TYPE_ERROR");
+    expect(errors[0].errorCode.name, "STRONG_MODE_INVALID_CAST_NEW_EXPR");
   }
 }
 
@@ -5641,6 +5646,16 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   void enableStrongMode() {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
+    context.analysisOptions = options;
+  }
+
+  /**
+   * Enable the use of URIs in part-of directives in the current analysis
+   * context.
+   */
+  void enableUriInPartOf() {
+    AnalysisOptionsImpl options = context.analysisOptions;
+    options.enableUriInPartOf = true;
     context.analysisOptions = options;
   }
 

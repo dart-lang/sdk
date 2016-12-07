@@ -727,8 +727,8 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   compiler.diagnosticHandler = createHandler(compiler, TEST);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.commonMasks;
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var commonMasks = compiler.closedWorld.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
         var world = compiler.closedWorld;
 
         checkReturn(String name, type) {

@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+#ifndef DART_PRECOMPILED_RUNTIME
 #include "vm/jit_optimizer.h"
 
 #include "vm/bit_vector.h"
@@ -61,8 +61,7 @@ void JitOptimizer::ApplyICData() {
 void JitOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
-       !block_it.Done();
-       block_it.Advance()) {
+       !block_it.Done(); block_it.Advance()) {
     ForwardInstructionIterator it(block_it.Current());
     current_iterator_ = &it;
     for (; !it.Done(); it.Advance()) {
@@ -105,8 +104,7 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
 
   const Token::Kind op_kind = call->token_kind();
   if (Token::IsRelationalOperator(op_kind) ||
-      Token::IsEqualityOperator(op_kind) ||
-      Token::IsBinaryOperator(op_kind)) {
+      Token::IsEqualityOperator(op_kind) || Token::IsBinaryOperator(op_kind)) {
     // Guess cid: if one of the inputs is a number assume that the other
     // is a number of same type.
     if (FLAG_guess_icdata_cid) {
@@ -130,24 +128,22 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   if (all_cids_known) {
-    const Class& receiver_class = Class::Handle(Z,
-        isolate()->class_table()->At(class_ids[0]));
+    const Class& receiver_class =
+        Class::Handle(Z, isolate()->class_table()->At(class_ids[0]));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be
       // finalized yet.
       return false;
     }
-    const Array& args_desc_array = Array::Handle(Z,
-        ArgumentsDescriptor::New(call->ArgumentCount(),
-                                 call->argument_names()));
+    const Array& args_desc_array =
+        Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
+                                                  call->argument_names()));
     ArgumentsDescriptor args_desc(args_desc_array);
-    const Function& function = Function::Handle(Z,
-        Resolver::ResolveDynamicForReceiverClass(
-            receiver_class,
-            call->function_name(),
-            args_desc,
-            false /* allow add */));
+    const Function& function =
+        Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
+                                receiver_class, call->function_name(),
+                                args_desc, false /* allow add */));
     if (function.IsNull()) {
       return false;
     }
@@ -156,8 +152,8 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // since it is attached to the assembly instruction itself.
     // TODO(srdjan): Prevent modification of ICData object that is
     // referenced in assembly code.
-    const ICData& ic_data = ICData::ZoneHandle(Z,
-        ICData::NewFrom(*call->ic_data(), class_ids.length()));
+    const ICData& ic_data = ICData::ZoneHandle(
+        Z, ICData::NewFrom(*call->ic_data(), class_ids.length()));
     if (class_ids.length() > 1) {
       ic_data.AddCheck(class_ids, function);
     } else {
@@ -169,25 +165,22 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   // Check if getter or setter in function's class and class is currently leaf.
-  if (FLAG_guess_icdata_cid &&
-      ((call->token_kind() == Token::kGET) ||
-          (call->token_kind() == Token::kSET))) {
+  if (FLAG_guess_icdata_cid && ((call->token_kind() == Token::kGET) ||
+                                (call->token_kind() == Token::kSET))) {
     const Class& owner_class = Class::Handle(Z, function().Owner());
-    if (!owner_class.is_abstract() &&
-        !CHA::HasSubclasses(owner_class) &&
+    if (!owner_class.is_abstract() && !CHA::HasSubclasses(owner_class) &&
         !CHA::IsImplemented(owner_class)) {
-      const Array& args_desc_array = Array::Handle(Z,
-          ArgumentsDescriptor::New(call->ArgumentCount(),
-                                   call->argument_names()));
+      const Array& args_desc_array =
+          Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
+                                                    call->argument_names()));
       ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function = Function::Handle(Z,
-          Resolver::ResolveDynamicForReceiverClass(owner_class,
-                                                   call->function_name(),
-                                                   args_desc,
-                                                   false /* allow_add */));
+      const Function& function =
+          Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
+                                  owner_class, call->function_name(), args_desc,
+                                  false /* allow_add */));
       if (!function.IsNull()) {
-        const ICData& ic_data = ICData::ZoneHandle(Z,
-            ICData::NewFrom(*call->ic_data(), class_ids.length()));
+        const ICData& ic_data = ICData::ZoneHandle(
+            Z, ICData::NewFrom(*call->ic_data(), class_ids.length()));
         ic_data.AddReceiverCheck(owner_class.id(), function);
         call->set_ic_data(&ic_data);
         return true;
@@ -212,13 +205,11 @@ const ICData& JitOptimizer::TrySpecializeICData(const ICData& ic_data,
   // TODO(fschneider): Try looking up the function on the class if it is
   // not found in the ICData.
   if (!function.IsNull()) {
-    const ICData& new_ic_data = ICData::ZoneHandle(Z, ICData::New(
-        Function::Handle(Z, ic_data.Owner()),
-        String::Handle(Z, ic_data.target_name()),
-        Object::empty_array(),  // Dummy argument descriptor.
-        ic_data.deopt_id(),
-        ic_data.NumArgsTested(),
-        false));
+    const ICData& new_ic_data = ICData::ZoneHandle(
+        Z, ICData::New(Function::Handle(Z, ic_data.Owner()),
+                       String::Handle(Z, ic_data.target_name()),
+                       Object::empty_array(),  // Dummy argument descriptor.
+                       ic_data.deopt_id(), ic_data.NumArgsTested(), false));
     new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
     new_ic_data.AddReceiverCheck(cid, function);
     return new_ic_data;
@@ -253,10 +244,8 @@ void JitOptimizer::SpecializePolymorphicInstanceCall(
   const bool with_checks = false;
   const bool complete = false;
   PolymorphicInstanceCallInstr* specialized =
-      new(Z) PolymorphicInstanceCallInstr(call->instance_call(),
-                                          ic_data,
-                                          with_checks,
-                                          complete);
+      new (Z) PolymorphicInstanceCallInstr(call->instance_call(), ic_data,
+                                           with_checks, complete);
   call->ReplaceWith(specialized, current_iterator());
 }
 
@@ -321,19 +310,19 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
 
 
 static bool HasOnlyOneSmi(const ICData& ic_data) {
-  return (ic_data.NumberOfUsedChecks() == 1)
-      && ic_data.HasReceiverClassId(kSmiCid);
+  return (ic_data.NumberOfUsedChecks() == 1) &&
+         ic_data.HasReceiverClassId(kSmiCid);
 }
 
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
   if (ic_data.NumberOfUsedChecks() == 1) {
-    return ic_data.HasReceiverClassId(kSmiCid)
-        || ic_data.HasReceiverClassId(kMintCid);
+    return ic_data.HasReceiverClassId(kSmiCid) ||
+           ic_data.HasReceiverClassId(kMintCid);
   }
-  return (ic_data.NumberOfUsedChecks() == 2)
-      && ic_data.HasReceiverClassId(kSmiCid)
-      && ic_data.HasReceiverClassId(kMintCid);
+  return (ic_data.NumberOfUsedChecks() == 2) &&
+         ic_data.HasReceiverClassId(kSmiCid) &&
+         ic_data.HasReceiverClassId(kMintCid);
 }
 
 
@@ -376,8 +365,8 @@ static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
 
 
 static bool HasOnlyOneDouble(const ICData& ic_data) {
-  return (ic_data.NumberOfUsedChecks() == 1)
-      && ic_data.HasReceiverClassId(kDoubleCid);
+  return (ic_data.NumberOfUsedChecks() == 1) &&
+         ic_data.HasReceiverClassId(kDoubleCid);
 }
 
 
@@ -397,8 +386,7 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
 }
 
 
-void JitOptimizer::ReplaceCall(Definition* call,
-                               Definition* replacement) {
+void JitOptimizer::ReplaceCall(Definition* call, Definition* replacement) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -415,11 +403,9 @@ void JitOptimizer::AddCheckSmi(Definition* to_check,
                                Instruction* insert_before) {
   if (to_check->Type()->ToCid() != kSmiCid) {
     InsertBefore(insert_before,
-                 new(Z) CheckSmiInstr(new(Z) Value(to_check),
-                                      deopt_id,
-                                      insert_before->token_pos()),
-                 deopt_environment,
-                 FlowGraph::kEffect);
+                 new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id,
+                                       insert_before->token_pos()),
+                 deopt_environment, FlowGraph::kEffect);
   }
 }
 
@@ -430,12 +416,10 @@ Instruction* JitOptimizer::GetCheckClass(Definition* to_check,
                                          TokenPosition token_pos) {
   if ((unary_checks.NumberOfUsedChecks() == 1) &&
       unary_checks.HasReceiverClassId(kSmiCid)) {
-    return new(Z) CheckSmiInstr(new(Z) Value(to_check),
-                                deopt_id,
-                                token_pos);
+    return new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id, token_pos);
   }
-  return new(Z) CheckClassInstr(
-      new(Z) Value(to_check), deopt_id, unary_checks, token_pos);
+  return new (Z) CheckClassInstr(new (Z) Value(to_check), deopt_id,
+                                 unary_checks, token_pos);
 }
 
 
@@ -445,8 +429,8 @@ void JitOptimizer::AddCheckClass(Definition* to_check,
                                  Environment* deopt_environment,
                                  Instruction* insert_before) {
   // Type propagation has not run yet, we cannot eliminate the check.
-  Instruction* check = GetCheckClass(
-      to_check, unary_checks, deopt_id, insert_before->token_pos());
+  Instruction* check = GetCheckClass(to_check, unary_checks, deopt_id,
+                                     insert_before->token_pos());
   InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
@@ -454,9 +438,7 @@ void JitOptimizer::AddCheckClass(Definition* to_check,
 void JitOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
   AddCheckClass(call->ArgumentAt(0),
                 ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
-                call->deopt_id(),
-                call->env(),
-                call);
+                call->deopt_id(), call->env(), call);
 }
 
 
@@ -534,12 +516,12 @@ bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       ASSERT(str.Length() == 1);
       ConstantInstr* char_code_left = flow_graph()->GetConstant(
           Smi::ZoneHandle(Z, Smi::New(static_cast<intptr_t>(str.CharAt(0)))));
-      left_val = new(Z) Value(char_code_left);
+      left_val = new (Z) Value(char_code_left);
     } else if (left->IsOneByteStringFromCharCode()) {
       // Use input of string-from-charcode as left value.
       OneByteStringFromCharCodeInstr* instr =
           left->AsOneByteStringFromCharCode();
-      left_val = new(Z) Value(instr->char_code()->definition());
+      left_val = new (Z) Value(instr->char_code()->definition());
       to_remove_left = instr;
     } else {
       // IsLengthOneString(left) should have been false.
@@ -552,32 +534,24 @@ bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       // Skip string-from-char-code, and use its input as right value.
       OneByteStringFromCharCodeInstr* right_instr =
           right->AsOneByteStringFromCharCode();
-      right_val = new(Z) Value(right_instr->char_code()->definition());
+      right_val = new (Z) Value(right_instr->char_code()->definition());
       to_remove_right = right_instr;
     } else {
       const ICData& unary_checks_1 =
           ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecksForArgNr(1));
-      AddCheckClass(right,
-                    unary_checks_1,
-                    call->deopt_id(),
-                    call->env(),
-                    call);
+      AddCheckClass(right, unary_checks_1, call->deopt_id(), call->env(), call);
       // String-to-char-code instructions returns -1 (illegal charcode) if
       // string is not of length one.
-      StringToCharCodeInstr* char_code_right =
-          new(Z) StringToCharCodeInstr(new(Z) Value(right), kOneByteStringCid);
+      StringToCharCodeInstr* char_code_right = new (Z)
+          StringToCharCodeInstr(new (Z) Value(right), kOneByteStringCid);
       InsertBefore(call, char_code_right, call->env(), FlowGraph::kValue);
-      right_val = new(Z) Value(char_code_right);
+      right_val = new (Z) Value(char_code_right);
     }
 
     // Comparing char-codes instead of strings.
     EqualityCompareInstr* comp =
-        new(Z) EqualityCompareInstr(call->token_pos(),
-                                    op_kind,
-                                    left_val,
-                                    right_val,
-                                    kSmiCid,
-                                    call->deopt_id());
+        new (Z) EqualityCompareInstr(call->token_pos(), op_kind, left_val,
+                                     right_val, kSmiCid, call->deopt_id());
     ReplaceCall(call, comp);
 
     // Remove dead instructions.
@@ -597,7 +571,9 @@ bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 }
 
 
-static bool SmiFitsInDouble() { return kSmiBits < 53; }
+static bool SmiFitsInDouble() {
+  return kSmiBits < 53;
+}
 
 bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                             Token::Kind op_kind) {
@@ -617,17 +593,13 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     }
   } else if (HasOnlyTwoOf(ic_data, kSmiCid)) {
     InsertBefore(call,
-                 new(Z) CheckSmiInstr(new(Z) Value(left),
-                                      call->deopt_id(),
-                                      call->token_pos()),
-                 call->env(),
-                 FlowGraph::kEffect);
+                 new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
+                                       call->token_pos()),
+                 call->env(), FlowGraph::kEffect);
     InsertBefore(call,
-                 new(Z) CheckSmiInstr(new(Z) Value(right),
-                                      call->deopt_id(),
-                                      call->token_pos()),
-                 call->env(),
-                 FlowGraph::kEffect);
+                 new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
+                                       call->token_pos()),
+                 call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (HasTwoMintOrSmi(ic_data) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -642,13 +614,10 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         // call.
         return false;
       } else {
-        InsertBefore(call,
-                     new(Z) CheckEitherNonSmiInstr(
-                         new(Z) Value(left),
-                         new(Z) Value(right),
-                         call->deopt_id()),
-                     call->env(),
-                     FlowGraph::kEffect);
+        InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
+                                                          new (Z) Value(right),
+                                                          call->deopt_id()),
+                     call->env(), FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -659,24 +628,15 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     GrowableArray<intptr_t> smi_or_null(2);
     smi_or_null.Add(kSmiCid);
     smi_or_null.Add(kNullCid);
-    if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
-                                              smi_or_null,
+    if (ICDataHasOnlyReceiverArgumentClassIds(ic_data, smi_or_null,
                                               smi_or_null)) {
       const ICData& unary_checks_0 =
           ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-      AddCheckClass(left,
-                    unary_checks_0,
-                    call->deopt_id(),
-                    call->env(),
-                    call);
+      AddCheckClass(left, unary_checks_0, call->deopt_id(), call->env(), call);
 
       const ICData& unary_checks_1 =
           ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecksForArgNr(1));
-      AddCheckClass(right,
-                    unary_checks_1,
-                    call->deopt_id(),
-                    call->env(),
-                    call);
+      AddCheckClass(right, unary_checks_1, call->deopt_id(), call->env(), call);
       cid = kSmiCid;
     } else {
       // Shortcut for equality with null.
@@ -684,12 +644,10 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       ConstantInstr* left_const = left->AsConstant();
       if ((right_const != NULL && right_const->value().IsNull()) ||
           (left_const != NULL && left_const->value().IsNull())) {
-        StrictCompareInstr* comp =
-            new(Z) StrictCompareInstr(call->token_pos(),
-                                      Token::kEQ_STRICT,
-                                      new(Z) Value(left),
-                                      new(Z) Value(right),
-                                      false);  // No number check.
+        StrictCompareInstr* comp = new (Z)
+            StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+                               new (Z) Value(left), new (Z) Value(right),
+                               false);  // No number check.
         ReplaceCall(call, comp);
         return true;
       }
@@ -697,12 +655,9 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     }
   }
   ASSERT(cid != kIllegalCid);
-  EqualityCompareInstr* comp = new(Z) EqualityCompareInstr(call->token_pos(),
-                                                           op_kind,
-                                                           new(Z) Value(left),
-                                                           new(Z) Value(right),
-                                                           cid,
-                                                           call->deopt_id());
+  EqualityCompareInstr* comp = new (Z)
+      EqualityCompareInstr(call->token_pos(), op_kind, new (Z) Value(left),
+                           new (Z) Value(right), cid, call->deopt_id());
   ReplaceCall(call, comp);
   return true;
 }
@@ -720,17 +675,13 @@ bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   intptr_t cid = kIllegalCid;
   if (HasOnlyTwoOf(ic_data, kSmiCid)) {
     InsertBefore(call,
-                 new(Z) CheckSmiInstr(new(Z) Value(left),
-                                      call->deopt_id(),
-                                      call->token_pos()),
-                 call->env(),
-                 FlowGraph::kEffect);
+                 new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
+                                       call->token_pos()),
+                 call->env(), FlowGraph::kEffect);
     InsertBefore(call,
-                 new(Z) CheckSmiInstr(new(Z) Value(right),
-                                      call->deopt_id(),
-                                      call->token_pos()),
-                 call->env(),
-                 FlowGraph::kEffect);
+                 new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
+                                       call->token_pos()),
+                 call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (HasTwoMintOrSmi(ic_data) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -745,13 +696,10 @@ bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
         // call.
         return false;
       } else {
-        InsertBefore(call,
-                     new(Z) CheckEitherNonSmiInstr(
-                         new(Z) Value(left),
-                         new(Z) Value(right),
-                         call->deopt_id()),
-                     call->env(),
-                     FlowGraph::kEffect);
+        InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
+                                                          new (Z) Value(right),
+                                                          call->deopt_id()),
+                     call->env(), FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -759,12 +707,9 @@ bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
     return false;
   }
   ASSERT(cid != kIllegalCid);
-  RelationalOpInstr* comp = new(Z) RelationalOpInstr(call->token_pos(),
-                                                     op_kind,
-                                                     new(Z) Value(left),
-                                                     new(Z) Value(right),
-                                                     cid,
-                                                     call->deopt_id());
+  RelationalOpInstr* comp =
+      new (Z) RelationalOpInstr(call->token_pos(), op_kind, new (Z) Value(left),
+                                new (Z) Value(right), cid, call->deopt_id());
   ReplaceCall(call, comp);
   return true;
 }
@@ -783,8 +728,8 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
-            ? kMintCid
-            : kSmiCid;
+                            ? kMintCid
+                            : kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
                  FlowGraphCompiler::SupportsUnboxedMints()) {
         // Don't generate mint code if the IC data is marked because of an
@@ -840,11 +785,11 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
           return false;
         }
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
-            ? kMintCid
-            : kSmiCid;
+                            ? kMintCid
+                            : kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
-                 HasOnlyOneSmi(ICData::Handle(Z,
-                     ic_data.AsUnaryClassChecksForArgNr(1)))) {
+                 HasOnlyOneSmi(ICData::Handle(
+                     Z, ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
         if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
@@ -883,34 +828,25 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     // binary operation with two smis is a smi not a double, except '/' which
     // returns a double for two smis.
     if (op_kind != Token::kDIV) {
-      InsertBefore(call,
-                   new(Z) CheckEitherNonSmiInstr(
-                       new(Z) Value(left),
-                       new(Z) Value(right),
-                       call->deopt_id()),
-                   call->env(),
-                   FlowGraph::kEffect);
+      InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
+                                                        new (Z) Value(right),
+                                                        call->deopt_id()),
+                   call->env(), FlowGraph::kEffect);
     }
 
-    BinaryDoubleOpInstr* double_bin_op =
-        new(Z) BinaryDoubleOpInstr(op_kind,
-                                   new(Z) Value(left),
-                                   new(Z) Value(right),
-                                   call->deopt_id(), call->token_pos());
+    BinaryDoubleOpInstr* double_bin_op = new (Z)
+        BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
+                            call->deopt_id(), call->token_pos());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-      ShiftMintOpInstr* shift_op =
-          new(Z) ShiftMintOpInstr(
-              op_kind, new(Z) Value(left), new(Z) Value(right),
-              call->deopt_id());
+      ShiftMintOpInstr* shift_op = new (Z) ShiftMintOpInstr(
+          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, shift_op);
     } else {
-      BinaryMintOpInstr* bin_op =
-          new(Z) BinaryMintOpInstr(
-              op_kind, new(Z) Value(left), new(Z) Value(right),
-              call->deopt_id());
+      BinaryMintOpInstr* bin_op = new (Z) BinaryMintOpInstr(
+          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, bin_op);
     }
   } else if (operands_type == kFloat32x4Cid) {
@@ -927,19 +863,14 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Insert smi check and attach a copy of the original environment
         // because the smi operation can still deoptimize.
         InsertBefore(call,
-                     new(Z) CheckSmiInstr(new(Z) Value(left),
-                                          call->deopt_id(),
-                                          call->token_pos()),
-                     call->env(),
-                     FlowGraph::kEffect);
-        ConstantInstr* constant =
-            flow_graph()->GetConstant(Smi::Handle(Z,
-                Smi::New(Smi::Cast(obj).Value() - 1)));
+                     new (Z) CheckSmiInstr(new (Z) Value(left),
+                                           call->deopt_id(), call->token_pos()),
+                     call->env(), FlowGraph::kEffect);
+        ConstantInstr* constant = flow_graph()->GetConstant(
+            Smi::Handle(Z, Smi::New(Smi::Cast(obj).Value() - 1)));
         BinarySmiOpInstr* bin_op =
-            new(Z) BinarySmiOpInstr(Token::kBIT_AND,
-                                    new(Z) Value(left),
-                                    new(Z) Value(constant),
-                                    call->deopt_id());
+            new (Z) BinarySmiOpInstr(Token::kBIT_AND, new (Z) Value(left),
+                                     new (Z) Value(constant), call->deopt_id());
         ReplaceCall(call, bin_op);
         return true;
       }
@@ -948,11 +879,8 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     // environment because the smi operation can still deoptimize.
     AddCheckSmi(left, call->deopt_id(), call->env(), call);
     AddCheckSmi(right, call->deopt_id(), call->env(), call);
-    BinarySmiOpInstr* bin_op =
-        new(Z) BinarySmiOpInstr(op_kind,
-                                new(Z) Value(left),
-                                new(Z) Value(right),
-                                call->deopt_id());
+    BinarySmiOpInstr* bin_op = new (Z) BinarySmiOpInstr(
+        op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
     ReplaceCall(call, bin_op);
   } else {
     ASSERT(operands_type == kSmiCid);
@@ -967,12 +895,8 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       left = right;
       right = temp;
     }
-    BinarySmiOpInstr* bin_op =
-        new(Z) BinarySmiOpInstr(
-            op_kind,
-            new(Z) Value(left),
-            new(Z) Value(right),
-            call->deopt_id());
+    BinarySmiOpInstr* bin_op = new (Z) BinarySmiOpInstr(
+        op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
     ReplaceCall(call, bin_op);
   }
   return true;
@@ -986,24 +910,21 @@ bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   Definition* unary_op = NULL;
   if (HasOnlyOneSmi(*call->ic_data())) {
     InsertBefore(call,
-                 new(Z) CheckSmiInstr(new(Z) Value(input),
-                                      call->deopt_id(),
-                                      call->token_pos()),
-                 call->env(),
-                 FlowGraph::kEffect);
-    unary_op = new(Z) UnarySmiOpInstr(
-        op_kind, new(Z) Value(input), call->deopt_id());
+                 new (Z) CheckSmiInstr(new (Z) Value(input), call->deopt_id(),
+                                       call->token_pos()),
+                 call->env(), FlowGraph::kEffect);
+    unary_op = new (Z)
+        UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
-    unary_op = new(Z) UnaryMintOpInstr(
-        op_kind, new(Z) Value(input), call->deopt_id());
+    unary_op = new (Z)
+        UnaryMintOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
-             (op_kind == Token::kNEGATE) &&
-             CanUnboxDouble()) {
+             (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
     AddReceiverCheck(call);
-    unary_op = new(Z) UnaryDoubleOpInstr(
-        Token::kNEGATE, new(Z) Value(input), call->deopt_id());
+    unary_op = new (Z) UnaryDoubleOpInstr(Token::kNEGATE, new (Z) Value(input),
+                                          call->deopt_id());
   } else {
     return false;
   }
@@ -1014,8 +935,7 @@ bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 
 
 // Using field class.
-RawField* JitOptimizer::GetField(intptr_t class_id,
-                                 const String& field_name) {
+RawField* JitOptimizer::GetField(intptr_t class_id, const String& field_name) {
   Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
   Field& field = Field::Handle(Z);
   while (!cls.IsNull()) {
@@ -1044,19 +964,16 @@ bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   // Inline implicit instance getter.
   const String& field_name =
       String::Handle(Z, Field::NameFromGetter(call->function_name()));
-  const Field& field =
-      Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
+  const Field& field = Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  if (flow_graph()->InstanceCallNeedsClassCheck(
-          call, RawFunction::kImplicitGetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(call,
+                                                RawFunction::kImplicitGetter)) {
     AddReceiverCheck(call);
   }
-  LoadFieldInstr* load = new(Z) LoadFieldInstr(
-      new(Z) Value(call->ArgumentAt(0)),
-      &field,
-      AbstractType::ZoneHandle(Z, field.type()),
-      call->token_pos());
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      new (Z) Value(call->ArgumentAt(0)), &field,
+      AbstractType::ZoneHandle(Z, field.type()), call->token_pos());
   load->set_is_immutable(field.is_final());
   if (field.guarded_cid() != kIllegalCid) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
@@ -1072,9 +989,7 @@ bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
   if (load->result_cid() != kDynamicCid) {
     // Reset value types if guarded_cid was used.
-    for (Value::Iterator it(load->input_use_list());
-         !it.Done();
-         it.Advance()) {
+    for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
       it.Current()->SetReachingType(NULL);
     }
   }
@@ -1091,24 +1006,16 @@ bool JitOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   // Type check left.
-  AddCheckClass(left,
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
+  AddCheckClass(left, ICData::ZoneHandle(
+                          Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(), call->env(), call);
   // Type check right.
-  AddCheckClass(right,
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(),
-                call->env(),
-                call);
+  AddCheckClass(right, ICData::ZoneHandle(
+                           Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                call->deopt_id(), call->env(), call);
   // Replace call.
-  BinaryFloat32x4OpInstr* float32x4_bin_op =
-      new(Z) BinaryFloat32x4OpInstr(
-          op_kind, new(Z) Value(left), new(Z) Value(right),
-          call->deopt_id());
+  BinaryFloat32x4OpInstr* float32x4_bin_op = new (Z) BinaryFloat32x4OpInstr(
+      op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
   ReplaceCall(call, float32x4_bin_op);
 
   return true;
@@ -1124,24 +1031,16 @@ bool JitOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   // Type check left.
-  AddCheckClass(left,
-                ICData::ZoneHandle(
-                    Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
+  AddCheckClass(left, ICData::ZoneHandle(
+                          Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(), call->env(), call);
   // Type check right.
-  AddCheckClass(right,
-                ICData::ZoneHandle(Z,
-                    call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(),
-                call->env(),
-                call);
+  AddCheckClass(right, ICData::ZoneHandle(
+                           Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                call->deopt_id(), call->env(), call);
   // Replace call.
-  BinaryInt32x4OpInstr* int32x4_bin_op =
-      new(Z) BinaryInt32x4OpInstr(
-          op_kind, new(Z) Value(left), new(Z) Value(right),
-          call->deopt_id());
+  BinaryInt32x4OpInstr* int32x4_bin_op = new (Z) BinaryInt32x4OpInstr(
+      op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
   ReplaceCall(call, int32x4_bin_op);
   return true;
 }
@@ -1156,24 +1055,16 @@ bool JitOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   // Type check left.
-  AddCheckClass(left,
-                ICData::ZoneHandle(
-                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(),
-                call->env(),
-                call);
+  AddCheckClass(
+      left, ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+      call->deopt_id(), call->env(), call);
   // Type check right.
-  AddCheckClass(right,
-                ICData::ZoneHandle(
-                    call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(),
-                call->env(),
-                call);
+  AddCheckClass(
+      right, ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+      call->deopt_id(), call->env(), call);
   // Replace call.
-  BinaryFloat64x2OpInstr* float64x2_bin_op =
-      new(Z) BinaryFloat64x2OpInstr(
-          op_kind, new(Z) Value(left), new(Z) Value(right),
-          call->deopt_id());
+  BinaryFloat64x2OpInstr* float64x2_bin_op = new (Z) BinaryFloat64x2OpInstr(
+      op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
   ReplaceCall(call, float64x2_bin_op);
   return true;
 }
@@ -1209,15 +1100,12 @@ void JitOptimizer::ReplaceWithMathCFunction(
     MethodRecognizer::Kind recognized_kind) {
   AddReceiverCheck(call);
   ZoneGrowableArray<Value*>* args =
-      new(Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
+      new (Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(new(Z) Value(call->ArgumentAt(i)));
+    args->Add(new (Z) Value(call->ArgumentAt(i)));
   }
-  InvokeMathCFunctionInstr* invoke =
-      new(Z) InvokeMathCFunctionInstr(args,
-                                      call->deopt_id(),
-                                      recognized_kind,
-                                      call->token_pos());
+  InvokeMathCFunctionInstr* invoke = new (Z) InvokeMathCFunctionInstr(
+      args, call->deopt_id(), recognized_kind, call->token_pos());
   ReplaceCall(call, invoke);
 }
 
@@ -1242,15 +1130,14 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     if (class_ids[0] == kSmiCid) {
       AddReceiverCheck(call);
       ReplaceCall(call,
-                  new(Z) SmiToDoubleInstr(
-                      new(Z) Value(call->ArgumentAt(0)),
-                      call->token_pos()));
+                  new (Z) SmiToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
+                                           call->token_pos()));
       return true;
     } else if ((class_ids[0] == kMintCid) && CanConvertUnboxedMintToDouble()) {
       AddReceiverCheck(call);
       ReplaceCall(call,
-                  new(Z) MintToDoubleInstr(new(Z) Value(call->ArgumentAt(0)),
-                                           call->deopt_id()));
+                  new (Z) MintToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
+                                            call->deopt_id()));
       return true;
     }
   }
@@ -1268,12 +1155,11 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         Definition* d2i_instr = NULL;
         if (ic_data.HasDeoptReason(ICData::kDeoptDoubleToSmi)) {
           // Do not repeatedly deoptimize because result didn't fit into Smi.
-          d2i_instr =  new(Z) DoubleToIntegerInstr(
-              new(Z) Value(input), call);
+          d2i_instr = new (Z) DoubleToIntegerInstr(new (Z) Value(input), call);
         } else {
           // Optimistically assume result fits into Smi.
-          d2i_instr = new(Z) DoubleToSmiInstr(
-              new(Z) Value(input), call->deopt_id());
+          d2i_instr =
+              new (Z) DoubleToSmiInstr(new (Z) Value(input), call->deopt_id());
         }
         ReplaceCall(call, d2i_instr);
         return true;
@@ -1290,8 +1176,8 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         } else {
           AddReceiverCheck(call);
           DoubleToDoubleInstr* d2d_instr =
-              new(Z) DoubleToDoubleInstr(new(Z) Value(call->ArgumentAt(0)),
-                                         recognized_kind, call->deopt_id());
+              new (Z) DoubleToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
+                                          recognized_kind, call->deopt_id());
           ReplaceCall(call, d2d_instr);
         }
         return true;
@@ -1331,7 +1217,7 @@ RawBool* JitOptimizer::InstanceOfAsBool(
     const TypeArguments& type_arguments =
         TypeArguments::Handle(Z, type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(from_index, num_type_params);
+                             type_arguments.IsRaw(from_index, num_type_params);
     if (!is_raw_type) {
       // Unknown result.
       return Bool::null();
@@ -1348,13 +1234,9 @@ RawBool* JitOptimizer::InstanceOfAsBool(
     if (cls.NumTypeArguments() > 0) {
       return Bool::null();
     }
-    const bool is_subtype = cls.IsSubtypeOf(
-        TypeArguments::Handle(Z),
-        type_class,
-        TypeArguments::Handle(Z),
-        NULL,
-        NULL,
-        Heap::kOld);
+    const bool is_subtype =
+        cls.IsSubtypeOf(TypeArguments::Handle(Z), type_class,
+                        TypeArguments::Handle(Z), NULL, NULL, Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {
@@ -1365,7 +1247,7 @@ RawBool* JitOptimizer::InstanceOfAsBool(
       }
     }
   }
-  return results_differ ?  Bool::null() : prev.raw();
+  return results_differ ? Bool::null() : prev.raw();
 }
 
 
@@ -1388,7 +1270,8 @@ bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   if (!type_class.IsPrivate()) {
     if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
-        THR_Print("  **(CHA) Typecheck as class equality since no "
+        THR_Print(
+            "  **(CHA) Typecheck as class equality since no "
             "subclasses: %s\n",
             type_class.ToCString());
       }
@@ -1408,7 +1291,7 @@ bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
     const TypeArguments& type_arguments =
         TypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(from_index, num_type_params);
+                             type_arguments.IsRaw(from_index, num_type_params);
     return is_raw_type;
   }
   return true;
@@ -1444,12 +1327,9 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
   if ((*results)[0] != kSmiCid) {
     const Class& cls = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
-    const bool smi_is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
-                                                type_class,
-                                                TypeArguments::Handle(),
-                                                NULL,
-                                                NULL,
-                                                Heap::kOld);
+    const bool smi_is_subtype =
+        cls.IsSubtypeOf(TypeArguments::Handle(), type_class,
+                        TypeArguments::Handle(), NULL, NULL, Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1506,31 +1386,33 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       } else {
         UNIMPLEMENTED();
       }
-      negate = Bool::Cast(call->ArgumentAt(1)->OriginalDefinition()
-                          ->AsConstant()->value()).value();
+      negate =
+          Bool::Cast(
+              call->ArgumentAt(1)->OriginalDefinition()->AsConstant()->value())
+              .value();
     }
   } else {
     type_args = call->ArgumentAt(1);
     type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
-    negate = Bool::Cast(call->ArgumentAt(3)->OriginalDefinition()
-        ->AsConstant()->value()).value();
+    negate =
+        Bool::Cast(
+            call->ArgumentAt(3)->OriginalDefinition()->AsConstant()->value())
+            .value();
   }
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
   if ((unary_checks.NumberOfChecks() > 0) &&
       (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
-        new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+        new (Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
     Bool& as_bool =
         Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.IsNull()) {
       if (results->length() == unary_checks.NumberOfChecks() * 2) {
         const bool can_deopt = TryExpandTestCidsResult(results, type);
-        TestCidsInstr* test_cids = new(Z) TestCidsInstr(
-            call->token_pos(),
-            negate ? Token::kISNOT : Token::kIS,
-            new(Z) Value(left),
-            *results,
+        TestCidsInstr* test_cids = new (Z) TestCidsInstr(
+            call->token_pos(), negate ? Token::kISNOT : Token::kIS,
+            new (Z) Value(left), *results,
             can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
         // Remove type.
         ReplaceCall(call, test_cids);
@@ -1557,33 +1439,23 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
 
   if (TypeCheckAsClassEquality(type)) {
-    LoadClassIdInstr* left_cid = new(Z) LoadClassIdInstr(new(Z) Value(left));
-    InsertBefore(call,
-                 left_cid,
-                 NULL,
-                 FlowGraph::kValue);
+    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
+    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
     const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid =
-        new(Z) StrictCompareInstr(
-            call->token_pos(),
-            negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
-            new(Z) Value(left_cid),
-            new(Z) Value(cid),
-            false);  // No number check.
+    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+        call->token_pos(), negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
+        new (Z) Value(left_cid), new (Z) Value(cid),
+        false);  // No number check.
     ReplaceCall(call, check_cid);
     return;
   }
 
-  InstanceOfInstr* instance_of =
-      new(Z) InstanceOfInstr(call->token_pos(),
-                             new(Z) Value(left),
-                             new(Z) Value(type_args),
-                             type,
-                             negate,
-                             call->deopt_id());
+  InstanceOfInstr* instance_of = new (Z)
+      InstanceOfInstr(call->token_pos(), new (Z) Value(left),
+                      new (Z) Value(type_args), type, negate, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1601,9 +1473,9 @@ void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   if ((unary_checks.NumberOfChecks() > 0) &&
       (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
-        new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
-    const Bool& as_bool = Bool::ZoneHandle(Z,
-        InstanceOfAsBool(unary_checks, type, results));
+        new (Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+    const Bool& as_bool =
+        Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.raw() == Bool::True().raw()) {
       AddReceiverCheck(call);
       // Remove the original push arguments.
@@ -1619,13 +1491,9 @@ void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
       return;
     }
   }
-  AssertAssignableInstr* assert_as =
-      new(Z) AssertAssignableInstr(call->token_pos(),
-                                   new(Z) Value(left),
-                                   new(Z) Value(type_args),
-                                   type,
-                                   Symbols::InTypeCast(),
-                                   call->deopt_id());
+  AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args), type,
+      Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
 
@@ -1654,10 +1522,9 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   const bool is_dense = CheckClassInstr::IsDenseCidRange(unary_checks);
   const intptr_t max_checks = (op_kind == Token::kEQ)
-      ? FLAG_max_equality_polymorphic_checks
-      : FLAG_max_polymorphic_checks;
-  if ((unary_checks.NumberOfChecks() > max_checks) &&
-      !is_dense &&
+                                  ? FLAG_max_equality_polymorphic_checks
+                                  : FLAG_max_polymorphic_checks;
+  if ((unary_checks.NumberOfChecks() > max_checks) && !is_dense &&
       flow_graph()->InstanceCallNeedsClassCheck(
           instr, RawFunction::kRegularFunction)) {
     // Too many checks, it will be megamorphic which needs unary checks.
@@ -1705,20 +1572,25 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
-    const Function& target =
-        Function::Handle(Z, unary_checks.GetTargetAt(0));
-    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
-    has_one_target = !polymorphic_target;
+    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    if (target.recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
+      has_one_target = PolymorphicInstanceCallInstr::ComputeRuntimeType(
+                           unary_checks) != Type::null();
+    } else {
+      const bool polymorphic_target =
+          MethodRecognizer::PolymorphicTarget(target);
+      has_one_target = !polymorphic_target;
+    }
   }
 
   if (has_one_target) {
-    RawFunction::Kind function_kind =
-        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
+    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const RawFunction::Kind function_kind = target.kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
-          new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              /* call_with_checks = */ false,
-                                              /* complete = */ false);
+          new (Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                               /* call_with_checks = */ false,
+                                               /* complete = */ false);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1735,10 +1607,9 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     } else {
       call_with_checks = true;
     }
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            call_with_checks,
-                                            /* complete = */ false);
+    PolymorphicInstanceCallInstr* call = new (Z)
+        PolymorphicInstanceCallInstr(instr, unary_checks, call_with_checks,
+                                     /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
   }
 }
@@ -1776,37 +1647,27 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
     case MethodRecognizer::kMathMax: {
       // We can handle only monomorphic min/max call sites with both arguments
       // being either doubles or smis.
-      if (CanUnboxDouble() &&
-          call->HasICData() &&
+      if (CanUnboxDouble() && call->HasICData() &&
           (call->ic_data()->NumberOfChecks() == 1)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
-        if (ICDataHasReceiverArgumentClassIds(ic_data,
-                                              kDoubleCid, kDoubleCid)) {
+        if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
+                                              kDoubleCid)) {
           result_cid = kDoubleCid;
-        } else if (ICDataHasReceiverArgumentClassIds(ic_data,
-                                                     kSmiCid, kSmiCid)) {
+        } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid,
+                                                     kSmiCid)) {
           result_cid = kSmiCid;
         }
         if (result_cid != kIllegalCid) {
-          MathMinMaxInstr* min_max = new(Z) MathMinMaxInstr(
-              recognized_kind,
-              new(Z) Value(call->ArgumentAt(0)),
-              new(Z) Value(call->ArgumentAt(1)),
-              call->deopt_id(),
-              result_cid);
+          MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
+              recognized_kind, new (Z) Value(call->ArgumentAt(0)),
+              new (Z) Value(call->ArgumentAt(1)), call->deopt_id(), result_cid);
           const ICData& unary_checks =
               ICData::ZoneHandle(Z, ic_data.AsUnaryClassChecks());
-          AddCheckClass(min_max->left()->definition(),
-                        unary_checks,
-                        call->deopt_id(),
-                        call->env(),
-                        call);
-          AddCheckClass(min_max->right()->definition(),
-                        unary_checks,
-                        call->deopt_id(),
-                        call->env(),
-                        call);
+          AddCheckClass(min_max->left()->definition(), unary_checks,
+                        call->deopt_id(), call->env(), call);
+          AddCheckClass(min_max->right()->definition(), unary_checks,
+                        call->deopt_id(), call->env(), call);
           ReplaceCall(call, min_max);
         }
       }
@@ -1820,15 +1681,13 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
           if (ArgIsAlways(kSmiCid, ic_data, 1)) {
             Definition* arg = call->ArgumentAt(1);
             AddCheckSmi(arg, call->deopt_id(), call->env(), call);
-            ReplaceCall(call,
-                        new(Z) SmiToDoubleInstr(new(Z) Value(arg),
-                                                call->token_pos()));
+            ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
+                                                       call->token_pos()));
           } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
                      CanConvertUnboxedMintToDouble()) {
             Definition* arg = call->ArgumentAt(1);
-            ReplaceCall(call,
-                        new(Z) MintToDoubleInstr(new(Z) Value(arg),
-                                                 call->deopt_id()));
+            ReplaceCall(call, new (Z) MintToDoubleInstr(new (Z) Value(arg),
+                                                        call->deopt_id()));
           }
         }
       }
@@ -1840,8 +1699,7 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-void JitOptimizer::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {
+void JitOptimizer::VisitStoreInstanceField(StoreInstanceFieldInstr* instr) {
   if (instr->IsUnboxedStore()) {
     // Determine if this field should be unboxed based on the usage of getter
     // and setter functions: The heuristic requires that the setter has a
@@ -1861,7 +1719,7 @@ void JitOptimizer::VisitStoreInstanceField(
         unboxed_field = true;
       } else if ((setter.usage_counter() > 0) &&
                  ((FLAG_getter_setter_ratio * setter.usage_counter()) >=
-                   getter.usage_counter())) {
+                  getter.usage_counter())) {
         unboxed_field = true;
       }
     }
@@ -1872,8 +1730,8 @@ void JitOptimizer::VisitStoreInstanceField(
       // - deoptimize dependent code.
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-            "Unboxing instance field while compiling");
+        Compiler::AbortBackgroundCompilation(
+            Thread::kNoDeoptId, "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
@@ -1903,24 +1761,20 @@ void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
                                             instr->num_context_variables());
   instr->ReplaceWith(replacement, current_iterator());
 
-  StoreInstanceFieldInstr* store =
-      new(Z) StoreInstanceFieldInstr(Context::parent_offset(),
-                                     new Value(replacement),
-                                     new Value(flow_graph_->constant_null()),
-                                     kNoStoreBarrier,
-                                     instr->token_pos());
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(Context::parent_offset(), new Value(replacement),
+                              new Value(flow_graph_->constant_null()),
+                              kNoStoreBarrier, instr->token_pos());
   // Storing into uninitialized memory; remember to prevent dead store
   // elimination and ensure proper GC barrier.
   store->set_is_initialization(true);
   flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
   Definition* cursor = store;
   for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
-    store =
-        new(Z) StoreInstanceFieldInstr(Context::variable_offset(i),
-                                       new Value(replacement),
-                                       new Value(flow_graph_->constant_null()),
-                                       kNoStoreBarrier,
-                                       instr->token_pos());
+    store = new (Z) StoreInstanceFieldInstr(
+        Context::variable_offset(i), new Value(replacement),
+        new Value(flow_graph_->constant_null()), kNoStoreBarrier,
+        instr->token_pos());
     // Storing into uninitialized memory; remember to prevent dead store
     // elimination and ensure proper GC barrier.
     store->set_is_initialization(true);
@@ -1931,10 +1785,9 @@ void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
 
 
 void JitOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
-  // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
+// TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-  if (!instr->can_pack_into_smi())
-    instr->set_representation(kUnboxedMint);
+  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedMint);
 #endif
 }
 
@@ -1942,7 +1795,7 @@ void JitOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                            const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
-      (unary_ic_data.NumArgsTested() == 1));
+         (unary_ic_data.NumArgsTested() == 1));
   if (I->type_checks()) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.
@@ -1969,43 +1822,34 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   // Inline implicit instance setter.
   const String& field_name =
       String::Handle(Z, Field::NameFromSetter(instr->function_name()));
-  const Field& field =
-      Field::ZoneHandle(Z, GetField(class_id, field_name));
+  const Field& field = Field::ZoneHandle(Z, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  if (flow_graph()->InstanceCallNeedsClassCheck(
-          instr, RawFunction::kImplicitSetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(instr,
+                                                RawFunction::kImplicitSetter)) {
     AddReceiverCheck(instr);
   }
   if (field.guarded_cid() != kDynamicCid) {
     ASSERT(FLAG_use_field_guards);
-    InsertBefore(instr,
-                 new(Z) GuardFieldClassInstr(
-                     new(Z) Value(instr->ArgumentAt(1)),
-                      field,
-                      instr->deopt_id()),
-                 instr->env(),
-                 FlowGraph::kEffect);
+    InsertBefore(
+        instr, new (Z) GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                            field, instr->deopt_id()),
+        instr->env(), FlowGraph::kEffect);
   }
 
   if (field.needs_length_check()) {
     ASSERT(FLAG_use_field_guards);
-    InsertBefore(instr,
-                 new(Z) GuardFieldLengthInstr(
-                     new(Z) Value(instr->ArgumentAt(1)),
-                      field,
-                      instr->deopt_id()),
-                 instr->env(),
-                 FlowGraph::kEffect);
+    InsertBefore(instr, new (Z) GuardFieldLengthInstr(
+                            new (Z) Value(instr->ArgumentAt(1)), field,
+                            instr->deopt_id()),
+                 instr->env(), FlowGraph::kEffect);
   }
 
   // Field guard was detached.
-  StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-      field,
-      new(Z) Value(instr->ArgumentAt(0)),
-      new(Z) Value(instr->ArgumentAt(1)),
-      kEmitStoreBarrier,
-      instr->token_pos());
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
+                              new (Z) Value(instr->ArgumentAt(1)),
+                              kEmitStoreBarrier, instr->token_pos());
 
   if (store->IsUnboxedStore()) {
     flow_graph()->parsed_function().AddToGuardedFields(&field);
@@ -2020,3 +1864,4 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 
 
 }  // namespace dart
+#endif  // DART_PRECOMPILED_RUNTIME

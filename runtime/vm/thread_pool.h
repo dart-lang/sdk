@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_THREAD_POOL_H_
-#define VM_THREAD_POOL_H_
+#ifndef RUNTIME_VM_THREAD_POOL_H_
+#define RUNTIME_VM_THREAD_POOL_H_
 
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -93,8 +93,7 @@ class ThreadPool {
 
   class JoinList {
    public:
-    explicit JoinList(ThreadJoinId id, JoinList* next) : id_(id), next_(next) {
-    }
+    explicit JoinList(ThreadJoinId id, JoinList* next) : id_(id), next_(next) {}
 
     // The thread pool's mutex_ must be held when calling this.
     static void AddLocked(ThreadJoinId id, JoinList** list);
@@ -147,4 +146,4 @@ class ThreadPool {
 
 }  // namespace dart
 
-#endif  // VM_THREAD_POOL_H_
+#endif  // RUNTIME_VM_THREAD_POOL_H_

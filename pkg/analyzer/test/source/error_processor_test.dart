@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
 
 import '../generated/test_support.dart';

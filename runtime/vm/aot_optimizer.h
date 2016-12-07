@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_AOT_OPTIMIZER_H_
-#define VM_AOT_OPTIMIZER_H_
+#ifndef RUNTIME_VM_AOT_OPTIMIZER_H_
+#define RUNTIME_VM_AOT_OPTIMIZER_H_
 
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
@@ -11,22 +11,19 @@
 namespace dart {
 
 class CSEInstructionMap;
-template <typename T> class GrowableArray;
+template <typename T>
+class GrowableArray;
 class ParsedFunction;
+class Precompiler;
 class RawBool;
 
 class AotOptimizer : public FlowGraphVisitor {
  public:
-  AotOptimizer(
-      FlowGraph* flow_graph,
-      bool use_speculative_inlining,
-      GrowableArray<intptr_t>* inlining_black_list)
-      : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph),
-        use_speculative_inlining_(use_speculative_inlining),
-        inlining_black_list_(inlining_black_list) {
-    ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-  }
+  AotOptimizer(Precompiler* precompiler,
+               FlowGraph* flow_graph,
+               bool use_speculative_inlining,
+               GrowableArray<intptr_t>* inlining_black_list);
+
   virtual ~AotOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -45,6 +42,8 @@ class AotOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitPolymorphicInstanceCall(
+      PolymorphicInstanceCallInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
   void InsertBefore(Instruction* next,
@@ -106,15 +105,15 @@ class AotOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
+  bool RecognizeRuntimeTypeGetter(InstanceCallInstr* call);
+  bool TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call);
+
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 
-  bool InlineFloat32x4BinaryOp(InstanceCallInstr* call,
-                               Token::Kind op_kind);
-  bool InlineInt32x4BinaryOp(InstanceCallInstr* call,
-                              Token::Kind op_kind);
-  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
-                               Token::Kind op_kind);
+  bool InlineFloat32x4BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool InlineInt32x4BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
@@ -136,11 +135,14 @@ class AotOptimizer : public FlowGraphVisitor {
 
   bool IsAllowedForInlining(intptr_t deopt_id);
 
+  Precompiler* precompiler_;
   FlowGraph* flow_graph_;
 
   const bool use_speculative_inlining_;
 
   GrowableArray<intptr_t>* inlining_black_list_;
+
+  bool has_unique_no_such_method_;
 
   DISALLOW_COPY_AND_ASSIGN(AotOptimizer);
 };
@@ -148,4 +150,4 @@ class AotOptimizer : public FlowGraphVisitor {
 
 }  // namespace dart
 
-#endif  // VM_AOT_OPTIMIZER_H_
+#endif  // RUNTIME_VM_AOT_OPTIMIZER_H_

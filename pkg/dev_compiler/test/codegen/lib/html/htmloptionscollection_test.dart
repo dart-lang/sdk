@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library HTMLOptionsCollectionTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test('indexedAccessTest', () {
     // FIXME: we need some massaging to dart:html to enable HTMLOptionsCollection.add
     // and hence programatic building of collection.
-    final selectElement = new Element.html('''
+    SelectElement selectElement = new Element.html('''
       <select>
         <option value="0">Option0</option>
         <option value="1">Option1</option>
@@ -29,7 +26,7 @@ main() {
     expect(optionsCollection[1].text, equals('Option1'));
     expect(optionsCollection[2].text, equals('Option2'));
 
-    expect(() { optionsCollection[0] = 1; }, throws);
+    expect(() { (optionsCollection as dynamic)[0] = 1; }, throws);
 
     // OPTIONALS optionsCollection[0] = new OptionElement(value: '42', data: 'Option42');
     expect(() {

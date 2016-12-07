@@ -35,7 +35,7 @@ runWithActiveContext(AnalysisContext context, f()) {
       context.isActive = false;
     }
   } else {
-    f();
+    return f();
   }
 }
 

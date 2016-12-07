@@ -8,23 +8,24 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(DeclarationResolverMetadataTest);
-  defineReflectiveTests(DeclarationResolverTest);
-  defineReflectiveTests(StrongModeDeclarationResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DeclarationResolverMetadataTest);
+    defineReflectiveTests(DeclarationResolverTest);
+    defineReflectiveTests(StrongModeDeclarationResolverTest);
+  });
 }
 
 CompilationUnit _cloneResolveUnit(CompilationUnit unit) {
@@ -45,13 +46,16 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
   CompilationUnit unit;
   CompilationUnit unit2;
 
-  void checkMetadata(String search) {
+  void checkMetadata(String search, {bool expectDifferent: false}) {
     NodeList<Annotation> metadata = _findMetadata(unit, search);
     NodeList<Annotation> metadata2 = _findMetadata(unit2, search);
     expect(metadata, isNotEmpty);
     for (int i = 0; i < metadata.length; i++) {
-      expect(
-          metadata2[i].elementAnnotation, same(metadata[i].elementAnnotation));
+      Matcher expectation = same(metadata[i].elementAnnotation);
+      if (expectDifferent) {
+        expectation = isNot(expectation);
+      }
+      expect(metadata2[i].elementAnnotation, expectation);
     }
   }
 
@@ -83,7 +87,7 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
 
   void test_metadata_declaredIdentifier() {
     setupCode('f(x, y) { for (@a var x in y) {} }');
-    checkMetadata('var');
+    checkMetadata('var', expectDifferent: true);
   }
 
   void test_metadata_enumDeclaration() {
@@ -95,6 +99,33 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     addNamedSource('/foo.dart', 'class C {}');
     setupCode('@a export "foo.dart";');
     checkMetadata('export');
+  }
+
+  void test_metadata_exportDirective_resynthesized() {
+    CompilationUnit unit = resolveSource(r'''
+@a
+export "dart:async";
+
+@b
+export "dart:math";
+
+const a = null;
+const b = null;
+''');
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The ExportElement(s) still have the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives[0].offset, []);
+    unitElement.setAnnotations(unit.directives[1].offset, []);
+    expect(unitElement.library.exports[0].metadata, hasLength(1));
+    expect(unitElement.library.exports[1].metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
   }
 
   void test_metadata_fieldDeclaration() {
@@ -159,9 +190,50 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     checkMetadata('import');
   }
 
+  void test_metadata_importDirective_resynthesized() {
+    CompilationUnit unit = resolveSource(r'''
+@a
+import "dart:async";
+
+@b
+import "dart:math";
+
+const a = null;
+const b = null;
+''');
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The ImportElement(s) still have the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives[0].offset, []);
+    unitElement.setAnnotations(unit.directives[1].offset, []);
+    expect(unitElement.library.imports[0].metadata, hasLength(1));
+    expect(unitElement.library.imports[1].metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(unit.directives[0].metadata.single.name.name, 'a');
+    expect(unit.directives[1].metadata.single.name.name, 'b');
+  }
+
   void test_metadata_libraryDirective() {
     setupCode('@a library L;');
     checkMetadata('L');
+  }
+
+  void test_metadata_libraryDirective_resynthesized() {
+    CompilationUnit unit = resolveSource('@a library L; const a = null;');
+    expect(unit.directives.single.metadata.single.name.name, 'a');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The LibraryElement still has the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives.single.offset, []);
+    expect(unitElement.library.metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(clonedUnit.directives.single.metadata.single.name.name, 'a');
   }
 
   void test_metadata_localFunctionDeclaration() {
@@ -175,7 +247,7 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
 
   void test_metadata_localVariableDeclaration() {
     setupCode('f() { @a int x; }');
-    checkMetadata('x');
+    checkMetadata('x', expectDifferent: true);
   }
 
   void test_metadata_methodDeclaration_getter() {
@@ -258,6 +330,70 @@ class DeclarationResolverTest extends ResolverTestCase {
     super.setUp();
   }
 
+  void test_closure_inside_catch_block() {
+    String code = '''
+f() {
+  try {
+  } catch (e) {
+    return () => null;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_closure_inside_labeled_statement() {
+    String code = '''
+f(b) {
+  foo: while (true) {
+    if (b) {
+      break foo;
+    }
+    return () => null;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_closure_inside_switch_case() {
+    String code = '''
+void f(k, m) {
+  switch (k) {
+    case 0:
+      m.forEach((key, value) {});
+    break;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_closure_inside_switch_default() {
+    String code = '''
+void f(k, m) {
+  switch (k) {
+    default:
+      m.forEach((key, value) {});
+    break;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   void test_enumConstant_partiallyResolved() {
     String code = r'''
 enum Fruit {apple, pear}
@@ -300,9 +436,11 @@ void set zzz(_) {}
 
   void test_invalid_functionDeclaration_getter_inFunction() {
     String code = r'''
-main() {
-  int get zzz => 42;
-}
+var v = (() {
+  main() {
+    int get zzz => 42;
+  }
+});
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement getterElement =
@@ -315,9 +453,11 @@ main() {
 
   void test_invalid_functionDeclaration_setter_inFunction() {
     String code = r'''
-main() {
-  set zzz(x) {}
-}
+var v = (() {
+  main() {
+    set zzz(x) {}
+  }
+});
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement setterElement =

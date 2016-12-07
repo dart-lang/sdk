@@ -20,47 +20,44 @@ void checkPrintType(String expression, checkType(compiler, type)) {
   asyncTest(() => compileAndFind('main() { print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        var type = compiler.globalInference.results.typeOf(parameter);
-        checkType(compiler, type);
+        checkType(compiler, _typeOf(compiler, parameter));
       }));
 
   asyncTest(() =>
       compileAndFind('main() { var x = print; print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        var type = compiler.globalInference.results.typeOf(parameter);
-        checkType(compiler, type);
+        checkType(compiler, _typeOf(compiler, parameter));
       }));
 
   asyncTest(() => compileAndFind(
           'main() { print($expression); print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        var type = compiler.globalInference.results.typeOf(parameter);
-        checkType(compiler, type);
+        checkType(compiler, _typeOf(compiler, parameter));
       }));
 }
 
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
     if (type.isForwarding) type = type.forwardTo;
-    Expect.identical(compiler.commonMasks.boolType, type);
+    Expect.identical(compiler.closedWorld.commonMasks.boolType, type);
   });
   checkPrintType('1.5', (compiler, type) {
-    Expect.identical(compiler.commonMasks.doubleType, type);
+    Expect.identical(compiler.closedWorld.commonMasks.doubleType, type);
   });
   checkPrintType('1', (compiler, type) {
-    Expect.identical(compiler.commonMasks.uint31Type, type);
+    Expect.identical(compiler.closedWorld.commonMasks.uint31Type, type);
   });
   checkPrintType('[]', (compiler, type) {
     if (type.isForwarding) type = type.forwardTo;
-    Expect.identical(compiler.commonMasks.growableListType, type);
+    Expect.identical(compiler.closedWorld.commonMasks.growableListType, type);
   });
   checkPrintType('null', (compiler, type) {
-    Expect.identical(compiler.commonMasks.nullType, type);
+    Expect.identical(compiler.closedWorld.commonMasks.nullType, type);
   });
   checkPrintType('"foo"', (compiler, type) {
-    Expect.isTrue(compiler.commonMasks.stringType
+    Expect.isTrue(compiler.closedWorld.commonMasks.stringType
         .containsOnlyString(compiler.closedWorld));
   });
 }
@@ -71,14 +68,10 @@ void testOptionalParameters() {
     var firstParameter = fiskElement.functionSignature.requiredParameters[0];
     var secondParameter = fiskElement.functionSignature.optionalParameters[0];
     var thirdParameter = fiskElement.functionSignature.optionalParameters[1];
-    var commonMasks = compiler.commonMasks;
-    var inference = compiler.globalInference;
-    Expect.identical(
-        commonMasks.uint31Type, inference.results.typeOf(firstParameter));
-    Expect.identical(
-        commonMasks.nullType, inference.results.typeOf(secondParameter));
-    Expect.identical(
-        commonMasks.nullType, inference.results.typeOf(thirdParameter));
+    var commonMasks = compiler.closedWorld.commonMasks;
+    Expect.identical(commonMasks.uint31Type, _typeOf(compiler, firstParameter));
+    Expect.identical(commonMasks.nullType, _typeOf(compiler, secondParameter));
+    Expect.identical(commonMasks.nullType, _typeOf(compiler, thirdParameter));
   });
 }
 
@@ -86,3 +79,6 @@ void main() {
   testBasicTypes();
   testOptionalParameters();
 }
+
+_typeOf(compiler, parameter) =>
+    compiler.globalInference.results.resultOf(parameter).type;

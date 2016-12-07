@@ -14,13 +14,9 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
+import 'package:test/test.dart';
 
 main() {
-  initializeTestEnvironment();
-
   group('CachingPubPackageMapProvider', () {
     MemoryResourceProvider resProvider;
     _MockPubListRunner mockRunner;
@@ -72,10 +68,11 @@ main() {
     }
 
     CachingPubPackageMapProvider newPkgProvider() {
+      Folder sdkFolder = resProvider
+          .newFolder(resProvider.convertPath('/Users/user/dart-sdk'));
       return new CachingPubPackageMapProvider(
           resProvider,
-          new FolderBasedDartSdk(
-              resProvider, FolderBasedDartSdk.defaultSdkDirectory(resProvider)),
+          new FolderBasedDartSdk(resProvider, sdkFolder),
           mockRunner.runPubList,
           mockWriteFile);
     }
