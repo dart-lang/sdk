@@ -10,10 +10,8 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_provider.dart';
@@ -30,9 +28,6 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -346,16 +341,16 @@ abstract class ContextManagerCallbacks {
   AnalysisContext addContext(Folder folder, AnalysisOptions options);
 
   /**
-   * The given [file] was removed from the folder analyzed in the [driver].
-   */
-  void applyFileRemoved(AnalysisDriver driver, String file);
-
-  /**
    * Called when the set of files associated with a context have changed (or
    * some of those files have been modified).  [changeSet] is the set of
    * changes that need to be applied to the context.
    */
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * The given [file] was removed from the folder analyzed in the [driver].
+   */
+  void applyFileRemoved(AnalysisDriver driver, String file);
 
   /**
    * Signals that the context manager has started to compute a package map (if
@@ -635,37 +630,25 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
 
-    // In case options files are removed, revert to defaults.
+    AnalysisOptionsImpl analysisOptions;
     if (optionsRemoved) {
-      // Start with defaults.
-      info.context.analysisOptions = new AnalysisOptionsImpl();
-
+      // In case options files are removed, revert to defaults.
+      analysisOptions = new AnalysisOptionsImpl.from(defaultContextOptions);
       // Apply inherited options.
       options = _toStringMap(_getEmbeddedOptions(info));
-      if (options != null) {
-        configureContextOptions(info.context, options);
-      }
     } else {
+      analysisOptions =
+          new AnalysisOptionsImpl.from(info.context.analysisOptions);
       // Check for embedded options.
       Map embeddedOptions = _getEmbeddedOptions(info);
       if (embeddedOptions != null) {
         options = _toStringMap(new Merger().merge(embeddedOptions, options));
       }
     }
-
-    // Notify options processors.
-    AnalysisEngine.instance.optionsPlugin.optionsProcessors
-        .forEach((OptionsProcessor p) {
-      try {
-        p.optionsProcessed(info.context, options);
-      } catch (e, stacktrace) {
-        AnalysisEngine.instance.logger.logError(
-            'Error processing analysis options',
-            new CaughtException(e, stacktrace));
-      }
-    });
-
-    configureContextOptions(info.context, options);
+    if (options != null) {
+      applyToAnalysisOptions(analysisOptions, options);
+    }
+    info.context.analysisOptions = analysisOptions;
 
     // Nothing more to do.
     if (options == null) {
@@ -708,16 +691,6 @@ class ContextManagerImpl implements ContextManager {
       Map embeddedOptions = _getEmbeddedOptions(info);
       if (embeddedOptions != null) {
         options = _toStringMap(new Merger().merge(embeddedOptions, options));
-      }
-    }
-
-    var lintOptions = options['linter'];
-    if (lintOptions != null) {
-      LintConfig config = new LintConfig.parseMap(lintOptions);
-      Iterable<LintRule> lintRules = Registry.ruleRegistry.enabled(config);
-      if (lintRules.isNotEmpty) {
-        analysisOptions.lint = true;
-        analysisOptions.lintRules = lintRules.toList();
       }
     }
 
@@ -1004,8 +977,7 @@ class ContextManagerImpl implements ContextManager {
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
-      AnalysisOptions options =
-          builder.getAnalysisOptions(info.context, contextRoot);
+      AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
       SourceFactory factory = builder.createSourceFactory(contextRoot, options);
       info.context.analysisOptions = options;
       info.context.sourceFactory = factory;

@@ -38,7 +38,7 @@ class ContextConfigurationTest extends AbstractContextTest {
   AnalysisOptions get analysisOptions => context.analysisOptions;
 
   configureContext(String optionsSource) =>
-      configureContextOptions(context, parseOptions(optionsSource));
+      applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
 
   Map<String, YamlNode> parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
@@ -87,7 +87,7 @@ analyzer:
     unused_local_variable: error
 ''');
 
-    List<ErrorProcessor> processors = context.analysisOptions.errorProcessors;
+    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(
@@ -118,7 +118,7 @@ analyzer:
     - 'test/**'
 ''');
 
-    List<String> excludes = context.analysisOptions.excludePatterns;
+    List<String> excludes = analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 

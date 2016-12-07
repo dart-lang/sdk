@@ -153,7 +153,7 @@ ErrorProcessor processor;
 void configureOptions(String options) {
   Map<String, YamlNode> optionMap =
       optionsProvider.getOptionsFromString(options);
-  configureContextOptions(context, optionMap);
+  applyToAnalysisOptions(context.analysisOptions, optionMap);
 }
 
 ErrorProcessor getProcessor(AnalysisError error) =>

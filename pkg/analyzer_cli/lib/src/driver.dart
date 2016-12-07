@@ -12,7 +12,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_provider.dart';
@@ -770,29 +769,21 @@ class Driver implements CommandLineStarter {
       AnalysisContext context,
       CommandLineOptions options) {
     file_system.File file = _getOptionsFile(resourceProvider, options);
-    List<OptionsProcessor> optionsProcessors =
-        AnalysisEngine.instance.optionsPlugin.optionsProcessors;
 
-    try {
-      AnalysisOptionsProvider analysisOptionsProvider =
-          new AnalysisOptionsProvider(sourceFactory);
-      Map<String, YamlNode> optionMap =
-          analysisOptionsProvider.getOptionsFromFile(file);
-      optionsProcessors.forEach(
-          (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
+    AnalysisOptionsProvider analysisOptionsProvider =
+        new AnalysisOptionsProvider(sourceFactory);
+    Map<String, YamlNode> optionMap =
+        analysisOptionsProvider.getOptionsFromFile(file);
 
-      // Fill in lint rule defaults in case lints are enabled and rules are
-      // not specified in an options file.
-      if (options.lints && !containsLintRuleEntry(optionMap)) {
-        setLints(context, linterPlugin.contributedRules);
-      }
+    // Fill in lint rule defaults in case lints are enabled and rules are
+    // not specified in an options file.
+    if (options.lints && !containsLintRuleEntry(optionMap)) {
+      setLints(context, linterPlugin.contributedRules);
+    }
 
-      // Ask engine to further process options.
-      if (optionMap != null) {
-        configureContextOptions(context, optionMap);
-      }
-    } on Exception catch (e) {
-      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
+    // Ask engine to further process options.
+    if (optionMap != null) {
+      applyToAnalysisOptions(context.analysisOptions, optionMap);
     }
   }
 }
