@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -424,6 +425,7 @@ class Driver implements ServerStarter {
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
+    linter.registerLintRules();
 
     String defaultSdkPath;
     if (results[SDK_OPTION] != null) {

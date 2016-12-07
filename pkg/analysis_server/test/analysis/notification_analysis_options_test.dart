@@ -9,6 +9,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -74,6 +75,7 @@ analyzer:
 
   @override
   void setUp() {
+    registerLintRules();
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server)];
   }

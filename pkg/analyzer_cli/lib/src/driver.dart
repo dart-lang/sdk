@@ -42,6 +42,7 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:linter/src/rules.dart' as linter;
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -623,6 +624,8 @@ class Driver implements CommandLineStarter {
 
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
+
+    linter.registerLintRules();
   }
 
   /// Analyze a single source.
