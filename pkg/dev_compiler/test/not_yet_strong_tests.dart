@@ -2307,6 +2307,7 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/getter_override2_test_00_multi',
   'language/getters_setters_test',
   'language/import_combinators_negative_test',
+  'language/initializing_formal_type_test',
   'language/inst_field_initializer1_negative_test',
   'language/instance_call_wrong_argument_count_negative_test',
   'language/instance_method2_negative_test',
