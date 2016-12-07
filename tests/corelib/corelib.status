@@ -122,6 +122,8 @@ string_case_test/02: Fail, OK  # Bug in IE.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
+list_test/none: Fail # Issue 28014
+list_test/01: Fail # Issue 28014
 
 [ $compiler == dart2js && $runtime == dartium ]
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.

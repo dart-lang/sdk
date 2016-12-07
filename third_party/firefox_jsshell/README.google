@@ -1,8 +1,8 @@
 Name: Firefox command line javascript shell.
 Short Name: js-shell
-URL: http://ftp.mozilla.org/pub/firefox/candidates/47.0-candidates/build2/
-Version: JavaScript-C47
-Date: June 3, 2016
+URL: http://ftp.mozilla.org/pub/firefox/candidates/50.0-candidates/build2/
+Version: JavaScript-C50
+Date: December 6, 2016
 License: MPL, http://www.mozilla.org/MPL
 
 Description:
