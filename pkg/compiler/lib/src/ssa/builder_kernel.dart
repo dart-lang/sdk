@@ -162,6 +162,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     openFunction();
     if (field.initializer != null) {
       field.initializer.accept(this);
+      HInstruction fieldValue = pop();
+      HInstruction checkInstruction = typeBuilder.potentiallyCheckOrTrustType(
+          fieldValue, astAdapter.getDartType(field.type));
+      stack.add(checkInstruction);
     } else {
       stack.add(graph.addConstantNull(compiler));
     }
@@ -1060,7 +1064,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction initialValue = graph.addConstantNull(compiler);
       localsHandler.updateLocal(local, initialValue);
     } else {
-      // TODO(het): handle case where the variable is top-level or static
       declaration.initializer.accept(this);
       HInstruction initialValue = pop();
 
@@ -1072,7 +1075,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
-    // TODO(het): handle case where the variable is top-level or static
     LocalElement local = astAdapter.getElement(variable);
 
     // Give the value a name if it doesn't have one already.
