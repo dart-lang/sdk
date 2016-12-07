@@ -953,17 +953,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "removing the extends clause.");
 
   /**
-   * DEP 37 extends the syntax for assert() to allow a second "message"
-   * argument.  We issue this error if the user tries to supply a "message"
-   * argument but the DEP is not enabled.
-   */
-  static const CompileTimeErrorCode EXTRA_ARGUMENT_TO_ASSERT =
-      const CompileTimeErrorCode(
-          'EXTRA_ARGUMENT_TO_ASSERT',
-          "Assertions only accept a single argument.",
-          "Try removing the message, or enable messages in assert statements.");
-
-  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *

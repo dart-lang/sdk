@@ -1105,6 +1105,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable custom assert messages (DEP 37).
    */
+  @deprecated
   bool get enableAssertMessage;
 
   /**
@@ -1303,12 +1304,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   static const int DEFAULT_CACHE_SIZE = 64;
 
-  static const int ENABLE_ASSERT_FLAG = 0x01;
-  static const int ENABLE_LAZY_ASSIGNMENT_OPERATORS = 0x02;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
+  static const int ENABLE_LAZY_ASSIGNMENT_OPERATORS = 0x01;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x02;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x04;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x08;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x10;
 
   /**
    * The default list of non-nullable type names.
@@ -1331,9 +1331,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableAssertInitializer = false;
-
-  @override
-  bool enableAssertMessage = false;
 
   @override
   bool enableLazyAssignmentOperators = false;
@@ -1454,7 +1451,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
-    enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
@@ -1512,6 +1508,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     _analyzeFunctionBodiesPredicate = value;
   }
+
+  @override
+  @deprecated
+  bool get enableAssertMessage => true;
+
+  @deprecated
+  void set enableAssertMessage(bool enable) {}
 
   @deprecated
   @override
@@ -1578,12 +1581,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   List<int> encodeCrossContextOptions() {
-    int flags = (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
+    int flags =
         (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
-        (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
-        (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
-        (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
-        (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
+            (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+            (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
+            (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
+            (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
     return <int>[flags, patchPlatform];
   }
 
@@ -1592,7 +1595,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = false;
     disableCacheFlushing = false;
     enableAssertInitializer = false;
-    enableAssertMessage = false;
     enableLazyAssignmentOperators = false;
     enableStrictCallChecks = false;
     enableSuperMixins = false;
@@ -1621,7 +1623,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
-    enableAssertMessage = options.enableAssertMessage;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
@@ -1640,9 +1641,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static String decodeCrossContextOptions(List<int> encoding) {
     List<String> parts = [];
     int flags = encoding[0];
-    if (flags & ENABLE_ASSERT_FLAG > 0) {
-      parts.add('assert');
-    }
     if (flags & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
       parts.add('lazyAssignmentOperators');
     }

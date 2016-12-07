@@ -6242,8 +6242,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         libraryElement,
         typeProvider,
         new InheritanceManager(libraryElement),
-        context.analysisOptions.enableSuperMixins,
-        context.analysisOptions.enableAssertMessage);
+        context.analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
     //
     // Convert the pending errors into actual errors.

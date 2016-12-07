@@ -141,7 +141,6 @@ const Map<String, LibraryInfo> libraries = const {
     // being returned.
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
-    defaultOptions.enableAssertMessage = !defaultOptions.enableAssertMessage;
     defaultOptions.enableLazyAssignmentOperators =
         !defaultOptions.enableLazyAssignmentOperators;
     defaultOptions.enableStrictCallChecks =
@@ -680,7 +679,6 @@ analyzer:
     expect(actual.analyzeFunctionBodiesPredicate,
         same(expected.analyzeFunctionBodiesPredicate));
     expect(actual.dart2jsHint, expected.dart2jsHint);
-    expect(actual.enableAssertMessage, expected.enableAssertMessage);
     expect(actual.enableLazyAssignmentOperators,
         expected.enableLazyAssignmentOperators);
     expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);

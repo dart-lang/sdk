@@ -143,7 +143,6 @@ f() {}''');
     // assignment occurred outside an assert statement.  (Note that it is a
     // dubious practice for the computation of an assert message to have side
     // effects, since it is only evaluated if the assert fails).
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     assertErrorsInCode(
         '''
 class C {
