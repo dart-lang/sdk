@@ -50,13 +50,16 @@ class IsolateSpawnException implements Exception {
  * for example by pausing the isolate or by getting events when the isolate
  * has an uncaught error.
  *
- * The [controlPort] gives access to controlling the isolate, and the
- * [pauseCapability] and [terminateCapability] guard access to some control
- * operations.
+ * The [controlPort] identifies and gives access to controlling the isolate,
+ * and the [pauseCapability] and [terminateCapability] guard access
+ * to some control operations.
+ * For example, calling [pause] on an `Isolate` object created without a
+ * [pauseCapability], has no effect.
+ *
  * The `Isolate` object provided by a spawn operation will have the
  * control port and capabilities needed to control the isolate.
- * New isolates objects can be created without some of these capabilities
- * if necessary.
+ * New isolate objects can be created without some of these capabilities
+ * if necessary, using the [Isolate.Isolate] constructor.
  *
  * An `Isolate` object cannot be sent over a `SendPort`, but the control port
  * and capabilities can be sent, and can be used to create a new functioning
@@ -71,22 +74,26 @@ class Isolate {
   /**
    * Control port used to send control messages to the isolate.
    *
-   * This class provides helper functions that sends control messages
-   * to the control port.
-   *
    * The control port identifies the isolate.
+   *
+   * An `Isolate` object allows sending control messages
+   * through the control port.
+   *
+   * Some control messages require a specific capability to be passed along
+   * with the message (see [pauseCapability] and [terminateCapaibility]),
+   * otherwise the message is ignored by the isolate.
    */
   final SendPort controlPort;
 
   /**
    * Capability granting the ability to pause the isolate.
    *
-   * This capability is used by [pause].
-   * If the capability is not the correct pause capability of the isolate,
-   * including if the capability is `null`, then calls to `pause` will have no
-   * effect.
+   * This capability is required by [pause].
+   * If the capability is `null`, or if it is not the correct pause capability
+   * of the isolate identified by [controlPort],
+   * then calls to [pause] will have no effect.
    *
-   * If the isolate is started in a paused state, use this capability as
+   * If the isolate is spawned in a paused state, use this capability as
    * argument to [resume] to resume the isolate.
    */
   final Capability pauseCapability;
@@ -94,10 +101,10 @@ class Isolate {
   /**
    * Capability granting the ability to terminate the isolate.
    *
-   * This capability is used by [kill] and [setErrorsFatal].
-   * If the capability is not the correct termination capability of the isolate,
-   * including if the capability is `null`, then calls to those methods will
-   * have no effect.
+   * This capability is required by [kill] and [setErrorsFatal].
+   * If the capability is `null`, or if it is not the correct termination
+   * capability of the isolate identified by [controlPort],
+   * then calls to those methods will have no effect.
    */
   final Capability terminateCapability;
 
@@ -113,10 +120,18 @@ class Isolate {
    * anywhere else, so the capabilities should come from the same isolate as
    * the control port.
    *
-   * If all the available capabilities are included,
-   * there is no reason to create a new object,
-   * since the behavior is defined entirely
-   * by the control port and capabilities.
+   * Can also be used to create an [Isolate] object from a control port, and
+   * any available capabilities, that have been sent through a [SendPort].
+   *
+   * Example:
+   * ```dart
+   * Isolate isolate = findSomeIsolate();
+   * Isolate restrictedIsolate = new Isolate(isolate.controlPort);
+   * untrustedCode(restrictedIsolate);
+   * ```
+   * This example creates a new `Isolate` object that cannot be used to
+   * pause or terminate the isolate. All the untrusted code can do is to
+   * inspect the isolate and see uncaught errors or when it terminates.
    */
   Isolate(this.controlPort, {this.pauseCapability,
                              this.terminateCapability});
@@ -305,17 +320,18 @@ class Isolate {
    * When the isolate receives the pause command, it stops
    * processing events from the event loop queue.
    * It may still add new events to the queue in response to, e.g., timers
-   * or receive-port messages. When the isolate is resumed, it handles
-   * the already enqueued events.
+   * or receive-port messages. When the isolate is resumed,
+   * it starts handling the already enqueued events.
    *
    * The pause request is sent through the isolate's command port,
    * which bypasses the receiving isolate's event loop.
    * The pause takes effect when it is received, pausing the event loop
    * as it is at that time.
    *
-   * If [resumeCapability] is provided, it is used to identity the pause,
+   * The [resumeCapability] is used to identity the pause,
    * and must be used again to end the pause using [resume].
-   * Otherwise a new resume capability is created and returned.
+   * If [resumeCapability] is omitted, a new capability object is created
+   * and used instead.
    *
    * If an isolate is paused more than once using the same capability,
    * only one resume with that capability is needed to end the pause.
@@ -324,6 +340,12 @@ class Isolate {
    * each pause must be individually ended before the isolate resumes.
    *
    * Returns the capability that must be used to end the pause.
+   * This is either [resumeCapability], or a new capability when
+   * [resumeCapability] is omitted.
+   *
+   * If [pauseCapability] is `null`, or it's not the pause capability
+   * of the isolate identified by [controlPort],
+   * the pause request is ignored by the receiving isolate.
    */
   Capability pause([Capability resumeCapability]) {
     resumeCapability ??= new Capability();
@@ -338,13 +360,14 @@ class Isolate {
    * Resumes a paused isolate.
    *
    * Sends a message to an isolate requesting that it ends a pause
-   * that was requested using the [resumeCapability].
+   * that was previously requested.
    *
    * When all active pause requests have been cancelled, the isolate
    * will continue processing events and handling normal messages.
    *
-   * The capability must be one returned by a call to [pause] on this
-   * isolate, otherwise the resume call does nothing.
+   * If the [resumeCapability] is not one that has previously been used
+   * to pause the isolate, or it has already been used to resume from
+   * that pause, the resume call has no effect.
    */
   external void resume(Capability resumeCapability);
 
@@ -393,7 +416,7 @@ class Isolate {
    * event loop and shut down the isolate.
    *
    * This call requires the [terminateCapability] for the isolate.
-   * If the capability is not correct, no change is made.
+   * If the capability absent or wrong, no change is made.
    *
    * Since isolates run concurrently, it's possible for it to exit due to an
    * error before errors are set non-fatal.
@@ -423,6 +446,10 @@ class Isolate {
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
+   *
+   * If [terminateCapability] is `null`, or it's not the terminate capability
+   * of the isolate identified by [controlPort],
+   * the kill request is ignored by the receiving isolate.
    */
   external void kill({int priority: BEFORE_NEXT_EVENT});
 
