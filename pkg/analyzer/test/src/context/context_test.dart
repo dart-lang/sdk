@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -2620,7 +2621,8 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     CompilationUnit compilationUnit =
         context.resolveCompilationUnit2(sourceA, sourceA);
     expect(compilationUnit, isNotNull);
-    LibraryElement library = compilationUnit.element.library;
+    LibraryElement library =
+        resolutionMap.elementDeclaredByCompilationUnit(compilationUnit).library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
@@ -2632,7 +2634,8 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     CompilationUnit compilationUnit =
         context.resolveCompilationUnit2(sourceA, sourceA);
     expect(compilationUnit, isNotNull);
-    LibraryElement library = compilationUnit.element.library;
+    LibraryElement library =
+        resolutionMap.elementDeclaredByCompilationUnit(compilationUnit).library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
@@ -4499,7 +4502,7 @@ main() {
     expect(context.getErrors(a).errors, hasLength(0));
     expect(context.getErrors(b).errors, hasLength(0));
     var unitA = context.getResolvedCompilationUnit2(a, a);
-    var unitElementA = unitA.element;
+    var unitElementA = resolutionMap.elementDeclaredByCompilationUnit(unitA);
     var libraryElementA = unitElementA.library;
     // Update a.dart, no declaration changes.
     context.setContents(

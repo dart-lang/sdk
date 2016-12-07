@@ -5,6 +5,7 @@
 library services.src.correction.namespace;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
@@ -141,7 +142,8 @@ ImportElementInfo internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   AstNode parent = prefixNode.parent;
   CompilationUnit unit =
       prefixNode.getAncestor((node) => node is CompilationUnit);
-  LibraryElement libraryElement = unit.element.library;
+  LibraryElement libraryElement =
+      resolutionMap.elementDeclaredByCompilationUnit(unit).library;
   // prepare used element
   Element usedElement = null;
   if (parent is PrefixedIdentifier) {

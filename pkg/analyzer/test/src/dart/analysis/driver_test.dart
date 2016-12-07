@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -587,7 +588,10 @@ export 'dart:math';
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     // Has only exports for valid URIs.
-    List<ExportElement> imports = result.unit.element.library.exports;
+    List<ExportElement> imports = resolutionMap
+        .elementDeclaredByCompilationUnit(result.unit)
+        .library
+        .exports;
     expect(
         imports.map((import) => import.exportedLibrary.source.uri.toString()),
         unorderedEquals(['dart:async', 'dart:math']));
@@ -604,7 +608,10 @@ import 'dart:math';
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     // Has only imports for valid URIs.
-    List<ImportElement> imports = result.unit.element.library.imports;
+    List<ImportElement> imports = resolutionMap
+        .elementDeclaredByCompilationUnit(result.unit)
+        .library
+        .imports;
     expect(
         imports.map((import) => import.importedLibrary.source.uri.toString()),
         unorderedEquals(['dart:async', 'dart:math', 'dart:core']));
@@ -1291,7 +1298,11 @@ var A = B;
 
   String _getClassFieldType(
       CompilationUnit unit, String className, String fieldName) {
-    return _getClassField(unit, className, fieldName).element.type.toString();
+    return resolutionMap
+        .elementDeclaredByVariableDeclaration(
+            _getClassField(unit, className, fieldName))
+        .type
+        .toString();
   }
 
   MethodDeclaration _getClassMethod(
@@ -1310,8 +1321,9 @@ var A = B;
 
   String _getClassMethodReturnType(
       CompilationUnit unit, String className, String fieldName) {
-    return _getClassMethod(unit, className, fieldName)
-        .element
+    return resolutionMap
+        .elementDeclaredByMethodDeclaration(
+            _getClassMethod(unit, className, fieldName))
         .type
         .returnType
         .toString();
@@ -1341,7 +1353,10 @@ var A = B;
   }
 
   String _getTopLevelVarType(CompilationUnit unit, String name) {
-    return _getTopLevelVar(unit, name).element.type.toString();
+    return resolutionMap
+        .elementDeclaredByVariableDeclaration(_getTopLevelVar(unit, name))
+        .type
+        .toString();
   }
 
   /**

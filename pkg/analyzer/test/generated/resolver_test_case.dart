@@ -5,6 +5,7 @@
 library analyzer.test.generated.resolver_test_case;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -232,8 +233,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (node.name == "void") {
       return null;
     }
-    if (node.staticType != null &&
-        node.staticType.isDynamic &&
+    if (resolutionMap.staticTypeForExpression(node) != null &&
+        resolutionMap.staticTypeForExpression(node).isDynamic &&
         node.staticElement == null) {
       return null;
     }
@@ -273,7 +274,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.element != null) {
-          return rootCU.element.source.fullName;
+          return resolutionMap
+              .elementDeclaredByCompilationUnit(rootCU)
+              .source
+              .fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -670,7 +674,7 @@ class ResolverTestCase extends EngineTestCase {
           resolveSource2("/lib${i + 1}.dart", sourceTexts[i]);
       // reference the source if this is the last source
       if (i + 1 == sourceTexts.length) {
-        return unit.element.source;
+        return resolutionMap.elementDeclaredByCompilationUnit(unit).source;
       }
     }
     return null;

@@ -5,6 +5,7 @@
 library analyzer.test.generated.non_error_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1038,7 +1039,8 @@ class E {}''');
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    ClassElement classC = unit.element.getType('C');
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.documentationComment, isNotNull);
   }
 

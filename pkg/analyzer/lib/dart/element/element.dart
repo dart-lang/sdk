@@ -37,6 +37,7 @@
 library analyzer.dart.element.element;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/resolution_base_classes.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -563,7 +564,7 @@ abstract class ConstructorElement
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Element implements AnalysisTarget {
+abstract class Element implements AnalysisTarget, ResolutionTarget {
   /**
    * A comparator that can be used to sort elements by their name offset.
    * Elements with a smaller offset will be sorted to be before elements with a
@@ -787,7 +788,8 @@ abstract class Element implements AnalysisTarget {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ElementAnnotation implements ConstantEvaluationTarget {
+abstract class ElementAnnotation
+    implements ConstantEvaluationTarget, ResolutionTarget {
   /**
    * An empty list of annotations.
    */

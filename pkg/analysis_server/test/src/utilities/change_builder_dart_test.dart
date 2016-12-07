@@ -9,6 +9,7 @@ import 'package:analysis_server/src/provisional/edit/utilities/change_builder_co
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/utilities/change_builder_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -62,8 +63,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', interfaces: [declaration.element.type]);
+        (builder as DartEditBuilder).writeClassDeclaration('C', interfaces: [
+          resolutionMap.elementDeclaredByClassDeclaration(declaration).type
+        ]);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -111,8 +113,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', mixins: [classA.element.type]);
+        (builder as DartEditBuilder).writeClassDeclaration('C', mixins: [
+          resolutionMap.elementDeclaredByClassDeclaration(classA).type
+        ]);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -130,7 +133,11 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeClassDeclaration('C',
-            mixins: [classB.element.type], superclass: classA.element.type);
+            mixins: [
+              resolutionMap.elementDeclaredByClassDeclaration(classB).type
+            ],
+            superclass:
+                resolutionMap.elementDeclaredByClassDeclaration(classA).type);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -168,8 +175,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', superclass: declaration.element.type);
+        (builder as DartEditBuilder).writeClassDeclaration('C',
+            superclass: resolutionMap
+                .elementDeclaredByClassDeclaration(declaration)
+                .type);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -290,7 +299,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeFieldDeclaration('f',
-            type: declaration.element.type, typeGroupName: 'type');
+            type: resolutionMap
+                .elementDeclaredByClassDeclaration(declaration)
+                .type,
+            typeGroupName: 'type');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -375,7 +387,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeGetterDeclaration('g',
-            returnType: classA.element.type, returnTypeGroupName: 'returnType');
+            returnType:
+                resolutionMap.elementDeclaredByClassDeclaration(classA).type,
+            returnTypeGroupName: 'returnType');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -405,8 +419,10 @@ class B extends A {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeOverrideOfInheritedMember(declaration.element.methods[0]);
+        (builder as DartEditBuilder).writeOverrideOfInheritedMember(
+            resolutionMap
+                .elementDeclaredByClassDeclaration(declaration)
+                .methods[0]);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -425,7 +441,7 @@ A add(A a) {
     FunctionDeclaration f = unit.declarations[0];
     FormalParameterList parameters = f.functionExpression.parameters;
     Iterable<ParameterElement> elements = parameters.parameters
-        .map((FormalParameter parameter) => parameter.element);
+        .map(resolutionMap.elementDeclaredByFormalParameter);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -444,7 +460,7 @@ A add(A a) {
     FunctionDeclaration f = unit.declarations[0];
     FormalParameterList parameters = f.functionExpression.parameters;
     Iterable<ParameterElement> elements = parameters.parameters
-        .map((FormalParameter parameter) => parameter.element);
+        .map(resolutionMap.elementDeclaredByFormalParameter);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -463,7 +479,7 @@ A add(A a) {
     FunctionDeclaration f = unit.declarations[0];
     FormalParameterList parameters = f.functionExpression.parameters;
     Iterable<ParameterElement> elements = parameters.parameters
-        .map((FormalParameter parameter) => parameter.element);
+        .map(resolutionMap.elementDeclaredByFormalParameter);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -531,8 +547,8 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeParameterSource(classA.element.type, 'a');
+        (builder as DartEditBuilder).writeParameterSource(
+            resolutionMap.elementDeclaredByClassDeclaration(classA).type, 'a');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -547,8 +563,11 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeType(unit.element.context.typeProvider.dynamicType);
+        (builder as DartEditBuilder).writeType(resolutionMap
+            .elementDeclaredByCompilationUnit(unit)
+            .context
+            .typeProvider
+            .dynamicType);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -565,8 +584,12 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeType(classB.element.type.instantiate([classA.element.type]));
+        (builder as DartEditBuilder).writeType(resolutionMap
+            .elementDeclaredByClassDeclaration(classB)
+            .type
+            .instantiate([
+          resolutionMap.elementDeclaredByClassDeclaration(classA).type
+        ]));
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -582,8 +605,9 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeType(classC.element.type, groupName: 'type');
+        (builder as DartEditBuilder).writeType(
+            resolutionMap.elementDeclaredByClassDeclaration(classC).type,
+            groupName: 'type');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -605,8 +629,10 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(classC.element.type,
-            addSupertypeProposals: true, groupName: 'type');
+        (builder as DartEditBuilder).writeType(
+            resolutionMap.elementDeclaredByClassDeclaration(classC).type,
+            addSupertypeProposals: true,
+            groupName: 'type');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -653,7 +679,11 @@ f(int i, String s) {
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
         (builder as DartEditBuilder).writeType(
-            unit.element.context.typeProvider.dynamicType,
+            resolutionMap
+                .elementDeclaredByCompilationUnit(unit)
+                .context
+                .typeProvider
+                .dynamicType,
             required: true);
       });
     });
@@ -670,8 +700,9 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeType(classA.element.type, required: true);
+        (builder as DartEditBuilder).writeType(
+            resolutionMap.elementDeclaredByClassDeclaration(classA).type,
+            required: true);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -702,7 +733,8 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(classA.element.type);
+        (builder as DartEditBuilder).writeType(
+            resolutionMap.elementDeclaredByClassDeclaration(classA).type);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -734,8 +766,10 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilderImpl)
-            .writeTypes([classA.element.type, classB.element.type]);
+        (builder as DartEditBuilderImpl).writeTypes([
+          resolutionMap.elementDeclaredByClassDeclaration(classA).type,
+          resolutionMap.elementDeclaredByClassDeclaration(classB).type
+        ]);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -767,9 +801,10 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilderImpl).writeTypes(
-            [classA.element.type, classB.element.type],
-            prefix: 'implements ');
+        (builder as DartEditBuilderImpl).writeTypes([
+          resolutionMap.elementDeclaredByClassDeclaration(classA).type,
+          resolutionMap.elementDeclaredByClassDeclaration(classB).type
+        ], prefix: 'implements ');
       });
     });
     SourceEdit edit = getEdit(builder);

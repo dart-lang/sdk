@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -489,7 +490,10 @@ class _IndexContributor extends _IndexDeclarationContributor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     if (node.extendsClause == null) {
-      ClassElement objectElement = node.element.supertype?.element;
+      ClassElement objectElement = resolutionMap
+          .elementDeclaredByClassDeclaration(node)
+          .supertype
+          ?.element;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name.offset, 0, true);
     }

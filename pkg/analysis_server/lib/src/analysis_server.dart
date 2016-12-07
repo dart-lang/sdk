@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -1269,7 +1270,9 @@ class AnalysisServer {
                 sendAnalysisNotificationHighlights(this, file, dartUnit);
                 break;
               case AnalysisService.OUTLINE:
-                AnalysisContext context = dartUnit.element.context;
+                AnalysisContext context = resolutionMap
+                    .elementDeclaredByCompilationUnit(dartUnit)
+                    .context;
                 LineInfo lineInfo = context.getLineInfo(source);
                 SourceKind kind = context.getKindOf(source);
                 sendAnalysisNotificationOutline(

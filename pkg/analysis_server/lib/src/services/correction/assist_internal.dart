@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/statement_analyzer.dart'
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -72,7 +73,9 @@ class AssistProcessor {
     unit = dartContext.unit;
     unitElement = dartContext.unit.element;
     // library
-    unitLibraryElement = dartContext.unit.element.library;
+    unitLibraryElement = resolutionMap
+        .elementDeclaredByCompilationUnit(dartContext.unit)
+        .library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
     // selection

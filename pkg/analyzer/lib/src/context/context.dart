@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -1944,9 +1945,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       // if validation, remember the result, but throw it away
       if (analysisOptions.incrementalValidation) {
-        incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
+        CompilationUnitElement compilationUnitElement =
+            resolutionMap.elementDeclaredByCompilationUnit(oldUnit);
+        incrementalResolutionValidation_lastUnitSource =
+            compilationUnitElement.source;
         incrementalResolutionValidation_lastLibrarySource =
-            oldUnit.element.library.source;
+            compilationUnitElement.library.source;
         incrementalResolutionValidation_lastUnit = oldUnit;
         return false;
       }

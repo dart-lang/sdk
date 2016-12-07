@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
@@ -177,7 +178,8 @@ class A {
     ConstructorElement element = _findElementAtString('A() {}');
 
     CompilationUnit otherUnit = (await driver.getResult(other)).unit;
-    Element main = otherUnit.element.functions[0];
+    Element main =
+        resolutionMap.elementDeclaredByCompilationUnit(otherUnit).functions[0];
     var expected = [
       new ExpectedResult(main, SearchResultKind.REFERENCE,
           otherCode.indexOf('(); // in other'), 0,

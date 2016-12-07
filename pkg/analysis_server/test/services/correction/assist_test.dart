@@ -10,6 +10,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -65,7 +66,11 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
    */
   assertNoAssist(AssistKind kind) async {
     List<Assist> assists = await computeAssists(
-        plugin, context, testUnit.element.source, offset, length);
+        plugin,
+        context,
+        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
+        offset,
+        length);
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
@@ -2683,8 +2688,8 @@ main(p) {
 
   test_invalidSelection() async {
     resolveTestUnit('');
-    List<Assist> assists =
-        await computeAssists(plugin, context, testUnit.element.source, -1, 0);
+    List<Assist> assists = await computeAssists(plugin, context,
+        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source, -1, 0);
     expect(assists, isEmpty);
   }
 
@@ -4158,7 +4163,11 @@ main() {
    */
   Future<Assist> _assertHasAssist(AssistKind kind) async {
     List<Assist> assists = await computeAssists(
-        plugin, context, testUnit.element.source, offset, length);
+        plugin,
+        context,
+        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
+        offset,
+        length);
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         return assist;

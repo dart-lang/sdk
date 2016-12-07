@@ -7,6 +7,7 @@ library analyzer.src.generated.static_type_analyzer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -2120,8 +2121,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       VariableDeclaration node, Expression initializer) {
     if (initializer != null &&
         (node.parent as VariableDeclarationList).type == null &&
-        (initializer.staticType != null) &&
-        (!initializer.staticType.isBottom)) {
+        (resolutionMap.staticTypeForExpression(initializer) != null) &&
+        (!resolutionMap.staticTypeForExpression(initializer).isBottom)) {
       VariableElement element = node.element;
       if (element is LocalVariableElementImpl) {
         element.type = initializer.staticType;

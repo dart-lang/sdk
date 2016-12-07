@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -605,7 +606,7 @@ class FixProcessor {
                 utils.getTypeSource(newType, librariesToImport);
             _addReplaceEdit(rf.rangeNode(typeNode), newTypeSource);
             _addFix(DartFixKind.CHANGE_TYPE_ANNOTATION,
-                [typeNode.type.displayName, newTypeSource]);
+                [resolutionMap.typeForTypeName(typeNode), newTypeSource]);
           }
         }
       }
@@ -2071,7 +2072,9 @@ class FixProcessor {
         targetClassNode = targetTypeNode;
         // maybe static
         if (target is Identifier) {
-          staticModifier = target.bestElement.kind == ElementKind.CLASS;
+          staticModifier =
+              resolutionMap.bestElementForIdentifier(target).kind ==
+                  ElementKind.CLASS;
         }
         // use different utils
         CompilationUnitElement targetUnitElement =

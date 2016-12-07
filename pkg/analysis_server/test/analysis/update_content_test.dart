@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -293,7 +294,9 @@ class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
 
   @override
   bool matches(arg) {
-    return arg is CompilationUnit && arg.element.source.fullName == file;
+    return arg is CompilationUnit &&
+        resolutionMap.elementDeclaredByCompilationUnit(arg).source.fullName ==
+            file;
   }
 }
 
