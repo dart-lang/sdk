@@ -1595,6 +1595,10 @@ class E {}''');
     checkLibrary('class C { set x(int value) {} }');
   }
 
+  test_class_setter_invalid_no_parameter() {
+    checkLibrary('class C { void set x() {} }');
+  }
+
   test_class_setter_static() {
     checkLibrary('class C { static void set x(int value) {} }');
   }

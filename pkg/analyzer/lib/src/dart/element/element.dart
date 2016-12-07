@@ -1213,7 +1213,10 @@ class ClassElementImpl extends AbstractClassElementImpl
         if (e.kind == UnlinkedExecutableKind.getter) {
           fieldType = accessor.returnType;
         } else {
-          fieldType = accessor.parameters[0].type;
+          List<ParameterElement> parameters = accessor.parameters;
+          fieldType = parameters.isNotEmpty
+              ? parameters[0].type
+              : DynamicTypeImpl.instance;
         }
         // Create or update the implicit field.
         String fieldName = accessor.displayName;

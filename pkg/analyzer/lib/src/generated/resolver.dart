@@ -9821,9 +9821,10 @@ class TypeResolverVisitor extends ScopedVisitor {
         variable.declaredType = element.returnType;
       } else if (variable.type == null) {
         List<ParameterElement> parameters = element.parameters;
-        if (parameters != null && parameters.length > 0) {
-          variable.declaredType = parameters[0].type;
-        }
+        DartType type = parameters != null && parameters.length > 0
+            ? parameters[0].type
+            : _dynamicType;
+        variable.declaredType = type;
       }
     }
 
