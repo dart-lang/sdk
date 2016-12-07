@@ -765,23 +765,17 @@ LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer n
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/isolate/ReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
-LibTest/typed_data/Float32List/Float32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float32List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Float64List/Float64List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float64List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int16List/Int16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int32List/Int32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Int32List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/typed_data/Int8List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint16List/Uint16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint16List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/Uint32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint32List/toList_A01_t01: Skip # issue 16934, co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
