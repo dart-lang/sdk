@@ -8,6 +8,7 @@ library linter.test.plugin_test;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -15,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 main() {
-
   defineTests();
 }
 
@@ -55,8 +55,7 @@ rules:
 ''';
       var yaml = loadYamlNode(src);
       var context = new AnalysisContextImpl();
-      AnalysisEngine.instance.optionsPlugin.optionsProcessors
-          .forEach((op) => op.optionsProcessed(context, {'linter': yaml}));
+      applyToAnalysisOptions(context.analysisOptions, {'linter': yaml});
       var rules = getLints(context).map((rule) => rule.name);
       expect(rules,
           unorderedEquals(['camel_case_types', 'constant_identifier_names']));
@@ -67,8 +66,7 @@ rules:
 ''';
       var yaml2 = loadYamlNode(src2);
       var context2 = new AnalysisContextImpl();
-      AnalysisEngine.instance.optionsPlugin.optionsProcessors
-          .forEach((op) => op.optionsProcessed(context2, {'linter': yaml2}));
+      applyToAnalysisOptions(context2.analysisOptions, {'linter': yaml2});
       var rules2 = getLints(context2).map((rule) => rule.name);
       expect(rules2, unorderedEquals(['camel_case_types']));
     });

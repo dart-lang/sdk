@@ -4,7 +4,7 @@
 
 library linter.test.config;
 
-import 'package:linter/src/config.dart';
+import 'package:analyzer/src/lint/config.dart';
 import 'package:test/test.dart';
 
 main() {

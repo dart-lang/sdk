@@ -6,9 +6,9 @@ library linter.test.integration;
 
 import 'dart:io';
 
+import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:linter/src/config.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
