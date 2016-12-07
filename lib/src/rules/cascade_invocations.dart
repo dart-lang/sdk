@@ -7,6 +7,7 @@ library linter.src.rules.cascade_invocations;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
@@ -115,7 +116,8 @@ class _Visitor extends SimpleAstVisitor {
     final previousNode = previousNodes.last;
     final SimpleIdentifier previousIdentifier = _findTarget(previousNode);
     if (previousIdentifier != null &&
-        previousIdentifier.staticElement == prefixIdentifier.staticElement) {
+        previousIdentifier.staticElement == prefixIdentifier.staticElement &&
+        previousIdentifier.staticElement is! PrefixElement) {
       rule.reportLint(node);
     }
 

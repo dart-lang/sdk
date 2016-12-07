@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N cascade_invocations`
 
+import 'dart:math' as math;
+
 void noCascade() {
   List<int> list = [];
   list.removeWhere((i) => i % 5 == 0); // LINT
@@ -66,4 +68,9 @@ void withDifferentTypes() {
 void cascade() {
   final foo = new Foo();
   foo?.baz();
+}
+
+void prefixLibrary() {
+  math.sin(0);
+  math.cos(0);
 }
