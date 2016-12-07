@@ -68,6 +68,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final ResolvedAst resolvedAst;
   final CodegenRegistry registry;
 
+  /// Helper accessor for all kernel function-like targets (Procedure,
+  /// FunctionExpression, FunctionDeclaration) of the inner FunctionNode itself.
+  /// If the current target is not a function-like target, _targetFunction will
+  /// be null.
+  ir.FunctionNode _targetFunction;
+
   /// A stack of [DartType]s that have been seen during inlining of factory
   /// constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HCreate]s inside the inline code and registered during code generation
@@ -81,6 +87,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   TreeElements get elements => resolvedAst.elements;
+
 
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
@@ -132,15 +139,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(het): no reason to do this here...
     HInstruction.idCounter = 0;
     if (target is ir.Procedure) {
-      target = (target as ir.Procedure).function;
-      buildFunctionNode(target);
+      _targetFunction = (target as ir.Procedure).function;
+      buildFunctionNode(_targetFunction);
     } else if (target is ir.Field) {
       buildField(target);
     } else if (target is ir.Constructor) {
       buildConstructor(target);
     } else if (target is ir.FunctionExpression) {
-      target = (target as ir.FunctionExpression).function;
-      buildFunctionNode(target);
+      _targetFunction = (target as ir.FunctionExpression).function;
+      buildFunctionNode(_targetFunction);
+    } else if (target is ir.FunctionDeclaration) {
+      _targetFunction = (target as ir.FunctionDeclaration).function;
+      buildFunctionNode(_targetFunction);
     } else {
       throw 'No case implemented to handle $target';
     }
@@ -449,10 +459,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (returnStatement.expression == null) {
       value = graph.addConstantNull(compiler);
     } else {
-      assert(target is ir.FunctionNode);
+      assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       returnStatement.expression.accept(this);
       value = typeBuilder.potentiallyCheckOrTrustType(pop(),
-          astAdapter.getFunctionReturnType(target));
+          astAdapter.getFunctionReturnType(_targetFunction));
     }
     // TODO(het): Add source information
     // TODO(het): Set a return value instead of closing the function when we
@@ -1650,8 +1660,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
-  void visitFunctionExpression(ir.FunctionExpression funcExpression) {
-    LocalFunctionElement methodElement = astAdapter.getElement(funcExpression);
+  visitFunctionNode(ir.FunctionNode node) {
+    LocalFunctionElement methodElement = astAdapter.getElement(node);
     ClosureClassMap nestedClosureData = compiler.closureToClassMapper
         .getClosureToClassMapping(methodElement.resolvedAst);
     assert(nestedClosureData != null);
@@ -1678,6 +1688,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     push(new HCreate(closureClassElement, capturedVariables, type));
 
     registry?.registerInstantiatedClosure(methodElement);
+  }
+
+  @override
+  visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
+    assert(isReachable);
+    declaration.function.accept(this);
+    LocalFunctionElement localFunction = astAdapter.getElement(
+        declaration.function);
+    localsHandler.updateLocal(localFunction, pop());
+  }
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression funcExpression) {
+    funcExpression.function.accept(this);
   }
 
   // TODO(het): Decide when to inline
