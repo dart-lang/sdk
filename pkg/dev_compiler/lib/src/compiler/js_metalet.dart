@@ -333,6 +333,7 @@ class _YieldFinder extends BaseVisitor {
   bool hasYield = false;
   bool hasThis = false;
   bool _nestedFunction = false;
+
   @override
   visitThis(This node) {
     hasThis = true;
@@ -353,6 +354,7 @@ class _YieldFinder extends BaseVisitor {
 
   @override
   visitNode(Node node) {
-    if (!hasYield) super.visitNode(node);
+    if (hasYield && hasThis) return; // found both, nothing more to do.
+    super.visitNode(node);
   }
 }
