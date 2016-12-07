@@ -44,7 +44,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
-DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, warn_new_tearoff_syntax, true, "Warning on new tear off.");
 // TODO(floitsch): remove the conditional-directive flag, once we publicly
 // committed to the current version.
@@ -5073,23 +5072,6 @@ bool Parser::IsFunctionTypeAliasName() {
 }
 
 
-// Look ahead to detect if we are seeing ident [ TypeParameters ] "=".
-// Token position remains unchanged.
-bool Parser::IsMixinAppAlias() {
-  if (IsIdentifier() && (LookaheadToken(1) == Token::kASSIGN)) {
-    return true;
-  }
-  const TokenPosScope saved_pos(this);
-  if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
-    ConsumeToken();
-    if (TryParseTypeParameters() && (CurrentToken() == Token::kASSIGN)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                           const Object& tl_owner,
                           TokenPosition metadata_pos) {
@@ -5097,14 +5079,6 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   TokenPosition declaration_pos =
       metadata_pos.IsReal() ? metadata_pos : TokenPos();
   ExpectToken(Token::kTYPEDEF);
-
-  if (IsMixinAppAlias()) {
-    if (FLAG_warn_mixin_typedef) {
-      ReportWarning(TokenPos(), "deprecated mixin application typedef");
-    }
-    ParseMixinAppAlias(pending_classes, tl_owner, metadata_pos);
-    return;
-  }
 
   // Parse the result type of the function type.
   AbstractType& result_type = Type::Handle(Z, Type::DynamicType());

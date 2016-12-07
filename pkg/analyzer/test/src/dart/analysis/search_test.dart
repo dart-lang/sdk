@@ -121,27 +121,72 @@ main(A p) {
     await _verifyReferences(element, expected);
   }
 
-  @failingTest
   test_searchReferences_CompilationUnitElement() async {
-    provider.newFile(
-        _p('$testProject/my_part.dart'),
-        '''
-part of lib;
-''');
+    provider.newFile(_p('$testProject/foo.dart'), '');
     await _resolveTestUnit('''
-library lib;
-part 'my_part.dart';
+import 'foo.dart'; // import
+export 'foo.dart'; // export
 ''');
-    CompilationUnitElement element = _findElementAtString('my_part');
+    CompilationUnitElement element =
+        testLibraryElement.imports[0].importedLibrary.definingCompilationUnit;
+    int uriLength = "'foo.dart'".length;
     var expected = [
-      _expectIdQ(element.library.definingCompilationUnit,
-          SearchResultKind.REFERENCE, "'my_part.dart'",
-          length: "'my_part.dart'".length)
+      _expectIdQ(
+          testUnitElement, SearchResultKind.REFERENCE, "'foo.dart'; // import",
+          length: uriLength),
+      _expectIdQ(
+          testUnitElement, SearchResultKind.REFERENCE, "'foo.dart'; // export",
+          length: uriLength),
     ];
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ConstructorElement() async {
+  test_searchReferences_ConstructorElement_default() async {
+    await _resolveTestUnit('''
+class A {
+  A() {}
+}
+main() {
+  new A();
+}
+''');
+    ConstructorElement element = _findElementAtString('A() {}');
+    Element mainElement = _findElement('main');
+    var expected = [
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, '();', length: 0)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ConstructorElement_default_otherFile() async {
+    String other = _p('$testProject/other.dart');
+    String otherCode = '''
+import 'test.dart';
+main() {
+  new A(); // in other
+}
+''';
+    provider.newFile(other, otherCode);
+    driver.addFile(other);
+
+    await _resolveTestUnit('''
+class A {
+  A() {}
+}
+''');
+    ConstructorElement element = _findElementAtString('A() {}');
+
+    CompilationUnit otherUnit = (await driver.getResult(other)).unit;
+    Element main = otherUnit.element.functions[0];
+    var expected = [
+      new ExpectedResult(main, SearchResultKind.REFERENCE,
+          otherCode.indexOf('(); // in other'), 0,
+          isResolved: true, isQualified: true)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ConstructorElement_named() async {
     await _resolveTestUnit('''
 class A {
   A.named() {}
@@ -154,7 +199,7 @@ main() {
     Element mainElement = _findElement('main');
     var expected = [
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, '.named();',
-          length: 6)
+          length: '.named'.length)
     ];
     await _verifyReferences(element, expected);
   }
@@ -298,6 +343,83 @@ main() {
       _expectId(main, SearchResultKind.REFERENCE, 'test);')
     ];
     await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_noPrefix() async {
+    await _resolveTestUnit('''
+import 'dart:math' show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  print(PI);
+  print(new Random());
+  print(max(1, 2));
+}
+Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = await _findElement('main');
+    Element barElement = await _findElement('bar');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'PI);', length: 0),
+      _expectId(mainElement, kind, 'Random()', length: 0),
+      _expectId(mainElement, kind, 'max(', length: 0),
+      _expectId(barElement, kind, 'Random bar()', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix() async {
+    await _resolveTestUnit('''
+import 'dart:math' as math show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  print(math.PI);
+  print(new math.Random());
+  print(math.max(1, 2));
+}
+math.Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = await _findElement('main');
+    Element barElement = await _findElement('bar');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'math.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'math.PI);', length: length),
+      _expectId(mainElement, kind, 'math.Random()', length: length),
+      _expectId(mainElement, kind, 'math.max(', length: length),
+      _expectId(barElement, kind, 'math.Random bar()', length: length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix_forMultipleImports() async {
+    await _resolveTestUnit('''
+import 'dart:async' as p;
+import 'dart:math' as p;
+main() {
+  p.Random;
+  p.Future;
+}
+''');
+    Element mainElement = await _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'p.'.length;
+    {
+      ImportElement element = testLibraryElement.imports[0];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Future;', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
+    {
+      ImportElement element = testLibraryElement.imports[1];
+      var expected = [
+        _expectId(mainElement, kind, 'p.Random', length: length),
+      ];
+      await _verifyReferences(element, expected);
+    }
   }
 
   test_searchReferences_LabelElement() async {
@@ -539,6 +661,88 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_private_declaredInDefiningUnit() async {
+    String p1 = _p('$testProject/part1.dart');
+    String p2 = _p('$testProject/part2.dart');
+    String p3 = _p('$testProject/part3.dart');
+    String code1 = 'part of lib; _C v1;';
+    String code2 = 'part of lib; _C v2;';
+    provider.newFile(p1, code1);
+    provider.newFile(p2, code2);
+    provider.newFile(p3, 'part of lib; int v3;');
+
+    driver.addFile(p1);
+    driver.addFile(p2);
+    driver.addFile(p3);
+
+    await _resolveTestUnit('''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+part 'part3.dart';
+class _C {}
+_C v;
+''');
+    ClassElement element = _findElementAtString('_C {}');
+    Element v = testUnitElement.topLevelVariables[0];
+    Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
+    Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
+    var expected = [
+      _expectId(v, SearchResultKind.REFERENCE, '_C v;', length: 2),
+      new ExpectedResult(
+          v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
+      new ExpectedResult(
+          v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_private_declaredInPart() async {
+    String p = _p('$testProject/lib.dart');
+    String p1 = _p('$testProject/part1.dart');
+    String p2 = _p('$testProject/part2.dart');
+
+    var code = '''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+_C v;
+''';
+    var code1 = '''
+part of lib;
+class _C {}
+_C v1;
+''';
+    String code2 = 'part of lib; _C v2;';
+
+    provider.newFile(p, code);
+    provider.newFile(p1, code1);
+    provider.newFile(p2, code2);
+
+    driver.addFile(p);
+    driver.addFile(p1);
+    driver.addFile(p2);
+
+    AnalysisResult result = await driver.getResult(p);
+    testUnit = result.unit;
+    testUnitElement = testUnit.element;
+    testLibraryElement = testUnitElement.library;
+
+    ClassElement element = testLibraryElement.parts[0].types[0];
+    Element v = testUnitElement.topLevelVariables[0];
+    Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
+    Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
+    var expected = [
+      new ExpectedResult(
+          v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
+      new ExpectedResult(
+          v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
+      new ExpectedResult(
+          v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_PropertyAccessorElement_getter() async {
     await _resolveTestUnit('''
 class A {
@@ -678,6 +882,25 @@ foo<T>(T a) {
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T a'),
       _expectId(b, SearchResultKind.REFERENCE, 'T b'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchSubtypes() async {
+    await _resolveTestUnit('''
+class T {}
+class A extends T {} // A
+class B = Object with T; // B
+class C implements T {} // C
+''');
+    ClassElement element = _findElement('T');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    ClassElement c = _findElement('C');
+    var expected = [
+      _expectId(a, SearchResultKind.REFERENCE, 'T {} // A'),
+      _expectId(b, SearchResultKind.REFERENCE, 'T; // B'),
+      _expectId(c, SearchResultKind.REFERENCE, 'T {} // C'),
     ];
     await _verifyReferences(element, expected);
   }

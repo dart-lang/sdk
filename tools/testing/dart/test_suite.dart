@@ -1831,11 +1831,10 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler', 'dart2app', 'dart2appjit'];
+    var COMPILERS = const ['none', 'precompiler', 'app_jit'];
     var RUNTIMES = const [
       'none',
       'dart_precompiled',
-      'dart_app',
       'vm',
       'drt',
       'dartium',

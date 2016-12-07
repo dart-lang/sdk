@@ -45,6 +45,7 @@ main(List<String> args) {
   bool strongMode = options['strong'];
 
   String path = options.rest.single;
+  var uri = new Uri(scheme: 'file', path: new File(path).absolute.path);
   var packages =
       getPackagesDirectory(new Uri(scheme: 'file', path: packagePath));
   Repository repository = new Repository();
@@ -54,7 +55,7 @@ main(List<String> args) {
           new DartOptions(
               strongMode: strongMode, sdk: sdk, packagePath: packagePath),
           packages)
-      .loadProgram(path);
+      .loadProgram(uri);
 
   CacheEntry.recomputedCounts.forEach((key, value) {
     print('Recomputed $key $value times');

@@ -54,5 +54,5 @@ main() {
     socket_server_test.main();
     source_all.main();
     src_all.main();
-  }, name: 'analisys_server');
+  }, name: 'analysis_server');
 }

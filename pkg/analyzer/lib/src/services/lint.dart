@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /// Shared lint registry.
@@ -31,6 +32,11 @@ abstract class Linter {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before visit begins.
   ErrorReporter reporter;
+
+  /**
+   * Return the lint code associated with this linter.
+   */
+  LintCode get lintCode => null;
 
   /// Linter name.
   String get name;

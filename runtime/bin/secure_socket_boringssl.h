@@ -35,6 +35,8 @@ extern unsigned int root_certificates_pem_length;
 
 class SSLContext {
  public:
+  static const intptr_t kApproximateSize;
+
   explicit SSLContext(SSL_CTX* context)
       : context_(context), alpn_protocol_string_(NULL) {}
 
@@ -80,6 +82,8 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
     kNumBuffers,
     kFirstEncrypted = kReadEncrypted
   };
+
+  static const intptr_t kApproximateSize;
 
   SSLFilter()
       : callback_error(NULL),
@@ -133,6 +137,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   BIO* socket_side_;
 
  private:
+  static const intptr_t kInternalBIOSize;
   static bool library_initialized_;
   static Mutex* mutex_;  // To protect library initialization.
 

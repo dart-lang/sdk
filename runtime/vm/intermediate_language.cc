@@ -3075,6 +3075,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Unoptimized code.
     ASSERT(!HasICData());
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                   token_pos());
     bool is_smi_two_args_op = false;
     const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
     if (stub_entry != NULL) {

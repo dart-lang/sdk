@@ -6,6 +6,7 @@ library front_end.compiler_options;
 
 import 'compilation_error.dart';
 import 'file_system.dart';
+import 'physical_file_system.dart';
 
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationError error);
@@ -91,12 +92,9 @@ class CompilerOptions {
 
   /// The [FileSystem] which should be used by the front end to access files.
   ///
-  /// TODO(paulberry): once an implementation of [FileSystem] has been created
-  /// which uses the actual physical file system, make that the default.
-  ///
   /// All file system access performed by the front end goes through this
   /// mechanism, with one exception: if no value is specified for
   /// [packagesFilePath], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
-  FileSystem fileSystem;
+  FileSystem fileSystem = PhysicalFileSystem.instance;
 }

@@ -551,7 +551,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.
-    isolate->debugger()->SetSingleStep();
+    isolate->debugger()->SetResumeAction(Debugger::kStepInto);
   }
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));

@@ -70,6 +70,11 @@ class StatusSupport {
   AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
 
   /**
+   * Return the last status sent to the [stream].
+   */
+  AnalysisStatus get currentStatus => _currentStatus;
+
+  /**
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get stream => _statusController.stream;

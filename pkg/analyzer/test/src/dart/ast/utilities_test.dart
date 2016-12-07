@@ -5,6 +5,7 @@
 library analyzer.test.src.dart.ast.utilities_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -437,9 +438,9 @@ class B {}''');
 @reflectiveTest
 class ResolutionCopierTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
-    AdjacentStrings createNode() => new AdjacentStrings([
-          new SimpleStringLiteral(null, 'hello'),
-          new SimpleStringLiteral(null, 'world')
+    AdjacentStrings createNode() => astFactory.adjacentStrings([
+          astFactory.simpleStringLiteral(null, 'hello'),
+          astFactory.simpleStringLiteral(null, 'world')
         ]);
 
     AdjacentStrings fromNode = createNode();
@@ -1555,13 +1556,13 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitComment() {
     _assertSource(
         "",
-        Comment.createBlockComment(
+        astFactory.blockComment(
             <Token>[TokenFactory.tokenFromString("/* comment */")]));
   }
 
   void test_visitCommentReference() {
     _assertSource(
-        "", new CommentReference(null, AstTestFactory.identifier3("a")));
+        "", astFactory.commentReference(null, AstTestFactory.identifier3("a")));
   }
 
   void test_visitCompilationUnit_declaration() {
@@ -1947,7 +1948,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        new FieldFormalParameter(
+        astFactory.fieldFormalParameter(
             null,
             null,
             null,
@@ -1989,7 +1990,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             null,
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -2003,7 +2004,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             TokenFactory.tokenFromString("await"),
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -2305,7 +2306,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
     FunctionDeclaration f = AstTestFactory.functionDeclaration(
         null, null, "f", AstTestFactory.functionExpression());
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() {} 42;}",
         AstTestFactory.functionDeclaration(
@@ -2328,7 +2329,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
         AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
             AstTestFactory.expressionFunctionBody(AstTestFactory.integer(1))));
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() => 1; 2;}",
         AstTestFactory.functionDeclaration(
@@ -2464,7 +2465,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        new FunctionTypedFormalParameter(
+        astFactory.functionTypedFormalParameter(
             null,
             null,
             AstTestFactory.typeName4("T"),
@@ -3885,13 +3886,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitComment() {
     _assertSource(
         "",
-        Comment.createBlockComment(
+        astFactory.blockComment(
             <Token>[TokenFactory.tokenFromString("/* comment */")]));
   }
 
   void test_visitCommentReference() {
     _assertSource(
-        "", new CommentReference(null, AstTestFactory.identifier3("a")));
+        "", astFactory.commentReference(null, AstTestFactory.identifier3("a")));
   }
 
   void test_visitCompilationUnit_declaration() {
@@ -4277,7 +4278,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        new FieldFormalParameter(
+        astFactory.fieldFormalParameter(
             null,
             null,
             null,
@@ -4319,7 +4320,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             null,
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -4333,7 +4334,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             TokenFactory.tokenFromString("await"),
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -4635,7 +4636,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     FunctionDeclaration f = AstTestFactory.functionDeclaration(
         null, null, "f", AstTestFactory.functionExpression());
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() {} 42;}",
         AstTestFactory.functionDeclaration(
@@ -4658,7 +4659,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
             AstTestFactory.expressionFunctionBody(AstTestFactory.integer(1))));
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() => 1; 2;}",
         AstTestFactory.functionDeclaration(
@@ -4794,7 +4795,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        new FunctionTypedFormalParameter(
+        astFactory.functionTypedFormalParameter(
             null,
             null,
             AstTestFactory.typeName4("T"),

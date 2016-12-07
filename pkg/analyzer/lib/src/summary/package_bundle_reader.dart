@@ -389,12 +389,26 @@ class SummaryDataStore {
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       uriToSummaryPath[uri] = path;
-      unlinkedMap[uri] = bundle.unlinkedUnits[i];
+      addUnlinkedUnit(uri, bundle.unlinkedUnits[i]);
     }
     for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
       String uri = bundle.linkedLibraryUris[i];
-      linkedMap[uri] = bundle.linkedLibraries[i];
+      addLinkedLibrary(uri, bundle.linkedLibraries[i]);
     }
+  }
+
+  /**
+   * Add the given [linkedLibrary] with the given [uri].
+   */
+  void addLinkedLibrary(String uri, LinkedLibrary linkedLibrary) {
+    linkedMap[uri] = linkedLibrary;
+  }
+
+  /**
+   * Add the given [unlinkedUnit] with the given [uri].
+   */
+  void addUnlinkedUnit(String uri, UnlinkedUnit unlinkedUnit) {
+    unlinkedMap[uri] = unlinkedUnit;
   }
 
   /**

@@ -189,7 +189,6 @@ static bool FindExceptionHandler(Thread* thread,
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
                              uword* handler_fp) {
-  // TODO(turnidge): Is there a faster way to get the next entry frame?
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
@@ -228,7 +227,17 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
         break;
       }
     }
+  }
+#endif  // !DBC
+  return program_counter;
+}
 
+
+static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
+#if !defined(TARGET_ARCH_DBC)
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
+      thread->isolate()->pending_deopts();
+  if (pending_deopts->length() > 0) {
     // We may be jumping over frames scheduled for lazy deopt. Remove these
     // frames from the pending deopt table, but only after unmarking them so
     // any stack walk that happens before the stack is unwound will still work.
@@ -264,7 +273,6 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
 #endif
   }
 #endif  // !DBC
-  return program_counter;
 }
 
 
@@ -281,14 +289,18 @@ static void JumpToExceptionHandler(Thread* thread,
   thread->set_resume_pc(remapped_pc);
   uword run_exception_pc = StubCode::RunExceptionHandler_entry()->EntryPoint();
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
-                          frame_pointer);
+                          frame_pointer, false /* do not clear deopt */);
 }
 
 
 void Exceptions::JumpToFrame(Thread* thread,
                              uword program_counter,
                              uword stack_pointer,
-                             uword frame_pointer) {
+                             uword frame_pointer,
+                             bool clear_deopt_at_target) {
+  uword fp_for_clearing =
+      (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
+  ClearLazyDeopts(thread, fp_for_clearing);
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack

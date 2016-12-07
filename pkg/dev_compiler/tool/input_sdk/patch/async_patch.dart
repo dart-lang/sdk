@@ -16,6 +16,9 @@ import 'dart:_isolate_helper' show
 
 import 'dart:_foreign_helper' show JS;
 
+typedef void _Callback();
+typedef void _TakeCallback(_Callback callback);
+
 @patch
 class _AsyncRun {
   @patch
@@ -24,10 +27,10 @@ class _AsyncRun {
   }
 
   // Lazily initialized.
-  static final Function _scheduleImmediateClosure =
+  static final _TakeCallback _scheduleImmediateClosure =
       _initializeScheduleImmediate();
 
-  static Function _initializeScheduleImmediate() {
+  static _TakeCallback _initializeScheduleImmediate() {
     // TODO(rnystrom): Not needed by dev_compiler.
     // requiresPreamble();
     if (JS('', 'self.scheduleImmediate') != null) {
@@ -38,7 +41,7 @@ class _AsyncRun {
       // Use mutationObservers.
       var div = JS('', 'self.document.createElement("div")');
       var span = JS('', 'self.document.createElement("span")');
-      var storedCallback;
+      _Callback storedCallback;
 
       internalCallback(_) {
         leaveJsAsync();

@@ -35,8 +35,26 @@ abstract class EnumSet<E> {
   /// Adds [enumValue] to this set.
   void add(E enumValue);
 
+  /// Adds all enum values in [set] to this set.
+  void addAll(EnumSet<E> set);
+
   /// Removes [enumValue] from this set.
   void remove(E enumValue);
+
+  /// Removes all enum values in [set] from this set. The set of removed values
+  /// is returned.
+  EnumSet<E> removeAll(EnumSet<E> set);
+
+  /// Returns a new set containing all values in both this and the [other] set.
+  EnumSet<E> intersection(EnumSet<E> other) {
+    return new EnumSet.fromValue(value & other.value);
+  }
+
+  /// Returns a new set containing all values in this set that are not in the
+  /// [other] set.
+  EnumSet<E> minus(EnumSet<E> other) {
+    return new EnumSet.fromValue(value & ~other.value);
+  }
 
   /// Clears this set.
   void clear();
@@ -66,6 +84,9 @@ abstract class EnumSet<E> {
 
   /// Returns `true` if this set is empty.
   bool get isEmpty => value == 0;
+
+  /// Returns `true` if this set is not empty.
+  bool get isNotEmpty => value != 0;
 
   int get hashCode => value.hashCode * 19;
 
@@ -103,16 +124,32 @@ class _EnumSet<E> extends EnumSet<E> {
     values.forEach(add);
   }
 
+  @override
   int get value => _value;
 
+  @override
   void add(E enumValue) {
     _value |= 1 << (enumValue as dynamic).index;
   }
 
+  @override
+  void addAll(EnumSet<E> set) {
+    _value |= set.value;
+  }
+
+  @override
   void remove(E enumValue) {
     _value &= ~(1 << (enumValue as dynamic).index);
   }
 
+  @override
+  EnumSet<E> removeAll(EnumSet<E> set) {
+    int removed = _value & set.value;
+    _value &= ~set.value;
+    return new EnumSet<E>.fromValue(removed);
+  }
+
+  @override
   void clear() {
     _value = 0;
   }
@@ -142,6 +179,11 @@ class _ConstEnumSet<E> extends EnumSet<E> {
   }
 
   @override
+  void addAll(EnumSet<E> set) {
+    throw new UnsupportedError('EnumSet.addAll');
+  }
+
+  @override
   void clear() {
     throw new UnsupportedError('EnumSet.clear');
   }
@@ -149,6 +191,11 @@ class _ConstEnumSet<E> extends EnumSet<E> {
   @override
   void remove(E enumValue) {
     throw new UnsupportedError('EnumSet.remove');
+  }
+
+  @override
+  EnumSet<E> removeAll(EnumSet<E> set) {
+    throw new UnsupportedError('EnumSet.removeAll');
   }
 }
 

@@ -35,8 +35,7 @@ abstract class ResolvedUriTranslator {
   /// responsible for reporting errors.
   ///
   /// See [LibraryLoader] for terminology on URIs.
-  Uri translate(LibraryElement importingLibrary, Uri uri,
-      [Spannable spannable]);
+  Uri translate(LibraryElement importingLibrary, Uri uri, Spannable spannable);
 }
 
 /// A translator that forwards all methods to an internal
@@ -59,7 +58,7 @@ class ForwardingResolvedUriTranslator implements ResolvedUriTranslator {
 
   @override
   Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
-          [Spannable spannable]) =>
+          Spannable spannable) =>
       resolvedUriTranslator.translate(importingLibrary, resolvedUri, spannable);
 
   @override
@@ -86,8 +85,7 @@ class _ResolvedUriTranslator implements ResolvedUriTranslator {
   Map<String, Uri> get sdkLibraries => _sdkLibraries;
 
   @override
-  Uri translate(LibraryElement importingLibrary, Uri uri,
-      [Spannable spannable]) {
+  Uri translate(LibraryElement importingLibrary, Uri uri, Spannable spannable) {
     if (uri.scheme == 'dart') {
       return translateDartUri(importingLibrary, uri, spannable);
     }

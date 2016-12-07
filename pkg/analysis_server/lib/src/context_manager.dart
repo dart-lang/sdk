@@ -34,6 +34,9 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:linter/src/config.dart';
+import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -341,6 +344,11 @@ abstract class ContextManagerCallbacks {
    * the given analysis [options].
    */
   AnalysisContext addContext(Folder folder, AnalysisOptions options);
+
+  /**
+   * The given [file] was removed from the folder analyzed in the [driver].
+   */
+  void applyFileRemoved(AnalysisDriver driver, String file);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -683,7 +691,7 @@ class ContextManagerImpl implements ContextManager {
     if (options == null && !optionsRemoved) {
       return;
     }
-    AnalysisOptions analysisOptions = info.analysisDriver.analysisOptions;
+    AnalysisOptionsImpl analysisOptions = info.analysisDriver.analysisOptions;
 
     // In case options files are removed, revert to defaults.
     if (optionsRemoved) {
@@ -703,18 +711,15 @@ class ContextManagerImpl implements ContextManager {
       }
     }
 
-    // TODO(brianwilkerson) Figure out what to do here.
-//    // Notify options processors.
-//    AnalysisEngine.instance.optionsPlugin.optionsProcessors
-//        .forEach((OptionsProcessor p) {
-//      try {
-//        p.optionsProcessed(info.context, options);
-//      } catch (e, stacktrace) {
-//        AnalysisEngine.instance.logger.logError(
-//            'Error processing analysis options',
-//            new CaughtException(e, stacktrace));
-//      }
-//    });
+    var lintOptions = options['linter'];
+    if (lintOptions != null) {
+      LintConfig config = new LintConfig.parseMap(lintOptions);
+      Iterable<LintRule> lintRules = ruleRegistry.enabled(config);
+      if (lintRules.isNotEmpty) {
+        analysisOptions.lint = true;
+        analysisOptions.lintRules = lintRules.toList();
+      }
+    }
 
     applyToAnalysisOptions(analysisOptions, options);
 
@@ -1479,7 +1484,7 @@ class ContextManagerImpl implements ContextManager {
         }
 
         if (enableNewAnalysisDriver) {
-          info.analysisDriver.removeFile(path);
+          callbacks.applyFileRemoved(info.analysisDriver, path);
         } else {
           List<Source> sources = info.context.getSourcesWithFullName(path);
           if (!sources.isEmpty) {

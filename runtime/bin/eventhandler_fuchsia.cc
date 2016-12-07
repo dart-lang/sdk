@@ -449,6 +449,10 @@ void EventHandlerImplementation::Poll(uword args) {
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
     ASSERT((millis == kInfinityTimeout) || (millis >= 0));
+    // TODO(US-109): When the epoll implementation is properly edge-triggered,
+    // remove this sleep, which prevents the message queue from being
+    // overwhelmed and leading to memory exhaustion.
+    usleep(5000);
     LOG_INFO("epoll_wait(millis = %ld)\n", millis);
     intptr_t result = NO_RETRY_EXPECTED(
         epoll_wait(handler_impl->epoll_fd_, events, kMaxEvents, millis));

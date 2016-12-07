@@ -2521,6 +2521,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContext.applyChanges(changeSet);
   }
 
+  @override
+  void applyFileRemoved(AnalysisDriver driver, String file) {
+    throw new StateError('Unexpected invocation of applyFileRemoved');
+  }
+
   void assertContextFiles(String contextPath, List<String> expectedFiles) {
     var actualFiles = currentContextFilePaths[contextPath].keys;
     expect(actualFiles, unorderedEquals(expectedFiles));

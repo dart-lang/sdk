@@ -469,7 +469,7 @@ class ListeningSocketRegistry {
   void InsertByFd(intptr_t fd, OSSocket* socket);
   void RemoveByFd(intptr_t fd);
 
-  bool CloseOneSafe(OSSocket* os_socket);
+  bool CloseOneSafe(OSSocket* os_socket, bool update_hash_maps);
   void CloseAllSafe();
 
   HashMap sockets_by_port_;

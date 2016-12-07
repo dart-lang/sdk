@@ -233,7 +233,7 @@ class AssistProcessor {
     DartType type = declaredIdentifier.identifier.bestType;
     if (type is InterfaceType || type is FunctionType) {
       _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
@@ -285,7 +285,7 @@ class AssistProcessor {
     String typeSource;
     {
       _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     }
@@ -337,7 +337,7 @@ class AssistProcessor {
     String typeSource;
     if (type is InterfaceType || type is FunctionType) {
       _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
@@ -1002,7 +1002,7 @@ class AssistProcessor {
       String name = (node as SimpleIdentifier).name;
       // prepare type
       DartType type = parameterElement.type;
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       String typeCode = utils.getTypeSource(type, librariesToImport);
       // replace parameter
       if (type.isDynamic) {

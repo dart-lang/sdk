@@ -1002,6 +1002,8 @@ LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Pl
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Pass, Timeout # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
@@ -1097,7 +1099,6 @@ LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please tr
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/getComputedStyle/font-family-fallback-reset_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/getComputedStyle/getComputedStyle-zIndex-auto_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getPropertyValue-border_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/id-or-class-before-stylesheet_t01: RuntimeError # Please triage this failure
@@ -1168,6 +1169,7 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-port_t01: RuntimeError
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-protocol_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
@@ -1205,6 +1207,7 @@ LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: RuntimeE
 LayoutTests/fast/dom/HTMLTemplateElement/innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLTemplateElement/ownerDocumentXHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # Issue 18253
+LayoutTests/fast/dom/MutationObserver/removed-out-of-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # Please triage this failure
@@ -1262,6 +1265,7 @@ LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this fa
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/content-pseudo-element-css-text_t01: RuntimeError # https://github.com/dart-lang/co19/issues/49
+LayoutTests/fast/dom/shadow/distribution-update-recalcs-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/event-path_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/host-context-pseudo-class-css-text_t01: RuntimeError # https://github.com/dart-lang/co19/issues/49
 LayoutTests/fast/dom/shadow/host-pseudo-class-css-text_t01: RuntimeError # https://github.com/dart-lang/co19/issues/49
@@ -1372,6 +1376,7 @@ LayoutTests/fast/forms/select-max-length_t01: RuntimeError # Please triage this 
 LayoutTests/fast/forms/setCustomValidity-existence_t01: RuntimeError # Issue 25155
 LayoutTests/fast/forms/setrangetext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # co19 issue 14
+LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this failure. Started failing in chrome 55
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/validationMessage_t01: RuntimeError # Please triage this failure
@@ -1556,6 +1561,7 @@ LibTest/html/Document/childNodes_A01_t01: RuntimeError # Please triage this fail
 LibTest/html/Document/clone_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Document/clone_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Document/securityPolicy_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/Element.tag_A01_t01: RuntimeError # Test seems invalid in Chrome 55.
 LibTest/html/Element/blur_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/borderEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/contentEdge_A01_t01: RuntimeError # Issue 16574
@@ -1927,7 +1933,6 @@ LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Please triage 
 LayoutTests/fast/canvas/webgl/gl-bind-attrib-location-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-enable-enum-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-getshadersource_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-getstring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure
@@ -1949,7 +1954,6 @@ LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: RuntimeError # Please t
 LayoutTests/fast/canvas/webgl/is-object_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/null-uniform-location_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/point-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError # Please triage this failure
@@ -2848,7 +2852,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: 
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
@@ -4186,6 +4189,7 @@ WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
 
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 
@@ -8102,7 +8106,7 @@ LayoutTests/fast/xsl/xslt-fragment-in-empty-doc_t01: RuntimeError # Please triag
 LayoutTests/fast/xsl/xslt-string-parameters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please triage this failure
 LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
-LibTest/async/Future/forEach_A04_t02: RuntimeError # Please triage this failure
+LibTest/async/Future/forEach_A04_t02: Pass, RuntimeError # Sometimes passes on windows 7 and windows 8. Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
 LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure

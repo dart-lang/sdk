@@ -415,10 +415,14 @@ class ClassHierarchy {
     }
     // One of the two lists is now exhausted, copy over the remains.
     while (i < declared.length) {
-      result[storeIndex++] = declared[i++];
+      Member declaredMember = declared[i++];
+      if (skipAbstractMembers && declaredMember.isAbstract) continue;
+      result[storeIndex++] = declaredMember;
     }
     while (j < inherited.length) {
-      result[storeIndex++] = inherited[j++];
+      Member inheritedMember = inherited[j++];
+      if (skipAbstractMembers && inheritedMember.isAbstract) continue;
+      result[storeIndex++] = inheritedMember;
     }
     result.length = storeIndex;
     return result;

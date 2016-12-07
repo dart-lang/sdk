@@ -367,7 +367,20 @@ class AnalysisServer {
         options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
-    _analysisPerformanceLogger = new nd.PerformanceLog(io.stdout);
+
+    {
+      String name = options.newAnalysisDriverLog;
+      StringSink sink = new _NullStringSink();
+      if (name != null) {
+        if (name == 'stdout') {
+          sink = io.stdout;
+        } else if (name.startsWith('file:')) {
+          String path = name.substring('file:'.length);
+          sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
+        }
+      }
+      _analysisPerformanceLogger = new nd.PerformanceLog(sink);
+    }
     if (resourceProvider is PhysicalResourceProvider) {
       byteStore = new MemoryCachingByteStore(
           new FileByteStore(
@@ -381,6 +394,7 @@ class AnalysisServer {
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
+
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
           packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
@@ -618,8 +632,14 @@ class AnalysisServer {
     if (result != null) {
       return result;
     }
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    return driver?.getResult(path);
+    try {
+      nd.AnalysisDriver driver = getAnalysisDriver(path);
+      return await driver?.getResult(path);
+    } catch (e) {
+      // Ignore the exception.
+      // We don't want to log the same exception again and again.
+      return null;
+    }
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -894,7 +914,7 @@ class AnalysisServer {
    * Return `true` if analysis is complete.
    */
   bool isAnalysisComplete() {
-    return operationQueue.isEmpty;
+    return operationQueue.isEmpty && !analysisDriverScheduler.isAnalyzing;
   }
 
   /**
@@ -1139,10 +1159,14 @@ class AnalysisServer {
   }
 
   /**
-   * Send status notification to the client. The `operation` is the operation
-   * being performed or `null` if analysis is complete.
+   * Send status notification to the client. The state of analysis is given by
+   * the [status] information.
    */
   void sendStatusNotificationNew(nd.AnalysisStatus status) {
+    if (_onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
+      _onAnalysisCompleteCompleter.complete();
+      _onAnalysisCompleteCompleter = null;
+    }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
       return;
@@ -1197,7 +1221,7 @@ class AnalysisServer {
           // The result will be produced by the "results" stream with
           // the fully resolved unit, and processed with sending analysis
           // notifications as it happens after content changes.
-          driver.getResult(file);
+          driver.getResult(file).catchError((exception, stackTrace) {});
         }
       }
       return;
@@ -1733,6 +1757,7 @@ class AnalysisServerOptions {
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
+  String newAnalysisDriverLog;
 }
 
 /**
@@ -1833,6 +1858,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // OCCURRENCES (not used in IDEA)
       // OUTLINE (not used in IDEA)
     });
+    analysisDriver.exceptions.listen((nd.ExceptionResult result) {
+      AnalysisEngine.instance.logger
+          .logError('Analysis failed: ${result.path}', result.exception);
+    });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }
@@ -1878,6 +1907,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
       }
     }
+  }
+
+  @override
+  void applyFileRemoved(nd.AnalysisDriver driver, String file) {
+    driver.removeFile(file);
+    sendAnalysisNotificationFlushResults(analysisServer, [file]);
   }
 
   @override
@@ -1929,6 +1964,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
       nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
       driver.dispose();
+      // Remove cached priority results for the driver.
+      var results = analysisServer.priorityFileResults;
+      results.keys
+          .where((key) => results[key].driver == driver)
+          .forEach(results.remove);
     } else {
       AnalysisContext context = analysisServer.folderMap.remove(folder);
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
@@ -2069,4 +2109,11 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in split store microtasks.
    */
   static PerformanceTag splitStore = new PerformanceTag('splitStore');
+}
+
+class _NullStringSink implements StringSink {
+  void write(Object obj) {}
+  void writeAll(Iterable objects, [String separator = ""]) {}
+  void writeCharCode(int charCode) {}
+  void writeln([Object obj = ""]) {}
 }

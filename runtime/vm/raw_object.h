@@ -1202,7 +1202,8 @@ class RawPcDescriptors : public RawObject {
     kUnoptStaticCall = kIcCall << 1,       // Call to a known target via stub.
     kRuntimeCall = kUnoptStaticCall << 1,  // Runtime call.
     kOsrEntry = kRuntimeCall << 1,         // OSR entry point in unopt. code.
-    kOther = kOsrEntry << 1,
+    kRewind = kOsrEntry << 1,              // Call rewind target address.
+    kOther = kRewind << 1,
     kLastKind = kOther,
     kAnyKind = -1
   };

@@ -188,7 +188,7 @@ String joinArguments(var types, int startIndex,
   assert(isJsArray(types));
   bool firstArgument = true;
   bool allDynamic = true;
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = new StringBuffer('');
   for (int index = startIndex; index < getLength(types); index++) {
     if (firstArgument) {
       firstArgument = false;

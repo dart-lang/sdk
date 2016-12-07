@@ -106,7 +106,6 @@ void HashMap::Remove(void* key, uint32_t hash) {
 
   // Clear the candidate which will not break searching the hash table.
   candidate->key = NULL;
-  candidate->value = NULL;
   occupancy_--;
 }
 
@@ -118,7 +117,6 @@ void HashMap::Clear(ClearFun clear) {
     if ((clear != NULL) && (p->key != NULL)) {
       clear(p->value);
     }
-    p->value = NULL;
     p->key = NULL;
   }
   occupancy_ = 0;

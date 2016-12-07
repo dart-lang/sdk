@@ -5,6 +5,7 @@
 library analyzer.test.generated.parser_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -5059,7 +5060,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseAssignableSelector_none() {
     createParser(';');
     Expression expression =
-        parser.parseAssignableSelector(new SimpleIdentifier(null), true);
+        parser.parseAssignableSelector(astFactory.simpleIdentifier(null), true);
     expectNotNullIfNoErrors(expression);
     listener.assertNoErrors();
     expect(expression, new isInstanceOf<SimpleIdentifier>());
@@ -9416,8 +9417,9 @@ void''');
   }
 
   void test_parseFunctionDeclaration_function() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('f() {}');
     FunctionDeclaration declaration = parser.parseFunctionDeclaration(
         commentAndMetadata(comment), null, returnType);
@@ -9435,8 +9437,9 @@ void''');
   }
 
   void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('f<E>() {}');
     FunctionDeclaration declaration = parser.parseFunctionDeclaration(
         commentAndMetadata(comment), null, returnType);
@@ -9455,8 +9458,9 @@ void''');
 
   void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
     enableGenericMethodComments = true;
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('f/*<E>*/() {}');
     FunctionDeclaration declaration = parser.parseFunctionDeclaration(
         commentAndMetadata(comment), null, returnType);
@@ -9474,8 +9478,9 @@ void''');
   }
 
   void test_parseFunctionDeclaration_getter() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('get p => 0;');
     FunctionDeclaration declaration = parser.parseFunctionDeclaration(
         commentAndMetadata(comment), null, returnType);
@@ -9493,8 +9498,9 @@ void''');
   }
 
   void test_parseFunctionDeclaration_setter() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('set p(v) {}');
     FunctionDeclaration declaration = parser.parseFunctionDeclaration(
         commentAndMetadata(comment), null, returnType);
@@ -9594,8 +9600,9 @@ void''');
   }
 
   void test_parseGetter_nonStatic() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('get a;');
     MethodDeclaration method =
         parser.parseGetter(commentAndMetadata(comment), null, null, returnType);
@@ -9613,9 +9620,10 @@ void''');
   }
 
   void test_parseGetter_static() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('get a => 42;');
     MethodDeclaration method = parser.parseGetter(
         commentAndMetadata(comment), null, staticKeyword, returnType);
@@ -9864,9 +9872,10 @@ void''');
   }
 
   void test_parseInitializedIdentifierList_type() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    TypeName type = new TypeName(new SimpleIdentifier(null), null);
+    TypeName type =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser("a = 1, b, c = 3;");
     FieldDeclaration declaration = parser.parseInitializedIdentifierList(
         commentAndMetadata(comment), staticKeyword, null, type);
@@ -9883,7 +9892,7 @@ void''');
   }
 
   void test_parseInitializedIdentifierList_var() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
     Token varKeyword = TokenFactory.tokenFromKeyword(Keyword.VAR);
     createParser('a = 1, b, c = 3;');
@@ -11075,8 +11084,9 @@ void''');
   }
 
   void test_parseOperator() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('operator +(A a);');
     MethodDeclaration method =
         parser.parseOperator(commentAndMetadata(comment), null, returnType);
@@ -11733,8 +11743,9 @@ void''');
   }
 
   void test_parseSetter_nonStatic() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('set a(var x);');
     MethodDeclaration method =
         parser.parseSetter(commentAndMetadata(comment), null, null, returnType);
@@ -11753,9 +11764,10 @@ void''');
   }
 
   void test_parseSetter_static() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    TypeName returnType =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('set a(var x) {}');
     MethodDeclaration method = parser.parseSetter(
         commentAndMetadata(comment), null, staticKeyword, returnType);
@@ -13121,7 +13133,8 @@ void''');
   }
 
   void test_parseVariableDeclarationListAfterType_type() {
-    TypeName type = new TypeName(new SimpleIdentifier(null), null);
+    TypeName type =
+        astFactory.typeName(astFactory.simpleIdentifier(null), null);
     createParser('a');
     VariableDeclarationList declarationList =
         parser.parseVariableDeclarationListAfterType(

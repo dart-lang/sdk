@@ -139,6 +139,8 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Isolate must be runnable";
     case kIsolateMustBePaused:
       return "Isolate must be paused";
+    case kCannotResume:
+      return "Cannot resume execution";
     case kIsolateIsReloading:
       return "Isolate is reloading";
     case kFileSystemAlreadyExists:

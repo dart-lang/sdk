@@ -11,7 +11,8 @@ import 'package:kernel/verifier.dart' show CheckParentPointers;
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart' show Compiler;
-import '../constants/expressions.dart' show TypeConstantExpression;
+import '../constants/expressions.dart'
+    show ConstantExpression, TypeConstantExpression;
 import '../dart_types.dart'
     show DartType, FunctionType, InterfaceType, TypeKind, TypeVariableType;
 import '../diagnostics/messages.dart' show MessageKind;
@@ -74,6 +75,13 @@ class Kernel {
   final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
   final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
   final Map<ir.Node, Node> nodeToAstOperator = <ir.Node, Node>{};
+  // Synthetic nodes are nodes we generated that do not correspond to
+  // [ast.Node]s. A node should be in one of nodeToAst or syntheticNodes but not
+  // both.
+  final Set<ir.Node> syntheticNodes = new Set<ir.Node>();
+
+  final Map<ir.Node, ConstantExpression> parameterInitializerNodeToConstant =
+      <ir.Node, ConstantExpression>{};
 
   /// FIFO queue of work that needs to be completed before the returned AST
   /// nodes are correct.

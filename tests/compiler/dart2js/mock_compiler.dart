@@ -290,7 +290,7 @@ class MockResolvedUriTranslator implements ResolvedUriTranslator {
   static final _emptySet = new Set();
 
   Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
-          [Spannable spannable]) =>
+          Spannable spannable) =>
       resolvedUri;
   Set<Uri> get disallowedLibraryUris => _emptySet;
   bool get mockableLibraryUsed => false;

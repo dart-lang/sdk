@@ -79,10 +79,9 @@ abstract class CompilerConfiguration {
             useFastStartup: useFastStartup,
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
-      case 'dart2appjit':
-      case 'dart2app':
+      case 'app_jit':
         return new Dart2AppSnapshotCompilerConfiguration(
-            isDebug: isDebug, isChecked: isChecked, useBlobs: useBlobs);
+            isDebug: isDebug, isChecked: isChecked);
       case 'precompiler':
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug,
@@ -94,7 +93,8 @@ abstract class CompilerConfiguration {
         return ComposedCompilerConfiguration.createDartKConfiguration(
             isHostChecked: isHostChecked,
             useSdk: useSdk,
-            verify: verifyKernel);
+            verify: verifyKernel,
+            strong: isStrong);
       case 'dartkp':
         return ComposedCompilerConfiguration.createDartKPConfiguration(
             isHostChecked: isHostChecked,
@@ -102,7 +102,8 @@ abstract class CompilerConfiguration {
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android',
             useSdk: useSdk,
-            verify: verifyKernel);
+            verify: verifyKernel,
+            strong: isStrong);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -215,9 +216,10 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 /// The "dartk" compiler.
 class DartKCompilerConfiguration extends CompilerConfiguration {
-  final bool verify;
+  final bool verify, strong;
 
-  DartKCompilerConfiguration({bool isHostChecked, bool useSdk, this.verify})
+  DartKCompilerConfiguration({bool isHostChecked, bool useSdk, this.verify,
+        this.strong})
       : super._subclass(isHostChecked: isHostChecked, useSdk: useSdk);
 
   @override
@@ -236,6 +238,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
+      strong ? '--strong' : null,
       verify ? '--verify-ir' : null,
       '--out',
       outputFileName
@@ -367,13 +370,13 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKPConfiguration(
       {bool isHostChecked, String arch, bool useBlobs, bool isAndroid,
-       bool useSdk, bool verify}) {
+       bool useSdk, bool verify, bool strong}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isHostChecked: isHostChecked,
-            useSdk: useSdk, verify: verify)));
+            useSdk: useSdk, verify: verify, strong: strong)));
 
     // Run the normal precompiler.
     nested.add(new PipelineCommand.runWithPreviousKernelOutput(
@@ -384,13 +387,13 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   static ComposedCompilerConfiguration createDartKConfiguration(
-      {bool isHostChecked, bool useSdk, bool verify}) {
+      {bool isHostChecked, bool useSdk, bool verify, bool strong}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isHostChecked: isHostChecked,
-            useSdk: useSdk, verify: verify)));
+            useSdk: useSdk, verify: verify, strong: strong)));
 
     return new ComposedCompilerConfiguration(nested, isPrecompiler: false);
   }
@@ -697,9 +700,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 }
 
 class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
-  final bool useBlobs;
-  Dart2AppSnapshotCompilerConfiguration({bool isDebug, bool isChecked, bool useBlobs})
-      : super._subclass(isDebug: isDebug, isChecked: isChecked), this.useBlobs = useBlobs;
+  Dart2AppSnapshotCompilerConfiguration({bool isDebug, bool isChecked})
+      : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
     int multiplier = 2;
@@ -714,10 +716,11 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
+    var snapshot = "$tempDir/out.jitsnapshot";
     return new CommandArtifact(<Command>[
       this.computeCompilationCommand(tempDir, buildDir,
           CommandBuilder.instance, arguments, environmentOverrides)
-    ], tempDir, 'application/dart-snapshot');
+    ], snapshot, 'application/dart-snapshot');
   }
 
   CompilationCommand computeCompilationCommand(
@@ -728,15 +731,13 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart";
     var args = new List();
-    args.add("--snapshot=$tempDir/out.jitsnapshot");
+    var snapshot = "$tempDir/out.jitsnapshot";
+    args.add("--snapshot=$snapshot");
     args.add("--snapshot-kind=app-jit");
-    if (useBlobs) {
-      args.add("--use-blobs");
-    }
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand(
-        'dart2snapshot',
+        'app_jit',
         tempDir,
         !useSdk,
         bootstrapDependencies(buildDir),
@@ -771,10 +772,16 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-    return args
+    args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(originalArguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = artifact.filename;
+      }
+    }
+    return args;
   }
 }
 

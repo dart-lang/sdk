@@ -11,13 +11,17 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
-# Don't run dev_compiler tests
-dev_compiler/test/*: Skip
-
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 
 dart_messages/test/dart_messages_test: Skip  # Requires a package root.
+
+# Skip dev_compiler codegen tests
+dev_compiler/test/codegen/*: Skip
+
+# Analyze dev_compiler but don't run its tests
+[ $compiler != dart2analyzer ]
+dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/gen/*: SkipByDesign
@@ -85,6 +89,9 @@ async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
 
+[ $runtime == ie11 ]
+kernel/test/verify_test: Skip # Times out. Issue 27935
+
 [ $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
@@ -112,6 +119,9 @@ http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: SkipByDesign  # Uses dart:io.
 dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
+
+[ $browser || $jscl ]
+kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
 [ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == armv6 || $arch == armv5te) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
@@ -187,7 +197,7 @@ analyzer/test/src/task/strong/inferred_type_test: Crash # Issue 24485
 analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
 analyzer/test/src/task/yaml_test: Crash # Issue 24485
 
-[ $noopt || $runtime == dart_precompiled || $runtime == dart_app ]
+[ $noopt || $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
 
 [ $compiler == dart2js && $cps_ir && $checked ]

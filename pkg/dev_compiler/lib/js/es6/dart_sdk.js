@@ -641,7 +641,6 @@ let ObjectToObject = () => (ObjectToObject = dart.constFn(dart.definiteFunctionT
 let dynamic__Todynamic = () => (dynamic__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic], [dart.dynamic])))();
 let dynamicTo_Future = () => (dynamicTo_Future = dart.constFn(dart.definiteFunctionType(async._Future, [dart.dynamic])))();
 let _AsyncCallbackTovoid = () => (_AsyncCallbackTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [async._AsyncCallback])))();
-let FnTodynamic = () => (FnTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [VoidTovoid()])))();
 let _NotificationHandlerToFuture = () => (_NotificationHandlerToFuture = dart.constFn(dart.definiteFunctionType(async.Future, [async._NotificationHandler])))();
 let dynamicAndStackTraceTodynamic = () => (dynamicAndStackTraceTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.StackTrace])))();
 let dynamic__Tovoid = () => (dynamic__Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic], [core.StackTrace])))();
@@ -1188,7 +1187,7 @@ dart.lazyAnonymousJSType = function(name) {
 };
 const _wrappedType = Symbol('_wrappedType');
 dart.unwrapType = function(obj) {
-  return dart.dload(obj, _wrappedType);
+  return obj[_wrappedType];
 };
 dart._getRuntimeType = function(value) {
   return value[dart._runtimeType];
@@ -1898,14 +1897,12 @@ dart.assert = function(condition) {
   if (!condition) dart.throwAssertionError();
 };
 dart.throw = function(obj) {
-  if (obj != null && (typeof obj == 'object' || typeof obj == 'function')) {
-    dart._stack.set(obj, new Error());
-  }
+  dart._stack = new Error();
   throw obj;
 };
 dart.getError = function(exception) {
-  var stack = dart._stack.get(exception);
-  return stack !== void 0 ? stack : exception;
+  var stack = dart._stack;
+  return stack !== null ? stack : exception;
 };
 dart.stackPrint = function(exception) {
   var error = dart.getError(exception);
@@ -2663,7 +2660,7 @@ dart._ignoreTypeFailure = (() => {
     return false;
   });
 })();
-dart._stack = new WeakMap();
+dart._stack = null;
 dart._value = Symbol("_value");
 dart.constants = new Map();
 dart.constantLists = new Map();
@@ -17298,6 +17295,8 @@ _native_typed_data._checkValidRange = function(start, end, length) {
   return end;
 };
 dart.fn(_native_typed_data._checkValidRange, intAndintAndintToint());
+async._Callback = dart.typedef('_Callback', () => dart.functionType(dart.void, []));
+async._TakeCallback = dart.typedef('_TakeCallback', () => dart.functionType(dart.void, [async._Callback]));
 async._invokeErrorHandler = function(errorHandler, error, stackTrace) {
   if (async.ZoneBinaryCallback.is(errorHandler)) {
     return dart.dcall(errorHandler, error, stackTrace);
@@ -17735,7 +17734,7 @@ async._BufferingStreamSubscription$ = dart.generic(T => {
       dart.assert(!dart.test(this[_inCallback]));
       let wasInputPaused = this[_isInputPaused];
       this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
-      dart.dcall(callback);
+      callback();
       this[_state] = (dart.notNull(this[_state]) & ~async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
       this[_checkState](wasInputPaused);
     }
@@ -17816,7 +17815,7 @@ async._BufferingStreamSubscription$ = dart.generic(T => {
       [_sendData]: dart.definiteFunctionType(dart.void, [T]),
       [_sendError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace]),
       [_sendDone]: dart.definiteFunctionType(dart.void, []),
-      [_guardCallback]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
+      [_guardCallback]: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
       [_checkState]: dart.definiteFunctionType(dart.void, [core.bool])
     }),
     sfields: () => ({
@@ -19635,7 +19634,7 @@ async.scheduleMicrotask = function(callback) {
 dart.fn(async.scheduleMicrotask, _AsyncCallbackTovoid());
 async._AsyncRun = class _AsyncRun extends core.Object {
   static _scheduleImmediate(callback) {
-    dart.dcall(async._AsyncRun._scheduleImmediateClosure, callback);
+    async._AsyncRun._scheduleImmediateClosure(callback);
   }
   static _initializeScheduleImmediate() {
     if (self.scheduleImmediate != null) {
@@ -19649,7 +19648,7 @@ async._AsyncRun = class _AsyncRun extends core.Object {
         _isolate_helper.leaveJsAsync();
         let f = storedCallback;
         storedCallback = null;
-        dart.dcall(f);
+        f();
       }
       dart.fn(internalCallback, dynamicTodynamic());
       ;
@@ -19660,7 +19659,7 @@ async._AsyncRun = class _AsyncRun extends core.Object {
         _isolate_helper.enterJsAsync();
         storedCallback = callback;
         div.firstChild ? div.removeChild(span) : div.appendChild(span);
-      }, FnTodynamic());
+      }, _AsyncCallbackTovoid());
     } else if (self.setImmediate != null) {
       return async._AsyncRun._scheduleImmediateWithSetImmediate;
     }
@@ -19691,10 +19690,10 @@ async._AsyncRun = class _AsyncRun extends core.Object {
   }
 };
 dart.setSignature(async._AsyncRun, {
-  sfields: () => ({_scheduleImmediateClosure: core.Function}),
+  sfields: () => ({_scheduleImmediateClosure: async._TakeCallback}),
   statics: () => ({
     _scheduleImmediate: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
-    _initializeScheduleImmediate: dart.definiteFunctionType(core.Function, []),
+    _initializeScheduleImmediate: dart.definiteFunctionType(async._TakeCallback, []),
     _scheduleImmediateJsOverride: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
     _scheduleImmediateWithSetImmediate: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
     _scheduleImmediateWithTimer: dart.definiteFunctionType(dart.void, [VoidTovoid()])
@@ -20098,7 +20097,7 @@ async._StreamController$ = dart.generic(T => {
       subscription[_setPendingEvents](pendingEvents);
       subscription[_guardCallback](dart.fn(() => {
         async._runGuarded(this.onListen);
-      }, VoidTodynamic()));
+      }, VoidTovoid()));
       return subscription;
     }
     [_recordCancel](subscription) {

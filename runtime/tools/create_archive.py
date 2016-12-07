@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -131,6 +132,9 @@ def main(args):
         if (os.path.isdir(src_path)):
             continue
         files.append(src_path)
+
+    # Ensure consistent file ordering for reproducible builds.
+    files.sort()
 
     # Write out archive.
     makeArchive(options.tar_output,

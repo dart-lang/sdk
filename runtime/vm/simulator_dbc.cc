@@ -3498,15 +3498,17 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(LoadIndexedUint32, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<uintptr_t*>(data));
+    const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const uint32_t value = *reinterpret_cast<const uint32_t*>(data);
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
   {
     BYTECODE(LoadIndexedInt32, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<intptr_t*>(data));
+    const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const int32_t value = *reinterpret_cast<const int32_t*>(data);
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
@@ -3715,14 +3717,25 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   fp_ = reinterpret_cast<RawObject**>(fp);
 
   if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
-    // Instead of executing the RunException stub, we implement its
-    // behavior here.
+    // The RunExceptionHandler stub is a placeholder.  We implement
+    // its behavior here.
     RawObject* raw_exception = thread->active_exception();
     RawObject* raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
     special_[kExceptionSpecialIndex] = raw_exception;
     special_[kStacktraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
+  } else if (pc == StubCode::DeoptForRewind_entry()->EntryPoint()) {
+    // The DeoptForRewind stub is a placeholder.  We will eventually
+    // implement its behavior here.
+    //
+    // TODO(turnidge): Refactor the Deopt bytecode so that we can use
+    // the implementation here too.  The deopt pc is stored in
+    // Thread::resume_pc().  After invoking deoptimization, we usually
+    // call into Debugger::RewindPostDeopt(), but I need to figure out
+    // if that makes any sense (it would JumpToFrame during a
+    // JumpToFrame, which seems wrong).
+    UNIMPLEMENTED();
   } else {
     pc_ = pc;
   }

@@ -196,7 +196,8 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
 }
 
 
-bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket) {
+bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
+                                           bool update_hash_maps) {
   ASSERT(!mutex_->TryLock());
   ASSERT(os_socket != NULL);
   ASSERT(os_socket->ref_count > 0);
@@ -204,26 +205,28 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket) {
   if (os_socket->ref_count > 0) {
     return false;
   }
-  // We free the OS socket by removing it from two datastructures.
-  RemoveByFd(os_socket->socketfd);
+  if (update_hash_maps) {
+    // We free the OS socket by removing it from two datastructures.
+    RemoveByFd(os_socket->socketfd);
 
-  OSSocket* prev = NULL;
-  OSSocket* current = LookupByPort(os_socket->port);
-  while (current != os_socket) {
-    ASSERT(current != NULL);
-    prev = current;
-    current = current->next;
-  }
+    OSSocket* prev = NULL;
+    OSSocket* current = LookupByPort(os_socket->port);
+    while (current != os_socket) {
+      ASSERT(current != NULL);
+      prev = current;
+      current = current->next;
+    }
 
-  if ((prev == NULL) && (current->next == NULL)) {
-    // Remove last element from the list.
-    RemoveByPort(os_socket->port);
-  } else if (prev == NULL) {
-    // Remove first element of the list.
-    InsertByPort(os_socket->port, current->next);
-  } else {
-    // Remove element from the list which is not the first one.
-    prev->next = os_socket->next;
+    if ((prev == NULL) && (current->next == NULL)) {
+      // Remove last element from the list.
+      RemoveByPort(os_socket->port);
+    } else if (prev == NULL) {
+      // Remove first element of the list.
+      InsertByPort(os_socket->port, current->next);
+    } else {
+      // Remove element from the list which is not the first one.
+      prev->next = os_socket->next;
+    }
   }
 
   ASSERT(os_socket->ref_count == 0);
@@ -234,9 +237,10 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket) {
 
 void ListeningSocketRegistry::CloseAllSafe() {
   MutexLocker ml(mutex_);
-  for (HashMap::Entry* p = sockets_by_fd_.Start(); p != NULL;
-       p = sockets_by_fd_.Next(p)) {
-    CloseOneSafe(reinterpret_cast<OSSocket*>(p->value));
+
+  for (HashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
+       cursor = sockets_by_fd_.Next(cursor)) {
+    CloseOneSafe(reinterpret_cast<OSSocket*>(cursor->value), false);
   }
 }
 
@@ -245,7 +249,7 @@ bool ListeningSocketRegistry::CloseSafe(intptr_t socketfd) {
   ASSERT(!mutex_->TryLock());
   OSSocket* os_socket = LookupByFd(socketfd);
   if (os_socket != NULL) {
-    return CloseOneSafe(os_socket);
+    return CloseOneSafe(os_socket, true);
   } else {
     // It should be impossible for the event handler to close something that
     // hasn't been created before.

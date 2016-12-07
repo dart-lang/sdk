@@ -1664,6 +1664,20 @@ class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
     return !hasCrashed && !timedOut && exitCode == 0;
   }
 
+  Expectation result(TestCase testCase) {
+    Expectation result = super.result(testCase);
+    if (result.canBeOutcomeOf(Expectation.CRASH)) {
+      return Expectation.DARTK_CRASH;
+    } else if (result.canBeOutcomeOf(Expectation.TIMEOUT)) {
+      return Expectation.DARTK_TIMEOUT;
+    } else if (result.canBeOutcomeOf(Expectation.MISSING_COMPILETIME_ERROR)) {
+      return Expectation.DARTK_MISSING_COMPILETIME_ERROR;
+    } else if (result.canBeOutcomeOf(Expectation.COMPILETIME_ERROR)) {
+      return Expectation.DARTK_COMPILETIME_ERROR;
+    }
+    return result;
+  }
+
   // If the compiler was able to produce a Kernel IR file we want to run the
   // result on the Dart VM.  We therefore mark the [KernelCompilationCommand] as
   // successful.
@@ -1754,7 +1768,7 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
-        command.displayName == 'dart2snapshot') {
+        command.displayName == 'app_jit') {
       return new VmCommandOutputImpl(
           command, exitCode, timedOut, stdout, stderr, time, pid);
     }

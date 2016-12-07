@@ -19,6 +19,10 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/prelink.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:package_config/discovery.dart';
@@ -32,6 +36,12 @@ int scanTotalChars = 0;
 
 /// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
+
+/// Cumulative time spent parsing.
+Stopwatch parseTimer = new Stopwatch();
+
+/// Cumulative time spent building unlinked summaries.
+Stopwatch unlinkedSummarizeTimer = new Stopwatch();
 
 /// Factory to load and resolve app, packages, and sdk sources.
 SourceFactory sources;
@@ -69,6 +79,16 @@ main(List<String> args) async {
       // are leaking memory?). That's why we run it twice and not 10 times.
       for (int i = 0; i < 2; i++) await generateKernel(entryUri);
     },
+    'unlinked_summarize': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) unlinkedSummarizeFiles(files);
+    },
+    'prelinked_summarize': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) prelinkedSummarizeFiles(files);
+    }
   };
 
   var handler = handlers[bench];
@@ -159,18 +179,87 @@ void parseFiles(Set<Source> files) {
   scanTimer = new Stopwatch();
   var old = scanTotalChars;
   scanTotalChars = 0;
-  var parseTimer = new Stopwatch()..start();
+  parseTimer = new Stopwatch();
   for (var source in files) {
     parseFull(source);
   }
-  parseTimer.stop();
 
   // Report size and scanning time again. See discussion above.
   if (old != scanTotalChars) print('input size changed? ${old} chars');
   report("scan", scanTimer.elapsedMicroseconds);
+  report("parse", parseTimer.elapsedMicroseconds);
+}
 
-  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("parse", pTime);
+/// Produces unlinked summaries for every file in [files] and reports the time
+/// spent doing so.
+void unlinkedSummarizeFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  parseTimer = new Stopwatch();
+  unlinkedSummarizeTimer = new Stopwatch();
+  for (var source in files) {
+    unlinkedSummarize(source);
+  }
+
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+  report("parse", parseTimer.elapsedMicroseconds);
+  report('unlinked summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
+  report(
+      'unlinked summarize + parse',
+      unlinkedSummarizeTimer.elapsedMicroseconds +
+          parseTimer.elapsedMicroseconds);
+}
+
+/// Produces prelinked summaries for every file in [files] and reports the time
+/// spent doing so.
+void prelinkedSummarizeFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  parseTimer = new Stopwatch();
+  unlinkedSummarizeTimer = new Stopwatch();
+  var unlinkedSummaries = <Source, UnlinkedUnit>{};
+  for (var source in files) {
+    unlinkedSummaries[source] = unlinkedSummarize(source);
+  }
+  var prelinkTimer = new Stopwatch()..start();
+  for (var source in files) {
+    UnlinkedUnit getSummary(String uri) {
+      var resolvedUri = sources.resolveUri(source, uri);
+      var result = unlinkedSummaries[resolvedUri];
+      if (result == null) {
+        print('Warning: no summary found for: $uri');
+      }
+      return result;
+    }
+
+    UnlinkedPublicNamespace getImport(String uri) =>
+        getSummary(uri)?.publicNamespace;
+    String getDeclaredVariable(String s) => null;
+    prelink(
+        unlinkedSummaries[source], getSummary, getImport, getDeclaredVariable);
+  }
+  prelinkTimer.stop();
+
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+  report("parse", parseTimer.elapsedMicroseconds);
+  report('unlinked summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
+  report(
+      'unlinked summarize + parse',
+      unlinkedSummarizeTimer.elapsedMicroseconds +
+          parseTimer.elapsedMicroseconds);
+  report('prelink', prelinkTimer.elapsedMicroseconds);
 }
 
 /// Add to [files] all sources reachable from [start].
@@ -195,8 +284,19 @@ CompilationUnit parseDirectives(Source source) {
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
+  parseTimer.start();
   var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-  return parser.parseCompilationUnit(token);
+  var unit = parser.parseCompilationUnit(token);
+  parseTimer.stop();
+  return unit;
+}
+
+UnlinkedUnitBuilder unlinkedSummarize(Source source) {
+  var unit = parseFull(source);
+  unlinkedSummarizeTimer.start();
+  var unlinkedUnit = serializeAstUnlinked(unit);
+  unlinkedSummarizeTimer.stop();
+  return unlinkedUnit;
 }
 
 /// Scan [source] and return the first token produced by the scanner.
@@ -241,7 +341,7 @@ Future<Program> generateKernel(Uri entryUri) async {
   var repository = new Repository();
   DartLoader loader = new DartLoader(repository, options, packages);
 
-  Program program = loader.loadProgram(entryUri.path);
+  Program program = loader.loadProgram(entryUri);
   List errors = loader.errors;
   if (errors.isNotEmpty) {
     const int errorLimit = 100;

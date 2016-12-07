@@ -82,6 +82,9 @@ worker_test/functional: Pass, Crash # Issue 9929.
 fileapi_test/entry: Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
+media_stream_test/supported_MediaStreamEvent: RuntimeError # Please triage.
+media_stream_test/supported_MediaStreamTrackEvent: RuntimeError # Please triage.
+speechrecognition_test/types: RuntimeError # Please triage.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
@@ -353,7 +356,7 @@ websql_test/supported: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm || $runtime == dart_precompiled || $runtime == dart_app ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]

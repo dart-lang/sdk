@@ -191,18 +191,12 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 }
 
 /**
- * Completes with the resolved [CompilationUnit] that contains the [element].
- */
-typedef Future<CompilationUnit> GetResolvedUnitContainingElement(
-    Element element);
-
-/**
  * [InlineMethodRefactoring] implementation.
  */
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final GetResolvedUnitContainingElement getResolvedUnit;
+  final GetResolvedUnit getResolvedUnit;
   final CompilationUnit unit;
   final int offset;
   CorrectionUtils utils;

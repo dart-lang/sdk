@@ -156,9 +156,6 @@ regress_22438_test: fail # test issue 14079, it is not error, but warning to use
 # test issue 14228
 black_listed_test/none: fail # test issue 14228, warnings are required but not expected
 
-# test issue 14410, "typedef C = " is now really illegal syntax
-mixin_illegal_syntax_test/none: fail
-
 # test issue 14736, It is a static warning if a class C declares an instance method named n and has a setter named n=.
 setter4_test: StaticWarning
 
@@ -292,7 +289,6 @@ method_override5_test: StaticWarning
 method_override6_test: StaticWarning
 method_override_test: StaticWarning
 mixin_illegal_static_access_test: StaticWarning
-mixin_illegal_syntax_test/13: CompileTimeError
 mixin_type_parameters_mixin_extends_test: StaticWarning
 mixin_type_parameters_mixin_test: StaticWarning
 mixin_type_parameters_super_extends_test: StaticWarning

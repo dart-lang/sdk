@@ -29,10 +29,12 @@ class NodeListener extends ElementListener {
 
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     Expression name = popNode();
-    pushNode(new LibraryName(libraryKeyword, name,
-          // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
-          // (element) instead of Metatada (node).
-          null));
+    pushNode(new LibraryName(
+        libraryKeyword,
+        name,
+        // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
+        // (element) instead of Metatada (node).
+        null));
   }
 
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
@@ -41,37 +43,50 @@ class NodeListener extends ElementListener {
     Identifier prefix = asKeyword != null ? popNode() : null;
     NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
-    pushNode(new Import(importKeyword, uri, conditionalUris, prefix,
-          combinators,
-          // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
-          // (element) instead of Metatada (node).
-          null, isDeferred: deferredKeyword != null));
+    pushNode(new Import(
+        importKeyword,
+        uri,
+        conditionalUris,
+        prefix,
+        combinators,
+        // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
+        // (element) instead of Metatada (node).
+        null,
+        isDeferred: deferredKeyword != null));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
     NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
-    pushNode(new Export(exportKeyword, uri, conditionalUris, combinators,
-          // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
-          // (element) instead of Metatada (node).
-          null));
+    pushNode(new Export(
+        exportKeyword,
+        uri,
+        conditionalUris,
+        combinators,
+        // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
+        // (element) instead of Metatada (node).
+        null));
   }
 
   void endPart(Token partKeyword, Token semicolon) {
     StringNode uri = popLiteralString();
-    pushNode(new Part(partKeyword, uri,
-          // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
-          // (element) instead of Metatada (node).
-          null));
+    pushNode(new Part(
+        partKeyword,
+        uri,
+        // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
+        // (element) instead of Metatada (node).
+        null));
   }
 
   void endPartOf(Token partKeyword, Token semicolon) {
     Expression name = popNode(); // name
-    pushNode(new PartOf(partKeyword, name,
-          // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
-          // (element) instead of Metatada (node).
-          null));
+    pushNode(new PartOf(
+        partKeyword,
+        name,
+        // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
+        // (element) instead of Metatada (node).
+        null));
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -365,10 +380,10 @@ class NodeListener extends ElementListener {
 
   void endSend(Token token) {
     NodeList arguments = popNode();
-    popNode(); // typeArguments
+    NodeList typeArguments = popNode();
     Node selector = popNode();
     // TODO(ahe): Handle receiver.
-    pushNode(new Send(null, selector, arguments));
+    pushNode(new Send(null, selector, arguments, typeArguments));
   }
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {

@@ -24,21 +24,20 @@ main() {
   DiagnosticDomainHandler handler;
   MemoryResourceProvider resourceProvider;
 
-  setUp(() {
-    //
-    // Collect plugins
-    //
-    ServerPlugin serverPlugin = new ServerPlugin();
+  void processRequiredPlugins(ServerPlugin serverPlugin) {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
     plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
-    //
-    // Process plugins
-    //
+
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
+  }
+
+  setUp(() {
+    ServerPlugin serverPlugin = new ServerPlugin();
+    processRequiredPlugins(serverPlugin);
     //
     // Create the server
     //

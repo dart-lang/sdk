@@ -1357,7 +1357,7 @@ class Parser {
     if (isFactoryDeclaration(token)) {
       token = parseFactoryMethod(token);
       listener.endMember();
-      assert (token != null);
+      assert(token != null);
       return token;
     }
 

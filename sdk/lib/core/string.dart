@@ -187,7 +187,7 @@ abstract class String implements Comparable<String>, Pattern {
   /**
    * Returns a hash code derived from the code units of the string.
    *
-   * This is compatible with [operator==]. Strings with the same sequence
+   * This is compatible with [==]. Strings with the same sequence
    * of code units have the same hash code.
    */
   int get hashCode;

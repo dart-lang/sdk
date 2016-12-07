@@ -491,13 +491,6 @@ class Driver implements CommandLineStarter {
     // Create a context.
     _context = AnalysisEngine.instance.createAnalysisContext();
 
-    AnalyzeFunctionBodiesPredicate dietParsingPolicy =
-        _chooseDietParsingPolicy(options);
-    setAnalysisContextOptions(resourceProvider, _context, options,
-        (AnalysisOptionsImpl contextOptions) {
-      contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
-    });
-
     // Find package info.
     _PackageInfo packageInfo = _findPackages(options);
 
@@ -527,6 +520,14 @@ class Driver implements CommandLineStarter {
     // the command-line options.
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(
         options, embedderMap, packageInfo, summaryDataStore);
+
+    AnalyzeFunctionBodiesPredicate dietParsingPolicy =
+        _chooseDietParsingPolicy(options);
+    setAnalysisContextOptions(
+        resourceProvider, sourceFactory, _context, options,
+        (AnalysisOptionsImpl contextOptions) {
+      contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
+    });
 
     _context.sourceFactory = sourceFactory;
     _context.resultProvider =
@@ -680,6 +681,7 @@ class Driver implements CommandLineStarter {
 
   static void setAnalysisContextOptions(
       file_system.ResourceProvider resourceProvider,
+      SourceFactory sourceFactory,
       AnalysisContext context,
       CommandLineOptions options,
       void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
@@ -704,7 +706,7 @@ class Driver implements CommandLineStarter {
     context.analysisOptions = contextOptions;
 
     // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(resourceProvider, context, options);
+    _processAnalysisOptions(resourceProvider, sourceFactory, context, options);
   }
 
   /// Perform a deep comparison of two string lists.
@@ -761,14 +763,16 @@ class Driver implements CommandLineStarter {
 
   static void _processAnalysisOptions(
       file_system.ResourceProvider resourceProvider,
+      SourceFactory sourceFactory,
       AnalysisContext context,
       CommandLineOptions options) {
     file_system.File file = _getOptionsFile(resourceProvider, options);
     List<OptionsProcessor> optionsProcessors =
         AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+
     try {
       AnalysisOptionsProvider analysisOptionsProvider =
-          new AnalysisOptionsProvider();
+          new AnalysisOptionsProvider(sourceFactory);
       Map<String, YamlNode> optionMap =
           analysisOptionsProvider.getOptionsFromFile(file);
       optionsProcessors.forEach(

@@ -62,7 +62,7 @@ abstract class HashSet<E> implements Set<E> {
    * to not be in the set when asking `contains`.
    *
    * If [equals] or [hashCode] are omitted, the set uses
-   * the elements' intrinsic [Object.operator==] and [Object.hashCode].
+   * the elements' intrinsic [Object.==] and [Object.hashCode].
    *
    * If you supply one of [equals] and [hashCode],
    * you should generally also to supply the other.

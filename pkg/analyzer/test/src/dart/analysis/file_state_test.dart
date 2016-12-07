@@ -11,6 +11,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -55,6 +56,201 @@ class FileSystemStateTest {
       ..strongMode = true;
     fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
         provider, sourceFactory, analysisOptions, new Uint32List(0), '');
+  }
+
+  test_exportedTopLevelDeclarations_export() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart';
+class B {}
+''');
+    FileState file = fileSystemState.getFileForPath(b);
+    Map<String, TopLevelDeclaration> declarations =
+        file.exportedTopLevelDeclarations;
+    expect(declarations.keys, unorderedEquals(['A', 'B']));
+  }
+
+  test_exportedTopLevelDeclarations_export2_show() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart' show A1, A2;
+class B1 {}
+class B2 {}
+''');
+    provider.newFile(
+        c,
+        r'''
+export 'b.dart' show A2, A3, B1;
+class C {}
+''');
+    _assertExportedTopLevelDeclarations(c, ['A2', 'B1', 'C']);
+  }
+
+  test_exportedTopLevelDeclarations_export_flushOnChange() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart';
+class B {}
+''');
+
+    // Initial exported declarations.
+    _assertExportedTopLevelDeclarations(b, ['A', 'B']);
+
+    // Update a.dart, so a.dart and b.dart exported declarations are flushed.
+    provider.newFile(a, 'class A {} class A2 {}');
+    fileSystemState.getFileForPath(a).refresh();
+    _assertExportedTopLevelDeclarations(b, ['A', 'A2', 'B']);
+  }
+
+  test_exportedTopLevelDeclarations_export_hide() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart' hide A2;
+class B {}
+''');
+    _assertExportedTopLevelDeclarations(b, ['A1', 'A3', 'B']);
+  }
+
+  test_exportedTopLevelDeclarations_export_preferLocal() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class V {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart';
+int V;
+''');
+    FileState file = fileSystemState.getFileForPath(b);
+    Map<String, TopLevelDeclaration> declarations =
+        file.exportedTopLevelDeclarations;
+    expect(declarations.keys, unorderedEquals(['V']));
+    expect(declarations['V'].kind, TopLevelDeclarationKind.variable);
+  }
+
+  test_exportedTopLevelDeclarations_export_show() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A1 {}
+class A2 {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart' show A2;
+class B {}
+''');
+    _assertExportedTopLevelDeclarations(b, ['A2', 'B']);
+  }
+
+  test_exportedTopLevelDeclarations_export_show2() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    String d = _p('/aaa/lib/d.dart');
+    provider.newFile(
+        a,
+        r'''
+export 'b.dart' show Foo;
+export 'c.dart' show Bar;
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'd.dart';
+''');
+    provider.newFile(
+        c,
+        r'''
+export 'd.dart';
+''');
+    provider.newFile(
+        d,
+        r'''
+class Foo {}
+class Bar {}
+''');
+    _assertExportedTopLevelDeclarations(a, ['Foo', 'Bar']);
+  }
+
+  test_exportedTopLevelDeclarations_import() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+class B {}
+''');
+    _assertExportedTopLevelDeclarations(b, ['B']);
+  }
+
+  test_exportedTopLevelDeclarations_parts() {
+    String a = _p('/aaa/lib/a.dart');
+    String a2 = _p('/aaa/lib/a2.dart');
+    provider.newFile(
+        a,
+        r'''
+library lib;
+part 'a2.dart';
+class A1 {}
+''');
+    provider.newFile(
+        a2,
+        r'''
+part of lib;
+class A2 {}
+''');
+    _assertExportedTopLevelDeclarations(a, ['A1', 'A2']);
   }
 
   test_getFileForPath_doesNotExist() {
@@ -280,6 +476,49 @@ class C {
     expect(file.apiSignature, signature);
   }
 
+  test_topLevelDeclarations() {
+    String path = _p('/aaa/lib/a.dart');
+    provider.newFile(
+        path,
+        r'''
+class C {}
+typedef F();
+enum E {E1, E2}
+void f() {}
+var V1;
+get V2 => null;
+set V3(_) {}
+get V4 => null;
+set V4(_) {}
+
+class _C {}
+typedef _F();
+enum _E {E1, E2}
+void _f() {}
+var _V1;
+get _V2 => null;
+set _V3(_) {}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+
+    Map<String, TopLevelDeclaration> declarations = file.topLevelDeclarations;
+
+    void assertHas(String name, TopLevelDeclarationKind kind) {
+      expect(declarations[name]?.kind, kind);
+    }
+
+    expect(declarations.keys,
+        unorderedEquals(['C', 'F', 'E', 'f', 'V1', 'V2', 'V3', 'V4']));
+    assertHas('C', TopLevelDeclarationKind.type);
+    assertHas('F', TopLevelDeclarationKind.type);
+    assertHas('E', TopLevelDeclarationKind.type);
+    assertHas('f', TopLevelDeclarationKind.function);
+    assertHas('V1', TopLevelDeclarationKind.variable);
+    assertHas('V2', TopLevelDeclarationKind.variable);
+    assertHas('V3', TopLevelDeclarationKind.variable);
+    assertHas('V4', TopLevelDeclarationKind.variable);
+  }
+
   test_transitiveFiles() {
     String pa = _p('/aaa/lib/a.dart');
     String pb = _p('/aaa/lib/b.dart');
@@ -392,6 +631,13 @@ class C {
     provider.newFile(pa, "class A2 {}");
     fa.refresh();
     _assertFilesWithoutTransitiveSignatures([fa, fb, fc]);
+  }
+
+  void _assertExportedTopLevelDeclarations(String path, List<String> expected) {
+    FileState file = fileSystemState.getFileForPath(path);
+    Map<String, TopLevelDeclaration> declarations =
+        file.exportedTopLevelDeclarations;
+    expect(declarations.keys, unorderedEquals(expected));
   }
 
   void _assertFilesWithoutTransitiveFiles(List<FileState> expected) {

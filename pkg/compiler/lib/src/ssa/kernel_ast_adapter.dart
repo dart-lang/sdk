@@ -72,6 +72,9 @@ class KernelAstAdapter {
       _compiler.globalInference.results.resultOf(e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
+    if (kernel.syntheticNodes.contains(node)) {
+      return _backend.constantSystem.createSymbol(_compiler, node.value);
+    }
     ast.Node astNode = getNode(node);
     ConstantValue constantValue = _backend.constants
         .getConstantValueForNode(astNode, _resolvedAst.elements);
@@ -92,6 +95,8 @@ class KernelAstAdapter {
 
   MethodElement getMethod(ir.Node node) => getElement(node).declaration;
 
+  FieldElement getField(ir.Node node) => getElement(node).declaration;
+
   ClassElement getClass(ir.Node node) => getElement(node).declaration;
 
   ast.Node getNode(ir.Node node) {
@@ -99,6 +104,16 @@ class KernelAstAdapter {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
         message: "No node found for $node"));
     return result;
+  }
+
+  ast.Node getNodeOrNull(ir.Node node) {
+    return _nodeToAst[node];
+  }
+
+  void assertNodeIsSynthetic(ir.Node node) {
+    assert(invariant(
+        CURRENT_ELEMENT_SPANNABLE, kernel.syntheticNodes.contains(node),
+        message: "No synthetic marker found for $node"));
   }
 
   Local getLocal(ir.VariableDeclaration variable) {
@@ -204,7 +219,12 @@ class KernelAstAdapter {
     return _resultOf(_target).typeOfSend(getNode(send));
   }
 
-  TypeMask typeOfNewList(Element owner, ir.ListLiteral listLiteral) {
+  TypeMask typeOfListLiteral(Element owner, ir.ListLiteral listLiteral) {
+    ast.Node node = getNodeOrNull(listLiteral);
+    if (node == null) {
+      assertNodeIsSynthetic(listLiteral);
+      return _compiler.closedWorld.commonMasks.growableListType;
+    }
     return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
         _compiler.closedWorld.commonMasks.dynamicType;
   }
@@ -272,6 +292,19 @@ class KernelAstAdapter {
     return constantValue;
   }
 
+  ConstantValue getConstantForParameterDefaultValue(ir.Node defaultExpression) {
+    // TODO(27394): Evaluate constant expressions in ir.Node domain.
+    // In the interim, expand the Constantifier and do this:
+    //
+    //     ConstantExpression constantExpression =
+    //         defaultExpression.accept(new Constantifier(this));
+    //     assert(constantExpression != null);
+    ConstantExpression constantExpression =
+        kernel.parameterInitializerNodeToConstant[defaultExpression];
+    if (constantExpression == null) return null;
+    return _backend.constants.getConstantValue(constantExpression);
+  }
+
   ConstantValue getConstantForType(ir.DartType irType) {
     DartType type = getDartType(irType);
     return _backend.constantSystem.createType(_compiler, type.asRaw());
@@ -284,6 +317,15 @@ class KernelAstAdapter {
 
   bool isInterceptedSelector(Selector selector) {
     return _backend.isInterceptedSelector(selector);
+  }
+
+  // Is the member a lazy initialized static or top-level member?
+  bool isLazyStatic(ir.Member member) {
+    if (member is ir.Field) {
+      FieldElement field = _nodeToElement[member];
+      return field.constant == null;
+    }
+    return false;
   }
 
   LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
@@ -315,6 +357,12 @@ class KernelAstAdapter {
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.checkConcurrentModificationError, _compiler);
 
+  ir.Procedure get checkSubtype =>
+      kernel.functions[_backend.helpers.checkSubtype];
+
+  ir.Procedure get checkSubtypeOfRuntimeType =>
+      kernel.functions[_backend.helpers.checkSubtypeOfRuntimeType];
+
   ir.Procedure get assertHelper =>
       kernel.functions[_backend.helpers.assertHelper];
 
@@ -342,6 +390,9 @@ class KernelAstAdapter {
 
   ir.Procedure get currentIsolate =>
       kernel.functions[_backend.helpers.currentIsolate];
+
+  ir.Procedure get callInIsolate =>
+      kernel.functions[_backend.helpers.callInIsolate];
 
   bool isInForeignLibrary(ir.Member member) =>
       _backend.isForeign(getElement(member));
@@ -385,6 +436,21 @@ class KernelAstAdapter {
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
     return types.map(getDartType).toList();
+  }
+
+  DartType getDartTypeOfListLiteral(ir.ListLiteral list) {
+    ast.Node node = getNodeOrNull(list);
+    if (node != null) return elements.getType(node);
+    assertNodeIsSynthetic(list);
+    return _compiler.coreTypes.listType(getDartType(list.typeArgument));
+  }
+
+  DartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
+    ast.Node node = getNodeOrNull(literal);
+    if (node != null) return elements.getType(node);
+    assertNodeIsSynthetic(literal);
+    return _compiler.coreTypes
+        .mapType(getDartType(literal.keyType), getDartType(literal.valueType));
   }
 
   DartType getFunctionReturnType(ir.FunctionNode node) {

@@ -7,6 +7,7 @@ library summary_resynthesizer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -217,7 +218,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
-        return libraryElement..isSynthetic = true;
+        libraryElement.createLoadLibraryFunction(typeProvider);
+        return libraryElement;
       }
       UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
       if (unlinkedSummary == null) {
@@ -515,6 +517,9 @@ class _ConstExprBuilder {
         case UnlinkedExprOperation.typeCheck:
         case UnlinkedExprOperation.throwException:
         case UnlinkedExprOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushError:
+        case UnlinkedExprOperation.pushTypedAbstract:
+        case UnlinkedExprOperation.pushUntypedAbstract:
           throw new UnimplementedError(
               'Unexpected $operation in a constant expression.');
       }
@@ -588,9 +593,9 @@ class _ConstExprBuilder {
 
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
-      return new InterpolationString(expr.literal, expr.value);
+      return astFactory.interpolationString(expr.literal, expr.value);
     } else {
-      return new InterpolationExpression(
+      return astFactory.interpolationExpression(
           TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
           expr,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
@@ -714,7 +719,7 @@ class _ConstExprBuilder {
       typeArguments = AstTestFactory.typeArgumentList(typeNames);
     }
     if (node is SimpleIdentifier) {
-      _push(new MethodInvocation(
+      _push(astFactory.methodInvocation(
           null,
           TokenFactory.tokenFromType(TokenType.PERIOD),
           node,

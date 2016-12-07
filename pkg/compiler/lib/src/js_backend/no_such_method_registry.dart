@@ -267,4 +267,9 @@ class NoSuchMethodRegistry {
   }
 }
 
-enum NsmCategory { DEFAULT, THROWING, NOT_APPLICABLE, OTHER, }
+enum NsmCategory {
+  DEFAULT,
+  THROWING,
+  NOT_APPLICABLE,
+  OTHER,
+}

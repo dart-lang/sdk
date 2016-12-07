@@ -275,8 +275,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'setter_no_getter_test_01_multi': skip_fail,
       'stack_overflow_stacktrace_test': skip_fail,
       'stack_overflow_test': skip_fail,
-      'stack_trace_test': skip_fail,
-      'stacktrace_rethrow_nonerror_test': skip_fail, // mismatch from Karma's file hash
       'stacktrace_rethrow_error_test_none_multi': skip_fail,
       'stacktrace_rethrow_error_test_withtraceparameter_multi': skip_fail,
       'stacktrace_test': skip_fail,
@@ -377,7 +375,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'regress_r21715_test': fail,
       'throw_half_surrogate_pair_test_02_multi': fail,
       'splay_tree_from_iterable_test': firefox_fail,
-      'stacktrace_current_test': chrome_fail,
       'string_case_test_01_multi': firefox_fail,
       'string_fromcharcodes_test': skip_timeout,
       'string_operations_with_null_test': fail,
@@ -426,7 +423,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'lib/html': {
       'async_spawnuri_test': async_unittest,
       'async_test': async_unittest,
-      'audiocontext_test': is.chrome('<=55') ? fail : pass, // was sdk#27578, needs triage
+      'audiocontext_test': is.chrome('<=54') ? fail : pass, // was sdk#27578, needs triage
       'blob_constructor_test': 'fail', // was sdk#27578, needs triage
       'canvas_test': ['unittest'],
       'canvasrenderingcontext2d_test': ['unittest'],

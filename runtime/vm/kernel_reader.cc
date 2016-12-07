@@ -104,7 +104,7 @@ KernelReader::KernelReader(Program* program)
                        &active_class_,
                        /*finalize=*/false) {
   intptr_t source_file_count = program_->line_starting_table().size();
-  scripts_ = Array::New(source_file_count);
+  scripts_ = Array::New(source_file_count, Heap::kOld);
 }
 
 Object& KernelReader::ReadProgram() {
@@ -265,7 +265,7 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
   // Build implemented interface types
   intptr_t interface_count = kernel_klass->implemented_classes().length();
   const dart::Array& interfaces =
-      dart::Array::Handle(Z, dart::Array::New(interface_count));
+      dart::Array::Handle(Z, dart::Array::New(interface_count, Heap::kOld));
   for (intptr_t i = 0; i < interface_count; i++) {
     InterfaceType* kernel_interface_type =
         kernel_klass->implemented_classes()[i];
@@ -435,13 +435,13 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index) {
   script ^= scripts_.At(source_uri_index);
   if (script.IsNull()) {
     String* uri = program_->source_uri_table().strings()[source_uri_index];
-    script = Script::New(H.DartString(uri), dart::String::ZoneHandle(Z),
-                         RawScript::kKernelTag);
+    script = Script::New(H.DartString(uri, Heap::kOld),
+                         dart::String::ZoneHandle(Z), RawScript::kKernelTag);
     scripts_.SetAt(source_uri_index, script);
     intptr_t* line_starts =
         program_->line_starting_table().valuesFor(source_uri_index);
     intptr_t line_count = line_starts[0];
-    Array& array_object = Array::Handle(Z, Array::New(line_count));
+    Array& array_object = Array::Handle(Z, Array::New(line_count, Heap::kOld));
     Smi& value = Smi::Handle(Z);
     for (intptr_t i = 0; i < line_count; ++i) {
       value = Smi::New(line_starts[i + 1]);

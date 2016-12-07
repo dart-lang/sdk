@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:kernel/application_root.dart';
 import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 
@@ -35,6 +36,7 @@ class DartOptions {
   bool strongModeSdk;
   String sdk;
   String packagePath;
+  ApplicationRoot applicationRoot;
   Map<Uri, Uri> customUriMappings;
   Map<String, String> declaredVariables;
 
@@ -43,12 +45,14 @@ class DartOptions {
       bool strongModeSdk,
       this.sdk,
       this.packagePath,
+      ApplicationRoot applicationRoot,
       Map<Uri, Uri> customUriMappings,
       Map<String, String> declaredVariables})
       : this.customUriMappings = customUriMappings ?? <Uri, Uri>{},
         this.declaredVariables = declaredVariables ?? <String, String>{},
         this.strongMode = strongMode,
-        this.strongModeSdk = strongModeSdk ?? strongMode;
+        this.strongModeSdk = strongModeSdk ?? strongMode,
+        this.applicationRoot = applicationRoot ?? new ApplicationRoot.none();
 }
 
 abstract class ReferenceLevelLoader {
@@ -68,6 +72,7 @@ abstract class ReferenceLevelLoader {
 
 class DartLoader implements ReferenceLevelLoader {
   final Repository repository;
+  final ApplicationRoot applicationRoot;
   final Bimap<ClassElement, ast.Class> _classes =
       new Bimap<ClassElement, ast.Class>();
   final Bimap<Element, ast.Member> _members = new Bimap<Element, ast.Member>();
@@ -90,25 +95,22 @@ class DartLoader implements ReferenceLevelLoader {
 
   DartLoader(this.repository, DartOptions options, Packages packages,
       {DartSdk dartSdk})
-      : this.context = createContext(options, packages, dartSdk: dartSdk);
-
-  LibraryElement getLibraryElement(ast.Library node) {
-    return context
-        .getLibraryElement(context.sourceFactory.forUri2(node.importUri));
-  }
+      : this.context = createContext(options, packages, dartSdk: dartSdk),
+        this.applicationRoot = options.applicationRoot;
 
   String getLibraryName(LibraryElement element) {
     return element.name.isEmpty ? null : element.name;
   }
 
   ast.Library getLibraryReference(LibraryElement element) {
-    return repository.getLibraryReference(element.source.uri)
+    var uri = applicationRoot.relativeUri(element.source.uri);
+    return repository.getLibraryReference(uri)
       ..name ??= getLibraryName(element)
       ..fileUri = "file://${element.source.fullName}";
   }
 
-  void _buildTopLevelMember(ast.Member member, Element element) {
-    var astNode = element.computeNode();
+  void _buildTopLevelMember(
+      ast.Member member, Element element, Declaration astNode) {
     assert(member.parent != null);
     new MemberBodyBuilder(this, member, element).build(astNode);
   }
@@ -122,45 +124,56 @@ class DartLoader implements ReferenceLevelLoader {
     return _libraryBeingLoaded == element;
   }
 
-  void _buildLibraryBody(LibraryElement element, ast.Library library) {
+  void _buildLibraryBody(LibraryElement element, ast.Library library,
+      List<CompilationUnit> units) {
     assert(_libraryBeingLoaded == null);
     _libraryBeingLoaded = element;
     var classes = <ast.Class>[];
     var procedures = <ast.Procedure>[];
     var fields = <ast.Field>[];
-    void loadClass(ClassElement classElement) {
-      var node = getClassReference(classElement);
-      promoteToBodyLevel(node);
+
+    void loadClass(NamedCompilationUnitMember declaration) {
+      // [declaration] can be a ClassDeclaration, EnumDeclaration, or a
+      // ClassTypeAlias.
+      ClassElement element = declaration.element;
+      var node = getClassReference(element);
+      promoteToBodyLevel(node, element, declaration);
       classes.add(node);
     }
 
-    void loadProcedure(Element memberElement) {
-      var node = getMemberReference(memberElement);
-      _buildTopLevelMember(node, memberElement);
+    void loadProcedure(FunctionDeclaration declaration) {
+      var element = declaration.element;
+      var node = getMemberReference(element);
+      _buildTopLevelMember(node, element, declaration);
       procedures.add(node);
     }
 
-    void loadField(Element memberElement) {
-      var node = getMemberReference(memberElement);
-      _buildTopLevelMember(node, memberElement);
-      fields.add(node);
+    void loadField(TopLevelVariableDeclaration declaration) {
+      for (var field in declaration.variables.variables) {
+        var element = field.element;
+        // Ignore fields inserted through error recovery.
+        if (element.name == '') continue;
+        var node = getMemberReference(element);
+        _buildTopLevelMember(node, element, field);
+        fields.add(node);
+      }
     }
 
-    for (var unit in element.units) {
-      unit.types.forEach(loadClass);
-      unit.enums.forEach(loadClass);
-      for (var accessor in unit.accessors) {
-        if (!accessor.isSynthetic) {
-          loadProcedure(accessor);
-        }
-      }
-      for (var function in unit.functions) {
-        loadProcedure(function);
-      }
-      for (var field in unit.topLevelVariables) {
-        // Ignore fields inserted through error recovery.
-        if (!field.isSynthetic && field.name != '') {
-          loadField(field);
+    for (var unit in units) {
+      for (CompilationUnitMember declaration in unit.declarations) {
+        if (declaration is ClassDeclaration ||
+            declaration is EnumDeclaration ||
+            declaration is ClassTypeAlias) {
+          loadClass(declaration);
+        } else if (declaration is FunctionDeclaration) {
+          loadProcedure(declaration);
+        } else if (declaration is TopLevelVariableDeclaration) {
+          loadField(declaration);
+        } else if (declaration is FunctionTypeAlias) {
+          // Nothing to do. Typedefs are handled lazily while constructing type
+          // references.
+        } else {
+          throw "unexpected node: ${declaration.runtimeType} $declaration";
         }
       }
     }
@@ -350,13 +363,11 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
-  void promoteToBodyLevel(ast.Class classNode) {
+  void promoteToBodyLevel(ast.Class classNode, ClassElement element,
+      NamedCompilationUnitMember astNode) {
     if (classNode.level == ast.ClassLevel.Body) return;
     promoteToHierarchyLevel(classNode);
     classNode.level = ast.ClassLevel.Body;
-    var element = getClassElement(classNode);
-    if (element == null) return;
-    var astNode = element.computeNode();
     // Clear out the member references that were put in the class.
     // The AST builder will load them all put back in the right order.
     classNode..fields.clear()..procedures.clear()..constructors.clear();
@@ -579,23 +590,32 @@ class DartLoader implements ReferenceLevelLoader {
   void ensureLibraryIsLoaded(ast.Library node) {
     if (!node.isExternal) return;
     node.isExternal = false;
-    var source = context.sourceFactory.forUri2(node.importUri);
+    var source = context.sourceFactory
+        .forUri2(applicationRoot.absoluteUri(node.importUri));
     assert(source != null);
     var element = context.computeLibraryElement(source);
-    context.resolveCompilationUnit(source, element);
-    _buildLibraryBody(element, node);
-    if (node.importUri.scheme != 'dart') {
-      for (var unit in element.units) {
-        LineInfo lines;
-        for (var error in context.computeErrors(unit.source)) {
-          if (error.errorCode is CompileTimeErrorCode ||
-              error.errorCode is ParserErrorCode ||
-              error.errorCode is ScannerErrorCode ||
-              error.errorCode is StrongModeCode) {
-            lines ??= context.computeLineInfo(source);
-            errors.add(formatErrorMessage(error, source.shortName, lines));
-          }
-        }
+    var units = <CompilationUnit>[];
+    bool reportErrors = node.importUri.scheme != 'dart';
+    var tree = context.resolveCompilationUnit(source, element);
+    units.add(tree);
+    if (reportErrors) _processErrors(source);
+    for (var part in element.parts) {
+      var source = part.source;
+      units.add(context.resolveCompilationUnit(source, element));
+      if (reportErrors) _processErrors(source);
+    }
+    _buildLibraryBody(element, node, units);
+  }
+
+  void _processErrors(Source source) {
+    LineInfo lines;
+    for (var error in context.computeErrors(source)) {
+      if (error.errorCode is CompileTimeErrorCode ||
+          error.errorCode is ParserErrorCode ||
+          error.errorCode is ScannerErrorCode ||
+          error.errorCode is StrongModeCode) {
+        lines ??= context.computeLineInfo(source);
+        errors.add(formatErrorMessage(error, source.shortName, lines));
       }
     }
   }
@@ -623,8 +643,9 @@ class DartLoader implements ReferenceLevelLoader {
   List<String> getLoadedFileNames() {
     var list = <String>[];
     for (var library in repository.libraries) {
-      LibraryElement element = context.computeLibraryElement(
-          context.sourceFactory.forUri2(library.importUri));
+      LibraryElement element = context.computeLibraryElement(context
+          .sourceFactory
+          .forUri2(applicationRoot.absoluteUri(library.importUri)));
       for (var unit in element.units) {
         list.add(unit.source.fullName);
       }
@@ -639,8 +660,9 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
-  ast.Program loadProgram(String mainLibrary, {Target target}) {
-    ast.Library library = repository.getLibrary(mainLibrary);
+  ast.Program loadProgram(Uri mainLibrary, {Target target}) {
+    ast.Library library = repository
+        .getLibraryReference(applicationRoot.relativeUri(mainLibrary));
     ensureLibraryIsLoaded(library);
     loadEverything(target: target);
     var program = new ast.Program(repository.libraries);
@@ -650,10 +672,9 @@ class DartLoader implements ReferenceLevelLoader {
     for (LibraryElement libraryElement in libraryElements) {
       for (CompilationUnitElement compilationUnitElement
           in libraryElement.units) {
-        // TODO(jensj): Get this another way?
-        LineInfo lineInfo = compilationUnitElement.computeNode().lineInfo;
-        program.uriToLineStarts[
-                "file://${compilationUnitElement.source.source.fullName}"] =
+        var source = compilationUnitElement.source;
+        LineInfo lineInfo = context.computeLineInfo(source);
+        program.uriToLineStarts["file://${source.fullName}"] =
             new List<int>.generate(lineInfo.lineCount, lineInfo.getOffsetOfLine,
                 growable: false);
       }
@@ -661,8 +682,9 @@ class DartLoader implements ReferenceLevelLoader {
     return program;
   }
 
-  ast.Library loadLibrary(String mainLibrary) {
-    ast.Library library = repository.getLibrary(mainLibrary);
+  ast.Library loadLibrary(Uri uri) {
+    ast.Library library =
+        repository.getLibraryReference(applicationRoot.relativeUri(uri));
     ensureLibraryIsLoaded(library);
     return library;
   }

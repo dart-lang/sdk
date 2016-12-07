@@ -1417,6 +1417,14 @@ abstract class ConstructorBodyElement extends MethodElement {
 /// [GenericElement] defines the common interface for generic functions and
 /// [TypeDeclarationElement].
 abstract class GenericElement extends Element implements AstElement {
+  /// Do not use [computeType] outside of the resolver.
+  ///
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated
+  DartType computeType(Resolution resolution);
+
   /**
    * The type variables declared on this declaration. The type variables are not
    * available until the type of the element has been computed through

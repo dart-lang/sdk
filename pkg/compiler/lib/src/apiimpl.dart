@@ -381,8 +381,7 @@ class _Environment implements Environment {
     // Private libraries are not exposed to the users.
     if (libraryName.startsWith("_")) return null;
 
-    Uri libraryUri =
-        compiler.resolvedUriTranslator.sdkLibraries[libraryName];
+    Uri libraryUri = compiler.resolvedUriTranslator.sdkLibraries[libraryName];
     if (libraryUri != null && libraryUri.scheme != "unsupported") {
       // Dart2js always "supports" importing 'dart:mirrors' but will abort
       // the compilation at a later point if the backend doesn't support

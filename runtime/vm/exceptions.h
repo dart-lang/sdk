@@ -83,7 +83,8 @@ class Exceptions : AllStatic {
   static void JumpToFrame(Thread* thread,
                           uword program_counter,
                           uword stack_pointer,
-                          uword frame_pointer);
+                          uword frame_pointer,
+                          bool clear_deopt_at_target);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);

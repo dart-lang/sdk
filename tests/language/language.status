@@ -5,7 +5,7 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 generic_methods_type_expression_test: RuntimeError # Issue 25869
 
@@ -51,7 +51,7 @@ async_star_cancel_while_paused_test: RuntimeError
 # Fails because `as T` is an error rather than being treated like `as dynamic`.
 generic_methods_type_expression_test: RuntimeError # Issue 27460
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,
 # because the parsed type parameters are mapped to dynamic type.
 generic_methods_function_type_test: Pass # Issue 25869
@@ -61,17 +61,17 @@ generic_local_functions_test: Pass # Issue 25869
 generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled) ]
 
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 try_catch_optimized1_test: Skip # Srdjan investigating
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) || $runtime == drt || $runtime == dartium) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
@@ -130,16 +130,16 @@ async_await_test: Skip # Issue 26198
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $arch == mips && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $arch == arm64 ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ ($runtime == vm || $runtime == dart_precompiled) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
@@ -148,7 +148,7 @@ vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Is
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 issue23244_test: Fail # Issue 23244
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
@@ -201,7 +201,7 @@ regress_22443_test: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
 
-[ $mode == product || $compiler == dart2appjit || $compiler == dart2app || $compiler == precompiler ]
+[ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 regress_23408_test: Fail
 deferred_inheritance_constraints_test/redirecting_constructor: Fail
@@ -217,7 +217,7 @@ vm/regress_27201_test: Fail
 deferred_global_test: Fail
 vm/regress_27201_test: Fail
 
-[ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
+[ $compiler == precompiler || $compiler == app_jit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
 hello_dart_test: Skip # Incompatible flag: --compile_all
 
@@ -225,7 +225,7 @@ hello_dart_test: Skip # Incompatible flag: --compile_all
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
+[ $noopt || $compiler == precompiler || $compiler == app_jit ]
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
@@ -245,17 +245,17 @@ map_literal4_test: SkipByDesign # Requires checked mode.
 vm/type_vm_test: Fail,OK  # Expects exact type name.
 
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $browser ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser ]
 # The following tests are supposed to fail.
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $browser != true ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser != true ]
 # The following tests are supposed to fail.
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 
-[ ($compiler == none || $compiler == dart2app || $compiler == dart2appjit) && $noopt == false && $mode != product ]
+[ ($compiler == none || $compiler == app_jit) && $noopt == false && $mode != product ]
 # The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
 

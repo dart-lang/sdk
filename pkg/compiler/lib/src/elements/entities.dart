@@ -25,6 +25,7 @@ abstract class MemberEntity extends Entity {
   bool get isField;
   bool get isFunction;
   bool get isGetter;
+  bool get isSetter;
   bool get isAssignable;
   ClassEntity get enclosingClass;
 }

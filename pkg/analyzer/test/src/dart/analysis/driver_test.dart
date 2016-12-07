@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -379,6 +380,56 @@ var A2 = B1;
     }
   }
 
+  test_errors_uriDoesNotExist_export() async {
+    addTestFile(r'''
+export 'foo.dart';
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_errors_uriDoesNotExist_import() async {
+    addTestFile(r'''
+import 'foo.dart';
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_errors_uriDoesNotExist_import_deferred() async {
+    addTestFile(
+        r'''
+import 'foo.dart' deferred as foo;
+main() {
+  foo.loadLibrary();
+}
+''',
+        priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_errors_uriDoesNotExist_part() async {
+    addTestFile(r'''
+library lib;
+part 'foo.dart';
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<AnalysisError> errors = result.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
   test_getFilesReferencingName() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
@@ -588,6 +639,11 @@ var y = z;
 String z = "string";
 ''');
 
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+
     // Analysis of my_pkg/bin/a.dart produces no error because
     // file:///my_pkg/bin/a.dart imports package:my_pkg/c.dart, and
     // package:my_pkg/c.dart's import is erroneous, causing y's reference to z
@@ -608,6 +664,14 @@ String z = "string";
       expect(errors, hasLength(1));
       expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     }
+  }
+
+  test_getResult_noErrors_ifNotAdded() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, 'A a = null;');
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.errors, isEmpty);
   }
 
   test_getResult_notDartFile() async {
@@ -733,6 +797,49 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
+  test_getTopLevelNameDeclarations() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    var d = _p('/test/lib/d.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'export "a.dart", class B {}');
+    provider.newFile(c, 'import "d.dart"; class C {}');
+    provider.newFile(d, 'class D {}');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    // Don't add d.dart, it is referenced implicitly.
+
+    void assertDeclarations(List<TopLevelDeclarationInSource> declarations,
+        List<String> expectedFiles, List<bool> expectedIsExported) {
+      expect(expectedFiles, hasLength(expectedIsExported.length));
+      for (int i = 0; i < expectedFiles.length; i++) {
+        expect(declarations,
+            contains(predicate((TopLevelDeclarationInSource declaration) {
+          return declaration.source.fullName == expectedFiles[i] &&
+              declaration.isExported == expectedIsExported[i];
+        })));
+      }
+    }
+
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('A'), [a, b], [false, true]);
+
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('B'), [b], [false]);
+
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('C'), [c], [false]);
+
+    assertDeclarations(
+        await driver.getTopLevelNameDeclarations('D'), [d], [false]);
+
+    assertDeclarations(await driver.getTopLevelNameDeclarations('X'), [], []);
+  }
+
   test_knownFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -754,6 +861,23 @@ import 'b.dart';
     // a.dart was removed, but we don't clean up the file state state yet.
     expect(driver.knownFiles, contains(a));
     expect(driver.knownFiles, contains(b));
+  }
+
+  test_parseFile_shouldRefresh() async {
+    var p = _p('/test/bin/a.dart');
+
+    provider.newFile(p, 'class A {}');
+    driver.addFile(p);
+
+    // Get the result, so force the file reading.
+    await driver.getResult(p);
+
+    // Update the file.
+    provider.newFile(p, 'class A2 {}');
+
+    ParseResult parseResult = await driver.parseFile(p);
+    var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A2');
   }
 
   test_part_getResult_afterLibrary() async {

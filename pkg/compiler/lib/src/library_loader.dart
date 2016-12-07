@@ -427,7 +427,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       // TODO(johnniwinther): Ensure that currentHandler correctly encloses the
       // loading of a library cluster.
       currentHandler = new LibraryDependencyHandler(this);
-      return createLibrary(currentHandler, null, resolvedUri,
+      return createLibrary(
+              currentHandler, null, resolvedUri, NO_LOCATION_SPANNABLE,
               skipFileWithPartOfTag: skipFileWithPartOfTag)
           .then((LibraryElement library) {
         if (library == null) {
@@ -543,7 +544,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
         // Import dart:core if not already imported.
         if (!importsDartCore && library.canonicalUri != Uris.dart_core) {
-          return createLibrary(handler, null, Uris.dart_core)
+          return createLibrary(handler, null, Uris.dart_core, library)
               .then((LibraryElement coreLibrary) {
             handler.registerDependency(
                 library,
@@ -629,7 +630,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       LibraryElement library, LibraryDependencyElementX libraryDependency) {
     Uri base = library.canonicalUri;
     Uri resolvedUri = base.resolveUri(libraryDependency.uri);
-    return createLibrary(handler, library, resolvedUri, node: libraryDependency)
+    return createLibrary(handler, library, resolvedUri, libraryDependency)
         .then((LibraryElement loadedLibrary) {
       if (loadedLibrary == null) return;
       reporter.withCurrentElement(library, () {
@@ -650,15 +651,15 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     return listener.onLibraryScanned(library, handler).then((_) {
       return Future.forEach(library.imports, (ImportElement import) {
         Uri resolvedUri = library.canonicalUri.resolveUri(import.uri);
-        return createLibrary(handler, library, resolvedUri);
+        return createLibrary(handler, library, resolvedUri, library);
       }).then((_) {
         return Future.forEach(library.exports, (ExportElement export) {
           Uri resolvedUri = library.canonicalUri.resolveUri(export.uri);
-          return createLibrary(handler, library, resolvedUri);
+          return createLibrary(handler, library, resolvedUri, library);
         }).then((_) {
           // TODO(johnniwinther): Shouldn't there be an [ImportElement] for the
           // implicit import of dart:core?
-          return createLibrary(handler, library, Uris.dart_core);
+          return createLibrary(handler, library, Uris.dart_core, library);
         }).then((_) => library);
       });
     });
@@ -680,10 +681,10 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    * If a new library is created, the [handler] is notified.
    */
   Future<LibraryElement> createLibrary(LibraryDependencyHandler handler,
-      LibraryElement importingLibrary, Uri resolvedUri,
-      {Spannable node, bool skipFileWithPartOfTag: false}) {
+      LibraryElement importingLibrary, Uri resolvedUri, Spannable spannable,
+      {bool skipFileWithPartOfTag: false}) {
     Uri readableUri =
-        uriTranslator.translate(importingLibrary, resolvedUri, node);
+        uriTranslator.translate(importingLibrary, resolvedUri, spannable);
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
     if (library != null) {
       return new Future.value(library);
@@ -693,7 +694,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         return loadDeserializedLibrary(handler, library);
       }
       return reporter.withCurrentElement(importingLibrary, () {
-        return _readScript(node, readableUri, resolvedUri)
+        return _readScript(spannable, readableUri, resolvedUri)
             .then((Script script) {
           if (script == null) return null;
           LibraryElement element =
@@ -721,7 +722,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
               DiagnosticMessage info = reporter.withCurrentElement(
                   importingLibrary,
                   () => reporter.createMessage(
-                      node, MessageKind.IMPORT_PART_OF_HERE));
+                      spannable, MessageKind.IMPORT_PART_OF_HERE));
               reporter.reportError(error, [info]);
             }
           }

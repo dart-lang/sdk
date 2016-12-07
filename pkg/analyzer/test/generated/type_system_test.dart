@@ -1608,7 +1608,34 @@ class StrongSubtypingTest {
     DartType u = TypeBuilder.variable("U", bound: intType);
     DartType v = TypeBuilder.variable("V", bound: u);
 
+    DartType a = TypeBuilder.variable("A");
+    DartType b = TypeBuilder.variable("B", bound: a);
+    DartType c = TypeBuilder.variable("C", bound: intType);
+    DartType d = TypeBuilder.variable("D", bound: c);
+
     _checkIsStrictSubtypeOf(
+        TypeBuilder.function(types: [s, t], required: [s], result: t),
+        TypeBuilder.function(
+            types: [a, b], required: [dynamicType], result: dynamicType));
+
+    _checkIsNotSubtypeOf(
+        TypeBuilder.function(types: [u, v], required: [u], result: v),
+        TypeBuilder.function(
+            types: [c, d], required: [objectType], result: objectType));
+
+    _checkIsNotSubtypeOf(
+        TypeBuilder.function(types: [u, v], required: [u], result: v),
+        TypeBuilder
+            .function(types: [c, d], required: [intType], result: intType));
+  }
+
+  void test_genericFunction_genericDoesNotSubtypeNonGeneric() {
+    DartType s = TypeBuilder.variable("S");
+    DartType t = TypeBuilder.variable("T", bound: s);
+    DartType u = TypeBuilder.variable("U", bound: intType);
+    DartType v = TypeBuilder.variable("V", bound: u);
+
+    _checkIsNotSubtypeOf(
         TypeBuilder.function(types: [s, t], required: [s], result: t),
         TypeBuilder.function(required: [dynamicType], result: dynamicType));
 
@@ -1616,7 +1643,7 @@ class StrongSubtypingTest {
         TypeBuilder.function(types: [u, v], required: [u], result: v),
         TypeBuilder.function(required: [objectType], result: objectType));
 
-    _checkIsStrictSubtypeOf(
+    _checkIsNotSubtypeOf(
         TypeBuilder.function(types: [u, v], required: [u], result: v),
         TypeBuilder.function(required: [intType], result: intType));
   }

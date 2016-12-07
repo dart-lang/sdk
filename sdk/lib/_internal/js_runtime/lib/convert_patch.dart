@@ -382,7 +382,7 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   final Sink<Object> _sink;
 
   _JsonDecoderSink(this._reviver, this._sink)
-      : super(new StringBuffer());
+      : super(new StringBuffer(''));
 
   void close() {
     super.close();

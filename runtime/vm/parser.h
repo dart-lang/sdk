@@ -750,7 +750,6 @@ class Parser : public ValueObject {
   bool IsSymbol(const String& symbol);
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
-  bool IsMixinAppAlias();
   bool TryParseQualIdent();
   bool TryParseTypeParameters();
   bool TryParseTypeArguments();

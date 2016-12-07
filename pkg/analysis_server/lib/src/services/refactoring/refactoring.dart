@@ -31,6 +31,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * Completes with the resolved [CompilationUnit] that contains the [element].
+ */
+typedef Future<CompilationUnit> GetResolvedUnit(Element element);
+
+/**
  * [Refactoring] to convert getters into normal [MethodDeclaration]s.
  */
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
@@ -52,9 +57,10 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
    * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
    * [element] and all the corresponding hierarchy elements.
    */
-  factory ConvertMethodToGetterRefactoring(
-      SearchEngine searchEngine, ExecutableElement element) {
-    return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
+  factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
+      GetResolvedUnit getResolvedUnit, ExecutableElement element) {
+    return new ConvertMethodToGetterRefactoringImpl(
+        searchEngine, getResolvedUnit, element);
   }
 }
 
@@ -248,11 +254,8 @@ abstract class InlineMethodRefactoring implements Refactoring {
   /**
    * Returns a new [InlineMethodRefactoring] instance.
    */
-  factory InlineMethodRefactoring(
-      SearchEngine searchEngine,
-      GetResolvedUnitContainingElement getResolvedUnit,
-      CompilationUnit unit,
-      int offset) {
+  factory InlineMethodRefactoring(SearchEngine searchEngine,
+      GetResolvedUnit getResolvedUnit, CompilationUnit unit, int offset) {
     return new InlineMethodRefactoringImpl(
         searchEngine, getResolvedUnit, unit, offset);
   }

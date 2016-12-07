@@ -32,17 +32,9 @@ const char* kSkip[] = {
   "Read",
   "FileLength",
   "FilePosition",
-  // Crash in abort() and then hang. (MG-252)
-  "ArrayLengthMaxElements",
-  "Int8ListLengthMaxElements",
-  "ArrayNew_Overflow_Crash",
-  "SNPrint_BadArgs",
-  "IsolateReload_PendingUnqualifiedCall_InstanceToStatic",
-  "IsolateReload_PendingUnqualifiedCall_StaticToInstance",
-  "IsolateReload_PendingConstructorCall_AbstractToConcrete",
-  "IsolateReload_PendingConstructorCall_ConcreteToAbstract",
-  "IsolateReload_PendingStaticCall_DefinedToNSM",
-  "IsolateReload_PendingStaticCall_NSMToDefined",
+  // No realpath, files not in image.
+  "Dart2JSCompilerStats",
+  "Dart2JSCompileAll",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",
@@ -69,27 +61,6 @@ const char* kSkip[] = {
   "Profiler_TypedArrayAllocation",
   "Profiler_GetSourceReport",
   "Service_Profile",
-  // No realpath, files not in image.
-  "Dart2JSCompilerStats",
-  "Dart2JSCompileAll",
-  // Uses too much memory.
-  "PrintJSON",
-  // Need OS::GetCurrentThreadCPUMicros.
-  // Skipping because they crash and hang. (MG-252)
-  "Timeline_Dart_TimelineGetTrace",
-  "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
-  "Timeline_Dart_TimelineGetTraceWithDartEvents",
-  "Timeline_Dart_TimelineGetTraceGlobalOverride",
-  "Timeline_Dart_GlobalTimelineGetTrace",
-  "Timeline_Dart_GlobalTimelineGetTrace_Threaded",
-  "TimelineEventDuration",
-  "TimelineEventDurationPrintJSON",
-  "TimelineEventArguments",
-  "TimelineEventArgumentsPrintJSON",
-  "TimelineEventCallbackRecorderBasic",
-  "TimelineAnalysis_ThreadBlockCount",
-  "TimelineRingRecorderJSONOrder",
-  "TimelinePauses_BeginEnd",
 };
 
 // Expected to fail/crash.
@@ -99,14 +70,40 @@ const char* kExpectFail[] = {
   "Fail2",
   "AllocGeneric_Overflow",
   "CodeImmutability",
-  // Assumes initial thread's stack is the same size as spawned thread stacks.
-  "StackOverflowStacktraceInfo",
+  "IsolateReload_PendingUnqualifiedCall_StaticToInstance",
+  "IsolateReload_PendingConstructorCall_AbstractToConcrete",
+  "IsolateReload_PendingConstructorCall_ConcreteToAbstract",
+  "IsolateReload_PendingUnqualifiedCall_InstanceToStatic",
+  "IsolateReload_PendingStaticCall_DefinedToNSM",
+  "IsolateReload_PendingStaticCall_NSMToDefined",
+  "ArrayNew_Overflow_Crash",
+  "SNPrint_BadArgs",
 };
 
 // Bugs to fix, or things that are not yet implemented.
 const char* kBugs[] = {
-  // Needs read of RSS.
-  "InitialRSS",
+  // Need OS::GetCurrentThreadCPUMicros.
+  "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
+  "Timeline_Dart_TimelineGetTraceWithDartEvents",
+  "Timeline_Dart_GlobalTimelineGetTrace",
+  "TimelineEventDuration",
+  "TimelineEventDurationPrintJSON",
+  "TimelineEventArguments",
+  "TimelineEventArgumentsPrintJSON",
+  "TimelineEventCallbackRecorderBasic",
+  "TimelineAnalysis_ThreadBlockCount",
+  "TimelineRingRecorderJSONOrder",
+  "TimelinePauses_BeginEnd",
+  "Timeline_Dart_TimelineGetTrace",
+  "Timeline_Dart_TimelineGetTraceGlobalOverride",
+  "Timeline_Dart_GlobalTimelineGetTrace_Threaded",
+
+  // Need VirtualMemory reservation with mmap.
+  "ArrayLengthMaxElements",
+  "Int8ListLengthMaxElements",
+
+  // Assumes initial thread's stack is the same size as spawned thread stacks.
+  "StackOverflowStacktraceInfo",
 };
 // clang-format on
 

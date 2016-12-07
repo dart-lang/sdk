@@ -1271,6 +1271,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                    kNumArgsChecked)
               ->raw();
     }
+    AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
     EmitUnoptimizedStaticCall(argument_count, deopt_id, token_pos, locs,
                               call_ic_data);
   }

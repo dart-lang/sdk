@@ -160,13 +160,21 @@ class BackendImpacts {
   BackendImpact _throwNoSuchMethod;
 
   BackendImpact get throwNoSuchMethod {
-    return _throwNoSuchMethod ??= new BackendImpact(staticUses: [
-      helpers.throwNoSuchMethod
-    ], otherImpacts: [
-      // Also register the types of the arguments passed to this method.
-      _needsList('Needed to encode the arguments for throw NoSuchMethodError.'),
-      _needsString('Needed to encode the name for throw NoSuchMethodError.')
-    ]);
+    return _throwNoSuchMethod ??= new BackendImpact(
+        staticUses: compiler.options.useKernel
+            ? [
+                helpers.genericNoSuchMethod,
+                helpers.unresolvedConstructorError,
+              ]
+            : [
+                helpers.throwNoSuchMethod,
+              ],
+        otherImpacts: [
+          // Also register the types of the arguments passed to this method.
+          _needsList(
+              'Needed to encode the arguments for throw NoSuchMethodError.'),
+          _needsString('Needed to encode the name for throw NoSuchMethodError.')
+        ]);
   }
 
   BackendImpact _stringValues;
@@ -427,8 +435,14 @@ class BackendImpacts {
   BackendImpact _malformedTypeCheck;
 
   BackendImpact get malformedTypeCheck {
-    return _malformedTypeCheck ??=
-        new BackendImpact(staticUses: [helpers.throwTypeError]);
+    return _malformedTypeCheck ??= new BackendImpact(
+        staticUses: compiler.options.useKernel
+            ? [
+                helpers.malformedTypeError,
+              ]
+            : [
+                helpers.throwTypeError,
+              ]);
   }
 
   BackendImpact _genericTypeCheck;

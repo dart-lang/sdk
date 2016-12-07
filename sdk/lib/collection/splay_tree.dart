@@ -260,7 +260,7 @@ class _TypeTest<T> {
  * Non-comparable objects (including `null`) will not work as keys
  * in that case.
  *
- * To allow calling [operator[]], [remove] or [containsKey] with objects
+ * To allow calling [[]], [remove] or [containsKey] with objects
  * that are not supported by the `compare` function, an extra `isValidKey`
  * predicate function can be supplied. This function is tested before
  * using the `compare` function on an argument value that may not be a [K]

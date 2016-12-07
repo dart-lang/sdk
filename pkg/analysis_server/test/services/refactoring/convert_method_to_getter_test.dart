@@ -6,7 +6,8 @@ library test.services.refactoring.convert_method_to_getter;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    show RefactoringProblemSeverity, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -205,7 +206,8 @@ void test() {}
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
-    refactoring = new ConvertMethodToGetterRefactoring(searchEngine, element);
+    refactoring = new ConvertMethodToGetterRefactoring(
+        searchEngine, getResolvedUnitWithElement, element);
   }
 
   void _createRefactoringForString(String search) {

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
@@ -442,6 +443,9 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.WITH_WITHOUT_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+  ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
+  ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH,
+  ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
   ScannerErrorCode.MISSING_HEX_DIGIT,
@@ -564,6 +568,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
   StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
   StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+  StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER,
   StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
   StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
   StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
@@ -872,17 +877,9 @@ class ErrorProperty<V> implements Comparable<ErrorProperty> {
   static const ErrorProperty<String> PARTS_LIBRARY_NAME =
       const ErrorProperty<String>('PARTS_LIBRARY_NAME', 1);
 
-  /**
-   * A property whose value is a list of [ExecutableElement] that should
-   * be but are not implemented by a concrete class.
-   */
-  static const ErrorProperty<List<ExecutableElement>> UNIMPLEMENTED_METHODS =
-      const ErrorProperty<List<ExecutableElement>>('UNIMPLEMENTED_METHODS', 2);
-
   static const List<ErrorProperty> values = const [
     NOT_INITIALIZED_FIELDS,
     PARTS_LIBRARY_NAME,
-    UNIMPLEMENTED_METHODS
   ];
 
   /**

@@ -215,6 +215,9 @@ class BackendHelpers {
     return element;
   }
 
+  Element findCoreHelper(String name) =>
+      compiler.commonElements.coreLibrary.implementation.localLookup(name);
+
   ConstructorElement _findConstructor(ClassElement cls, String name) {
     cls.ensureResolved(resolution);
     ConstructorElement constructor = cls.lookupConstructor(name);
@@ -632,6 +635,18 @@ class BackendHelpers {
   Element get throwNoSuchMethod {
     return findHelper('throwNoSuchMethod');
   }
+
+  Element get genericNoSuchMethod =>
+      _genericNoSuchMethod ??= findCoreHelper('_genericNoSuchMethod');
+  MethodElement _genericNoSuchMethod;
+
+  Element get unresolvedConstructorError => _unresolvedConstructorError ??=
+      findCoreHelper('_unresolvedConstructorError');
+  MethodElement _unresolvedConstructorError;
+
+  Element get malformedTypeError =>
+      _malformedTypeError ??= findCoreHelper('_malformedTypeError');
+  MethodElement _malformedTypeError;
 
   Element get createRuntimeType {
     return findHelper('createRuntimeType');

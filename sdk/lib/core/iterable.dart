@@ -204,7 +204,7 @@ abstract class Iterable<E> {
    * equal to [element].
    *
    * The equality used to determine whether [element] is equal to an element of
-   * the iterable defaults to the [Object.operator==] of the element.
+   * the iterable defaults to the [Object.==] of the element.
    *
    * Some types of iterable may have a different equality used for its elements.
    * For example, a [Set] may have a custom equality

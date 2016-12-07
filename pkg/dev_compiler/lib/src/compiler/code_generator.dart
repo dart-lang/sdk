@@ -8,6 +8,7 @@ import 'dart:math' show min, max;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -1314,7 +1315,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       jsMethods.add(new JS.Method(
           _propertyName('constructor'),
           js.call('function(...args) { return this.new.apply(this, args); }')
-          as JS.Fun));
+              as JS.Fun));
     } else if (ctors.isEmpty) {
       jsMethods.add(_emitImplicitConstructor(node, fields, virtualFields));
     }
@@ -3971,7 +3972,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           new JS.Method(
               access,
               js.call('function() { return #; }', _visitInitializer(node))
-              as JS.Fun,
+                  as JS.Fun,
               isGetter: true),
           node,
           _findAccessor(element, getter: true)));
@@ -4457,8 +4458,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     //   LocalVariableElementImpl, so we could repurpose to mean "temp".
     // * add a new property to LocalVariableElementImpl.
     // * create a new subtype of LocalVariableElementImpl to mark a temp.
-    var id =
-        new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
+    var id = astFactory
+        .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
 
     variable ??= new JS.TemporaryId(name);
 
@@ -4513,14 +4514,14 @@ class CodeGenerator extends GeneralizingAstVisitor
     Expression result;
     if (expr is IndexExpression) {
       IndexExpression index = expr;
-      result = new IndexExpression.forTarget(
+      result = astFactory.indexExpressionForTarget(
           _bindValue(scope, 'o', index.target, context: context),
           index.leftBracket,
           _bindValue(scope, 'i', index.index, context: context),
           index.rightBracket);
     } else if (expr is PropertyAccess) {
       PropertyAccess prop = expr;
-      result = new PropertyAccess(
+      result = astFactory.propertyAccess(
           _bindValue(scope, 'o', _getTarget(prop), context: context),
           prop.operator,
           prop.propertyName);
@@ -4529,9 +4530,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (isLibraryPrefix(ident.prefix)) {
         return expr;
       }
-      result = new PrefixedIdentifier(
+      result = astFactory.prefixedIdentifier(
           _bindValue(scope, 'o', ident.prefix, context: context)
-          as SimpleIdentifier,
+              as SimpleIdentifier,
           ident.period,
           ident.identifier);
     } else {
