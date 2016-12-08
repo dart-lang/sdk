@@ -19,8 +19,8 @@ import 'package:analysis_server/src/services/completion/dart/contribution_sorter
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -308,14 +308,18 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     if (libElem == null) {
       return null;
     }
-    _resolvedImports = <ImportElement>[];
-    for (ImportElement importElem in libElem.imports) {
-      if (importElem.importedLibrary?.exportNamespace == null) {
-        await _computeAsync(this, importElem.importedLibrary.source,
-            LIBRARY_ELEMENT4, performance, 'resolve imported library');
-        checkAborted();
+    if (result != null) {
+      _resolvedImports = libElem.imports;
+    } else {
+      _resolvedImports = <ImportElement>[];
+      for (ImportElement importElem in libElem.imports) {
+        if (importElem.importedLibrary?.exportNamespace == null) {
+          await _computeAsync(this, importElem.importedLibrary.source,
+              LIBRARY_ELEMENT4, performance, 'resolve imported library');
+          checkAborted();
+        }
+        _resolvedImports.add(importElem);
       }
-      _resolvedImports.add(importElem);
     }
     return _resolvedImports;
   }

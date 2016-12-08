@@ -4677,14 +4677,12 @@ typedef F();''');
 
   test_unresolved_import() {
     allowMissingFiles = true;
-    checkLibrary("import 'foo.dart';", allowErrors: true);
-  }
-
-  test_unresolved_import_deferred() {
-    allowMissingFiles = true;
     LibraryElementImpl library =
-        checkLibrary("import 'missing.dart' deferred as p;");
-    expect(library.imports[0].importedLibrary.loadLibraryFunction, isNotNull);
+        checkLibrary("import 'foo.dart';", allowErrors: true);
+    LibraryElement importedLibrary = library.imports[0].importedLibrary;
+    expect(importedLibrary.loadLibraryFunction, isNotNull);
+    expect(importedLibrary.publicNamespace, isNotNull);
+    expect(importedLibrary.exportNamespace, isNotNull);
   }
 
   test_unresolved_part() {
