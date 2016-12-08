@@ -228,6 +228,7 @@ Language/Libraries_and_Scripts/top_level_syntax_t16: DartkMissingCompileTimeErro
 Language/Libraries_and_Scripts/top_level_syntax_t17: DartkMissingCompileTimeError
 Language/Libraries_and_Scripts/top_level_syntax_t18: DartkMissingCompileTimeError
 Language/Libraries_and_Scripts/top_level_syntax_t19: DartkMissingCompileTimeError
+Language/Statements/Assert/syntax_t04: DartkMissingCompileTimeError
 Language/Statements/Break/label_t03: DartkMissingCompileTimeError
 Language/Statements/Break/label_t04: DartkMissingCompileTimeError
 Language/Statements/Continue/label_t07: DartkMissingCompileTimeError
