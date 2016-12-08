@@ -117,7 +117,8 @@ class _Visitor extends SimpleAstVisitor {
     final SimpleIdentifier previousIdentifier = _findTarget(previousNode);
     if (previousIdentifier != null &&
         previousIdentifier.staticElement == prefixIdentifier.staticElement &&
-        previousIdentifier.staticElement is! PrefixElement) {
+        previousIdentifier.staticElement is! PrefixElement &&
+        previousIdentifier.bestElement is! ClassElement) {
       rule.reportLint(node);
     }
 

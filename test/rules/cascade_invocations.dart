@@ -74,3 +74,14 @@ void prefixLibrary() {
   math.sin(0);
   math.cos(0);
 }
+
+class StaticFoo {
+  static int increment() => 0;
+  static int decrement() => 0;
+}
+
+  void cascadeStatic() {
+    StaticFoo.increment();
+    StaticFoo.decrement();
+  }
+}
