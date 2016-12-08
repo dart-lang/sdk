@@ -57,7 +57,25 @@ class SsaKernelBuilderTask extends CompilerTask {
       Kernel kernel = backend.kernelTask.kernel;
       KernelSsaBuilder builder = new KernelSsaBuilder(element, work.resolvedAst,
           backend.compiler, work.registry, sourceInformationFactory, kernel);
-      return builder.build();
+      HGraph graph = builder.build();
+
+      if (backend.compiler.tracer.isEnabled) {
+        String name;
+        if (element.isClassMember) {
+          String className = element.enclosingClass.name;
+          String memberName = element.name;
+          name = "$className.$memberName";
+          if (element.isGenerativeConstructorBody) {
+            name = "$name (body)";
+          }
+        } else {
+          name = "${element.name}";
+        }
+        backend.compiler.tracer.traceCompilation(name);
+        backend.compiler.tracer.traceGraph('builder', graph);
+      }
+
+      return graph;
     });
   }
 }
@@ -88,7 +106,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   TreeElements get elements => resolvedAst.elements;
 
-
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
   LoopHandler<ir.Node> loopHandler;
@@ -96,6 +113,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   final Map<ir.VariableDeclaration, HInstruction> letBindings =
       <ir.VariableDeclaration, HInstruction>{};
+
+  /// True if we are visiting the expression of a throw statement; we assume
+  /// this is a slow path.
+  bool _inExpressionOfThrow = false;
 
   KernelSsaBuilder(
       this.targetElement,
@@ -453,8 +474,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitExpressionStatement(ir.ExpressionStatement exprStatement) {
-    exprStatement.expression.accept(this);
-    pop();
+    if (!isReachable) return;
+    ir.Expression expression = exprStatement.expression;
+    if (expression is ir.Throw) {
+      // TODO(sra): Prevent generating a statement when inlining.
+      _visitThrowExpression(expression.expression);
+      closeAndGotoExit(new HThrow(pop(), null));
+    } else {
+      expression.accept(this);
+      pop();
+    }
   }
 
   @override
@@ -465,8 +494,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else {
       assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       returnStatement.expression.accept(this);
-      value = typeBuilder.potentiallyCheckOrTrustType(pop(),
-          astAdapter.getFunctionReturnType(_targetFunction));
+      value = typeBuilder.potentiallyCheckOrTrustType(
+          pop(), astAdapter.getFunctionReturnType(_targetFunction));
     }
     // TODO(het): Add source information
     // TODO(het): Set a return value instead of closing the function when we
@@ -1696,8 +1725,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
     assert(isReachable);
     declaration.function.accept(this);
-    LocalFunctionElement localFunction = astAdapter.getElement(
-        declaration.function);
+    LocalFunctionElement localFunction =
+        astAdapter.getElement(declaration.function);
     localsHandler.updateLocal(localFunction, pop());
   }
 
@@ -1854,11 +1883,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitThrow(ir.Throw throwNode) {
-    throwNode.expression.accept(this);
-    HInstruction expression = pop();
+    _visitThrowExpression(throwNode.expression);
     if (isReachable) {
-      push(new HThrowExpression(expression, null));
+      push(new HThrowExpression(pop(), null));
       isReachable = false;
+    }
+  }
+
+  void _visitThrowExpression(ir.Expression expression) {
+    bool old = _inExpressionOfThrow;
+    try {
+      _inExpressionOfThrow = true;
+      expression.accept(this);
+    } finally {
+      _inExpressionOfThrow = old;
     }
   }
 
