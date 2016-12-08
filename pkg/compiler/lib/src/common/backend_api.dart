@@ -173,13 +173,6 @@ abstract class Backend extends Target {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction() => const WorldImpact();
 
-  /// Called to register that the `runtimeType` property has been accessed. Any
-  /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerRuntimeType() => const WorldImpact();
-
-  /// Called to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {}
-
   /// Called to enable support for `noSuchMethod`. Any backend specific
   /// [WorldImpact] of this is returned.
   WorldImpact enableNoSuchMethod() => const WorldImpact();

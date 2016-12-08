@@ -1391,6 +1391,8 @@ class JavaScriptBackend extends Backend {
     return impactTransformer.createImpactFor(impacts.computeSignature);
   }
 
+  /// Called to register that the `runtimeType` property has been accessed. Any
+  /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerRuntimeType() {
     return impactTransformer.createImpactFor(impacts.runtimeTypeSupport);
   }
@@ -1404,7 +1406,8 @@ class JavaScriptBackend extends Backend {
     return impactTransformer.createImpactFor(impacts.deferredLoading);
   }
 
-  void registerNoSuchMethod(FunctionElement noSuchMethod) {
+  /// Called to register a `noSuchMethod` implementation.
+  void registerNoSuchMethod(MethodElement noSuchMethod) {
     noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
   }
 
@@ -1850,6 +1853,15 @@ class JavaScriptBackend extends Backend {
         forResolution: forResolution);
 
     if (forResolution) {
+      if (element.isFunction && element.isInstanceMember) {
+        MemberElement function = element;
+        ClassElement cls = function.enclosingClass;
+        if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
+          worldImpact.addImpact(registerCallMethodWithFreeTypeVariables(
+              function,
+              forResolution: true));
+        }
+      }
       // Enable isolate support if we start using something from the isolate
       // library, or timers for the async library.  We exclude constant fields,
       // which are ending here because their initializing expression is
@@ -2321,6 +2333,12 @@ class JavaScriptBackend extends Backend {
 
     if (!enqueuer.queueIsEmpty) return false;
 
+    for (ClassElement cls in recentClasses) {
+      Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
+      if (element != null && element.isInstanceMember && element.isFunction) {
+        registerNoSuchMethod(element);
+      }
+    }
     noSuchMethodRegistry.onQueueEmpty();
     if (!enabledNoSuchMethod &&
         (noSuchMethodRegistry.hasThrowingNoSuchMethod ||

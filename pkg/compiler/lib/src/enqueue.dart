@@ -219,21 +219,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
-  /// Callback for applying the first seen use of a [member].
-  void _applyFirstMemberUse(MemberElement member, EnumSet<MemberUse> useSet) {
-    ClassElement cls = member.enclosingClass;
-    if (member.isFunction) {
-      MemberElement function = member;
-      if (function.name == Identifiers.noSuchMethod_) {
-        _registerNoSuchMethod(function);
-      }
-      if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
-        _registerCallMethodWithFreeTypeVariables(function);
-      }
-    }
-    _applyMemberUse(member, useSet);
-  }
-
   /// Callback for applying the use of a [member].
   void _applyMemberUse(Entity member, EnumSet<MemberUse> useSet) {
     if (useSet.contains(MemberUse.NORMAL)) {
@@ -248,7 +233,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
     if (useSet.contains(ClassUse.INSTANTIATED)) {
       _recentClasses.add(cls);
-      _universe.processClassMembers(cls, _applyFirstMemberUse);
+      _universe.processClassMembers(cls, _applyMemberUse);
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
@@ -333,12 +318,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
   }
 
-  void _registerCallMethodWithFreeTypeVariables(Element element) {
-    applyImpact(backend.registerCallMethodWithFreeTypeVariables(element,
-        forResolution: true));
-    _universe.callMethodsWithFreeTypeVariables.add(element);
-  }
-
   void _registerClosurizedMember(MemberElement element) {
     assert(element.isInstanceMember);
     if (element.type.containsTypeVariables) {
@@ -415,10 +394,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
     ResolutionWorkItem workItem = _resolution.createWorkItem(element);
     _queue.add(workItem);
-  }
-
-  void _registerNoSuchMethod(Element element) {
-    backend.registerNoSuchMethod(element);
   }
 
   /// Adds an action to the deferred task queue.

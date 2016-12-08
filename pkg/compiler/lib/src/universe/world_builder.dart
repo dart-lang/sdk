@@ -9,9 +9,9 @@ import 'dart:collection';
 import '../cache_strategy.dart';
 import '../common.dart';
 import '../common/backend_api.dart' show Backend;
+import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -859,6 +859,11 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       useSet.addAll(usage.appliedUse);
       if (member.isField && isNative) {
         _openWorld.registerUsedElement(member);
+      }
+      if (member.isFunction &&
+          member.name == Identifiers.call &&
+          !cls.typeVariables.isEmpty) {
+        callMethodsWithFreeTypeVariables.add(member);
       }
 
       if (_hasInvokedGetter(member)) {
