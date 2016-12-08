@@ -185,7 +185,7 @@ class SuperPropertyAccessor extends Accessor {
 
   SuperPropertyAccessor(this.name, this.getter, this.setter);
 
-  _makeRead() => new SuperPropertyGet(name, getter);
+  _makeRead() => builtGetter = new SuperPropertyGet(name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
     return new SuperPropertySet(name, value, setter);
@@ -235,7 +235,7 @@ class IndexAccessor extends Accessor {
   }
 
   _makeRead() {
-    return new MethodInvocation(receiverAccess(), _indexGet,
+    return builtGetter = new MethodInvocation(receiverAccess(), _indexGet,
         new Arguments(<Expression>[indexAccess()]), getter);
   }
 
@@ -289,8 +289,8 @@ class ThisIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
-      new Arguments(<Expression>[indexAccess()]), getter);
+  _makeRead() => builtGetter = new MethodInvocation(new ThisExpression(),
+      _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
@@ -335,7 +335,7 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeRead() {
-    return new SuperMethodInvocation(
+    return builtGetter = new SuperMethodInvocation(
         _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
   }
 
@@ -367,7 +367,7 @@ class StaticAccessor extends Accessor {
 
   StaticAccessor(this.readTarget, this.writeTarget);
 
-  _makeRead() =>
+  _makeRead() => builtGetter =
       readTarget == null ? makeInvalidRead() : new StaticGet(readTarget);
 
   _makeWrite(Expression value, bool voidContext) {

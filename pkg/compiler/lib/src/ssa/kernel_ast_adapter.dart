@@ -198,10 +198,13 @@ class KernelAstAdapter {
     return new Selector.setter(name);
   }
 
-  TypeMask typeOfInvocation(ir.Expression send) {
+  TypeMask typeOfInvocation(ir.MethodInvocation send) {
     ast.Node operatorNode = kernel.nodeToAstOperator[send];
     if (operatorNode != null) {
       return _resultOf(_target).typeOfOperator(operatorNode);
+    }
+    if (send.name.name == '[]=') {
+      return _compiler.closedWorld.commonMasks.dynamicType;
     }
     return _resultOf(_target).typeOfSend(getNode(send));
   }

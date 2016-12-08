@@ -1230,11 +1230,11 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitCompoundIndexSet(SendSet node, Node receiver, Node index,
       AssignmentOperator operator, Node rhs, _) {
-    // TODO(sra): Find binary operator.
-    return buildIndexAccessor(receiver, index).buildCompoundAssignment(
+    return buildCompoundAssignment(
+        node,
+        buildIndexAccessor(receiver, index),
         kernel.irName(operator.selectorName, currentElement),
-        visitForValue(rhs),
-        voidContext: isVoidContext);
+        visitForValue(rhs));
   }
 
   @override
@@ -1583,26 +1583,30 @@ class KernelVisitor extends Object
         buildIndexAccessor(receiver, index).buildSimpleRead(), node);
   }
 
-  ir.Expression buildIndexPostfix(Accessor accessor, IncDecOperator operator) {
+  ir.Expression buildIndexPostfix(
+      Send node, Accessor accessor, IncDecOperator operator) {
     ir.Name name = kernel.irName(operator.selectorName, currentElement);
-    return accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
+    return buildPostfixIncrement(node, accessor, name);
   }
 
   @override
   ir.Expression visitIndexPostfix(
       Send node, Node receiver, Node index, IncDecOperator operator, _) {
-    return buildIndexPostfix(buildIndexAccessor(receiver, index), operator);
+    return buildIndexPostfix(
+        node, buildIndexAccessor(receiver, index), operator);
   }
 
-  ir.Expression buildIndexPrefix(Accessor accessor, IncDecOperator operator) {
+  ir.Expression buildIndexPrefix(
+      Send node, Accessor accessor, IncDecOperator operator) {
     ir.Name name = kernel.irName(operator.selectorName, currentElement);
-    return accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
+    return buildPrefixIncrement(node, accessor, name);
   }
 
   @override
   ir.Expression visitIndexPrefix(
       Send node, Node receiver, Node index, IncDecOperator operator, _) {
-    return buildIndexPrefix(buildIndexAccessor(receiver, index), operator);
+    return buildIndexPrefix(
+        node, buildIndexAccessor(receiver, index), operator);
   }
 
   @override
@@ -1725,29 +1729,49 @@ class KernelVisitor extends Object
   ir.Expression buildCompound(
       Accessor accessor, CompoundRhs rhs, SendSet node) {
     ir.Name name = kernel.irName(rhs.operator.selectorName, currentElement);
-    ir.Expression result;
     switch (rhs.kind) {
       case CompoundKind.POSTFIX:
-        result =
-            accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
-        break;
+        return buildPostfixIncrement(node, accessor, name);
 
       case CompoundKind.PREFIX:
-        result =
-            accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
-        break;
+        return buildPrefixIncrement(node, accessor, name);
 
       case CompoundKind.ASSIGNMENT:
-        result = accessor.buildCompoundAssignment(name, visitForValue(rhs.rhs),
-            voidContext: isVoidContext);
-        break;
+        return buildCompoundAssignment(
+            node, accessor, name, visitForValue(rhs.rhs));
     }
+  }
+
+  ir.Expression buildCompoundAssignment(
+      SendSet node, Accessor accessor, ir.Name name, ir.Expression rhs) {
+    ir.Expression result =
+        accessor.buildCompoundAssignment(name, rhs, voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
+  }
+
+  ir.Expression buildPrefixIncrement(
+      SendSet node, Accessor accessor, ir.Name name) {
+    ir.Expression result =
+        accessor.buildPrefixIncrement(name, voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
+  }
+
+  ir.Expression buildPostfixIncrement(
+      SendSet node, Accessor accessor, ir.Name name) {
+    ir.Expression result =
+        accessor.buildPostfixIncrement(name, voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
+  }
+
+  void associateCompoundComponents(Accessor accessor, Node node) {
     assert(accessor.builtBinary != null);
     kernel.nodeToAstOperator[accessor.builtBinary] = node;
     if (accessor.builtGetter != null) {
       kernel.nodeToAst[accessor.builtGetter] = node;
     }
-    return result;
   }
 
   @override
@@ -2252,12 +2276,11 @@ class KernelVisitor extends Object
       AssignmentOperator operator,
       Node rhs,
       _) {
-    // TODO(sra): Find binary operator.
-    return buildSuperIndexAccessor(index, getter, setter)
-        .buildCompoundAssignment(
-            kernel.irName(operator.selectorName, currentElement),
-            visitForValue(rhs),
-            voidContext: isVoidContext);
+    return buildCompoundAssignment(
+        node,
+        buildSuperIndexAccessor(index, getter, setter),
+        kernel.irName(operator.selectorName, currentElement),
+        visitForValue(rhs));
   }
 
   @override
@@ -2436,7 +2459,7 @@ class KernelVisitor extends Object
       MethodElement indexSetFunction, Node index, IncDecOperator operator, _) {
     Accessor accessor =
         buildSuperIndexAccessor(index, indexFunction, indexSetFunction);
-    return buildIndexPostfix(accessor, operator);
+    return buildIndexPostfix(node, accessor, operator);
   }
 
   @override
@@ -2444,7 +2467,7 @@ class KernelVisitor extends Object
       MethodElement indexSetFunction, Node index, IncDecOperator operator, _) {
     Accessor accessor =
         buildSuperIndexAccessor(index, indexFunction, indexSetFunction);
-    return buildIndexPrefix(accessor, operator);
+    return buildIndexPrefix(node, accessor, operator);
   }
 
   @override
