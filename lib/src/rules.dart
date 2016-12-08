@@ -12,6 +12,7 @@ import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
+import 'package:linter/src/rules/avoid_slow_async_io.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/cancel_subscriptions.dart';
@@ -68,6 +69,7 @@ void registerLintRules() {
     ..register(new AvoidEmptyElse())
     ..register(new AvoidInitToNull())
     ..register(new AvoidReturnTypesOnSetters())
+    ..register(new AvoidSlowAsyncIo())
     ..register(new AwaitOnlyFutures())
     ..register(new CamelCaseTypes())
     ..register(new CancelSubscriptions())

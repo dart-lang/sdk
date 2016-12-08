@@ -73,7 +73,10 @@ abstract class int extends num {
                               int onError(String source) });
 }
 class double extends num {}
-class DateTime extends Object {}
+class DateTime extends Object {
+  DateTime.now() {}
+  bool isBefore(DateTime other) => true;
+}
 class Null extends Object {}
 
 class Deprecated extends Object {
@@ -171,6 +174,42 @@ abstract class Converter<S, T> implements StreamTransformer {}
 class JsonDecoder extends Converter<String, Object> {}
 ''');
 
+  static const _MockSdkLibrary LIB_IO = const _MockSdkLibrary(
+      'dart:io',
+      '/lib/io/io.dart',
+      '''
+library dart.io;
+
+abstract class File implements FileSystemEntity {
+  factory File(String path) => null;
+
+  Future<DateTime> lastModified();
+  DateTime lastModifiedSync();
+
+  Future<bool> exists() async => true;
+  bool existsSync() => true;
+
+  Future<FileStat> stat() async => null;
+  FileStat statSync() => null;
+}
+
+abstract class FileSystemEntity {
+  static Future<bool> isDirectory(String path) => true;
+  static bool isDirectorySync(String path) => true;
+
+  static Future<bool> isFile(String path) => true;
+  static bool isFileSync(String path) => true;
+
+  static Future<bool> isLink(String path) => true;
+  static bool isLinkSync(String path) => true;
+
+  static Future<FileSystemEntityType> type(
+    String path, {bool followLinks: true}) async => null;
+  static FileSystemEntityType typeSync(
+    String path, {bool followLinks: true}) => null;
+}
+''');
+
   static const _MockSdkLibrary LIB_MATH = const _MockSdkLibrary(
       'dart:math',
       '/lib/math/math.dart',
@@ -204,6 +243,7 @@ class HtmlElement {}
     LIB_ASYNC,
     LIB_COLLECTION,
     LIB_CONVERT,
+    LIB_IO,
     LIB_MATH,
     LIB_HTML,
   ];
@@ -311,6 +351,7 @@ class HtmlElement {}
       "dart:async/stream.dart": "/lib/async/stream.dart",
       "dart:collection": "/lib/collection/collection.dart",
       "dart:convert": "/lib/convert/convert.dart",
+      "dart:io": "/lib/io/io.dart",
       "dart:math": "/lib/math/math.dart"
     };
 
