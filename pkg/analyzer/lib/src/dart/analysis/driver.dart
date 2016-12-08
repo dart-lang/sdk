@@ -132,7 +132,7 @@ class AnalysisDriver {
 
   /**
    * The combined unlinked and linked package for the SDK, extracted from
-   * the given [_sourceFactory].
+   * the given [sourceFactory].
    */
   PackageBundle _sdkBundle;
 
@@ -166,7 +166,15 @@ class AnalysisDriver {
    * The mapping from the files for which the index was requested using
    * [getIndex] to the [Completer]s to report the result.
    */
-  final _indexRequestedFiles = <String, List<Completer<IndexResult>>>{};
+  final _indexRequestedFiles =
+      <String, List<Completer<AnalysisDriverUnitIndex>>>{};
+
+  /**
+   * The mapping from the files for which the index was requested using
+   * [getIndex] to the [Completer]s to report the result.
+   */
+  final _unitElementRequestedFiles =
+      <String, List<Completer<CompilationUnitElement>>>{};
 
   /**
    * The set of files were reported as changed through [changeFile] and not
@@ -330,6 +338,9 @@ class AnalysisDriver {
     if (_indexRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_unitElementRequestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_topLevelNameDeclarationsTasks.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
@@ -418,20 +429,20 @@ class AnalysisDriver {
   }
 
   /**
-   * Return a [Future] that completes with the [IndexResult] for the file with
-   * the given [path].
+   * Return a [Future] that completes with the [AnalysisDriverUnitIndex] for
+   * the file with the given [path].
    */
-  Future<IndexResult> getIndex(String path) {
-    if (AnalysisEngine.isDartFileName(path)) {
-      var completer = new Completer<IndexResult>();
-      _indexRequestedFiles
-          .putIfAbsent(path, () => <Completer<IndexResult>>[])
-          .add(completer);
-      _statusSupport.transitionToAnalyzing();
-      _scheduler._notify(this);
-      return completer.future;
+  Future<AnalysisDriverUnitIndex> getIndex(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return new Future.value();
     }
-    return new Future.value();
+    var completer = new Completer<AnalysisDriverUnitIndex>();
+    _indexRequestedFiles
+        .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
+        .add(completer);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return completer.future;
   }
 
   /**
@@ -473,6 +484,23 @@ class AnalysisDriver {
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return task.completer.future;
+  }
+
+  /**
+   * Return a [Future] that completes with the [CompilationUnitElement] for the
+   * file with the given [path].
+   */
+  Future<CompilationUnitElement> getUnitElement(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return new Future.value();
+    }
+    var completer = new Completer<CompilationUnitElement>();
+    _unitElementRequestedFiles
+        .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
+        .add(completer);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return completer.future;
   }
 
   /**
@@ -549,7 +577,7 @@ class AnalysisDriver {
       String key = _getResolvedUnitKey(libraryFile, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
-        return _getAnalysisResultFromBytes(libraryFile, file, bytes);
+        return _getAnalysisResultFromBytes(file, bytes);
       }
     }
 
@@ -592,7 +620,7 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return _getAnalysisResultFromBytes(libraryFile, file, bytes,
+        return _getAnalysisResultFromBytes(file, bytes,
             content: withUnit ? file.content : null,
             withErrors: _explicitFiles.contains(path),
             resolvedUnit: withUnit ? resolvedUnit : null);
@@ -602,28 +630,28 @@ class AnalysisDriver {
     });
   }
 
-  IndexResult _computeIndexResult(String path) {
+  AnalysisDriverUnitIndex _computeIndex(String path) {
     AnalysisResult analysisResult = _computeAnalysisResult(path,
         withUnit: false, asIsIfPartWithoutLibrary: true);
-    FileState libraryFile = analysisResult._libraryFile;
-    FileState file = analysisResult._file;
+    return analysisResult._index;
+  }
+
+  CompilationUnitElement _computeUnitElement(String path) {
+    FileState file = _fsState.getFileForPath(path);
+    FileState libraryFile = file.library ?? file;
 
     // Create the AnalysisContext to resynthesize elements in.
     _LibraryContext libraryContext = _createLibraryContext(libraryFile);
     AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
 
     // Resynthesize the CompilationUnitElement in the context.
-    CompilationUnitElement unitElement;
     try {
-      unitElement = analysisContext.computeResult(
+      return analysisContext.computeResult(
           new LibrarySpecificUnit(libraryFile.source, file.source),
           COMPILATION_UNIT_ELEMENT);
     } finally {
       analysisContext.dispose();
     }
-
-    // Return as IndexResult.
-    return new IndexResult(unitElement, analysisResult._index);
   }
 
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
@@ -735,26 +763,14 @@ class AnalysisDriver {
    * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
    * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getAnalysisResultFromBytes(
-      FileState libraryFile, FileState file, List<int> bytes,
+  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
       {String content, bool withErrors: true, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = withErrors
         ? _getErrorsFromSerialized(file, unit.errors)
         : const <AnalysisError>[];
-    return new AnalysisResult(
-        libraryFile,
-        file,
-        this,
-        sourceFactory,
-        file.path,
-        file.uri,
-        content,
-        file.contentHash,
-        file.lineInfo,
-        resolvedUnit,
-        errors,
-        unit.index);
+    return new AnalysisResult(this, sourceFactory, file.path, file.uri, content,
+        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
   }
 
   /**
@@ -850,9 +866,19 @@ class AnalysisDriver {
     // Process an index request.
     if (_indexRequestedFiles.isNotEmpty) {
       String path = _indexRequestedFiles.keys.first;
-      IndexResult result = _computeIndexResult(path);
+      AnalysisDriverUnitIndex index = _computeIndex(path);
       _indexRequestedFiles.remove(path).forEach((completer) {
-        completer.complete(result);
+        completer.complete(index);
+      });
+      return;
+    }
+
+    // Process a unit request.
+    if (_unitElementRequestedFiles.isNotEmpty) {
+      String path = _unitElementRequestedFiles.keys.first;
+      CompilationUnitElement unitElement = _computeUnitElement(path);
+      _unitElementRequestedFiles.remove(path).forEach((completer) {
+        completer.complete(unitElement);
       });
       return;
     }
@@ -1152,9 +1178,6 @@ class AnalysisDriverScheduler {
  * any previously returned result, even inside of the same library.
  */
 class AnalysisResult {
-  final FileState _libraryFile;
-  final FileState _file;
-
   /**
    * The [AnalysisDriver] that produced this result.
    */
@@ -1208,8 +1231,6 @@ class AnalysisResult {
   final AnalysisDriverUnitIndex _index;
 
   AnalysisResult(
-      this._libraryFile,
-      this._file,
       this.driver,
       this.sourceFactory,
       this.path,

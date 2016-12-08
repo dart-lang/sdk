@@ -471,15 +471,8 @@ main() {
 ''';
     addTestFile(content);
 
-    IndexResult result = await driver.getIndex(testFile);
+    AnalysisDriverUnitIndex index = await driver.getIndex(testFile);
 
-    CompilationUnitElement unitElement = result.unitElement;
-    expect(unitElement, isNotNull);
-    expect(unitElement.source.fullName, testFile);
-    expect(unitElement.functions.map((c) => c.name),
-        unorderedEquals(['foo', 'main']));
-
-    AnalysisDriverUnitIndex index = result.index;
     int unitId = index.strings.indexOf('package:test/test.dart');
     int fooId = index.strings.indexOf('foo');
     expect(unitId, isNonNegative);
@@ -845,6 +838,22 @@ var A2 = B1;
         await driver.getTopLevelNameDeclarations('D'), [d], [false]);
 
     assertDeclarations(await driver.getTopLevelNameDeclarations('X'), [], []);
+  }
+
+  test_getUnitElement() async {
+    String content = r'''
+foo(int p) {}
+main() {
+  foo(42);
+}
+''';
+    addTestFile(content);
+
+    CompilationUnitElement unitElement = await driver.getUnitElement(testFile);
+    expect(unitElement, isNotNull);
+    expect(unitElement.source.fullName, testFile);
+    expect(unitElement.functions.map((c) => c.name),
+        unorderedEquals(['foo', 'main']));
   }
 
   test_knownFiles() async {

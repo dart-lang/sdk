@@ -139,13 +139,12 @@ class Search {
       Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       String file) async {
-    IndexResult result = await _driver.getIndex(file);
-    _IndexRequest request = new _IndexRequest(result.index);
+    AnalysisDriverUnitIndex index = await _driver.getIndex(file);
+    _IndexRequest request = new _IndexRequest(index);
     int elementId = request.findElementId(element);
     if (elementId != -1) {
-      CompilationUnitElement unitElement = result.unitElement;
-      List<SearchResult> fileResults =
-          request.getRelations(elementId, relationToResultKind, unitElement);
+      List<SearchResult> fileResults = await request.getRelations(
+          elementId, relationToResultKind, () => _driver.getUnitElement(file));
       results.addAll(fileResults);
     }
   }
@@ -563,11 +562,15 @@ class _IndexRequest {
   /**
    * Return a list of results where an element with the given [elementId] has
    * a relation with the kind from [relationToResultKind].
+   *
+   * The function [getEnclosingUnitElement] is used to lazily compute the
+   * enclosing [CompilationUnitElement] if there is a relation of an
+   * interesting kind.
    */
-  List<SearchResult> getRelations(
+  Future<List<SearchResult>> getRelations(
       int elementId,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      CompilationUnitElement enclosingUnitElement) {
+      Future<CompilationUnitElement> getEnclosingUnitElement()) async {
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
     if (i == -1) {
@@ -575,6 +578,7 @@ class _IndexRequest {
     }
     // Create locations for every usage of the element.
     List<SearchResult> results = <SearchResult>[];
+    CompilationUnitElement enclosingUnitElement = null;
     for (;
         i < index.usedElements.length && index.usedElements[i] == elementId;
         i++) {
@@ -582,6 +586,7 @@ class _IndexRequest {
       SearchResultKind resultKind = relationToResultKind[relationKind];
       if (resultKind != null) {
         int offset = index.usedElementOffsets[i];
+        enclosingUnitElement ??= await getEnclosingUnitElement();
         Element enclosingElement =
             _getEnclosingElement(enclosingUnitElement, offset);
         results.add(new SearchResult._(
