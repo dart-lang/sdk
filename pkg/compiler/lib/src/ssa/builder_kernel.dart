@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/text/ast_to_text.dart' show debugNodeToString;
 
 import '../closure.dart';
 import '../common.dart';
@@ -432,7 +433,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void defaultExpression(ir.Expression expression) {
     // TODO(het): This is only to get tests working.
-    String message = 'Unhandled ir.${expression.runtimeType}  $expression';
+    _trap('Unhandled ir.${expression.runtimeType}  $expression');
+  }
+
+  @override
+  void defaultStatement(ir.Statement statement) {
+    _trap('Unhandled ir.${statement.runtimeType}  $statement');
+    pop();
+  }
+
+  void _trap(String message) {
     HInstruction nullValue = graph.addConstantNull(compiler);
     HInstruction errorMessage =
         graph.addConstantString(new DartString.literal(message), compiler);
