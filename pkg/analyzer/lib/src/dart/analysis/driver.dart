@@ -1406,6 +1406,8 @@ class PerformanceLogSection {
  * file.
  */
 class _FilesReferencingNameTask {
+  static const int _MS_WORK_INTERVAL = 5;
+
   final AnalysisDriver driver;
   final String name;
   final Completer<List<String>> completer = new Completer<List<String>>();
@@ -1417,30 +1419,38 @@ class _FilesReferencingNameTask {
   _FilesReferencingNameTask(this.driver, this.name);
 
   /**
-   * Perform a single piece of work, and either complete the [completer] and
-   * return `true` to indicate that the task is done, return `false` to indicate
-   * that the task should continue to be run.
+   * Perform work for a fixed length of time, and complete the [completer] to
+   * either return `true` to indicate that the task is done, or return `false`
+   * to indicate that the task should continue to be run.
+   *
+   * Each invocation of an asynchronous method has overhead, which looks as
+   * `_SyncCompleter.complete` invocation, we see as much as 62% in some
+   * scenarios. Instead we use a fixed length of time, so we can spend less time
+   * overall and keep quick enough response time.
    */
   Future<bool> perform() async {
-    // Prepare files to check.
-    if (filesToCheck.isEmpty) {
-      Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
-      filesToCheck.addAll(newFiles);
-    }
+    Stopwatch timer = new Stopwatch()..start();
+    while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
+      // Prepare files to check.
+      if (filesToCheck.isEmpty) {
+        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        filesToCheck.addAll(newFiles);
+      }
 
-    // If no more files to check, complete and done.
-    if (filesToCheck.isEmpty) {
-      completer.complete(referencingFiles);
-      return true;
-    }
+      // If no more files to check, complete and done.
+      if (filesToCheck.isEmpty) {
+        completer.complete(referencingFiles);
+        return true;
+      }
 
-    // Check the next file.
-    String path = filesToCheck.removeLast();
-    FileState file = driver._fsState.getFileForPath(path);
-    if (file.referencedNames.contains(name)) {
-      referencingFiles.add(path);
+      // Check the next file.
+      String path = filesToCheck.removeLast();
+      FileState file = driver._fsState.getFileForPath(path);
+      if (file.referencedNames.contains(name)) {
+        referencingFiles.add(path);
+      }
+      checkedFiles.add(path);
     }
-    checkedFiles.add(path);
 
     // We're not done yet.
     return false;
