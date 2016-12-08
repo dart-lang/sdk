@@ -721,22 +721,22 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     }
   }
 
-  void forgetElement(Element element, Compiler compiler) {
-    allClosures.remove(element);
-    slowDirectlyNestedClosures(element).forEach(compiler.forgetElement);
-    closurizedMembers.remove(element);
-    fieldSetters.remove(element);
-    _instantiationInfo.remove(element);
+  void forgetEntity(Entity entity, Compiler compiler) {
+    allClosures.remove(entity);
+    slowDirectlyNestedClosures(entity).forEach(compiler.forgetElement);
+    closurizedMembers.remove(entity);
+    fieldSetters.remove(entity);
+    _instantiationInfo.remove(entity);
 
-    void removeUsage(Set<_MemberUsage> set, Element element) {
+    void removeUsage(Set<_MemberUsage> set, Entity entity) {
       if (set == null) return;
       set.removeAll(
-          set.where((_MemberUsage usage) => usage.entity == element).toList());
+          set.where((_MemberUsage usage) => usage.entity == entity).toList());
     }
 
-    _processedClasses.remove(element);
-    removeUsage(_instanceMembersByName[element.name], element);
-    removeUsage(_instanceFunctionsByName[element.name], element);
+    _processedClasses.remove(entity);
+    removeUsage(_instanceMembersByName[entity.name], entity);
+    removeUsage(_instanceFunctionsByName[entity.name], entity);
   }
 
   // TODO(ahe): Replace this method with something that is O(1), for example,
@@ -808,7 +808,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     _processSet(_instanceMembersByName, name, updateUsage);
   }
 
-  void _processInstanceFunctions(String name, bool updateUsage(_MemberUsage e)) {
+  void _processInstanceFunctions(
+      String name, bool updateUsage(_MemberUsage e)) {
     _processSet(_instanceFunctionsByName, name, updateUsage);
   }
 

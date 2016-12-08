@@ -18,6 +18,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
+import '../elements/entities.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -222,7 +223,7 @@ abstract class Backend extends Target {
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerStaticUse(Element element, {bool forResolution}) =>
+  WorldImpact registerUsedElement(Element element, {bool forResolution}) =>
       const WorldImpact();
 
   /// This method is called immediately after the [LibraryElement] [library] has
@@ -305,7 +306,7 @@ abstract class Backend extends Target {
   /// There is no guarantee that a class is only present once in
   /// [recentClasses], but every class seen by the [enqueuer] will be present in
   /// [recentClasses] at least once.
-  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
+  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     return true;
   }
 
@@ -315,9 +316,6 @@ abstract class Backend extends Target {
 
   /// Called when the compiler starts running the codegen enqueuer.
   void onCodegenStart() {}
-
-  /// Called after [element] has been resolved.
-  void onElementResolved(Element element) {}
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;

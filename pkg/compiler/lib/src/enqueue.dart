@@ -67,16 +67,16 @@ class EnqueueTask extends CompilerTask {
   ResolutionEnqueuer get resolution => _resolution;
   Enqueuer get codegen => _codegen;
 
-  void forgetElement(Element element) {
-    resolution.forgetElement(element, compiler);
-    codegen.forgetElement(element, compiler);
+  void forgetEntity(Entity entity) {
+    resolution.forgetEntity(entity, compiler);
+    codegen.forgetEntity(entity, compiler);
   }
 }
 
 abstract class Enqueuer {
   WorldBuilder get universe;
   native.NativeEnqueuer get nativeEnqueuer;
-  void forgetElement(Element element, Compiler compiler);
+  void forgetEntity(Entity entity, Compiler compiler);
 
   // TODO(johnniwinther): Initialize [_impactStrategy] to `null`.
   ImpactStrategy _impactStrategy = const ImpactStrategy();
@@ -107,22 +107,19 @@ abstract class Enqueuer {
   /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is
   /// provided the impact strategy will remove it from the element impact cache,
   /// if it is no longer needed.
-  void applyImpact(WorldImpact worldImpact, {Element impactSource});
+  void applyImpact(WorldImpact worldImpact, {var impactSource});
   bool checkNoEnqueuedInvokedInstanceMethods();
   void logSummary(log(message));
 
-  /// Returns [:true:] if [member] has been processed by this enqueuer.
-  bool isProcessed(Element member);
-
   Iterable<Entity> get processedEntities;
 
-  Iterable<ClassElement> get processedClasses;
+  Iterable<ClassEntity> get processedClasses;
 }
 
 abstract class EnqueuerImpl extends Enqueuer {
   CompilerTask get task;
   EnqueuerStrategy get strategy;
-  void checkClass(ClassElement cls);
+  void checkClass(ClassEntity cls);
   void processStaticUse(StaticUse staticUse);
   void processTypeUse(TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
@@ -143,7 +140,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
-  Set<ClassElement> _recentClasses = new Setlet<ClassElement>();
+  Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   final ResolutionWorldBuilderImpl _universe;
 
   bool queueIsClosed = false;
@@ -151,7 +148,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   WorldImpactVisitor _impactVisitor;
 
   /// All declaration elements that have been processed by the resolver.
-  final Set<AstElement> processedElements = new Set<AstElement>();
+  final Set<AstElement> _processedElements = new Set<AstElement>();
 
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
@@ -185,9 +182,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   DiagnosticReporter get _reporter => _resolution.reporter;
 
-  Iterable<ClassElement> get processedClasses => _universe.processedClasses;
+  Iterable<ClassEntity> get processedClasses => _universe.processedClasses;
 
-  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
+  void applyImpact(WorldImpact worldImpact, {var impactSource}) {
     if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
         impactSource, worldImpact, _impactVisitor, impactUse);
@@ -218,9 +215,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     return strategy.checkEnqueuerConsistency(this);
   }
 
-  void checkClass(ClassElement cls) {
+  void checkClass(ClassEntity cls) {
     _universe.processClassMembers(cls,
-        (MemberElement member, EnumSet<MemberUse> useSet) {
+        (MemberEntity member, EnumSet<MemberUse> useSet) {
       if (useSet.isNotEmpty) {
         _reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
@@ -279,7 +276,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    applyImpact(backend.registerStaticUse(element, forResolution: true));
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
@@ -383,7 +379,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!isProcessed(work.element)) {
+        if (!_processedElements.contains(work.element)) {
           strategy.processWorkItem(f, work);
           registerProcessedElement(work.element);
         }
@@ -397,29 +393,26 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void logSummary(log(message)) {
-    log('Resolved ${processedElements.length} elements.');
+    log('Resolved ${_processedElements.length} elements.');
     nativeEnqueuer.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';
 
-  Iterable<Entity> get processedEntities => processedElements;
+  Iterable<Entity> get processedEntities => _processedElements;
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
   bool get isResolutionQueue => true;
 
-  bool isProcessed(Element member) => processedElements.contains(member);
-
   /// Returns `true` if [element] has been processed by the resolution enqueuer.
   bool hasBeenProcessed(Element element) {
-    return processedElements.contains(element.analyzableElement.declaration);
+    return _processedElements.contains(element.analyzableElement.declaration);
   }
 
   /// Registers [element] as processed by the resolution enqueuer.
   void registerProcessedElement(AstElement element) {
-    processedElements.add(element);
-    backend.onElementResolved(element);
+    _processedElements.add(element);
   }
 
   /// Adds [element] to the work list if it has not already been processed.
@@ -437,6 +430,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           element, "Resolution work list is closed. Trying to add $element.");
     }
 
+    applyImpact(backend.registerUsedElement(element, forResolution: true));
     _openWorld.registerUsedElement(element);
 
     ResolutionWorkItem workItem = _resolution.createWorkItem(element);
@@ -482,22 +476,19 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     applyImpact(backend.enableIsolateSupport(forResolution: true));
   }
 
-  /**
-   * Adds an action to the deferred task queue.
-   *
-   * The action is performed the next time the resolution queue has been
-   * emptied.
-   *
-   * The queue is processed in FIFO order.
-   */
-  void addDeferredAction(Element element, void action()) {
+  /// Adds an action to the deferred task queue.
+  /// The action is performed the next time the resolution queue has been
+  /// emptied.
+  ///
+  /// The queue is processed in FIFO order.
+  void addDeferredAction(Entity entity, void action()) {
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(
-          element,
+          entity,
           "Resolution work list is closed. "
-          "Trying to add deferred action for $element");
+          "Trying to add deferred action for $entity");
     }
-    _deferredQueue.add(new _DeferredAction(element, action));
+    _deferredQueue.add(new _DeferredAction(entity, action));
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
@@ -506,7 +497,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// the [recentClasses] have been processed and may be cleared. If [false] is
   /// returned, [_onQueueEmpty] will be called once the queue is empty again (or
   /// still empty) and [recentClasses] will be a superset of the current value.
-  bool _onQueueEmpty(Iterable<ClassElement> recentClasses) {
+  bool _onQueueEmpty(Iterable<ClassEntity> recentClasses) {
     _emptyDeferredQueue();
 
     return backend.onQueueEmpty(this, recentClasses);
@@ -521,16 +512,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
-  void forgetElement(Element element, Compiler compiler) {
-    _universe.forgetElement(element, compiler);
-    processedElements.remove(element);
+  void forgetEntity(Entity entity, Compiler compiler) {
+    _universe.forgetEntity(entity, compiler);
+    _processedElements.remove(entity);
   }
-}
-
-void removeFromSet(Map<String, Set<Element>> map, Element element) {
-  Set<Element> set = map[element.name];
-  if (set == null) return;
-  set.remove(element);
 }
 
 /// Strategy used by the enqueuer to populate the world.

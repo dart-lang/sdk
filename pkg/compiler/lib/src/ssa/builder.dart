@@ -408,7 +408,7 @@ class SsaBuilder extends ast.Visitor
       List<HInstruction> providedArguments, ast.Node currentNode,
       {InterfaceType instanceType}) {
     registry
-        .addImpact(backend.registerStaticUse(element, forResolution: false));
+        .addImpact(backend.registerUsedElement(element, forResolution: false));
 
     if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.

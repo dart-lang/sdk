@@ -431,8 +431,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  void unregisterImpact(Element element) {
-    impacts.remove(element);
+  void unregisterImpact(var impactSource) {
+    impacts.remove(impactSource);
   }
 
   /**

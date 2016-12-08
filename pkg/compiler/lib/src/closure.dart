@@ -50,7 +50,7 @@ class ClosureTask extends CompilerTask {
 
   /// Create [ClosureClassMap]s for all live members.
   void createClosureClasses() {
-    compiler.enqueuer.resolution.processedElements
+    compiler.enqueuer.resolution.processedEntities
         .forEach((AstElement element) {
       ResolvedAst resolvedAst = element.resolvedAst;
       if (element.isAbstract) return;
@@ -121,7 +121,7 @@ class ClosureTask extends CompilerTask {
       throw new SpannableAssertionFailure(
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
-    compiler.enqueuer.codegen.forgetElement(cls, compiler);
+    compiler.enqueuer.codegen.forgetEntity(cls, compiler);
   }
 }
 

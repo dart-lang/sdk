@@ -30,6 +30,7 @@ import '../dart_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../enqueue.dart'
     show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
@@ -521,6 +522,9 @@ class JavaScriptBackend extends Backend {
 
   /// `true` if access to [BackendHelpers.invokeOnMethod] is supported.
   bool hasInvokeOnSupport = false;
+
+  /// `true` if tear-offs are supported for incremental compilation.
+  bool hasIncrementalTearOffSupport = false;
 
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
@@ -1338,6 +1342,7 @@ class JavaScriptBackend extends Backend {
   }
 
   onResolutionComplete() {
+    compiler.enqueuer.resolution.processedEntities.forEach(processAnnotations);
     super.onResolutionComplete();
     computeMembersNeededForReflection();
     rti.computeClassesNeedingRti();
@@ -1805,7 +1810,7 @@ class JavaScriptBackend extends Backend {
     return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
-  WorldImpact registerStaticUse(Element element, {bool forResolution}) {
+  WorldImpact registerUsedElement(Element element, {bool forResolution}) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
@@ -1830,6 +1835,8 @@ class JavaScriptBackend extends Backend {
       }
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
+    } else if (element == helpers.invokeOnMethod && forResolution) {
+      hasInvokeOnSupport = true;
     }
     customElementsAnalysis.registerStaticUse(element,
         forResolution: forResolution);
@@ -2254,7 +2261,7 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Called when [enqueuer] is empty, but before it is closed.
-  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
+  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     // Add elements used synthetically, that is, through features rather than
     // syntax, for instance custom elements.
     //
@@ -2281,13 +2288,15 @@ class JavaScriptBackend extends Backend {
       kernelTask.buildKernelIr();
     }
 
-    if (compiler.options.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport &&
+        !hasIncrementalTearOffSupport) {
       // Always enable tear-off closures during incremental compilation.
       Element element = helpers.closureFromTearOff;
-      if (element != null && !enqueuer.isProcessed(element)) {
+      if (element != null) {
         enqueuer.applyImpact(
             impactTransformer.createImpactFor(impacts.closureClass));
       }
+      hasIncrementalTearOffSupport = true;
     }
 
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
@@ -2333,7 +2342,7 @@ class JavaScriptBackend extends Backend {
 
         // TODO(johnniwinther): We should have access to all recently processed
         // elements and process these instead.
-        processMetadata(compiler.enqueuer.resolution.processedElements,
+        processMetadata(compiler.enqueuer.resolution.processedEntities,
             registerMetadataConstant);
       } else {
         for (Dependency dependency in metadataConstants) {
@@ -2347,9 +2356,9 @@ class JavaScriptBackend extends Backend {
     return true;
   }
 
-  /// Call [registerMetadataConstant] on all metadata from [elements].
-  void processMetadata(Iterable<Element> elements,
-      void onMetadata(MetadataAnnotation metadata)) {
+  /// Call [registerMetadataConstant] on all metadata from [entities].
+  void processMetadata(
+      Iterable<Entity> entities, void onMetadata(MetadataAnnotation metadata)) {
     void processLibraryMetadata(LibraryElement library) {
       if (_registeredMetadata.add(library)) {
         library.metadata.forEach(onMetadata);
@@ -2377,7 +2386,7 @@ class JavaScriptBackend extends Backend {
       }
     }
 
-    elements.forEach(processElementMetadata);
+    entities.forEach(processElementMetadata);
   }
 
   void onQueueClosed() {
@@ -2389,10 +2398,10 @@ class JavaScriptBackend extends Backend {
     lookupMapAnalysis.onCodegenStart();
   }
 
-  @override
-  void onElementResolved(Element element) {
+  /// Process backend specific annotations.
+  void processAnnotations(Element element) {
     if (element.isMalformed) {
-      // Elements that are marker as malformed during parsing or resolution
+      // Elements that are marked as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
       return;
     }
@@ -2466,18 +2475,8 @@ class JavaScriptBackend extends Backend {
       reporter.internalError(element,
           "@NoSideEffects() should always be combined with @NoInline.");
     }
-    if (element == helpers.invokeOnMethod) {
-      hasInvokeOnSupport = true;
-    }
   }
 
-/*
-  CodeBuffer codeOf(Element element) {
-    return generatedCode.containsKey(element)
-        ? jsAst.prettyPrint(generatedCode[element], compiler)
-        : null;
-  }
-*/
   FunctionElement helperForBadMain() => helpers.badMain;
 
   FunctionElement helperForMissingMain() => helpers.missingMain;
@@ -3178,7 +3177,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       this.supportSerialization});
 
   @override
-  void visitImpact(Element element, WorldImpact impact,
+  void visitImpact(var impactSource, WorldImpact impact,
       WorldImpactVisitor visitor, ImpactUseCase impactUse) {
     // TODO(johnniwinther): Compute the application strategy once for each use.
     if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
@@ -3186,8 +3185,8 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
         impact.apply(visitor);
       } else {
         impact.apply(visitor);
-        if (element != null) {
-          resolution.uncacheWorldImpact(element);
+        if (impactSource is Element) {
+          resolution.uncacheWorldImpact(impactSource);
         }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
@@ -3195,7 +3194,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       // Impacts are uncached globally in [onImpactUsed].
     } else if (impactUse == DumpInfoTask.IMPACT_USE) {
       impact.apply(visitor);
-      dumpInfoTask.unregisterImpact(element);
+      dumpInfoTask.unregisterImpact(impactSource);
     } else {
       impact.apply(visitor);
     }

@@ -127,7 +127,7 @@ void main() {
     Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    backend.processMetadata(compiler.enqueuer.resolution.processedElements,
+    backend.processMetadata(compiler.enqueuer.resolution.processedEntities,
         (metadata) {
       ConstantValue constant =
           backend.constants.getConstantValueForMetadata(metadata);

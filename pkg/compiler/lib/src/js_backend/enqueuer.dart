@@ -18,16 +18,12 @@ import '../elements/elements.dart'
     show
         ClassElement,
         Element,
-        Elements,
         Entity,
         FunctionElement,
-        LibraryElement,
-        Member,
         MemberElement,
         MethodElement,
-        Name,
-        TypedElement,
-        TypedefElement;
+        TypedElement;
+import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart' as native;
@@ -38,7 +34,7 @@ import '../universe/world_builder.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'
-    show ImpactUseCase, ImpactStrategy, WorldImpact, WorldImpactVisitor;
+    show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart' show Setlet;
 import '../world.dart';
 
@@ -350,7 +346,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse);
-    applyImpact(_backend.registerStaticUse(element, forResolution: false));
+    applyImpact(_backend.registerUsedElement(element, forResolution: false));
     bool addElement = true;
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
@@ -467,13 +463,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   String toString() => 'Enqueuer($name)';
 
-  void _forgetElement(Element element) {
-    _universe.forgetElement(element, _compiler);
-    _processedClasses.remove(element);
-    _instanceMembersByName[element.name]?.remove(element);
-    _instanceFunctionsByName[element.name]?.remove(element);
-  }
-
   ImpactUseCase get impactUse => IMPACT_USE;
 
   bool isProcessed(Element member) =>
@@ -486,8 +475,11 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
-  void forgetElement(Element element, Compiler compiler) {
-    _forgetElement(element);
+  void forgetEntity(Element element, Compiler compiler) {
+    _universe.forgetElement(element, _compiler);
+    _processedClasses.remove(element);
+    _instanceMembersByName[element.name]?.remove(element);
+    _instanceFunctionsByName[element.name]?.remove(element);
     generatedCode.remove(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
@@ -502,7 +494,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   Iterable<Entity> get processedEntities => generatedCode.keys;
 
   @override
-  Iterable<ClassElement> get processedClasses => _processedClasses;
+  Iterable<ClassEntity> get processedClasses => _processedClasses;
 }
 
 void removeFromSet(Map<String, Set<Element>> map, Element element) {

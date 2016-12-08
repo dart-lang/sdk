@@ -908,7 +908,7 @@ abstract class Compiler implements LibraryLoaderListener {
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.processedElements);
+    var resolved = new Set.from(enqueuer.resolution.processedEntities);
     for (Element e in enqueuer.codegen.processedEntities) {
       resolved.remove(e);
     }
@@ -939,7 +939,7 @@ abstract class Compiler implements LibraryLoaderListener {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       assert(phase == PHASE_RESOLVING);
-      reporter.log('Resolved ${enqueuer.resolution.processedElements.length} '
+      reporter.log('Resolved ${enqueuer.resolution.processedEntities.length} '
           'elements.');
       progress.reset();
     }
@@ -1113,7 +1113,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
   void forgetElement(Element element) {
     resolution.forgetElement(element);
-    enqueuer.forgetElement(element);
+    enqueuer.forgetEntity(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
         // TODO(ahe): It would be nice to reuse names of nested closures.

@@ -1247,11 +1247,8 @@ class TypeGraphInferrerEngine
   Iterable<ResolvedAst> sortResolvedAsts() {
     int max = 0;
     Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
-    compiler.enqueuer.resolution.processedElements
+    compiler.enqueuer.resolution.processedEntities
         .forEach((AstElement element) {
-      // TODO(ngeoffray): Not sure why the resolver would put a null
-      // mapping.
-      if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;

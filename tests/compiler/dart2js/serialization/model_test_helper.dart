@@ -110,7 +110,7 @@ void checkResolutionEnqueuers(
     {bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
-  checkSets(enqueuer1.processedElements, enqueuer2.processedElements,
+  checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
       "Processed element mismatch", areElementsEquivalent,
       elementFilter: elementFilter, verbose: verbose);
 
@@ -174,8 +174,8 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
 void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
     {bool verbose: false}) {
   checkSets(
-      compilerNormal.enqueuer.resolution.processedElements,
-      compilerDeserialized.enqueuer.resolution.processedElements,
+      compilerNormal.enqueuer.resolution.processedEntities,
+      compilerDeserialized.enqueuer.resolution.processedEntities,
       "Processed element mismatch",
       areElementsEquivalent, onSameElement: (a, b) {
     checkElements(compilerNormal, compilerDeserialized, a, b, verbose: verbose);
