@@ -75,13 +75,11 @@ env:
   - ANALYZER=master
   - ANALYZER=master DDC_BROWSERS=Firefox
   - ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
-  - ANALYZER=master CXX=g++
   - ANALYZER=master CXX=clang++
   - TEST=coverage
   - TEST=package
 matrix:
   allow_failures:
-    - env: ANALYZER=master CXX=g++
     - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
 notifications:
   email:
