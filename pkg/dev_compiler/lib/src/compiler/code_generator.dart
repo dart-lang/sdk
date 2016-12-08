@@ -752,7 +752,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     var staticFields = <FieldDeclaration>[];
     var methods = <MethodDeclaration>[];
 
-    // True if a "call" method or getter exists.
+    // True if a "call" method or getter exists directly on this class.
+    // If so, we need to install a Function prototype.
     bool isCallable = false;
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
@@ -778,6 +779,16 @@ class CodeGenerator extends GeneralizingAstVisitor
           isCallable = !member.isGetter || member.returnType is FunctionType;
         }
       }
+    }
+
+    // True if a "call" method or getter exists directly or indirectly on this
+    // class.  If so, we need special constructor handling.
+    bool isCallableTransitive =
+        classElem.lookUpMethod('call', currentLibrary) != null;
+    if (!isCallableTransitive) {
+      var callGetter = classElem.lookUpGetter('call', currentLibrary);
+      isCallableTransitive =
+          callGetter != null && callGetter.returnType is FunctionType;
     }
 
     JS.Expression className;
@@ -816,7 +827,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     _emitClassTypeTests(classElem, className, body);
 
-    _defineNamedConstructors(ctors, body, className, isCallable);
+    _defineNamedConstructors(ctors, body, className, isCallableTransitive);
     body.addAll(virtualFieldSymbols);
     _emitClassSignature(
         methods, allFields, classElem, ctors, extensions, className, body);

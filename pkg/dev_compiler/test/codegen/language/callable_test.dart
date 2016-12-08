@@ -8,6 +8,10 @@ class X {
   call() => 42;
 }
 
+class XX extends X {
+  XX.named();
+}
+
 class Y {
   call(int x) => 87 + x;
 
@@ -24,6 +28,7 @@ class Z<T> {
 
 typedef F(int x);
 typedef G(String y);
+typedef H();
 
 main() {
   X x = new X();
@@ -44,4 +49,10 @@ main() {
 
   Expect.equals(Y.staticMethod(6), 7);
   Expect.equals(Z.staticMethod(6), 7);
+
+  var xx = new XX.named();
+  Expect.equals(xx(), 42);
+
+  H xx2 = new XX.named();
+  Expect.equals(xx2(), 42);
 }
