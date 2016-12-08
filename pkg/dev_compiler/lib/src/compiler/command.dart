@@ -24,9 +24,7 @@ final ArgParser _argParser = () {
             'Generated module paths are relative to this root.')
     ..addOption('library-root',
         help: 'Root of source files.\n'
-            'Generated library names are relative to this root.')
-    ..addOption('build-root',
-        help: 'Deprecated in favor of --library-root', hide: true);
+            'Generated library names are relative to this root.');
   addModuleFormatOptions(argParser, allowMultiple: true);
   AnalyzerOptions.addArguments(argParser);
   CompilerOptions.addArguments(argParser);
@@ -125,7 +123,6 @@ void _compile(ArgResults argResults, Map<String, String> declaredVars,
   var firstOutPath = outPaths[0];
 
   var libraryRoot = argResults['library-root'] as String;
-  libraryRoot ??= argResults['build-root'] as String;
   if (libraryRoot != null) {
     libraryRoot = path.absolute(libraryRoot);
   } else {
