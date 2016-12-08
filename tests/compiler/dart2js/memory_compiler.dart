@@ -186,7 +186,7 @@ CompilerImpl compilerFor(
         cachedCompiler.enqueuer.resolution.processedEntities;
     cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.registerProcessedElement(element);
+        compiler.enqueuer.resolution.registerProcessedElementInternal(element);
       }
     });
 

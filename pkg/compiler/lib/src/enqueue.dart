@@ -271,34 +271,21 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
+  /// Callback for applying the use of a [member].
+  void _applyStaticMemberUse(Entity member, EnumSet<MemberUse> useSet) {
+    if (useSet.contains(MemberUse.NORMAL)) {
+      _addToWorkList(member);
+    }
+    if (useSet.contains(MemberUse.CLOSURIZE)) {
+      applyImpact(backend.registerGetOfStaticFunction());
+    }
+  }
+
   void processStaticUse(StaticUse staticUse) {
-    Element element = staticUse.element;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
-    _universe.registerStaticUse(staticUse);
-    bool addElement = true;
+    _universe.registerStaticUse(staticUse, _applyStaticMemberUse);
+    // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
+    // for these:
     switch (staticUse.kind) {
-      case StaticUseKind.STATIC_TEAR_OFF:
-        applyImpact(backend.registerGetOfStaticFunction());
-        break;
-      case StaticUseKind.FIELD_GET:
-      case StaticUseKind.FIELD_SET:
-      case StaticUseKind.CLOSURE:
-        // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
-        // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
-        // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
-        // enqueue.
-        LocalFunctionElement closure = staticUse.element;
-        if (closure.type.containsTypeVariables) {
-          _universe.closuresWithFreeTypeVariables.add(closure);
-        }
-        addElement = false;
-        break;
-      case StaticUseKind.SUPER_FIELD_SET:
-      case StaticUseKind.SUPER_TEAR_OFF:
-      case StaticUseKind.GENERAL:
-      case StaticUseKind.DIRECT_USE:
-        break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         _registerInstantiatedType(staticUse.type,
@@ -310,13 +297,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
             globalDependency: false,
             isRedirection: true);
         break;
-      case StaticUseKind.DIRECT_INVOKE:
-        invariant(
-            element, 'Direct static use is not supported for resolution.');
+      default:
         break;
-    }
-    if (addElement) {
-      _addToWorkList(element);
     }
   }
 
@@ -381,7 +363,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         WorkItem work = _queue.removeLast();
         if (!_processedElements.contains(work.element)) {
           strategy.processWorkItem(f, work);
-          registerProcessedElement(work.element);
+          _processedElements.add(work.element);
         }
       }
       List recents = _recentClasses.toList(growable: false);
@@ -406,12 +388,16 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   bool get isResolutionQueue => true;
 
   /// Returns `true` if [element] has been processed by the resolution enqueuer.
+  // TODO(johnniwinther): Move this to the [OpenWorld]/[ResolutionWorldBuilder].
   bool hasBeenProcessed(Element element) {
-    return _processedElements.contains(element.analyzableElement.declaration);
+    assert(invariant(element, element == element.analyzableElement.declaration,
+        message: "Unexpected element $element"));
+    return _processedElements.contains(element);
   }
 
-  /// Registers [element] as processed by the resolution enqueuer.
-  void registerProcessedElement(AstElement element) {
+  /// Registers [element] as processed by the resolution enqueuer. Used only for
+  /// testing.
+  void registerProcessedElementInternal(AstElement element) {
     _processedElements.add(element);
   }
 

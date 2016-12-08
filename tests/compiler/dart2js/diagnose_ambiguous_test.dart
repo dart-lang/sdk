@@ -23,9 +23,9 @@ void main() {
     diagnostics.sort();
     var expected = [
       "MessageKind.AMBIGUOUS_LOCATION:"
-          "memory:exporter.dart:43:47:'hest' is defined here.:info",
+          "memory:exporter.dart:43:49:'hest' is defined here.:info",
       "MessageKind.AMBIGUOUS_LOCATION:"
-          "memory:library.dart:41:45:'hest' is defined here.:info",
+          "memory:library.dart:41:47:'hest' is defined here.:info",
       "MessageKind.DUPLICATE_IMPORT:"
           "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
       "MessageKind.IMPORTED_HERE:"

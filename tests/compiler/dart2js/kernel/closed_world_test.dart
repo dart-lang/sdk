@@ -113,7 +113,6 @@ main(List<String> args) {
       ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
       WorldImpact worldImpact = compiler.backend.impactTransformer
           .transformResolutionImpact(enqueuer, resolutionImpact);
-      enqueuer.registerProcessedElement(element);
       enqueuer.applyImpact(worldImpact, impactSource: element);
     });
     ClosedWorld closedWorld =
