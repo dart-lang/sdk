@@ -90,7 +90,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.4",
   "protobuf_tag": "@0.5.3",
-  "pub_rev": "@3dc6777fabfd27cd80cd4eff45c8d0f9ecb4aa7a",
+  "pub_rev": "@9309be93140638fb19903648d07de59681a08989",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.22.0",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
