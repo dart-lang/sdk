@@ -2883,9 +2883,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.TYPE_LITERAL:
           backend.customElementsAnalysis.registerTypeLiteral(type);
-          if (type.isTypedef) {
-            backend.compiler.openWorld.registerTypedef(type.element);
-          }
           if (type.isTypeVariable && type is! MethodTypeVariableType) {
             // GENERIC_METHODS: The `is!` test above filters away method type
             // variables, because they have the value `dynamic` with the

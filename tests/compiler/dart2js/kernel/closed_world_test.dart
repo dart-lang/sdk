@@ -80,7 +80,7 @@ main(List<String> args) {
     worldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.openWorld.closeWorld(compiler.reporter);
+    compiler.resolverWorld.openWorld.closeWorld(compiler.reporter);
 
     JavaScriptBackend backend = compiler.backend;
     // Create a new resolution enqueuer and feed it with the [WorldImpact]s

@@ -52,6 +52,8 @@ class ClosureTask extends CompilerTask {
   void createClosureClasses() {
     compiler.enqueuer.resolution.processedEntities
         .forEach((AstElement element) {
+      // TODO(johnniwinther): Typedefs should never be in processedElements.
+      if (element.isTypedef) return;
       ResolvedAst resolvedAst = element.resolvedAst;
       if (element.isAbstract) return;
       if (element.isField &&

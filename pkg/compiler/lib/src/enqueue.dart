@@ -306,6 +306,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.TYPE_LITERAL:
+        if (type.isTypedef) {
+          universe.openWorld.registerTypedef(type.element);
+        }
         break;
     }
   }

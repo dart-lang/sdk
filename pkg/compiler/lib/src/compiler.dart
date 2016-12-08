@@ -321,7 +321,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
     return new ResolverTask(
-        resolution, backend.constantCompilerTask, openWorld, measurer);
+        resolution, backend.constantCompilerTask, measurer);
   }
 
   // TODO(johnniwinther): Rename these appropriately when unification of worlds/
@@ -767,7 +767,7 @@ abstract class Compiler implements LibraryLoaderListener {
   void closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    openWorld.closeWorld(reporter);
+    resolverWorld.openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete();
@@ -1976,7 +1976,7 @@ class CompilerResolution implements Resolution {
 
   @override
   void registerClass(ClassElement cls) {
-    _compiler.openWorld.registerClass(cls);
+    enqueuer.universe.openWorld.registerClass(cls);
   }
 
   @override
