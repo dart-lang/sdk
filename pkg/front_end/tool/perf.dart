@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/prelink.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
@@ -42,6 +42,9 @@ Stopwatch parseTimer = new Stopwatch();
 
 /// Cumulative time spent building unlinked summaries.
 Stopwatch unlinkedSummarizeTimer = new Stopwatch();
+
+/// Cumulative time spent prelinking summaries.
+Stopwatch prelinkSummaryTimer = new Stopwatch();
 
 /// Factory to load and resolve app, packages, and sdk sources.
 SourceFactory sources;
@@ -88,6 +91,11 @@ main(List<String> args) async {
       Set<Source> files = scanReachableFiles(entryUri);
       // TODO(sigmund): replace the warmup with instrumented snapshots.
       for (int i = 0; i < 10; i++) prelinkedSummarizeFiles(files);
+    },
+    'linked_summarize': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) linkedSummarizeFiles(files);
     }
   };
 
@@ -202,9 +210,7 @@ void unlinkedSummarizeFiles(Set<Source> files) {
   scanTotalChars = 0;
   parseTimer = new Stopwatch();
   unlinkedSummarizeTimer = new Stopwatch();
-  for (var source in files) {
-    unlinkedSummarize(source);
-  }
+  generateUnlinkedSummaries(files);
 
   if (old != scanTotalChars) print('input size changed? ${old} chars');
   report("scan", scanTimer.elapsedMicroseconds);
@@ -214,6 +220,32 @@ void unlinkedSummarizeFiles(Set<Source> files) {
       'unlinked summarize + parse',
       unlinkedSummarizeTimer.elapsedMicroseconds +
           parseTimer.elapsedMicroseconds);
+}
+
+/// Simple container for a mapping from URI string to an unlinked summary.
+class UnlinkedSummaries {
+  final summariesByUri = <String, UnlinkedUnit>{};
+
+  /// Get the unlinked summary for the given URI, and report a warning if it
+  /// can't be found.
+  UnlinkedUnit getUnit(String uri) {
+    var result = summariesByUri[uri];
+    if (result == null) {
+      print('Warning: no summary found for: $uri');
+    }
+    return result;
+  }
+}
+
+/// Generates unlinkmed summaries for all files in [files], and returns them in
+/// an [UnlinkedSummaries] container.
+UnlinkedSummaries generateUnlinkedSummaries(Set<Source> files) {
+  var unlinkedSummaries = new UnlinkedSummaries();
+  for (var source in files) {
+    unlinkedSummaries.summariesByUri[source.uri.toString()] =
+        unlinkedSummarize(source);
+  }
+  return unlinkedSummaries;
 }
 
 /// Produces prelinked summaries for every file in [files] and reports the time
@@ -228,28 +260,9 @@ void prelinkedSummarizeFiles(Set<Source> files) {
   scanTotalChars = 0;
   parseTimer = new Stopwatch();
   unlinkedSummarizeTimer = new Stopwatch();
-  var unlinkedSummaries = <Source, UnlinkedUnit>{};
-  for (var source in files) {
-    unlinkedSummaries[source] = unlinkedSummarize(source);
-  }
-  var prelinkTimer = new Stopwatch()..start();
-  for (var source in files) {
-    UnlinkedUnit getSummary(String uri) {
-      var resolvedUri = sources.resolveUri(source, uri);
-      var result = unlinkedSummaries[resolvedUri];
-      if (result == null) {
-        print('Warning: no summary found for: $uri');
-      }
-      return result;
-    }
-
-    UnlinkedPublicNamespace getImport(String uri) =>
-        getSummary(uri)?.publicNamespace;
-    String getDeclaredVariable(String s) => null;
-    prelink(
-        unlinkedSummaries[source], getSummary, getImport, getDeclaredVariable);
-  }
-  prelinkTimer.stop();
+  var unlinkedSummaries = generateUnlinkedSummaries(files);
+  prelinkSummaryTimer = new Stopwatch();
+  prelinkSummaries(files, unlinkedSummaries);
 
   if (old != scanTotalChars) print('input size changed? ${old} chars');
   report("scan", scanTimer.elapsedMicroseconds);
@@ -259,7 +272,64 @@ void prelinkedSummarizeFiles(Set<Source> files) {
       'unlinked summarize + parse',
       unlinkedSummarizeTimer.elapsedMicroseconds +
           parseTimer.elapsedMicroseconds);
-  report('prelink', prelinkTimer.elapsedMicroseconds);
+  report('prelink', prelinkSummaryTimer.elapsedMicroseconds);
+}
+
+/// Produces linked summaries for every file in [files] and reports the time
+/// spent doing so.
+void linkedSummarizeFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  parseTimer = new Stopwatch();
+  unlinkedSummarizeTimer = new Stopwatch();
+  var unlinkedSummaries = generateUnlinkedSummaries(files);
+  prelinkSummaryTimer = new Stopwatch();
+  Map<String, LinkedLibraryBuilder> prelinkedLibraries =
+      prelinkSummaries(files, unlinkedSummaries);
+  var linkTimer = new Stopwatch()..start();
+  LinkedLibrary getDependency(String uri) {
+    // getDependency should never be called because all dependencies are present
+    // in [prelinkedLibraries].
+    print('Warning: getDependency called for: $uri');
+    return null;
+  }
+
+  bool strong = true;
+  relink(prelinkedLibraries, getDependency, unlinkedSummaries.getUnit, strong);
+  linkTimer.stop();
+
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+  report("parse", parseTimer.elapsedMicroseconds);
+  report('unlinked summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
+  report(
+      'unlinked summarize + parse',
+      unlinkedSummarizeTimer.elapsedMicroseconds +
+          parseTimer.elapsedMicroseconds);
+  report('prelink', prelinkSummaryTimer.elapsedMicroseconds);
+  report('link', linkTimer.elapsedMicroseconds);
+}
+
+/// Prelinks all the summaries for [files], using [unlinkedSummaries] to obtain
+/// their unlinked summaries.
+///
+/// The return value is suitable for passing to the summary linker.
+Map<String, LinkedLibraryBuilder> prelinkSummaries(
+    Set<Source> files, UnlinkedSummaries unlinkedSummaries) {
+  prelinkSummaryTimer.start();
+  Set<String> libraryUris =
+      files.map((source) => source.uri.toString()).toSet();
+
+  String getDeclaredVariable(String s) => null;
+  var prelinkedLibraries =
+      setupForLink(libraryUris, unlinkedSummaries.getUnit, getDeclaredVariable);
+  prelinkSummaryTimer.stop();
+  return prelinkedLibraries;
 }
 
 /// Add to [files] all sources reachable from [start].
