@@ -169,15 +169,6 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(Element member);
 
-  /// `true` of `Object.runtimeType` is supported.
-  bool get hasRuntimeTypeSupport;
-
-  /// `true` of use of the `dart:isolate` library is supported.
-  bool get hasIsolateSupport;
-
-  /// `true` of `Function.apply` is supported.
-  bool get hasFunctionApplySupport;
-
   /// The [OpenWorld] being created by this world builder.
   // TODO(johnniwinther): Merge this with [ResolutionWorldBuilder].
   OpenWorld get openWorld;

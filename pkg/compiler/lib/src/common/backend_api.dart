@@ -314,8 +314,9 @@ abstract class Backend extends Target {
   /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {}
 
-  /// Called when the compiler starts running the codegen enqueuer.
-  void onCodegenStart() {}
+  /// Called when the compiler starts running the codegen enqueuer. The
+  /// [WorldImpact] of enabled backend features is returned.
+  WorldImpact onCodegenStart() => const WorldImpact();
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;

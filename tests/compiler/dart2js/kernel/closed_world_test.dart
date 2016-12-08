@@ -92,7 +92,6 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
         backend,
-        compiler.commonElements,
         compiler.cacheStrategy,
         'enqueuer from kernel');
     // TODO(johnniwinther): Store backend info separately. This replacement is

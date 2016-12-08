@@ -14,7 +14,6 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compiler.dart' show Compiler, GlobalDependencyRegistry;
-import 'core_types.dart' show CommonElements;
 import 'options.dart';
 import 'dart_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
@@ -25,8 +24,6 @@ import 'elements/elements.dart'
         ConstructorElement,
         Element,
         Entity,
-        LibraryElement,
-        LocalFunctionElement,
         MemberElement;
 import 'elements/entities.dart';
 import 'native/native.dart' as native;
@@ -59,7 +56,6 @@ class EnqueueTask extends CompilerTask {
             : const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
         compiler.backend,
-        compiler.coreClasses,
         compiler.cacheStrategy);
     _codegen = compiler.backend.createCodegenEnqueuer(this, compiler);
   }
@@ -136,7 +132,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final CompilerOptions _options;
   final Backend backend;
   final GlobalDependencyRegistry _globalDependencies;
-  final CommonElements _commonElements;
   final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
@@ -148,7 +143,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   WorldImpactVisitor _impactVisitor;
 
   /// All declaration elements that have been processed by the resolver.
-  final Set<AstElement> _processedElements = new Set<AstElement>();
+  final Set<Entity> _processedElements = new Set<Entity>();
 
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
@@ -163,7 +158,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       this.strategy,
       this._globalDependencies,
       Backend backend,
-      this._commonElements,
       CacheStrategy cacheStrategy,
       [this.name = 'resolution enqueuer'])
       : this.backend = backend,
@@ -421,45 +415,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
     ResolutionWorkItem workItem = _resolution.createWorkItem(element);
     _queue.add(workItem);
-
-    // Enable isolate support if we start using something from the isolate
-    // library, or timers for the async library.  We exclude constant fields,
-    // which are ending here because their initializing expression is compiled.
-    LibraryElement library = element.library;
-    if (!universe.hasIsolateSupport && (!element.isField || !element.isConst)) {
-      String uri = library.canonicalUri.toString();
-      if (uri == 'dart:isolate') {
-        _enableIsolateSupport();
-      } else if (uri == 'dart:async') {
-        if (element.name == '_createTimer' ||
-            element.name == '_createPeriodicTimer') {
-          // The [:Timer:] class uses the event queue of the isolate
-          // library, so we make sure that event queue is generated.
-          _enableIsolateSupport();
-        }
-      }
-    }
-
-    if (element.isGetter && element.name == Identifiers.runtimeType_) {
-      // Enable runtime type support if we discover a getter called runtimeType.
-      // We have to enable runtime type before hitting the codegen, so
-      // that constructors know whether they need to generate code for
-      // runtime type.
-      _universe.hasRuntimeTypeSupport = true;
-      // TODO(ahe): Record precise dependency here.
-      applyImpact(backend.registerRuntimeType());
-    } else if (_commonElements.isFunctionApplyMethod(element)) {
-      _universe.hasFunctionApplySupport = true;
-    }
   }
 
   void _registerNoSuchMethod(Element element) {
     backend.registerNoSuchMethod(element);
-  }
-
-  void _enableIsolateSupport() {
-    _universe.hasIsolateSupport = true;
-    applyImpact(backend.enableIsolateSupport(forResolution: true));
   }
 
   /// Adds an action to the deferred task queue.

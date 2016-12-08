@@ -2707,7 +2707,7 @@ class SsaBuilder extends ast.Visitor
           node, 'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
-    if (!compiler.hasIsolateSupport) {
+    if (!backend.hasIsolateSupport) {
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
@@ -2903,7 +2903,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignJsCallInIsolate(ast.Send node) {
     Link<ast.Node> link = node.arguments;
-    if (!compiler.hasIsolateSupport) {
+    if (!backend.hasIsolateSupport) {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);

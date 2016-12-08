@@ -180,9 +180,6 @@ abstract class Compiler implements LibraryLoaderListener {
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   DumpInfoTask dumpInfoTask;
 
-  bool get hasFunctionApplySupport => resolverWorld.hasFunctionApplySupport;
-  bool get hasIsolateSupport => resolverWorld.hasIsolateSupport;
-
   bool get hasCrashed => _reporter.hasCrashed;
 
   Stopwatch progress;
@@ -744,11 +741,7 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        backend.onCodegenStart();
-        if (hasIsolateSupport) {
-          enqueuer.codegen
-              .applyImpact(backend.enableIsolateSupport(forResolution: false));
-        }
+        enqueuer.codegen.applyImpact(backend.onCodegenStart());
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));

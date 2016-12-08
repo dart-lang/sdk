@@ -526,6 +526,15 @@ class JavaScriptBackend extends Backend {
   /// `true` if tear-offs are supported for incremental compilation.
   bool hasIncrementalTearOffSupport = false;
 
+  /// `true` of `Object.runtimeType` is supported.
+  bool hasRuntimeTypeSupport = false;
+
+  /// `true` of use of the `dart:isolate` library is supported.
+  bool hasIsolateSupport = false;
+
+  /// `true` of `Function.apply` is supported.
+  bool hasFunctionApplySupport = false;
+
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
   final List<Dependency> metadataConstants = <Dependency>[];
@@ -1462,13 +1471,13 @@ class JavaScriptBackend extends Backend {
   }
 
   bool classNeedsRti(ClassElement cls) {
-    if (compiler.resolverWorld.hasRuntimeTypeSupport) return true;
+    if (hasRuntimeTypeSupport) return true;
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
   bool classNeedsRtiField(ClassElement cls) {
     if (cls.rawType.typeArguments.isEmpty) return false;
-    if (compiler.resolverWorld.hasRuntimeTypeSupport) return true;
+    if (hasRuntimeTypeSupport) return true;
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
@@ -1484,8 +1493,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool methodNeedsRti(FunctionElement function) {
-    return rti.methodsNeedingRti.contains(function) ||
-        compiler.resolverWorld.hasRuntimeTypeSupport;
+    return rti.methodsNeedingRti.contains(function) || hasRuntimeTypeSupport;
   }
 
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
@@ -1840,6 +1848,43 @@ class JavaScriptBackend extends Backend {
     }
     customElementsAnalysis.registerStaticUse(element,
         forResolution: forResolution);
+
+    if (forResolution) {
+      // Enable isolate support if we start using something from the isolate
+      // library, or timers for the async library.  We exclude constant fields,
+      // which are ending here because their initializing expression is
+      // compiled.
+      LibraryElement library = element.library;
+      if (!hasIsolateSupport && !(element.isField && element.isConst)) {
+        Uri uri = library.canonicalUri;
+        if (uri == Uris.dart_isolate) {
+          hasIsolateSupport = true;
+          worldImpact
+              .addImpact(enableIsolateSupport(forResolution: forResolution));
+        } else if (uri == Uris.dart_async) {
+          if (element.name == '_createTimer' ||
+              element.name == '_createPeriodicTimer') {
+            // The [:Timer:] class uses the event queue of the isolate
+            // library, so we make sure that event queue is generated.
+            hasIsolateSupport = true;
+            worldImpact
+                .addImpact(enableIsolateSupport(forResolution: forResolution));
+          }
+        }
+      }
+
+      if (element.isGetter && element.name == Identifiers.runtimeType_) {
+        // Enable runtime type support if we discover a getter called
+        // runtimeType. We have to enable runtime type before hitting the
+        // codegen, so that constructors know whether they need to generate code
+        // for runtime type.
+        hasRuntimeTypeSupport = true;
+        // TODO(ahe): Record precise dependency here.
+        worldImpact.addImpact(registerRuntimeType());
+      } else if (compiler.commonElements.isFunctionApplyMethod(element)) {
+        hasFunctionApplySupport = true;
+      }
+    }
     return worldImpact;
   }
 
@@ -2394,8 +2439,12 @@ class JavaScriptBackend extends Backend {
     jsInteropAnalysis.onQueueClosed();
   }
 
-  void onCodegenStart() {
+  WorldImpact onCodegenStart() {
     lookupMapAnalysis.onCodegenStart();
+    if (hasIsolateSupport) {
+      return enableIsolateSupport(forResolution: false);
+    }
+    return const WorldImpact();
   }
 
   /// Process backend specific annotations.

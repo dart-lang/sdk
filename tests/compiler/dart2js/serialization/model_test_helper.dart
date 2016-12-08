@@ -146,19 +146,15 @@ void checkResolutionEnqueuers(
   JavaScriptBackend backend1 = enqueuer1.backend;
   JavaScriptBackend backend2 = enqueuer2.backend;
   Expect.equals(backend1.hasInvokeOnSupport, backend2.hasInvokeOnSupport,
-      "Compiler.enabledInvokeOn mismatch");
+      "JavaScriptBackend.hasInvokeOnSupport mismatch");
   Expect.equals(
-      enqueuer1.universe.hasFunctionApplySupport,
-      enqueuer2.universe.hasFunctionApplySupport,
-      "ResolutionEnqueuer.universe.hasFunctionApplySupport mismatch");
-  Expect.equals(
-      enqueuer1.universe.hasRuntimeTypeSupport,
-      enqueuer2.universe.hasRuntimeTypeSupport,
-      "ResolutionEnqueuer.universe.hasRuntimeTypeSupport mismatch");
-  Expect.equals(
-      enqueuer1.universe.hasIsolateSupport,
-      enqueuer2.universe.hasIsolateSupport,
-      "ResolutionEnqueuer.universe.hasIsolateSupport mismatch");
+      backend1.hasFunctionApplySupport,
+      backend2.hasFunctionApplySupport,
+      "JavaScriptBackend.hasFunctionApplySupport mismatch");
+  Expect.equals(backend1.hasRuntimeTypeSupport, backend2.hasRuntimeTypeSupport,
+      "JavaScriptBackend.hasRuntimeTypeSupport mismatch");
+  Expect.equals(backend1.hasIsolateSupport, backend2.hasIsolateSupport,
+      "JavaScriptBackend.hasIsolateSupport mismatch");
 }
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,

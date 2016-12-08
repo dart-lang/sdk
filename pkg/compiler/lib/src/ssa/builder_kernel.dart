@@ -1356,7 +1356,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    if (!compiler.hasIsolateSupport) {
+    if (!backend.hasIsolateSupport) {
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
@@ -1384,7 +1384,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
 
-    if (!compiler.hasIsolateSupport) {
+    if (!backend.hasIsolateSupport) {
       // If the isolate library is not used, we ignore the isolate argument and
       // just invoke the closure.
       push(new HInvokeClosure(new Selector.callClosure(0),
