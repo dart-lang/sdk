@@ -129,6 +129,10 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           return Next(listing);
         }
         return kListDirectory;
+      case DT_BLK:
+      case DT_CHR:
+      case DT_FIFO:
+      case DT_SOCK:
       case DT_REG:
         return kListFile;
       case DT_LNK:
@@ -184,15 +188,23 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             return Next(listing);
           }
           return kListDirectory;
-        } else if (S_ISREG(entry_info.st_mode)) {
+        } else if (S_ISREG(entry_info.st_mode) || S_ISCHR(entry_info.st_mode) ||
+                   S_ISBLK(entry_info.st_mode) ||
+                   S_ISFIFO(entry_info.st_mode) ||
+                   S_ISSOCK(entry_info.st_mode)) {
           return kListFile;
         } else if (S_ISLNK(entry_info.st_mode)) {
           return kListLink;
+        } else {
+          FATAL1("Unexpected st_mode: %d\n", entry_info.st_mode);
+          return kListError;
         }
       }
 
       default:
-        break;
+        // We should have covered all the bases. If not, let's get an error.
+        FATAL1("Unexpected d_type: %d\n", entry.d_type);
+        return kListError;
     }
   }
   done_ = true;
