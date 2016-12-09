@@ -1670,8 +1670,6 @@ class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
       return Expectation.DARTK_CRASH;
     } else if (result.canBeOutcomeOf(Expectation.TIMEOUT)) {
       return Expectation.DARTK_TIMEOUT;
-    } else if (result.canBeOutcomeOf(Expectation.MISSING_COMPILETIME_ERROR)) {
-      return Expectation.DARTK_MISSING_COMPILETIME_ERROR;
     } else if (result.canBeOutcomeOf(Expectation.COMPILETIME_ERROR)) {
       return Expectation.DARTK_COMPILETIME_ERROR;
     }
