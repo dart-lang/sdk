@@ -266,6 +266,16 @@ class AnalysisDriver {
   FileSystemState get fsState => _fsState;
 
   /**
+   * Return `true` if the driver has a file to analyze.
+   */
+  bool get hasFilesToAnalyze {
+    return _requestedFiles.isNotEmpty ||
+        _requestedParts.isNotEmpty ||
+        _filesToAnalyze.isNotEmpty ||
+        _partsToAnalyze.isNotEmpty;
+  }
+
+  /**
    * Return the set of files that are known, i.e. added or used implicitly.
    */
   Set<String> get knownFiles => _fsState.knownFilePaths;
@@ -1059,13 +1069,24 @@ class AnalysisDriverScheduler {
   /**
    * Return `true` if we are currently analyzing code.
    */
-  bool get isAnalyzing =>
-      _statusSupport.currentStatus == AnalysisStatus.ANALYZING;
+  bool get isAnalyzing => _hasFilesToAnalyze;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get status => _statusSupport.stream;
+
+  /**
+   * Return `true` if there is a driver with a file to analyze.
+   */
+  bool get _hasFilesToAnalyze {
+    for (AnalysisDriver driver in _drivers) {
+      if (driver.hasFilesToAnalyze) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Start the scheduler, so that any [AnalysisDriver] created before or
@@ -1084,7 +1105,6 @@ class AnalysisDriverScheduler {
    */
   void _add(AnalysisDriver driver) {
     _drivers.add(driver);
-    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -1093,7 +1113,6 @@ class AnalysisDriverScheduler {
    * perform some work.
    */
   void _notify(AnalysisDriver driver) {
-    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -1103,7 +1122,6 @@ class AnalysisDriverScheduler {
    */
   void _remove(AnalysisDriver driver) {
     _drivers.remove(driver);
-    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -1123,8 +1141,10 @@ class AnalysisDriverScheduler {
 
       await _hasWork.signal;
 
-      if (analysisSection == null) {
-        analysisSection = _logger.enter('Analyzing');
+      // Transition to analyzing if there are files to analyze.
+      if (_hasFilesToAnalyze) {
+        _statusSupport.transitionToAnalyzing();
+        analysisSection ??= _logger.enter('Analyzing');
       }
 
       // Find the driver with the highest priority.
@@ -1138,11 +1158,15 @@ class AnalysisDriverScheduler {
         }
       }
 
+      // Transition to idle if no files to analyze.
+      if (!_hasFilesToAnalyze) {
+        _statusSupport.transitionToIdle();
+        analysisSection?.exit();
+        analysisSection = null;
+      }
+
       // Continue to sleep if no work to do.
       if (bestPriority == AnalysisDriverPriority.nothing) {
-        analysisSection.exit();
-        analysisSection = null;
-        _statusSupport.transitionToIdle();
         continue;
       }
 

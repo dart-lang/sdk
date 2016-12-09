@@ -24,6 +24,9 @@ class AnalysisStatus {
    * Return `true` is the driver is idle.
    */
   bool get isIdle => !_analyzing;
+
+  @override
+  String toString() => _analyzing ? 'analyzing' : 'idle';
 }
 
 /**

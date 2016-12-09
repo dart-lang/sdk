@@ -215,6 +215,38 @@ class AnalysisDriverSchedulerTest {
     expect(allResults, hasLength(3));
   }
 
+  test_status_analyzingOnlyWhenHasFilesToAnalyze() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    driver1.addFile(a);
+    driver2.addFile(b);
+
+    Monitor idleStatusMonitor = new Monitor();
+    List<AnalysisStatus> allStatuses = [];
+    scheduler.status.forEach((status) {
+      allStatuses.add(status);
+      if (status.isIdle) {
+        idleStatusMonitor.notify();
+      }
+    });
+
+    // The two added files were analyzed, and the schedule is idle.
+    await idleStatusMonitor.signal;
+    expect(allStatuses, hasLength(2));
+    expect(allStatuses[0].isAnalyzing, isTrue);
+    expect(allStatuses[1].isAnalyzing, isFalse);
+    allStatuses.clear();
+
+    // We don't transition to analysis and back to idle.
+    await driver1.getFilesReferencingName('X');
+    expect(allStatuses, isEmpty);
+  }
+
   String _p(String path) => provider.convertPath(path);
 }
 
@@ -854,6 +886,31 @@ main() {
     expect(unitElement.source.fullName, testFile);
     expect(unitElement.functions.map((c) => c.name),
         unorderedEquals(['foo', 'main']));
+  }
+
+  test_hasFilesToAnalyze() async {
+    // No files yet, nothing to analyze.
+    expect(driver.hasFilesToAnalyze, isFalse);
+
+    // Add a new file, it should be analyzed.
+    addTestFile('main() {}', priority: true);
+    expect(driver.hasFilesToAnalyze, isTrue);
+
+    // Wait for idle, nothing to do.
+    await _waitForIdle();
+    expect(driver.hasFilesToAnalyze, isFalse);
+
+    // Ask to analyze the file, so there is a file to analyze.
+    Future<AnalysisResult> future = driver.getResult(testFile);
+    expect(driver.hasFilesToAnalyze, isTrue);
+
+    // Once analysis is done, there is nothing to analyze.
+    await future;
+    expect(driver.hasFilesToAnalyze, isFalse);
+
+    // Request of referenced names is not analysis of a file.
+    driver.getFilesReferencingName('X');
+    expect(driver.hasFilesToAnalyze, isFalse);
   }
 
   test_knownFiles() async {
