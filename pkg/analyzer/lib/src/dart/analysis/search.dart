@@ -83,7 +83,7 @@ class Search {
       return const <SearchResult>[];
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, type, {
+    await _addResults(results, type, const {
       IndexRelationKind.IS_EXTENDED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_MIXED_IN_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_IMPLEMENTED_BY: SearchResultKind.REFERENCE
@@ -153,7 +153,7 @@ class Search {
   Future<List<SearchResult>> _searchReferences(Element element) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element,
-        {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
+        const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
     return results;
   }
 
@@ -190,20 +190,20 @@ class Search {
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     if (!field.isSynthetic) {
-      await _addResults(results, field, {
+      await _addResults(results, field, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
       });
     }
     if (getter != null) {
-      await _addResults(results, getter, {
+      await _addResults(results, getter, const {
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
         IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
       });
     }
     if (setter != null) {
       await _addResults(results, setter,
-          {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE});
+          const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE});
     }
     return results;
   }
@@ -213,7 +213,7 @@ class Search {
       element = (element as Member).baseElement;
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element, {
+    await _addResults(results, element, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });
@@ -223,7 +223,7 @@ class Search {
   Future<List<SearchResult>> _searchReferences_Getter(
       PropertyAccessorElement getter) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, getter, {
+    await _addResults(results, getter, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });
@@ -324,11 +324,6 @@ class Search {
  */
 class SearchResult {
   /**
-   * The element that is used at this result.
-   */
-  final Element element;
-
-  /**
    * The deep most element that contains this result.
    */
   final Element enclosingElement;
@@ -358,8 +353,8 @@ class SearchResult {
    */
   final bool isQualified;
 
-  SearchResult._(this.element, this.enclosingElement, this.kind, this.offset,
-      this.length, this.isResolved, this.isQualified);
+  SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
+      this.isResolved, this.isQualified);
 
   @override
   String toString() {
@@ -463,8 +458,8 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
   void _addResult(int offset, int length) {
     Element enclosingElement =
         _getEnclosingElement(enclosingUnitElement, offset);
-    results.add(new SearchResult._(importElement, enclosingElement,
-        SearchResultKind.REFERENCE, offset, length, true, false));
+    results.add(new SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
+        offset, length, true, false));
   }
 
   void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
@@ -593,7 +588,6 @@ class _IndexRequest {
         Element enclosingElement =
             _getEnclosingElement(enclosingUnitElement, offset);
         results.add(new SearchResult._(
-            null,
             enclosingElement,
             resultKind,
             offset,
@@ -711,7 +705,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
     bool isQualified = node.parent is Label;
     Element enclosingElement =
         _getEnclosingElement(enclosingUnitElement, node.offset);
-    results.add(new SearchResult._(element, enclosingElement, kind, node.offset,
-        node.length, true, isQualified));
+    results.add(new SearchResult._(
+        enclosingElement, kind, node.offset, node.length, true, isQualified));
   }
 }

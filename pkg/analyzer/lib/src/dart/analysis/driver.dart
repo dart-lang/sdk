@@ -1287,23 +1287,6 @@ class ExceptionResult {
 }
 
 /**
- * The result of indexing of a single file.
- */
-class IndexResult {
-  /**
-   * The element of the file.
-   */
-  final CompilationUnitElement unitElement;
-
-  /**
-   * The index of the file.
-   */
-  final AnalysisDriverUnitIndex index;
-
-  IndexResult(this.unitElement, this.index);
-}
-
-/**
  * The result of parsing of a single file.
  *
  * These results are self-consistent, i.e. [content], [contentHash], the
