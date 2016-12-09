@@ -2616,10 +2616,7 @@ The null object is the sole instance of the built-in class \code{Null}. Attempti
 The \code{Null} class declares no methods except those also declared by \code{Object}.
 
 \LMHash{}
-The static type of \NULL{} is $\bot$.
-
-\rationale{The decision to use $\bot$ instead of \code{Null} allows \NULL{} to be be assigned everywhere without complaint by the static checker.
-}
+The static type of \NULL{} is the \code{Null} type.
 
 
 \subsection{Numbers}
@@ -7369,11 +7366,6 @@ If $I$ is listed in the \EXTENDS{} clause of $J$% or an interface injection decl
 \item If $J$ is a mixin application (\ref{mixinApplication}) of the mixin of $I$.
 \end{itemize}
 
-\commentary{
-
-
-}
-
 %\Q{Can wacky stuff happen with interface injection, e.g., a direct superinterface becomes indirect? What about side effects - loading order can affect type relationships.
 %}
 
@@ -7381,8 +7373,9 @@ If $I$ is listed in the \EXTENDS{} clause of $J$% or an interface injection decl
 A type $T$ is more specific than a type $S$, written $T << S$,  if one of the following conditions is met:
 \begin{itemize}
 \item $T$ is $S$.
-\item T is $\bot$.
-\item S is \DYNAMIC{}.
+\item $T$ is $\bot$.
+\item $T$ is \NULL{} and $S$ is not $\bot$.
+\item $S$ is \DYNAMIC{}.
 \item $S$ is a direct supertype of $T$.
 \item $T$ is a type parameter and $S$ is the upper bound of $T$.
 \item $T$ is a type parameter and $S$ is \cd{Object}.
@@ -7409,7 +7402,7 @@ $S$ is a supertype of $T$, written $S :> T$, iff $T$ is a subtype of $S$.
 \commentary{The supertypes of an interface are its direct supertypes and their supertypes. }
 
 \LMHash{}
-An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$ or $S <: T$.
+An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$, $S <: T$, or either $T$ or $S$ is the \code{Null} type.
 
 \rationale{This rule may surprise readers accustomed to conventional typechecking. The intent of the $\Longleftrightarrow$ relation is not to ensure that an assignment is correct. Instead, it aims to only flag assignments that are almost certain to be erroneous, without precluding assignments that may work.
 
