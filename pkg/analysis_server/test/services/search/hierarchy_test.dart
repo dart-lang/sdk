@@ -289,36 +289,6 @@ class B extends A {
     }
   }
 
-  Future test_getSubClasses() {
-    _indexTestUnit('''
-class A {}
-class B extends A {}
-class C extends B {}
-class D extends B implements A {}
-class M {}
-class E extends A with M {}
-''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
-    ClassElement classD = findElement("D");
-    ClassElement classM = findElement("M");
-    ClassElement classE = findElement("E");
-    var futureA = getSubClasses(searchEngine, classA).then((subs) {
-      expect(subs, unorderedEquals([classB, classC, classD, classE]));
-    });
-    var futureB = getSubClasses(searchEngine, classB).then((subs) {
-      expect(subs, unorderedEquals([classC, classD]));
-    });
-    var futureC = getSubClasses(searchEngine, classC).then((subs) {
-      expect(subs, isEmpty);
-    });
-    var futureM = getSubClasses(searchEngine, classM).then((subs) {
-      expect(subs, unorderedEquals([classE]));
-    });
-    return Future.wait([futureA, futureB, futureC, futureM]);
-  }
-
   void test_getSuperClasses() {
     _indexTestUnit('''
 class A {}

@@ -82,16 +82,11 @@ class B extends A {}
 class C implements B {}
 ''');
     ClassElement element = findElement('T');
-    ClassElement elementA = findElement('A');
-    ClassElement elementB = findElement('B');
-    ClassElement elementC = findElement('C');
-    var expected = [
-      _expectId(elementA, MatchKind.DECLARATION, 'A extends T'),
-      _expectId(elementB, MatchKind.DECLARATION, 'B extends A'),
-      _expectId(elementC, MatchKind.DECLARATION, 'C implements B')
-    ];
-    List<SearchMatch> matches = await searchEngine.searchAllSubtypes(element);
-    _assertMatches(matches, expected);
+    Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
+    expect(subtypes, hasLength(3));
+    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
+    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'B')));
+    expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
   }
 
   test_searchMemberDeclarations() async {
