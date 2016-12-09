@@ -532,7 +532,7 @@ main(A<int> a) {
     await _resolveTestUnit('''
 class C {
   var f;
-  C({p}) : f = p + 1 {
+  C(p) : f = p + 1 {
     p = 2;
     p += 3;
     print(p);
@@ -540,20 +540,18 @@ class C {
   }
 }
 main() {
-  new C(p: 42);
+  new C(42);
 }
 ''');
     ParameterElement element = _findElement('p');
     ClassElement classC = _findElement('C');
     ConstructorElement constructorA = classC.unnamedConstructor;
-    Element mainElement = _findElement('main');
     var expected = [
       _expectId(constructorA, SearchResultKind.READ, 'p + 1 {'),
       _expectId(constructorA, SearchResultKind.WRITE, 'p = 2;'),
       _expectId(constructorA, SearchResultKind.READ_WRITE, 'p += 3;'),
       _expectId(constructorA, SearchResultKind.READ, 'p);'),
-      _expectId(constructorA, SearchResultKind.INVOCATION, 'p();'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
+      _expectId(constructorA, SearchResultKind.INVOCATION, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -561,24 +559,22 @@ main() {
   test_searchReferences_ParameterElement_ofLocalFunction() async {
     await _resolveTestUnit('''
 main() {
-  foo({p}) {
+  foo(p) {
     p = 1;
     p += 2;
     print(p);
     p();
   }
-  foo(p: 42);
+  foo(42);
 }
 ''');
     ParameterElement element = _findElement('p');
     Element fooElement = _findElement('foo');
-    Element mainElement = _findElement('main');
     var expected = [
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
+      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -586,7 +582,7 @@ main() {
   test_searchReferences_ParameterElement_ofMethod() async {
     await _resolveTestUnit('''
 class C {
-  foo({p}) {
+  foo(p) {
     p = 1;
     p += 2;
     print(p);
@@ -594,23 +590,44 @@ class C {
   }
 }
 main(C c) {
-  c.foo(p: 42);
+  c.foo(42);
 }
 ''');
     ParameterElement element = _findElement('p');
     Element fooElement = _findElement('foo');
-    Element mainElement = _findElement('main');
     var expected = [
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
+      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
 
   test_searchReferences_ParameterElement_ofTopLevelFunction() async {
+    await _resolveTestUnit('''
+foo(p) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(42);
+}
+''');
+    ParameterElement element = _findElement('p');
+    Element fooElement = _findElement('foo');
+    var expected = [
+      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, SearchResultKind.READ, 'p);'),
+      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_named() async {
     await _resolveTestUnit('''
 foo({p}) {
   p = 1;
