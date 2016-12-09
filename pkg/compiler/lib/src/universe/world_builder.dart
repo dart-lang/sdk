@@ -491,7 +491,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  void registerTypeInstantiation(InterfaceType type, ClassUsed classUsed,
+  void registerTypeInstantiation(
+      InterfaceType type, ClassUsedCallback classUsed,
       {ConstructorElement constructor,
       bool byMirrors: false,
       bool isRedirection: false}) {
@@ -786,7 +787,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   }
 
   /// Register [cls] and all its superclasses as instantiated.
-  void _processInstantiatedClass(ClassElement cls, ClassUsed classUsed) {
+  void _processInstantiatedClass(
+      ClassElement cls, ClassUsedCallback classUsed) {
     // Registers [superclass] as instantiated. Returns `true` if it wasn't
     // already instantiated and we therefore have to process its superclass as
     // well.
@@ -883,7 +885,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
             .putIfAbsent(memberName, () => new Set<_MemberUsage>())
             .add(usage);
       }
-      if (usage.pendingUse.contains(MemberUse.CLOSURIZE)) {
+      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
@@ -1338,7 +1340,7 @@ class _FunctionUsage extends _MemberUsage {
 
   _FunctionUsage(FunctionEntity function) : super.internal(function);
 
-  EnumSet<MemberUse> get _originalUse => MemberUses.ALL;
+  EnumSet<MemberUse> get _originalUse => MemberUses.ALL_INSTANCE;
 
   @override
   EnumSet<MemberUse> read() => fullyUse();
@@ -1360,13 +1362,13 @@ class _FunctionUsage extends _MemberUsage {
         return MemberUses.NONE;
       }
       hasRead = true;
-      return _pendingUse.removeAll(MemberUses.CLOSURIZE_ONLY);
+      return _pendingUse.removeAll(MemberUses.CLOSURIZE_INSTANCE_ONLY);
     } else if (hasRead) {
       hasInvoke = true;
       return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
     } else {
       hasRead = hasInvoke = true;
-      return _pendingUse.removeAll(MemberUses.ALL);
+      return _pendingUse.removeAll(MemberUses.ALL_INSTANCE);
     }
   }
 
@@ -1420,16 +1422,21 @@ class _SetterUsage extends _MemberUsage {
 }
 
 /// Enum class for the possible kind of use of [MemberEntity] objects.
-enum MemberUse { NORMAL, CLOSURIZE }
+enum MemberUse { NORMAL, CLOSURIZE_INSTANCE, CLOSURIZE_STATIC }
 
 /// Common [EnumSet]s used for [MemberUse].
 class MemberUses {
   static const EnumSet<MemberUse> NONE = const EnumSet<MemberUse>.fixed(0);
   static const EnumSet<MemberUse> NORMAL_ONLY =
       const EnumSet<MemberUse>.fixed(1);
-  static const EnumSet<MemberUse> CLOSURIZE_ONLY =
+  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY =
       const EnumSet<MemberUse>.fixed(2);
-  static const EnumSet<MemberUse> ALL = const EnumSet<MemberUse>.fixed(3);
+  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY =
+      const EnumSet<MemberUse>.fixed(4);
+  static const EnumSet<MemberUse> ALL_INSTANCE =
+      const EnumSet<MemberUse>.fixed(3);
+  static const EnumSet<MemberUse> ALL_STATIC =
+      const EnumSet<MemberUse>.fixed(5);
 }
 
 typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
@@ -1479,7 +1486,7 @@ class ClassUses {
   static const EnumSet<ClassUse> ALL = const EnumSet<ClassUse>.fixed(3);
 }
 
-typedef void ClassUsed(ClassEntity cls, EnumSet<ClassUse> useSet);
+typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
 
 // TODO(johnniwinther): Merge this with [_MemberUsage].
 abstract class _StaticMemberUsage extends _AbstractUsage<MemberUse> {
@@ -1522,9 +1529,9 @@ class _StaticFunctionUsage extends _StaticMemberUsage {
       return MemberUses.NONE;
     }
     hasNormalUse = hasClosurization = true;
-    return _pendingUse.removeAll(MemberUses.ALL);
+    return _pendingUse.removeAll(MemberUses.ALL_STATIC);
   }
 
   @override
-  EnumSet<MemberUse> get _originalUse => MemberUses.ALL;
+  EnumSet<MemberUse> get _originalUse => MemberUses.ALL_STATIC;
 }

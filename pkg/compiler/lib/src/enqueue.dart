@@ -224,8 +224,11 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     if (useSet.contains(MemberUse.NORMAL)) {
       _addToWorkList(member);
     }
-    if (useSet.contains(MemberUse.CLOSURIZE)) {
+    if (useSet.contains(MemberUse.CLOSURIZE_INSTANCE)) {
       _registerClosurizedMember(member);
+    }
+    if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
+      applyImpact(backend.registerGetOfStaticFunction());
     }
   }
 
@@ -250,18 +253,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
-  /// Callback for applying the use of a [member].
-  void _applyStaticMemberUse(Entity member, EnumSet<MemberUse> useSet) {
-    if (useSet.contains(MemberUse.NORMAL)) {
-      _addToWorkList(member);
-    }
-    if (useSet.contains(MemberUse.CLOSURIZE)) {
-      applyImpact(backend.registerGetOfStaticFunction());
-    }
-  }
-
   void processStaticUse(StaticUse staticUse) {
-    _universe.registerStaticUse(staticUse, _applyStaticMemberUse);
+    _universe.registerStaticUse(staticUse, _applyMemberUse);
     // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
     // for these:
     switch (staticUse.kind) {
