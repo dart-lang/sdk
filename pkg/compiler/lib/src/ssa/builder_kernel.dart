@@ -483,6 +483,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitEmptyStatement(ir.EmptyStatement statement) {
+    // Empty statement adds no instructions to current block.
+  }
+
+  @override
   void visitExpressionStatement(ir.ExpressionStatement exprStatement) {
     if (!isReachable) return;
     ir.Expression expression = exprStatement.expression;
