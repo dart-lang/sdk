@@ -27,6 +27,8 @@ import 'package:kernel/analyzer/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:package_config/discovery.dart';
 
+import 'package:front_end/compiler_options.dart';
+import 'package:front_end/kernel_generator.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -80,7 +82,21 @@ main(List<String> args) async {
       // TODO(sigmund): replace this warmup. Note that for very large programs,
       // the GC pressure on the VM seems to make this worse with time (maybe we
       // are leaking memory?). That's why we run it twice and not 10 times.
-      for (int i = 0; i < 2; i++) await generateKernel(entryUri);
+      for (int i = 0; i < 2; i++) {
+        await generateKernel(entryUri, useSdkSummary: false);
+      }
+    },
+    'kernel_gen_e2e_sum': () async {
+      // TODO(sigmund): remove. This is incorrect since it includes sizes for
+      // files that will not be loaded when using summaries. We need to extract
+      // input size from frontend instead.
+      scanReachableFiles(entryUri);
+      // TODO(sigmund): replace this warmup. Note that for very large programs,
+      // the GC pressure on the VM seems to make this worse with time (maybe we
+      // are leaking memory?). That's why we run it twice and not 10 times.
+      for (int i = 0; i < 2; i++) {
+        await generateKernel(entryUri, useSdkSummary: true, compileSdk: false);
+      }
     },
     'unlinked_summarize': () async {
       Set<Source> files = scanReachableFiles(entryUri);
@@ -402,25 +418,26 @@ void report(String name, int time) {
   print('$sb');
 }
 
-// TODO(sigmund): replace this once kernel is produced by the frontend directly.
-Future<Program> generateKernel(Uri entryUri) async {
+Future<Program> generateKernel(Uri entryUri,
+    {bool useSdkSummary: false, bool compileSdk: true}) async {
   var dartkTimer = new Stopwatch()..start();
-  var options = new DartOptions(strongMode: false, sdk: 'sdk');
-  var packages =
-      await createPackages(options.packagePath, discoveryPath: entryUri.path);
-  var repository = new Repository();
-  DartLoader loader = new DartLoader(repository, options, packages);
-
-  Program program = loader.loadProgram(entryUri);
-  List errors = loader.errors;
-  if (errors.isNotEmpty) {
-    const int errorLimit = 100;
-    stderr.writeln(errors.take(errorLimit).join('\n'));
-    if (errors.length > errorLimit) {
-      stderr.writeln('[error] ${errors.length - errorLimit} errors not shown');
-    }
+  // TODO(sigmund): add a constructor with named args to compiler options.
+  var options = new CompilerOptions()
+    ..strongMode = false
+    ..compileSdk = compileSdk
+    ..packagesFilePath = '.packages'
+    ..onError = ((e) => print('${e.message}'));
+  if (useSdkSummary) {
+    // TODO(sigmund): adjust path based on the benchmark runner architecture.
+    // Possibly let the runner make the file available at an architecture
+    // independent location.
+    options.sdkSummary = 'out/ReleaseX64/dart-sdk/lib/_internal/spec.sum';
+  } else {
+    options.sdkPath = 'sdk';
   }
+  Program program = await kernelForProgram(entryUri, options);
   dartkTimer.stop();
-  report("kernel_gen_e2e", dartkTimer.elapsedMicroseconds);
+  var suffix = useSdkSummary ? "_sum" : "";
+  report("kernel_gen_e2e${suffix}", dartkTimer.elapsedMicroseconds);
   return program;
 }
