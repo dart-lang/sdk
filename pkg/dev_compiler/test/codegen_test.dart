@@ -244,10 +244,16 @@ List<String> _setUpTests(List<String> testDirs) {
   var testFiles = <String>[];
 
   for (var testDir in testDirs) {
-    for (var file
-        in _listFiles(path.join(codegenDir, testDir), recursive: false)) {
-      var relativePath = path.relative(file, from: codegenDir);
-      var outputPath = path.join(codegenTestDir, relativePath);
+    // Look for the tests in the "_strong" directories in the SDK's main
+    // "tests" directory.
+    var dirParts = path.split(testDir);
+    var sdkTestDir =
+        path.join(dirParts[0] + "_strong", path.joinAll(dirParts.skip(1)));
+    var inputPath = path.join(testDirectory, '../../../tests/', sdkTestDir);
+
+    for (var file in _listFiles(inputPath, recursive: false)) {
+      var relativePath = path.relative(file, from: inputPath);
+      var outputPath = path.join(codegenTestDir, testDir, relativePath);
 
       _ensureDirectory(path.dirname(outputPath));
 
