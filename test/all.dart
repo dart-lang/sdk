@@ -4,15 +4,11 @@
 
 import 'package:analyzer/src/lint/io.dart';
 
-import 'config_test.dart' as config_test;
 import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
-import 'io_test.dart' as io_test;
 import 'mocks.dart';
 import 'plugin_test.dart' as plugin_test;
-import 'project_test.dart' as project_test;
-import 'pub_test.dart' as pub_test;
 import 'rule_test.dart' as rule_test;
 
 main() {
@@ -21,13 +17,9 @@ main() {
   // Redirect output.
   outSink = new MockIOSink();
 
-  config_test.main();
   engine_test.main();
   formatter_test.main();
-  io_test.main();
   integration_test.main();
   plugin_test.main();
-  project_test.main();
-  pub_test.main();
   rule_test.main();
 }
