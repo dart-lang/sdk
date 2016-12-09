@@ -9,6 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'command_line/test_all.dart' as command_line;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
+import 'lint/test_all.dart' as lint;
 import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
 import 'task/test_all.dart' as task;
@@ -20,6 +21,7 @@ main() {
     command_line.main();
     context.main();
     dart.main();
+    lint.main();
     source.main();
     summary.main();
     task.main();
