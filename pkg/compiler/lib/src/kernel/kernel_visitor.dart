@@ -1513,7 +1513,12 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitIfNotNullDynamicPropertyGet(
       Send node, Node receiver, Name name, _) {
-    return buildNullAwarePropertyAccessor(receiver, name).buildSimpleRead();
+    Accessor accessor = buildNullAwarePropertyAccessor(receiver, name);
+    ir.Expression result = accessor.buildSimpleRead();
+    if (accessor.builtGetter != null) {
+      kernel.nodeToAst[accessor.builtGetter] = node;
+    }
+    return result;
   }
 
   @override
@@ -1526,8 +1531,10 @@ class KernelVisitor extends Object
         new ir.ConditionalExpression(
             buildIsNull(new ir.VariableGet(receiver)),
             new ir.NullLiteral(),
-            buildInvokeSelector(new ir.VariableGet(receiver), selector,
-                buildArguments(arguments)),
+            associateNode(
+                buildInvokeSelector(new ir.VariableGet(receiver), selector,
+                                    buildArguments(arguments)),
+                receiverNode),
             null));
   }
 
