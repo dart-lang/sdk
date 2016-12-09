@@ -621,16 +621,18 @@ class B {}
     }, throwsArgumentError);
   }
 
-  test_topLevel_fail_topLevelVariable() {
-    expect(() {
-      _doTopLevelPatching(
-          r'''
+  test_topLevel_topLevelVariable_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
 int foo() => 0;
 ''',
-          r'''
+        r'''
 int _bar;
 ''');
-    }, throwsArgumentError);
+    _assertUnitCode(unit, 'int foo() => 0; int _bar;');
+    FunctionDeclaration a = unit.declarations[0];
+    TopLevelVariableDeclaration b = unit.declarations[1];
+    _assertPrevNextToken(a.endToken, b.beginToken);
   }
 
   test_topLevel_function_append() {
