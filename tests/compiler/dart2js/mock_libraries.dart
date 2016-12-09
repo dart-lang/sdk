@@ -101,7 +101,6 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'Symbol': 'class Symbol { final name; const Symbol(this.name); }',
   'Type': 'class Type {}',
   'Pattern': 'abstract class Pattern {}',
-
   '_genericNoSuchMethod': '_genericNoSuchMethod(a,b,c,d,e) {}',
   '_unresolvedConstructorError': '_unresolvedConstructorError(a,b,c,d,e) {}',
   '_malformedTypeError': '_malformedTypeError(message) {}',

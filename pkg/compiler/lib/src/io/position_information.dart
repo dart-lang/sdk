@@ -685,7 +685,13 @@ class Offset {
   }
 }
 
-enum BranchKind { CONDITION, LOOP, CATCH, FINALLY, CASE, }
+enum BranchKind {
+  CONDITION,
+  LOOP,
+  CATCH,
+  FINALLY,
+  CASE,
+}
 
 enum StepKind {
   FUN_ENTRY,

@@ -7,7 +7,14 @@ library enumset.test;
 import 'package:compiler/src/util/enumset.dart';
 import 'package:expect/expect.dart';
 
-enum Enum { A, B, C, D, E, F, }
+enum Enum {
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+}
 
 main() {
   testAddRemoveContains();

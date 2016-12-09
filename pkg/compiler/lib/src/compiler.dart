@@ -320,8 +320,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ///
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
-    return new ResolverTask(
-        resolution, backend.constantCompilerTask, measurer);
+    return new ResolverTask(resolution, backend.constantCompilerTask, measurer);
   }
 
   // TODO(johnniwinther): Rename these appropriately when unification of worlds/

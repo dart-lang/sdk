@@ -601,7 +601,12 @@ abstract class AbstractFieldElementCommon implements AbstractFieldElement {
   }
 }
 
-enum _FromEnvironmentState { NOT, BOOL, INT, STRING, }
+enum _FromEnvironmentState {
+  NOT,
+  BOOL,
+  INT,
+  STRING,
+}
 
 abstract class ConstructorElementCommon implements ConstructorElement {
   _FromEnvironmentState _fromEnvironmentState;

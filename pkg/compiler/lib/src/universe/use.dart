@@ -26,7 +26,11 @@ import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'world_builder.dart' show ReceiverConstraint;
 
-enum DynamicUseKind { INVOKE, GET, SET, }
+enum DynamicUseKind {
+  INVOKE,
+  GET,
+  SET,
+}
 
 /// The use of a dynamic property. [selector] defined the name and kind of the
 /// property and [mask] defines the known constraint for the object on which

@@ -65,8 +65,7 @@ class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
   final Resolution resolution;
 
-  ResolverTask(
-      this.resolution, this.constantCompiler, Measurer measurer)
+  ResolverTask(this.resolution, this.constantCompiler, Measurer measurer)
       : super(measurer);
 
   String get name => 'Resolver';

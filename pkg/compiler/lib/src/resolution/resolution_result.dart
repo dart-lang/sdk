@@ -10,7 +10,14 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 
-enum ResultKind { NONE, ELEMENT, TYPE, ASSERT, CONSTANT, PREFIX, }
+enum ResultKind {
+  NONE,
+  ELEMENT,
+  TYPE,
+  ASSERT,
+  CONSTANT,
+  PREFIX,
+}
 
 /// The result of resolving a node.
 abstract class ResolutionResult {
