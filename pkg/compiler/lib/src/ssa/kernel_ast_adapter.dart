@@ -389,6 +389,16 @@ class KernelAstAdapter {
   TypeMask get assertThrowReturnType => TypeMaskFactory
       .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
 
+  ir.Procedure get runtimeTypeToString =>
+      kernel.functions[_backend.helpers.runtimeTypeToString];
+
+  ir.Procedure get createRuntimeType =>
+      kernel.functions[_backend.helpers.createRuntimeType];
+
+  TypeMask get createRuntimeTypeReturnType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.createRuntimeType, _compiler);
+
   ir.Class get objectClass => kernel.classes[_compiler.coreClasses.objectClass];
 
   ir.Procedure get currentIsolate =>

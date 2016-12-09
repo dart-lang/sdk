@@ -997,8 +997,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
     if (type is ir.TypeParameterType) {
-      // TODO(27394): Load type parameter from current 'this' object.
-      defaultExpression(typeLiteral);
+      // TODO(sra): Convert the type logic here to use ir.DartType.
+      DartType dartType = astAdapter.getDartType(type);
+      dartType = localsHandler.substInContext(dartType);
+      HInstruction value = typeBuilder.analyzeTypeArgument(
+          dartType, sourceElement,
+          sourceInformation: null);
+      _pushStaticInvocation(astAdapter.runtimeTypeToString,
+          <HInstruction>[value], backend.stringType);
+      _pushStaticInvocation(astAdapter.createRuntimeType, <HInstruction>[pop()],
+          astAdapter.createRuntimeTypeReturnType);
       return;
     }
     // TODO(27394): 'dynamic' and function types observed. Where are they from?
