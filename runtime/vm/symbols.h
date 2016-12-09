@@ -76,7 +76,6 @@ class ObjectPointerVisitor;
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(CheckAssertion, "_checkAssertion")                                         \
-  V(CheckConstAssertion, "_checkConstAssertion")                               \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
