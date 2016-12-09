@@ -70,7 +70,6 @@ DEFINE_FLAG(bool,
             assert_initializer,
             false,
             "Allow asserts in initializer lists.");
-DEFINE_FLAG(bool, assert_message, false, "Allow message in assert statements");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -9165,10 +9164,6 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   const TokenPosition condition_pos = TokenPos();
   if (!I->asserts()) {
     SkipExpr();
-    if (FLAG_assert_message && CurrentToken() == Token::kCOMMA) {
-      ConsumeToken();
-      SkipExpr();
-    }
     ExpectToken(Token::kRPAREN);
     return NULL;
   }
@@ -9178,52 +9173,23 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
                 "initializer assert expression must be compile time constant.");
   }
   const TokenPosition condition_end = TokenPos();
-  AstNode* message = NULL;
-  TokenPosition message_pos = TokenPosition::kNoSource;
-  if (FLAG_assert_message && CurrentToken() == Token::kCOMMA) {
-    ConsumeToken();
-    message_pos = TokenPos();
-    message = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
-    if (is_const && !message->IsPotentiallyConst()) {
-      ReportError(
-          message_pos,
-          "initializer assert expression must be compile time constant.");
-    }
-  }
   ExpectToken(Token::kRPAREN);
 
-  if (!is_const) {
-    // Check for being a function if not const.
-    ArgumentListNode* arguments = new (Z) ArgumentListNode(condition_pos);
-    arguments->Add(condition);
-    condition = MakeStaticCall(
-        Symbols::AssertionError(),
-        Library::PrivateCoreLibName(Symbols::CheckAssertion()), arguments);
-  }
-  AstNode* not_condition =
-      new (Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
-
-  // Build call to _AsertionError._throwNew
   ArgumentListNode* arguments = new (Z) ArgumentListNode(condition_pos);
+  arguments->Add(condition);
   arguments->Add(new (Z) LiteralNode(
       condition_pos,
-      Integer::ZoneHandle(Z, Integer::New(condition_pos.Pos()))));
+      Integer::ZoneHandle(Z, Integer::New(condition_pos.value(), Heap::kOld))));
   arguments->Add(new (Z) LiteralNode(
       condition_end,
-      Integer::ZoneHandle(Z, Integer::New(condition_end.Pos()))));
-  if (message == NULL) {
-    message = new (Z) LiteralNode(condition_end, Instance::ZoneHandle(Z));
-  }
-  arguments->Add(message);
+      Integer::ZoneHandle(Z, Integer::New(condition_end.value(), Heap::kOld))));
   AstNode* assert_throw = MakeStaticCall(
       Symbols::AssertionError(),
-      Library::PrivateCoreLibName(Symbols::ThrowNew()), arguments);
+      Library::PrivateCoreLibName(is_const ? Symbols::CheckConstAssertion()
+                                           : Symbols::CheckAssertion()),
+      arguments);
 
-  return new (Z)
-      IfNode(condition_pos, not_condition,
-             NodeAsSequenceNode((message == NULL) ? condition_pos : message_pos,
-                                assert_throw, NULL),
-             NULL);
+  return assert_throw;
 }
 
 

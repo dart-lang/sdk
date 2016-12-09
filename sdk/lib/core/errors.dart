@@ -96,9 +96,7 @@ class Error {
  * Error thrown by the runtime system when an assert statement fails.
  */
 class AssertionError extends Error {
-  /** Message describing the assertion error. */
-  final Object message;
-  AssertionError([this.message]);
+  AssertionError();
   String toString() => "Assertion failed";
 }
 

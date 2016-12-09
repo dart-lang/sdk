@@ -18,33 +18,29 @@
 
 class _AssertionError extends Error implements AssertionError {
   _AssertionError._create(
-      this._failedAssertion, this._url, this._line, this._column,
-      this.message);
+      this._failedAssertion, this._url, this._line, this._column);
 
-  static _throwNew(int assertionStart, int assertionEnd, Object message) {
-    _doThrowNew(assertionStart, assertionEnd, message);
-  }
-
-  static _doThrowNew(int assertionStart, int assertionEnd, Object message)
+  static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
 
-  static _checkAssertion(condition) {
+  static void _checkAssertion(condition, int start, int end) {
     if (condition is Function) {
       condition = condition();
     }
-    return condition;
+    if (!condition) {
+      _throwNew(start, end);
+    }
   }
 
-  String get _messageString {
-    if (message == null) return "is not true.";
-    if (message is String) return message;
-    return Error.safeToString(message);
+  static void _checkConstAssertion(bool condition, int start, int end) {
+    if (!condition) {
+      _throwNew(start, end);
+    }
   }
 
   String toString() {
     if (_url == null) {
-      if (message == null) return _failedAssertion;
-      return "'$_failedAssertion': $_messageString";
+      return _failedAssertion;
     }
     var columnInfo = "";
     if (_column > 0) {
@@ -52,18 +48,17 @@ class _AssertionError extends Error implements AssertionError {
       columnInfo = " pos $_column";
     }
     return "'$_url': Failed assertion: line $_line$columnInfo: "
-        "'$_failedAssertion': $_messageString";
+        "'$_failedAssertion' is not true.";
   }
   final String _failedAssertion;
   final String _url;
   final int _line;
   final int _column;
-  final Object message;
 }
 
 class _TypeError extends _AssertionError implements TypeError {
-  _TypeError._create(String url, int line, int column, String errorMsg)
-      : super._create("is assignable", url, line, column, errorMsg);
+  _TypeError._create(String url, int line, int column, this._errorMsg)
+      : super._create("is assignable", url, line, column);
 
   static _throwNew(int location,
                    Object src_value,
@@ -83,7 +78,9 @@ class _TypeError extends _AssertionError implements TypeError {
     }
   }
 
-  String toString() => super.message;
+  String toString() => _errorMsg;
+
+  final String _errorMsg;
 }
 
 class _CastError extends Error implements CastError {

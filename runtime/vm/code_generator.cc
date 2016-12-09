@@ -585,7 +585,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
       Instance::CheckedHandle(zone, arguments.ArgAt(0));
 
   if (src_instance.IsNull()) {
-    const Array& args = Array::Handle(zone, Array::New(5));
+    const Array& args = Array::Handle(zone, Array::New(4));
     args.SetAt(
         0, String::Handle(
                zone,
@@ -596,7 +596,6 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
     args.SetAt(1, String::Handle(zone, String::null()));
     args.SetAt(2, Smi::Handle(zone, Smi::New(0)));
     args.SetAt(3, Smi::Handle(zone, Smi::New(0)));
-    args.SetAt(4, String::Handle(zone, String::null()));
 
     Exceptions::ThrowByType(Exceptions::kAssertion, args);
     UNREACHABLE();
