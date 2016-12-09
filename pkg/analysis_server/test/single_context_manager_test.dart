@@ -7,7 +7,9 @@ library test.analysis_server.src.single_context_manager;
 import 'dart:core';
 
 import 'package:analysis_server/src/single_context_manager.dart';
+import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -66,7 +68,10 @@ class SingleContextManagerTest {
     DartSdkManager sdkManager = new DartSdkManager('', false);
     manager = new SingleContextManager(resourceProvider, sdkManager,
         (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
-    callbacks = new TestContextManagerCallbacks(resourceProvider);
+    PerformanceLog logger = new PerformanceLog(new NullStringSink());
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
+    callbacks =
+        new TestContextManagerCallbacks(resourceProvider, logger, scheduler);
     manager.callbacks = callbacks;
   }
 
