@@ -522,25 +522,40 @@ class Isolate {
    * be the same object types as in the actual isolate, but they will
    * always have the same [Object.toString] result.
    *
-   * This stream is based on [addErrorListener] and [removeErrorListener].
+   * The returned stream is done when the isolate terminates.
+   *
+   * If the isolate has already terminated, the stream will never emit
+   * any events, not even a done event.
+   * If the isolate terminates while nobody is listening, the returned
+   * stream will also not emit a done event.
+   *
+   * This stream is based on [addErrorListener], [removeErrorListener],
+   * [addOnExitListener] and [removeOnExitListener].
    */
   Stream get errors {
     StreamController controller;
     RawReceivePort port;
     void handleError(message) {
-      String errorDescription = message[0];
-      String stackDescription = message[1];
-      var error = new RemoteError(errorDescription, stackDescription);
-      controller.addError(error, error.stackTrace);
+      if (message != null) {
+        String errorDescription = message[0];
+        String stackDescription = message[1];
+        var error = new RemoteError(errorDescription, stackDescription);
+        controller.addError(error, error.stackTrace);
+      } else {
+        port.close();
+        controller.close();
+      }
     }
     controller = new StreamController.broadcast(
         sync: true,
         onListen: () {
           port = new RawReceivePort(handleError);
+          this.addOnExitListener(port.sendPort);
           this.addErrorListener(port.sendPort);
         },
         onCancel: () {
           this.removeErrorListener(port.sendPort);
+          this.removeOnExitListener(port.sendPort);
           port.close();
           port = null;
         });
