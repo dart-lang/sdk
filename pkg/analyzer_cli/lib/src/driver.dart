@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -40,7 +41,6 @@ import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -618,7 +618,6 @@ class Driver implements CommandLineStarter {
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
     plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(linterPlugin);
     plugins.addAll(_userDefinedPlugins);
 
     ExtensionManager manager = new ExtensionManager();
@@ -778,7 +777,7 @@ class Driver implements CommandLineStarter {
     // Fill in lint rule defaults in case lints are enabled and rules are
     // not specified in an options file.
     if (options.lints && !containsLintRuleEntry(optionMap)) {
-      setLints(context, linterPlugin.contributedRules);
+      setLints(context, Registry.ruleRegistry.defaultRules);
     }
 
     // Ask engine to further process options.

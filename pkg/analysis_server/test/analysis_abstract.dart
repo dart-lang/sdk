@@ -21,7 +21,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -125,7 +124,6 @@ class AbstractAnalysisTest {
     plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
     plugins.add(dartCompletionPlugin);
-    plugins.add(linterPlugin);
     plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
     //

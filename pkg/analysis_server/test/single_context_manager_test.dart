@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -539,7 +538,6 @@ class SingleContextManagerTest {
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
     plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(linterPlugin);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
   }

@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -419,7 +418,6 @@ class Driver implements ServerStarter {
     plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
-    plugins.add(linterPlugin);
     plugins.add(linterServerPlugin);
     plugins.add(dartCompletionPlugin);
     plugins.addAll(_userDefinedPlugins);
