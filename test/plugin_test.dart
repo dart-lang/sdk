@@ -1,17 +1,10 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
-
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.test.plugin_test;
-
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -37,12 +30,6 @@ var builtinRules = [
 /// Plugin tests
 defineTests() {
   group('plugin', () {
-    test('contributed rules', () {
-      LinterPlugin linterPlugin = newTestPlugin();
-      expect(linterPlugin.contributedRules.map((rule) => rule.name),
-          unorderedEquals(builtinRules));
-    });
-
     // Verify that if options are processed only explicitly enabled rules are
     // in the lint rule registry.
     test('option processing', () {
@@ -71,16 +58,4 @@ rules:
       expect(rules2, unorderedEquals(['camel_case_types']));
     });
   });
-}
-
-LinterPlugin newTestPlugin() {
-  List<Plugin> plugins = <Plugin>[];
-  plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-  plugins.add(AnalysisEngine.instance.commandLinePlugin);
-  plugins.add(AnalysisEngine.instance.optionsPlugin);
-  LinterPlugin linterPlugin = new LinterPlugin();
-  plugins.add(linterPlugin);
-  ExtensionManager manager = new ExtensionManager();
-  manager.processPlugins(plugins);
-  return linterPlugin;
 }
