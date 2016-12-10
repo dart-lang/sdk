@@ -11,10 +11,10 @@ dart_package("analysis_server") {
 
   deps = [
     "//dart/pkg/analyzer",
+    "//dart/third_party/pkg/linter",
     "//third_party/dart-pkg/pub/args",
     "//third_party/dart-pkg/pub/dart_style",
     "//third_party/dart-pkg/pub/isolate",
-    "//third_party/dart-pkg/pub/linter",
     "//third_party/dart-pkg/pub/logging",
     "//third_party/dart-pkg/pub/package_config",
     "//third_party/dart-pkg/pub/path",
