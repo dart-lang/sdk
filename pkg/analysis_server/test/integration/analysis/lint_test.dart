@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.lint;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
@@ -14,11 +12,12 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
+    defineReflectiveTests(LintIntegrationTest_Driver);
   });
 }
 
-@reflectiveTest
-class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
+class AbstractLintIntegrationTest
+    extends AbstractAnalysisServerIntegrationTest {
   test_no_lints_when_not_specified() async {
     String source = sourcePath('test.dart');
     writeFile(
@@ -92,4 +91,13 @@ class a { // lint: not CamelCase
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
   }
+}
+
+@reflectiveTest
+class LintIntegrationTest extends AbstractLintIntegrationTest {}
+
+@reflectiveTest
+class LintIntegrationTest_Driver extends AbstractLintIntegrationTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

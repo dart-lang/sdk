@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.search.domain;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
@@ -14,57 +12,13 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(GetTypeHierarchyTest);
+    defineReflectiveTests(GetTypeHierarchyTest_Driver);
   });
 }
 
-/**
- * Results of a getTypeHierarchy request, processed for easier testing.
- */
-class HierarchyResults {
-  /**
-   * The list of hierarchy items from the result.
-   */
-  List<TypeHierarchyItem> items;
-
-  /**
-   * The first hierarchy item from the result, which represents the pivot
-   * class.
-   */
-  TypeHierarchyItem pivot;
-
-  /**
-   * A map from element name to item index.
-   */
-  Map<String, int> nameToIndex;
-
-  /**
-   * Create a [HierarchyResults] object based on the result from a
-   * getTypeHierarchy request.
-   */
-  HierarchyResults(this.items) {
-    pivot = items[0];
-    nameToIndex = <String, int>{};
-    for (int i = 0; i < items.length; i++) {
-      nameToIndex[items[i].classElement.name] = i;
-    }
-  }
-
-  /**
-   * Get an item by class name.
-   */
-  TypeHierarchyItem getItem(String name) {
-    if (nameToIndex.containsKey(name)) {
-      return items[nameToIndex[name]];
-    } else {
-      fail('Class $name not found in hierarchy results');
-      return null;
-    }
-  }
-}
-
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractGetTypeHierarchyTest
+    extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the main file to run tests in.
    */
@@ -271,6 +225,60 @@ class Pivot /* target */ extends Base2 {}
       return null;
     } else {
       return new HierarchyResults(result.hierarchyItems);
+    }
+  }
+}
+
+@reflectiveTest
+class GetTypeHierarchyTest extends AbstractGetTypeHierarchyTest {}
+
+@reflectiveTest
+class GetTypeHierarchyTest_Driver extends AbstractGetTypeHierarchyTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+}
+
+/**
+ * Results of a getTypeHierarchy request, processed for easier testing.
+ */
+class HierarchyResults {
+  /**
+   * The list of hierarchy items from the result.
+   */
+  List<TypeHierarchyItem> items;
+
+  /**
+   * The first hierarchy item from the result, which represents the pivot
+   * class.
+   */
+  TypeHierarchyItem pivot;
+
+  /**
+   * A map from element name to item index.
+   */
+  Map<String, int> nameToIndex;
+
+  /**
+   * Create a [HierarchyResults] object based on the result from a
+   * getTypeHierarchy request.
+   */
+  HierarchyResults(this.items) {
+    pivot = items[0];
+    nameToIndex = <String, int>{};
+    for (int i = 0; i < items.length; i++) {
+      nameToIndex[items[i].classElement.name] = i;
+    }
+  }
+
+  /**
+   * Get an item by class name.
+   */
+  TypeHierarchyItem getItem(String name) {
+    if (nameToIndex.containsKey(name)) {
+      return items[nameToIndex[name]];
+    } else {
+      fail('Class $name not found in hierarchy results');
+      return null;
     }
   }
 }
