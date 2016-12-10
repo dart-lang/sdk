@@ -265,6 +265,57 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
     expect(driver.addedFiles, isNot(contains(b)));
   }
 
+  test_addFile_shouldRefresh() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    void assertNumberOfErrorsInB(int n) {
+      var bResult = allResults.singleWhere((r) => r.path == b);
+      expect(bResult.errors, hasLength(n));
+      allResults.clear();
+    }
+
+    // Initial analysis, 'b' does not use 'a', so there is a hint.
+    await _waitForIdle();
+    assertNumberOfErrorsInB(1);
+
+    // Update 'b' to use 'a', no more hints.
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+main() {
+  print(A);
+}
+''');
+    driver.changeFile(b);
+    await _waitForIdle();
+    assertNumberOfErrorsInB(0);
+
+    // Change 'b' t have a hint again.
+    // Add and remove 'b'.
+    // The file must be refreshed, and the hint must be reported.
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+''');
+    driver.removeFile(b);
+    driver.addFile(b);
+    await _waitForIdle();
+    assertNumberOfErrorsInB(1);
+  }
+
   test_addFile_thenRemove() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
