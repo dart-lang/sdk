@@ -11,10 +11,10 @@ dart_package("analyzer_cli") {
 
   deps = [
     "//dart/pkg/analyzer",
+    "//dart/third_party/pkg/linter",
     "//third_party/dart-pkg/pub/args",
     "//third_party/dart-pkg/pub/bazel_worker",
     "//third_party/dart-pkg/pub/cli_util",
-    "//third_party/dart-pkg/pub/linter",
     "//third_party/dart-pkg/pub/package_config",
     "//third_party/dart-pkg/pub/plugin",
     "//third_party/dart-pkg/pub/protobuf",
