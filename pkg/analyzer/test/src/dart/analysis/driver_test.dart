@@ -936,6 +936,24 @@ import 'b.dart';
     expect(driver.knownFiles, contains(b));
   }
 
+  test_knownFiles_beforeAnalysis() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    provider.newFile(a, '');
+
+    driver.addFile(a);
+    expect(driver.knownFiles, contains(a));
+    expect(driver.knownFiles, isNot(contains(b)));
+
+    // Remove 'a.dart'.
+    // It has been no analysis yet, so 'a.dart' is not in the file state, only
+    // in 'added' files. So, it disappears when removed.
+    driver.removeFile(a);
+    expect(driver.knownFiles, isNot(contains(a)));
+    expect(driver.knownFiles, isNot(contains(b)));
+  }
+
   test_parseFile_shouldRefresh() async {
     var p = _p('/test/bin/a.dart');
 

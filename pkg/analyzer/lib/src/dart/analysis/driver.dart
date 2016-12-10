@@ -278,7 +278,13 @@ class AnalysisDriver {
   /**
    * Return the set of files that are known, i.e. added or used implicitly.
    */
-  Set<String> get knownFiles => _fsState.knownFilePaths;
+  Set<String> get knownFiles {
+    // TODO(scheglov) This method is invoked too often and the implementation
+    // is probably not the most efficient. Consider isKnownFile().
+    return new Set<String>()
+      ..addAll(_explicitFiles)
+      ..addAll(_fsState.knownFilePaths);
+  }
 
   /**
    * Return the list of files that the driver should try to analyze sooner.
