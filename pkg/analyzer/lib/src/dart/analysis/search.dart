@@ -93,13 +93,6 @@ class Search {
 
   Future<Null> _addResults(List<SearchResult> results, Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
-    String path = element.source.fullName;
-
-    // If the file with the element is not known, then the element is not used.
-    if (!_driver.knownFiles.contains(path)) {
-      return;
-    }
-
     // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
@@ -108,6 +101,7 @@ class Search {
 
     // Prepare the list of files that reference the element name.
     List<String> files = <String>[];
+    String path = element.source.fullName;
     if (name.startsWith('_')) {
       String libraryPath = element.library.source.fullName;
       if (_driver.addedFiles.contains(libraryPath)) {
