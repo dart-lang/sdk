@@ -124,7 +124,6 @@ import "../foo/foo.dart";
   void processRequiredPlugins(ServerPlugin serverPlugin) {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
 
     ExtensionManager manager = new ExtensionManager();

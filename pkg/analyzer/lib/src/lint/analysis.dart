@@ -212,7 +212,6 @@ class AnalysisDriver {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
     plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
   }

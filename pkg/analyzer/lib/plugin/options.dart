@@ -7,16 +7,7 @@
 library analyzer.plugin.options;
 
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/plugin/options_plugin.dart';
-import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';
-
-/// The identifier of the extension point that allows plugins to validate
-/// options defined in the analysis options file. The object used as an
-/// extension must be an [OptionsValidator].
-final String OPTIONS_VALIDATOR_EXTENSION_POINT_ID = Plugin.join(
-    OptionsPlugin.UNIQUE_IDENTIFIER,
-    OptionsPlugin.OPTIONS_VALIDATOR_EXTENSION_POINT);
 
 /// Validates options as defined in an analysis options file.
 ///

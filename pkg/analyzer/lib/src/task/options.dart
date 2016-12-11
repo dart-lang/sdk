@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -390,16 +391,16 @@ class LinterOptionsValidator extends TopLevelOptionValidator {
 
 /// Validates options defined in an analysis options file.
 class OptionsFileValidator {
-  // TODO(pq): move to an extension point.
+  /// The source being validated.
+  final Source source;
+
   final List<OptionsValidator> _validators = [
     new AnalyzerOptionsValidator(),
-    new LinterOptionsValidator()
+    new LinterOptionsValidator(),
+    new LinterRuleOptionsValidator()
   ];
 
-  final Source source;
-  OptionsFileValidator(this.source) {
-    _validators.addAll(AnalysisEngine.instance.optionsPlugin.optionsValidators);
-  }
+  OptionsFileValidator(this.source);
 
   List<AnalysisError> validate(Map<String, YamlNode> options) {
     RecordingErrorListener recorder = new RecordingErrorListener();

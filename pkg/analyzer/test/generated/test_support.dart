@@ -100,7 +100,6 @@ class EngineTestCase {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
     plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     new ExtensionManager().processPlugins(plugins);
   }
 

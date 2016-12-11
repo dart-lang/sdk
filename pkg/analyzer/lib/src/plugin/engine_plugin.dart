@@ -13,6 +13,7 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/task/model.dart';
@@ -249,6 +250,11 @@ class EnginePlugin implements Plugin {
     // Register YAML tasks.
     //
     registerExtension(taskId, ParseYamlTask.DESCRIPTOR);
+    //
+    // Register analysis option file tasks.
+    //
+    registerExtension(
+        TASK_EXTENSION_POINT_ID, GenerateOptionsErrorsTask.DESCRIPTOR);
   }
 
   void _registerWorkManagerFactoryExtensions(
