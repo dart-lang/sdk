@@ -26,7 +26,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
+import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
@@ -822,14 +827,9 @@ class AnalysisEngine {
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
-      if (enginePlugin.taskExtensionPoint == null) {
-        processRequiredPlugins();
-      }
       _taskManager = new TaskManager();
-      _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
-      // TODO(brianwilkerson) Create a way to associate different results with
-      // different file suffixes, then make this pluggable.
-      _taskManager.addGeneralResult(DART_ERRORS);
+      _initializeTaskMap();
+      _initializeResults();
     }
     return _taskManager;
   }
@@ -855,8 +855,91 @@ class AnalysisEngine {
    * process any other plugins.
    */
   void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(requiredPlugins);
+    if (enginePlugin.workManagerFactoryExtensionPoint == null) {
+      ExtensionManager manager = new ExtensionManager();
+      manager.processPlugins(requiredPlugins);
+    }
+  }
+
+  void _initializeResults() {
+    _taskManager.addGeneralResult(DART_ERRORS);
+  }
+
+  void _initializeTaskMap() {
+    //
+    // Register general tasks.
+    //
+    _taskManager.addTaskDescriptor(GetContentTask.DESCRIPTOR);
+    //
+    // Register Dart tasks.
+    //
+    _taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildSourceExportClosureTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeConstantDependenciesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeConstantValueTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(
+        ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeLibraryCycleTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeRequiredConstantsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ContainingLibrariesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(DartErrorsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(EvaluateUnitConstantsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GatherUsedImportedElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GatherUsedLocalElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GenerateLintsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(InferInstanceMembersInUnitTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(InferStaticVariableTypesInUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(InferStaticVariableTypeTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(LibraryErrorsReadyTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(LibraryUnitErrorsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ParseDartTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(PartiallyResolveUnitReferencesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyLibraryElement2Task.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyLibraryElement5Task.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyLibraryElement7Task.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyResolvedUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveConstantExpressionTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveDirectiveElementsTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(ResolvedUnit7InLibraryClosureTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolvedUnit7InLibraryTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveLibraryReferencesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveLibraryTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ScanDartTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(StrongModeVerifyUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(VerifyUnitTask.DESCRIPTOR);
+    //
+    // Register HTML tasks.
+    //
+    _taskManager.addTaskDescriptor(DartScriptsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(HtmlErrorsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ParseHtmlTask.DESCRIPTOR);
+    //
+    // Register YAML tasks.
+    //
+    _taskManager.addTaskDescriptor(ParseYamlTask.DESCRIPTOR);
+    //
+    // Register analysis option file tasks.
+    //
+    _taskManager.addTaskDescriptor(GenerateOptionsErrorsTask.DESCRIPTOR);
   }
 
   /**

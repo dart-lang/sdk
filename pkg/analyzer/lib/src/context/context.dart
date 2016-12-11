@@ -240,6 +240,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Initialize a newly created analysis context.
    */
   AnalysisContextImpl() {
+    AnalysisEngine.instance.processRequiredPlugins();
     _privatePartition = new UniversalCachePartition(this);
     _cache = createCacheFromSourceFactory(null);
     _taskManager = AnalysisEngine.instance.taskManager;
