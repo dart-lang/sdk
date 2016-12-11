@@ -132,48 +132,50 @@ class AnalysisDomainHandler implements RequestHandler {
   /**
    * Implement the `analysis.getNavigation` request.
    */
-  Response getNavigation(Request request) {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      return new Response.getNavigationInvalidFile(request);
-    }
+  Future<Null> getNavigation(Request request) async {
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
+
+    void send(CompilationUnit unit) {
+      if (unit == null) {
+        server.sendResponse(new Response.getNavigationInvalidFile(request));
+      } else {
+        CompilationUnitElement unitElement = unit.element;
+        NavigationCollectorImpl collector = computeNavigation(
+            server,
+            unitElement.context,
+            unitElement.source,
+            params.offset,
+            params.length);
+        server.sendResponse(new AnalysisGetNavigationResult(
+                collector.files, collector.targets, collector.regions)
+            .toResponse(request.id));
+      }
+    }
+
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisResult result = await server.getAnalysisResult(file);
+      send(result?.unit);
+      return;
+    }
+
     Future<AnalysisDoneReason> analysisFuture =
         server.onFileAnalysisComplete(file);
     if (analysisFuture == null) {
-      return new Response.getNavigationInvalidFile(request);
+      server.sendResponse(new Response.getNavigationInvalidFile(request));
     }
     analysisFuture.then((AnalysisDoneReason reason) async {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
           CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-          if (unit == null) {
-            server.sendResponse(new Response.getNavigationInvalidFile(request));
-          } else {
-            CompilationUnitElement unitElement = unit.element;
-            NavigationCollectorImpl collector = computeNavigation(
-                server,
-                unitElement.context,
-                unitElement.source,
-                params.offset,
-                params.length);
-            server.sendResponse(new AnalysisGetNavigationResult(
-                    collector.files, collector.targets, collector.regions)
-                .toResponse(request.id));
-          }
+          send(unit);
           break;
         case AnalysisDoneReason.CONTEXT_REMOVED:
           // The active contexts have changed, so try again.
-          Response response = getNavigation(request);
-          if (response != Response.DELAYED_RESPONSE) {
-            server.sendResponse(response);
-          }
+          await getNavigation(request);
           break;
       }
     });
-    // delay response
-    return Response.DELAYED_RESPONSE;
   }
 
   /**
@@ -205,7 +207,8 @@ class AnalysisDomainHandler implements RequestHandler {
       } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
       } else if (requestName == ANALYSIS_GET_NAVIGATION) {
-        return getNavigation(request);
+        getNavigation(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
         return getReachableSources(request);
       } else if (requestName == ANALYSIS_REANALYZE) {
