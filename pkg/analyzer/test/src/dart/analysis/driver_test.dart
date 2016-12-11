@@ -967,24 +967,27 @@ main() {
   test_knownFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
 
     provider.newFile(
         a,
         r'''
 import 'b.dart';
 ''');
+    provider.newFile(b, '');
+    provider.newFile(c, '');
 
     driver.addFile(a);
+    driver.addFile(c);
     await _waitForIdle();
 
-    expect(driver.knownFiles, contains(a));
-    expect(driver.knownFiles, contains(b));
+    expect(driver.knownFiles, unorderedEquals([a, b, c]));
 
+    // Remove a.dart and analyze.
+    // Both a.dart and b.dart are not known now.
     driver.removeFile(a);
-
-    // a.dart was removed, but we don't clean up the file state state yet.
-    expect(driver.knownFiles, contains(a));
-    expect(driver.knownFiles, contains(b));
+    await _waitForIdle();
+    expect(driver.knownFiles, unorderedEquals([c]));
   }
 
   test_knownFiles_beforeAnalysis() async {
@@ -1335,6 +1338,29 @@ var A = B;
 
     await _waitForIdle();
     expect(allResults, isEmpty);
+  }
+
+  test_removeFile_invalidate_importers() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "import 'a.dart';  var a = new A();");
+
+    driver.addFile(a);
+    driver.addFile(b);
+    await _waitForIdle();
+
+    // b.dart s clean.
+    expect(allResults.singleWhere((r) => r.path == b).errors, isEmpty);
+    allResults.clear();
+
+    // Remove a.dart, now b.dart should be reanalyzed and has an error.
+    provider.deleteFile(a);
+    driver.removeFile(a);
+    await _waitForIdle();
+    expect(allResults.singleWhere((r) => r.path == b).errors, hasLength(2));
+    allResults.clear();
   }
 
   test_results_priority() async {

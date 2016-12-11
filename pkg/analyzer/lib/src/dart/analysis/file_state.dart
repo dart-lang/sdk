@@ -661,6 +661,17 @@ class FileSystemState {
       ..insert(0, canonicalFile);
   }
 
+  /**
+   * Remove the file with the given [path].
+   */
+  void removeFile(String path) {
+    _uriToFile.clear();
+    knownFilePaths.clear();
+    _pathToFiles.clear();
+    _pathToCanonicalFile.clear();
+    _partToLibraries.clear();
+  }
+
   void _addFileWithPath(String path, FileState file) {
     var files = _pathToFiles[path];
     if (files == null) {

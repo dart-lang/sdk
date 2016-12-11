@@ -548,6 +548,10 @@ class AnalysisDriver {
   void removeFile(String path) {
     _addedFiles.remove(path);
     _filesToAnalyze.remove(path);
+    _fsState.removeFile(path);
+    _filesToAnalyze.addAll(_addedFiles);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
   }
 
   /**
