@@ -993,9 +993,10 @@ import 'b.dart';
 
     provider.newFile(a, '');
 
+    // 'a.dart' is added, but not processed yet.
+    // So, the set of known files is empty yet.
     driver.addFile(a);
-    expect(driver.knownFiles, contains(a));
-    expect(driver.knownFiles, isNot(contains(b)));
+    expect(driver.knownFiles, isEmpty);
 
     // Remove 'a.dart'.
     // It has been no analysis yet, so 'a.dart' is not in the file state, only

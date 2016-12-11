@@ -1035,11 +1035,11 @@ class ContextManagerImpl implements ContextManager {
    */
   List<String> _computeFlushedFiles(ContextInfo info) {
     if (enableNewAnalysisDriver) {
-      Set<String> flushedFiles = info.analysisDriver.knownFiles.toSet();
+      Set<String> flushedFiles = info.analysisDriver.addedFiles.toSet();
       for (ContextInfo contextInfo in rootInfo.descendants) {
         AnalysisDriver other = contextInfo.analysisDriver;
         if (other != info.analysisDriver) {
-          flushedFiles.removeAll(other.knownFiles);
+          flushedFiles.removeAll(other.addedFiles);
         }
       }
       return flushedFiles.toList(growable: false);

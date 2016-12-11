@@ -137,9 +137,9 @@ class AnalysisDriver {
   PackageBundle _sdkBundle;
 
   /**
-   * The set of explicitly analyzed files.
+   * The set of added files.
    */
-  final _explicitFiles = new LinkedHashSet<String>();
+  final _addedFiles = new LinkedHashSet<String>();
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -251,9 +251,9 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the set of files added to analysis using [addFile].
+   * Return the set of files explicitly added to analysis using [addFile].
    */
-  Set<String> get addedFiles => _explicitFiles;
+  Set<String> get addedFiles => _addedFiles;
 
   /**
    * Return the stream that produces [ExceptionResult]s.
@@ -276,15 +276,11 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the set of files that are known, i.e. added or used implicitly.
+   * Return the set of files that are known at this moment. This set does not
+   * always include all added files or all implicitly used file. If a file has
+   * not been processed yet, it might be missing.
    */
-  Set<String> get knownFiles {
-    // TODO(scheglov) This method is invoked too often and the implementation
-    // is probably not the most efficient. Consider isKnownFile().
-    return new Set<String>()
-      ..addAll(_explicitFiles)
-      ..addAll(_fsState.knownFilePaths);
-  }
+  Set<String> get knownFiles => _fsState.knownFilePaths;
 
   /**
    * Return the list of files that the driver should try to analyze sooner.
@@ -389,7 +385,7 @@ class AnalysisDriver {
    */
   void addFile(String path) {
     if (AnalysisEngine.isDartFileName(path)) {
-      _explicitFiles.add(path);
+      _addedFiles.add(path);
       _changedFiles.add(path);
       _filesToAnalyze.add(path);
     }
@@ -418,7 +414,7 @@ class AnalysisDriver {
   void changeFile(String path) {
     if (AnalysisEngine.isDartFileName(path)) {
       _changedFiles.add(path);
-      if (_explicitFiles.contains(path)) {
+      if (_addedFiles.contains(path)) {
         _filesToAnalyze.add(path);
       }
     }
@@ -550,7 +546,7 @@ class AnalysisDriver {
    * but does not guarantee this.
    */
   void removeFile(String path) {
-    _explicitFiles.remove(path);
+    _addedFiles.remove(path);
     _filesToAnalyze.remove(path);
   }
 
@@ -639,7 +635,7 @@ class AnalysisDriver {
         _logger.writeln('Computed new analysis result.');
         return _getAnalysisResultFromBytes(file, bytes,
             content: withUnit ? file.content : null,
-            withErrors: _explicitFiles.contains(path),
+            withErrors: _addedFiles.contains(path),
             resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
         analysisContext.dispose();
@@ -1015,7 +1011,7 @@ class AnalysisDriver {
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found for $path');
         // TODO(scheglov) schedule analysis of only affected files
-        _filesToAnalyze.addAll(_explicitFiles);
+        _filesToAnalyze.addAll(_addedFiles);
       }
       return files[0];
     });
