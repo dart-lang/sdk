@@ -175,7 +175,9 @@ String _errorCodeName(ErrorCode errorCode) {
 
 ErrorSeverity _errorSeverity(AnalysisContext context, AnalysisError error) {
   // Attempt to process severity in a similar way to analyzer_cli and server.
-  return ErrorProcessor.getProcessor(context, error)?.severity ??
+  return ErrorProcessor
+          .getProcessor(context.analysisOptions, error)
+          ?.severity ??
       error.errorCode.errorSeverity;
 }
 

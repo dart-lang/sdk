@@ -1772,7 +1772,8 @@ abstract class ContextManagerTest {
    */
   ErrorProcessor getProcessor(AnalysisError error) =>
       callbacks.currentDriver == null
-          ? ErrorProcessor.getProcessor(callbacks.currentContext, error)
+          ? ErrorProcessor.getProcessor(
+              callbacks.currentContext.analysisOptions, error)
           : errorProcessors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
               orElse: () => null);
 

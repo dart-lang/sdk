@@ -87,19 +87,19 @@ class ErrorProcessor {
   /// Check if this processor applies to the given [error].
   bool appliesTo(AnalysisError error) => code == error.errorCode.name;
 
-  /// Return an error processor associated with this [context] for the given
-  /// [error], or `null` if none is found.
+  /// Return an error processor associated in the [analysisOptions] for the
+  /// given [error], or `null` if none is found.
   static ErrorProcessor getProcessor(
-      AnalysisContext context, AnalysisError error) {
-    if (context == null) {
+      AnalysisOptions analysisOptions, AnalysisError error) {
+    if (analysisOptions == null) {
       return null;
     }
 
     // Let the user configure how specific errors are processed.
-    List<ErrorProcessor> processors = context.analysisOptions.errorProcessors;
+    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
 
     // Give strong mode a chance to upgrade it.
-    if (context.analysisOptions.strongMode) {
+    if (analysisOptions.strongMode) {
       processors = processors.toList();
       processors.add(_StrongModeTypeErrorProcessor.instance);
     }

@@ -167,8 +167,9 @@ void sendAnalysisNotificationErrors(
     if (errors == null) {
       errors = <AnalysisError>[];
     }
-    var serverErrors =
-        protocol.doAnalysisError_listFromEngine(context, lineInfo, errors);
+    AnalysisOptions analysisOptions = context.analysisOptions;
+    var serverErrors = protocol.doAnalysisError_listFromEngine(
+        analysisOptions, lineInfo, errors);
     var params = new protocol.AnalysisErrorsParams(file, serverErrors);
     server.sendNotification(params.toNotification());
   });

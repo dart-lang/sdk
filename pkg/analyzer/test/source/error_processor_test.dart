@@ -157,7 +157,7 @@ void configureOptions(String options) {
 }
 
 ErrorProcessor getProcessor(AnalysisError error) =>
-    ErrorProcessor.getProcessor(context, error);
+    ErrorProcessor.getProcessor(context.analysisOptions, error);
 
 void oneTimeSetup() {
   List<Plugin> plugins = <Plugin>[];
