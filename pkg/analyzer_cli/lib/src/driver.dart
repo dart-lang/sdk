@@ -616,7 +616,6 @@ class Driver implements CommandLineStarter {
   void _processPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.addAll(_userDefinedPlugins);
 
     ExtensionManager manager = new ExtensionManager();

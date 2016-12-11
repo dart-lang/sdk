@@ -99,7 +99,6 @@ class EngineTestCase {
   void setUp() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
     new ExtensionManager().processPlugins(plugins);
   }
 

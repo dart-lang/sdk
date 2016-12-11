@@ -119,7 +119,6 @@ class AbstractAnalysisTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.add(serverPlugin);
     plugins.add(dartCompletionPlugin);
     addServerPlugins(plugins);

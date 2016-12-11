@@ -414,7 +414,6 @@ class Driver implements ServerStarter {
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
     plugins.add(serverPlugin);
     plugins.add(dartCompletionPlugin);
     plugins.addAll(_userDefinedPlugins);

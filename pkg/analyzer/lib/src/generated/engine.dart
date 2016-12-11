@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
@@ -754,12 +753,6 @@ class AnalysisEngine {
    * engine.
    */
   Logger _logger = Logger.NULL;
-
-  /**
-   * The plugin that defines the extension points and extensions that are defined by
-   * command-line applications using the analysis engine.
-   */
-  final CommandLinePlugin commandLinePlugin = new CommandLinePlugin();
 
   /**
    * The plugin that defines the extension points and extensions that are
