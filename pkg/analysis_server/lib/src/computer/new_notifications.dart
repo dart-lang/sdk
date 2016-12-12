@@ -6,6 +6,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart' show AnalysisServer;
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -19,6 +21,18 @@ void new_sendDartNotificationNavigation(
     collector.createRegions();
     var params = new protocol.AnalysisNavigationParams(
         result.path, collector.regions, collector.targets, collector.files);
+    analysisServer.sendNotification(params.toNotification());
+  }
+}
+
+void new_sendDartNotificationOccurrences(
+    AnalysisServer analysisServer, AnalysisResult result) {
+  var unit = result.unit;
+  if (unit != null) {
+    OccurrencesCollectorImpl collector = new OccurrencesCollectorImpl();
+    addDartOccurrences(collector, unit);
+    var params = new protocol.AnalysisOccurrencesParams(
+        result.path, collector.allOccurrences);
     analysisServer.sendNotification(params.toNotification());
   }
 }

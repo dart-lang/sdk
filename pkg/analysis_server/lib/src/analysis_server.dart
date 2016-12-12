@@ -1851,6 +1851,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OCCURRENCES, path)) {
+          _runDelayed(() {
+            new_sendDartNotificationOccurrences(analysisServer, result);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OVERRIDES, path)) {
           _runDelayed(() {
             sendAnalysisNotificationOverrides(analysisServer, path, unit);
