@@ -214,10 +214,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("}\n");
   }
 
-  THR_Print("Stackmaps for function '%s' {\n", function_fullname);
+  THR_Print("StackMaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
     const Array& stackmap_table = Array::Handle(code.stackmaps());
-    Stackmap& map = Stackmap::Handle();
+    StackMap& map = StackMap::Handle();
     for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
       map ^= stackmap_table.At(i);
       THR_Print("%s\n", map.ToCString());

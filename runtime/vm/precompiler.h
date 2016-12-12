@@ -78,12 +78,12 @@ class SymbolKeyValueTrait {
 
 typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
 
-class StackmapKeyValueTrait {
+class StackMapKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Stackmap* Key;
-  typedef const Stackmap* Value;
-  typedef const Stackmap* Pair;
+  typedef const StackMap* Key;
+  typedef const StackMap* Value;
+  typedef const StackMap* Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
 
@@ -96,7 +96,7 @@ class StackmapKeyValueTrait {
   }
 };
 
-typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
+typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
 
 
 class ArrayKeyValueTrait {
@@ -393,7 +393,7 @@ class Precompiler : public ValueObject {
   void BindStaticCalls();
   void SwitchICCalls();
   void ShareMegamorphicBuckets();
-  void DedupStackmaps();
+  void DedupStackMaps();
   void DedupLists();
   void DedupInstructions();
   void ResetPrecompilerState();

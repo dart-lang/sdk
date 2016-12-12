@@ -1799,7 +1799,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-// PcDescriptor, Stackmap, OneByteString, TwoByteString
+// PcDescriptor, StackMap, OneByteString, TwoByteString
 class RODataSerializationCluster : public SerializationCluster {
  public:
   explicit RODataSerializationCluster(intptr_t cid) : cid_(cid) {}
@@ -3769,13 +3769,13 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
 
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class StacktraceSerializationCluster : public SerializationCluster {
+class StackTraceSerializationCluster : public SerializationCluster {
  public:
-  StacktraceSerializationCluster() {}
-  virtual ~StacktraceSerializationCluster() {}
+  StackTraceSerializationCluster() {}
+  virtual ~StackTraceSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
-    RawStacktrace* trace = Stacktrace::RawCast(object);
+    RawStackTrace* trace = StackTrace::RawCast(object);
     objects_.Add(trace);
 
     RawObject** from = trace->from();
@@ -3786,11 +3786,11 @@ class StacktraceSerializationCluster : public SerializationCluster {
   }
 
   void WriteAlloc(Serializer* s) {
-    s->WriteCid(kStacktraceCid);
+    s->WriteCid(kStackTraceCid);
     intptr_t count = objects_.length();
     s->Write<int32_t>(count);
     for (intptr_t i = 0; i < count; i++) {
-      RawStacktrace* trace = objects_[i];
+      RawStackTrace* trace = objects_[i];
       s->AssignRef(trace);
     }
   }
@@ -3798,7 +3798,7 @@ class StacktraceSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      RawStacktrace* trace = objects_[i];
+      RawStackTrace* trace = objects_[i];
       RawObject** from = trace->from();
       RawObject** to = trace->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -3808,15 +3808,15 @@ class StacktraceSerializationCluster : public SerializationCluster {
   }
 
  private:
-  GrowableArray<RawStacktrace*> objects_;
+  GrowableArray<RawStackTrace*> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
 
-class StacktraceDeserializationCluster : public DeserializationCluster {
+class StackTraceDeserializationCluster : public DeserializationCluster {
  public:
-  StacktraceDeserializationCluster() {}
-  virtual ~StacktraceDeserializationCluster() {}
+  StackTraceDeserializationCluster() {}
+  virtual ~StackTraceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
     start_index_ = d->next_index();
@@ -3824,7 +3824,7 @@ class StacktraceDeserializationCluster : public DeserializationCluster {
     intptr_t count = d->Read<int32_t>();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(
-          AllocateUninitialized(old_space, Stacktrace::InstanceSize()));
+          AllocateUninitialized(old_space, StackTrace::InstanceSize()));
     }
     stop_index_ = d->next_index();
   }
@@ -3833,9 +3833,9 @@ class StacktraceDeserializationCluster : public DeserializationCluster {
     bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawStacktrace* trace = reinterpret_cast<RawStacktrace*>(d->Ref(id));
-      Deserializer::InitializeHeader(trace, kStacktraceCid,
-                                     Stacktrace::InstanceSize(), is_vm_object);
+      RawStackTrace* trace = reinterpret_cast<RawStackTrace*>(d->Ref(id));
+      Deserializer::InitializeHeader(trace, kStackTraceCid,
+                                     StackTrace::InstanceSize(), is_vm_object);
       RawObject** from = trace->from();
       RawObject** to = trace->to();
       for (RawObject** p = from; p <= to; p++) {
@@ -4466,8 +4466,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
       return new (Z) RODataSerializationCluster(kPcDescriptorsCid);
-    case kStackmapCid:
-      return new (Z) RODataSerializationCluster(kStackmapCid);
+    case kStackMapCid:
+      return new (Z) RODataSerializationCluster(kStackMapCid);
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid:
@@ -4506,8 +4506,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) DoubleSerializationCluster();
     case kGrowableObjectArrayCid:
       return new (Z) GrowableObjectArraySerializationCluster();
-    case kStacktraceCid:
-      return new (Z) StacktraceSerializationCluster();
+    case kStackTraceCid:
+      return new (Z) StackTraceSerializationCluster();
     case kRegExpCid:
       return new (Z) RegExpSerializationCluster();
     case kWeakPropertyCid:
@@ -4819,7 +4819,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kObjectPoolCid:
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
-    case kStackmapCid:
+    case kStackMapCid:
       return new (Z) RODataDeserializationCluster();
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersDeserializationCluster();
@@ -4859,8 +4859,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) DoubleDeserializationCluster();
     case kGrowableObjectArrayCid:
       return new (Z) GrowableObjectArrayDeserializationCluster();
-    case kStacktraceCid:
-      return new (Z) StacktraceDeserializationCluster();
+    case kStackTraceCid:
+      return new (Z) StackTraceDeserializationCluster();
     case kRegExpCid:
       return new (Z) RegExpDeserializationCluster();
     case kWeakPropertyCid:

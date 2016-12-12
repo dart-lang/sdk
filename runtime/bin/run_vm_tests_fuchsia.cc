@@ -103,7 +103,7 @@ const char* kBugs[] = {
   "Int8ListLengthMaxElements",
 
   // Assumes initial thread's stack is the same size as spawned thread stacks.
-  "StackOverflowStacktraceInfo",
+  "StackOverflowStackTraceInfo",
 };
 // clang-format on
 

@@ -60,18 +60,18 @@ RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
 }
 
 
-void StackmapTableBuilder::AddEntry(intptr_t pc_offset,
+void StackMapTableBuilder::AddEntry(intptr_t pc_offset,
                                     BitmapBuilder* bitmap,
                                     intptr_t register_bit_count) {
-  stack_map_ = Stackmap::New(pc_offset, bitmap, register_bit_count);
+  stack_map_ = StackMap::New(pc_offset, bitmap, register_bit_count);
   list_.Add(stack_map_, Heap::kOld);
 }
 
 
-bool StackmapTableBuilder::Verify() {
+bool StackMapTableBuilder::Verify() {
   intptr_t num_entries = Length();
-  Stackmap& map1 = Stackmap::Handle();
-  Stackmap& map2 = Stackmap::Handle();
+  StackMap& map1 = StackMap::Handle();
+  StackMap& map2 = StackMap::Handle();
   for (intptr_t i = 1; i < num_entries; i++) {
     map1 = MapAt(i - 1);
     map2 = MapAt(i);
@@ -84,7 +84,7 @@ bool StackmapTableBuilder::Verify() {
 }
 
 
-RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
+RawArray* StackMapTableBuilder::FinalizeStackMaps(const Code& code) {
   ASSERT(Verify());
   intptr_t num_entries = Length();
   if (num_entries == 0) {
@@ -94,8 +94,8 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
 }
 
 
-RawStackmap* StackmapTableBuilder::MapAt(intptr_t index) const {
-  Stackmap& map = Stackmap::Handle();
+RawStackMap* StackMapTableBuilder::MapAt(intptr_t index) const {
+  StackMap& map = StackMap::Handle();
   map ^= list_.At(index);
   return map.raw();
 }

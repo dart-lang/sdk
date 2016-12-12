@@ -2789,12 +2789,12 @@ VM_TEST_CASE(ExceptionHandlers) {
   // Add an exception handler table to the code.
   ExceptionHandlers& exception_handlers = ExceptionHandlers::Handle();
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
-  const bool kNeedsStacktrace = true;
-  const bool kNoStacktrace = false;
-  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStacktrace, false);
-  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStacktrace, false);
-  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStacktrace, true);
-  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStacktrace, true);
+  const bool kNeedsStackTrace = true;
+  const bool kNoStackTrace = false;
+  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false);
+  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false);
+  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true);
+  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true);
 
   extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
@@ -2812,12 +2812,12 @@ VM_TEST_CASE(ExceptionHandlers) {
   EXPECT_EQ(-1, handlers.OuterTryIndex(0));
   EXPECT_EQ(-1, info.outer_try_index);
   EXPECT_EQ(20u, handlers.HandlerPCOffset(0));
-  EXPECT(handlers.NeedsStacktrace(0));
+  EXPECT(handlers.NeedsStackTrace(0));
   EXPECT(!handlers.HasCatchAll(0));
   EXPECT_EQ(20u, info.handler_pc_offset);
   EXPECT_EQ(1, handlers.OuterTryIndex(3));
   EXPECT_EQ(150u, handlers.HandlerPCOffset(3));
-  EXPECT(!handlers.NeedsStacktrace(3));
+  EXPECT(!handlers.NeedsStackTrace(3));
   EXPECT(handlers.HasCatchAll(3));
 }
 

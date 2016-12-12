@@ -757,7 +757,7 @@ class Object {
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
-  static RawClass* stackmap_class_;         // Class of Stackmap vm object.
+  static RawClass* stackmap_class_;         // Class of StackMap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* deopt_info_class_;          // Class of DeoptInfo.
@@ -4403,7 +4403,7 @@ class CodeSourceMap : public Object {
 };
 
 
-class Stackmap : public Object {
+class StackMap : public Object {
  public:
   static const intptr_t kNoMaximum = -1;
   static const intptr_t kNoMinimum = -1;
@@ -4427,7 +4427,7 @@ class Stackmap : public Object {
     StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
-  bool Equals(const Stackmap& other) const {
+  bool Equals(const StackMap& other) const {
     if (Length() != other.Length()) {
       return false;
     }
@@ -4438,20 +4438,20 @@ class Stackmap : public Object {
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawStackmap) == OFFSET_OF_RETURNED_VALUE(RawStackmap, data));
+    ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
     ASSERT(length >= 0);
     // The stackmap payload is in an array of bytes.
     intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-    return RoundedAllocationSize(sizeof(RawStackmap) + payload_size);
+    return RoundedAllocationSize(sizeof(RawStackMap) + payload_size);
   }
-  static RawStackmap* New(intptr_t pc_offset,
+  static RawStackMap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
                           intptr_t register_bit_count);
 
-  static RawStackmap* New(intptr_t length,
+  static RawStackMap* New(intptr_t length,
                           intptr_t register_bit_count,
                           intptr_t pc_offset);
 
@@ -4465,7 +4465,7 @@ class Stackmap : public Object {
   bool GetBit(intptr_t bit_index) const;
   void SetBit(intptr_t bit_index, bool value) const;
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(StackMap, Object);
   friend class BitmapBuilder;
   friend class Class;
 };
@@ -4482,7 +4482,7 @@ class ExceptionHandlers : public Object {
 
   uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
-  bool NeedsStacktrace(intptr_t try_index) const;
+  bool NeedsStackTrace(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
@@ -4680,9 +4680,9 @@ class Code : public Object {
 
   RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }
   void set_stackmaps(const Array& maps) const;
-  RawStackmap* GetStackmap(uint32_t pc_offset,
+  RawStackMap* GetStackMap(uint32_t pc_offset,
                            Array* stackmaps,
-                           Stackmap* map) const;
+                           StackMap* map) const;
 
   enum {
     kSCallTableOffsetEntry = 0,
@@ -8375,7 +8375,7 @@ class SendPort : public Instance {
 
 
 // Internal stacktrace object used in exceptions for printing stack traces.
-class Stacktrace : public Instance {
+class StackTrace : public Instance {
  public:
   static const int kPreallocatedStackdepth = 30;
 
@@ -8391,9 +8391,9 @@ class Stacktrace : public Instance {
   void set_expand_inlined(bool value) const;
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawStacktrace));
+    return RoundedAllocationSize(sizeof(RawStackTrace));
   }
-  static RawStacktrace* New(const Array& code_array,
+  static RawStackTrace* New(const Array& code_array,
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
@@ -8406,7 +8406,7 @@ class Stacktrace : public Instance {
   void set_pc_offset_array(const Array& pc_offset_array) const;
   bool expand_inlined() const;
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
   friend class Class;
   friend class Debugger;
 };

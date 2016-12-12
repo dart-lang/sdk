@@ -105,9 +105,9 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     // on the stack map.
     Array maps;
     maps = Array::null();
-    Stackmap map;
+    StackMap map;
     const uword start = Instructions::PayloadStart(code.instructions());
-    map = code.GetStackmap(pc() - start, &maps, &map);
+    map = code.GetStackMap(pc() - start, &maps, &map);
     if (!map.IsNull()) {
 #if !defined(TARGET_ARCH_DBC)
       RawObject** first = reinterpret_cast<RawObject**>(sp());

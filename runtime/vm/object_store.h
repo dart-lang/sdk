@@ -361,10 +361,10 @@ class ObjectStore {
     preallocated_unhandled_exception_ = value.raw();
   }
 
-  RawStacktrace* preallocated_stack_trace() const {
+  RawStackTrace* preallocated_stack_trace() const {
     return preallocated_stack_trace_;
   }
-  void set_preallocated_stack_trace(const Stacktrace& value) {
+  void set_preallocated_stack_trace(const StackTrace& value) {
     preallocated_stack_trace_ = value.raw();
   }
 
@@ -533,7 +533,7 @@ class ObjectStore {
   V(RawInstance*, stack_overflow_)                                             \
   V(RawInstance*, out_of_memory_)                                              \
   V(RawUnhandledException*, preallocated_unhandled_exception_)                 \
-  V(RawStacktrace*, preallocated_stack_trace_)                                 \
+  V(RawStackTrace*, preallocated_stack_trace_)                                 \
   V(RawFunction*, lookup_port_handler_)                                        \
   V(RawTypedData*, empty_uint32_array_)                                        \
   V(RawFunction*, handle_message_function_)                                    \

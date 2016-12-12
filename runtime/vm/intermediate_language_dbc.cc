@@ -1161,12 +1161,12 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
         kNumberOfCpuRegisters -
         (-stacktrace_var().index() + num_non_copied_params);
     __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
-    __ MoveSpecial(stacktrace_reg, Simulator::kStacktraceSpecialIndex);
+    __ MoveSpecial(stacktrace_reg, Simulator::kStackTraceSpecialIndex);
   } else {
     __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
                    Simulator::kExceptionSpecialIndex);
     __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
-                   Simulator::kStacktraceSpecialIndex);
+                   Simulator::kStackTraceSpecialIndex);
   }
   __ SetFrame(compiler->StackSize());
 }
@@ -1182,7 +1182,7 @@ EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
 
 
 EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
-  compiler->SetNeedsStacktrace(catch_try_index());
+  compiler->SetNeedsStackTrace(catch_try_index());
   __ Throw(1);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());

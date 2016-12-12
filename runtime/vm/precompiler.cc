@@ -401,7 +401,7 @@ void Precompiler::DoCompileAll(
     SwitchICCalls();
 
     ShareMegamorphicBuckets();
-    DedupStackmaps();
+    DedupStackMaps();
     DedupLists();
 
     if (FLAG_dedup_instructions) {
@@ -2198,15 +2198,15 @@ void Precompiler::ShareMegamorphicBuckets() {
 }
 
 
-void Precompiler::DedupStackmaps() {
-  class DedupStackmapsVisitor : public FunctionVisitor {
+void Precompiler::DedupStackMaps() {
+  class DedupStackMapsVisitor : public FunctionVisitor {
    public:
-    explicit DedupStackmapsVisitor(Zone* zone)
+    explicit DedupStackMapsVisitor(Zone* zone)
         : zone_(zone),
           canonical_stackmaps_(),
           code_(Code::Handle(zone)),
           stackmaps_(Array::Handle(zone)),
-          stackmap_(Stackmap::Handle(zone)) {}
+          stackmap_(StackMap::Handle(zone)) {}
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
@@ -2217,17 +2217,17 @@ void Precompiler::DedupStackmaps() {
       if (stackmaps_.IsNull()) return;
       for (intptr_t i = 0; i < stackmaps_.Length(); i++) {
         stackmap_ ^= stackmaps_.At(i);
-        stackmap_ = DedupStackmap(stackmap_);
+        stackmap_ = DedupStackMap(stackmap_);
         stackmaps_.SetAt(i, stackmap_);
       }
     }
 
-    RawStackmap* DedupStackmap(const Stackmap& stackmap) {
-      const Stackmap* canonical_stackmap =
+    RawStackMap* DedupStackMap(const StackMap& stackmap) {
+      const StackMap* canonical_stackmap =
           canonical_stackmaps_.LookupValue(&stackmap);
       if (canonical_stackmap == NULL) {
         canonical_stackmaps_.Insert(
-            &Stackmap::ZoneHandle(zone_, stackmap.raw()));
+            &StackMap::ZoneHandle(zone_, stackmap.raw()));
         return stackmap.raw();
       } else {
         return canonical_stackmap->raw();
@@ -2236,13 +2236,13 @@ void Precompiler::DedupStackmaps() {
 
    private:
     Zone* zone_;
-    StackmapSet canonical_stackmaps_;
+    StackMapSet canonical_stackmaps_;
     Code& code_;
     Array& stackmaps_;
-    Stackmap& stackmap_;
+    StackMap& stackmap_;
   };
 
-  DedupStackmapsVisitor visitor(Z);
+  DedupStackMapsVisitor visitor(Z);
   VisitFunctions(&visitor);
 }
 
@@ -2680,7 +2680,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizePcDescriptors(code);
   code.set_deopt_info_array(deopt_info_array);
 
-  graph_compiler->FinalizeStackmaps(code);
+  graph_compiler->FinalizeStackMaps(code);
   graph_compiler->FinalizeVarDescriptors(code);
   graph_compiler->FinalizeExceptionHandlers(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);

@@ -1567,7 +1567,7 @@ DebuggerStackTrace* Debugger::CurrentStackTrace() {
   return CollectStackTrace();
 }
 
-DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
+DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -1579,7 +1579,7 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
 
   for (intptr_t i = 0; i < ex_trace.Length(); i++) {
     function = ex_trace.FunctionAtFrame(i);
-    // Pre-allocated Stacktraces may include empty slots, either (a) to indicate
+    // Pre-allocated StackTraces may include empty slots, either (a) to indicate
     // where frames were omitted in the case a stack has more frames than the
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with

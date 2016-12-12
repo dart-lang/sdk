@@ -826,7 +826,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
+DART_EXPORT Dart_Handle Dart_ErrorGetStackTrace(Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsUnhandledException()) {
@@ -866,7 +866,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
       RETURN_TYPE_ERROR(Z, exception, Instance);
     }
   }
-  const Stacktrace& stacktrace = Stacktrace::Handle(Z);
+  const StackTrace& stacktrace = StackTrace::Handle(Z);
   return Api::NewHandle(T, UnhandledException::New(obj, stacktrace));
 }
 
@@ -4658,16 +4658,16 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
-  const Stacktrace* saved_stacktrace;
+  const StackTrace* saved_stacktrace;
   {
     NoSafepointScope no_safepoint;
     RawInstance* raw_exception =
         Api::UnwrapInstanceHandle(zone, exception).raw();
-    RawStacktrace* raw_stacktrace =
-        Api::UnwrapStacktraceHandle(zone, stacktrace).raw();
+    RawStackTrace* raw_stacktrace =
+        Api::UnwrapStackTraceHandle(zone, stacktrace).raw();
     thread->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
-    saved_stacktrace = &Stacktrace::Handle(raw_stacktrace);
+    saved_stacktrace = &StackTrace::Handle(raw_stacktrace);
   }
   Exceptions::ReThrow(thread, *saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");
@@ -5029,7 +5029,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
       !Api::IsError(retval)) {
     // Print the current stack trace to make the problematic caller
     // easier to find.
-    const Stacktrace& stacktrace = GetCurrentStacktrace(0);
+    const StackTrace& stacktrace = GetCurrentStackTrace(0);
     OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));

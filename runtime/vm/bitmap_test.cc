@@ -36,8 +36,8 @@ TEST_CASE(BitmapBuilder) {
     EXPECT_EQ(value, builder1->Get(i));
     value = !value;
   }
-  // Create a Stackmap object from the builder and verify its contents.
-  const Stackmap& stackmap1 = Stackmap::Handle(Stackmap::New(0, builder1, 0));
+  // Create a StackMap object from the builder and verify its contents.
+  const StackMap& stackmap1 = StackMap::Handle(StackMap::New(0, builder1, 0));
   EXPECT_EQ(1024, stackmap1.Length());
   OS::Print("%s\n", stackmap1.ToCString());
   value = true;
@@ -62,7 +62,7 @@ TEST_CASE(BitmapBuilder) {
   for (int32_t i = 1025; i <= 2048; i++) {
     EXPECT(!builder1->Get(i));
   }
-  const Stackmap& stackmap2 = Stackmap::Handle(Stackmap::New(0, builder1, 0));
+  const StackMap& stackmap2 = StackMap::Handle(StackMap::New(0, builder1, 0));
   EXPECT_EQ(2049, stackmap2.Length());
   for (int32_t i = 0; i <= 256; i++) {
     EXPECT(!stackmap2.IsObject(i));

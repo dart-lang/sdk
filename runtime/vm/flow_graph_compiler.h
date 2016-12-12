@@ -478,7 +478,7 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t pc_offset,
                            const Array& handler_types,
                            bool needs_stacktrace);
-  void SetNeedsStacktrace(intptr_t try_index);
+  void SetNeedsStackTrace(intptr_t try_index);
   void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             TokenPosition token_pos);
@@ -506,7 +506,7 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
   RawArray* CreateDeoptInfo(Assembler* assembler);
-  void FinalizeStackmaps(const Code& code);
+  void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
 
@@ -699,9 +699,9 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t GetOptimizationThreshold() const;
 
-  StackmapTableBuilder* stackmap_table_builder() {
+  StackMapTableBuilder* stackmap_table_builder() {
     if (stackmap_table_builder_ == NULL) {
-      stackmap_table_builder_ = new StackmapTableBuilder();
+      stackmap_table_builder_ = new StackMapTableBuilder();
     }
     return stackmap_table_builder_;
   }
@@ -752,7 +752,7 @@ class FlowGraphCompiler : public ValueObject {
   BlockEntryInstr* current_block_;
   ExceptionHandlerList* exception_handlers_list_;
   DescriptorList* pc_descriptors_list_;
-  StackmapTableBuilder* stackmap_table_builder_;
+  StackMapTableBuilder* stackmap_table_builder_;
   CodeSourceMapBuilder* code_source_map_builder_;
   intptr_t saved_code_size_;
   GrowableArray<BlockInfo*> block_info_;

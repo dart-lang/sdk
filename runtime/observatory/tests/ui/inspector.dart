@@ -76,7 +76,7 @@ class Node {
   var userTag;
   var weakProperty;
 
-  genStacktrace() {
+  genStackTrace() {
     try {
       num.parse(',');
     } catch (e, s) {
@@ -162,7 +162,7 @@ class Node {
     portSend = portReceive.sendPort;
     regex = new RegExp("a*b+c");
     smi = 7;
-    stacktrace = genStacktrace();
+    stacktrace = genStackTrace();
     string = "Hello $smi ${smi.runtimeType}";
     stringLatin1 = "blåbærgrød";
     stringSnowflake = "❄";

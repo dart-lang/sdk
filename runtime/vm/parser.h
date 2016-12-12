@@ -694,7 +694,7 @@ class Parser : public ValueObject {
                                LocalVariable** stack_trace_var,
                                LocalVariable** saved_exception_var,
                                LocalVariable** saved_stack_trace_var);
-  void SaveExceptionAndStacktrace(SequenceNode* statements,
+  void SaveExceptionAndStackTrace(SequenceNode* statements,
                                   LocalVariable* exception_var,
                                   LocalVariable* stack_trace_var,
                                   LocalVariable* saved_exception_var,

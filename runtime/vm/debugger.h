@@ -470,10 +470,10 @@ class Debugger {
   DebuggerStackTrace* StackTrace();
   DebuggerStackTrace* CurrentStackTrace();
 
-  // Returns a debugger stack trace corresponding to a dart.core.Stacktrace.
+  // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
   // Frames corresponding to invisible functions are omitted. It is not valid
   // to query local variables in the returned stack.
-  DebuggerStackTrace* StackTraceFrom(const Stacktrace& dart_stacktrace);
+  DebuggerStackTrace* StackTraceFrom(const class StackTrace& dart_stacktrace);
 
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);

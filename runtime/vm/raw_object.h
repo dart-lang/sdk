@@ -34,7 +34,7 @@ namespace dart {
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \
-  V(Stackmap)                                                                  \
+  V(StackMap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
@@ -74,7 +74,7 @@ namespace dart {
   V(Capability)                                                                \
   V(ReceivePort)                                                               \
   V(SendPort)                                                                  \
-  V(Stacktrace)                                                                \
+  V(StackTrace)                                                                \
   V(RegExp)                                                                    \
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
@@ -1268,14 +1268,14 @@ class RawCodeSourceMap : public RawObject {
 };
 
 
-// Stackmap is an immutable representation of the layout of the stack at a
+// StackMap is an immutable representation of the layout of the stack at a
 // PC. The stack map representation consists of a bit map which marks each
 // live object index starting from the base of the frame.
 //
 // The bit map representation is optimized for dense and small bit maps, without
 // any upper bound.
-class RawStackmap : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
+class RawStackMap : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
 
   // Regarding changing this to a bitfield: ARM64 requires register_bit_count_
   // to be as large as 96, meaning 7 bits, leaving 25 bits for the length, or
@@ -2099,8 +2099,8 @@ class RawReceivePort : public RawInstance {
 // Currently we don't have any interface that this object is supposed
 // to implement so we just support the 'toString' method which
 // converts the stack trace into a string.
-class RawStacktrace : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Stacktrace);
+class RawStackTrace : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->code_array_);
@@ -2378,7 +2378,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          RawObject::IsTypedDataClassId(index) || (index == kContextCid) ||
          (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
          (index == kObjectPoolCid) || (index == kPcDescriptorsCid) ||
-         (index == kCodeSourceMapCid) || (index == kStackmapCid) ||
+         (index == kCodeSourceMapCid) || (index == kStackMapCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) || (index == kCodeCid) ||
          (index == kContextScopeCid) || (index == kInstanceCid) ||

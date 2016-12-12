@@ -645,7 +645,7 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<CodeSourceMap>();
   code_source_map_class_ = cls.raw();
 
-  cls = Class::New<Stackmap>();
+  cls = Class::New<StackMap>();
   stackmap_class_ = cls.raw();
 
   cls = Class::New<LocalVarDescriptors>();
@@ -989,7 +989,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
-  SET_CLASS_NAME(stackmap, Stackmap);
+  SET_CLASS_NAME(stackmap, StackMap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
@@ -1315,7 +1315,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    const Class& stacktrace_cls = Class::Handle(zone, Class::New<Stacktrace>());
+    const Class& stacktrace_cls = Class::Handle(zone, Class::New<StackTrace>());
     RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
     pending_classes.Add(stacktrace_cls);
     // Super type set below, after Object is allocated.
@@ -1540,7 +1540,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float64x2_type(type);
 
-    // Set the super type of class Stacktrace to Object type so that the
+    // Set the super type of class StackTrace to Object type so that the
     // 'toString' method is implemented.
     type = object_store->object_type();
     stacktrace_cls.set_super_type(type);
@@ -1733,7 +1733,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     cls = Class::New<Capability>();
     cls = Class::New<ReceivePort>();
     cls = Class::New<SendPort>();
-    cls = Class::New<Stacktrace>();
+    cls = Class::New<StackTrace>();
     cls = Class::New<RegExp>();
     cls = Class::New<Number>();
 
@@ -3371,8 +3371,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::CodeSourceMap().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
-    case kStackmapCid:
-      return Symbols::Stackmap().raw();
+    case kStackMapCid:
+      return Symbols::StackMap().raw();
     case kLocalVarDescriptorsCid:
       return Symbols::LocalVarDescriptors().raw();
     case kExceptionHandlersCid:
@@ -11975,7 +11975,7 @@ intptr_t CodeSourceMap::DecodeInteger(intptr_t* byte_index) const {
 }
 
 
-bool Stackmap::GetBit(intptr_t bit_index) const {
+bool StackMap::GetBit(intptr_t bit_index) const {
   ASSERT(InRange(bit_index));
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
@@ -11985,7 +11985,7 @@ bool Stackmap::GetBit(intptr_t bit_index) const {
 }
 
 
-void Stackmap::SetBit(intptr_t bit_index, bool value) const {
+void StackMap::SetBit(intptr_t bit_index, bool value) const {
   ASSERT(InRange(bit_index));
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
@@ -12000,30 +12000,30 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(intptr_t pc_offset,
+RawStackMap* StackMap::New(intptr_t pc_offset,
                            BitmapBuilder* bmap,
                            intptr_t slow_path_bit_count) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
-  Stackmap& result = Stackmap::Handle();
+  StackMap& result = StackMap::Handle();
   // Guard against integer overflow of the instance size computation.
   intptr_t length = bmap->Length();
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
   if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n", length);
+    FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
   }
   {
-    // Stackmap data objects are associated with a code object, allocate them
+    // StackMap data objects are associated with a code object, allocate them
     // in old generation.
     RawObject* raw = Object::Allocate(
-        Stackmap::kClassId, Stackmap::InstanceSize(length), Heap::kOld);
+        StackMap::kClassId, StackMap::InstanceSize(length), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
   }
   // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
   // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
@@ -12035,28 +12035,28 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
 }
 
 
-RawStackmap* Stackmap::New(intptr_t length,
+RawStackMap* StackMap::New(intptr_t length,
                            intptr_t slow_path_bit_count,
                            intptr_t pc_offset) {
   ASSERT(Object::stackmap_class() != Class::null());
-  Stackmap& result = Stackmap::Handle();
+  StackMap& result = StackMap::Handle();
   // Guard against integer overflow of the instance size computation.
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
   if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n", length);
+    FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
   }
   {
-    // Stackmap data objects are associated with a code object, allocate them
+    // StackMap data objects are associated with a code object, allocate them
     // in old generation.
     RawObject* raw = Object::Allocate(
-        Stackmap::kClassId, Stackmap::InstanceSize(length), Heap::kOld);
+        StackMap::kClassId, StackMap::InstanceSize(length), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
   }
   // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
   // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
@@ -12065,7 +12065,7 @@ RawStackmap* Stackmap::New(intptr_t length,
 }
 
 
-const char* Stackmap::ToCString() const {
+const char* StackMap::ToCString() const {
 #define FORMAT "%#05x: "
   if (IsNull()) {
     return "{null}";
@@ -12270,7 +12270,7 @@ intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
 }
 
 
-bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
+bool ExceptionHandlers::NeedsStackTrace(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].needs_stacktrace;
 }
@@ -14392,21 +14392,21 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
 }
 
 
-RawStackmap* Code::GetStackmap(uint32_t pc_offset,
+RawStackMap* Code::GetStackMap(uint32_t pc_offset,
                                Array* maps,
-                               Stackmap* map) const {
+                               StackMap* map) const {
   // This code is used during iterating frames during a GC and hence it
   // should not in turn start a GC.
   NoSafepointScope no_safepoint;
   if (stackmaps() == Array::null()) {
     // No stack maps are present in the code object which means this
     // frame relies on tagged pointers.
-    return Stackmap::null();
+    return StackMap::null();
   }
   // A stack map is present in the code object, use the stack map to visit
   // frame slots which are marked as having objects.
   *maps = stackmaps();
-  *map = Stackmap::null();
+  *map = StackMap::null();
   for (intptr_t i = 0; i < maps->Length(); i++) {
     *map ^= maps->At(i);
     ASSERT(!map->IsNull());
@@ -14420,7 +14420,7 @@ RawStackmap* Code::GetStackmap(uint32_t pc_offset,
   // Running with --verify-on-transition should hit this.
   ASSERT(!is_optimized() ||
          (pc_offset == UncheckedEntryPoint() - PayloadStart()));
-  return Stackmap::null();
+  return StackMap::null();
 }
 
 
@@ -15198,7 +15198,7 @@ RawUnhandledException* UnhandledException::New(Heap::Space space) {
     result ^= raw;
   }
   result.set_exception(Object::null_instance());
-  result.set_stacktrace(Stacktrace::Handle());
+  result.set_stacktrace(StackTrace::Handle());
   return result.raw();
 }
 
@@ -22264,70 +22264,70 @@ RawClosure* Closure::New() {
 }
 
 
-intptr_t Stacktrace::Length() const {
+intptr_t StackTrace::Length() const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   return code_array.Length();
 }
 
 
-RawFunction* Stacktrace::FunctionAtFrame(intptr_t frame_index) const {
+RawFunction* StackTrace::FunctionAtFrame(intptr_t frame_index) const {
   const Code& code = Code::Handle(CodeAtFrame(frame_index));
   return code.IsNull() ? Function::null() : code.function();
 }
 
 
-RawCode* Stacktrace::CodeAtFrame(intptr_t frame_index) const {
+RawCode* StackTrace::CodeAtFrame(intptr_t frame_index) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   return reinterpret_cast<RawCode*>(code_array.At(frame_index));
 }
 
 
-void Stacktrace::SetCodeAtFrame(intptr_t frame_index, const Code& code) const {
+void StackTrace::SetCodeAtFrame(intptr_t frame_index, const Code& code) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   code_array.SetAt(frame_index, code);
 }
 
 
-RawSmi* Stacktrace::PcOffsetAtFrame(intptr_t frame_index) const {
+RawSmi* StackTrace::PcOffsetAtFrame(intptr_t frame_index) const {
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   return reinterpret_cast<RawSmi*>(pc_offset_array.At(frame_index));
 }
 
 
-void Stacktrace::SetPcOffsetAtFrame(intptr_t frame_index,
+void StackTrace::SetPcOffsetAtFrame(intptr_t frame_index,
                                     const Smi& pc_offset) const {
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   pc_offset_array.SetAt(frame_index, pc_offset);
 }
 
 
-void Stacktrace::set_code_array(const Array& code_array) const {
+void StackTrace::set_code_array(const Array& code_array) const {
   StorePointer(&raw_ptr()->code_array_, code_array.raw());
 }
 
 
-void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
+void StackTrace::set_pc_offset_array(const Array& pc_offset_array) const {
   StorePointer(&raw_ptr()->pc_offset_array_, pc_offset_array.raw());
 }
 
 
-void Stacktrace::set_expand_inlined(bool value) const {
+void StackTrace::set_expand_inlined(bool value) const {
   StoreNonPointer(&raw_ptr()->expand_inlined_, value);
 }
 
 
-bool Stacktrace::expand_inlined() const {
+bool StackTrace::expand_inlined() const {
   return raw_ptr()->expand_inlined_;
 }
 
 
-RawStacktrace* Stacktrace::New(const Array& code_array,
+RawStackTrace* StackTrace::New(const Array& code_array,
                                const Array& pc_offset_array,
                                Heap::Space space) {
-  Stacktrace& result = Stacktrace::Handle();
+  StackTrace& result = StackTrace::Handle();
   {
-    RawObject* raw = Object::Allocate(Stacktrace::kClassId,
-                                      Stacktrace::InstanceSize(), space);
+    RawObject* raw = Object::Allocate(StackTrace::kClassId,
+                                      StackTrace::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -22338,13 +22338,13 @@ RawStacktrace* Stacktrace::New(const Array& code_array,
 }
 
 
-const char* Stacktrace::ToCString() const {
+const char* StackTrace::ToCString() const {
   intptr_t idx = 0;
   return ToCStringInternal(&idx);
 }
 
 
-static intptr_t PrintOneStacktrace(Zone* zone,
+static intptr_t PrintOneStackTrace(Zone* zone,
                                    GrowableArray<char*>* frame_strings,
                                    uword pc,
                                    const Function& function,
@@ -22382,7 +22382,7 @@ static intptr_t PrintOneStacktrace(Zone* zone,
 }
 
 
-const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
+const char* StackTrace::ToCStringInternal(intptr_t* frame_index,
                                           intptr_t max_frames) const {
   Zone* zone = Thread::Current()->zone();
   Function& function = Function::Handle();
@@ -22425,14 +22425,14 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
             ASSERT(pc != 0);
             ASSERT(code.PayloadStart() <= pc);
             ASSERT(pc < (code.PayloadStart() + code.Size()));
-            total_len += PrintOneStacktrace(zone, &frame_strings, pc, function,
+            total_len += PrintOneStackTrace(zone, &frame_strings, pc, function,
                                             code, *frame_index);
             (*frame_index)++;  // To account for inlined frames.
           }
         }
       } else {
         if (function.is_visible() || FLAG_show_invisible_frames) {
-          total_len += PrintOneStacktrace(zone, &frame_strings, pc, function,
+          total_len += PrintOneStackTrace(zone, &frame_strings, pc, function,
                                           code, *frame_index);
           (*frame_index)++;
         }

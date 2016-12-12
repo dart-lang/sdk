@@ -21,7 +21,7 @@ class Integer;
 class RawInstance;
 class RawObject;
 class RawScript;
-class RawStacktrace;
+class RawStackTrace;
 class String;
 class Thread;
 
@@ -34,7 +34,7 @@ class Exceptions : AllStatic {
   static void PropagateError(const Error& error);
 
   // Helpers to create and throw errors.
-  static RawStacktrace* CurrentStacktrace();
+  static RawStackTrace* CurrentStackTrace();
   static RawScript* GetCallerScript(DartFrameIterator* iterator);
   static RawInstance* NewInstance(const char* class_name);
   static void CreateAndThrowTypeError(TokenPosition location,

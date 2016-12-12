@@ -1336,17 +1336,17 @@ void RawCodeSourceMap::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
+RawStackMap* StackMap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind,
                                 bool as_reference) {
   UNREACHABLE();
-  return Stackmap::null();
+  return StackMap::null();
 }
 
 
-void RawStackmap::WriteTo(SnapshotWriter* writer,
+void RawStackMap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
                           bool as_reference) {
@@ -2853,17 +2853,17 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
+RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
                                     Snapshot::Kind kind,
                                     bool as_reference) {
-  UNREACHABLE();  // Stacktraces are not sent in a snapshot.
-  return Stacktrace::null();
+  UNREACHABLE();  // StackTraces are not sent in a snapshot.
+  return StackTrace::null();
 }
 
 
-void RawStacktrace::WriteTo(SnapshotWriter* writer,
+void RawStackTrace::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind,
                             bool as_reference) {

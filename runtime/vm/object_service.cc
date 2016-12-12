@@ -709,7 +709,7 @@ void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void Stackmap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void StackMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
@@ -1487,7 +1487,7 @@ void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "StackTrace");

@@ -6375,7 +6375,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode* body) {
       try_scope->LocalLookupVariable(Symbols::SavedExceptionVar());
   LocalVariable* saved_stack_trace_var =
       try_scope->LocalLookupVariable(Symbols::SavedStackTraceVar());
-  SaveExceptionAndStacktrace(current_block_->statements, exception_var,
+  SaveExceptionAndStackTrace(current_block_->statements, exception_var,
                              stack_trace_var, saved_exception_var,
                              saved_stack_trace_var);
 
@@ -6523,7 +6523,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       try_scope->LocalLookupVariable(Symbols::SavedExceptionVar());
   LocalVariable* saved_stack_trace_var =
       try_scope->LocalLookupVariable(Symbols::SavedStackTraceVar());
-  SaveExceptionAndStacktrace(current_block_->statements, exception_var,
+  SaveExceptionAndStackTrace(current_block_->statements, exception_var,
                              stack_trace_var, saved_exception_var,
                              saved_stack_trace_var);
 
@@ -9227,7 +9227,7 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
 // the saved exception variable (:saved_exception_var) used to rethrow.
 // Generate code to load the stack trace object (:stack_trace_var) into
 // the saved stacktrace variable (:saved_stack_trace_var) used to rethrow.
-void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
+void Parser::SaveExceptionAndStackTrace(SequenceNode* statements,
                                         LocalVariable* exception_var,
                                         LocalVariable* stack_trace_var,
                                         LocalVariable* saved_exception_var,
@@ -9300,7 +9300,7 @@ SequenceNode* Parser::EnsureFinallyClause(
     // there is an outer try or not. Note that this is only necessary if the
     // finally clause contains an await or yield.
     // TODO(hausner): Optimize.
-    SaveExceptionAndStacktrace(current_block_->statements, exception_var,
+    SaveExceptionAndStackTrace(current_block_->statements, exception_var,
                                stack_trace_var, rethrow_exception_var,
                                rethrow_stack_trace_var);
   }
@@ -9581,7 +9581,7 @@ SequenceNode* Parser::ParseCatchClauses(
                 LoadLocalNode(TokenPosition::kNoSource, async_saved_try_ctx)));
       }
     }
-    SaveExceptionAndStacktrace(async_code, exception_var, stack_trace_var,
+    SaveExceptionAndStackTrace(async_code, exception_var, stack_trace_var,
                                rethrow_exception_var, rethrow_stack_trace_var);
     // The async_code node sequence contains code to restore the context (if
     // an outer try block is present) and code to save the exception and

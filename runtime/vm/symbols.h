@@ -170,7 +170,7 @@ class ObjectPointerVisitor;
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
   V(CodeSourceMap, "CodeSourceMap")                                            \
-  V(Stackmap, "Stackmap")                                                      \
+  V(StackMap, "StackMap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
   V(DeoptInfo, "DeoptInfo")                                                    \

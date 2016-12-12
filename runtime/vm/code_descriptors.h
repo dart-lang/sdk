@@ -63,13 +63,13 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 };
 
 
-class StackmapTableBuilder : public ZoneAllocated {
+class StackMapTableBuilder : public ZoneAllocated {
  public:
-  StackmapTableBuilder()
-      : stack_map_(Stackmap::ZoneHandle()),
+  StackMapTableBuilder()
+      : stack_map_(StackMap::ZoneHandle()),
         list_(GrowableObjectArray::ZoneHandle(
             GrowableObjectArray::New(Heap::kOld))) {}
-  ~StackmapTableBuilder() {}
+  ~StackMapTableBuilder() {}
 
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
@@ -77,15 +77,15 @@ class StackmapTableBuilder : public ZoneAllocated {
 
   bool Verify();
 
-  RawArray* FinalizeStackmaps(const Code& code);
+  RawArray* FinalizeStackMaps(const Code& code);
 
  private:
   intptr_t Length() const { return list_.Length(); }
-  RawStackmap* MapAt(intptr_t index) const;
+  RawStackMap* MapAt(intptr_t index) const;
 
-  Stackmap& stack_map_;
+  StackMap& stack_map_;
   GrowableObjectArray& list_;
-  DISALLOW_COPY_AND_ASSIGN(StackmapTableBuilder);
+  DISALLOW_COPY_AND_ASSIGN(StackMapTableBuilder);
 };
 
 
@@ -130,7 +130,7 @@ class ExceptionHandlerList : public ZoneAllocated {
 
 
   // Called by rethrows, to mark their enclosing handlers.
-  void SetNeedsStacktrace(intptr_t try_index) {
+  void SetNeedsStackTrace(intptr_t try_index) {
     // Rethrows can be generated outside a try by the compiler.
     if (try_index == CatchClauseNode::kInvalidTryIndex) {
       return;

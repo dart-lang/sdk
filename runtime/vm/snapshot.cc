@@ -370,7 +370,7 @@ void SnapshotReader::SetReadException(const char* msg) {
   const Library& library = Library::Handle(zone(), Library::CoreLibrary());
   result = DartLibraryCalls::InstanceCreate(library, Symbols::ArgumentError(),
                                             Symbols::Dot(), args);
-  const Stacktrace& stacktrace = Stacktrace::Handle(zone());
+  const StackTrace& stacktrace = StackTrace::Handle(zone());
   const UnhandledException& error = UnhandledException::Handle(
       zone(), UnhandledException::New(Instance::Cast(result), stacktrace));
   thread()->long_jump_base()->Jump(1, error);

@@ -158,7 +158,7 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
 [ $noopt || $runtime == dart_precompiled ]
-# Stacktraces in precompilation omit inlined frames.
+# StackTraces in precompilation omit inlined frames.
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
 

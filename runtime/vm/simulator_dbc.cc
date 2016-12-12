@@ -3733,7 +3733,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     RawObject* raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
     special_[kExceptionSpecialIndex] = raw_exception;
-    special_[kStacktraceSpecialIndex] = raw_stacktrace;
+    special_[kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
   } else if (pc == StubCode::DeoptForRewind_entry()->EntryPoint()) {
     // The DeoptForRewind stub is a placeholder.  We will eventually

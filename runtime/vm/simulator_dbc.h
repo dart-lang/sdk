@@ -84,7 +84,7 @@ class Simulator {
 
   enum SpecialIndex {
     kExceptionSpecialIndex,
-    kStacktraceSpecialIndex,
+    kStackTraceSpecialIndex,
     kSpecialIndexCount
   };
 
