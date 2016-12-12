@@ -6,6 +6,7 @@ library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
 
+import '../cache_strategy.dart' show CacheStrategy;
 import '../common/backend_api.dart' show Backend;
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/names.dart' show Identifiers;
@@ -14,6 +15,7 @@ import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dart_types.dart' show DartType, InterfaceType;
+import '../dump_info.dart';
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -41,8 +43,6 @@ import '../world.dart';
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
-  @deprecated
-  final Compiler _compiler; // TODO(ahe): Remove this dependency.
   final EnqueuerStrategy strategy;
   final Map<String, Set<Element>> _instanceMembersByName =
       new Map<String, Set<Element>>();
@@ -56,10 +56,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
   bool queueIsClosed = false;
   final CompilerTask task;
   final native.NativeEnqueuer nativeEnqueuer;
+  final Backend _backend;
+  final CompilerOptions _options;
 
   WorldImpactVisitor _impactVisitor;
 
-  final Queue<WorkItem> queue = new Queue<WorkItem>();
+  final Queue<WorkItem> _queue = new Queue<WorkItem>();
   final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
 
   final Set<Element> newlyEnqueuedElements;
@@ -71,24 +73,23 @@ class CodegenEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, Compiler compiler, this.strategy)
-      : newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
-        newlySeenSelectors = compiler.cacheStrategy.newSet(),
-        nativeEnqueuer = compiler.backend.nativeCodegenEnqueuer(),
-        this.name = 'codegen enqueuer',
-        this._compiler = compiler {
+  CodegenEnqueuer(this.task, CacheStrategy cacheStrategy, Backend backend,
+      this._options, this.strategy)
+      : newlyEnqueuedElements = cacheStrategy.newSet(),
+        newlySeenSelectors = cacheStrategy.newSet(),
+        nativeEnqueuer = backend.nativeCodegenEnqueuer(),
+        this._backend = backend,
+        this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
   CodegenWorldBuilder get universe => _universe;
 
-  Backend get _backend => _compiler.backend;
+  // TODO(johnniwinther): Remove these hacks:
+  ClosedWorld get _world => _backend.compiler.closedWorld;
+  DumpInfoTask get _dumpInfoTask => _backend.compiler.dumpInfoTask;
 
-  CompilerOptions get _options => _compiler.options;
-
-  ClosedWorld get _world => _compiler.closedWorld;
-
-  bool get queueIsEmpty => queue.isEmpty;
+  bool get queueIsEmpty => _queue.isEmpty;
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
@@ -120,11 +121,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
       throw new SpannableAssertionFailure(
           element, "Codegen work list is closed. Trying to add $element");
     }
-    queue.add(new CodegenWorkItem(_backend, element));
+    _queue.add(new CodegenWorkItem(_backend, element));
     // TODO(sigmund): add other missing dependencies (internals, selectors
     // enqueued after allocations).
-    _compiler.dumpInfoTask
-        .registerDependency(_compiler.currentElement, element);
+    _dumpInfoTask.registerDependency(element);
   }
 
   void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
@@ -408,7 +408,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void _registerIsCheck(DartType type) {
-    type = _universe.registerIsCheck(type, _compiler.resolution);
+    type = _universe.registerIsCheck(type);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
@@ -431,9 +431,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void forEach(void f(WorkItem work)) {
     do {
-      while (queue.isNotEmpty) {
+      while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
-        WorkItem work = queue.removeLast();
+        WorkItem work = _queue.removeLast();
         if (!isProcessed(work.element)) {
           strategy.processWorkItem(f, work);
           // TODO(johnniwinther): Register the processed element here. This
@@ -443,7 +443,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
       List recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
-    } while (queue.isNotEmpty || _recentClasses.isNotEmpty);
+    } while (_queue.isNotEmpty || _recentClasses.isNotEmpty);
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
@@ -476,7 +476,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void forgetEntity(Element element, Compiler compiler) {
-    _universe.forgetElement(element, _compiler);
+    _universe.forgetElement(element, compiler);
     _processedClasses.remove(element);
     _instanceMembersByName[element.name]?.remove(element);
     _instanceFunctionsByName[element.name]?.remove(element);

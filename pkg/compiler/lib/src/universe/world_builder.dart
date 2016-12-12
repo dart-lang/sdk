@@ -125,7 +125,7 @@ abstract class WorldBuilder {
 
   /// Registers that [type] is checked in this universe. The unaliased type is
   /// returned.
-  DartType registerIsCheck(DartType type, Resolution resolution);
+  DartType registerIsCheck(DartType type);
 
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
@@ -677,8 +677,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  DartType registerIsCheck(DartType type, Resolution resolution) {
-    type.computeUnaliased(resolution);
+  DartType registerIsCheck(DartType type) {
+    type.computeUnaliased(_resolution);
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -1118,7 +1118,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  DartType registerIsCheck(DartType type, Resolution resolution) {
+  DartType registerIsCheck(DartType type) {
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check

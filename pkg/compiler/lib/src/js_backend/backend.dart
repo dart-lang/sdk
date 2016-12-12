@@ -1428,8 +1428,8 @@ class JavaScriptBackend extends Backend {
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
   CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
-    return new CodegenEnqueuer(
-        task, compiler, const TreeShakingEnqueuerStrategy());
+    return new CodegenEnqueuer(task, compiler.cacheStrategy, this,
+        compiler.options, const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {

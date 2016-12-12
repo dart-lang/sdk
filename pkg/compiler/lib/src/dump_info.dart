@@ -419,9 +419,11 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   final Map<Element, Set<Element>> _dependencies = {};
-  void registerDependency(Element source, Element target) {
+  void registerDependency(Element target) {
     if (compiler.options.dumpInfo) {
-      _dependencies.putIfAbsent(source, () => new Set()).add(target);
+      _dependencies
+          .putIfAbsent(compiler.currentElement, () => new Set())
+          .add(target);
     }
   }
 

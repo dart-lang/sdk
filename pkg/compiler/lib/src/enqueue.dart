@@ -135,7 +135,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
-  Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
+  final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   final ResolutionWorldBuilderImpl _universe;
 
   bool queueIsClosed = false;
@@ -307,7 +307,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void _registerIsCheck(DartType type) {
-    type = _universe.registerIsCheck(type, _resolution);
+    type = _universe.registerIsCheck(type);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
