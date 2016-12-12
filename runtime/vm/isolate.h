@@ -91,6 +91,10 @@ class IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) = 0;
 
+ protected:
+  // Returns true if |isolate| is the VM or service isolate.
+  bool IsVMInternalIsolate(Isolate* isolate) const;
+
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };

@@ -3762,8 +3762,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if ((isolate != Dart::vm_isolate()) &&
-        !ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
+    if (!IsVMInternalIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }

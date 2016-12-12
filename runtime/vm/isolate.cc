@@ -128,6 +128,12 @@ static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
 }
 
 
+bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
+  return ((isolate == Dart::vm_isolate()) ||
+          ServiceIsolate::IsServiceIsolateDescendant(isolate));
+}
+
+
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
   thread->DeferOOBMessageInterrupts();
 }
@@ -2573,9 +2579,7 @@ class IsolateKillerVisitor : public IsolateVisitor {
     // If a target_ is specified, then only kill the target_.
     // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != NULL) && (isolate == target_)) ||
-            ((target_ == NULL) &&
-             !ServiceIsolate::IsServiceIsolateDescendant(isolate) &&
-             (isolate != Dart::vm_isolate())));
+            ((target_ == NULL) && !IsVMInternalIsolate(isolate)));
   }
 
   Isolate* target_;
