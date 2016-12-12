@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -4061,9 +4062,17 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
-    if (options.patchPlatform != 0 && _source.uri.scheme == 'dart') {
-      new SdkPatcher().patch(context.sourceFactory.dartSdk,
-          options.patchPlatform, errorListener, _source, unit);
+    if (options.patchPaths.isNotEmpty && _source.uri.scheme == 'dart') {
+      var resourceProvider =
+          (context.sourceFactory.dartSdk as FolderBasedDartSdk)
+              .resourceProvider;
+      new SdkPatcher().patch(
+          resourceProvider,
+          context.analysisOptions.strongMode,
+          context.analysisOptions.patchPaths,
+          errorListener,
+          _source,
+          unit);
     }
 
     bool hasNonPartOfDirective = false;

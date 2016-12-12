@@ -10,12 +10,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
-import 'package:path/src/context.dart';
 
 /**
  * [SdkPatcher] applies patches to SDK [CompilationUnit].
@@ -28,12 +25,13 @@ class SdkPatcher {
 
   /**
    * Patch the given [unit] of a SDK [source] with the patches defined in
-   * the [sdk] for the given [platform].  Throw [ArgumentError] if a patch
+   * [allPatchPaths].  Throw [ArgumentError] if a patch
    * file cannot be read, or the contents violates rules for patch files.
    */
   void patch(
-      FolderBasedDartSdk sdk,
-      int platform,
+      ResourceProvider resourceProvider,
+      bool strongMode,
+      Map<String, List<String>> allPatchPaths,
       AnalysisErrorListener errorListener,
       Source source,
       CompilationUnit unit) {
@@ -53,21 +51,10 @@ class SdkPatcher {
       _allowNewPublicNames = libraryName == '_internal';
     }
     // Prepare the patch files to apply.
-    List<String> patchPaths;
-    {
-      SdkLibrary sdkLibrary = sdk.getSdkLibrary(libraryUriStr);
-      if (sdkLibrary == null) {
-        throw new ArgumentError(
-            'The library $libraryUriStr is not defined in the SDK.');
-      }
-      patchPaths = sdkLibrary.getPatches(platform);
-    }
+    List<String> patchPaths = allPatchPaths[libraryUriStr];
 
-    bool strongMode = sdk.context.analysisOptions.strongMode;
-    Context pathContext = sdk.resourceProvider.pathContext;
     for (String path in patchPaths) {
-      String pathInLib = pathContext.joinAll(path.split('/'));
-      File patchFile = sdk.libraryDirectory.getChildAssumingFile(pathInLib);
+      File patchFile = resourceProvider.getFile(path);
       if (!patchFile.exists) {
         throw new ArgumentError(
             'The patch file ${patchFile.path} for $source does not exist.');

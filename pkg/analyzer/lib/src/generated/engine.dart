@@ -1131,7 +1131,7 @@ abstract class AnalysisOptions {
   /**
    * The length of the list returned by [encodeCrossContextOptions].
    */
-  static const int crossContextOptionsLength = 2;
+  static const int crossContextOptionsLength = 1;
 
   /**
    * Function that returns `true` if analysis is to parse and analyze function
@@ -1296,10 +1296,10 @@ abstract class AnalysisOptions {
   List<Linter> get lintRules;
 
   /**
-   * Return the "platform" bit mask which should be used to apply patch files,
-   * or `0` if no patch files should be applied.
+   * A mapping from Dart SDK library name (e.g. "dart:core") to a list of paths
+   * to patch files that should be applied to the library.
    */
-  int get patchPlatform;
+  Map<String, List<String>> get patchPaths;
 
   /**
    * Return `true` if analysis is to parse comments.
@@ -1453,8 +1453,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   List<Linter> _lintRules;
 
-  @override
-  int patchPlatform = 0;
+  Map<String, List<String>> patchPaths = {};
 
   @override
   bool preserveComments = true;
@@ -1544,7 +1543,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
-    patchPlatform = options.patchPlatform;
+    patchPaths = options.patchPaths;
   }
 
   bool get analyzeFunctionBodies {
@@ -1655,7 +1654,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
             (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
             (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
-    return <int>[flags, patchPlatform];
+    return <int>[flags];
   }
 
   @override
@@ -1682,7 +1681,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = false;
     _lintRules = null;
     nonnullableTypes = NONNULLABLE_TYPES;
-    patchPlatform = 0;
+    patchPaths = {};
     preserveComments = true;
     strongMode = false;
     strongModeHints = false;
@@ -1698,7 +1697,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
-    patchPlatform = options.patchPlatform;
   }
 
   /**
