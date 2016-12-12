@@ -3447,14 +3447,11 @@ class D extends p.C {} // Prevent "unused import" warning
   }
 
   test_import_short_absolute() {
-    if (resourceProvider.pathContext.separator == '\\') {
-      // This test fails on Windows due to
-      // https://github.com/dart-lang/path/issues/18
-      // TODO(paulberry): reenable once that bug is addressed.
-      return;
-    }
     testFile = '/my/project/bin/test.dart';
-    addLibrarySource('/a.dart', 'class C {}');
+    // Note: "/a.dart" resolves differently on Windows vs. Posix.
+    var destinationPath =
+        resourceProvider.pathContext.fromUri(Uri.parse('/a.dart'));
+    addLibrarySource(destinationPath, 'class C {}');
     checkLibrary('import "/a.dart"; C c;');
   }
 

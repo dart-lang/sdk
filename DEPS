@@ -85,7 +85,7 @@ vars = {
   "observe_tag": "@0.13.5",
   "package_config_tag": "@1.0.0",
   "package_resolver_tag": "@1.0.2",
-  "path_tag": "@1.3.9",
+  "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.4",
