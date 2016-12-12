@@ -386,7 +386,6 @@ class AnalysisDriver {
   void addFile(String path) {
     if (AnalysisEngine.isDartFileName(path)) {
       _addedFiles.add(path);
-      _changedFiles.add(path);
       _filesToAnalyze.add(path);
     }
     _statusSupport.transitionToAnalyzing();

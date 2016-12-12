@@ -302,9 +302,9 @@ main() {
     await _waitForIdle();
     assertNumberOfErrorsInB(0);
 
-    // Change 'b' t have a hint again.
-    // Add and remove 'b'.
-    // The file must be refreshed, and the hint must be reported.
+    // Change 'b' content so that it has a hint.
+    // Remove 'b' and add it again.
+    // The file 'b' must be refreshed, and the hint must be reported.
     provider.newFile(
         b,
         r'''
