@@ -335,18 +335,20 @@ TEST_CASE(ManySimpleTasksWithZones) {
       char* zone_info_buf =
           OS::SCreate(current_zone,
                       "\"type\":\"_Zone\","
-                      "\"capacity\":%ld,"
-                      "\"used\":%ld",
+                      "\"capacity\":%" Pd
+                      ","
+                      "\"used\":%" Pd "",
                       top_zone->SizeInBytes(), top_zone->UsedSizeInBytes());
       EXPECT_SUBSTRING(zone_info_buf, json);
       top_zone = top_zone->previous();
     }
 
     // Check the thread exists and is the correct size.
-    char* thread_info_buf = OS::SCreate(current_zone,
-                                        "\"type\":\"_Thread\","
-                                        "\"id\":\"threads\\/%" Pd64 "",
-                                        thread->os_thread()->trace_id());
+    char* thread_info_buf = OS::SCreate(
+        current_zone,
+        "\"type\":\"_Thread\","
+        "\"id\":\"threads\\/%" Pd "",
+        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()));
 
     // Ensure the isolate for each thread is valid.
 

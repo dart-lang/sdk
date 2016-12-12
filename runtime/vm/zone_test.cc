@@ -197,10 +197,11 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
       zone.GetZone()->PrintJSON(&stream);
       const char* json = stream.ToCString();
       // Ensure that  matches actual values.
-      char* size_buf = OS::SCreate(string_stack_zone.GetZone(),
-                                   "\"capacity\":%ld,"
-                                   "\"used\":%ld",
-                                   zone.SizeInBytes(), zone.UsedSizeInBytes());
+      char* size_buf =
+          OS::SCreate(string_stack_zone.GetZone(), "\"capacity\":%" Pd
+                                                   ","
+                                                   "\"used\":%" Pd "",
+                      zone.SizeInBytes(), zone.UsedSizeInBytes());
       EXPECT_SUBSTRING(size_buf, json);
     }
 
@@ -212,10 +213,11 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
       JSONStream stream;
       zone.GetZone()->PrintJSON(&stream);
       const char* json = stream.ToCString();
-      char* size_buf = OS::SCreate(string_stack_zone.GetZone(),
-                                   "\"capacity\":%ld,"
-                                   "\"used\":%ld",
-                                   zone.SizeInBytes(), zone.UsedSizeInBytes());
+      char* size_buf =
+          OS::SCreate(string_stack_zone.GetZone(), "\"capacity\":%" Pd
+                                                   ","
+                                                   "\"used\":%" Pd "",
+                      zone.SizeInBytes(), zone.UsedSizeInBytes());
       EXPECT_SUBSTRING(size_buf, json);
     }
   }
