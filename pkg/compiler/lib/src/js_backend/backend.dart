@@ -64,7 +64,7 @@ import '../universe/world_impact.dart'
         WorldImpactVisitor,
         StagedWorldImpactBuilder;
 import '../util/util.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
@@ -1282,9 +1282,11 @@ class JavaScriptBackend extends Backend {
     return impactBuilder;
   }
 
-  onResolutionComplete() {
-    compiler.enqueuer.resolution.processedEntities.forEach(processAnnotations);
-    super.onResolutionComplete();
+  onResolutionComplete(ClosedWorldRefiner closedWorldRefiner) {
+    for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
+      processAnnotations(entity, closedWorldRefiner);
+    }
+    super.onResolutionComplete(closedWorldRefiner);
     computeMembersNeededForReflection();
     rti.computeClassesNeedingRti();
     _registeredMetadata.clear();
@@ -2390,7 +2392,8 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Process backend specific annotations.
-  void processAnnotations(Element element) {
+  void processAnnotations(
+      Element element, ClosedWorldRefiner closedWorldRefiner) {
     if (element.isMalformed) {
       // Elements that are marked as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
@@ -2444,14 +2447,14 @@ class JavaScriptBackend extends Backend {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        compiler.inferenceWorld.registerCannotThrow(element);
+        closedWorldRefiner.registerCannotThrow(element);
       } else if (cls == helpers.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        compiler.inferenceWorld.registerSideEffectsFree(element);
+        closedWorldRefiner.registerSideEffectsFree(element);
       }
     }
     if (hasForceInline && hasNoInline) {

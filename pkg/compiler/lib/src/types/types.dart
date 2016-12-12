@@ -14,6 +14,7 @@ import '../inferrer/type_graph_inferrer.dart'
 import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Maplet;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 
 import 'masks.dart';
 export 'masks.dart';
@@ -245,14 +246,15 @@ class GlobalTypeInferenceTask extends CompilerTask {
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(Element mainElement) {
+  void runGlobalTypeInference(Element mainElement, ClosedWorld closedWorld,
+      ClosedWorldRefiner closedWorldRefiner) {
     measure(() {
-      CommonMasks masks = compiler.closedWorld.commonMasks;
-      typesInferrerInternal ??= new TypeGraphInferrer(compiler, masks);
+      typesInferrerInternal ??=
+          new TypeGraphInferrer(compiler, closedWorld, closedWorldRefiner);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
       results = new GlobalTypeInferenceResults(typesInferrerInternal, compiler,
-          masks, typesInferrerInternal.inferrer.types);
+          closedWorld.commonMasks, typesInferrerInternal.inferrer.types);
     });
   }
 }

@@ -16,14 +16,13 @@ import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart' as op;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask, GlobalTypeInferenceElementData;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Link, Setlet;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'inferrer_visitor.dart';
 
 /**
@@ -35,6 +34,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     implements MinimalInferrerEngine<T> {
   final Compiler compiler;
   final ClosedWorld closedWorld;
+  final ClosedWorldRefiner closedWorldRefiner;
   final V types;
   final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
@@ -44,9 +44,8 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   final Map<Element, GlobalTypeInferenceElementData> inTreeData =
       new Map<Element, GlobalTypeInferenceElementData>();
 
-  InferrerEngine(Compiler compiler, this.types)
-      : this.compiler = compiler,
-        this.closedWorld = compiler.closedWorld;
+  InferrerEngine(
+      this.compiler, this.closedWorld, this.closedWorldRefiner, this.types);
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -219,8 +218,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      sideEffects
-          .add(compiler.inferenceWorld.getCurrentlyKnownSideEffects(callee));
+      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
     }
   }
 
@@ -541,7 +539,8 @@ class SimpleTypeInferrerVisitor<T>
       }
     }
 
-    compiler.inferenceWorld.registerSideEffects(analyzedElement, sideEffects);
+    inferrer.closedWorldRefiner
+        .registerSideEffects(analyzedElement, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;

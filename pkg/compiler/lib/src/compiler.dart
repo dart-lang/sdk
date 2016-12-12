@@ -279,13 +279,6 @@ abstract class Compiler implements LibraryLoaderListener {
     tasks.addAll(backend.tasks);
   }
 
-  /// The world currently being computed by resolution. This forms a basis for
-  /// the [inferenceWorld] and later the [closedWorld].
-  OpenWorld get openWorld => _world;
-
-  /// The closed world after resolution but currently refined by inference.
-  ClosedWorldRefiner get inferenceWorld => _world;
-
   /// The closed world after resolution and inference.
   ClosedWorld get closedWorld {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
@@ -728,10 +721,11 @@ abstract class Compiler implements LibraryLoaderListener {
         }
         assert(mainFunction != null);
 
-        closeResolution();
+        ClosedWorldRefiner closedWorldRefiner = closeResolution();
 
         reporter.log('Inferring types...');
-        globalInference.runGlobalTypeInference(mainFunction);
+        globalInference.runGlobalTypeInference(
+            mainFunction, closedWorld, closedWorldRefiner);
 
         if (stopAfterTypeInference) return;
 
@@ -763,19 +757,20 @@ abstract class Compiler implements LibraryLoaderListener {
       });
 
   /// Perform the steps needed to fully end the resolution phase.
-  void closeResolution() {
+  ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    resolverWorld.openWorld.closeWorld(reporter);
+    WorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionComplete();
+    backend.onResolutionComplete(world);
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    closureToClassMapper.createClosureClasses();
+    closureToClassMapper.createClosureClasses(world);
+    return world;
   }
 
   /// Compute the [WorldImpact] for accessing all elements in [library].

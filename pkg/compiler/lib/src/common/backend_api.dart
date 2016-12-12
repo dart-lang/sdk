@@ -33,6 +33,7 @@ import '../serialization/serialization.dart'
 import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilder;
+import '../world.dart' show ClosedWorldRefiner;
 import 'codegen.dart' show CodegenWorkItem;
 import 'tasks.dart' show CompilerTask;
 
@@ -106,7 +107,7 @@ abstract class Backend extends Target {
 
   List<CompilerTask> get tasks;
 
-  void onResolutionComplete() {}
+  void onResolutionComplete(ClosedWorldRefiner closedWorldRefiner) {}
   void onTypeInferenceComplete() {}
 
   bool classNeedsRti(ClassElement cls);
