@@ -6057,7 +6057,7 @@ class TypeParameter : public AbstractType {
     return raw_ptr()->parameterized_function_;
   }
   bool IsClassTypeParameter() const {
-    return parameterized_class_id() != kIllegalCid;
+    return parameterized_class_id() != kFunctionCid;
   }
   bool IsFunctionTypeParameter() const {
     return parameterized_function() != Function::null();
