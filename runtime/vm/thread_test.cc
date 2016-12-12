@@ -313,17 +313,16 @@ TEST_CASE(ManySimpleTasksWithZones) {
     done_count = 0;
   }
 
+  // Get the information for the current isolate.
+  // We only need to check the current isolate since all tasks are spawned
+  // inside this single isolate.
   JSONStream stream;
-  Service::PrintJSONForVM(&stream, false);
+  isolate->PrintJSON(&stream, false);
   const char* json = stream.ToCString();
 
   // Confirm all expected entries are in the JSON output.
   for (intptr_t i = 0; i < kTaskCount + 1; i++) {
     Thread* thread = threads[i];
-    Isolate* thread_isolate = thread->isolate();
-    // Buffer can handle any possible input length given types.
-    //    char thread_address_buf[96];
-    //    char isolate_address_buf[64];
     Zone* top_zone = thread->zone();
 
     Thread* current_thread = Thread::Current();
@@ -350,17 +349,7 @@ TEST_CASE(ManySimpleTasksWithZones) {
         "\"id\":\"threads\\/%" Pd "",
         OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()));
 
-    // Ensure the isolate for each thread is valid.
-
-    char* isolate_info_buf =
-        OS::SCreate(current_zone,
-                    "\"type\":\"Isolate\","
-                    "\"fixedId\":true,"
-                    "\"id\":\"isolates\\/%" Pd64 "",
-                    static_cast<int64_t>(thread_isolate->main_port()));
-
     EXPECT_SUBSTRING(thread_info_buf, json);
-    EXPECT_SUBSTRING(isolate_info_buf, json);
   }
 
   // Unblock the tasks so they can finish.
