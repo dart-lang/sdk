@@ -698,7 +698,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     String outDir = pathContext.dirname(pathContext.dirname(exec));
     String sdkPath = pathContext.join(pathContext.dirname(outDir), "sdk");
     if (resourceProvider.getFolder(sdkPath).exists) {
-      return sdkPath;
+      // We are executing in the context of a test.  sdkPath is the path to the
+      // *source* files for the SDK.  But we want to test using the path to the
+      // *built* SDK if possible.
+      String builtSdkPath =
+          pathContext.join(pathContext.dirname(exec), 'dart-sdk');
+      if (resourceProvider.getFolder(sdkPath).exists) {
+        return builtSdkPath;
+      } else {
+        return sdkPath;
+      }
     }
     // probably be "dart-sdk/bin/dart"
     return pathContext.dirname(pathContext.dirname(exec));
