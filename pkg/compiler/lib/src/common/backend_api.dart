@@ -397,6 +397,7 @@ abstract class BackendClasses {
   ClassElement get numImplementation;
   ClassElement get stringImplementation;
   ClassElement get listImplementation;
+  ClassElement get mutableListImplementation;
   ClassElement get growableListImplementation;
   ClassElement get fixedListImplementation;
   ClassElement get constListImplementation;
@@ -412,4 +413,8 @@ abstract class BackendClasses {
   ClassElement get syncStarIterableImplementation;
   ClassElement get asyncFutureImplementation;
   ClassElement get asyncStarStreamImplementation;
+  ClassElement get indexableImplementation;
+  ClassElement get mutableIndexableImplementation;
+
+  bool isDefaultEqualityImplementation(Element element);
 }

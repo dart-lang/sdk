@@ -42,6 +42,10 @@ abstract class GraphBuilder {
 
   CodegenRegistry get registry;
 
+  ClosedWorld get closedWorld => compiler.closedWorld;
+
+  CommonMasks get commonMasks => closedWorld.commonMasks;
+
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
 
@@ -75,8 +79,8 @@ abstract class GraphBuilder {
 
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
-    push(new HIdentity(
-        expression, graph.addConstantNull(compiler), null, backend.boolType));
+    push(new HIdentity(expression, graph.addConstantNull(compiler), null,
+        closedWorld.commonMasks.boolType));
   }
 
   void dup() {
@@ -225,7 +229,7 @@ abstract class GraphBuilder {
         TypeInfoExpressionKind.INSTANCE,
         (type.element as ClassElement).thisType,
         rtiInputs,
-        backend.dynamicType);
+        closedWorld.commonMasks.dynamicType);
     add(typeInfo);
     return callSetRuntimeTypeInfo(typeInfo, newObject);
   }

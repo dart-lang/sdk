@@ -751,6 +751,8 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  ClosedWorld get closedWorld => compiler.closedWorld;
+
   @override
   SemanticSendVisitor get sendVisitor => this;
 
@@ -963,7 +965,6 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   T get thisType {
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.enclosingClass;
-    ClosedWorld closedWorld = compiler.closedWorld;
     if (closedWorld.isUsedAsMixin(cls)) {
       return _thisType = types.nonNullSubtype(cls);
     } else {

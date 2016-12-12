@@ -252,8 +252,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation refineReceiver(Selector selector, TypeMask mask,
       TypeInformation receiver, bool isConditional) {
     if (receiver.type.isExact) return receiver;
-    TypeMask otherType =
-        compiler.closedWorld.allFunctions.receiverType(selector, mask);
+    TypeMask otherType = closedWorld.allFunctions.receiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
     if (isConditional) {
@@ -916,8 +915,7 @@ class TypeGraphInferrerEngine
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
         compiler.inferenceWorld.addFunctionCalledInLoop(info.calledElement);
-      } else if (info.mask != null &&
-          !info.mask.containsAll(compiler.closedWorld)) {
+      } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
@@ -1189,7 +1187,7 @@ class TypeGraphInferrerEngine
           arguments, sideEffects, inLoop);
     }
 
-    compiler.closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
+    closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
@@ -1414,11 +1412,11 @@ class TypeGraphInferrer implements TypesInferrer {
 
     TypeMask result = const TypeMask.nonNullEmpty();
     Iterable<Element> elements =
-        compiler.closedWorld.allFunctions.filter(selector, mask);
+        inferrer.closedWorld.allFunctions.filter(selector, mask);
     for (Element element in elements) {
       TypeMask type =
           inferrer.typeOfElementWithSelector(element, selector).type;
-      result = result.union(type, compiler.closedWorld);
+      result = result.union(type, inferrer.closedWorld);
     }
     return result;
   }

@@ -10,6 +10,7 @@ import '../compiler.dart' show Compiler;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/js_backend.dart';
 import '../tracer.dart';
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -117,6 +118,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   HInstructionStringifier(this.currentBlock, this.compiler);
 
+  ClosedWorld get closedWorld => compiler.closedWorld;
+
   visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
@@ -125,27 +128,27 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'u';
     } else if (instruction.isConflicting()) {
       prefix = 'c';
-    } else if (instruction.isExtendableArray(compiler)) {
+    } else if (instruction.isExtendableArray(closedWorld)) {
       prefix = 'e';
-    } else if (instruction.isFixedArray(compiler)) {
+    } else if (instruction.isFixedArray(closedWorld)) {
       prefix = 'f';
-    } else if (instruction.isMutableArray(compiler)) {
+    } else if (instruction.isMutableArray(closedWorld)) {
       prefix = 'm';
-    } else if (instruction.isReadableArray(compiler)) {
+    } else if (instruction.isReadableArray(closedWorld)) {
       prefix = 'a';
-    } else if (instruction.isString(compiler)) {
+    } else if (instruction.isString(closedWorld)) {
       prefix = 's';
-    } else if (instruction.isIndexablePrimitive(compiler)) {
+    } else if (instruction.isIndexablePrimitive(closedWorld)) {
       prefix = 'r';
-    } else if (instruction.isBoolean(compiler)) {
+    } else if (instruction.isBoolean(closedWorld)) {
       prefix = 'b';
-    } else if (instruction.isInteger(compiler)) {
+    } else if (instruction.isInteger(closedWorld)) {
       prefix = 'i';
-    } else if (instruction.isDouble(compiler)) {
+    } else if (instruction.isDouble(closedWorld)) {
       prefix = 'd';
-    } else if (instruction.isNumber(compiler)) {
+    } else if (instruction.isNumber(closedWorld)) {
       prefix = 'n';
-    } else if (instruction.instructionType.containsAll(compiler.closedWorld)) {
+    } else if (instruction.instructionType.containsAll(closedWorld)) {
       prefix = 'v';
     } else {
       prefix = 'U';

@@ -337,74 +337,6 @@ class JavaScriptBackend extends Backend {
   static const bool TRACE_CALLS =
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
 
-  TypeMask get stringType => compiler.closedWorld.commonMasks.stringType;
-  TypeMask get doubleType => compiler.closedWorld.commonMasks.doubleType;
-  TypeMask get intType => compiler.closedWorld.commonMasks.intType;
-  TypeMask get uint32Type => compiler.closedWorld.commonMasks.uint32Type;
-  TypeMask get uint31Type => compiler.closedWorld.commonMasks.uint31Type;
-  TypeMask get positiveIntType =>
-      compiler.closedWorld.commonMasks.positiveIntType;
-  TypeMask get numType => compiler.closedWorld.commonMasks.numType;
-  TypeMask get boolType => compiler.closedWorld.commonMasks.boolType;
-  TypeMask get dynamicType => compiler.closedWorld.commonMasks.dynamicType;
-  TypeMask get nullType => compiler.closedWorld.commonMasks.nullType;
-  TypeMask get emptyType => const TypeMask.nonNullEmpty();
-  TypeMask get nonNullType => compiler.closedWorld.commonMasks.nonNullType;
-
-  TypeMask _indexablePrimitiveTypeCache;
-  TypeMask get indexablePrimitiveType {
-    if (_indexablePrimitiveTypeCache == null) {
-      _indexablePrimitiveTypeCache = new TypeMask.nonNullSubtype(
-          helpers.jsIndexableClass, compiler.closedWorld);
-    }
-    return _indexablePrimitiveTypeCache;
-  }
-
-  TypeMask _readableArrayTypeCache;
-  TypeMask get readableArrayType {
-    if (_readableArrayTypeCache == null) {
-      _readableArrayTypeCache = new TypeMask.nonNullSubclass(
-          helpers.jsArrayClass, compiler.closedWorld);
-    }
-    return _readableArrayTypeCache;
-  }
-
-  TypeMask _mutableArrayTypeCache;
-  TypeMask get mutableArrayType {
-    if (_mutableArrayTypeCache == null) {
-      _mutableArrayTypeCache = new TypeMask.nonNullSubclass(
-          helpers.jsMutableArrayClass, compiler.closedWorld);
-    }
-    return _mutableArrayTypeCache;
-  }
-
-  TypeMask _fixedArrayTypeCache;
-  TypeMask get fixedArrayType {
-    if (_fixedArrayTypeCache == null) {
-      _fixedArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsFixedArrayClass, compiler.closedWorld);
-    }
-    return _fixedArrayTypeCache;
-  }
-
-  TypeMask _extendableArrayTypeCache;
-  TypeMask get extendableArrayType {
-    if (_extendableArrayTypeCache == null) {
-      _extendableArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsExtendableArrayClass, compiler.closedWorld);
-    }
-    return _extendableArrayTypeCache;
-  }
-
-  TypeMask _unmodifiableArrayTypeCache;
-  TypeMask get unmodifiableArrayType {
-    if (_unmodifiableArrayTypeCache == null) {
-      _unmodifiableArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsUnmodifiableArrayClass, compiler.closedWorld);
-    }
-    return _fixedArrayTypeCache;
-  }
-
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
 
@@ -1487,14 +1419,6 @@ class JavaScriptBackend extends Backend {
   bool isComplexNoSuchMethod(FunctionElement element) =>
       noSuchMethodRegistry.isComplex(element);
 
-  bool isDefaultEqualityImplementation(Element element) {
-    assert(element.name == '==');
-    ClassElement classElement = element.enclosingClass;
-    return classElement == coreClasses.objectClass ||
-        classElement == helpers.jsInterceptorClass ||
-        classElement == helpers.jsNullClass;
-  }
-
   bool methodNeedsRti(FunctionElement function) {
     return rti.methodsNeedingRti.contains(function) || hasRuntimeTypeSupport;
   }
@@ -2099,7 +2023,7 @@ class JavaScriptBackend extends Backend {
    * be visible by reflection unless some other interfaces makes them
    * accessible.
    */
-  computeMembersNeededForReflection() {
+  void computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
     if (compiler.commonElements.mirrorsLibrary == null) {
       _membersNeededForReflection = const ImmutableEmptySet<Element>();
@@ -3287,6 +3211,7 @@ class JavaScriptBackendClasses implements BackendClasses {
   ClassElement get numImplementation => helpers.jsNumberClass;
   ClassElement get stringImplementation => helpers.jsStringClass;
   ClassElement get listImplementation => helpers.jsArrayClass;
+  ClassElement get mutableListImplementation => helpers.jsMutableArrayClass;
   ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
   ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
   ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
@@ -3299,4 +3224,15 @@ class JavaScriptBackendClasses implements BackendClasses {
   ClassElement get asyncFutureImplementation => helpers.futureImplementation;
   ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
   ClassElement get functionImplementation => helpers.coreClasses.functionClass;
+  ClassElement get indexableImplementation => helpers.jsIndexableClass;
+  ClassElement get mutableIndexableImplementation =>
+      helpers.jsMutableIndexableClass;
+
+  bool isDefaultEqualityImplementation(Element element) {
+    assert(element.name == '==');
+    ClassElement classElement = element.enclosingClass;
+    return classElement == helpers.coreClasses.objectClass ||
+        classElement == helpers.jsInterceptorClass ||
+        classElement == helpers.jsNullClass;
+  }
 }

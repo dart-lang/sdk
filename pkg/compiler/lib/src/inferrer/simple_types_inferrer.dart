@@ -180,7 +180,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
     Iterable<Element> elements =
-        compiler.closedWorld.allFunctions.filter(selector, mask);
+        closedWorld.allFunctions.filter(selector, mask);
     for (Element e in elements) {
       if (!f(e.implementation)) return;
     }
@@ -492,7 +492,7 @@ class SimpleTypeInferrerVisitor<T>
         });
       }
       if (analyzedElement.isGenerativeConstructor && cls.isAbstract) {
-        if (compiler.closedWorld.isInstantiated(cls)) {
+        if (closedWorld.isInstantiated(cls)) {
           returnType = types.nonNullSubclass(cls);
         } else {
           // TODO(johnniwinther): Avoid analyzing [analyzedElement] in this
@@ -655,7 +655,7 @@ class SimpleTypeInferrerVisitor<T>
   bool isInClassOrSubclass(Element element) {
     ClassElement cls = outermostElement.enclosingClass.declaration;
     ClassElement enclosing = element.enclosingClass.declaration;
-    return compiler.closedWorld.isSubclassOf(enclosing, cls);
+    return closedWorld.isSubclassOf(enclosing, cls);
   }
 
   void checkIfExposesThis(Selector selector, TypeMask mask) {
@@ -1362,7 +1362,7 @@ class SimpleTypeInferrerVisitor<T>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<Element> targets = compiler.closedWorld.allFunctions.filter(
+        Iterable<Element> targets = closedWorld.allFunctions.filter(
             setterSelector, types.newTypedSelector(thisType, setterMask));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update
@@ -1635,7 +1635,7 @@ class SimpleTypeInferrerVisitor<T>
     } else if (element != null &&
         element.isField &&
         Elements.isStaticOrTopLevelField(element) &&
-        compiler.closedWorld.fieldNeverChanges(element)) {
+        closedWorld.fieldNeverChanges(element)) {
       FieldElement fieldElement = element;
       ConstantValue value =
           compiler.backend.constants.getConstantValue(fieldElement.constant);

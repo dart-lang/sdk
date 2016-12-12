@@ -67,6 +67,7 @@ class KernelAstAdapter {
   TreeElements get elements => _resolvedAst.elements;
   DiagnosticReporter get reporter => _compiler.reporter;
   Element get _target => _resolvedAst.element;
+  ClosedWorld get _closedWorld => _compiler.closedWorld;
 
   GlobalTypeInferenceElementResult _resultOf(Element e) =>
       _compiler.globalInference.results.resultOf(e);
@@ -127,7 +128,7 @@ class KernelAstAdapter {
 
   bool getCanThrow(ir.Node procedure) {
     FunctionElement function = getElement(procedure);
-    return !_compiler.closedWorld.getCannotThrow(function);
+    return !_closedWorld.getCannotThrow(function);
   }
 
   TypeMask returnTypeOf(ir.Member node) {
@@ -136,7 +137,7 @@ class KernelAstAdapter {
   }
 
   SideEffects getSideEffects(ir.Node node) {
-    return _compiler.closedWorld.getSideEffectsOfElement(getElement(node));
+    return _closedWorld.getSideEffectsOfElement(getElement(node));
   }
 
   CallStructure getCallStructure(ir.Arguments arguments) {
@@ -214,7 +215,7 @@ class KernelAstAdapter {
   }
 
   TypeMask typeOfSet(ir.PropertySet setter) {
-    return _compiler.closedWorld.commonMasks.dynamicType;
+    return _closedWorld.commonMasks.dynamicType;
   }
 
   TypeMask typeOfSend(ir.Expression send) {
@@ -226,10 +227,10 @@ class KernelAstAdapter {
     ast.Node node = getNodeOrNull(listLiteral);
     if (node == null) {
       assertNodeIsSynthetic(listLiteral);
-      return _compiler.closedWorld.commonMasks.growableListType;
+      return _closedWorld.commonMasks.growableListType;
     }
     return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
-        _compiler.closedWorld.commonMasks.dynamicType;
+        _closedWorld.commonMasks.dynamicType;
   }
 
   TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
@@ -246,24 +247,24 @@ class KernelAstAdapter {
 
   bool isJsIndexableIterator(ir.ForInStatement forInStatement) {
     TypeMask mask = typeOfIterator(forInStatement);
-    ClosedWorld closedWorld = _compiler.closedWorld;
     return mask != null &&
-        mask.satisfies(_backend.helpers.jsIndexableClass, closedWorld) &&
+        mask.satisfies(_backend.helpers.jsIndexableClass, _closedWorld) &&
         // String is indexable but not iterable.
-        !mask.satisfies(_backend.helpers.jsStringClass, closedWorld);
+        !mask.satisfies(_backend.helpers.jsStringClass, _closedWorld);
   }
 
   bool isFixedLength(TypeMask mask) {
-    ClosedWorld closedWorld = _compiler.closedWorld;
     JavaScriptBackend backend = _compiler.backend;
     if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
       // A container on which we have inferred the length.
       return true;
     }
     // TODO(sra): Recognize any combination of fixed length indexables.
-    if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
-        mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
-        mask.containsOnlyString(closedWorld) ||
+    if (mask.containsOnly(
+            _closedWorld.backendClasses.fixedListImplementation) ||
+        mask.containsOnly(
+            _closedWorld.backendClasses.constListImplementation) ||
+        mask.containsOnlyString(_closedWorld) ||
         backend.isTypedArray(mask)) {
       return true;
     }

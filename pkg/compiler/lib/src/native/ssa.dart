@@ -101,7 +101,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         // be proportional to the number of native methods, which is bounded
         // by the dart: libraries.
         js.js.uncachedExpressionTemplate(nativeMethodCall),
-        backend.dynamicType,
+        builder.commonMasks.dynamicType,
         inputs,
         effects: new SideEffects()));
     // TODO(johnniwinther): Provide source information.
@@ -122,6 +122,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         <HInstruction>[],
         new SideEffects(),
         null,
-        backend.dynamicType));
+        builder.commonMasks.dynamicType));
   }
 }

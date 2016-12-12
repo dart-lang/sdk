@@ -30,7 +30,7 @@ class TypeBuilder {
     if (type.isObject) return original;
     // The type element is either a class or the void element.
     Element element = type.element;
-    TypeMask mask = new TypeMask.subtype(element, builder.compiler.closedWorld);
+    TypeMask mask = new TypeMask.subtype(element, builder.closedWorld);
     return new HTypeKnown.pinned(mask, original);
   }
 
@@ -133,9 +133,9 @@ class TypeBuilder {
     assert(member.isInstanceMember);
     assert(variable is! MethodTypeVariableType);
     HInstruction target = builder.localsHandler.readThis();
-    builder.push(
-        new HTypeInfoReadVariable(variable, target, builder.backend.dynamicType)
-          ..sourceInformation = sourceInformation);
+    builder.push(new HTypeInfoReadVariable(
+        variable, target, builder.commonMasks.dynamicType)
+      ..sourceInformation = sourceInformation);
     return builder.pop();
   }
 
@@ -154,7 +154,7 @@ class TypeBuilder {
         TypeInfoExpressionKind.INSTANCE,
         interface.element.thisType,
         inputs,
-        builder.backend.dynamicType);
+        builder.commonMasks.dynamicType);
     return representation;
   }
 
@@ -195,7 +195,7 @@ class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.backend.dynamicType)..sourceInformation = sourceInformation;
+        builder.commonMasks.dynamicType)..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
   }
@@ -246,7 +246,7 @@ class TypeBuilder {
     } else if (type.isFunctionType) {
       return builder.buildFunctionTypeConversion(original, type, kind);
     } else {
-      return original.convertType(builder.compiler, type, kind);
+      return original.convertType(builder.closedWorld, type, kind);
     }
   }
 }
