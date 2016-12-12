@@ -109,15 +109,15 @@ class AnalysisDriver {
   final FileContentOverlay _contentOverlay;
 
   /**
+   * The analysis options to analyze with.
+   */
+  AnalysisOptions _analysisOptions;
+
+  /**
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
-  final SourceFactory sourceFactory;
-
-  /**
-   * The analysis options to analyze with.
-   */
-  final AnalysisOptions analysisOptions;
+  SourceFactory _sourceFactory;
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
@@ -233,8 +233,8 @@ class AnalysisDriver {
       this._byteStore,
       this._contentOverlay,
       SourceFactory sourceFactory,
-      this.analysisOptions)
-      : sourceFactory = sourceFactory.clone() {
+      this._analysisOptions)
+      : _sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(
@@ -243,7 +243,7 @@ class AnalysisDriver {
         _contentOverlay,
         _resourceProvider,
         sourceFactory,
-        analysisOptions,
+        _analysisOptions,
         _salt,
         _sdkBundle.apiSignature);
     _scheduler._add(this);
@@ -254,6 +254,11 @@ class AnalysisDriver {
    * Return the set of files explicitly added to analysis using [addFile].
    */
   Set<String> get addedFiles => _addedFiles;
+
+  /**
+   * Return the analysis options used to control analysis.
+   */
+  AnalysisOptions get analysisOptions => _analysisOptions;
 
   /**
    * Return the stream that produces [ExceptionResult]s.
@@ -331,6 +336,12 @@ class AnalysisDriver {
    * Return the search support for the driver.
    */
   Search get search => _search;
+
+  /**
+   * Return the source factory used to resolve URIs to paths and restore URIs
+   * from file paths.
+   */
+  SourceFactory get sourceFactory => _sourceFactory;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.
@@ -417,6 +428,37 @@ class AnalysisDriver {
         _filesToAnalyze.add(path);
       }
     }
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+  }
+
+  /**
+   * Some state on which analysis depends has changed, so the driver needs to be
+   * re-configured with the new state.
+   *
+   * At least one of the optional parameters should be provided, but only those
+   * that represent state that has actually changed need be provided.
+   */
+  void configure(
+      {AnalysisOptions analysisOptions, SourceFactory sourceFactory}) {
+    if (analysisOptions != null) {
+      _analysisOptions = analysisOptions;
+    }
+    if (sourceFactory != null) {
+      _sourceFactory = sourceFactory;
+      _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
+    }
+    _fillSalt();
+    _fsState = new FileSystemState(
+        _logger,
+        _byteStore,
+        _contentOverlay,
+        _resourceProvider,
+        _sourceFactory,
+        _analysisOptions,
+        _salt,
+        _sdkBundle.apiSignature);
+    _filesToAnalyze.addAll(_addedFiles);
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
@@ -673,9 +715,9 @@ class AnalysisDriver {
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.analysisOptions = analysisOptions;
+    analysisContext.analysisOptions = _analysisOptions;
 
-    analysisContext.sourceFactory = sourceFactory.clone();
+    analysisContext.sourceFactory = _sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, libraryContext.store);
     analysisContext
@@ -745,7 +787,7 @@ class AnalysisDriver {
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, analysisOptions.strongMode);
+        }, (_) => null, _analysisOptions.strongMode);
         _logger.writeln('Linked ${linkedLibraries.length} bundles.');
       });
 
@@ -767,7 +809,8 @@ class AnalysisDriver {
    */
   void _fillSalt() {
     _salt[0] = DATA_VERSION;
-    List<int> crossContextOptions = analysisOptions.encodeCrossContextOptions();
+    List<int> crossContextOptions =
+        _analysisOptions.encodeCrossContextOptions();
     assert(crossContextOptions.length ==
         AnalysisOptions.crossContextOptionsLength);
     for (int i = 0; i < crossContextOptions.length; i++) {
@@ -785,8 +828,17 @@ class AnalysisDriver {
     List<AnalysisError> errors = withErrors
         ? _getErrorsFromSerialized(file, unit.errors)
         : const <AnalysisError>[];
-    return new AnalysisResult(this, sourceFactory, file.path, file.uri, content,
-        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
+    return new AnalysisResult(
+        this,
+        _sourceFactory,
+        file.path,
+        file.uri,
+        content,
+        file.contentHash,
+        file.lineInfo,
+        resolvedUnit,
+        errors,
+        unit.index);
   }
 
   /**
@@ -830,7 +882,7 @@ class AnalysisDriver {
   ErrorCode _lintCodeByUniqueName(String errorName) {
     if (errorName.startsWith('_LintCode.')) {
       String lintName = errorName.substring(10);
-      List<Linter> lintRules = analysisOptions.lintRules;
+      List<Linter> lintRules = _analysisOptions.lintRules;
       for (Linter linter in lintRules) {
         if (linter.name == lintName) {
           return linter.lintCode;

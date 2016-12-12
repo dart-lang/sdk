@@ -1813,7 +1813,7 @@ abstract class ContextManagerTest {
     packageMapProvider = new MockPackageMapProvider();
     // Create an SDK in the mock file system.
     new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager('/', false);
+    DartSdkManager sdkManager = new DartSdkManager('/', true);
     manager = new ContextManagerImpl(
         resourceProvider,
         sdkManager,
@@ -1825,8 +1825,8 @@ abstract class ContextManagerTest {
         enableAnalysisDriver);
     PerformanceLog logger = new PerformanceLog(new NullStringSink());
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
-    callbacks =
-        new TestContextManagerCallbacks(resourceProvider, logger, scheduler);
+    callbacks = new TestContextManagerCallbacks(
+        resourceProvider, sdkManager, logger, scheduler);
     manager.callbacks = callbacks;
   }
 
@@ -1859,13 +1859,6 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 class ContextManagerWithNewOptionsTest_Driver
     extends ContextManagerWithNewOptionsTest {
   bool get enableAnalysisDriver => true;
-
-  @failingTest
-  test_analysis_options_file_delete() async {
-    // It appears that this fails because we are not correctly updating the
-    // analysis options in the driver when the file is removed.
-    return super.test_analysis_options_file_delete();
-  }
 
   @failingTest
   test_analysis_options_file_delete_with_embedder() async {
@@ -1907,13 +1900,6 @@ class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
 class ContextManagerWithOldOptionsTest_Driver
     extends ContextManagerWithOldOptionsTest {
   bool get enableAnalysisDriver => true;
-
-  @failingTest
-  test_analysis_options_file_delete() async {
-    // It appears that this fails because we are not correctly updating the
-    // analysis options in the driver when the file is removed.
-    return super.test_analysis_options_file_delete();
-  }
 
   @failingTest
   test_analysis_options_file_delete_with_embedder() async {
@@ -2328,9 +2314,10 @@ analyzer:
       AnalysisContext sdkContext = sourceFactory.dartSdk.context;
       expect(analysisOptions.strongMode, isTrue);
       expect(sdkContext.analysisOptions.strongMode, isTrue);
-      // The code is strong-mode clean.
+      // The code is strong-mode clean, but we're using a Mock SDK that isn't
+      // configured correctly for strong mode so we get an error.
       // Verify that TypeSystem was reset.
-      expect(context.computeErrors(testSource), isEmpty);
+      expect(context.computeErrors(testSource), hasLength(1));
     }
   }
 
@@ -2637,6 +2624,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   final ResourceProvider resourceProvider;
 
   /**
+   * The manager managing the SDKs.
+   */
+  final DartSdkManager sdkManager;
+
+  /**
    * The logger used by the scheduler and the driver.
    */
   final PerformanceLog logger;
@@ -2652,7 +2644,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   List<String> lastFlushedFiles;
 
   TestContextManagerCallbacks(
-      this.resourceProvider, this.logger, this.scheduler);
+      this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
 
   /**
    * Return the current set of analysis options.
@@ -2772,7 +2764,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options,
       {bool useSummaries = false}) {
-    DartSdkManager sdkManager = new DartSdkManager('/', useSummaries);
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     ContextBuilder builder = new ContextBuilder(

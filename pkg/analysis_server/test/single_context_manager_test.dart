@@ -64,13 +64,13 @@ class SingleContextManagerTest {
     packageResolver = new TestUriResolver();
 
     _processRequiredPlugins();
-    DartSdkManager sdkManager = new DartSdkManager('', false);
+    DartSdkManager sdkManager = new DartSdkManager('/', false);
     manager = new SingleContextManager(resourceProvider, sdkManager,
         (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
     PerformanceLog logger = new PerformanceLog(new NullStringSink());
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
-    callbacks =
-        new TestContextManagerCallbacks(resourceProvider, logger, scheduler);
+    callbacks = new TestContextManagerCallbacks(
+        resourceProvider, sdkManager, logger, scheduler);
     manager.callbacks = callbacks;
   }
 

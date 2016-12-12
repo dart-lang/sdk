@@ -1004,14 +1004,14 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, ChangeType changeType) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       if (enableNewAnalysisDriver) {
-        // TODO(brianwilkerson) Implement this.
-//        AnalysisDriver driver = info.analysisDriver;
-//        String contextRoot = info.folder.path;
-//        ContextBuilder builder =
-//        callbacks.createContextBuilder(info.folder, defaultContextOptions);
-//        AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
-//        driver.analysisOptions = options;
-//        driver.sourceFactory = builder.createSourceFactory(contextRoot, options);
+        AnalysisDriver driver = info.analysisDriver;
+        String contextRoot = info.folder.path;
+        ContextBuilder builder =
+            callbacks.createContextBuilder(info.folder, defaultContextOptions);
+        AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
+        SourceFactory factory =
+            builder.createSourceFactory(contextRoot, options);
+        driver.configure(analysisOptions: options, sourceFactory: factory);
         // TODO(brianwilkerson) Set exclusion patterns.
       } else {
         var analysisContext = info.context;
@@ -1038,8 +1038,13 @@ class ContextManagerImpl implements ContextManager {
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
       AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
       SourceFactory factory = builder.createSourceFactory(contextRoot, options);
-      info.context.analysisOptions = options;
-      info.context.sourceFactory = factory;
+      if (enableNewAnalysisDriver) {
+        AnalysisDriver driver = info.analysisDriver;
+        driver.configure(analysisOptions: options, sourceFactory: factory);
+      } else {
+        info.context.analysisOptions = options;
+        info.context.sourceFactory = factory;
+      }
     }
   }
 
