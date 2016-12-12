@@ -147,6 +147,12 @@ class SingleContextManager implements ContextManager {
   }
 
   @override
+  AnalysisDriver getDriverFor(String path) {
+    throw new UnimplementedError(
+        'Unexpected invocation of getDriverFor in SingleContextManager');
+  }
+
+  @override
   List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot) {
     throw new UnimplementedError(
         'Unexpected invocation of getDriversInAnalysisRoot in SingleContextManager');

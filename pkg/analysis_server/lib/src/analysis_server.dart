@@ -1487,6 +1487,11 @@ class AnalysisServer {
         driverMap.values.forEach((driver) {
           driver.changeFile(file);
         });
+
+        // If the file did not exist, and is "overlay only", it still should be
+        // analyzed. Add it to driver to which it should have been added.
+        contextManager.getDriverFor(file)?.addFile(file);
+
         // TODO(scheglov) implement other cases
       });
       return;

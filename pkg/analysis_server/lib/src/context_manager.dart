@@ -279,6 +279,17 @@ abstract class ContextManager {
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
 
   /**
+   * Return the [AnalysisDriver] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no driver contains the given path, `null` is returned.
+   */
+  AnalysisDriver getDriverFor(String path);
+
+  /**
    * Return the [AnalysisContext] for the "innermost" context whose associated
    * folder is or contains the given path.  ("innermost" refers to the nesting
    * of contexts, so if there is a context for path /foo and a context for
@@ -581,6 +592,11 @@ class ContextManagerImpl implements ContextManager {
    * Check if this map defines embedded libraries.
    */
   bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
+
+  @override
+  AnalysisDriver getDriverFor(String path) {
+    return _getInnermostContextInfoFor(path)?.analysisDriver;
+  }
 
   @override
   AnalysisContext getContextFor(String path) {

@@ -131,13 +131,6 @@ class GetSuggestionsTest_Driver extends AbstractGetSuggestionsTest {
   bool get enableNewAnalysisDriver => true;
 
   @failingTest
-  test_getSuggestions_onlyOverlay() async {
-    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
-    //return super.test_getSuggestions_onlyOverlay();
-    fail('Test timed out');
-  }
-
-  @failingTest
   test_getSuggestions_sourceMissing_noWait() {
     //  Expected: same instance as 'exception from server'
     //    Actual: CompletionGetSuggestionsResult:<{"id":"0"}>
