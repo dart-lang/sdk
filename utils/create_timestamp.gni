@@ -7,14 +7,6 @@ _dart_root = rebase_path("..")
 template("create_timestamp_file") {
   assert(defined(invoker.path), "Must specify 'path'")
   assert(defined(invoker.output), "Must specify 'output'")
-  new_base = "."
-  if (defined(invoker.new_base)) {
-    new_base = invoker.new_base
-  }
-  current_base = "."
-  if (defined(invoker.current_base)) {
-    current_base = invoker.current_base
-  }
   path = invoker.path
   output = invoker.output
   action(target_name) {
@@ -25,8 +17,7 @@ template("create_timestamp_file") {
     files = exec_script("$_dart_root/tools/list_dart_files.py",
                         list_args,
                         "list lines")
-    inputs = [ "$_dart_root/tools/list_dart_files.py" ] +
-             rebase_path(files, new_base, current_base)
+    inputs = [ "$_dart_root/tools/list_dart_files.py" ] + files
     outputs = [
       output,
     ]

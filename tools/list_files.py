@@ -17,11 +17,13 @@ import sys
 def main(argv):
   pattern = re.compile(argv[1])
   for directory in argv[2:]:
+    if not os.path.isabs(directory):
+      directory = os.path.realpath(directory)
     for root, directories, files in os.walk(directory):
       if '.git' in directories:
         directories.remove('.git')
       for filename in files:
-        fullname = os.path.relpath(os.path.join(root, filename))
+        fullname = os.path.join(directory, root, filename)
         fullname = fullname.replace(os.sep, '/')
         if re.search(pattern, fullname):
           print fullname

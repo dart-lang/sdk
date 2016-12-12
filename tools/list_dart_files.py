@@ -16,6 +16,8 @@ import sys
 
 def main(argv):
   directory = argv[1]
+  if not os.path.isabs(directory):
+    directory = os.path.realpath(directory)
 
   pattern = None
   if len(argv) > 2:
@@ -34,7 +36,7 @@ def main(argv):
 
     for filename in files:
       if filename.endswith('.dart') and not filename.endswith('_test.dart'):
-        fullname = os.path.relpath(os.path.join(root, filename))
+        fullname = os.path.join(directory, root, filename)
         fullname = fullname.replace(os.sep, '/')
         print fullname
 

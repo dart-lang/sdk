@@ -88,9 +88,7 @@ action("create_sdk") {
                               ],
                               "list lines")
 
-  inputs = rebase_path(sdk_lib_files, "", "sdk/lib") +
-           rebase_path(preamble_files, "", "sdk/lib") +
-           rebase_path(sdk_bin_files, "", "sdk/bin") +
+  inputs = sdk_lib_files + preamble_files + sdk_bin_files +
            [
              "sdk/lib/dart_client.platform",
              "sdk/lib/dart_server.platform",
