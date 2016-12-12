@@ -124,12 +124,12 @@ void testIPv4toIPv6_IPV6Only() {
 }
 
 void main() {
-  testIPv6toIPv6();
-  testIPv4toIPv6();
-  testIPv6toIPv4();
-  testIPv4toIPv4();
-  testIPv6Lookup();
-  testIPv4Lookup();
+  testIPv6toIPv6();           /// none: ok
+  testIPv4toIPv6();           /// 01: ok
+  testIPv6toIPv4();           /// 02: ok
+  testIPv4toIPv4();           /// 03: ok
+  testIPv6Lookup();           /// 04: ok
+  testIPv4Lookup();           /// 05: ok
 
-  testIPv4toIPv6_IPV6Only();
+  testIPv4toIPv6_IPV6Only();  /// 06: ok
 }

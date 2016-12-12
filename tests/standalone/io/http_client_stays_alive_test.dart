@@ -54,7 +54,7 @@ void runServerProcess() {
       // NOTE: There is a slight chance this will cause flakiness, but there is
       // no other good way of testing correctness of timing-dependent code
       // form the outside.
-      if (seconds < SECONDS || (SECONDS + 10) < seconds) {
+      if (seconds < SECONDS || (SECONDS + 30) < seconds) {
         throw "Child did exit within $seconds seconds, but expected it to take "
               "roughly $SECONDS seconds.";
       }
