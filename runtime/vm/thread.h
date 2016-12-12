@@ -37,6 +37,7 @@ class Library;
 class LongJumpScope;
 class Object;
 class OSThread;
+class JSONObject;
 class PcDescriptors;
 class RawBool;
 class RawObject;
@@ -645,6 +646,10 @@ class Thread : public BaseThread {
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream) const;
+#endif
 
  private:
   template <class T>

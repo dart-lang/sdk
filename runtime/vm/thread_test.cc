@@ -205,6 +205,179 @@ VM_TEST_CASE(ManyTasksWithZones) {
 }
 
 
+#ifndef PRODUCT
+class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
+ public:
+  SimpleTaskWithZoneAllocation(intptr_t id,
+                               Isolate* isolate,
+                               Thread** thread_ptr,
+                               Monitor* sync,
+                               Monitor* monitor,
+                               intptr_t* done_count,
+                               bool* wait)
+      : id_(id),
+        isolate_(isolate),
+        thread_ptr_(thread_ptr),
+        sync_(sync),
+        monitor_(monitor),
+        done_count_(done_count),
+        wait_(wait) {}
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    {
+      Thread* thread = Thread::Current();
+      *thread_ptr_ = thread;
+      CreateStackZones(id_);
+    }
+    Thread::ExitIsolateAsHelper();
+    // Notify the main thread that this thread has exited.
+    {
+      MonitorLocker ml(monitor_);
+      *done_count_ += 1;
+      ml.Notify();
+    }
+  }
+
+ private:
+  void CreateStackZones(intptr_t num) {
+    Thread* thread = Thread::Current();
+    *thread_ptr_ = thread;
+
+    StackZone stack_zone(thread);
+    HANDLESCOPE(thread);
+    Zone* zone = thread->zone();
+    EXPECT_EQ(zone, stack_zone.GetZone());
+
+    // Create a zone (which is also a stack resource) and exercise it a bit.
+    ZoneGrowableArray<bool>* a0 = new (zone) ZoneGrowableArray<bool>(zone, 1);
+    GrowableArray<bool> a1(zone, 1);
+    for (intptr_t i = 0; i < 1000 * num + id_; ++i) {
+      a0->Add(true);
+      a1.Add(true);
+    }
+
+    num -= 1;
+    if (num != 0) {
+      CreateStackZones(num);
+      return;
+    }
+    {
+      // Let the main thread know we're done with memory ops on this thread.
+      MonitorLocker ml(monitor_);
+      *done_count_ += 1;
+      ml.Notify();
+    }
+    // Wait for the go-ahead from the main thread to exit.
+    {
+      MonitorLocker sync_ml(sync_);
+      while (*wait_) {
+        sync_ml.Wait();
+      }
+    }
+  }
+
+  intptr_t id_;
+  Isolate* isolate_;
+  Thread** thread_ptr_;
+  Monitor* sync_;
+  Monitor* monitor_;
+  intptr_t* done_count_;
+  bool* wait_;
+};
+
+
+TEST_CASE(ManySimpleTasksWithZones) {
+  const int kTaskCount = 10;
+  Monitor monitor;
+  Monitor sync;
+  Thread* threads[kTaskCount + 1];
+  Isolate* isolate = Thread::Current()->isolate();
+  intptr_t done_count = 0;
+  bool wait = true;
+  threads[kTaskCount] = Thread::Current();
+
+  EXPECT(isolate->heap()->GrowthControlState());
+  isolate->heap()->DisableGrowthControl();
+  for (intptr_t i = 0; i < kTaskCount; i++) {
+    Dart::thread_pool()->Run(new SimpleTaskWithZoneAllocation(
+        (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait));
+  }
+  // Wait until all spawned tasks finish their memory operations.
+  {
+    MonitorLocker ml(&monitor);
+    while (done_count < kTaskCount) {
+      ml.Wait();
+    }
+    // Reset the done counter for use later.
+    done_count = 0;
+  }
+
+  JSONStream stream;
+  Service::PrintJSONForVM(&stream, false);
+  const char* json = stream.ToCString();
+
+  // Confirm all expected entries are in the JSON output.
+  for (intptr_t i = 0; i < kTaskCount + 1; i++) {
+    Thread* thread = threads[i];
+    Isolate* thread_isolate = thread->isolate();
+    // Buffer can handle any possible input length given types.
+    //    char thread_address_buf[96];
+    //    char isolate_address_buf[64];
+    Zone* top_zone = thread->zone();
+
+    Thread* current_thread = Thread::Current();
+    StackZone stack_zone(current_thread);
+    Zone* current_zone = current_thread->zone();
+
+    // Check that all zones are present with correct sizes.
+    while (top_zone != NULL) {
+      char* zone_info_buf =
+          OS::SCreate(current_zone,
+                      "\"type\":\"_Zone\","
+                      "\"capacity\":%ld,"
+                      "\"used\":%ld",
+                      top_zone->SizeInBytes(), top_zone->UsedSizeInBytes());
+      EXPECT_SUBSTRING(zone_info_buf, json);
+      top_zone = top_zone->previous();
+    }
+
+    // Check the thread exists and is the correct size.
+    char* thread_info_buf = OS::SCreate(current_zone,
+                                        "\"type\":\"_Thread\","
+                                        "\"id\":\"threads\\/%" Pd64 "",
+                                        thread->os_thread()->trace_id());
+
+    // Ensure the isolate for each thread is valid.
+
+    char* isolate_info_buf =
+        OS::SCreate(current_zone,
+                    "\"type\":\"Isolate\","
+                    "\"fixedId\":true,"
+                    "\"id\":\"isolates\\/%" Pd64 "",
+                    static_cast<int64_t>(thread_isolate->main_port()));
+
+    EXPECT_SUBSTRING(thread_info_buf, json);
+    EXPECT_SUBSTRING(isolate_info_buf, json);
+  }
+
+  // Unblock the tasks so they can finish.
+  {
+    MonitorLocker sync_ml(&sync);
+    wait = false;
+    sync_ml.NotifyAll();
+  }
+  // Now wait for them all to exit before destroying the isolate.
+  {
+    MonitorLocker ml(&monitor);
+    while (done_count < kTaskCount) {
+      ml.Wait();
+    }
+  }
+}
+#endif
+
+
 TEST_CASE(ThreadRegistry) {
   Isolate* orig = Thread::Current()->isolate();
   Zone* orig_zone = Thread::Current()->zone();

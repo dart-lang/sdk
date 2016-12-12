@@ -5,6 +5,7 @@
 #include "vm/thread_registry.h"
 
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/lockers.h"
 
 namespace dart {
@@ -89,6 +90,19 @@ void ThreadRegistry::PrepareForGC() {
     thread = thread->next_;
   }
 }
+
+
+#ifndef PRODUCT
+void ThreadRegistry::PrintJSON(JSONStream* stream) const {
+  MonitorLocker ml(threads_lock());
+  JSONArray threads(stream);
+  Thread* current = active_list_;
+  while (current != NULL) {
+    threads.AddValue(current);
+    current = current->next_;
+  }
+}
+#endif
 
 
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {

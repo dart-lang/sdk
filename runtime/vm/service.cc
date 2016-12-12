@@ -3759,13 +3759,12 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
 class ServiceIsolateVisitor : public IsolateVisitor {
  public:
   explicit ServiceIsolateVisitor(JSONArray* jsarr) : jsarr_(jsarr) {}
-
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
     if ((isolate != Dart::vm_isolate()) &&
         !ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
-      jsarr_->AddValue(isolate);
+      jsarr_->AddValue(isolate, false);
     }
   }
 

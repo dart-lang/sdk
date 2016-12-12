@@ -260,6 +260,18 @@ char* Zone::VPrint(const char* format, va_list args) {
 }
 
 
+#ifndef PRODUCT
+void Zone::PrintJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  intptr_t capacity = SizeInBytes();
+  intptr_t used_size = UsedSizeInBytes();
+  jsobj.AddProperty("type", "_Zone");
+  jsobj.AddProperty("capacity", capacity);
+  jsobj.AddProperty("used", used_size);
+}
+#endif
+
+
 StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {
   if (FLAG_trace_zones) {
     OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",

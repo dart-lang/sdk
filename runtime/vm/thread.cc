@@ -8,6 +8,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
@@ -203,6 +204,25 @@ void Thread::InitVMConstants() {
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
 }
+
+
+#ifndef PRODUCT
+// Collect information about each individual zone associated with this thread.
+void Thread::PrintJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "_Thread");
+  jsobj.AddPropertyF("id", "threads/%" Pd64 "", os_thread()->trace_id());
+  Zone* zone = zone_;
+  {
+    JSONArray zone_info_array(&jsobj, "zones");
+    zone = zone_;
+    while (zone != NULL) {
+      zone_info_array.AddValue(zone);
+      zone = zone->previous();
+    }
+  }
+}
+#endif
 
 
 RawGrowableObjectArray* Thread::pending_functions() {

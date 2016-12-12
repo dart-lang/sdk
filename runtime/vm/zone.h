@@ -8,6 +8,7 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
+#include "vm/json_stream.h"
 #include "vm/thread.h"
 #include "vm/memory_region.h"
 
@@ -65,12 +66,21 @@ class Zone {
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const;
 
+  // Computes the amount of space used in the zone.
+  intptr_t UsedSizeInBytes() const {
+    return SizeInBytes() - (limit_ - position_);
+  }
+
   // Structure for managing handles allocation.
   VMHandles* handles() { return &handles_; }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   Zone* previous() const { return previous_; }
+
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream) const;
+#endif
 
  private:
   Zone();
@@ -173,6 +183,9 @@ class StackZone : public StackResource {
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
+
+  // Computes the used space in the zone.
+  intptr_t UsedSizeInBytes() const { return zone_.UsedSizeInBytes(); }
 
   Zone* GetZone() { return &zone_; }
 

@@ -2090,6 +2090,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       }
     }
   }
+
+  jsobj.AddProperty("threads", thread_registry_);
 }
 #endif
 
