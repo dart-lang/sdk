@@ -9,10 +9,11 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -444,12 +445,12 @@ analyzer:
   }
 
   test_linter_supported_rules() {
-    registerLintRules();
+    Registry.ruleRegistry.register(new TestRule());
     validate(
         '''
 linter:
   rules:
-    - camel_case_types
+    - fantastic_test_rule
     ''',
         []);
   }
@@ -469,4 +470,8 @@ linter:
     expect(errors.map((AnalysisError e) => e.errorCode),
         unorderedEquals(expected));
   }
+}
+
+class TestRule extends LintRule {
+  TestRule() : super(name: 'fantastic_test_rule');
 }
