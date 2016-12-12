@@ -1856,11 +1856,20 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
             sendAnalysisNotificationOverrides(analysisServer, path, unit);
           });
         }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OUTLINE, path)) {
+          _runDelayed(() {
+            SourceKind sourceKind =
+                unit.directives.any((d) => d is PartOfDirective)
+                    ? SourceKind.PART
+                    : SourceKind.LIBRARY;
+            sendAnalysisNotificationOutline(
+                analysisServer, path, result.lineInfo, sourceKind, unit);
+          });
+        }
       }
       // TODO(scheglov) Implement more notifications.
       // IMPLEMENTED
-      // OCCURRENCES (not used in IDEA)
-      // OUTLINE (not used in IDEA)
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
       AnalysisEngine.instance.logger

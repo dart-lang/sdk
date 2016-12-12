@@ -89,10 +89,4 @@ class OutlineTest extends AbstractOutlineTest {}
 class OutlineTest_Driver extends AbstractOutlineTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_outline() {
-    //  NoSuchMethodError: The getter 'element' was called on null.
-    return super.test_outline();
-  }
 }
