@@ -1832,9 +1832,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           result.unit != null) {
         analysisServer.priorityFileResults[result.path] = result;
       }
-      _runDelayed(() {
-        new_sendErrorNotification(analysisServer, result);
-      });
+      new_sendErrorNotification(analysisServer, result);
       String path = result.path;
       CompilationUnit unit = result.unit;
       if (unit != null) {
