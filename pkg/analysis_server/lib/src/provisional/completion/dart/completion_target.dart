@@ -137,16 +137,20 @@ class CompletionTarget {
   /**
    * Compute the appropriate [CompletionTarget] for the given [offset] within
    * the [compilationUnit].
+   * 
+   * Optionally, start the search from within [entryPoint] instead of using
+   * the [compilationUnit], which is useful for analyzing ASTs that have no
+   * [compilationUnit] such as dart expressions within angular templates.
    */
   factory CompletionTarget.forOffset(
-      CompilationUnit compilationUnit, int offset) {
+      CompilationUnit compilationUnit, int offset, {AstNode entryPoint}) {
     // The precise algorithm is as follows.  We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children.  The
     // first edge which points to an entity satisfying either _isCandidateToken
     // or _isCandidateNode is the completion target.  If no edge is found that
     // satisfies these two predicates, then we set the completion target entity
-    // to null and the containingNode to the compilationUnit.
+    // to null and the containingNode to the entryPoint.
     //
     // Note that if a token is not a candidate target, then none of the tokens
     // that precede it are candidate targets either.  Therefore any entity
@@ -154,7 +158,8 @@ class CompletionTarget {
     // prune the search to the point where no recursion is necessary; at each
     // step in the process we know exactly which child node we need to proceed
     // to.
-    AstNode containingNode = compilationUnit;
+    entryPoint ??= compilationUnit;
+    AstNode containingNode = entryPoint;
     outerLoop: while (true) {
       if (containingNode is Comment) {
         // Comments are handled specially: we descend into any CommentReference
@@ -232,13 +237,13 @@ class CompletionTarget {
       // the first time through the outer loop (since we only jump to the start
       // of the outer loop after determining that the completion target is
       // inside an entity).  We can check that assumption by verifying that
-      // containingNode is still the compilationUnit.
-      assert(identical(containingNode, compilationUnit));
+      // containingNode is still the entryPoint.
+      assert(identical(containingNode, entryPoint));
 
       // Since no completion target was found, we set the completion target
-      // entity to null and use the compilationUnit as the parent.
+      // entity to null and use the entryPoint as the parent.
       return new CompletionTarget._(
-          compilationUnit, offset, compilationUnit, null, false);
+          compilationUnit, offset, entryPoint, null, false);
     }
   }
 

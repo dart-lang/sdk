@@ -192,12 +192,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   @override
   bool get includeIdentifiers {
-    opType; // <<< ensure _opType is initialized
-    return !_opType.isPrefixed &&
-        (_opType.includeReturnValueSuggestions ||
-            _opType.includeTypeNameSuggestions ||
-            _opType.includeVoidReturnSuggestions ||
-            _opType.includeConstructorSuggestions);
+    return opType.includeIdentifiers;
   }
 
   @override
