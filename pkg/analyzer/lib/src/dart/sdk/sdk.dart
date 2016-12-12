@@ -703,7 +703,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       // *built* SDK if possible.
       String builtSdkPath =
           pathContext.join(pathContext.dirname(exec), 'dart-sdk');
-      if (resourceProvider.getFolder(sdkPath).exists) {
+      if (resourceProvider.getFolder(builtSdkPath).exists) {
         return builtSdkPath;
       } else {
         return sdkPath;
