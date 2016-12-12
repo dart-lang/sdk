@@ -9,6 +9,8 @@ cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
 
+cc/ManySimpleTasksWithZones: Fail, Crash # Just temporary
+
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
