@@ -89,8 +89,6 @@ class TestOptionsParser {
             'dart2js',
             'dart2analyzer',
             'app_jit',
-            'dart2app',  // TODO(rmacnak): Remove after updating bots.
-            'dart2appjit',  // TODO(rmacnak): Remove after updating bots.
             'dartk',
             'dartkp'
           ],
@@ -127,7 +125,6 @@ class TestOptionsParser {
           [
             'vm',
             'dart_precompiled',
-            'dart_app',  // TODO(rmacnak): Remove after updating bots.
             'd8',
             'jsshell',
             'drt',
@@ -744,15 +741,6 @@ Note: currently only implemented for dart2js.''',
    * into a list of configurations with exactly one value per key.
    */
   List<Map> _expandConfigurations(Map configuration) {
-    // TODO(rmacnak): Remove after updating bots.
-    if (configuration['runtime'] == 'dart_app') {
-      configuration['runtime'] = 'vm';
-    }
-    if (configuration['compiler'] == 'dart2app' ||
-        configuration['compiler'] == 'dart2appjit') {
-      configuration['compiler'] = 'app_jit';
-    }
-
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
       configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc64';
