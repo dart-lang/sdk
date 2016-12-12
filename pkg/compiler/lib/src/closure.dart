@@ -20,6 +20,7 @@ import 'resolution/tree_elements.dart' show TreeElements;
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
+import 'world.dart' show ClosedWorldRefiner;
 
 class ClosureTask extends CompilerTask {
   Map<Element, ClosureClassMap> _closureMappingCache =
@@ -49,9 +50,11 @@ class ClosureTask extends CompilerTask {
   }
 
   /// Create [ClosureClassMap]s for all live members.
-  void createClosureClasses() {
-    compiler.enqueuer.resolution.processedElements
+  void createClosureClasses(ClosedWorldRefiner closedWorldRefiner) {
+    compiler.enqueuer.resolution.processedEntities
         .forEach((AstElement element) {
+      // TODO(johnniwinther): Typedefs should never be in processedElements.
+      if (element.isTypedef) return;
       ResolvedAst resolvedAst = element.resolvedAst;
       if (element.isAbstract) return;
       if (element.isField &&
@@ -60,11 +63,12 @@ class ClosureTask extends CompilerTask {
         // Skip top-level/static fields without an initializer.
         return;
       }
-      computeClosureToClassMapping(resolvedAst);
+      computeClosureToClassMapping(resolvedAst, closedWorldRefiner);
     });
   }
 
-  ClosureClassMap computeClosureToClassMapping(ResolvedAst resolvedAst) {
+  ClosureClassMap computeClosureToClassMapping(
+      ResolvedAst resolvedAst, ClosedWorldRefiner closedWorldRefiner) {
     return measure(() {
       Element element = resolvedAst.element;
       ClosureClassMap cached = _closureMappingCache[element];
@@ -77,8 +81,8 @@ class ClosureTask extends CompilerTask {
         Node node = resolvedAst.node;
         TreeElements elements = resolvedAst.elements;
 
-        ClosureTranslator translator =
-            new ClosureTranslator(compiler, elements, _closureMappingCache);
+        ClosureTranslator translator = new ClosureTranslator(
+            compiler, closedWorldRefiner, elements, _closureMappingCache);
 
         // The translator will store the computed closure-mappings inside the
         // cache. One for given node and one for each nested closure.
@@ -121,7 +125,7 @@ class ClosureTask extends CompilerTask {
       throw new SpannableAssertionFailure(
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
-    compiler.enqueuer.codegen.forgetElement(cls, compiler);
+    compiler.enqueuer.codegen.forgetEntity(cls, compiler);
   }
 }
 
@@ -543,6 +547,7 @@ class ClosureClassMap {
 
 class ClosureTranslator extends Visitor {
   final Compiler compiler;
+  final ClosedWorldRefiner closedWorldRefiner;
   final TreeElements elements;
   int closureFieldCounter = 0;
   int boxedFieldCounter = 0;
@@ -574,7 +579,8 @@ class ClosureTranslator extends Visitor {
 
   bool insideClosure = false;
 
-  ClosureTranslator(this.compiler, this.elements, this.closureMappingCache);
+  ClosureTranslator(this.compiler, this.closedWorldRefiner, this.elements,
+      this.closureMappingCache);
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -1068,7 +1074,7 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
-    compiler.inferenceWorld.registerClosureClass(globalizedElement);
+    closedWorldRefiner.registerClosureClass(globalizedElement);
     FunctionElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
     backend.maybeMarkClosureAsNeededForReflection(

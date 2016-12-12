@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.get.hover;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
@@ -16,11 +14,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
+    defineReflectiveTests(AnalysisGetHoverIntegrationTest_Driver);
   });
 }
 
-@reflectiveTest
-class AnalysisGetHoverIntegrationTest
+class AbstractAnalysisGetHoverIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the file containing Dart code.
@@ -188,4 +186,15 @@ main() {
       return Future.wait(tests);
     });
   }
+}
+
+@reflectiveTest
+class AnalysisGetHoverIntegrationTest
+    extends AbstractAnalysisGetHoverIntegrationTest {}
+
+@reflectiveTest
+class AnalysisGetHoverIntegrationTest_Driver
+    extends AbstractAnalysisGetHoverIntegrationTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

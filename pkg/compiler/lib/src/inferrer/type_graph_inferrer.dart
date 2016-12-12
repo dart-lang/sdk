@@ -25,7 +25,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Setlet;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
 import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
@@ -36,9 +36,7 @@ import 'type_graph_dump.dart';
 import 'type_graph_nodes.dart';
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
-  final Compiler compiler;
   final ClosedWorld closedWorld;
-  final CommonMasks commonMasks;
 
   /// [ElementTypeInformation]s for elements.
   final Map<Element, TypeInformation> typeInformations =
@@ -72,11 +70,11 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         allocatedTypes
       ].expand((x) => x);
 
-  TypeInformationSystem(Compiler compiler, this.commonMasks)
-      : this.compiler = compiler,
-        this.closedWorld = compiler.closedWorld {
-    nonNullEmptyType = getConcreteTypeFor(const TypeMask.nonNullEmpty());
+  TypeInformationSystem(this.closedWorld) {
+    nonNullEmptyType = getConcreteTypeFor(commonMasks.emptyType);
   }
+
+  CommonMasks get commonMasks => closedWorld.commonMasks;
 
   /// Used to group [TypeInformation] nodes by the element that triggered their
   /// creation.
@@ -252,8 +250,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation refineReceiver(Selector selector, TypeMask mask,
       TypeInformation receiver, bool isConditional) {
     if (receiver.type.isExact) return receiver;
-    TypeMask otherType =
-        compiler.closedWorld.allFunctions.receiverType(selector, mask);
+    TypeMask otherType = closedWorld.allFunctions.receiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
     if (isConditional) {
@@ -366,7 +363,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation allocateList(
       TypeInformation type, ast.Node node, Element enclosing,
       [TypeInformation elementType, int length]) {
-    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
         closedWorld.isInstantiated(typedDataClass) &&
         type.type.satisfies(typedDataClass, closedWorld);
@@ -570,7 +567,6 @@ class TypeGraphInferrerEngine
       <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
   final Element mainElement;
-  final CommonMasks commonMasks;
   final Set<Element> analyzedElements = new Set<Element>();
 
   /// The maximum number of times we allow a node in the graph to
@@ -581,14 +577,15 @@ class TypeGraphInferrerEngine
   int overallRefineCount = 0;
   int addedInGraph = 0;
 
-  TypeGraphInferrerEngine(
-      Compiler compiler, CommonMasks commonMasks, this.mainElement)
-      : commonMasks = commonMasks,
-        super(compiler, new TypeInformationSystem(compiler, commonMasks));
+  TypeGraphInferrerEngine(Compiler compiler, ClosedWorld closedWorld,
+      ClosedWorldRefiner closedWorldRefiner, this.mainElement)
+      : super(compiler, closedWorld, closedWorldRefiner,
+            new TypeInformationSystem(closedWorld));
 
   JavaScriptBackend get backend => compiler.backend;
   Annotations get annotations => backend.annotations;
   DiagnosticReporter get reporter => compiler.reporter;
+  CommonMasks get commonMasks => closedWorld.commonMasks;
 
   /**
    * A set of selector names that [List] implements, that we know return
@@ -704,7 +701,7 @@ class TypeGraphInferrerEngine
         tracer.run();
         if (!tracer.continueAnalyzing) {
           elements.forEach((FunctionElement e) {
-            compiler.inferenceWorld.registerMightBePassedToApply(e);
+            closedWorldRefiner.registerMightBePassedToApply(e);
             if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
             e.functionSignature.forEachParameter((parameter) {
               types
@@ -724,11 +721,11 @@ class TypeGraphInferrerEngine
             workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
-            compiler.inferenceWorld.registerMightBePassedToApply(e);
+            closedWorldRefiner.registerMightBePassedToApply(e);
           }
           if (debug.VERBOSE) {
             print("traced closure $e as "
-                "${compiler.inferenceWorld
+                "${closedWorldRefiner
                     .getCurrentlyKnownMightBePassedToApply(e)}");
           }
         });
@@ -915,14 +912,13 @@ class TypeGraphInferrerEngine
     allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        compiler.inferenceWorld.addFunctionCalledInLoop(info.calledElement);
-      } else if (info.mask != null &&
-          !info.mask.containsAll(compiler.closedWorld)) {
+        closedWorldRefiner.addFunctionCalledInLoop(info.calledElement);
+      } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach(compiler.inferenceWorld.addFunctionCalledInLoop);
+        info.targets.forEach(closedWorldRefiner.addFunctionCalledInLoop);
       }
     });
   }
@@ -1189,7 +1185,7 @@ class TypeGraphInferrerEngine
           arguments, sideEffects, inLoop);
     }
 
-    compiler.closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
+    closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
@@ -1247,11 +1243,8 @@ class TypeGraphInferrerEngine
   Iterable<ResolvedAst> sortResolvedAsts() {
     int max = 0;
     Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
-    compiler.enqueuer.resolution.processedElements
+    compiler.enqueuer.resolution.processedEntities
         .forEach((AstElement element) {
-      // TODO(ngeoffray): Not sure why the resolver would put a null
-      // mapping.
-      if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
@@ -1359,14 +1352,20 @@ class TypeGraphInferrerEngine
 class TypeGraphInferrer implements TypesInferrer {
   TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
-  final CommonMasks commonMasks;
-  TypeGraphInferrer(this.compiler, this.commonMasks);
+  final ClosedWorld closedWorld;
+  final ClosedWorldRefiner closedWorldRefiner;
+
+  TypeGraphInferrer(this.compiler, this.closedWorld, this.closedWorldRefiner);
 
   String get name => 'Graph inferrer';
+
+  CommonMasks get commonMasks => closedWorld.commonMasks;
+
   TypeMask get _dynamicType => commonMasks.dynamicType;
 
   void analyzeMain(Element main) {
-    inferrer = new TypeGraphInferrerEngine(compiler, commonMasks, main);
+    inferrer = new TypeGraphInferrerEngine(
+        compiler, closedWorld, closedWorldRefiner, main);
     inferrer.runOverAllElements();
   }
 
@@ -1417,11 +1416,11 @@ class TypeGraphInferrer implements TypesInferrer {
 
     TypeMask result = const TypeMask.nonNullEmpty();
     Iterable<Element> elements =
-        compiler.closedWorld.allFunctions.filter(selector, mask);
+        inferrer.closedWorld.allFunctions.filter(selector, mask);
     for (Element element in elements) {
       TypeMask type =
           inferrer.typeOfElementWithSelector(element, selector).type;
-      result = result.union(type, compiler.closedWorld);
+      result = result.union(type, inferrer.closedWorld);
     }
     return result;
   }

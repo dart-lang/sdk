@@ -5,6 +5,7 @@
 library analyzer.test.generated.strong_mode_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -307,7 +308,8 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     InstanceCreationExpression exp = stmt.expression;
     ClassElement elementB = AstFinder.getClass(unit, "B").element;
     ClassElement elementA = AstFinder.getClass(unit, "A").element;
-    expect(exp.constructorName.type.type.element, elementB);
+    expect(resolutionMap.typeForTypeName(exp.constructorName.type).element,
+        elementB);
     _isInstantiationOf(_hasElement(elementB))(
         [_isType(elementA.typeParameters[0].type)])(exp.staticType);
   }
@@ -359,7 +361,8 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     expect(type0.normalParameterTypes[0], typeProvider.stringType);
 
     FunctionExpression anon1 = (statements[1] as ReturnStatement).expression;
-    FunctionType type1 = anon1.element.type;
+    FunctionType type1 =
+        resolutionMap.elementDeclaredByFunctionExpression(anon1).type;
     expect(type1.returnType, typeProvider.intType);
     expect(type1.normalParameterTypes[0], typeProvider.intType);
   }
@@ -383,7 +386,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
       FunctionExpression exp = decl.initializer;
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -412,7 +415,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
       FunctionExpression exp = decl.initializer;
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -477,7 +480,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       ExpressionStatement stmt = statements[i];
       FunctionExpressionInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -508,7 +511,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       ExpressionStatement stmt = statements[i];
       FunctionExpressionInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -537,7 +540,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -566,7 +569,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -597,7 +600,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -628,7 +631,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return exp.element.type;
+      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
     _isFunction2Of(_isInt, _isString)(literal(0));
@@ -706,8 +709,10 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
     VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
     MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
-    assertMapOfIntToListOfInt(mapB.element.type);
-    assertMapOfIntToListOfInt(mapC.element.returnType);
+    assertMapOfIntToListOfInt(
+        resolutionMap.elementDeclaredByVariableDeclaration(mapB).type);
+    assertMapOfIntToListOfInt(
+        resolutionMap.elementDeclaredByMethodDeclaration(mapC).returnType);
 
     MapLiteral mapLiteralB = mapB.initializer;
     MapLiteral mapLiteralC = (mapC.body as ExpressionFunctionBody).expression;

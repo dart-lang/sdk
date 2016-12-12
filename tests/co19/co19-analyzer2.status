@@ -182,6 +182,7 @@ Language/Mixins/Mixin_Application/warning_t01: MissingStaticWarning # Please tri
 Language/Mixins/Mixin_Application/warning_t02: MissingStaticWarning # Please triage this failure.
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
+Language/Statements/Assert/syntax_t04: MissingCompileTimeError # Assert messages are enabled by default
 Language/Statements/Assert/type_t04: MissingStaticWarning
 Language/Statements/Switch/last_statement_t03: MissingStaticWarning
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495

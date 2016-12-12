@@ -17,95 +17,14 @@ bad_constructor_test/05: DartkCompileTimeError
 conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: DartkCompileTimeError
 conflicting_type_variable_and_setter_test: DartkCompileTimeError
-const_for_in_variable_test/01: DartkMissingCompileTimeError
-constructor_duplicate_final_test/03: DartkMissingCompileTimeError
+const_for_in_variable_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: DartkCrash
 deep_nesting2_negative_test: DartkCrash
 deferred_closurize_load_library_test: DartkCrash
-enum_syntax_test/06: DartkMissingCompileTimeError
+enum_syntax_test/06: MissingCompileTimeError
 export_double_same_main_test: DartkCrash
 export_main_test: DartkCrash
-external_test/21: DartkMissingCompileTimeError
-external_test/24: DartkMissingCompileTimeError
-external_test/25: DartkMissingCompileTimeError
-final_syntax_test/01: DartkMissingCompileTimeError
-final_syntax_test/02: DartkMissingCompileTimeError
-final_syntax_test/03: DartkMissingCompileTimeError
-final_syntax_test/04: DartkMissingCompileTimeError
-main_not_a_function_test/01: DartkCrash
-metadata_test: DartkCompileTimeError
-mixin_illegal_super_use_test/01: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/02: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/03: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/04: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/05: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/06: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/07: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/08: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/09: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/10: DartkMissingCompileTimeError
-mixin_illegal_super_use_test/11: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/01: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/02: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/03: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/04: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/05: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/06: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/07: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/08: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/09: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/10: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/11: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/12: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/13: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/14: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/15: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/16: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/17: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/18: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/19: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/20: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/21: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/22: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/23: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/24: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/25: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/26: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/27: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/28: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/29: DartkMissingCompileTimeError
-mixin_illegal_superclass_test/30: DartkMissingCompileTimeError
-multiline_newline_test/01: DartkCompileTimeError
-multiline_newline_test/02: DartkCompileTimeError
-multiline_newline_test/03: DartkCompileTimeError
-multiline_newline_test/04: DartkMissingCompileTimeError
-multiline_newline_test/05: DartkMissingCompileTimeError
-multiline_newline_test/06: DartkMissingCompileTimeError
-no_main_test/01: DartkCrash
-not_enough_positional_arguments_test/01: DartkCompileTimeError
-regress_27617_test/1: DartkMissingCompileTimeError
-super_call3_test/01: DartkCrash
-tearoff_basic_test: DartkCompileTimeError
-tearoff_constructor_basic_test: DartkCompileTimeError
-type_variable_conflict2_test/02: DartkMissingCompileTimeError
-vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
-vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
-vm/reflect_core_vm_test: DartkCompileTimeError
-vm/regress_27201_test: DartkCompileTimeError
-
-# dartk: JIT failures
-[ $compiler == dartk && $runtime == vm ]
-enum_syntax_test/05: DartkMissingCompileTimeError
-reify_typevar_static_test/00: DartkMissingCompileTimeError
-type_variable_conflict2_test/06: DartkMissingCompileTimeError
-type_variable_conflict2_test/08: DartkMissingCompileTimeError
-type_variable_conflict2_test/10: DartkMissingCompileTimeError
-
-# dartk: precompilation failures
-[ $compiler == dartkp && $runtime == dart_precompiled ]
-const_for_in_variable_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/03: MissingCompileTimeError
-enum_syntax_test/06: MissingCompileTimeError
 external_test/21: MissingCompileTimeError
 external_test/24: MissingCompileTimeError
 external_test/25: MissingCompileTimeError
@@ -113,6 +32,19 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
+main_not_a_function_test/01: DartkCrash
+metadata_test: DartkCompileTimeError
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/02: MissingCompileTimeError
+mixin_illegal_super_use_test/03: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/05: MissingCompileTimeError
+mixin_illegal_super_use_test/06: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/08: MissingCompileTimeError
+mixin_illegal_super_use_test/09: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
 mixin_illegal_superclass_test/02: MissingCompileTimeError
 mixin_illegal_superclass_test/03: MissingCompileTimeError
@@ -143,22 +75,34 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/02: MissingCompileTimeError
-mixin_illegal_super_use_test/03: MissingCompileTimeError
-mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/05: MissingCompileTimeError
-mixin_illegal_super_use_test/06: MissingCompileTimeError
-mixin_illegal_super_use_test/07: MissingCompileTimeError
-mixin_illegal_super_use_test/08: MissingCompileTimeError
-mixin_illegal_super_use_test/09: MissingCompileTimeError
-mixin_illegal_super_use_test/10: MissingCompileTimeError
-mixin_illegal_super_use_test/11: MissingCompileTimeError
+multiline_newline_test/01: DartkCompileTimeError
+multiline_newline_test/02: DartkCompileTimeError
+multiline_newline_test/03: DartkCompileTimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
+no_main_test/01: DartkCrash
+not_enough_positional_arguments_test/01: DartkCompileTimeError
 regress_27617_test/1: MissingCompileTimeError
+super_call3_test/01: DartkCrash
+tearoff_basic_test: DartkCompileTimeError
+tearoff_constructor_basic_test: DartkCompileTimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
+vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
+vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
+vm/reflect_core_vm_test: DartkCompileTimeError
+vm/regress_27201_test: DartkCompileTimeError
+
+# dartk: JIT failures
+[ $compiler == dartk && $runtime == vm ]
+enum_syntax_test/05: MissingCompileTimeError
+reify_typevar_static_test/00: MissingCompileTimeError
+type_variable_conflict2_test/06: MissingCompileTimeError
+type_variable_conflict2_test/08: MissingCompileTimeError
+type_variable_conflict2_test/10: MissingCompileTimeError
+
+# dartk: precompilation failures
+[ $compiler == dartkp && $runtime == dart_precompiled ]
 
 
 ###############################################################################

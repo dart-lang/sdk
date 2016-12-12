@@ -7,6 +7,7 @@ library analyzer.src.dart.constant.utilities;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -39,17 +40,17 @@ class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
 
   @override
-  ConstructorName visitConstructorName(ConstructorName node) {
-    ConstructorName name = super.visitConstructorName(node);
-    name.staticElement = node.staticElement;
-    return name;
-  }
-
-  @override
   Annotation visitAnnotation(Annotation node) {
     Annotation annotation = super.visitAnnotation(node);
     annotation.element = node.element;
     return annotation;
+  }
+
+  @override
+  ConstructorName visitConstructorName(ConstructorName node) {
+    ConstructorName name = super.visitConstructorName(node);
+    name.staticElement = node.staticElement;
+    return name;
   }
 
   @override
@@ -191,7 +192,10 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (node.element.constructors.any((ConstructorElement e) => e.isConst)) {
+    if (resolutionMap
+        .elementDeclaredByClassDeclaration(node)
+        .constructors
+        .any((ConstructorElement e) => e.isConst)) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
       // initializers.
@@ -222,7 +226,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     super.visitDefaultFormalParameter(node);
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null && node.element != null) {
-      constantsToCompute.add(node.element);
+      constantsToCompute
+          .add(resolutionMap.elementDeclaredByFormalParameter(node));
     }
     return null;
   }

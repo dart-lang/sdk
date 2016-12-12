@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
@@ -25,7 +24,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -415,15 +414,12 @@ class Driver implements ServerStarter {
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
     plugins.add(dartCompletionPlugin);
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
+    linter.registerLintRules();
 
     String defaultSdkPath;
     if (results[SDK_OPTION] != null) {

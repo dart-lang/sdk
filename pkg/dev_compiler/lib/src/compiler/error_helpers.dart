@@ -60,6 +60,8 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
   // * it can return null
   // * using AnalysisError directly is now suspect, it's a correctness trap
   // * it requires an AnalysisContext
-  return ErrorProcessor.getProcessor(context, error)?.severity ??
+  return ErrorProcessor
+          .getProcessor(context.analysisOptions, error)
+          ?.severity ??
       error.errorCode.errorSeverity;
 }

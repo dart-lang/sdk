@@ -219,6 +219,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
         libraryElement.createLoadLibraryFunction(typeProvider);
+        libraryElement.publicNamespace = new Namespace({});
+        libraryElement.exportNamespace = new Namespace({});
         return libraryElement;
       }
       UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);

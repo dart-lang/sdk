@@ -30,12 +30,13 @@ export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
  * errors.
  */
 List<AnalysisError> doAnalysisError_listFromEngine(
-    engine.AnalysisContext context,
+    engine.AnalysisOptions analysisOptions,
     engine.LineInfo lineInfo,
     List<engine.AnalysisError> errors) {
   List<AnalysisError> serverErrors = <AnalysisError>[];
   for (engine.AnalysisError error in errors) {
-    ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
+    ErrorProcessor processor =
+        ErrorProcessor.getProcessor(analysisOptions, error);
     if (processor != null) {
       engine.ErrorSeverity severity = processor.severity;
       // Errors with null severity are filtered out.

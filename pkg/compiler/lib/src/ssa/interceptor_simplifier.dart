@@ -97,7 +97,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   bool canUseSelfForInterceptor(
       HInstruction receiver, Set<ClassElement> interceptedClasses) {
-    if (receiver.canBePrimitive(compiler)) {
+    if (receiver.canBePrimitive(closedWorld)) {
       // Primitives always need interceptors.
       return false;
     }
@@ -312,9 +312,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     if (receiver.canBeNull()) {
       if (!interceptedClasses.contains(helpers.jsNullClass)) {
         // Can use `(receiver && C)` only if receiver is either null or truthy.
-        if (!(receiver.canBePrimitiveNumber(compiler) ||
-            receiver.canBePrimitiveBoolean(compiler) ||
-            receiver.canBePrimitiveString(compiler))) {
+        if (!(receiver.canBePrimitiveNumber(closedWorld) ||
+            receiver.canBePrimitiveBoolean(closedWorld) ||
+            receiver.canBePrimitiveString(closedWorld))) {
           ClassElement interceptorClass = tryComputeConstantInterceptorFromType(
               receiver.instructionType.nonNullable(), interceptedClasses);
           if (interceptorClass != null) {

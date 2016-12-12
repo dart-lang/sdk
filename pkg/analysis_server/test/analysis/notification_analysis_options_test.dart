@@ -4,11 +4,12 @@
 
 library test.analysis.notification_analysis_options_test;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisOptions;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,6 +20,11 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
     defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
+    // These tests all fail, presumably because we are not updating the analysis
+    // options when the file changes and because we are not analyzing the
+    // analysis options file.
+//    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest_Driver);
+//    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest_Driver);
   });
 }
 
@@ -38,8 +44,6 @@ main() {
   List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
 
   String get optionsFilePath;
-
-  AnalysisContext get testContext => server.getContainingContext(testFile);
 
   List<AnalysisError> get testFileErrors => filesErrors[testFile];
 
@@ -74,6 +78,7 @@ analyzer:
 
   @override
   void setUp() {
+    registerLintRules();
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server)];
   }
@@ -103,9 +108,11 @@ main() {
     await waitForTasksFinished();
 
     // Verify options file.
+    expect(optionsFileErrors, isNotNull);
     expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
+    expect(testFileErrors, isNotNull);
     expect(testFileErrors, isEmpty);
   }
 
@@ -127,9 +134,11 @@ main() {
     await waitForTasksFinished();
 
     // Verify options file.
+    expect(optionsFileErrors, isNotNull);
     expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
+    expect(testFileErrors, isNotNull);
     expect(testFileErrors, isEmpty);
 
     addOptionsFile('''
@@ -287,14 +296,15 @@ linter:
   }
 
   void verifyLintsEnabled(List<String> lints) {
-    expect(testContext.analysisOptions.lint, true);
-    var rules = getLints(testContext).map((rule) => rule.name);
+    AnalysisOptions options = analysisOptions;
+    expect(options.lint, true);
+    var rules = options.lintRules.map((rule) => rule.name);
     expect(rules, unorderedEquals(lints));
   }
 
   verifyStrongMode({bool enabled}) {
     // Verify strong-mode enabled.
-    expect(testContext.analysisOptions.strongMode, enabled);
+    expect(analysisOptions.strongMode, enabled);
 
     if (enabled) {
       // Should produce a type warning.
@@ -311,11 +321,35 @@ linter:
 @reflectiveTest
 class NewAnalysisOptionsFileNotificationTest
     extends AnalysisOptionsFileNotificationTest {
+  @override
   String get optionsFilePath => '$projectPath/analysis_options.yaml';
+}
+
+@reflectiveTest
+class NewAnalysisOptionsFileNotificationTest_Driver
+    extends NewAnalysisOptionsFileNotificationTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
+    super.setUp();
+  }
 }
 
 @reflectiveTest
 class OldAnalysisOptionsFileNotificationTest
     extends AnalysisOptionsFileNotificationTest {
+  @override
   String get optionsFilePath => '$projectPath/.analysis_options';
+}
+
+@reflectiveTest
+class OldAnalysisOptionsFileNotificationTest_Driver
+    extends OldAnalysisOptionsFileNotificationTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
+    super.setUp();
+  }
 }

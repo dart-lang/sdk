@@ -6,6 +6,7 @@ library analyzer.test.constant_test;
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -1589,7 +1590,8 @@ const b = 3;''');
 
   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name,
       Map<String, DartObjectImpl> lexicalEnvironment) {
-    Source source = compilationUnit.element.source;
+    Source source =
+        resolutionMap.elementDeclaredByCompilationUnit(compilationUnit).source;
     Expression expression =
         findTopLevelConstantExpression(compilationUnit, name);
     GatheringErrorListener errorListener = new GatheringErrorListener();

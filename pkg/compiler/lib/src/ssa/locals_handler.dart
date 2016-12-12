@@ -70,6 +70,10 @@ class LocalsHandler {
                 ? null
                 : instanceType;
 
+  ClosedWorld get closedWorld => builder.closedWorld;
+
+  CommonMasks get commonMasks => closedWorld.commonMasks;
+
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
   DartType substInContext(DartType type) {
@@ -111,9 +115,8 @@ class LocalsHandler {
   HInstruction createBox() {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
-    JavaScriptBackend backend = _compiler.backend;
     HInstruction box = new HForeignCode(
-        js.js.parseForeignJS('{}'), backend.nonNullType, <HInstruction>[],
+        js.js.parseForeignJS('{}'), commonMasks.nonNullType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
     builder.add(box);
     return box;
@@ -131,8 +134,7 @@ class LocalsHandler {
     if (element != null && element.isGenerativeConstructorBody) {
       // The box is passed as a parameter to a generative
       // constructor body.
-      JavaScriptBackend backend = _compiler.backend;
-      box = builder.addParameter(scopeData.boxElement, backend.nonNullType);
+      box = builder.addParameter(scopeData.boxElement, commonMasks.nonNullType);
     } else {
       box = createBox();
     }
@@ -222,7 +224,7 @@ class LocalsHandler {
     if (closureData.isClosure) {
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
-          new HThis(closureData.thisLocal, backend.nonNullType);
+          new HThis(closureData.thisLocal, commonMasks.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
@@ -267,7 +269,6 @@ class LocalsHandler {
           new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      ClosedWorld closedWorld = _compiler.closedWorld;
       HParameterValue value =
           new HParameterValue(parameter, new TypeMask.exact(cls, closedWorld));
       builder.graph.explicitReceiverParameter = value;
@@ -325,7 +326,7 @@ class LocalsHandler {
       ClosureFieldElement redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureElement);
       TypeMask type = local is BoxLocal
-          ? (_compiler.backend as JavaScriptBackend).nonNullType
+          ? commonMasks.nonNullType
           : getTypeOfCapturedVariable(redirect);
       HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
       builder.add(fieldGet);
@@ -346,10 +347,7 @@ class LocalsHandler {
       assert(isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
       HInstruction instruction = new HLocalGet(
-          local,
-          localValue,
-          (_compiler.backend as JavaScriptBackend).dynamicType,
-          sourceInformation);
+          local, localValue, commonMasks.dynamicType, sourceInformation);
       builder.add(instruction);
       return instruction;
     }
@@ -377,8 +375,7 @@ class LocalsHandler {
     }
 
     return activationVariables.putIfAbsent(local, () {
-      JavaScriptBackend backend = _compiler.backend;
-      HLocalValue localValue = new HLocalValue(local, backend.nonNullType)
+      HLocalValue localValue = new HLocalValue(local, commonMasks.nonNullType)
         ..sourceInformation = sourceInformation;
       builder.graph.entry.addAtExit(localValue);
       return localValue;
@@ -489,7 +486,7 @@ class LocalsHandler {
         // We know 'this' cannot be modified.
         if (local != closureData.thisLocal) {
           HPhi phi =
-              new HPhi.singleInput(local, instruction, backend.dynamicType);
+              new HPhi.singleInput(local, instruction, commonMasks.dynamicType);
           loopEntry.addPhi(phi);
           directLocals[local] = phi;
         } else {
@@ -546,7 +543,6 @@ class LocalsHandler {
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
-    JavaScriptBackend backend = _compiler.backend;
     otherLocals.directLocals.forEach((Local local, HInstruction instruction) {
       // We know 'this' cannot be modified.
       if (local == closureData.thisLocal) {
@@ -558,8 +554,8 @@ class LocalsHandler {
         if (identical(instruction, mine)) {
           joinedLocals[local] = instruction;
         } else {
-          HInstruction phi = new HPhi.manyInputs(
-              local, <HInstruction>[mine, instruction], backend.dynamicType);
+          HInstruction phi = new HPhi.manyInputs(local,
+              <HInstruction>[mine, instruction], commonMasks.dynamicType);
           joinBlock.addPhi(phi);
           joinedLocals[local] = phi;
         }
@@ -579,10 +575,9 @@ class LocalsHandler {
     if (localsHandlers.length == 1) return localsHandlers[0];
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
     HInstruction thisValue = null;
-    JavaScriptBackend backend = _compiler.backend;
     directLocals.forEach((Local local, HInstruction instruction) {
       if (local != closureData.thisLocal) {
-        HPhi phi = new HPhi.noInputs(local, backend.dynamicType);
+        HPhi phi = new HPhi.noInputs(local, commonMasks.dynamicType);
         joinedLocals[local] = phi;
         joinBlock.addPhi(phi);
       } else {
@@ -625,17 +620,14 @@ class LocalsHandler {
     if (result == null) {
       ThisLocal local = closureData.thisLocal;
       ClassElement cls = local.enclosingClass;
-      ClosedWorld closedWorld = _compiler.closedWorld;
       if (closedWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result =
-            new TypeMask.nonNullSubtype(cls.declaration, _compiler.closedWorld);
+        result = new TypeMask.nonNullSubtype(cls.declaration, closedWorld);
       } else {
-        result = new TypeMask.nonNullSubclass(
-            cls.declaration, _compiler.closedWorld);
+        result = new TypeMask.nonNullSubclass(cls.declaration, closedWorld);
       }
       cachedTypeOfThis = result;
     }

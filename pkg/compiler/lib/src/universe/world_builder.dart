@@ -9,9 +9,9 @@ import 'dart:collection';
 import '../cache_strategy.dart';
 import '../common.dart';
 import '../common/backend_api.dart' show Backend;
+import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -125,7 +125,7 @@ abstract class WorldBuilder {
 
   /// Registers that [type] is checked in this universe. The unaliased type is
   /// returned.
-  DartType registerIsCheck(DartType type, Resolution resolution);
+  DartType registerIsCheck(DartType type);
 
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
@@ -168,15 +168,6 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
 
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(Element member);
-
-  /// `true` of `Object.runtimeType` is supported.
-  bool get hasRuntimeTypeSupport;
-
-  /// `true` of use of the `dart:isolate` library is supported.
-  bool get hasIsolateSupport;
-
-  /// `true` of `Function.apply` is supported.
-  bool get hasFunctionApplySupport;
 
   /// The [OpenWorld] being created by this world builder.
   // TODO(johnniwinther): Merge this with [ResolutionWorldBuilder].
@@ -375,7 +366,11 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   final Map<ClassElement, _ClassUsage> _processedClasses =
       <ClassElement, _ClassUsage>{};
 
-  /// Map of registers usage of instance members of live classes.
+  /// Map of registered usage of static members of live classes.
+  final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
+      <Entity, _StaticMemberUsage>{};
+
+  /// Map of registered usage of instance members of live classes.
   final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
       <MemberEntity, _MemberUsage>{};
 
@@ -496,7 +491,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  void registerTypeInstantiation(InterfaceType type, ClassUsed classUsed,
+  void registerTypeInstantiation(
+      InterfaceType type, ClassUsedCallback classUsed,
       {ConstructorElement constructor,
       bool byMirrors: false,
       bool isRedirection: false}) {
@@ -619,7 +615,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return _hasMatchingSelector(_invokedSetters[member.name], member);
   }
 
-  void registerDynamicUse(DynamicUse dynamicUse, MemberUsed memberUsed) {
+  void registerDynamicUse(
+      DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
     switch (dynamicUse.kind) {
@@ -680,8 +677,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  DartType registerIsCheck(DartType type, Resolution resolution) {
-    type.computeUnaliased(resolution);
+  DartType registerIsCheck(DartType type) {
+    type.computeUnaliased(_resolution);
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -690,53 +687,83 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return type;
   }
 
-  void registerStaticUse(StaticUse staticUse) {
+  void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     Element element = staticUse.element;
+    assert(invariant(element, element.isDeclaration,
+        message: "Element ${element} is not the declaration."));
+    _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
+      if ((element.isStatic || element.isTopLevel) && element.isFunction) {
+        return new _StaticFunctionUsage(element);
+      } else {
+        return new _GeneralStaticMemberUsage(element);
+      }
+    });
+    EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+
     if (Elements.isStaticOrTopLevel(element) && element.isField) {
       allReferencedStaticFields.add(element);
     }
+    // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
+    // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
+    // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
+    // enqueue.
     switch (staticUse.kind) {
-      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.FIELD_GET:
+        break;
       case StaticUseKind.FIELD_SET:
         fieldSetters.add(element);
         break;
+      case StaticUseKind.CLOSURE:
+        LocalFunctionElement closure = staticUse.element;
+        if (closure.type.containsTypeVariables) {
+          closuresWithFreeTypeVariables.add(closure);
+        }
+        allClosures.add(element);
+        break;
       case StaticUseKind.SUPER_TEAR_OFF:
+        useSet.addAll(usage.tearOff());
         methodsNeedingSuperGetter.add(element);
+        break;
+      case StaticUseKind.SUPER_FIELD_SET:
+        fieldSetters.add(element);
+        useSet.addAll(usage.normalUse());
+        break;
+      case StaticUseKind.STATIC_TEAR_OFF:
+        useSet.addAll(usage.tearOff());
         break;
       case StaticUseKind.GENERAL:
       case StaticUseKind.DIRECT_USE:
-      case StaticUseKind.STATIC_TEAR_OFF:
-      case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
-        break;
-      case StaticUseKind.CLOSURE:
-        allClosures.add(element);
+        useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.DIRECT_INVOKE:
         invariant(
             element, 'Direct static use is not supported for resolution.');
         break;
     }
+    if (useSet.isNotEmpty) {
+      memberUsed(usage.entity, useSet);
+    }
   }
 
-  void forgetElement(Element element, Compiler compiler) {
-    allClosures.remove(element);
-    slowDirectlyNestedClosures(element).forEach(compiler.forgetElement);
-    closurizedMembers.remove(element);
-    fieldSetters.remove(element);
-    _instantiationInfo.remove(element);
+  void forgetEntity(Entity entity, Compiler compiler) {
+    allClosures.remove(entity);
+    slowDirectlyNestedClosures(entity).forEach(compiler.forgetElement);
+    closurizedMembers.remove(entity);
+    fieldSetters.remove(entity);
+    _instantiationInfo.remove(entity);
 
-    void removeUsage(Set<_MemberUsage> set, Element element) {
+    void removeUsage(Set<_MemberUsage> set, Entity entity) {
       if (set == null) return;
       set.removeAll(
-          set.where((_MemberUsage usage) => usage.entity == element).toList());
+          set.where((_MemberUsage usage) => usage.entity == entity).toList());
     }
 
-    _processedClasses.remove(element);
-    removeUsage(_instanceMembersByName[element.name], element);
-    removeUsage(_instanceFunctionsByName[element.name], element);
+    _processedClasses.remove(entity);
+    removeUsage(_instanceMembersByName[entity.name], entity);
+    removeUsage(_instanceFunctionsByName[entity.name], entity);
   }
 
   // TODO(ahe): Replace this method with something that is O(1), for example,
@@ -760,7 +787,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   }
 
   /// Register [cls] and all its superclasses as instantiated.
-  void _processInstantiatedClass(ClassElement cls, ClassUsed classUsed) {
+  void _processInstantiatedClass(
+      ClassElement cls, ClassUsedCallback classUsed) {
     // Registers [superclass] as instantiated. Returns `true` if it wasn't
     // already instantiated and we therefore have to process its superclass as
     // well.
@@ -780,7 +808,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
-  void processClassMembers(ClassElement cls, MemberUsed memberUsed) {
+  void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {
     cls.implementation.forEachMember((ClassElement cls, MemberElement member) {
       _processInstantiatedClassMember(cls, member, memberUsed);
     });
@@ -808,12 +836,13 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     _processSet(_instanceMembersByName, name, updateUsage);
   }
 
-  void _processInstanceFunctions(String name, bool updateUsage(_MemberUsage e)) {
+  void _processInstanceFunctions(
+      String name, bool updateUsage(_MemberUsage e)) {
     _processSet(_instanceFunctionsByName, name, updateUsage);
   }
 
   void _processInstantiatedClassMember(
-      ClassElement cls, MemberElement member, MemberUsed memberUsed) {
+      ClassElement cls, MemberElement member, MemberUsedCallback memberUsed) {
     assert(invariant(member, member.isDeclaration));
     if (!member.isInstanceMember) return;
     String memberName = member.name;
@@ -833,6 +862,11 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       if (member.isField && isNative) {
         _openWorld.registerUsedElement(member);
       }
+      if (member.isFunction &&
+          member.name == Identifiers.call &&
+          !cls.typeVariables.isEmpty) {
+        callMethodsWithFreeTypeVariables.add(member);
+      }
 
       if (_hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
@@ -851,7 +885,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
             .putIfAbsent(memberName, () => new Set<_MemberUsage>())
             .add(usage);
       }
-      if (usage.pendingUse.contains(MemberUse.CLOSURIZE)) {
+      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
@@ -1084,7 +1118,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  DartType registerIsCheck(DartType type, Resolution resolution) {
+  DartType registerIsCheck(DartType type) {
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -1306,7 +1340,7 @@ class _FunctionUsage extends _MemberUsage {
 
   _FunctionUsage(FunctionEntity function) : super.internal(function);
 
-  EnumSet<MemberUse> get _originalUse => MemberUses.ALL;
+  EnumSet<MemberUse> get _originalUse => MemberUses.ALL_INSTANCE;
 
   @override
   EnumSet<MemberUse> read() => fullyUse();
@@ -1328,13 +1362,13 @@ class _FunctionUsage extends _MemberUsage {
         return MemberUses.NONE;
       }
       hasRead = true;
-      return _pendingUse.removeAll(MemberUses.CLOSURIZE_ONLY);
+      return _pendingUse.removeAll(MemberUses.CLOSURIZE_INSTANCE_ONLY);
     } else if (hasRead) {
       hasInvoke = true;
       return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
     } else {
       hasRead = hasInvoke = true;
-      return _pendingUse.removeAll(MemberUses.ALL);
+      return _pendingUse.removeAll(MemberUses.ALL_INSTANCE);
     }
   }
 
@@ -1388,19 +1422,24 @@ class _SetterUsage extends _MemberUsage {
 }
 
 /// Enum class for the possible kind of use of [MemberEntity] objects.
-enum MemberUse { NORMAL, CLOSURIZE }
+enum MemberUse { NORMAL, CLOSURIZE_INSTANCE, CLOSURIZE_STATIC }
 
 /// Common [EnumSet]s used for [MemberUse].
 class MemberUses {
   static const EnumSet<MemberUse> NONE = const EnumSet<MemberUse>.fixed(0);
   static const EnumSet<MemberUse> NORMAL_ONLY =
       const EnumSet<MemberUse>.fixed(1);
-  static const EnumSet<MemberUse> CLOSURIZE_ONLY =
+  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY =
       const EnumSet<MemberUse>.fixed(2);
-  static const EnumSet<MemberUse> ALL = const EnumSet<MemberUse>.fixed(3);
+  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY =
+      const EnumSet<MemberUse>.fixed(4);
+  static const EnumSet<MemberUse> ALL_INSTANCE =
+      const EnumSet<MemberUse>.fixed(3);
+  static const EnumSet<MemberUse> ALL_STATIC =
+      const EnumSet<MemberUse>.fixed(5);
 }
 
-typedef void MemberUsed(MemberEntity member, EnumSet<MemberUse> useSet);
+typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
 
 /// Registry for the observed use of a class [entity] in the open world.
 // TODO(johnniwinther): Merge this with [InstantiationInfo].
@@ -1447,4 +1486,52 @@ class ClassUses {
   static const EnumSet<ClassUse> ALL = const EnumSet<ClassUse>.fixed(3);
 }
 
-typedef void ClassUsed(ClassEntity cls, EnumSet<ClassUse> useSet);
+typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
+
+// TODO(johnniwinther): Merge this with [_MemberUsage].
+abstract class _StaticMemberUsage extends _AbstractUsage<MemberUse> {
+  final Entity entity;
+
+  bool hasNormalUse = false;
+  bool get hasClosurization => false;
+
+  _StaticMemberUsage.internal(this.entity);
+
+  EnumSet<MemberUse> normalUse() {
+    if (hasNormalUse) {
+      return MemberUses.NONE;
+    }
+    hasNormalUse = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  EnumSet<MemberUse> tearOff();
+
+  @override
+  EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
+
+  String toString() => entity.toString();
+}
+
+class _GeneralStaticMemberUsage extends _StaticMemberUsage {
+  _GeneralStaticMemberUsage(Entity entity) : super.internal(entity);
+
+  EnumSet<MemberUse> tearOff() => normalUse();
+}
+
+class _StaticFunctionUsage extends _StaticMemberUsage {
+  bool hasClosurization = false;
+
+  _StaticFunctionUsage(Entity entity) : super.internal(entity);
+
+  EnumSet<MemberUse> tearOff() {
+    if (hasClosurization) {
+      return MemberUses.NONE;
+    }
+    hasNormalUse = hasClosurization = true;
+    return _pendingUse.removeAll(MemberUses.ALL_STATIC);
+  }
+
+  @override
+  EnumSet<MemberUse> get _originalUse => MemberUses.ALL_STATIC;
+}

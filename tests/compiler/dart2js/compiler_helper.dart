@@ -75,11 +75,10 @@ Future<String> compile(String code,
     compiler.enqueuer.resolution
         .applyImpact(compiler.backend.computeHelpersImpact());
     compiler.processQueue(compiler.enqueuer.resolution, element);
-    compiler.openWorld.closeWorld(compiler.reporter);
-    compiler.backend.onResolutionComplete();
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);
     resolutionWork.run();
+    compiler.closeResolution();
     CodegenWorkItem work = new CodegenWorkItem(compiler.backend, element);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run();

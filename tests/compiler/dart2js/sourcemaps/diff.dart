@@ -11,7 +11,11 @@ import 'output_structure.dart';
 import 'sourcemap_helper.dart';
 import 'sourcemap_html_helper.dart';
 
-enum DiffKind { UNMATCHED, MATCHING, IDENTICAL, }
+enum DiffKind {
+  UNMATCHED,
+  MATCHING,
+  IDENTICAL,
+}
 
 /// Id for an output column.
 class DiffColumn {

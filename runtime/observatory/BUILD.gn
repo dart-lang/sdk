@@ -22,6 +22,12 @@ declare_args() {
   dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub")
 }
 
+# We set this to "" in the Fuchsia build to force building with dart_bootstrap.
+if (defined(is_fuchsia) && defined(is_fuchsia_host) &&
+    (is_fuchsia || is_fuchsia_host)) {
+  dart_host_pub_exe = ""
+}
+
 # Construct arguments to the observatory tool for finding pub.
 pub_build_deps = []
 pub_build_args = []

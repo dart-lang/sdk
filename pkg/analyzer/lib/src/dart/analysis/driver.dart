@@ -132,14 +132,14 @@ class AnalysisDriver {
 
   /**
    * The combined unlinked and linked package for the SDK, extracted from
-   * the given [_sourceFactory].
+   * the given [sourceFactory].
    */
   PackageBundle _sdkBundle;
 
   /**
-   * The set of explicitly analyzed files.
+   * The set of added files.
    */
-  final _explicitFiles = new LinkedHashSet<String>();
+  final _addedFiles = new LinkedHashSet<String>();
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -166,7 +166,15 @@ class AnalysisDriver {
    * The mapping from the files for which the index was requested using
    * [getIndex] to the [Completer]s to report the result.
    */
-  final _indexRequestedFiles = <String, List<Completer<IndexResult>>>{};
+  final _indexRequestedFiles =
+      <String, List<Completer<AnalysisDriverUnitIndex>>>{};
+
+  /**
+   * The mapping from the files for which the index was requested using
+   * [getIndex] to the [Completer]s to report the result.
+   */
+  final _unitElementRequestedFiles =
+      <String, List<Completer<CompilationUnitElement>>>{};
 
   /**
    * The set of files were reported as changed through [changeFile] and not
@@ -243,9 +251,9 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the set of files added to analysis using [addFile].
+   * Return the set of files explicitly added to analysis using [addFile].
    */
-  Set<String> get addedFiles => _explicitFiles;
+  Set<String> get addedFiles => _addedFiles;
 
   /**
    * Return the stream that produces [ExceptionResult]s.
@@ -258,7 +266,19 @@ class AnalysisDriver {
   FileSystemState get fsState => _fsState;
 
   /**
-   * Return the set of files that are known, i.e. added or used implicitly.
+   * Return `true` if the driver has a file to analyze.
+   */
+  bool get hasFilesToAnalyze {
+    return _requestedFiles.isNotEmpty ||
+        _requestedParts.isNotEmpty ||
+        _filesToAnalyze.isNotEmpty ||
+        _partsToAnalyze.isNotEmpty;
+  }
+
+  /**
+   * Return the set of files that are known at this moment. This set does not
+   * always include all added files or all implicitly used file. If a file has
+   * not been processed yet, it might be missing.
    */
   Set<String> get knownFiles => _fsState.knownFilePaths;
 
@@ -330,6 +350,9 @@ class AnalysisDriver {
     if (_indexRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_unitElementRequestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_topLevelNameDeclarationsTasks.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
@@ -362,7 +385,8 @@ class AnalysisDriver {
    */
   void addFile(String path) {
     if (AnalysisEngine.isDartFileName(path)) {
-      _explicitFiles.add(path);
+      _addedFiles.add(path);
+      _changedFiles.add(path);
       _filesToAnalyze.add(path);
     }
     _statusSupport.transitionToAnalyzing();
@@ -390,7 +414,7 @@ class AnalysisDriver {
   void changeFile(String path) {
     if (AnalysisEngine.isDartFileName(path)) {
       _changedFiles.add(path);
-      if (_explicitFiles.contains(path)) {
+      if (_addedFiles.contains(path)) {
         _filesToAnalyze.add(path);
       }
     }
@@ -418,20 +442,20 @@ class AnalysisDriver {
   }
 
   /**
-   * Return a [Future] that completes with the [IndexResult] for the file with
-   * the given [path].
+   * Return a [Future] that completes with the [AnalysisDriverUnitIndex] for
+   * the file with the given [path].
    */
-  Future<IndexResult> getIndex(String path) {
-    if (AnalysisEngine.isDartFileName(path)) {
-      var completer = new Completer<IndexResult>();
-      _indexRequestedFiles
-          .putIfAbsent(path, () => <Completer<IndexResult>>[])
-          .add(completer);
-      _statusSupport.transitionToAnalyzing();
-      _scheduler._notify(this);
-      return completer.future;
+  Future<AnalysisDriverUnitIndex> getIndex(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return new Future.value();
     }
-    return new Future.value();
+    var completer = new Completer<AnalysisDriverUnitIndex>();
+    _indexRequestedFiles
+        .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
+        .add(completer);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return completer.future;
   }
 
   /**
@@ -476,6 +500,23 @@ class AnalysisDriver {
   }
 
   /**
+   * Return a [Future] that completes with the [CompilationUnitElement] for the
+   * file with the given [path].
+   */
+  Future<CompilationUnitElement> getUnitElement(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return new Future.value();
+    }
+    var completer = new Completer<CompilationUnitElement>();
+    _unitElementRequestedFiles
+        .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
+        .add(completer);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return completer.future;
+  }
+
+  /**
    * Return a [Future] that completes with a [ParseResult] for the file
    * with the given [path].
    *
@@ -505,8 +546,12 @@ class AnalysisDriver {
    * but does not guarantee this.
    */
   void removeFile(String path) {
-    _explicitFiles.remove(path);
+    _addedFiles.remove(path);
     _filesToAnalyze.remove(path);
+    _fsState.removeFile(path);
+    _filesToAnalyze.addAll(_addedFiles);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
   }
 
   /**
@@ -549,7 +594,7 @@ class AnalysisDriver {
       String key = _getResolvedUnitKey(libraryFile, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
-        return _getAnalysisResultFromBytes(libraryFile, file, bytes);
+        return _getAnalysisResultFromBytes(file, bytes);
       }
     }
 
@@ -592,9 +637,9 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return _getAnalysisResultFromBytes(libraryFile, file, bytes,
+        return _getAnalysisResultFromBytes(file, bytes,
             content: withUnit ? file.content : null,
-            withErrors: _explicitFiles.contains(path),
+            withErrors: _addedFiles.contains(path),
             resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
         analysisContext.dispose();
@@ -602,28 +647,28 @@ class AnalysisDriver {
     });
   }
 
-  IndexResult _computeIndexResult(String path) {
+  AnalysisDriverUnitIndex _computeIndex(String path) {
     AnalysisResult analysisResult = _computeAnalysisResult(path,
         withUnit: false, asIsIfPartWithoutLibrary: true);
-    FileState libraryFile = analysisResult._libraryFile;
-    FileState file = analysisResult._file;
+    return analysisResult._index;
+  }
+
+  CompilationUnitElement _computeUnitElement(String path) {
+    FileState file = _fsState.getFileForPath(path);
+    FileState libraryFile = file.library ?? file;
 
     // Create the AnalysisContext to resynthesize elements in.
     _LibraryContext libraryContext = _createLibraryContext(libraryFile);
     AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
 
     // Resynthesize the CompilationUnitElement in the context.
-    CompilationUnitElement unitElement;
     try {
-      unitElement = analysisContext.computeResult(
+      return analysisContext.computeResult(
           new LibrarySpecificUnit(libraryFile.source, file.source),
           COMPILATION_UNIT_ELEMENT);
     } finally {
       analysisContext.dispose();
     }
-
-    // Return as IndexResult.
-    return new IndexResult(unitElement, analysisResult._index);
   }
 
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
@@ -735,26 +780,14 @@ class AnalysisDriver {
    * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
    * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getAnalysisResultFromBytes(
-      FileState libraryFile, FileState file, List<int> bytes,
+  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
       {String content, bool withErrors: true, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = withErrors
         ? _getErrorsFromSerialized(file, unit.errors)
         : const <AnalysisError>[];
-    return new AnalysisResult(
-        libraryFile,
-        file,
-        this,
-        sourceFactory,
-        file.path,
-        file.uri,
-        content,
-        file.contentHash,
-        file.lineInfo,
-        resolvedUnit,
-        errors,
-        unit.index);
+    return new AnalysisResult(this, sourceFactory, file.path, file.uri, content,
+        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
   }
 
   /**
@@ -850,9 +883,19 @@ class AnalysisDriver {
     // Process an index request.
     if (_indexRequestedFiles.isNotEmpty) {
       String path = _indexRequestedFiles.keys.first;
-      IndexResult result = _computeIndexResult(path);
+      AnalysisDriverUnitIndex index = _computeIndex(path);
       _indexRequestedFiles.remove(path).forEach((completer) {
-        completer.complete(result);
+        completer.complete(index);
+      });
+      return;
+    }
+
+    // Process a unit request.
+    if (_unitElementRequestedFiles.isNotEmpty) {
+      String path = _unitElementRequestedFiles.keys.first;
+      CompilationUnitElement unitElement = _computeUnitElement(path);
+      _unitElementRequestedFiles.remove(path).forEach((completer) {
+        completer.complete(unitElement);
       });
       return;
     }
@@ -972,7 +1015,7 @@ class AnalysisDriver {
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found for $path');
         // TODO(scheglov) schedule analysis of only affected files
-        _filesToAnalyze.addAll(_explicitFiles);
+        _filesToAnalyze.addAll(_addedFiles);
       }
       return files[0];
     });
@@ -1033,13 +1076,24 @@ class AnalysisDriverScheduler {
   /**
    * Return `true` if we are currently analyzing code.
    */
-  bool get isAnalyzing =>
-      _statusSupport.currentStatus == AnalysisStatus.ANALYZING;
+  bool get isAnalyzing => _hasFilesToAnalyze;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get status => _statusSupport.stream;
+
+  /**
+   * Return `true` if there is a driver with a file to analyze.
+   */
+  bool get _hasFilesToAnalyze {
+    for (AnalysisDriver driver in _drivers) {
+      if (driver.hasFilesToAnalyze) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Start the scheduler, so that any [AnalysisDriver] created before or
@@ -1058,7 +1112,6 @@ class AnalysisDriverScheduler {
    */
   void _add(AnalysisDriver driver) {
     _drivers.add(driver);
-    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -1067,7 +1120,6 @@ class AnalysisDriverScheduler {
    * perform some work.
    */
   void _notify(AnalysisDriver driver) {
-    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -1077,7 +1129,6 @@ class AnalysisDriverScheduler {
    */
   void _remove(AnalysisDriver driver) {
     _drivers.remove(driver);
-    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -1097,8 +1148,10 @@ class AnalysisDriverScheduler {
 
       await _hasWork.signal;
 
-      if (analysisSection == null) {
-        analysisSection = _logger.enter('Analyzing');
+      // Transition to analyzing if there are files to analyze.
+      if (_hasFilesToAnalyze) {
+        _statusSupport.transitionToAnalyzing();
+        analysisSection ??= _logger.enter('Analyzing');
       }
 
       // Find the driver with the highest priority.
@@ -1112,11 +1165,15 @@ class AnalysisDriverScheduler {
         }
       }
 
+      // Transition to idle if no files to analyze.
+      if (!_hasFilesToAnalyze) {
+        _statusSupport.transitionToIdle();
+        analysisSection?.exit();
+        analysisSection = null;
+      }
+
       // Continue to sleep if no work to do.
       if (bestPriority == AnalysisDriverPriority.nothing) {
-        analysisSection.exit();
-        analysisSection = null;
-        _statusSupport.transitionToIdle();
         continue;
       }
 
@@ -1152,9 +1209,6 @@ class AnalysisDriverScheduler {
  * any previously returned result, even inside of the same library.
  */
 class AnalysisResult {
-  final FileState _libraryFile;
-  final FileState _file;
-
   /**
    * The [AnalysisDriver] that produced this result.
    */
@@ -1208,8 +1262,6 @@ class AnalysisResult {
   final AnalysisDriverUnitIndex _index;
 
   AnalysisResult(
-      this._libraryFile,
-      this._file,
       this.driver,
       this.sourceFactory,
       this.path,
@@ -1239,23 +1291,6 @@ class ExceptionResult {
   final CaughtException exception;
 
   ExceptionResult(this.path, this.exception);
-}
-
-/**
- * The result of indexing of a single file.
- */
-class IndexResult {
-  /**
-   * The element of the file.
-   */
-  final CompilationUnitElement unitElement;
-
-  /**
-   * The index of the file.
-   */
-  final AnalysisDriverUnitIndex index;
-
-  IndexResult(this.unitElement, this.index);
 }
 
 /**
@@ -1385,6 +1420,8 @@ class PerformanceLogSection {
  * file.
  */
 class _FilesReferencingNameTask {
+  static const int _MS_WORK_INTERVAL = 5;
+
   final AnalysisDriver driver;
   final String name;
   final Completer<List<String>> completer = new Completer<List<String>>();
@@ -1396,30 +1433,38 @@ class _FilesReferencingNameTask {
   _FilesReferencingNameTask(this.driver, this.name);
 
   /**
-   * Perform a single piece of work, and either complete the [completer] and
-   * return `true` to indicate that the task is done, return `false` to indicate
-   * that the task should continue to be run.
+   * Perform work for a fixed length of time, and complete the [completer] to
+   * either return `true` to indicate that the task is done, or return `false`
+   * to indicate that the task should continue to be run.
+   *
+   * Each invocation of an asynchronous method has overhead, which looks as
+   * `_SyncCompleter.complete` invocation, we see as much as 62% in some
+   * scenarios. Instead we use a fixed length of time, so we can spend less time
+   * overall and keep quick enough response time.
    */
   Future<bool> perform() async {
-    // Prepare files to check.
-    if (filesToCheck.isEmpty) {
-      Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
-      filesToCheck.addAll(newFiles);
-    }
+    Stopwatch timer = new Stopwatch()..start();
+    while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
+      // Prepare files to check.
+      if (filesToCheck.isEmpty) {
+        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        filesToCheck.addAll(newFiles);
+      }
 
-    // If no more files to check, complete and done.
-    if (filesToCheck.isEmpty) {
-      completer.complete(referencingFiles);
-      return true;
-    }
+      // If no more files to check, complete and done.
+      if (filesToCheck.isEmpty) {
+        completer.complete(referencingFiles);
+        return true;
+      }
 
-    // Check the next file.
-    String path = filesToCheck.removeLast();
-    FileState file = driver._fsState.getFileForPath(path);
-    if (file.referencedNames.contains(name)) {
-      referencingFiles.add(path);
+      // Check the next file.
+      String path = filesToCheck.removeLast();
+      FileState file = driver._fsState.getFileForPath(path);
+      if (file.referencedNames.contains(name)) {
+        referencingFiles.add(path);
+      }
+      checkedFiles.add(path);
     }
-    checkedFiles.add(path);
 
     // We're not done yet.
     return false;

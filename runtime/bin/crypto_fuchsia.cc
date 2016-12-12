@@ -18,7 +18,7 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
     const intptr_t remaining = count - read;
     const intptr_t len =
         (MX_CPRNG_DRAW_MAX_LEN < remaining) ? MX_CPRNG_DRAW_MAX_LEN : remaining;
-    mx_size_t res = 0;
+    size_t res = 0;
     const mx_status_t status = mx_cprng_draw(buffer + read, len, &res);
     if (status != NO_ERROR) {
       return false;

@@ -48,6 +48,7 @@ io/directory_fuzz_test: Skip
 io/socket_many_connections_test: Skip
 # Re-enable once the bots have been updated. Issue #26057
 io/secure_server_client_certificate_test: Skip
+io/socket_test: Pass, Timeout # Issue 27453
 
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to

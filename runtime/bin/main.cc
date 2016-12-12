@@ -61,6 +61,10 @@ enum SnapshotKind {
 };
 static SnapshotKind gen_snapshot_kind = kNone;
 
+static bool use_dart_frontend = false;
+
+static const char* frontend_filename = NULL;
+
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
 // free'd.)
@@ -324,6 +328,19 @@ static bool ProcessParseAllOption(const char* arg,
 }
 
 
+static bool ProcessFrontendOption(const char* filename,
+                                  CommandLineOptions* vm_options) {
+  ASSERT(filename != NULL);
+  if (filename[0] == '\0') {
+    return false;
+  }
+  use_dart_frontend = true;
+  frontend_filename = filename;
+  vm_options->AddArgument("--use-dart-frontend");
+  return true;
+}
+
+
 static bool ProcessUseBlobsOption(const char* arg,
                                   CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -540,6 +557,7 @@ static struct {
     // VM specific options to the standalone dart program.
     {"--compile_all", ProcessCompileAllOption},
     {"--parse_all", ProcessParseAllOption},
+    {"--dfe=", ProcessFrontendOption},
     {"--enable-vm-service", ProcessEnableVmServiceOption},
     {"--disable-service-origin-check", ProcessDisableServiceOriginCheckOption},
     {"--observe", ProcessObserveOption},
@@ -791,6 +809,16 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0)) {
     return NULL;
   }
+  if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
+    if (!use_dart_frontend) {
+      *error = strdup("Kernel isolate not supported.");
+      return NULL;
+    } else {
+      if (packages_config == NULL) {
+        packages_config = commandline_packages_file;
+      }
+    }
+  }
 
   // If the script is a Kernel binary, then we will try to bootstrap from the
   // script.
@@ -870,12 +898,27 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     CHECK_RESULT(result);
   }
 
+  if (Dart_IsKernelIsolate(isolate)) {
+    script_uri = frontend_filename;
+  }
+
   // Setup package root if specified.
   result = DartUtils::SetupPackageRoot(package_root, packages_config);
   CHECK_RESULT(result);
 
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
+
+  if (!Dart_IsKernelIsolate(isolate) && use_dart_frontend) {
+    Log::PrintErr("Waiting for Kernel isolate to load.\n");
+    // This must be the main script to be loaded. Wait for Kernel isolate
+    // to finish initialization.
+    Dart_Port port = Dart_ServiceWaitForKernelPort();
+    if (port == ILLEGAL_PORT) {
+      *error = strdup("Error while initializing Kernel isolate");
+      return NULL;
+    }
+  }
 
   if (run_app_snapshot) {
     result = DartUtils::SetupIOLibrary(script_uri);
@@ -1800,7 +1843,6 @@ void main(int argc, char** argv) {
   bool print_flags_seen = false;
   bool verbose_debug_seen = false;
 
-  vm_options.AddArgument("--no_write_protect_code");
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
     Log::PrintErr("Initialization failed\n");

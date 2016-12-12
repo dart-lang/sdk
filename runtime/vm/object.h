@@ -8655,6 +8655,26 @@ class UserTag : public Instance {
 };
 
 
+class ObjectPoolInfo : public ValueObject {
+ public:
+  explicit ObjectPoolInfo(const ObjectPool& pool)
+      : array_(TypedData::Handle(pool.info_array())) {}
+
+  explicit ObjectPoolInfo(const TypedData& info_array) : array_(info_array) {}
+
+  ObjectPool::EntryType InfoAt(intptr_t i) {
+    return static_cast<ObjectPool::EntryType>(array_.GetInt8(i));
+  }
+
+  void SetInfoAt(intptr_t i, ObjectPool::EntryType info) {
+    array_.SetInt8(i, static_cast<int8_t>(info));
+  }
+
+ private:
+  const TypedData& array_;
+};
+
+
 // Breaking cycles and loops.
 RawClass* Object::clazz() const {
   uword raw_value = reinterpret_cast<uword>(raw_);

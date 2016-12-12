@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/dependencies/library_dependencies.d
 import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -48,39 +49,49 @@ class AnalysisDomainHandler implements RequestHandler {
   /**
    * Implement the `analysis.getErrors` request.
    */
-  Response getErrors(Request request) {
+  Future<Null> getErrors(Request request) async {
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
+
+    void send(engine.AnalysisOptions analysisOptions, LineInfo lineInfo,
+        List<engine.AnalysisError> errors) {
+      if (lineInfo == null) {
+        server.sendResponse(new Response.getErrorsInvalidFile(request));
+      } else {
+        List<AnalysisError> protocolErrors =
+            doAnalysisError_listFromEngine(analysisOptions, lineInfo, errors);
+        server.sendResponse(
+            new AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
+      }
+    }
+
+    if (server.options.enableNewAnalysisDriver) {
+      var result = await server.getAnalysisResult(file);
+      send(result?.driver?.analysisOptions, result?.lineInfo, result?.errors);
+      return;
+    }
+
     Future<AnalysisDoneReason> completionFuture =
         server.onFileAnalysisComplete(file);
     if (completionFuture == null) {
-      return new Response.getErrorsInvalidFile(request);
+      server.sendResponse(new Response.getErrorsInvalidFile(request));
     }
-    completionFuture.then((AnalysisDoneReason reason) {
+    completionFuture.then((AnalysisDoneReason reason) async {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
           engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-          List<AnalysisError> errors;
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
             engine.AnalysisContext context = server.getAnalysisContext(file);
-            errors = doAnalysisError_listFromEngine(
-                context, errorInfo.lineInfo, errorInfo.errors);
-            server.sendResponse(
-                new AnalysisGetErrorsResult(errors).toResponse(request.id));
+            send(context.analysisOptions, errorInfo.lineInfo, errorInfo.errors);
           }
           break;
         case AnalysisDoneReason.CONTEXT_REMOVED:
           // The active contexts have changed, so try again.
-          Response response = getErrors(request);
-          if (response != Response.DELAYED_RESPONSE) {
-            server.sendResponse(response);
-          }
+          await getErrors(request);
           break;
       }
     });
-    // delay response
-    return Response.DELAYED_RESPONSE;
   }
 
   /**
@@ -132,48 +143,50 @@ class AnalysisDomainHandler implements RequestHandler {
   /**
    * Implement the `analysis.getNavigation` request.
    */
-  Response getNavigation(Request request) {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      return new Response.getNavigationInvalidFile(request);
-    }
+  Future<Null> getNavigation(Request request) async {
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
+
+    void send(CompilationUnit unit) {
+      if (unit == null) {
+        server.sendResponse(new Response.getNavigationInvalidFile(request));
+      } else {
+        CompilationUnitElement unitElement = unit.element;
+        NavigationCollectorImpl collector = computeNavigation(
+            server,
+            unitElement.context,
+            unitElement.source,
+            params.offset,
+            params.length);
+        server.sendResponse(new AnalysisGetNavigationResult(
+                collector.files, collector.targets, collector.regions)
+            .toResponse(request.id));
+      }
+    }
+
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisResult result = await server.getAnalysisResult(file);
+      send(result?.unit);
+      return;
+    }
+
     Future<AnalysisDoneReason> analysisFuture =
         server.onFileAnalysisComplete(file);
     if (analysisFuture == null) {
-      return new Response.getNavigationInvalidFile(request);
+      server.sendResponse(new Response.getNavigationInvalidFile(request));
     }
     analysisFuture.then((AnalysisDoneReason reason) async {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
           CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-          if (unit == null) {
-            server.sendResponse(new Response.getNavigationInvalidFile(request));
-          } else {
-            CompilationUnitElement unitElement = unit.element;
-            NavigationCollectorImpl collector = computeNavigation(
-                server,
-                unitElement.context,
-                unitElement.source,
-                params.offset,
-                params.length);
-            server.sendResponse(new AnalysisGetNavigationResult(
-                    collector.files, collector.targets, collector.regions)
-                .toResponse(request.id));
-          }
+          send(unit);
           break;
         case AnalysisDoneReason.CONTEXT_REMOVED:
           // The active contexts have changed, so try again.
-          Response response = getNavigation(request);
-          if (response != Response.DELAYED_RESPONSE) {
-            server.sendResponse(response);
-          }
+          await getNavigation(request);
           break;
       }
     });
-    // delay response
-    return Response.DELAYED_RESPONSE;
   }
 
   /**
@@ -198,14 +211,16 @@ class AnalysisDomainHandler implements RequestHandler {
     try {
       String requestName = request.method;
       if (requestName == ANALYSIS_GET_ERRORS) {
-        return getErrors(request);
+        getErrors(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_GET_HOVER) {
         getHover(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
       } else if (requestName == ANALYSIS_GET_NAVIGATION) {
-        return getNavigation(request);
+        getNavigation(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
         return getReachableSources(request);
       } else if (requestName == ANALYSIS_REANALYZE) {

@@ -8897,13 +8897,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
           f(a, e);
         };
       })(_isolate_helper.IsolateNatives._processWorkerMessage, this.mainManager);
-      self.onmessage = func;
-      self.dartPrint = self.dartPrint || (function(serialize) {
+      _isolate_helper.global.onmessage = func;
+      _isolate_helper.global.dartPrint = _isolate_helper.global.dartPrint || (function(serialize) {
         return function(object) {
-          if (self.console && self.console.log) {
-            self.console.log(object);
+          var _self = _isolate_helper.global;
+          if (_self.console && _self.console.log) {
+            _self.console.log(object);
           } else {
-            self.postMessage(serialize(object));
+            _self.postMessage(serialize(object));
           }
         };
       })(_isolate_helper._Manager._serializePrintMessage);
@@ -9054,8 +9055,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.test(this.errorsAreFatal) && core.identical(this, _isolate_helper._globalState.rootContext)) {
           return;
         }
-        if (self.console && self.console.error) {
-          self.console.error(error, stackTrace);
+        if (_isolate_helper.global.console && _isolate_helper.global.console.error) {
+          _isolate_helper.global.console.error(error, stackTrace);
         } else {
           core.print(error);
           if (stackTrace != null) core.print(stackTrace);
@@ -9342,13 +9343,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({process: dart.definiteFunctionType(dart.void, [])})
   });
   dart.defineLazy(_isolate_helper, {
-    get _global() {
+    get global() {
       return typeof global == 'undefined' ? self : global;
     }
   });
   _isolate_helper._MainManagerStub = class _MainManagerStub extends core.Object {
     postMessage(msg) {
-      _isolate_helper._global.postMessage(msg);
+      _isolate_helper.global.postMessage(msg);
     }
   };
   dart.setSignature(_isolate_helper._MainManagerStub, {
@@ -9358,17 +9359,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper._SPAWN_FAILED_SIGNAL = "spawn failed";
   dart.copyProperties(_isolate_helper, {
     get globalWindow() {
-      return _isolate_helper._global.window;
+      return _isolate_helper.global.window;
     }
   });
   dart.copyProperties(_isolate_helper, {
     get globalWorker() {
-      return _isolate_helper._global.Worker;
+      return _isolate_helper.global.Worker;
     }
   });
   dart.copyProperties(_isolate_helper, {
     get globalPostMessageDefined() {
-      return !!_isolate_helper._global.postMessage;
+      return !!_isolate_helper.global.postMessage;
     }
   });
   _isolate_helper._MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
@@ -9502,7 +9503,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     static _consoleLog(msg) {
-      self.console.log(msg);
+      _isolate_helper.global.console.log(msg);
     }
     static _getJSFunctionFromName(functionName) {
       let globalFunctionsContainer = _foreign_helper.JS_EMBEDDED_GLOBAL("", _js_embedded_names.GLOBAL_FUNCTIONS);
@@ -10662,7 +10663,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }).bind(this);
         dart.fn(internalCallback, VoidTovoid$());
         _isolate_helper.enterJsAsync();
-        this[_handle] = self.setTimeout(internalCallback, milliseconds);
+        this[_handle] = _isolate_helper.global.setTimeout(internalCallback, milliseconds);
       } else {
         dart.assert(dart.notNull(milliseconds) > 0);
         dart.throw(new core.UnsupportedError("Timer greater than 0."));
@@ -10674,7 +10675,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_handle] = null;
       if (dart.test(_isolate_helper.hasTimer())) {
         _isolate_helper.enterJsAsync();
-        this[_handle] = self.setInterval(dart.fn(() => {
+        this[_handle] = _isolate_helper.global.setInterval(dart.fn(() => {
           callback(this);
         }, VoidTodynamic$()), milliseconds);
       } else {
@@ -10689,9 +10690,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (this[_handle] == null) return;
         _isolate_helper.leaveJsAsync();
         if (dart.test(this[_once])) {
-          self.clearTimeout(this[_handle]);
+          _isolate_helper.global.clearTimeout(this[_handle]);
         } else {
-          self.clearInterval(this[_handle]);
+          _isolate_helper.global.clearInterval(this[_handle]);
         }
         this[_handle] = null;
       } else {
@@ -10718,7 +10719,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({cancel: dart.definiteFunctionType(dart.void, [])})
   });
   _isolate_helper.hasTimer = function() {
-    return self.setTimeout != null;
+    return _isolate_helper.global.setTimeout != null;
   };
   dart.lazyFn(_isolate_helper.hasTimer, () => VoidTobool());
   _isolate_helper.CapabilityImpl = class CapabilityImpl extends core.Object {
@@ -19640,12 +19641,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       async._AsyncRun._scheduleImmediateClosure(callback);
     }
     static _initializeScheduleImmediate() {
-      if (self.scheduleImmediate != null) {
+      if (_isolate_helper.global.scheduleImmediate != null) {
         return async._AsyncRun._scheduleImmediateJsOverride;
       }
-      if (self.MutationObserver != null && self.document != null) {
-        let div = self.document.createElement("div");
-        let span = self.document.createElement("span");
+      if (_isolate_helper.global.MutationObserver != null && _isolate_helper.global.document != null) {
+        let div = _isolate_helper.global.document.createElement("div");
+        let span = _isolate_helper.global.document.createElement("span");
         let storedCallback = null;
         function internalCallback(_) {
           _isolate_helper.leaveJsAsync();
@@ -19655,7 +19656,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         dart.fn(internalCallback, dynamicTodynamic$());
         ;
-        let observer = new self.MutationObserver(internalCallback);
+        let observer = new _isolate_helper.global.MutationObserver(internalCallback);
         observer.observe(div, {childList: true});
         return dart.fn(callback => {
           dart.assert(storedCallback == null);
@@ -19663,7 +19664,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           storedCallback = callback;
           div.firstChild ? div.removeChild(span) : div.appendChild(span);
         }, _AsyncCallbackTovoid());
-      } else if (self.setImmediate != null) {
+      } else if (_isolate_helper.global.setImmediate != null) {
         return async._AsyncRun._scheduleImmediateWithSetImmediate;
       }
       return async._AsyncRun._scheduleImmediateWithTimer;
@@ -19676,7 +19677,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.fn(internalCallback, VoidTodynamic$());
       ;
       _isolate_helper.enterJsAsync();
-      self.scheduleImmediate(internalCallback);
+      _isolate_helper.global.scheduleImmediate(internalCallback);
     }
     static _scheduleImmediateWithSetImmediate(callback) {
       function internalCallback() {
@@ -19686,7 +19687,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.fn(internalCallback, VoidTodynamic$());
       ;
       _isolate_helper.enterJsAsync();
-      self.setImmediate(internalCallback);
+      _isolate_helper.global.setImmediate(internalCallback);
     }
     static _scheduleImmediateWithTimer(callback) {
       async.Timer._createTimer(core.Duration.ZERO, callback);

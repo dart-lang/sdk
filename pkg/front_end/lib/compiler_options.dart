@@ -97,4 +97,22 @@ class CompilerOptions {
   /// [packagesFilePath], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = PhysicalFileSystem.instance;
+
+  /// Whether to generate code for the SDK when compiling a whole-program.
+  bool compileSdk = false;
+
+  /// Whether a modular build compiles only the files listed explicitly or if it
+  /// compiles dependencies as well.
+  ///
+  /// This option is intended only for modular APIs like `kernelForBuildUnit`.
+  /// These APIs by default ensure that builds are hermetic, where all files
+  /// that will be compiled are listed explicitly and all other dependencies
+  /// are covered by summary files.
+  ///
+  /// When this option is true, these APIs will treat any dependency that is
+  /// not described in a summary as if it was explictly listed as an input.
+  bool chaseDependencies = false;
+
+  /// Whether to intepret Dart sources in strong-mode.
+  bool strongMode = true;
 }

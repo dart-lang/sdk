@@ -22,6 +22,7 @@
  */
 library analyzer.dart.element.type;
 
+import 'package:analyzer/dart/ast/resolution_base_classes.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
@@ -31,7 +32,7 @@ import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartType {
+abstract class DartType implements ResolutionType {
   /**
    * An empty list of types.
    */
@@ -698,9 +699,6 @@ abstract class TypeParameterType implements DartType {
    */
   static const List<TypeParameterType> EMPTY_LIST = const <TypeParameterType>[];
 
-  @override
-  TypeParameterElement get element;
-
   /**
    * Return the type representing the bound associated with this parameter,
    * or `dynamic` if there was no explicit bound.
@@ -715,4 +713,7 @@ abstract class TypeParameterType implements DartType {
    * Always consult the bound if that could be relevant.
    */
   ElementLocation get definition;
+
+  @override
+  TypeParameterElement get element;
 }

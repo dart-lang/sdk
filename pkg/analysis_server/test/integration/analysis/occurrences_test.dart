@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.occurrences;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,12 +10,12 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(OccurrencesTest);
+    defineReflectiveTests(OccurrencesTest_Driver);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractOccurrencesTest extends AbstractAnalysisServerIntegrationTest {
   test_occurrences() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -65,5 +63,20 @@ main() {
       check('j', ['j = 0', 'j < i', 'j++', 'j;']);
       check('sum', ['sum = 0', 'sum +=', 'sum)']);
     });
+  }
+}
+
+@reflectiveTest
+class OccurrencesTest extends AbstractOccurrencesTest {}
+
+@reflectiveTest
+class OccurrencesTest_Driver extends AbstractOccurrencesTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  test_occurrences() {
+    //  NoSuchMethodError: The getter 'iterator' was called on null.
+    return super.test_occurrences();
   }
 }

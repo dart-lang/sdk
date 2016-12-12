@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -5301,7 +5302,10 @@ class LintFixTest extends BaseFixProcessorTest {
   void findLint(String src, String lintCode, {int length: 1}) {
     int errorOffset = src.indexOf('/*LINT*/');
     resolveTestUnit(src.replaceAll('/*LINT*/', ''));
-    error = new AnalysisError(testUnit.element.source, errorOffset, length,
+    error = new AnalysisError(
+        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
+        errorOffset,
+        length,
         new LintCode(lintCode, '<ignored>'));
   }
 

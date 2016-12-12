@@ -26,7 +26,9 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analysis_server/src/single_context_manager.dart';
+import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -370,7 +372,7 @@ class AnalysisServer {
 
     {
       String name = options.newAnalysisDriverLog;
-      StringSink sink = new _NullStringSink();
+      StringSink sink = new NullStringSink();
       if (name != null) {
         if (name == 'stdout') {
           sink = io.stdout;
@@ -1269,7 +1271,9 @@ class AnalysisServer {
                 sendAnalysisNotificationHighlights(this, file, dartUnit);
                 break;
               case AnalysisService.OUTLINE:
-                AnalysisContext context = dartUnit.element.context;
+                AnalysisContext context = resolutionMap
+                    .elementDeclaredByCompilationUnit(dartUnit)
+                    .context;
                 LineInfo lineInfo = context.getLineInfo(source);
                 SourceKind kind = context.getKindOf(source);
                 sendAnalysisNotificationOutline(
@@ -2109,11 +2113,4 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in split store microtasks.
    */
   static PerformanceTag splitStore = new PerformanceTag('splitStore');
-}
-
-class _NullStringSink implements StringSink {
-  void write(Object obj) {}
-  void writeAll(Iterable objects, [String separator = ""]) {}
-  void writeCharCode(int charCode) {}
-  void writeln([Object obj = ""]) {}
 }

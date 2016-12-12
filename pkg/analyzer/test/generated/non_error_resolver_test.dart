@@ -5,6 +5,7 @@
 library analyzer.test.generated.non_error_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -373,7 +374,6 @@ f(A a) {
   }
 
   void test_assert_with_message_await() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     Source source = addSource('''
 import 'dart:async';
 f() async {
@@ -387,7 +387,6 @@ Future<String> g() => null;
   }
 
   void test_assert_with_message_dynamic() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     Source source = addSource('''
 f() {
   assert(false, g());
@@ -400,7 +399,6 @@ g() => null;
   }
 
   void test_assert_with_message_non_string() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     Source source = addSource('''
 f() {
   assert(false, 3);
@@ -412,7 +410,6 @@ f() {
   }
 
   void test_assert_with_message_null() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     Source source = addSource('''
 f() {
   assert(false, null);
@@ -424,7 +421,6 @@ f() {
   }
 
   void test_assert_with_message_string() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     Source source = addSource('''
 f() {
   assert(false, 'message');
@@ -436,7 +432,6 @@ f() {
   }
 
   void test_assert_with_message_suppresses_unused_var_hint() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
     Source source = addSource('''
 f() {
   String message = 'msg';
@@ -1038,7 +1033,8 @@ class E {}''');
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    ClassElement classC = unit.element.getType('C');
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.documentationComment, isNotNull);
   }
 

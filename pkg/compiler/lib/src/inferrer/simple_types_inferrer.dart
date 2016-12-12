@@ -16,14 +16,13 @@ import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart' as op;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask, GlobalTypeInferenceElementData;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Link, Setlet;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'inferrer_visitor.dart';
 
 /**
@@ -35,6 +34,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     implements MinimalInferrerEngine<T> {
   final Compiler compiler;
   final ClosedWorld closedWorld;
+  final ClosedWorldRefiner closedWorldRefiner;
   final V types;
   final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
@@ -44,9 +44,8 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   final Map<Element, GlobalTypeInferenceElementData> inTreeData =
       new Map<Element, GlobalTypeInferenceElementData>();
 
-  InferrerEngine(Compiler compiler, this.types)
-      : this.compiler = compiler,
-        this.closedWorld = compiler.closedWorld;
+  InferrerEngine(
+      this.compiler, this.closedWorld, this.closedWorldRefiner, this.types);
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -180,7 +179,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
     Iterable<Element> elements =
-        compiler.closedWorld.allFunctions.filter(selector, mask);
+        closedWorld.allFunctions.filter(selector, mask);
     for (Element e in elements) {
       if (!f(e.implementation)) return;
     }
@@ -219,8 +218,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      sideEffects
-          .add(compiler.inferenceWorld.getCurrentlyKnownSideEffects(callee));
+      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
     }
   }
 
@@ -492,7 +490,7 @@ class SimpleTypeInferrerVisitor<T>
         });
       }
       if (analyzedElement.isGenerativeConstructor && cls.isAbstract) {
-        if (compiler.closedWorld.isInstantiated(cls)) {
+        if (closedWorld.isInstantiated(cls)) {
           returnType = types.nonNullSubclass(cls);
         } else {
           // TODO(johnniwinther): Avoid analyzing [analyzedElement] in this
@@ -541,7 +539,8 @@ class SimpleTypeInferrerVisitor<T>
       }
     }
 
-    compiler.inferenceWorld.registerSideEffects(analyzedElement, sideEffects);
+    inferrer.closedWorldRefiner
+        .registerSideEffects(analyzedElement, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
@@ -655,7 +654,7 @@ class SimpleTypeInferrerVisitor<T>
   bool isInClassOrSubclass(Element element) {
     ClassElement cls = outermostElement.enclosingClass.declaration;
     ClassElement enclosing = element.enclosingClass.declaration;
-    return compiler.closedWorld.isSubclassOf(enclosing, cls);
+    return closedWorld.isSubclassOf(enclosing, cls);
   }
 
   void checkIfExposesThis(Selector selector, TypeMask mask) {
@@ -1362,7 +1361,7 @@ class SimpleTypeInferrerVisitor<T>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<Element> targets = compiler.closedWorld.allFunctions.filter(
+        Iterable<Element> targets = closedWorld.allFunctions.filter(
             setterSelector, types.newTypedSelector(thisType, setterMask));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update
@@ -1635,7 +1634,7 @@ class SimpleTypeInferrerVisitor<T>
     } else if (element != null &&
         element.isField &&
         Elements.isStaticOrTopLevelField(element) &&
-        compiler.closedWorld.fieldNeverChanges(element)) {
+        closedWorld.fieldNeverChanges(element)) {
       FieldElement fieldElement = element;
       ConstantValue value =
           compiler.backend.constants.getConstantValue(fieldElement.constant);

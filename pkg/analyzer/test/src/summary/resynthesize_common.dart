@@ -5,6 +5,7 @@
 library test.src.serialization.elements_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -393,8 +394,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         // In 'class C {static const a = 0; static const b = a;}' the reference
         // to 'a' in 'b' is serialized as a fully qualified 'C.a' reference.
         if (r.prefix.staticElement is ClassElement) {
+          Element oElement = resolutionMap.staticElementForIdentifier(o);
           compareElements(
-              r.prefix.staticElement, o.staticElement?.enclosingElement, desc);
+              r.prefix.staticElement, oElement?.enclosingElement, desc);
           compareConstAsts(r.identifier, o, desc);
         } else {
           fail('Prefix of type ${r.prefix.staticElement.runtimeType} should not'
@@ -1591,6 +1593,10 @@ class E {}''');
 
   test_class_setter_implicit_return_type() {
     checkLibrary('class C { set x(int value) {} }');
+  }
+
+  test_class_setter_invalid_no_parameter() {
+    checkLibrary('class C { void set x() {} }');
   }
 
   test_class_setter_static() {
@@ -4671,14 +4677,12 @@ typedef F();''');
 
   test_unresolved_import() {
     allowMissingFiles = true;
-    checkLibrary("import 'foo.dart';", allowErrors: true);
-  }
-
-  test_unresolved_import_deferred() {
-    allowMissingFiles = true;
     LibraryElementImpl library =
-        checkLibrary("import 'missing.dart' deferred as p;");
-    expect(library.imports[0].importedLibrary.loadLibraryFunction, isNotNull);
+        checkLibrary("import 'foo.dart';", allowErrors: true);
+    LibraryElement importedLibrary = library.imports[0].importedLibrary;
+    expect(importedLibrary.loadLibraryFunction, isNotNull);
+    expect(importedLibrary.publicNamespace, isNotNull);
+    expect(importedLibrary.exportNamespace, isNotNull);
   }
 
   test_unresolved_part() {

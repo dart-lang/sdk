@@ -6,20 +6,20 @@ library test.domain.analysis.abstract;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -69,7 +69,13 @@ class AbstractAnalysisTest {
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
 
+  AnalysisOptions get analysisOptions => enableNewAnalysisDriver
+      ? testDiver.analysisOptions
+      : testContext.analysisOptions;
+
   AnalysisContext get testContext => server.getAnalysisContext(testFile);
+
+  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -113,12 +119,8 @@ class AbstractAnalysisTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
     plugins.add(dartCompletionPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
     //
     // Process plugins

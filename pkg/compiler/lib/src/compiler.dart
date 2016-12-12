@@ -180,9 +180,6 @@ abstract class Compiler implements LibraryLoaderListener {
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   DumpInfoTask dumpInfoTask;
 
-  bool get hasFunctionApplySupport => resolverWorld.hasFunctionApplySupport;
-  bool get hasIsolateSupport => resolverWorld.hasIsolateSupport;
-
   bool get hasCrashed => _reporter.hasCrashed;
 
   Stopwatch progress;
@@ -282,13 +279,6 @@ abstract class Compiler implements LibraryLoaderListener {
     tasks.addAll(backend.tasks);
   }
 
-  /// The world currently being computed by resolution. This forms a basis for
-  /// the [inferenceWorld] and later the [closedWorld].
-  OpenWorld get openWorld => _world;
-
-  /// The closed world after resolution but currently refined by inference.
-  ClosedWorldRefiner get inferenceWorld => _world;
-
   /// The closed world after resolution and inference.
   ClosedWorld get closedWorld {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
@@ -323,8 +313,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ///
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
-    return new ResolverTask(
-        resolution, backend.constantCompilerTask, openWorld, measurer);
+    return new ResolverTask(resolution, backend.constantCompilerTask, measurer);
   }
 
   // TODO(johnniwinther): Rename these appropriately when unification of worlds/
@@ -732,10 +721,11 @@ abstract class Compiler implements LibraryLoaderListener {
         }
         assert(mainFunction != null);
 
-        closeResolution();
+        ClosedWorldRefiner closedWorldRefiner = closeResolution();
 
         reporter.log('Inferring types...');
-        globalInference.runGlobalTypeInference(mainFunction);
+        globalInference.runGlobalTypeInference(
+            mainFunction, closedWorld, closedWorldRefiner);
 
         if (stopAfterTypeInference) return;
 
@@ -744,11 +734,7 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        backend.onCodegenStart();
-        if (hasIsolateSupport) {
-          enqueuer.codegen
-              .applyImpact(backend.enableIsolateSupport(forResolution: false));
-        }
+        enqueuer.codegen.applyImpact(backend.onCodegenStart());
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
@@ -771,19 +757,20 @@ abstract class Compiler implements LibraryLoaderListener {
       });
 
   /// Perform the steps needed to fully end the resolution phase.
-  void closeResolution() {
+  ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    openWorld.closeWorld(reporter);
+    WorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionComplete();
+    backend.onResolutionComplete(world);
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    closureToClassMapper.createClosureClasses();
+    closureToClassMapper.createClosureClasses(world);
+    return world;
   }
 
   /// Compute the [WorldImpact] for accessing all elements in [library].
@@ -908,7 +895,7 @@ abstract class Compiler implements LibraryLoaderListener {
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.processedElements);
+    var resolved = new Set.from(enqueuer.resolution.processedEntities);
     for (Element e in enqueuer.codegen.processedEntities) {
       resolved.remove(e);
     }
@@ -939,7 +926,7 @@ abstract class Compiler implements LibraryLoaderListener {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       assert(phase == PHASE_RESOLVING);
-      reporter.log('Resolved ${enqueuer.resolution.processedElements.length} '
+      reporter.log('Resolved ${enqueuer.resolution.processedEntities.length} '
           'elements.');
       progress.reset();
     }
@@ -1113,7 +1100,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
   void forgetElement(Element element) {
     resolution.forgetElement(element);
-    enqueuer.forgetElement(element);
+    enqueuer.forgetEntity(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
         // TODO(ahe): It would be nice to reuse names of nested closures.
@@ -1983,7 +1970,7 @@ class CompilerResolution implements Resolution {
 
   @override
   void registerClass(ClassElement cls) {
-    _compiler.openWorld.registerClass(cls);
+    enqueuer.universe.openWorld.registerClass(cls);
   }
 
   @override

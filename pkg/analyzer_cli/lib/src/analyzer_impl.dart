@@ -257,7 +257,8 @@ class AnalyzerImpl {
       AnalysisError error, CommandLineOptions options,
       [AnalysisContext context]) {
     if (context != null) {
-      ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
+      ErrorProcessor processor =
+          ErrorProcessor.getProcessor(context.analysisOptions, error);
       // If there is a processor for this error, defer to it.
       if (processor != null) {
         return processor.severity;

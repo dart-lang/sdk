@@ -161,10 +161,16 @@ class BackendImpacts {
 
   BackendImpact get throwNoSuchMethod {
     return _throwNoSuchMethod ??= new BackendImpact(
+        instantiatedClasses: compiler.options.useKernel
+            ? [
+                commonElements.symbolClass,
+              ]
+            : [],
         staticUses: compiler.options.useKernel
             ? [
                 helpers.genericNoSuchMethod,
                 helpers.unresolvedConstructorError,
+                commonElements.symbolConstructor.declaration,
               ]
             : [
                 helpers.throwNoSuchMethod,
@@ -230,12 +236,21 @@ class BackendImpacts {
   BackendImpact _throwRuntimeError;
 
   BackendImpact get throwRuntimeError {
-    return _throwRuntimeError ??= new BackendImpact(staticUses: [
-      helpers.throwRuntimeError
-    ], otherImpacts: [
-      // Also register the types of the arguments passed to this method.
-      stringValues
-    ]);
+    return _throwRuntimeError ??= new BackendImpact(
+        staticUses: compiler.options.useKernel
+            ? [
+                // TODO(sra): Refactor impacts so that we know which of these
+                // are called.
+                helpers.malformedTypeError,
+                helpers.throwRuntimeError,
+              ]
+            : [
+                helpers.throwRuntimeError,
+              ],
+        otherImpacts: [
+          // Also register the types of the arguments passed to this method.
+          stringValues
+        ]);
   }
 
   BackendImpact _superNoSuchMethod;

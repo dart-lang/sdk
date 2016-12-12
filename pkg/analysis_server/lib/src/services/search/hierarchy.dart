@@ -87,7 +87,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     }
     // check all sub- classes
     Set<ClassElement> subClasses =
-        await getSubClasses(searchEngine, superClass);
+        await searchEngine.searchAllSubtypes(superClass);
     subClasses.add(superClass);
     for (ClassElement subClass in subClasses) {
       List<Element> subClassMembers = getChildren(subClass, name);
@@ -116,15 +116,6 @@ List<Element> getMembers(ClassElement clazz) {
     members.addAll(getClassMembers(superClass));
   }
   return members;
-}
-
-/**
- * Returns a [Set] with all direct and indirect subclasses of [seed].
- */
-Future<Set<ClassElement>> getSubClasses(
-    SearchEngine searchEngine, ClassElement seed) async {
-  List<SearchMatch> matches = await searchEngine.searchAllSubtypes(seed);
-  return matches.map((match) => match.element).toSet();
 }
 
 /**

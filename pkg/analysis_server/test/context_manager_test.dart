@@ -7,21 +7,25 @@ library test.context.directory.manager;
 import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
@@ -36,7 +40,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractContextManagerTest);
     defineReflectiveTests(ContextManagerWithNewOptionsTest);
+    defineReflectiveTests(ContextManagerWithNewOptionsTest_Driver);
     defineReflectiveTests(ContextManagerWithOldOptionsTest);
+    defineReflectiveTests(ContextManagerWithOldOptionsTest_Driver);
   });
 }
 
@@ -151,16 +157,15 @@ test_pack:lib/''');
         manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
     expect(contexts, isNotNull);
     expect(contexts.length, equals(1));
-    var context = contexts[0];
-    var source = context.sourceFactory.forUri('dart:foobar');
+    var source = sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
     expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
     // We can't find dart:core because we didn't list it in our
     // embedded_libs map.
-    expect(context.sourceFactory.forUri('dart:core'), isNull);
+    expect(sourceFactory.forUri('dart:core'), isNull);
     // We can find dart:typed_data because we listed it in our
     // embedded_libs map.
-    expect(context.sourceFactory.forUri('dart:typed_data'), isNotNull);
+    expect(sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
   test_ignoreFilesInPackagesFolder() {
@@ -388,8 +393,7 @@ test_pack:lib/''');
         manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
     expect(contexts, isNotNull);
     expect(contexts.length, equals(1));
-    var context = contexts[0];
-    var source = context.sourceFactory.forUri('dart:foobar');
+    var source = sourceFactory.forUri('dart:foobar');
     expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
   }
 
@@ -406,7 +410,7 @@ test_pack:lib/''');
     expect(contextsInAnalysisRoot, hasLength(1));
     AnalysisContext context = contextsInAnalysisRoot[0];
     expect(context, isNotNull);
-    Source result = context.sourceFactory.forUri('package:foo/foo.dart');
+    Source result = sourceFactory.forUri('package:foo/foo.dart');
     expect(result, isNotNull);
     expect(result.exists(), isFalse);
   }
@@ -959,7 +963,7 @@ test_pack:lib/''');
     expect(contextsInAnalysisRoot, hasLength(1));
     AnalysisContext context = contextsInAnalysisRoot[0];
     expect(context, isNotNull);
-    Source result = context.sourceFactory.forUri('package:foo/foo.dart');
+    Source result = sourceFactory.forUri('package:foo/foo.dart');
     expect(result.fullName, filePath);
   }
 
@@ -1745,12 +1749,15 @@ abstract class ContextManagerTest {
         .toList();
   }
 
-  List<ErrorProcessor> get errorProcessors =>
-      callbacks.currentContext.analysisOptions.errorProcessors;
+  AnalysisOptions get analysisOptions => callbacks.analysisOptions;
 
-  List<Linter> get lints => getLints(callbacks.currentContext);
+  bool get enableAnalysisDriver => false;
 
-  AnalysisOptions get options => callbacks.currentContext.analysisOptions;
+  List<ErrorProcessor> get errorProcessors => analysisOptions.errorProcessors;
+
+  List<Linter> get lints => analysisOptions.lintRules;
+
+  SourceFactory get sourceFactory => callbacks.sourceFactory;
 
   Map<String, List<Folder>> get _currentPackageMap => _packageMap(projPath);
 
@@ -1759,12 +1766,26 @@ abstract class ContextManagerTest {
     resourceProvider.deleteFile(filePath);
   }
 
+  /**
+   * TODO(brianwilkerson) This doesn't add the strong mode processor when using
+   * the new analysis driver.
+   */
   ErrorProcessor getProcessor(AnalysisError error) =>
-      ErrorProcessor.getProcessor(callbacks.currentContext, error);
+      callbacks.currentDriver == null
+          ? ErrorProcessor.getProcessor(
+              callbacks.currentContext.analysisOptions, error)
+          : errorProcessors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
+              orElse: () => null);
 
   String newFile(List<String> pathComponents, [String content = '']) {
     String filePath = path.posix.joinAll(pathComponents);
     resourceProvider.newFile(filePath, content);
+    return filePath;
+  }
+
+  String newFileFromBytes(List<String> pathComponents, List<int> bytes) {
+    String filePath = path.posix.joinAll(pathComponents);
+    resourceProvider.newFileWithBytes(filePath, bytes);
     return filePath;
   }
 
@@ -1777,11 +1798,10 @@ abstract class ContextManagerTest {
   void processRequiredPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(linterPlugin);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
+
+    registerLintRules();
   }
 
   UriResolver providePackageResolver(Folder folder) => packageResolver;
@@ -1789,9 +1809,10 @@ abstract class ContextManagerTest {
   void setUp() {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
+    resourceProvider.newFolder(projPath);
     packageMapProvider = new MockPackageMapProvider();
     // Create an SDK in the mock file system.
-    new MockSdk(resourceProvider: resourceProvider);
+    new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
     DartSdkManager sdkManager = new DartSdkManager('/', false);
     manager = new ContextManagerImpl(
         resourceProvider,
@@ -1801,10 +1822,12 @@ abstract class ContextManagerTest {
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
         new AnalysisOptionsImpl(),
-        false);
-    callbacks = new TestContextManagerCallbacks(resourceProvider);
+        enableAnalysisDriver);
+    PerformanceLog logger = new PerformanceLog(new NullStringSink());
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
+    callbacks =
+        new TestContextManagerCallbacks(resourceProvider, logger, scheduler);
     manager.callbacks = callbacks;
-    resourceProvider.newFolder(projPath);
   }
 
   /**
@@ -1833,8 +1856,94 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 }
 
 @reflectiveTest
+class ContextManagerWithNewOptionsTest_Driver
+    extends ContextManagerWithNewOptionsTest {
+  bool get enableAnalysisDriver => true;
+
+  @failingTest
+  test_analysis_options_file_delete() async {
+    // It appears that this fails because we are not correctly updating the
+    // analysis options in the driver when the file is removed.
+    return super.test_analysis_options_file_delete();
+  }
+
+  @failingTest
+  test_analysis_options_file_delete_with_embedder() async {
+    // This fails because the ContextBuilder doesn't pick up the strongMode
+    // flag from the embedder.yaml file.
+    return super.test_analysis_options_file_delete_with_embedder();
+  }
+
+  @failingTest
+  test_embedder_options() async {
+    // This fails because the ContextBuilder doesn't pick up the strongMode
+    // flag from the embedder.yaml file.
+    return super.test_embedder_options();
+  }
+
+  @failingTest
+  test_optionsFile_update_strongMode() async {
+    // It appears that this fails because we are not correctly updating the
+    // analysis options in the driver when the file is modified.
+    //return super.test_optionsFile_update_strongMode();
+    // After a few other changes, the test now times out on my machine, so I'm
+    // disabling it in order to prevent it from being flaky.
+    fail('Test times out');
+  }
+
+  @failingTest
+  test_path_filter_analysis_option() async {
+    // This fails because we're not analyzing the analyis options file.
+    return super.test_path_filter_analysis_option();
+  }
+}
+
+@reflectiveTest
 class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+}
+
+@reflectiveTest
+class ContextManagerWithOldOptionsTest_Driver
+    extends ContextManagerWithOldOptionsTest {
+  bool get enableAnalysisDriver => true;
+
+  @failingTest
+  test_analysis_options_file_delete() async {
+    // It appears that this fails because we are not correctly updating the
+    // analysis options in the driver when the file is removed.
+    return super.test_analysis_options_file_delete();
+  }
+
+  @failingTest
+  test_analysis_options_file_delete_with_embedder() async {
+    // This fails because the ContextBuilder doesn't pick up the strongMode
+    // flag from the embedder.yaml file.
+    return super.test_analysis_options_file_delete_with_embedder();
+  }
+
+  @failingTest
+  test_embedder_options() async {
+    // This fails because the ContextBuilder doesn't pick up the strongMode
+    // flag from the embedder.yaml file.
+    return super.test_embedder_options();
+  }
+
+  @failingTest
+  test_optionsFile_update_strongMode() async {
+    // It appears that this fails because we are not correctly updating the
+    // analysis options in the driver when the file is modified.
+    //return super.test_optionsFile_update_strongMode();
+    // After a few other changes, the test now times out on my machine, so I'm
+    // disabling it in order to prevent it from being flaky.
+    fail('Test times out');
+  }
+
+  @failingTest
+  test_path_filter_analysis_option() async {
+    // This fails because we're not analyzing the analyis options file.
+    return super.test_path_filter_analysis_option();
+  }
 }
 
 abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
@@ -1864,7 +1973,7 @@ linter:
     // Verify options were set.
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
-    expect(options.enableStrictCallChecks, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
 
     // Remove options.
     deleteFile([projPath, optionsFileName]);
@@ -1873,7 +1982,7 @@ linter:
     // Verify defaults restored.
     expect(errorProcessors, isEmpty);
     expect(lints, isEmpty);
-    expect(options.enableStrictCallChecks, isFalse);
+    expect(analysisOptions.enableStrictCallChecks, isFalse);
   }
 
   test_analysis_options_file_delete_with_embedder() async {
@@ -1916,8 +2025,8 @@ linter:
     await pumpEventQueue();
 
     // Verify options were set.
-    expect(options.enableStrictCallChecks, isTrue);
-    expect(options.strongMode, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
+    expect(analysisOptions.strongMode, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
 
@@ -1926,7 +2035,7 @@ linter:
     await pumpEventQueue();
 
     // Verify defaults restored.
-    expect(options.enableStrictCallChecks, isFalse);
+    expect(analysisOptions.enableStrictCallChecks, isFalse);
     expect(lints, hasLength(1));
     expect(lints.first, new isInstanceOf<AvoidAs>());
     expect(errorProcessors, hasLength(1));
@@ -1963,7 +2072,7 @@ linter:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
     // Verify options were set.
-    expect(options.enableStrictCallChecks, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(lints[0].name, 'camel_case_types');
@@ -1995,6 +2104,8 @@ linter:
     String sdkExtPath = newFolder([projPath, 'sdk_ext']);
     newFile([projPath, 'test', 'test.dart']);
     newFile([sdkExtPath, 'entry.dart']);
+    List<int> bytes = new SummaryBuilder([], null, true).build();
+    newFileFromBytes([projPath, 'sdk.ds'], bytes);
     // Setup _embedder.yaml.
     newFile(
         [libPath, '_embedder.yaml'],
@@ -2042,14 +2153,13 @@ linter:
         manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
     expect(contexts, isNotNull);
     expect(contexts, hasLength(1));
-    var context = contexts[0];
 
     // Verify options.
     // * from `_embedder.yaml`:
-    expect(context.analysisOptions.strongMode, isTrue);
-    expect(context.analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.strongMode, isTrue);
+    expect(analysisOptions.enableSuperMixins, isTrue);
     // * from analysis options:
-    expect(context.analysisOptions.enableStrictCallChecks, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
 
     // * verify tests are excluded
     expect(
@@ -2075,7 +2185,7 @@ linter:
             ['avoid_as' /* embedder */, 'camel_case_types' /* options */]));
 
     // Sanity check embedder libs.
-    var source = context.sourceFactory.forUri('dart:foobar');
+    var source = sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
     expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
   }
@@ -2171,13 +2281,22 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
 
-    AnalysisContext context = manager.getContextFor(projPath);
-    Source testSource = context.getSourcesWithFullName(file.path).single;
+    if (enableAnalysisDriver) {
+      AnalysisResult result =
+          await callbacks.currentDriver.getResult(file.path);
 
-    // Not strong mode - both in the context and the SDK context.
-    {
-      AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
-      expect(context.analysisOptions.strongMode, isFalse);
+      // Not strong mode - both in the context and the SDK context.
+      AnalysisContext sdkContext = sourceFactory.dartSdk.context;
+      expect(analysisOptions.strongMode, isFalse);
+      expect(sdkContext.analysisOptions.strongMode, isFalse);
+      expect(result.errors, isEmpty);
+    } else {
+      AnalysisContext context = manager.getContextFor(projPath);
+      Source testSource = context.getSourcesWithFullName(file.path).single;
+
+      // Not strong mode - both in the context and the SDK context.
+      AnalysisContext sdkContext = sourceFactory.dartSdk.context;
+      expect(analysisOptions.strongMode, isFalse);
       expect(sdkContext.analysisOptions.strongMode, isFalse);
       expect(context.computeErrors(testSource), isEmpty);
     }
@@ -2192,10 +2311,22 @@ analyzer:
     await pumpEventQueue();
 
     // Strong mode - both in the context and the SDK context.
-    {
+    if (enableAnalysisDriver) {
+      AnalysisResult result =
+          await callbacks.currentDriver.getResult(file.path);
+
+      // Not strong mode - both in the context and the SDK context.
+      AnalysisContext sdkContext = sourceFactory.dartSdk.context;
+      expect(analysisOptions.strongMode, isTrue);
+      expect(sdkContext.analysisOptions.strongMode, isTrue);
+      // The code is strong-mode clean.
+      // Verify that TypeSystem was reset.
+      expect(result.errors, isEmpty);
+    } else {
       AnalysisContext context = manager.getContextFor(projPath);
-      AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
-      expect(context.analysisOptions.strongMode, isTrue);
+      Source testSource = context.getSourcesWithFullName(file.path).single;
+      AnalysisContext sdkContext = sourceFactory.dartSdk.context;
+      expect(analysisOptions.strongMode, isTrue);
       expect(sdkContext.analysisOptions.strongMode, isTrue);
       // The code is strong-mode clean.
       // Verify that TypeSystem was reset.
@@ -2223,15 +2354,27 @@ analyzer:
 ''');
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
     // Verify that analysis options was parsed and the ignore patterns applied.
-    Map<String, int> fileTimestamps =
-        callbacks.currentContextFilePaths[projPath];
-    expect(fileTimestamps, isNotEmpty);
-    List<String> files = fileTimestamps.keys.toList();
-    expect(
-        files,
-        unorderedEquals(
-            ['/my/proj/lib/main.dart', '/my/proj/$optionsFileName']));
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+    if (enableAnalysisDriver) {
+      var drivers = manager.getDriversInAnalysisRoot(projectFolder);
+      expect(drivers, hasLength(1));
+      AnalysisDriver driver = drivers[0];
+      expect(
+          driver.addedFiles,
+          unorderedEquals(
+              ['/my/proj/lib/main.dart', '/my/proj/$optionsFileName']));
+    } else {
+      Map<String, int> fileTimestamps =
+          callbacks.currentContextFilePaths[projPath];
+      expect(fileTimestamps, isNotEmpty);
+      List<String> files = fileTimestamps.keys.toList();
+      expect(
+          files,
+          unorderedEquals(
+              ['/my/proj/lib/main.dart', '/my/proj/$optionsFileName']));
+    }
   }
 
   test_path_filter_child_contexts_option() async {
@@ -2263,11 +2406,19 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts.length, 2);
-    expect(contexts[0].name, equals('/my/proj'));
-    expect(contexts[1].name, equals('/my/proj/lib'));
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+    if (enableAnalysisDriver) {
+      var drivers = manager.getDriversInAnalysisRoot(projectFolder);
+      expect(drivers, hasLength(2));
+      expect(drivers[0].name, equals('proj'));
+      expect(drivers[1].name, equals('lib'));
+    } else {
+      var contexts =
+          manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+      expect(contexts.length, 2);
+      expect(contexts[0].name, equals('/my/proj'));
+      expect(contexts[1].name, equals('/my/proj/lib'));
+    }
   }
 
   test_path_filter_recursive_wildcard_child_contexts_option() async {
@@ -2297,13 +2448,21 @@ analyzer:
   ''');
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts.length, 2);
-    expect(contexts[0].name, equals('/my/proj'));
-    expect(contexts[1].name, equals('/my/proj/lib'));
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+    if (enableAnalysisDriver) {
+      var drivers = manager.getDriversInAnalysisRoot(projectFolder);
+      expect(drivers, hasLength(2));
+      expect(drivers[0].name, equals('proj'));
+      expect(drivers[1].name, equals('lib'));
+    } else {
+      var contexts = manager.contextsInAnalysisRoot(projectFolder);
+      expect(contexts.length, 2);
+      expect(contexts[0].name, equals('/my/proj'));
+      expect(contexts[1].name, equals('/my/proj/lib'));
+    }
   }
 
   test_path_filter_wildcard_child_contexts_option() async {
@@ -2331,15 +2490,23 @@ analyzer:
   exclude:
     - 'other_lib/*'
 ''');
-    // Setup context.
+    // Setup context / driver.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Verify that the context in other_lib wasn't created and that the
-    // context in lib was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts.length, 2);
-    expect(contexts[0].name, equals('/my/proj'));
-    expect(contexts[1].name, equals('/my/proj/lib'));
+
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+    if (enableAnalysisDriver) {
+      var drivers = manager.getDriversInAnalysisRoot(projectFolder);
+      expect(drivers, hasLength(2));
+      expect(drivers[0].name, equals('proj'));
+      expect(drivers[1].name, equals('lib'));
+    } else {
+      // Verify that the context in other_lib wasn't created and that the
+      // context in lib was created.
+      var contexts = manager.contextsInAnalysisRoot(projectFolder);
+      expect(contexts, hasLength(2));
+      expect(contexts[0].name, equals('/my/proj'));
+      expect(contexts[1].name, equals('/my/proj/lib'));
+    }
   }
 
   void test_setRoots_nested_excludedByOuter() {
@@ -2426,10 +2593,7 @@ analyzer:
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Verify that analysis options was parsed and strong-mode set.
-    Map<String, int> fileTimestamps =
-        callbacks.currentContextFilePaths[projPath];
-    expect(fileTimestamps, isNotEmpty);
-    expect(callbacks.currentContext.analysisOptions.strongMode, true);
+    expect(analysisOptions.strongMode, true);
   }
 }
 
@@ -2443,6 +2607,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    * The analysis context that was created.
    */
   AnalysisContext currentContext;
+
+  /**
+   * The analysis driver that was created.
+   */
+  AnalysisDriver currentDriver;
 
   /**
    * Map from context to the timestamp when the context was created.
@@ -2468,21 +2637,69 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   final ResourceProvider resourceProvider;
 
   /**
+   * The logger used by the scheduler and the driver.
+   */
+  final PerformanceLog logger;
+
+  /**
+   * The scheduler used by the driver.
+   */
+  final AnalysisDriverScheduler scheduler;
+
+  /**
    * The list of `flushedFiles` in the last [removeContext] invocation.
    */
   List<String> lastFlushedFiles;
 
-  TestContextManagerCallbacks(this.resourceProvider);
+  TestContextManagerCallbacks(
+      this.resourceProvider, this.logger, this.scheduler);
+
+  /**
+   * Return the current set of analysis options.
+   */
+  AnalysisOptions get analysisOptions => currentDriver == null
+      ? currentContext.analysisOptions
+      : currentDriver.analysisOptions;
 
   /**
    * Iterable of the paths to contexts that currently exist.
    */
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
+  /**
+   * Return the current source factory.
+   */
+  SourceFactory get sourceFactory => currentDriver == null
+      ? currentContext.sourceFactory
+      : currentDriver.sourceFactory;
+
   @override
   AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options) {
-    // TODO: implement addAnalysisDriver
-    throw new UnimplementedError();
+    String path = folder.path;
+    expect(currentContextPaths, isNot(contains(path)));
+    currentContextTimestamps[path] = now;
+
+    ContextBuilder builder =
+        createContextBuilder(folder, options, useSummaries: true);
+    AnalysisContext context = builder.buildContext(folder.path);
+    SourceFactory sourceFactory = context.sourceFactory;
+    AnalysisOptions analysisOptions = context.analysisOptions;
+    context.dispose();
+
+    currentDriver = new AnalysisDriver(
+        scheduler,
+        logger,
+        resourceProvider,
+        new MemoryByteStore(),
+        new FileContentOverlay(),
+        sourceFactory,
+        analysisOptions);
+    currentDriver.name = folder.shortName;
+    currentDriver.exceptions.listen((ExceptionResult result) {
+      AnalysisEngine.instance.logger
+          .logError('Analysis failed: ${result.path}', result.exception);
+    });
+    return currentDriver;
   }
 
   @override
@@ -2500,30 +2717,42 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    Map<String, int> filePaths = currentContextFilePaths[contextFolder.path];
-    Set<Source> sources = currentContextSources[contextFolder.path];
+    if (currentDriver != null) {
+      changeSet.addedSources.forEach((source) {
+        currentDriver.addFile(source.fullName);
+      });
+      changeSet.changedSources.forEach((source) {
+        currentDriver.changeFile(source.fullName);
+      });
+      changeSet.removedSources.forEach((source) {
+        currentDriver.removeFile(source.fullName);
+      });
+    } else {
+      Map<String, int> filePaths = currentContextFilePaths[contextFolder.path];
+      Set<Source> sources = currentContextSources[contextFolder.path];
 
-    for (Source source in changeSet.addedSources) {
-      expect(filePaths, isNot(contains(source.fullName)));
-      filePaths[source.fullName] = now;
-      sources.add(source);
-    }
-    for (Source source in changeSet.removedSources) {
-      expect(filePaths, contains(source.fullName));
-      filePaths.remove(source.fullName);
-      sources.remove(source);
-    }
-    for (Source source in changeSet.changedSources) {
-      expect(filePaths, contains(source.fullName));
-      filePaths[source.fullName] = now;
-    }
+      for (Source source in changeSet.addedSources) {
+        expect(filePaths, isNot(contains(source.fullName)));
+        filePaths[source.fullName] = now;
+        sources.add(source);
+      }
+      for (Source source in changeSet.removedSources) {
+        expect(filePaths, contains(source.fullName));
+        filePaths.remove(source.fullName);
+        sources.remove(source);
+      }
+      for (Source source in changeSet.changedSources) {
+        expect(filePaths, contains(source.fullName));
+        filePaths[source.fullName] = now;
+      }
 
-    currentContext.applyChanges(changeSet);
+      currentContext.applyChanges(changeSet);
+    }
   }
 
   @override
   void applyFileRemoved(AnalysisDriver driver, String file) {
-    throw new StateError('Unexpected invocation of applyFileRemoved');
+    driver.removeFile(file);
   }
 
   void assertContextFiles(String contextPath, List<String> expectedFiles) {
@@ -2541,8 +2770,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    DartSdkManager sdkManager = new DartSdkManager('/', false);
+  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options,
+      {bool useSummaries = false}) {
+    DartSdkManager sdkManager = new DartSdkManager('/', useSummaries);
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     ContextBuilder builder = new ContextBuilder(

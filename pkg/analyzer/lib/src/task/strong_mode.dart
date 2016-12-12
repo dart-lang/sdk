@@ -88,14 +88,14 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    unit.types.forEach((ClassElement classElement) {
+    for (ClassElement classElement in unit.types) {
       try {
         _inferClass(classElement);
       } on _CycleException {
         // This is a short circuit return to prevent types that inherit from
         // types containing a circular reference from being inferred.
       }
-    });
+    }
   }
 
   /**

@@ -40,6 +40,7 @@ class SsaOptimizerTask extends CompilerTask {
         super(backend.compiler.measurer);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
+  ClosedWorld get closedWorld => compiler.closedWorld;
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
   void optimize(CodegenWorkItem work, HGraph graph) {
@@ -59,16 +60,18 @@ class SsaOptimizerTask extends CompilerTask {
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
         new SsaInstructionSimplifier(constantSystem, backend, this, registry),
-        new SsaTypeConversionInserter(compiler),
+        new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
         // After type propagation, more instructions can be
         // simplified.
         new SsaInstructionSimplifier(constantSystem, backend, this, registry),
-        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+        new SsaCheckInserter(
+            trustPrimitives, backend, closedWorld, boundsChecked),
         new SsaInstructionSimplifier(constantSystem, backend, this, registry),
-        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+        new SsaCheckInserter(
+            trustPrimitives, backend, closedWorld, boundsChecked),
         new SsaTypePropagator(compiler),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
@@ -86,7 +89,8 @@ class SsaOptimizerTask extends CompilerTask {
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         new SsaInstructionSimplifier(constantSystem, backend, this, registry),
-        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+        new SsaCheckInserter(
+            trustPrimitives, backend, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
 
@@ -105,7 +109,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, this),
           new SsaInstructionSimplifier(constantSystem, backend, this, registry),
-          new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+          new SsaCheckInserter(
+              trustPrimitives, backend, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
           new SsaDeadCodeEliminator(compiler, this),
         ];
@@ -167,6 +172,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
+  ClosedWorld get closedWorld => compiler.closedWorld;
+
   BackendHelpers get helpers => backend.helpers;
 
   void visitGraph(HGraph visitee) {
@@ -187,12 +194,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // might be that an operation thought to return double, can be
         // simplified to an int. For example:
         // `2.5 * 10`.
-        if (!(replacement.isNumberOrNull(compiler) &&
-            instruction.isNumberOrNull(compiler))) {
+        if (!(replacement.isNumberOrNull(closedWorld) &&
+            instruction.isNumberOrNull(closedWorld))) {
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           TypeMask newType = replacement.instructionType
-              .intersection(instruction.instructionType, compiler.closedWorld);
+              .intersection(instruction.instructionType, closedWorld);
           replacement.instructionType = newType;
         }
 
@@ -275,7 +282,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
-    if (input.isBoolean(compiler)) return input;
+    if (input.isBoolean(closedWorld)) return input;
 
     // If the code is unreachable, remove the HBoolify.  This can happen when
     // there is a throw expression in a short-circuit conditional.  Removing the
@@ -285,7 +292,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(helpers.jsBoolClass, compiler.closedWorld)) {
+    if (!mask.contains(helpers.jsBoolClass, closedWorld)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -322,7 +329,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexablePrimitive(compiler)) {
+    if (actualReceiver.isIndexablePrimitive(closedWorld)) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstantValue constant = constantInput.constant;
@@ -335,15 +342,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       MemberElement element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
-      ClosedWorld closedWorld = compiler.closedWorld;
-      TypeMask resultType = backend.positiveIntType;
+      TypeMask resultType = closedWorld.commonMasks.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
           actualType, helpers.jsUInt31Class, closedWorld)) {
-        resultType = backend.uint31Type;
+        resultType = closedWorld.commonMasks.uint31Type;
       } else if (HInstruction.isInstanceOf(
           actualType, helpers.jsUInt32Class, closedWorld)) {
-        resultType = backend.uint32Type;
+        resultType = closedWorld.commonMasks.uint32Type;
       }
       HFieldGet result = new HFieldGet(element, actualReceiver, resultType,
           isAssignable: !isFixed);
@@ -368,23 +374,21 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // Try converting the instruction to a builtin instruction.
     HInstruction instruction =
-        node.specializer.tryConvertToBuiltin(node, compiler);
+        node.specializer.tryConvertToBuiltin(node, compiler, closedWorld);
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
     TypeMask mask = node.mask;
     HInstruction input = node.inputs[1];
 
-    ClosedWorld world = compiler.closedWorld;
-
     bool applies(Element element) {
       return selector.applies(element) &&
-          (mask == null || mask.canHit(element, selector, world));
+          (mask == null || mask.canHit(element, selector, closedWorld));
     }
 
     if (selector.isCall || selector.isOperator) {
       MethodElement target;
-      if (input.isExtendableArray(compiler)) {
+      if (input.isExtendableArray(closedWorld)) {
         if (applies(helpers.jsArrayRemoveLast)) {
           target = helpers.jsArrayRemoveLast;
         } else if (applies(helpers.jsArrayAdd)) {
@@ -394,10 +398,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
             target = helpers.jsArrayAdd;
           }
         }
-      } else if (input.isStringOrNull(compiler)) {
+      } else if (input.isStringOrNull(closedWorld)) {
         if (applies(helpers.jsStringSplit)) {
           HInstruction argument = node.inputs[2];
-          if (argument.isString(compiler)) {
+          if (argument.isString(closedWorld)) {
             target = helpers.jsStringSplit;
           }
         } else if (applies(helpers.jsStringOperatorAdd)) {
@@ -405,7 +409,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
           HInstruction argument = node.inputs[2];
-          if (argument.isString(compiler) && !input.canBeNull()) {
+          if (argument.isString(closedWorld) && !input.canBeNull()) {
             return new HStringConcat(input, argument, node.instructionType);
           }
         } else if (applies(helpers.jsStringToString) && !input.canBeNull()) {
@@ -559,7 +563,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitBoundsCheck(HBoundsCheck node) {
     HInstruction index = node.index;
-    if (index.isInteger(compiler)) return node;
+    if (index.isInteger(closedWorld)) return node;
     if (index.isConstant()) {
       HConstant constantInstruction = index;
       assert(!constantInstruction.constant.isInt);
@@ -587,7 +591,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction right = node.right;
     // We can only perform this rewriting on Integer, as it is not
     // valid for -0.0.
-    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+    if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
       if (left is HConstant && left.constant.isZero) return right;
       if (right is HConstant && right.constant.isZero) return left;
     }
@@ -597,7 +601,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitMultiply(HMultiply node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
-    if (left.isNumber(compiler) && right.isNumber(compiler)) {
+    if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
       if (left is HConstant && left.constant.isOne) return right;
       if (right is HConstant && right.constant.isOne) return left;
     }
@@ -643,8 +647,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
-    if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      if (leftType.isDisjoint(rightType, compiler.closedWorld)) {
+    if (!(left.isNumberOrNull(closedWorld) &&
+        right.isNumberOrNull(closedWorld))) {
+      if (leftType.isDisjoint(rightType, closedWorld)) {
         return makeFalse();
       }
     }
@@ -657,15 +662,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (constant.constant.isTrue) {
         return input;
       } else {
-        return new HNot(input, backend.boolType);
+        return new HNot(input, closedWorld.commonMasks.boolType);
       }
     }
 
-    if (left.isConstantBoolean() && right.isBoolean(compiler)) {
+    if (left.isConstantBoolean() && right.isBoolean(closedWorld)) {
       return compareConstant(left, right);
     }
 
-    if (right.isConstantBoolean() && left.isBoolean(compiler)) {
+    if (right.isConstantBoolean() && left.isBoolean(closedWorld)) {
       return compareConstant(right, left);
     }
 
@@ -674,8 +679,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // dart2js runtime has not always been consistent with the Dart
       // specification (section 16.0.1), which makes distinctions on NaNs and
       // -0.0 that are hard to implement efficiently.
-      if (left.isIntegerOrNull(compiler)) return makeTrue();
-      if (!left.canBePrimitiveNumber(compiler)) return makeTrue();
+      if (left.isIntegerOrNull(closedWorld)) return makeTrue();
+      if (!left.canBePrimitiveNumber(closedWorld)) return makeTrue();
     }
 
     return null;
@@ -735,9 +740,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    ClosedWorld closedWorld = compiler.closedWorld;
     HInstruction expression = node.expression;
-    if (expression.isInteger(compiler)) {
+    if (expression.isInteger(closedWorld)) {
       if (element == coreClasses.intClass ||
           element == coreClasses.numClass ||
           Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -749,7 +753,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return graph.addConstantBool(false, compiler);
       }
-    } else if (expression.isDouble(compiler)) {
+    } else if (expression.isDouble(closedWorld)) {
       if (element == coreClasses.doubleClass ||
           element == coreClasses.numClass ||
           Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -762,14 +766,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return graph.addConstantBool(false, compiler);
       }
-    } else if (expression.isNumber(compiler)) {
+    } else if (expression.isNumber(closedWorld)) {
       if (element == coreClasses.numClass) {
         return graph.addConstantBool(true, compiler);
       } else {
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
-    } else if (expression.canBePrimitiveNumber(compiler) &&
+    } else if (expression.canBePrimitiveNumber(closedWorld) &&
         element == coreClasses.intClass) {
       // We let the JS semantics decide for that check.
       return node;
@@ -785,7 +789,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           : new TypeMask.nonNullSubtype(element, closedWorld);
       if (expressionMask.union(typeMask, closedWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.isDisjoint(typeMask, compiler.closedWorld)) {
+      } else if (expressionMask.isDisjoint(typeMask, closedWorld)) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -830,7 +834,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    ClosedWorld closedWorld = compiler.closedWorld;
     if (checkedType.containsAll(closedWorld)) return node;
     HInstruction input = node.checkedInput;
     TypeMask inputType = input.instructionType;
@@ -854,7 +857,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
         // that we know takes an int.
-        if (receiver.inputs[0].isInteger(compiler)) {
+        if (receiver.inputs[0].isInteger(closedWorld)) {
           return receiver.inputs[0];
         }
       } else if (receiver.isConstantList() || receiver.isConstantString()) {
@@ -919,8 +922,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (field != null) return directFieldGet(receiver, field);
 
     if (node.element == null) {
-      MemberElement element = compiler.closedWorld
-          .locateSingleElement(node.selector, receiver.instructionType);
+      MemberElement element = closedWorld.locateSingleElement(
+          node.selector, receiver.instructionType);
       if (element != null && element.name == node.selector.name) {
         node.element = element;
         if (element.isFunction) {
@@ -935,7 +938,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, FieldElement field) {
-    bool isAssignable = !compiler.closedWorld.fieldNeverChanges(field);
+    bool isAssignable = !closedWorld.fieldNeverChanges(field);
 
     TypeMask type;
     if (backend.isNative(field.enclosingClass)) {
@@ -972,8 +975,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // can skip the test an generate the HFieldSet.
         return node;
       }
-      HInstruction other =
-          value.convertType(compiler, type, HTypeConversion.CHECKED_MODE_CHECK);
+      HInstruction other = value.convertType(
+          closedWorld, type, HTypeConversion.CHECKED_MODE_CHECK);
       if (other != value) {
         node.block.addBefore(node, other);
         value = other;
@@ -997,17 +1000,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (element == backend.helpers.checkInt) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
-        if (argument.isInteger(compiler)) return argument;
+        if (argument.isInteger(closedWorld)) return argument;
       }
     } else if (element == backend.helpers.checkNum) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
-        if (argument.isNumber(compiler)) return argument;
+        if (argument.isNumber(closedWorld)) return argument;
       }
     } else if (element == backend.helpers.checkString) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
-        if (argument.isString(compiler)) return argument;
+        if (argument.isString(closedWorld)) return argument;
       }
     }
     return node;
@@ -1057,12 +1060,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
             leftString.primitiveValue, rightString.primitiveValue)),
         compiler);
     if (prefix == null) return folded;
-    return new HStringConcat(prefix, folded, backend.stringType);
+    return new HStringConcat(
+        prefix, folded, closedWorld.commonMasks.stringType);
   }
 
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
-    if (input.isString(compiler)) return input;
+    if (input.isString(closedWorld)) return input;
 
     HInstruction tryConstant() {
       if (!input.isConstant()) return null;
@@ -1086,12 +1090,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // it directly. Keep the stringifier for primitives (since they have fast
       // path code in the stringifier) and for classes requiring interceptors
       // (since SsaInstructionSimplifier runs after SsaSimplifyInterceptors).
-      if (input.canBePrimitive(compiler)) return null;
+      if (input.canBePrimitive(closedWorld)) return null;
       if (input.canBeNull()) return null;
       Selector selector = Selectors.toString_;
       TypeMask toStringType = TypeMaskFactory.inferredTypeForSelector(
           selector, input.instructionType, compiler);
-      ClosedWorld closedWorld = compiler.closedWorld;
       if (!toStringType.containsOnlyString(closedWorld)) return null;
       // All intercepted classes extend `Interceptor`, so if the receiver can't
       // be a class extending `Interceptor` then it can be called directly.
@@ -1116,7 +1119,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    ClosedWorld closedWorld = compiler.closedWorld;
     if (closedWorld.isUsedAsMixin(cls)) return true;
 
     return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
@@ -1169,7 +1171,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
 
       if (source == null) return null;
-      return new HTypeInfoReadRaw(source, backend.dynamicType);
+      return new HTypeInfoReadRaw(source, closedWorld.commonMasks.dynamicType);
     }
 
     // TODO(sra): Consider fusing type expression trees with no type variables,
@@ -1192,7 +1194,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             TypeInfoExpressionKind.COMPLETE,
             typeArgument,
             const <HInstruction>[],
-            backend.dynamicType);
+            closedWorld.commonMasks.dynamicType);
         return replacement;
       }
       return node;
@@ -1222,7 +1224,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           TypeInfoExpressionKind.COMPLETE,
           type,
           arguments,
-          backend.dynamicType);
+          closedWorld.commonMasks.dynamicType);
       return replacement;
     }
 
@@ -1289,10 +1291,12 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
   final bool trustPrimitives;
   final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
-  SsaCheckInserter(this.trustPrimitives, this.backend, this.boundsChecked);
+  SsaCheckInserter(
+      this.trustPrimitives, this.backend, this.closedWorld, this.boundsChecked);
 
   BackendHelpers get helpers => backend.helpers;
 
@@ -1319,14 +1323,14 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(
       HInstruction indexNode, HInstruction array, HInstruction indexArgument) {
     Compiler compiler = backend.compiler;
-    HFieldGet length = new HFieldGet(
-        helpers.jsIndexableLength, array, backend.positiveIntType,
+    HFieldGet length = new HFieldGet(helpers.jsIndexableLength, array,
+        closedWorld.commonMasks.positiveIntType,
         isAssignable: !isFixedLength(array.instructionType, compiler));
     indexNode.block.addBefore(indexNode, length);
 
-    TypeMask type = indexArgument.isPositiveInteger(compiler)
+    TypeMask type = indexArgument.isPositiveInteger(closedWorld)
         ? indexArgument.instructionType
-        : backend.positiveIntType;
+        : closedWorld.commonMasks.positiveIntType;
     HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type);
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
@@ -1336,7 +1340,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     // the index eg. if it is a constant.  The range information from the
     // BoundsCheck instruction is attached to the input directly by
     // visitBoundsCheck in the SsaValueRangeAnalyzer.
-    if (!indexArgument.isInteger(compiler)) {
+    if (!indexArgument.isInteger(closedWorld)) {
       indexArgument.replaceAllUsersDominatedBy(indexNode, check);
     }
     boundsChecked.add(indexNode);
@@ -1381,6 +1385,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   bool eliminatedSideEffects = false;
 
   SsaDeadCodeEliminator(this.compiler, this.optimizer);
+
+  ClosedWorld get closedWorld => compiler.closedWorld;
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
@@ -1512,7 +1518,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitGraph(HGraph graph) {
-    analyzer = new SsaLiveBlockAnalyzer(graph, compiler, optimizer);
+    analyzer = new SsaLiveBlockAnalyzer(graph, closedWorld, optimizer);
     analyzer.analyze();
     visitPostDominatorTree(graph);
     cleanPhis(graph);
@@ -1600,9 +1606,9 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final Set<HBasicBlock> live = new Set<HBasicBlock>();
   final List<HBasicBlock> worklist = <HBasicBlock>[];
   final SsaOptimizerTask optimizer;
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
 
-  SsaLiveBlockAnalyzer(this.graph, this.compiler, this.optimizer);
+  SsaLiveBlockAnalyzer(this.graph, this.closedWorld, this.optimizer);
 
   Map<HInstruction, Range> get ranges => optimizer.ranges;
 
@@ -1641,7 +1647,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
   }
 
   void visitSwitch(HSwitch node) {
-    if (node.expression.isInteger(compiler)) {
+    if (node.expression.isInteger(closedWorld)) {
       Range switchRange = ranges[node.expression];
       if (switchRange != null &&
           switchRange.lower is IntValue &&
@@ -2095,9 +2101,9 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 class SsaTypeConversionInserter extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaTypeconversionInserter";
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
 
-  SsaTypeConversionInserter(this.compiler);
+  SsaTypeConversionInserter(this.closedWorld);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -2135,8 +2141,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (trueTargets.isEmpty && falseTargets.isEmpty) return;
 
-    TypeMask convertedType =
-        new TypeMask.nonNullSubtype(element, compiler.closedWorld);
+    TypeMask convertedType = new TypeMask.nonNullSubtype(element, closedWorld);
     HInstruction input = instruction.expression;
 
     for (HBasicBlock block in trueTargets) {

@@ -8,6 +8,7 @@ library analyzer.src.task.strong.checker;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -602,7 +603,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var type = node.staticElement?.type;
+    var type = resolutionMap.staticElementForConstructorReference(node)?.type;
     // TODO(leafp): There's a TODO in visitRedirectingConstructorInvocation
     // in the element_resolver to handle the case that the element is null
     // and emit an error.  In the meantime, just be defensive here.
@@ -622,7 +623,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.staticElement;
     if (element != null) {
-      var type = node.staticElement.type;
+      var type = resolutionMap.staticElementForConstructorReference(node).type;
       checkArgumentList(node.argumentList, type);
     }
     node.visitChildren(this);
@@ -639,14 +640,17 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
+    VariableElement variableElement = node == null
+        ? null
+        : resolutionMap.elementDeclaredByVariableDeclaration(node);
     if (!node.isConst &&
         !node.isFinal &&
         node.initializer == null &&
-        rules.isNonNullableType(node?.element?.type)) {
+        rules.isNonNullableType(variableElement?.type)) {
       _recordMessage(
           node,
           StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
-          [node.name, node?.element?.type]);
+          [node.name, variableElement?.type]);
     }
     return super.visitVariableDeclaration(node);
   }
@@ -684,7 +688,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkCompoundAssignment(AssignmentExpression expr) {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
-    var methodElement = expr.staticElement;
+    var methodElement = resolutionMap.staticElementForMethodReference(expr);
     if (methodElement == null) {
       // Dynamic invocation.
       _recordDynamicInvoke(expr, expr.leftHandSide);
@@ -719,55 +723,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  /// Returns true if we need an implicit cast of [expr] from [from] type to
-  /// [to] type, otherwise returns false.
-  ///
-  /// If [from] is omitted, uses the static type of [expr].
-  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
-    from ??= _getDefiniteType(expr);
-
-    if (!_checkNonNullAssignment(expr, to, from)) return false;
-
-    // We can use anything as void.
-    if (to.isVoid) return false;
-
-    // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf(from, to)) return false;
-
-    // Note: a function type is never assignable to a class per the Dart
-    // spec - even if it has a compatible call method.  We disallow as
-    // well for consistency.
-    if (from is FunctionType && rules.getCallMethodType(to) != null) {
-      return false;
-    }
-
-    // Downcast if toT <: fromT
-    if (rules.isSubtypeOf(to, from)) {
-      return true;
-    }
-
-    // Anything else is an illegal sideways cast.
-    // However, these will have been reported already in error_verifier, so we
-    // don't need to report them again.
-    return false;
-  }
-
-  /// Checks if an implicit cast of [expr] from [from] type to [to] type is
-  /// needed, and if so records it.
-  ///
-  /// If [from] is omitted, uses the static type of [expr].
-  ///
-  /// If [expr] does not require an implicit cast because it is not related to
-  /// [to] or is already a subtype of it, does nothing.
-  void _checkImplicitCast(Expression expr, DartType to,
-      {DartType from, bool opAssign: false}) {
-    from ??= _getDefiniteType(expr);
-
-    if (_needsImplicitCast(expr, to, from: from)) {
-      _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
-    }
-  }
-
   void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
     if (field.staticElement == null &&
         !typeProvider.isObjectMember(field.name)) {
@@ -786,7 +741,10 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.body is! BlockFunctionBody) {
       return;
     }
-    if (node.element.returnType.isDynamic) {
+    if (resolutionMap
+        .elementDeclaredByFunctionExpression(node)
+        .returnType
+        .isDynamic) {
       return;
     }
     // Find the enclosing variable declaration whose inferred type might depend
@@ -873,6 +831,22 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     _recordMessage(node, StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
         [declElement.name]);
+  }
+
+  /// Checks if an implicit cast of [expr] from [from] type to [to] type is
+  /// needed, and if so records it.
+  ///
+  /// If [from] is omitted, uses the static type of [expr].
+  ///
+  /// If [expr] does not require an implicit cast because it is not related to
+  /// [to] or is already a subtype of it, does nothing.
+  void _checkImplicitCast(Expression expr, DartType to,
+      {DartType from, bool opAssign: false}) {
+    from ??= _getDefiniteType(expr);
+
+    if (_needsImplicitCast(expr, to, from: from)) {
+      _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
+    }
   }
 
   /// Checks if the assignment is valid with respect to non-nullable types.
@@ -1034,6 +1008,39 @@ class CodeChecker extends RecursiveAstVisitor {
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
   }
 
+  /// Returns true if we need an implicit cast of [expr] from [from] type to
+  /// [to] type, otherwise returns false.
+  ///
+  /// If [from] is omitted, uses the static type of [expr].
+  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
+    from ??= _getDefiniteType(expr);
+
+    if (!_checkNonNullAssignment(expr, to, from)) return false;
+
+    // We can use anything as void.
+    if (to.isVoid) return false;
+
+    // fromT <: toT, no coercion needed.
+    if (rules.isSubtypeOf(from, to)) return false;
+
+    // Note: a function type is never assignable to a class per the Dart
+    // spec - even if it has a compatible call method.  We disallow as
+    // well for consistency.
+    if (from is FunctionType && rules.getCallMethodType(to) != null) {
+      return false;
+    }
+
+    // Downcast if toT <: fromT
+    if (rules.isSubtypeOf(to, from)) {
+      return true;
+    }
+
+    // Anything else is an illegal sideways cast.
+    // However, these will have been reported already in error_verifier, so we
+    // don't need to report them again.
+    return false;
+  }
+
   void _recordDynamicInvoke(AstNode node, Expression target) {
     _recordMessage(node, StrongModeCode.DYNAMIC_INVOKE, [node]);
     // TODO(jmesserly): we may eventually want to record if the whole operation
@@ -1141,7 +1148,9 @@ class CodeChecker extends RecursiveAstVisitor {
           ? node.firstTokenAfterCommentAndMetadata.offset
           : node.offset;
       int length = node.end - begin;
-      var source = (node.root as CompilationUnit).element.source;
+      var source = resolutionMap
+          .elementDeclaredByCompilationUnit(node.root as CompilationUnit)
+          .source;
       var error =
           new AnalysisError(source, begin, length, errorCode, arguments);
       reporter.onError(error);
@@ -1161,7 +1170,8 @@ class _OverrideChecker {
         rules = checker.rules;
 
   void check(ClassDeclaration node) {
-    if (node.element.type.isObject) return;
+    if (resolutionMap.elementDeclaredByClassDeclaration(node).type.isObject)
+      return;
     _checkSuperOverrides(node);
     _checkMixinApplicationOverrides(node);
     _checkAllInterfaceOverrides(node);
@@ -1197,7 +1207,7 @@ class _OverrideChecker {
     // Check all interfaces reachable from the `implements` clause in the
     // current class against definitions here and in superclasses.
     var localInterfaces = new Set<InterfaceType>();
-    var type = node.element.type;
+    var type = resolutionMap.elementDeclaredByClassDeclaration(node).type;
     type.interfaces.forEach((i) => find(i, localInterfaces));
     _checkInterfacesOverrides(node, localInterfaces, seen,
         includeParents: true);
@@ -1254,7 +1264,7 @@ class _OverrideChecker {
         if (member.isStatic) {
           continue;
         }
-        var method = member.element;
+        var method = resolutionMap.elementDeclaredByMethodDeclaration(member);
         if (seen.contains(method.name)) {
           continue;
         }
@@ -1310,7 +1320,9 @@ class _OverrideChecker {
       bool includeParents: true,
       AstNode errorLocation}) {
     var node = cls is ClassDeclaration ? cls : null;
-    var type = cls is InterfaceType ? cls : node.element.type;
+    var type = cls is InterfaceType
+        ? cls
+        : resolutionMap.elementDeclaredByClassDeclaration(node).type;
 
     if (visited == null) {
       visited = new Set<InterfaceType>();
@@ -1365,7 +1377,7 @@ class _OverrideChecker {
   ///      B & E against B (equivalently how E overrides B)
   ///      B & E & F against B & E (equivalently how F overrides both B and E)
   void _checkMixinApplicationOverrides(ClassDeclaration node) {
-    var type = node.element.type;
+    var type = resolutionMap.elementDeclaredByClassDeclaration(node).type;
     var parent = type.superclass;
     var mixins = type.mixins;
 
@@ -1484,7 +1496,7 @@ class _OverrideChecker {
   ///     }
   void _checkSuperOverrides(ClassDeclaration node) {
     var seen = new Set<String>();
-    var current = node.element.type;
+    var current = resolutionMap.elementDeclaredByClassDeclaration(node).type;
     var visited = new Set<InterfaceType>();
     do {
       visited.add(current);

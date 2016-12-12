@@ -179,6 +179,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   Compiler get compiler => backend.compiler;
 
+  ClosedWorld get closedWorld => compiler.closedWorld;
+
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
   CodegenRegistry get registry => work.registry;
@@ -261,8 +263,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return MAX;
   }
 
-  bool requiresUintConversion(instruction) {
-    if (instruction.isUInt31(compiler)) return false;
+  bool requiresUintConversion(HInstruction instruction) {
+    if (instruction.isUInt31(closedWorld)) return false;
     if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
@@ -1381,11 +1383,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitTruncatingDivide(HTruncatingDivide node) {
-    assert(node.isUInt31(compiler));
+    assert(node.isUInt31(closedWorld));
     // TODO(karlklose): Enable this assertion again when type propagation is
     // fixed. Issue 23555.
 //    assert(node.left.isUInt32(compiler));
-    assert(node.right.isPositiveInteger(compiler));
+    assert(node.right.isPositiveInteger(closedWorld));
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
@@ -1709,22 +1711,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      if (compiler.closedWorld.isInstantiated(enclosing)) {
-        return new TypeMask.nonNullExact(
-            enclosing.declaration, compiler.closedWorld);
+      if (closedWorld.isInstantiated(enclosing)) {
+        return new TypeMask.nonNullExact(enclosing.declaration, closedWorld);
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
-        assert(invariant(node, compiler.closedWorld.isUsedAsMixin(enclosing),
+        assert(invariant(node, closedWorld.isUsedAsMixin(enclosing),
             message: "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
-        return new TypeMask.nonNullSubtype(
-            enclosing.declaration, compiler.closedWorld);
+        return new TypeMask.nonNullSubtype(enclosing.declaration, closedWorld);
       }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
-    return compiler.closedWorld.extendMaskIfReachesAll(selector, mask);
+    return closedWorld.extendMaskIfReachesAll(selector, mask);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
@@ -2098,13 +2098,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.isStringOrNull(compiler) && right.isStringOrNull(compiler)) {
+      if (left.isStringOrNull(closedWorld) &&
+          right.isStringOrNull(closedWorld)) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.isInteger(compiler) && right.isInteger(compiler);
+      return left.isInteger(closedWorld) && right.isInteger(closedWorld);
     }
 
     bool handledBySpecialCase = false;
@@ -2240,13 +2241,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger(compiler)) {
+        if (node.index.isInteger(closedWorld)) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger(compiler)) {
+      } else if (!node.index.isInteger(closedWorld)) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2376,9 +2377,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringify(HStringify node) {
     HInstruction input = node.inputs.first;
-    if (input.isString(compiler)) {
+    if (input.isString(closedWorld)) {
       use(input);
-    } else if (input.isInteger(compiler) || input.isBoolean(compiler)) {
+    } else if (input.isInteger(closedWorld) || input.isBoolean(closedWorld)) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -2761,8 +2762,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (type.isFunctionType) {
         checkType(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if ((input.canBePrimitive(compiler) &&
-              !input.canBePrimitiveArray(compiler)) ||
+      } else if ((input.canBePrimitive(closedWorld) &&
+              !input.canBePrimitiveArray(closedWorld)) ||
           input.canBeNull()) {
         checkObject(input, relation, node.sourceInformation);
         js.Expression objectTest = pop();
@@ -2787,14 +2788,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateReceiverOrArgumentTypeTest(
       HInstruction input, TypeMask checkedType) {
-    ClosedWorld closedWorld = compiler.closedWorld;
     TypeMask inputType = input.instructionType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
     bool isIntCheck = checkedType.containsOnlyInt(closedWorld);
-    bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(compiler);
+    bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(closedWorld);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (checkedType.nullable() == inputType) &&
         (isIntCheck ||
@@ -2827,12 +2827,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      ClosedWorld closedWorld = compiler.closedWorld;
       // An int check if the input is not int or null, is not
       // sufficient for doing an argument or receiver check.
       assert(compiler.options.trustTypeAnnotations ||
           !node.checkedType.containsOnlyInt(closedWorld) ||
-          node.checkedInput.isIntegerOrNull(compiler));
+          node.checkedInput.isIntegerOrNull(closedWorld));
       js.Expression test = generateReceiverOrArgumentTypeTest(
           node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
@@ -3010,7 +3009,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool typeVariableAccessNeedsSubstitution(
       TypeVariableElement element, TypeMask receiverMask) {
     ClassElement cls = element.enclosingClass;
-    ClosedWorld closedWorld = compiler.closedWorld;
 
     // See if the receiver type narrows the set of classes to ones that can be
     // indexed.

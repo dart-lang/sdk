@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -72,7 +73,9 @@ class InheritedReferenceContributor extends DartCompletionContributor
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
     OpType optype = (request as DartCompletionRequestImpl).opType;
-    for (InterfaceType type in classDecl.element.allSupertypes) {
+    for (InterfaceType type in resolutionMap
+        .elementDeclaredByClassDeclaration(classDecl)
+        .allSupertypes) {
       if (!isFunctionalArgument) {
         for (PropertyAccessorElement elem in type.accessors) {
           if (elem.isGetter) {

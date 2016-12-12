@@ -159,7 +159,8 @@ class GraphInfoCollector : public ValueObject {
            it.Advance()) {
         ++instruction_count_;
         Instruction* current = it.Current();
-        if (current->IsStaticCall() || current->IsClosureCall()) {
+        if (current->IsInstanceCall() || current->IsStaticCall() ||
+            current->IsClosureCall()) {
           ++call_site_count_;
           continue;
         }
@@ -1923,8 +1924,13 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
-  if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
-      function.IsImplicitSetterFunction() || function.IsSetterFunction() ||
+  if (function.IsImplicitGetterFunction() ||
+      function.IsImplicitSetterFunction()) {
+    // Inlined accessors are smaller than a call.
+    return true;
+  }
+
+  if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
       (function.kind() == RawFunction::kConstructor)) {
     const intptr_t count = function.optimized_instruction_count();

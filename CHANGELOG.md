@@ -1,3 +1,26 @@
+## 1.22.0
+
+### Tool changes
+
+* Pub
+
+  * Avoid using a barback asset server for executables unless they actually use
+    transformers. This makes precompilation substantially faster, produces
+    better error messages when precompilation fails, and allows
+    globally-activated executables to consistently use the
+    `Isolate.resolvePackageUri()` API.
+
+  * On POSIX systems, always ignore packages' original file owners and
+    permissions when extracting those packages. This was already the default
+    under most circumstances.
+
+  * Properly close the standard input stream of child processes started using
+    `pub run`.
+
+  * Handle parse errors from the package cache more gracefully. A package whose
+    pubspec can't be parsed will now be ignored by `pub get --offline` and
+    deleted by `pub cache repair`.
+
 ## 1.21.0 - 2016-12-07
 
 ### Language

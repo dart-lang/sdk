@@ -564,6 +564,17 @@ template("dart_executable") {
                  "..:dart_maybe_product_config",
                ] + extra_configs
 
+    if (defined(is_fuchsia_host) && is_fuchsia_host) {
+      # We already have these in the standalone build, but Fuchsia doesn't
+      # have them. They are needed for running Fuchsia binaries built for the
+      # host.
+      if (is_linux) {
+        configs += [ "../../build/config/gcc:executable_ldconfig" ]
+      } else if (is_mac) {
+        configs += [ "../../build/config/mac:mac_dynamic_flags" ]
+      }
+    }
+
     deps = [
              ":gen_resources_cc",
              ":standalone_dart_io",
@@ -607,37 +618,35 @@ template("dart_executable") {
   }
 }
 
-if (!defined(is_fuchsia) || !is_fuchsia) {
-  dart_executable("dart") {
-    extra_deps = [
-      "..:libdart",
-      ":dart_snapshot_cc",
-      "../observatory:standalone_observatory_archive",
-    ]
-    extra_sources = [ "builtin_nolib.cc" ]
-  }
+dart_executable("dart") {
+  extra_deps = [
+    "..:libdart",
+    ":dart_snapshot_cc",
+    "../observatory:standalone_observatory_archive",
+  ]
+  extra_sources = [ "builtin_nolib.cc" ]
+}
 
-  dart_executable("dart_noopt") {
-    extra_configs = [ "..:dart_precompiler_config" ]
-    extra_deps = [
-      "..:libdart_noopt",
-      ":dart_snapshot_cc",
-      "../observatory:standalone_observatory_archive",
-    ]
-    extra_sources = [ "builtin_nolib.cc" ]
-  }
+dart_executable("dart_noopt") {
+  extra_configs = [ "..:dart_precompiler_config" ]
+  extra_deps = [
+    "..:libdart_noopt",
+    ":dart_snapshot_cc",
+    "../observatory:standalone_observatory_archive",
+  ]
+  extra_sources = [ "builtin_nolib.cc" ]
+}
 
-  dart_executable("dart_precompiled_runtime") {
-    extra_configs = [ "..:dart_precompiled_runtime_config" ]
-    extra_deps = [
-      "..:libdart_precompiled_runtime",
-      "../observatory:standalone_observatory_archive",
-    ]
-    extra_sources = [
-      "builtin_nolib.cc",
-      "snapshot_empty.cc",
-    ]
-  }
+dart_executable("dart_precompiled_runtime") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime",
+    "../observatory:standalone_observatory_archive",
+  ]
+  extra_sources = [
+    "builtin_nolib.cc",
+    "snapshot_empty.cc",
+  ]
 }
 
 dart_executable("dart_bootstrap") {

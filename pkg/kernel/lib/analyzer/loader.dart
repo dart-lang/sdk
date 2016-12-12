@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:kernel/application_root.dart';
 import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
@@ -34,16 +35,29 @@ class DartOptions {
 
   /// True if the Dart SDK should be loaded in strong mode.
   bool strongModeSdk;
+
+  /// Path to the sdk sources, ignored if sdkSummary is provided.
   String sdk;
+
+  /// Path to a summary of the sdk sources.
+  String sdkSummary;
+
+  /// Path to the `.packages` file.
   String packagePath;
+
+  /// Root used to relativize app file-urls, making them machine agnostic.
   ApplicationRoot applicationRoot;
+
   Map<Uri, Uri> customUriMappings;
+
+  /// Environment definitions provided via `-Dkey=value`.
   Map<String, String> declaredVariables;
 
   DartOptions(
       {bool strongMode: false,
       bool strongModeSdk,
       this.sdk,
+      this.sdkSummary,
       this.packagePath,
       ApplicationRoot applicationRoot,
       Map<Uri, Uri> customUriMappings,
@@ -620,20 +634,26 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
-  void loadEverything({Target target}) {
-    ensureLibraryIsLoaded(getLibraryReference(getDartCoreLibrary()));
-    if (target != null) {
-      for (var uri in target.extraRequiredLibraries) {
-        var library = _findLibraryElement(uri);
-        if (library == null) {
-          errors.add('Could not find required library $uri');
-          continue;
+  void loadEverything({Target target, bool compileSdk}) {
+    compileSdk ??= true;
+    if (compileSdk) {
+      ensureLibraryIsLoaded(getLibraryReference(getDartCoreLibrary()));
+      if (target != null) {
+        for (var uri in target.extraRequiredLibraries) {
+          var library = _findLibraryElement(uri);
+          if (library == null) {
+            errors.add('Could not find required library $uri');
+            continue;
+          }
+          ensureLibraryIsLoaded(getLibraryReference(library));
         }
-        ensureLibraryIsLoaded(getLibraryReference(library));
       }
     }
     for (int i = 0; i < repository.libraries.length; ++i) {
-      ensureLibraryIsLoaded(repository.libraries[i]);
+      var library = repository.libraries[i];
+      if (compileSdk || library.importUri.scheme != 'dart') {
+        ensureLibraryIsLoaded(library);
+      }
     }
   }
 
@@ -660,11 +680,11 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
-  ast.Program loadProgram(Uri mainLibrary, {Target target}) {
+  ast.Program loadProgram(Uri mainLibrary, {Target target, bool compileSdk}) {
     ast.Library library = repository
         .getLibraryReference(applicationRoot.relativeUri(mainLibrary));
     ensureLibraryIsLoaded(library);
-    loadEverything(target: target);
+    loadEverything(target: target, compileSdk: compileSdk);
     var program = new ast.Program(repository.libraries);
     program.mainMethod = library.procedures.firstWhere(
         (member) => member.name?.name == 'main',
@@ -763,7 +783,10 @@ AnalysisOptions createAnalysisOptions(bool strongMode) {
     ..enableSuperMixins = true;
 }
 
-DartSdk createDartSdk(String path, {bool strongMode}) {
+DartSdk createDartSdk(String path, {bool strongMode, bool isSummary}) {
+  if (isSummary ?? false) {
+    return new SummaryBasedDartSdk(path, strongMode);
+  }
   var resources = PhysicalResourceProvider.INSTANCE;
   return new FolderBasedDartSdk(resources, resources.getFolder(path))
     ..context
@@ -806,7 +829,9 @@ class CustomUriResolver extends UriResolver {
 
 AnalysisContext createContext(DartOptions options, Packages packages,
     {DartSdk dartSdk}) {
-  dartSdk ??= createDartSdk(options.sdk, strongMode: options.strongModeSdk);
+  bool fromSummary = options.sdkSummary != null;
+  dartSdk ??= createDartSdk(fromSummary ? options.sdkSummary : options.sdk,
+      strongMode: options.strongModeSdk, isSummary: fromSummary);
 
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var resourceUriResolver = new ResourceUriResolver(resourceProvider);

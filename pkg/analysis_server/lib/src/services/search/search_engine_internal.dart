@@ -30,11 +30,11 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._index);
 
   @override
-  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) async {
+  Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
     List<SearchMatch> matches = <SearchMatch>[];
     await _addMatches(
         matches, type, IndexRelationKind.IS_ANCESTOR_OF, MatchKind.DECLARATION);
-    return matches;
+    return matches.map((match) => match.element as ClassElement).toSet();
   }
 
   @override

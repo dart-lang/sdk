@@ -61,6 +61,12 @@ class CommonMasks {
   TypeMask _syncStarIterableType;
   TypeMask _asyncFutureType;
   TypeMask _asyncStarStreamType;
+  TypeMask _indexablePrimitiveType;
+  TypeMask _readableArrayType;
+  TypeMask _mutableArrayType;
+  TypeMask _fixedArrayType;
+  TypeMask _extendableArrayType;
+  TypeMask _unmodifiableArrayType;
 
   TypeMask get dynamicType => _dynamicType ??=
       new TypeMask.subclass(closedWorld.coreClasses.objectClass, closedWorld);
@@ -132,4 +138,29 @@ class CommonMasks {
 
   // TODO(johnniwinther): Assert that the null type has been resolved.
   TypeMask get nullType => _nullType ??= const TypeMask.empty();
+
+  TypeMask get emptyType => const TypeMask.nonNullEmpty();
+
+  TypeMask get indexablePrimitiveType =>
+      _indexablePrimitiveType ??= new TypeMask.nonNullSubtype(
+          backendClasses.indexableImplementation, closedWorld);
+
+  TypeMask get readableArrayType =>
+      _readableArrayType ??= new TypeMask.nonNullSubclass(
+          backendClasses.listImplementation, closedWorld);
+
+  TypeMask get mutableArrayType =>
+      _mutableArrayType ??= new TypeMask.nonNullSubclass(
+          backendClasses.mutableListImplementation, closedWorld);
+
+  TypeMask get fixedArrayType => _fixedArrayType ??= new TypeMask.nonNullExact(
+      backendClasses.fixedListImplementation, closedWorld);
+
+  TypeMask get extendableArrayType =>
+      _extendableArrayType ??= new TypeMask.nonNullExact(
+          backendClasses.growableListImplementation, closedWorld);
+
+  TypeMask get unmodifiableArrayType =>
+      _unmodifiableArrayType ??= new TypeMask.nonNullExact(
+          backendClasses.constListImplementation, closedWorld);
 }

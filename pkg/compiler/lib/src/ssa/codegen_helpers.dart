@@ -8,6 +8,7 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -21,6 +22,8 @@ class SsaInstructionSelection extends HBaseVisitor {
   SsaInstructionSelection(this.compiler);
 
   JavaScriptBackend get backend => compiler.backend;
+
+  ClosedWorld get closedWorld => compiler.closedWorld;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -67,7 +70,7 @@ class SsaInstructionSelection extends HBaseVisitor {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
         return new HIsViaInterceptor(
-            node.typeExpression, interceptor, backend.boolType);
+            node.typeExpression, interceptor, closedWorld.commonMasks.boolType);
       }
     }
     return node;
@@ -86,7 +89,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (leftType.isNullable && rightType.isNullable) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
-          (left.isPrimitive(compiler) && leftType == rightType)) {
+          (left.isPrimitive(closedWorld) && leftType == rightType)) {
         return '==';
       }
       return null;
@@ -242,7 +245,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(compiler)) return simpleBinary(assignOp);
+      if (op.isUInt31(closedWorld)) return simpleBinary(assignOp);
       return noMatchingRead();
     }
 

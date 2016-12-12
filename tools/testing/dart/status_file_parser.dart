@@ -34,10 +34,6 @@ class Expectation {
   // Special 'TIMEOUT' cases
   static Expectation DARTK_TIMEOUT = byName('DartkTimeout');
 
-  // Special 'MISSING_COMPILETIME_ERROR'
-  static Expectation DARTK_MISSING_COMPILETIME_ERROR =
-      byName('DartkMissingCompileTimeError');
-
   // Special 'COMPILETIME_ERROR'
   static Expectation DARTK_COMPILETIME_ERROR = byName('DartkCompileTimeError');
 
@@ -80,15 +76,14 @@ class Expectation {
       var timeout = build("Timeout");
       build("Pass");
 
-      var missingCompileError = build("MissingCompileTimeError", group: fail);
       var compileError = build("CompileTimeError", group: fail);
+      build("MissingCompileTimeError", group: fail);
       build("MissingRuntimeError", group: fail);
       build("RuntimeError", group: fail);
 
       // Dartk sub expectations
       build("DartkCrash", group: crash);
       build("DartkTimeout", group: timeout);
-      build("DartkMissingCompileTimeError", group: missingCompileError);
       build("DartkCompileTimeError", group: compileError);
 
       build("MissingStaticWarning", group: fail);

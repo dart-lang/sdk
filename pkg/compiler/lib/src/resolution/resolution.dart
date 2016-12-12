@@ -64,10 +64,8 @@ import 'typedefs.dart';
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
   final Resolution resolution;
-  final OpenWorld world;
 
-  ResolverTask(
-      this.resolution, this.constantCompiler, this.world, Measurer measurer)
+  ResolverTask(this.resolution, this.constantCompiler, Measurer measurer)
       : super(measurer);
 
   String get name => 'Resolver';
@@ -80,6 +78,7 @@ class ResolverTask extends CompilerTask {
   ParsingContext get parsingContext => resolution.parsingContext;
   CompilerOptions get options => resolution.options;
   ResolutionEnqueuer get enqueuer => resolution.enqueuer;
+  OpenWorld get world => enqueuer.universe.openWorld;
 
   ResolutionImpact resolve(Element element) {
     return measure(() {

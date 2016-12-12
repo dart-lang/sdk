@@ -2059,7 +2059,11 @@ class DeferredPrefixStructure<R, A> implements SendStructure<R, A> {
   }
 }
 
-enum NewStructureKind { NEW_INVOKE, CONST_INVOKE, LATE_CONST, }
+enum NewStructureKind {
+  NEW_INVOKE,
+  CONST_INVOKE,
+  LATE_CONST,
+}
 
 /// The structure for a [NewExpression] of a new invocation.
 abstract class NewStructure<R, A> implements SemanticSendStructure<R, A> {

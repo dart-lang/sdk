@@ -22,8 +22,8 @@ main() {
       }
       """,
         useMockCompiler: false);
-    ClosedWorld world =
-        env.compiler.openWorld.closeWorld(env.compiler.reporter);
+    env.compiler.closeResolution();
+    ClosedWorld world = env.compiler.closedWorld;
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getElement('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getElement('B'));
     UnionTypeMask union1 = mask1.nonNullable().union(mask2, world);

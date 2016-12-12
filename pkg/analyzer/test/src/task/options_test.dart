@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -38,7 +39,7 @@ class ContextConfigurationTest extends AbstractContextTest {
   AnalysisOptions get analysisOptions => context.analysisOptions;
 
   configureContext(String optionsSource) =>
-      configureContextOptions(context, parseOptions(optionsSource));
+      applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
 
   Map<String, YamlNode> parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
@@ -87,7 +88,7 @@ analyzer:
     unused_local_variable: error
 ''');
 
-    List<ErrorProcessor> processors = context.analysisOptions.errorProcessors;
+    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(
@@ -118,7 +119,7 @@ analyzer:
     - 'test/**'
 ''');
 
-    List<String> excludes = context.analysisOptions.excludePatterns;
+    List<String> excludes = analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
@@ -443,6 +444,7 @@ analyzer:
   }
 
   test_linter_supported_rules() {
+    registerLintRules();
     validate(
         '''
 linter:

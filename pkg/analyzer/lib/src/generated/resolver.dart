@@ -7,6 +7,7 @@ library analyzer.src.generated.resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -105,7 +106,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAnnotation(Annotation node) {
-    if (node.elementAnnotation?.isFactory == true) {
+    if (resolutionMap.elementAnnotationForAnnotation(node)?.isFactory == true) {
       AstNode parent = node.parent;
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
@@ -193,7 +194,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.element.isFactory) {
+    if (resolutionMap.elementDeclaredByConstructorDeclaration(node).isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
         if (!ExitDetector.exits(node.body)) {
@@ -648,7 +649,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
         displayName =
-            "${node.staticInvokeType.displayName}.${element.displayName}";
+            "${resolutionMap.staticInvokeTypeForInvocationExpression(node).displayName}.${element.displayName}";
       }
       _errorReporter.reportErrorForNode(
           HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
@@ -2287,7 +2288,8 @@ class DirectiveResolver extends SimpleAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _enclosingLibrary = node.element.library;
+    _enclosingLibrary =
+        resolutionMap.elementDeclaredByCompilationUnit(node).library;
     for (Directive directive in node.directives) {
       directive.accept(this);
     }
@@ -3594,7 +3596,9 @@ class HintGenerator {
   GatherUsedLocalElementsVisitor _usedLocalElementsVisitor;
 
   HintGenerator(this._compilationUnits, this._context, this._errorListener) {
-    _library = _compilationUnits[0].element.library;
+    _library = resolutionMap
+        .elementDeclaredByCompilationUnit(_compilationUnits[0])
+        .library;
     _usedImportedElementsVisitor =
         new GatherUsedImportedElementsVisitor(_library);
     _enableDart2JSHints = _context.analysisOptions.dart2jsHint;
@@ -3614,8 +3618,9 @@ class HintGenerator {
         }
       }
       CompilationUnit definingUnit = _compilationUnits[0];
-      ErrorReporter definingUnitErrorReporter =
-          new ErrorReporter(_errorListener, definingUnit.element.source);
+      ErrorReporter definingUnitErrorReporter = new ErrorReporter(
+          _errorListener,
+          resolutionMap.elementDeclaredByCompilationUnit(definingUnit).source);
       {
         ImportsVerifier importsVerifier = new ImportsVerifier();
         importsVerifier.addImports(definingUnit);
@@ -5788,7 +5793,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue, node.parameter.element?.type);
+    InferenceContext.setType(node.defaultValue,
+        resolutionMap.elementDeclaredByFormalParameter(node.parameter)?.type);
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.element;
     if (element.initializer != null && node.defaultValue != null) {
@@ -5907,7 +5913,9 @@ class ResolverVisitor extends ScopedVisitor {
           ? typeProvider.iterableType
           : typeProvider.streamType;
       InferenceContext.setType(
-          iterable, targetType.instantiate([loopVariable.type.type]));
+          iterable,
+          targetType
+              .instantiate([resolutionMap.typeForTypeName(loopVariable.type)]));
     }
     iterable?.accept(this);
     loopVariable?.accept(this);
@@ -6017,7 +6025,9 @@ class ResolverVisitor extends ScopedVisitor {
             _inferFormalParameterList(node.parameters, functionType);
 
             DartType returnType;
-            if (isFutureThen(node.staticParameterElement?.enclosingElement)) {
+            ParameterElement parameterElement =
+                resolutionMap.staticParameterElementForExpression(node);
+            if (isFutureThen(parameterElement?.enclosingElement)) {
               var futureThenType =
                   InferenceContext.getContext(node.parent) as FunctionType;
 
@@ -6178,7 +6188,8 @@ class ResolverVisitor extends ScopedVisitor {
           List<DartType> targs =
               inferenceContext.matchTypes(classTypeName.type, contextType);
           if (targs != null && targs.any((t) => !t.isDynamic)) {
-            ClassElement classElement = classTypeName.type.element;
+            ClassElement classElement =
+                resolutionMap.typeForTypeName(classTypeName).element;
             InterfaceType rawType = classElement.type;
             InterfaceType fullType =
                 rawType.substitute2(targs, rawType.typeArguments);
@@ -6191,7 +6202,9 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     node.constructorName?.accept(this);
-    FunctionType constructorType = node.constructorName.staticElement?.type;
+    FunctionType constructorType = resolutionMap
+        .staticElementForConstructorReference(node.constructorName)
+        ?.type;
     if (constructorType != null) {
       InferenceContext.setType(node.argumentList, constructorType);
     }
@@ -6350,7 +6363,8 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
-    InferenceContext.setType(node.argumentList, node.staticElement?.type);
+    InferenceContext.setType(node.argumentList,
+        resolutionMap.staticElementForConstructorReference(node)?.type);
     node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -6384,7 +6398,8 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
-    InferenceContext.setType(node.argumentList, node.staticElement?.type);
+    InferenceContext.setType(node.argumentList,
+        resolutionMap.staticElementForConstructorReference(node)?.type);
     node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -6457,7 +6472,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
     for (VariableDeclaration decl in node.variables) {
-      InferenceContext.setType(decl, decl.element?.type);
+      VariableElement variableElement =
+          resolutionMap.elementDeclaredByVariableDeclaration(decl);
+      InferenceContext.setType(decl, variableElement?.type);
     }
     super.visitVariableDeclarationList(node);
   }
@@ -6744,7 +6761,8 @@ class ResolverVisitor extends ScopedVisitor {
     FunctionType expectedClosureType = mayByFunctionType as FunctionType;
     // If the expectedClosureType is not more specific than the static type,
     // return.
-    DartType staticClosureType = closure.element?.type;
+    DartType staticClosureType =
+        resolutionMap.elementDeclaredByFunctionExpression(closure)?.type;
     if (staticClosureType != null &&
         !FunctionTypeImpl.relate(
             expectedClosureType,
@@ -9803,9 +9821,10 @@ class TypeResolverVisitor extends ScopedVisitor {
         variable.declaredType = element.returnType;
       } else if (variable.type == null) {
         List<ParameterElement> parameters = element.parameters;
-        if (parameters != null && parameters.length > 0) {
-          variable.declaredType = parameters[0].type;
-        }
+        DartType type = parameters != null && parameters.length > 0
+            ? parameters[0].type
+            : _dynamicType;
+        variable.declaredType = type;
       }
     }
 

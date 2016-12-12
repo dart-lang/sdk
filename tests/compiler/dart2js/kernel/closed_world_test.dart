@@ -80,7 +80,7 @@ main(List<String> args) {
     worldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.openWorld.closeWorld(compiler.reporter);
+    compiler.resolverWorld.openWorld.closeWorld(compiler.reporter);
 
     JavaScriptBackend backend = compiler.backend;
     // Create a new resolution enqueuer and feed it with the [WorldImpact]s
@@ -92,7 +92,6 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
         backend,
-        compiler.commonElements,
         compiler.cacheStrategy,
         'enqueuer from kernel');
     // TODO(johnniwinther): Store backend info separately. This replacement is
@@ -113,7 +112,6 @@ main(List<String> args) {
       ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
       WorldImpact worldImpact = compiler.backend.impactTransformer
           .transformResolutionImpact(enqueuer, resolutionImpact);
-      enqueuer.registerProcessedElement(element);
       enqueuer.applyImpact(worldImpact, impactSource: element);
     });
     ClosedWorld closedWorld =

@@ -8,7 +8,11 @@ import '../elements/elements.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 
-enum UnaryOperatorKind { NOT, NEGATE, COMPLEMENT, }
+enum UnaryOperatorKind {
+  NOT,
+  NEGATE,
+  COMPLEMENT,
+}
 
 class UnaryOperator {
   final UnaryOperatorKind kind;

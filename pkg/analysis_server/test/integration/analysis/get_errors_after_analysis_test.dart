@@ -2,19 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.get.errors.after.analysis;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'get_errors.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(GetErrorsAfterTest);
+    defineReflectiveTests(GetErrorsAfterTest_Driver);
   });
 }
 
+class AbstractGetErrorsAfterTest extends AnalysisDomainGetErrorsTest {
+  AbstractGetErrorsAfterTest() : super(true);
+}
+
 @reflectiveTest
-class Test extends AnalysisDomainGetErrorsTest {
-  Test() : super(true);
+class GetErrorsAfterTest extends AbstractGetErrorsAfterTest {}
+
+@reflectiveTest
+class GetErrorsAfterTest_Driver extends AbstractGetErrorsAfterTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

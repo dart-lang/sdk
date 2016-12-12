@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.completion.get.suggestions;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,12 +10,12 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(GetSuggestionsTest);
+    defineReflectiveTests(GetSuggestionsTest_Driver);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractGetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   String path;
   String content;
   int completionOffset;
@@ -121,5 +119,28 @@ main() {
     }).then((result) {
       expect(result, same(errorToken));
     });
+  }
+}
+
+@reflectiveTest
+class GetSuggestionsTest extends AbstractGetSuggestionsTest {}
+
+@reflectiveTest
+class GetSuggestionsTest_Driver extends AbstractGetSuggestionsTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  test_getSuggestions_onlyOverlay() async {
+    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
+    //return super.test_getSuggestions_onlyOverlay();
+    fail('Test timed out');
+  }
+
+  @failingTest
+  test_getSuggestions_sourceMissing_noWait() {
+    //  Expected: same instance as 'exception from server'
+    //    Actual: CompletionGetSuggestionsResult:<{"id":"0"}>
+    return super.test_getSuggestions_sourceMissing_noWait();
   }
 }

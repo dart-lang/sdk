@@ -247,8 +247,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       int i = source.requiredParameterCount;
       for (ParameterElement element in source.orderedOptionalParameters) {
         if (i >= target.requiredParameterCount && i < target.parameterCount) {
-          map[element] = target.orderedOptionalParameters[
-              i - target.requiredParameterCount];
+          map[element] = target
+              .orderedOptionalParameters[i - target.requiredParameterCount];
         }
         ++i;
       }

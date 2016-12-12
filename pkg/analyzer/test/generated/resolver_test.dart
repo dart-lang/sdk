@@ -7,6 +7,7 @@ library analyzer.test.generated.resolver_test;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -479,9 +480,12 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
           buffer.write("  ");
           buffer.write(expression.toString());
           buffer.write(" [");
-          buffer.write(expression.staticType.displayName);
+          buffer.write(
+              resolutionMap.staticTypeForExpression(expression).displayName);
           buffer.write(", ");
-          buffer.write(expression.propagatedType.displayName);
+          buffer.write(resolutionMap
+              .propagatedTypeForExpression(expression)
+              .displayName);
           buffer.writeln("]");
           buffer.write("    ");
           buffer.write(_getFileName(expression));
@@ -538,7 +542,8 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
-    if (node.staticType == null && node.prefix.staticType.isDynamic) {
+    if (node.staticType == null &&
+        resolutionMap.staticTypeForExpression(node.prefix).isDynamic) {
       return null;
     }
     return super.visitPrefixedIdentifier(node);
@@ -589,7 +594,10 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.element != null) {
-          return rootCU.element.source.fullName;
+          return resolutionMap
+              .elementDeclaredByCompilationUnit(rootCU)
+              .source
+              .fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -1085,7 +1093,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1108,7 +1117,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1203,7 +1213,8 @@ main(CanvasElement canvas) {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     SimpleIdentifier identifier = EngineTestCase.findNode(
         unit, code, "context", (node) => node is SimpleIdentifier);
-    expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
+    expect(resolutionMap.propagatedTypeForExpression(identifier).name,
+        "CanvasRenderingContext2D");
   }
 
   void test_forEach() {
@@ -1656,7 +1667,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1686,7 +1698,7 @@ A f(var p) {
     InterfaceType typeA;
     {
       ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-      typeA = classA.element.type;
+      typeA = resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     }
     // verify "f"
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
@@ -1749,7 +1761,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1772,7 +1785,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1797,7 +1811,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1846,7 +1861,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1868,7 +1884,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1895,7 +1912,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1920,7 +1938,8 @@ A f(var p) {
     assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1943,7 +1962,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1966,7 +1986,8 @@ A f(var p) {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    InterfaceType typeA =
+        resolutionMap.elementDeclaredByClassDeclaration(classA).type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -2416,17 +2437,28 @@ main() {
     ReturnStatement statement = body.block.statements[11] as ReturnStatement;
     NodeList<Expression> elements =
         (statement.expression as ListLiteral).elements;
-    expect(elements[0].propagatedType.name, "AnchorElement");
-    expect(elements[1].propagatedType.name, "AnchorElement");
-    expect(elements[2].propagatedType.name, "BodyElement");
-    expect(elements[3].propagatedType.name, "ButtonElement");
-    expect(elements[4].propagatedType.name, "DivElement");
-    expect(elements[5].propagatedType.name, "InputElement");
-    expect(elements[6].propagatedType.name, "SelectElement");
-    expect(elements[7].propagatedType.name, "DivElement");
-    expect(elements[8].propagatedType.name, "Element");
-    expect(elements[9].propagatedType.name, "Element");
-    expect(elements[10].propagatedType.name, "Element");
+    expect(resolutionMap.propagatedTypeForExpression(elements[0]).name,
+        "AnchorElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[1]).name,
+        "AnchorElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[2]).name,
+        "BodyElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[3]).name,
+        "ButtonElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[4]).name,
+        "DivElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[5]).name,
+        "InputElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[6]).name,
+        "SelectElement");
+    expect(resolutionMap.propagatedTypeForExpression(elements[7]).name,
+        "DivElement");
+    expect(
+        resolutionMap.propagatedTypeForExpression(elements[8]).name, "Element");
+    expect(
+        resolutionMap.propagatedTypeForExpression(elements[9]).name, "Element");
+    expect(resolutionMap.propagatedTypeForExpression(elements[10]).name,
+        "Element");
   }
 }
 

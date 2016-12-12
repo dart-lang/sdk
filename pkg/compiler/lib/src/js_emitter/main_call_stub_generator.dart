@@ -28,7 +28,7 @@ class MainCallStubGenerator {
   jsAst.Statement generateInvokeMain() {
     Element main = compiler.mainFunction;
     jsAst.Expression mainCallClosure = null;
-    if (compiler.resolverWorld.hasIsolateSupport) {
+    if (backend.hasIsolateSupport) {
       Element isolateMain =
           helpers.isolateHelperLibrary.find(BackendHelpers.START_ROOT_ISOLATE);
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);

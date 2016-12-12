@@ -183,10 +183,10 @@ CompilerImpl compilerFor(
         .copyConstantValues(cachedCompiler.backend.constantCompilerTask);
 
     Iterable cachedTreeElements =
-        cachedCompiler.enqueuer.resolution.processedElements;
+        cachedCompiler.enqueuer.resolution.processedEntities;
     cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.registerProcessedElement(element);
+        compiler.enqueuer.resolution.registerProcessedElementInternal(element);
       }
     });
 

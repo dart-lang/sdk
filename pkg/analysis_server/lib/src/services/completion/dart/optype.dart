@@ -8,6 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -567,7 +568,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         if (node.parent is VariableDeclaration) {
           VariableDeclaration varDeclaration =
               node.parent as VariableDeclaration;
-          localTypeAssertion = varDeclaration.element?.type;
+          localTypeAssertion = resolutionMap
+              .elementDeclaredByVariableDeclaration(varDeclaration)
+              ?.type;
         } else if (node.parent is AssignmentExpression) {
           AssignmentExpression assignmentExpression =
               node.parent as AssignmentExpression;
@@ -653,7 +656,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.returnValueSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType type = node.element?.type;
+        DartType type = resolutionMap.elementForNamedExpression(node)?.type;
         bool isEnum = type != null &&
             type.element is ClassElement &&
             (type.element as ClassElement).isEnum;

@@ -10,11 +10,9 @@ import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
-import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
-import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -43,12 +41,6 @@ class EnginePlugin implements Plugin {
    * register new analysis error results to compute for an HTML source.
    */
   static const String HTML_ERRORS_EXTENSION_POINT = 'htmlErrors';
-
-  /**
-   * The simple identifier of the extension point that allows plugins to
-   * register new analysis tasks with the analysis engine.
-   */
-  static const String TASK_EXTENSION_POINT = 'task';
 
   /**
    * The simple identifier of the extension point that allows plugins to
@@ -81,12 +73,6 @@ class EnginePlugin implements Plugin {
    * results for an HTML source.
    */
   ExtensionPoint<ListResultDescriptor<AnalysisError>> htmlErrorsExtensionPoint;
-
-  /**
-   * The extension point that allows plugins to register new analysis tasks with
-   * the analysis engine.
-   */
-  ExtensionPoint<TaskDescriptor> taskExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new work manager
@@ -122,11 +108,6 @@ class EnginePlugin implements Plugin {
   @ExtensionPointId('HTML_ERRORS_EXTENSION_POINT_ID')
   List<ResultDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
 
-  /**
-   * Return a list containing all of the task descriptors that were contributed.
-   */
-  List<TaskDescriptor> get taskDescriptors => taskExtensionPoint.extensions;
-
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
 
@@ -151,9 +132,6 @@ class EnginePlugin implements Plugin {
         new ExtensionPoint<ListResultDescriptor<AnalysisError>>(
             this, HTML_ERRORS_EXTENSION_POINT, null);
     registerExtensionPoint(htmlErrorsExtensionPoint);
-    taskExtensionPoint =
-        new ExtensionPoint<TaskDescriptor>(this, TASK_EXTENSION_POINT, null);
-    registerExtensionPoint(taskExtensionPoint);
     workManagerFactoryExtensionPoint = new ExtensionPoint<WorkManagerFactory>(
         this, WORK_MANAGER_FACTORY_EXTENSION_POINT, null);
     registerExtensionPoint(workManagerFactoryExtensionPoint);
@@ -161,7 +139,6 @@ class EnginePlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
-    _registerTaskExtensions(registerExtension);
     _registerWorkManagerFactoryExtensions(registerExtension);
     _registerDartErrorsForSource(registerExtension);
     _registerDartErrorsForUnit(registerExtension);
@@ -180,75 +157,6 @@ class EnginePlugin implements Plugin {
 
   void _registerHtmlErrors(RegisterExtension registerExtension) {
     registerExtension(HTML_ERRORS_EXTENSION_POINT_ID, HTML_DOCUMENT_ERRORS);
-  }
-
-  void _registerTaskExtensions(RegisterExtension registerExtension) {
-    String taskId = TASK_EXTENSION_POINT_ID;
-    //
-    // Register general tasks.
-    //
-    registerExtension(taskId, GetContentTask.DESCRIPTOR);
-    //
-    // Register Dart tasks.
-    //
-    registerExtension(taskId, BuildCompilationUnitElementTask.DESCRIPTOR);
-    registerExtension(taskId, BuildDirectiveElementsTask.DESCRIPTOR);
-    registerExtension(taskId, BuildEnumMemberElementsTask.DESCRIPTOR);
-    registerExtension(taskId, BuildExportNamespaceTask.DESCRIPTOR);
-    registerExtension(taskId, BuildLibraryElementTask.DESCRIPTOR);
-    registerExtension(taskId, BuildPublicNamespaceTask.DESCRIPTOR);
-    registerExtension(taskId, BuildSourceExportClosureTask.DESCRIPTOR);
-    registerExtension(taskId, BuildTypeProviderTask.DESCRIPTOR);
-    registerExtension(taskId, ComputeConstantDependenciesTask.DESCRIPTOR);
-    registerExtension(taskId, ComputeConstantValueTask.DESCRIPTOR);
-    registerExtension(
-        taskId, ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
-    registerExtension(taskId, ComputeLibraryCycleTask.DESCRIPTOR);
-    registerExtension(taskId, ComputeRequiredConstantsTask.DESCRIPTOR);
-    registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
-    registerExtension(taskId, DartErrorsTask.DESCRIPTOR);
-    registerExtension(taskId, EvaluateUnitConstantsTask.DESCRIPTOR);
-    registerExtension(taskId, GatherUsedImportedElementsTask.DESCRIPTOR);
-    registerExtension(taskId, GatherUsedLocalElementsTask.DESCRIPTOR);
-    registerExtension(taskId, GenerateHintsTask.DESCRIPTOR);
-    registerExtension(taskId, GenerateLintsTask.DESCRIPTOR);
-    registerExtension(taskId, InferInstanceMembersInUnitTask.DESCRIPTOR);
-    registerExtension(taskId, InferStaticVariableTypesInUnitTask.DESCRIPTOR);
-    registerExtension(taskId, InferStaticVariableTypeTask.DESCRIPTOR);
-    registerExtension(taskId, LibraryErrorsReadyTask.DESCRIPTOR);
-    registerExtension(taskId, LibraryUnitErrorsTask.DESCRIPTOR);
-    registerExtension(taskId, ParseDartTask.DESCRIPTOR);
-    registerExtension(taskId, PartiallyResolveUnitReferencesTask.DESCRIPTOR);
-    registerExtension(taskId, ReadyLibraryElement2Task.DESCRIPTOR);
-    registerExtension(taskId, ReadyLibraryElement5Task.DESCRIPTOR);
-    registerExtension(taskId, ReadyLibraryElement7Task.DESCRIPTOR);
-    registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveConstantExpressionTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveDirectiveElementsTask.DESCRIPTOR);
-    registerExtension(taskId, ResolvedUnit7InLibraryClosureTask.DESCRIPTOR);
-    registerExtension(taskId, ResolvedUnit7InLibraryTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveLibraryTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveUnitTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveVariableReferencesTask.DESCRIPTOR);
-    registerExtension(taskId, ScanDartTask.DESCRIPTOR);
-    registerExtension(taskId, StrongModeVerifyUnitTask.DESCRIPTOR);
-    registerExtension(taskId, VerifyUnitTask.DESCRIPTOR);
-    //
-    // Register HTML tasks.
-    //
-    registerExtension(taskId, DartScriptsTask.DESCRIPTOR);
-    registerExtension(taskId, HtmlErrorsTask.DESCRIPTOR);
-    registerExtension(taskId, ParseHtmlTask.DESCRIPTOR);
-    //
-    // Register YAML tasks.
-    //
-    registerExtension(taskId, ParseYamlTask.DESCRIPTOR);
   }
 
   void _registerWorkManagerFactoryExtensions(

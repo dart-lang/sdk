@@ -522,13 +522,13 @@ class MemberTypeInformation extends ElementTypeInformation
       return mask;
     }
     if (element.isField) {
-      return _narrowType(compiler.closedWorld, mask, element.type);
+      return _narrowType(inferrer.closedWorld, mask, element.type);
     }
     assert(
         element.isFunction || element.isGetter || element.isFactoryConstructor);
 
     FunctionType type = element.type;
-    return _narrowType(compiler.closedWorld, mask, type.returnType);
+    return _narrowType(inferrer.closedWorld, mask, type.returnType);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -640,7 +640,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.compiler.inferenceWorld
+    if (inferrer.closedWorldRefiner
         .getCurrentlyKnownMightBePassedToApply(declaration)) {
       giveUp(inferrer);
       return safeType(inferrer);
@@ -669,7 +669,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
     assert(!compiler.options.enableTypeAssertions);
-    return _narrowType(compiler.closedWorld, mask, element.type);
+    return _narrowType(inferrer.closedWorld, mask, element.type);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -818,8 +818,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     assert(receiver != null);
     TypeMask typeMask = computeTypedSelector(inferrer);
-    targets =
-        inferrer.compiler.closedWorld.allFunctions.filter(selector, typeMask);
+    targets = inferrer.closedWorld.allFunctions.filter(selector, typeMask);
     receiver.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -973,16 +972,16 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     Compiler compiler = inferrer.compiler;
     JavaScriptBackend backend = compiler.backend;
     TypeMask maskToUse =
-        compiler.closedWorld.extendMaskIfReachesAll(selector, typeMask);
+        inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
     bool canReachAll = backend.hasInvokeOnSupport && (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
-    targets = compiler.closedWorld.allFunctions.filter(selector, maskToUse);
+    targets = inferrer.closedWorld.allFunctions.filter(selector, maskToUse);
     Iterable<Element> typedTargets = canReachAll
-        ? compiler.closedWorld.allFunctions.filter(selector, typeMask)
+        ? inferrer.closedWorld.allFunctions.filter(selector, typeMask)
         : targets;
 
     // Update the call graph if the targets could have changed.
@@ -1078,8 +1077,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!abandonInferencing) {
       inferrer.updateSelectorInTree(caller, call, selector, mask);
       Iterable<Element> oldTargets = targets;
-      targets =
-          inferrer.compiler.closedWorld.allFunctions.filter(selector, mask);
+      targets = inferrer.closedWorld.allFunctions.filter(selector, mask);
       for (Element element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =

@@ -63,7 +63,7 @@ class SdkPatcher {
       patchPaths = sdkLibrary.getPatches(platform);
     }
 
-    bool strongMode = sdk.analysisOptions.strongMode;
+    bool strongMode = sdk.context.analysisOptions.strongMode;
     Context pathContext = sdk.resourceProvider.pathContext;
     for (String path in patchPaths) {
       String pathInLib = pathContext.joinAll(path.split('/'));
@@ -294,6 +294,13 @@ class SdkPatcher {
           _failIfPublicName(patchDeclaration, patchDeclaration.name.name);
           declarationsToAppend.add(patchDeclaration);
         }
+      } else if (patchDeclaration is TopLevelVariableDeclaration &&
+          !_hasPatchAnnotation(patchDeclaration.metadata)) {
+        for (VariableDeclaration variable
+            in patchDeclaration.variables.variables) {
+          _failIfPublicName(patchDeclaration, variable.name.name);
+        }
+        declarationsToAppend.add(patchDeclaration);
       } else {
         _failInPatch('contains an unsupported top-level declaration',
             patchDeclaration.offset);

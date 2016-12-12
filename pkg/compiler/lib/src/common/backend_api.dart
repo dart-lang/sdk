@@ -18,6 +18,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
+import '../elements/entities.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -32,6 +33,7 @@ import '../serialization/serialization.dart'
 import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilder;
+import '../world.dart' show ClosedWorldRefiner;
 import 'codegen.dart' show CodegenWorkItem;
 import 'tasks.dart' show CompilerTask;
 
@@ -105,7 +107,7 @@ abstract class Backend extends Target {
 
   List<CompilerTask> get tasks;
 
-  void onResolutionComplete() {}
+  void onResolutionComplete(ClosedWorldRefiner closedWorldRefiner) {}
   void onTypeInferenceComplete() {}
 
   bool classNeedsRti(ClassElement cls);
@@ -172,13 +174,6 @@ abstract class Backend extends Target {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction() => const WorldImpact();
 
-  /// Called to register that the `runtimeType` property has been accessed. Any
-  /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerRuntimeType() => const WorldImpact();
-
-  /// Called to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {}
-
   /// Called to enable support for `noSuchMethod`. Any backend specific
   /// [WorldImpact] of this is returned.
   WorldImpact enableNoSuchMethod() => const WorldImpact();
@@ -222,7 +217,7 @@ abstract class Backend extends Target {
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerStaticUse(Element element, {bool forResolution}) =>
+  WorldImpact registerUsedElement(Element element, {bool forResolution}) =>
       const WorldImpact();
 
   /// This method is called immediately after the [LibraryElement] [library] has
@@ -305,7 +300,7 @@ abstract class Backend extends Target {
   /// There is no guarantee that a class is only present once in
   /// [recentClasses], but every class seen by the [enqueuer] will be present in
   /// [recentClasses] at least once.
-  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
+  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     return true;
   }
 
@@ -313,11 +308,9 @@ abstract class Backend extends Target {
   /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {}
 
-  /// Called when the compiler starts running the codegen enqueuer.
-  void onCodegenStart() {}
-
-  /// Called after [element] has been resolved.
-  void onElementResolved(Element element) {}
+  /// Called when the compiler starts running the codegen enqueuer. The
+  /// [WorldImpact] of enabled backend features is returned.
+  WorldImpact onCodegenStart() => const WorldImpact();
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
@@ -405,6 +398,7 @@ abstract class BackendClasses {
   ClassElement get numImplementation;
   ClassElement get stringImplementation;
   ClassElement get listImplementation;
+  ClassElement get mutableListImplementation;
   ClassElement get growableListImplementation;
   ClassElement get fixedListImplementation;
   ClassElement get constListImplementation;
@@ -420,4 +414,8 @@ abstract class BackendClasses {
   ClassElement get syncStarIterableImplementation;
   ClassElement get asyncFutureImplementation;
   ClassElement get asyncStarStreamImplementation;
+  ClassElement get indexableImplementation;
+  ClassElement get mutableIndexableImplementation;
+
+  bool isDefaultEqualityImplementation(Element element);
 }

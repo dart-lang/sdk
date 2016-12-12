@@ -11602,8 +11602,8 @@ void ObjectPool::set_info_array(const TypedData& info_array) const {
 
 
 ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
-  const TypedData& array = TypedData::Handle(info_array());
-  return static_cast<EntryType>(array.GetInt8(index));
+  ObjectPoolInfo pool_info(*this);
+  return pool_info.InfoAt(index);
 }
 
 

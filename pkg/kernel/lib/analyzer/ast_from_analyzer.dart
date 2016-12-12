@@ -12,6 +12,7 @@ import '../transformations/flags.dart';
 import 'analyzer.dart';
 import 'loader.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -541,7 +542,8 @@ class ExpressionScope extends TypeScope {
           initializer: parameter is DefaultFormalParameter
               ? buildOptionalTopLevelExpression(parameter.defaultValue)
               : null,
-          type: buildType(parameter.element.type));
+          type: buildType(
+              resolutionMap.elementDeclaredByFormalParameter(parameter).type));
       switch (parameter.kind) {
         case ParameterKind.REQUIRED:
           positional.add(declaration);
@@ -2335,7 +2337,10 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   bool _isIgnoredMember(ClassMember node) {
     return node is ConstructorDeclaration &&
         node.factoryKeyword != null &&
-        node.element.redirectedConstructor != null;
+        resolutionMap
+                .elementDeclaredByConstructorDeclaration(node)
+                .redirectedConstructor !=
+            null;
   }
 
   visitClassDeclaration(ClassDeclaration node) {
@@ -2610,7 +2615,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         hasExplicitConstructorCall = true;
       }
     }
-    ClassElement classElement = node.element.enclosingElement;
+    ClassElement classElement = resolutionMap
+        .elementDeclaredByConstructorDeclaration(node)
+        .enclosingElement;
     if (classElement.supertype != null && !hasExplicitConstructorCall) {
       ConstructorElement targetElement =
           scope.findDefaultConstructor(classElement.supertype.element);
@@ -2628,7 +2635,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   void buildFactoryConstructor(ConstructorDeclaration node) {
     addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
-    ClassElement classElement = node.element.enclosingElement;
+    ClassElement classElement = resolutionMap
+        .elementDeclaredByConstructorDeclaration(node)
+        .enclosingElement;
     ast.Class classNode = procedure.enclosingClass;
     var types = getFreshTypeParameters(classNode.typeParameters);
     for (int i = 0; i < classElement.typeParameters.length; ++i) {
@@ -2643,7 +2652,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {
       // Redirecting factories with resolved targets don't show up here.
-      assert(node.element.redirectedConstructor == null);
+      assert(resolutionMap
+              .elementDeclaredByConstructorDeclaration(node)
+              .redirectedConstructor ==
+          null);
       var function = procedure.function;
       var name = node.redirectedConstructor.type.name.name;
       if (node.redirectedConstructor.name != null) {
@@ -2662,7 +2674,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     ast.Procedure procedure = currentMember;
     procedure.function = scope.buildFunctionNode(node.parameters, node.body,
         returnType: node.returnType,
-        inferredReturnType: scope.buildType(node.element.returnType),
+        inferredReturnType: scope.buildType(
+            resolutionMap.elementDeclaredByMethodDeclaration(node).returnType),
         typeParameters:
             scope.buildOptionalTypeParameterList(node.typeParameters))
       ..parent = procedure;
@@ -2672,7 +2685,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitVariableDeclaration(VariableDeclaration node) {
     addAnnotations(node.metadata);
     ast.Field field = currentMember;
-    field.type = scope.buildType(node.element.type);
+    field.type = scope.buildType(
+        resolutionMap.elementDeclaredByVariableDeclaration(node).type);
     if (node.initializer != null) {
       field.initializer = scope.buildTopLevelExpression(node.initializer)
         ..parent = field;

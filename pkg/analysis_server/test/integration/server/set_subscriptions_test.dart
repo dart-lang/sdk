@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.server.set.subscriptions;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
@@ -14,12 +12,13 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_Driver);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractSetSubscriptionsTest
+    extends AbstractAnalysisServerIntegrationTest {
   test_setSubscriptions() {
     bool statusReceived = false;
     Completer analysisBegun = new Completer();
@@ -59,4 +58,13 @@ main() {
       });
     });
   }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest extends AbstractSetSubscriptionsTest {}
+
+@reflectiveTest
+class SetSubscriptionsTest_Driver extends AbstractSetSubscriptionsTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

@@ -125,7 +125,15 @@ class HtmlPrintContext {
   }
 }
 
-enum HtmlPartKind { CODE, LINE, CONST, NEWLINE, TEXT, TAG, LINE_NUMBER, }
+enum HtmlPartKind {
+  CODE,
+  LINE,
+  CONST,
+  NEWLINE,
+  TEXT,
+  TAG,
+  LINE_NUMBER,
+}
 
 abstract class HtmlPart {
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context);

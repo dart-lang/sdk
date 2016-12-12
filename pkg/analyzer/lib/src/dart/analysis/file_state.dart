@@ -548,6 +548,11 @@ class FileSystemState {
   final Map<Uri, FileState> _uriToFile = {};
 
   /**
+   * All known file paths.
+   */
+  final Set<String> knownFilePaths = new Set<String>();
+
+  /**
    * Mapping from a path to the corresponding [FileState]s, canonical or not.
    */
   final Map<String, List<FileState>> _pathToFiles = {};
@@ -575,11 +580,6 @@ class FileSystemState {
       this._sdkApiSignature) {
     _testView = new FileSystemStateTestView(this);
   }
-
-  /**
-   * Return the set of known file paths.
-   */
-  Set<String> get knownFilePaths => _pathToFiles.keys.toSet();
 
   /**
    * Return the known files.
@@ -614,7 +614,7 @@ class FileSystemState {
       FileSource uriSource = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, uriSource);
       _uriToFile[uri] = file;
-      _pathToFiles.putIfAbsent(path, () => <FileState>[]).add(file);
+      _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
       file.refresh();
     }
@@ -640,7 +640,7 @@ class FileSystemState {
       FileSource source = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
-      _pathToFiles.putIfAbsent(path, () => <FileState>[]).add(file);
+      _addFileWithPath(path, file);
       file.refresh();
     }
     return file;
@@ -659,6 +659,27 @@ class FileSystemState {
     return allFiles
       ..remove(canonicalFile)
       ..insert(0, canonicalFile);
+  }
+
+  /**
+   * Remove the file with the given [path].
+   */
+  void removeFile(String path) {
+    _uriToFile.clear();
+    knownFilePaths.clear();
+    _pathToFiles.clear();
+    _pathToCanonicalFile.clear();
+    _partToLibraries.clear();
+  }
+
+  void _addFileWithPath(String path, FileState file) {
+    var files = _pathToFiles[path];
+    if (files == null) {
+      knownFilePaths.add(path);
+      files = <FileState>[];
+      _pathToFiles[path] = files;
+    }
+    files.add(file);
   }
 }
 

@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/file_system/file_system.dart';
@@ -143,11 +144,13 @@ class EditDomainHandler implements RequestHandler {
       AnalysisResult result = await server.getAnalysisResult(params.file);
       if (result != null) {
         CompilationUnit unit = result.unit;
+        CompilationUnitElement compilationUnitElement =
+            resolutionMap.elementDeclaredByCompilationUnit(unit);
         DartAssistContext dartAssistContext = new _DartAssistContextForValues(
-            unit.element.source,
+            compilationUnitElement.source,
             params.offset,
             params.length,
-            unit.element.context,
+            compilationUnitElement.context,
             unit);
         try {
           AssistProcessor processor = new AssistProcessor(dartAssistContext);
@@ -191,7 +194,7 @@ class EditDomainHandler implements RequestHandler {
             var context = new _DartFixContextImpl(
                 server.resourceProvider,
                 result.driver.getTopLevelNameDeclarations,
-                unit.element.context,
+                resolutionMap.elementDeclaredByCompilationUnit(unit).context,
                 unit,
                 error);
             List<Fix> fixes =
@@ -218,8 +221,11 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = await computeFixes(server.serverPlugin,
-                server.resourceProvider, unit.element.context, error);
+            List<Fix> fixes = await computeFixes(
+                server.serverPlugin,
+                server.resourceProvider,
+                resolutionMap.elementDeclaredByCompilationUnit(unit).context,
+                error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
@@ -300,8 +306,10 @@ class EditDomainHandler implements RequestHandler {
         return;
       }
       // prepare context
-      engine.AnalysisContext context = unit.element.context;
-      Source source = unit.element.source;
+      CompilationUnitElement compilationUnitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      engine.AnalysisContext context = compilationUnitElement.context;
+      Source source = compilationUnitElement.source;
       errors = context.computeErrors(source);
       // prepare code
       fileStamp = context.getModificationStamp(source);

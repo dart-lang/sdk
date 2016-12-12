@@ -738,7 +738,6 @@ void main() {
     """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
-    ClosedWorld world = compiler.openWorld.closeWorld(compiler.reporter);
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     helpers.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
@@ -757,7 +756,8 @@ void main() {
     impactBuilder
         .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
     compiler.enqueuer.resolution.applyImpact(impactBuilder);
-    compiler.openWorld.closeWorld(compiler.reporter);
+    compiler.closeResolution();
+    ClosedWorld world = compiler.closedWorld;
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.

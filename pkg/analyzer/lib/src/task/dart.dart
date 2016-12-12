@@ -7,6 +7,7 @@ library analyzer.src.task.dart;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1328,7 +1329,11 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     }
 
     EnumDeclaration firstEnum = findFirstEnum();
-    if (firstEnum != null && firstEnum.element.accessors.isEmpty) {
+    if (firstEnum != null &&
+        resolutionMap
+            .elementDeclaredByEnumDeclaration(firstEnum)
+            .accessors
+            .isEmpty) {
       EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
       unit.accept(builder);
     }
@@ -1503,7 +1508,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     int partLength = partUnits.length;
     for (int i = 0; i < partLength; i++) {
       CompilationUnit partUnit = partUnits[i];
-      Source partSource = partUnit.element.source;
+      Source partSource =
+          resolutionMap.elementDeclaredByCompilationUnit(partUnit).source;
       partUnitMap[partSource] = partUnit;
     }
     //
@@ -3446,7 +3452,9 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     if (context.analysisOptions.strongMode) {
       InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
-          typeProvider, new InheritanceManager(unit.element.library),
+          typeProvider,
+          new InheritanceManager(
+              resolutionMap.elementDeclaredByCompilationUnit(unit).library),
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
@@ -3511,7 +3519,8 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
     AstNode node = new NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
       Source variableSource = variable.source;
-      Source unitSource = unit.element.source;
+      Source unitSource =
+          resolutionMap.elementDeclaredByCompilationUnit(unit).source;
       if (variableSource != unitSource) {
         throw new AnalysisException(
             "Failed to find the AST node for the variable "
@@ -3526,7 +3535,8 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
     if (declaration == null || declaration.name != node) {
       Source variableSource = variable.source;
-      Source unitSource = unit.element.source;
+      Source unitSource =
+          resolutionMap.elementDeclaredByCompilationUnit(unit).source;
       if (variableSource != unitSource) {
         if (declaration == null) {
           throw new AnalysisException(
@@ -6232,8 +6242,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         libraryElement,
         typeProvider,
         new InheritanceManager(libraryElement),
-        context.analysisOptions.enableSuperMixins,
-        context.analysisOptions.enableAssertMessage);
+        context.analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
     //
     // Convert the pending errors into actual errors.

@@ -261,8 +261,8 @@ class ImpactUseCase {
 class ImpactStrategy {
   const ImpactStrategy();
 
-  /// Applies [impact] to [visitor] for the [impactUseCase] of [element].
-  void visitImpact(Element element, WorldImpact impact,
+  /// Applies [impact] to [visitor] for the [impactUseCase] of [impactSource].
+  void visitImpact(var impactSource, WorldImpact impact,
       WorldImpactVisitor visitor, ImpactUseCase impactUseCase) {
     // Apply unconditionally.
     impact.apply(visitor);

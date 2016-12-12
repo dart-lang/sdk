@@ -7,7 +7,6 @@ library analyzer_cli.test.driver;
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -17,7 +16,6 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
 
@@ -53,18 +51,6 @@ main() {
 
   group('Driver', () {
     group('options', () {
-      test('custom processor', () {
-        Driver driver = new Driver();
-        TestProcessor processor = new TestProcessor();
-        driver.userDefinedPlugins = [new TestPlugin(processor)];
-        driver.start([
-          '--options',
-          path.join(testDirectory, 'data/test_options.yaml'),
-          path.join(testDirectory, 'data/test_file.dart')
-        ]);
-        expect(processor.options['test_plugin'], isNotNull);
-        expect(processor.exception, isNull);
-      });
       test('todos', () {
         drive('data/file_with_todo.dart');
         expect(outSink.toString().contains('[info]'), isFalse);
@@ -520,39 +506,6 @@ Map<String, YamlNode> parseOptions(String src) =>
 
 ErrorProcessor processorFor(AnalysisError error) =>
     processors.firstWhere((p) => p.appliesTo(error));
-
-class TestPlugin extends Plugin {
-  TestProcessor processor;
-  TestPlugin(this.processor);
-
-  @override
-  String get uniqueIdentifier => 'test_plugin.core';
-
-  @override
-  void registerExtensionPoints(RegisterExtensionPoint register) {
-    // None
-  }
-
-  @override
-  void registerExtensions(RegisterExtension register) {
-    register(OPTIONS_PROCESSOR_EXTENSION_POINT_ID, processor);
-  }
-}
-
-class TestProcessor extends OptionsProcessor {
-  Map<String, Object> options;
-  Exception exception;
-
-  @override
-  void onError(Exception exception) {
-    this.exception = exception;
-  }
-
-  @override
-  void optionsProcessed(AnalysisContext context, Map<String, Object> options) {
-    this.options = options;
-  }
-}
 
 class TestSource implements Source {
   TestSource();

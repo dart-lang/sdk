@@ -446,7 +446,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode INVALID_SYNC = const ParserErrorCode(
       'INVALID_SYNC',
-      "The modifier 'sync' isn't allowed for an exrpression function body.",
+      "The modifier 'sync' isn't allowed for an expression function body.",
       "Try converting the body to a block.");
 
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode(

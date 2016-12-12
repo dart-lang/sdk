@@ -416,13 +416,26 @@ def RunGN(target_os, mode, arch):
     print ("Tried to run GN, but it failed. Try running it manually: \n\t$ " +
            ' '.join(gn_command))
 
+
+def ShouldRunGN(out_dir):
+  return (not os.path.exists(out_dir) or
+          not os.path.isfile(os.path.join(out_dir, 'args.gn')))
+
+
+def UseGoma(out_dir):
+  args_gn = os.path.join(out_dir, 'args.gn')
+  return 'use_goma = true' in open(args_gn, 'r').read()
+
+
 def BuildNinjaCommand(options, target, target_os, mode, arch):
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
-  if not os.path.exists(out_dir):
+  if ShouldRunGN(out_dir):
     RunGN(target_os, mode, arch)
   command = ['ninja', '-C', out_dir]
   if options.verbose:
     command += ['-v']
+  if UseGoma(out_dir):
+    command += ['-j200']
   command += [target]
   return command
 

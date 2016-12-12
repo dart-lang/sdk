@@ -25,6 +25,7 @@
 #include "vm/growable_array.h"
 #include "vm/lockers.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -5974,6 +5975,44 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
     thread->isolate()->heap()->SetPeer(raw_obj, peer);
   }
   return Api::Success();
+}
+
+
+// --- Dart Front-End (Kernel) support ---
+
+DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  return false;
+#else
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return KernelIsolate::IsKernelIsolate(iso);
+#endif
+}
+
+
+DART_EXPORT bool Dart_KernelIsolateIsRunning() {
+#ifdef DART_PRECOMPILED_RUNTIME
+  return false;
+#else
+  return KernelIsolate::IsRunning();
+#endif
+}
+
+
+DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort() {
+#ifdef DART_PRECOMPILED_RUNTIME
+  return ILLEGAL_PORT;
+#else
+  return KernelIsolate::WaitForKernelPort();
+#endif
+}
+
+DART_EXPORT Dart_Port Dart_KernelPort() {
+#ifdef DART_PRECOMPILED_RUNTIME
+  return false;
+#else
+  return KernelIsolate::KernelPort();
+#endif
 }
 
 
