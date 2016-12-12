@@ -154,6 +154,11 @@ class TypeResolver {
     } else if (!element.impliesType) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
+    } else if (element.library.isPlatformLibrary &&
+        element.name == 'FutureOr') {
+      type = const DynamicType();
+      registry.useType(node, type);
+      return type;
     } else {
       bool addTypeVariableBoundsCheck = false;
       if (element.isClass) {

@@ -8,10 +8,6 @@ mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type check
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 
-async/future_or_bad_type_test/00: RuntimeError # Issue 28011
-async/future_or_bad_type_test/01: RuntimeError # Issue 28011
-async/future_or_bad_type_test/implements: MissingCompileTimeError # Issue 28011
-async/future_or_non_strong_test: RuntimeError # Issue 28011
 async/future_or_strong_test: RuntimeError, OK
 
 math/double_pow_test: RuntimeError
