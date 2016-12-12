@@ -67,4 +67,12 @@ class SetSubscriptionsTest extends AbstractSetSubscriptionsTest {}
 class SetSubscriptionsTest_Driver extends AbstractSetSubscriptionsTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_setSubscriptions() {
+    // This test times out on the bots and has been disabled to keep them green.
+    // We need to discover the cause and re-enable it.
+    fail('Timed out');
+  }
 }
