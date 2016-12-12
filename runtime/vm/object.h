@@ -2033,7 +2033,7 @@ class ICData : public Object {
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
-  bool HasOnlyDispatcherTargets() const;
+  bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& owner,
@@ -2648,6 +2648,18 @@ class Function : public Object {
                 const TypeArguments& other_type_arguments,
                 Error* bound_error,
                 Heap::Space space) const;
+
+  bool IsDispatcherOrImplicitAccessor() const {
+    switch (kind()) {
+      case RawFunction::kImplicitGetter:
+      case RawFunction::kImplicitSetter:
+      case RawFunction::kNoSuchMethodDispatcher:
+      case RawFunction::kInvokeFieldDispatcher:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   // Returns true if this function represents an explicit getter function.
   bool IsGetterFunction() const {

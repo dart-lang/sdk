@@ -13441,13 +13441,12 @@ bool ICData::HasOneTarget() const {
 }
 
 
-bool ICData::HasOnlyDispatcherTargets() const {
+bool ICData::HasOnlyDispatcherOrImplicitAccessorTargets() const {
   const intptr_t len = NumberOfChecks();
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < len; i++) {
     target = GetTargetAt(i);
-    if (!target.IsNoSuchMethodDispatcher() &&
-        !target.IsInvokeFieldDispatcher()) {
+    if (!target.IsDispatcherOrImplicitAccessor()) {
       return false;
     }
   }
