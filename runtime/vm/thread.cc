@@ -211,7 +211,8 @@ void Thread::InitVMConstants() {
 void Thread::PrintJSON(JSONStream* stream) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "_Thread");
-  jsobj.AddPropertyF("id", "threads/%" Pd64 "", os_thread()->trace_id());
+  jsobj.AddPropertyF("id", "threads/%" Pd64 "",
+                     ThreadIdToIntPtr(os_thread()->trace_id()));
   Zone* zone = zone_;
   {
     JSONArray zone_info_array(&jsobj, "zones");
