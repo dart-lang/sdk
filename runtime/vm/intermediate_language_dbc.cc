@@ -294,7 +294,11 @@ EMIT_NATIVE_CODE(CheckStackOverflow,
                  0,
                  Location::NoLocation(),
                  LocationSummary::kCall) {
-  __ CheckStack();
+  if (compiler->ForceSlowPathForStackOverflow()) {
+    __ CheckStackAlwaysExit();
+  } else {
+    __ CheckStack();
+  }
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this);

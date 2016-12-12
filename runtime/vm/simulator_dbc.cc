@@ -1447,6 +1447,16 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(CheckStackAlwaysExit, A);
+    {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_StackOverflow, args);
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(DebugStep, A);
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
