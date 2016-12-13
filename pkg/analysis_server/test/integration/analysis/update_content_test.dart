@@ -59,6 +59,53 @@ main() {
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
+
+  @failingTest
+  test_updateContent_multipleAdds() async {
+    String pathname = sourcePath('test.dart');
+    writeFile(
+        pathname,
+        r'''
+class Person {
+  String _name;
+  Person(this._name);
+  String get name => this._name;
+  String toString() => "Name: ${name}";
+}
+void main() {
+  var p = new Person("Skeletor");
+  p.xname = "Faker";
+  print(p);
+}
+''');
+    standardAnalysisSetup();
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    List<AnalysisError> errors1 = currentAnalysisErrors[pathname];
+    expect(errors1, hasLength(1));
+    expect(errors1[0].location.file, equals(pathname));
+
+    await sendAnalysisUpdateContent({
+      pathname: new AddContentOverlay(r'''
+class Person {
+  String _name;
+  Person(this._name);
+  String get name => this._name;
+  String toString() => "Name: ${name}";
+}
+void main() {
+  var p = new Person("Skeletor");
+  p.name = "Faker";
+  print(p);
+}
+''')
+    });
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    List<AnalysisError> errors2 = currentAnalysisErrors[pathname];
+    expect(errors2, hasLength(1));
+    expect(errors2[0].location.file, equals(pathname));
+  }
 }
 
 @reflectiveTest
