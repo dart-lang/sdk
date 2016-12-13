@@ -4,12 +4,20 @@
 
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     ":runtime",
   ]
 }
 
 group("most") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     ":analysis_server",
     ":create_sdk",
@@ -22,6 +30,10 @@ group("most") {
 }
 
 group("runtime") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     "runtime/bin:dart",
     "runtime/bin:dart_bootstrap($host_toolchain)",
@@ -42,6 +54,9 @@ group("runtime_precompiled") {
 }
 
 group("runtime_and_noopt") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    testonly = true
+  }
   deps = [
     "runtime/bin:dart",
     "runtime/bin:dart_bootstrap($host_toolchain)",
