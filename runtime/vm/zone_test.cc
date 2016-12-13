@@ -201,7 +201,8 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
           OS::SCreate(string_stack_zone.GetZone(), "\"capacity\":%" Pd
                                                    ","
                                                    "\"used\":%" Pd "",
-                      zone.SizeInBytes(), zone.UsedSizeInBytes());
+                      zone.CapacityInBytes(), zone.SizeInBytes());
+      EXPECT_LE(zone.SizeInBytes(), zone.CapacityInBytes());
       EXPECT_SUBSTRING(size_buf, json);
     }
 
@@ -217,7 +218,8 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
           OS::SCreate(string_stack_zone.GetZone(), "\"capacity\":%" Pd
                                                    ","
                                                    "\"used\":%" Pd "",
-                      zone.SizeInBytes(), zone.UsedSizeInBytes());
+                      zone.CapacityInBytes(), zone.SizeInBytes());
+      EXPECT_LE(zone.SizeInBytes(), zone.CapacityInBytes());
       EXPECT_SUBSTRING(size_buf, json);
     }
   }

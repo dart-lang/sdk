@@ -337,7 +337,7 @@ TEST_CASE(ManySimpleTasksWithZones) {
                       "\"capacity\":%" Pd
                       ","
                       "\"used\":%" Pd "",
-                      top_zone->SizeInBytes(), top_zone->UsedSizeInBytes());
+                      top_zone->CapacityInBytes(), top_zone->SizeInBytes());
       EXPECT_SUBSTRING(zone_info_buf, json);
       top_zone = top_zone->previous();
     }

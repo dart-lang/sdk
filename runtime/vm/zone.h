@@ -67,9 +67,7 @@ class Zone {
   intptr_t SizeInBytes() const;
 
   // Computes the amount of space used in the zone.
-  intptr_t UsedSizeInBytes() const {
-    return SizeInBytes() - (limit_ - position_);
-  }
+  intptr_t CapacityInBytes() const;
 
   // Structure for managing handles allocation.
   VMHandles* handles() { return &handles_; }
@@ -185,7 +183,7 @@ class StackZone : public StackResource {
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
   // Computes the used space in the zone.
-  intptr_t UsedSizeInBytes() const { return zone_.UsedSizeInBytes(); }
+  intptr_t CapacityInBytes() const { return zone_.CapacityInBytes(); }
 
   Zone* GetZone() { return &zone_; }
 
