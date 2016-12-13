@@ -74,14 +74,14 @@ class AnalyzerOptions {
         declaredVariables: declaredVariables);
   }
 
-  static void addArguments(ArgParser parser) {
+  static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
       ..addOption('dart-sdk',
-          help: 'Dart SDK Path', defaultsTo: null, hide: true)
+          help: 'Dart SDK Path', defaultsTo: null, hide: hide)
       ..addOption('dart-sdk-summary',
-          help: 'Dart SDK Summary Path', defaultsTo: null, hide: true)
+          help: 'Dart SDK Summary Path', defaultsTo: null, hide: hide)
       ..addOption('package-root',
           abbr: 'p', help: 'Package root to resolve "package:" imports')
       ..addOption('url-mapping',

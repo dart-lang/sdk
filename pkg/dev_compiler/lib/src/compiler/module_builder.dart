@@ -45,7 +45,8 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
 /// Adds an option to the [argParser] for choosing the module format, optionally
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
-void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
+void addModuleFormatOptions(ArgParser argParser,
+    {bool allowMultiple: false, bool hide: true}) {
   argParser
     ..addOption('modules',
         help: 'module pattern to emit',
@@ -68,7 +69,7 @@ void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
         help: 'emit modules that can be concatenated into one file.\n'
             'Only compatible with legacy and amd module formats.',
         defaultsTo: false,
-        hide: true);
+        hide: hide);
 }
 
 /// Transforms an ES6 [module] into a given module [format].
