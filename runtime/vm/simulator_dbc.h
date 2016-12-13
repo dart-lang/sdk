@@ -66,7 +66,7 @@ class Simulator {
 
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
-  uword get_sp() const { return reinterpret_cast<uword>(sp_); }
+  uword get_sp() const { return reinterpret_cast<uword>(fp_); }
   uword get_fp() const { return reinterpret_cast<uword>(fp_); }
   uword get_pc() const { return reinterpret_cast<uword>(pc_); }
 
@@ -92,7 +92,6 @@ class Simulator {
   uintptr_t* stack_;
 
   RawObject** fp_;
-  RawObject** sp_;
   uword pc_;
 
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
