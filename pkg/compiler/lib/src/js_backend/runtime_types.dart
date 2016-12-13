@@ -609,8 +609,10 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   jsAst.Expression getTypeRepresentation(
       DartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
+    // GENERIC_METHODS: When generic method support is complete enough to
+    // include a runtime value for method type variables this must be updated.
     return representationGenerator.getTypeRepresentation(
-        type, onVariable, shouldEncodeTypedef);
+        type.dynamifyMethodTypeVariableType, onVariable, shouldEncodeTypedef);
   }
 
   @override
