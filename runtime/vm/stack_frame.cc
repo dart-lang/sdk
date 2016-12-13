@@ -552,14 +552,14 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
   for (intptr_t index = index_; index < deopt_instructions_.length(); index++) {
     DeoptInstr* deopt_instr = deopt_instructions_[index];
     if (deopt_instr->kind() == DeoptInstr::kCallerFp) {
+      intptr_t fp_offset = (index - num_materializations_);
 #if defined(TARGET_ARCH_DBC)
       // Stack on DBC is growing upwards but we record deopt commands
       // in the same order we record them on other architectures as if
       // the stack was growing downwards.
-      return dest_frame_size_ - index;
-#else
-      return (index - num_materializations_);
+      fp_offset = dest_frame_size_ - fp_offset;
 #endif
+      return fp_offset;
     }
   }
   UNREACHABLE();
