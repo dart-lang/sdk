@@ -34,6 +34,30 @@ class Search {
   Search(this._driver);
 
   /**
+   * Returns class members with names matching the given [regExp].
+   */
+  Future<List<Element>> classMembers(RegExp regExp) async {
+    List<Element> elements = <Element>[];
+
+    void addElement(Element element) {
+      if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
+        elements.add(element);
+      }
+    }
+
+    for (FileState file in _driver.fsState.knownFiles) {
+      CompilationUnitElement unitElement =
+          await _driver.getUnitElement(file.path);
+      for (ClassElement clazz in unitElement.types) {
+        clazz.accessors.forEach(addElement);
+        clazz.fields.forEach(addElement);
+        clazz.methods.forEach(addElement);
+      }
+    }
+    return elements;
+  }
+
+  /**
    * Returns references to the [element].
    */
   Future<List<SearchResult>> references(Element element) async {

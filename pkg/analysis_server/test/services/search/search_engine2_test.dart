@@ -105,6 +105,55 @@ class C extends B {}
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
   }
 
+  test_searchMemberDeclarations() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    var codeA = '''
+class A {
+  int test; // 1
+  int testTwo;
+}
+''';
+    var codeB = '''
+class B {
+  void test() {} // 2
+  void testTwo() {}
+}
+int test;
+''';
+
+    provider.newFile(a, codeA);
+    provider.newFile(b, codeB);
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+
+    while (scheduler.isAnalyzing) {
+      await new Future.delayed(new Duration(milliseconds: 1));
+    }
+
+    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberDeclarations('test');
+    expect(matches, hasLength(2));
+
+    void assertHasElement(String name, int nameOffset) {
+      expect(
+          matches,
+          contains(predicate((SearchMatch m) =>
+              m.kind == MatchKind.DECLARATION &&
+              m.element.name == name &&
+              m.element.nameOffset == nameOffset)));
+    }
+
+    assertHasElement('test', codeA.indexOf('test; // 1'));
+    assertHasElement('test', codeB.indexOf('test() {} // 2'));
+  }
+
   test_searchReferences() async {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');

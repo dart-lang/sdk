@@ -71,6 +71,26 @@ class SearchTest extends BaseAnalysisDriverTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
+  test_classMembers() async {
+    await _resolveTestUnit('''
+class A {
+  test() {}
+}
+class B {
+  int test = 1;
+  int testTwo = 2;
+  main() {
+    int test = 3;
+  }
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    RegExp regExp = new RegExp(r'^test$');
+    expect(await driver.search.classMembers(regExp),
+        unorderedEquals([a.methods[0], b.fields[0]]));
+  }
+
   test_searchReferences_ClassElement_definedInside() async {
     await _resolveTestUnit('''
 class A {};
