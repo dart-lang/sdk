@@ -19,7 +19,7 @@
           'action_name': 'make_pkg_files_stamp',
           'inputs': [
             '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_dart_files.py", "."])',
+            '<!@(["python", "../tools/list_dart_files.py", "relative", "."])',
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files_a_k.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files_l_r.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files_s_z.stamp',
@@ -36,7 +36,8 @@
           'action_name': 'make_third_party_pkg_files_a_k_stamp',
           'inputs': [
             '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_dart_files.py", "../third_party/pkg", "[a-k].*"])',
+            '<!@(["python", "../tools/list_dart_files.py", "relative", '
+                '"../third_party/pkg", "[a-k].*"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files_a_k.stamp',
@@ -50,7 +51,8 @@
           'action_name': 'make_third_party_pkg_files_l_r_stamp',
           'inputs': [
             '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_dart_files.py", "../third_party/pkg", "[l-r].*"])',
+            '<!@(["python", "../tools/list_dart_files.py", "relative", '
+                '"../third_party/pkg", "[l-r].*"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files_l_r.stamp',
@@ -64,7 +66,8 @@
           'action_name': 'make_third_party_pkg_files_s_z_stamp',
           'inputs': [
             '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_dart_files.py", "../third_party/pkg", "[s-z].*"])',
+            '<!@(["python", "../tools/list_dart_files.py", "relative", '
+                '"../third_party/pkg", "[s-z].*"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files_s_z.stamp',

@@ -411,10 +411,13 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
 
       script = "../../tools/patch_sdk.py"
 
-      # We list all files which make up the sdk (modulo patches) and get them back
-      # as a GN list object.
+      # We list all files which make up the sdk (modulo patches) and get them
+      # back as a GN list object.
       shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
-                                       [ "../../sdk/lib" ],
+                                       [
+                                         "absolute",
+                                         rebase_path("../../sdk/lib"),
+                                       ],
                                        "list lines")
 
       # We list the `patch_sdk.dart` tool here because the [script] (which is
@@ -423,8 +426,8 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
         "../../tools/patch_sdk.dart",
       ]
 
-      # Files below are not patches, they will not be in [concatenation_files] but
-      # the `patch_sdk.dart` script will copy them into the patched sdk.
+      # Files below are not patches, they will not be in [concatenation_files]
+      # but the `patch_sdk.dart` script will copy them into the patched sdk.
       inputs += [
         "../lib/typed_data.dart",
         "../bin/builtin.dart",

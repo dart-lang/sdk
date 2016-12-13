@@ -16,7 +16,8 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/dev_compiler/bin"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../pkg/dev_compiler/bin"])',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
           ],
           'outputs': [

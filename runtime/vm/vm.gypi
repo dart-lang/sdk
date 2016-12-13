@@ -1261,7 +1261,8 @@
         {
           'action_name': 'patch_sdk',
           'inputs': [
-            '<!@(["python", "../tools/list_files.py",' '"dart$",' '"sdk/lib"])',
+            '<!@(["python", "../tools/list_files.py", "relative",'
+                  '"dart$", "sdk/lib"])',
             '../../tools/patch_sdk.py',
             '../../tools/patch_sdk.dart',
             # Unlike the other libraries in the SDK, dart:typed_data is not

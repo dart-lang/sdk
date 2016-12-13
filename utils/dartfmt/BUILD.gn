@@ -9,6 +9,7 @@ application_snapshot("dartfmt") {
   training_args = [ "--help" ]
   inputs =
       exec_script("../../tools/list_dart_files.py",
-                  [ rebase_path("../../third_party/pkg_tested/dart_style") ],
+                  [ "absolute",
+                    rebase_path("../../third_party/pkg_tested/dart_style") ],
                   "list lines")
 }

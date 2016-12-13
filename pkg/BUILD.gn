@@ -16,7 +16,6 @@ template("make_third_party_pkg_files_stamp") {
       pattern = invoker.pattern
     }
     path = path
-    new_base = "//"
     output = "$target_gen_dir/third_party_pkg_files_$id.stamp"
   }
 }
