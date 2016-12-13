@@ -257,6 +257,7 @@ generic_field_mixin5_test: RuntimeError
 generic_functions_test: Crash
 generic_inheritance_test: RuntimeError
 generic_local_functions_test: Crash
+generic_method_types_test: Crash
 generic_methods_function_type_test: Crash
 generic_methods_generic_function_parameter_test: Crash
 generic_methods_new_test: Crash
