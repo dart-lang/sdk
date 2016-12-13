@@ -2135,7 +2135,8 @@ class SsaBuilder extends ast.Visitor
     // The inferrer may have found a better type than the constant
     // handler in the case of lists, because the constant handler
     // does not look at elements in the list.
-    TypeMask type = TypeMaskFactory.inferredTypeForElement(field, compiler);
+    TypeMask type =
+        TypeMaskFactory.inferredTypeForElement(field, globalInferenceResults);
     if (!type.containsAll(closedWorld) && !instruction.isConstantNull()) {
       // TODO(13429): The inferrer should know that an element
       // cannot be null.
@@ -2162,13 +2163,15 @@ class SsaBuilder extends ast.Visitor
         // TODO(5346): Try to avoid the need for calling [declaration] before
         // creating an [HStatic].
         HInstruction instruction = new HStatic(
-            field, TypeMaskFactory.inferredTypeForElement(field, compiler))
+            field,
+            TypeMaskFactory.inferredTypeForElement(
+                field, globalInferenceResults))
           ..sourceInformation = sourceInformation;
         push(instruction);
       }
     } else {
-      HInstruction instruction = new HLazyStatic(
-          field, TypeMaskFactory.inferredTypeForElement(field, compiler))
+      HInstruction instruction = new HLazyStatic(field,
+          TypeMaskFactory.inferredTypeForElement(field, globalInferenceResults))
         ..sourceInformation = sourceInformation;
       push(instruction);
     }
@@ -2673,7 +2676,7 @@ class SsaBuilder extends ast.Visitor
     }
 
     TypeMask ssaType =
-        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
+        TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildCall(node, node.argumentsNode);
@@ -2826,7 +2829,7 @@ class SsaBuilder extends ast.Visitor
         message: "No NativeBehavior for $node"));
 
     TypeMask ssaType =
-        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
+        TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
 
     push(new HForeignCode(template, ssaType, compiledArguments,
         nativeBehavior: nativeBehavior));
@@ -2871,7 +2874,7 @@ class SsaBuilder extends ast.Visitor
     assert(invariant(node, nativeBehavior != null,
         message: "No NativeBehavior for $node"));
     TypeMask ssaType =
-        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
+        TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(expr, ssaType, const [],
         nativeBehavior: nativeBehavior));
   }
@@ -3310,16 +3313,16 @@ class SsaBuilder extends ast.Visitor
     generateIsDeferredLoadedCheckOfSend(send);
 
     bool isFixedList = false;
-    bool isFixedListConstructorCall =
-        Elements.isFixedListConstructorCall(elements[send], send, compiler);
-    bool isGrowableListConstructorCall =
-        Elements.isGrowableListConstructorCall(elements[send], send, compiler);
+    bool isFixedListConstructorCall = Elements.isFixedListConstructorCall(
+        elements[send], send, closedWorld.commonElements);
+    bool isGrowableListConstructorCall = Elements.isGrowableListConstructorCall(
+        elements[send], send, closedWorld.commonElements);
 
     TypeMask computeType(element) {
       Element originalElement = elements[send];
       if (isFixedListConstructorCall ||
           Elements.isFilledListConstructorCall(
-              originalElement, send, compiler)) {
+              originalElement, send, closedWorld.commonElements)) {
         isFixedList = true;
         TypeMask inferred = _inferredTypeOfNewList(send);
         return inferred.containsAll(closedWorld)
@@ -3331,7 +3334,7 @@ class SsaBuilder extends ast.Visitor
             ? commonMasks.extendableArrayType
             : inferred;
       } else if (Elements.isConstructorOfTypedArraySubclass(
-          originalElement, compiler)) {
+          originalElement, closedWorld)) {
         isFixedList = true;
         TypeMask inferred = _inferredTypeOfNewList(send);
         ClassElement cls = element.enclosingClass;
@@ -3349,7 +3352,7 @@ class SsaBuilder extends ast.Visitor
         }
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
-            originalElement, compiler);
+            originalElement, globalInferenceResults);
       }
     }
 
@@ -3360,7 +3363,7 @@ class SsaBuilder extends ast.Visitor
     constructor = constructorImplementation.effectiveTarget;
 
     final bool isSymbolConstructor =
-        compiler.commonElements.isSymbolConstructor(constructorDeclaration);
+        closedWorld.commonElements.isSymbolConstructor(constructorDeclaration);
     final bool isJSArrayTypedConstructor =
         constructorDeclaration == helpers.jsArrayTypedConstructor;
 
@@ -4014,8 +4017,8 @@ class SsaBuilder extends ast.Visitor
       inputs.add(invokeInterceptor(receiver));
     }
     inputs.addAll(arguments);
-    TypeMask type =
-        TypeMaskFactory.inferredTypeForSelector(selector, mask, compiler);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(
+        selector, mask, globalInferenceResults);
     if (selector.isGetter) {
       push(new HInvokeDynamicGetter(selector, mask, null, inputs, type)
         ..sourceInformation = sourceInformation);
@@ -4141,8 +4144,8 @@ class SsaBuilder extends ast.Visitor
     }
 
     if (typeMask == null) {
-      typeMask =
-          TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
+      typeMask = TypeMaskFactory.inferredReturnTypeForElement(
+          element, globalInferenceResults);
     }
     bool targetCanThrow = !closedWorld.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -4185,9 +4188,11 @@ class SsaBuilder extends ast.Visitor
     inputs.addAll(arguments);
     TypeMask type;
     if (!element.isGetter && selector.isGetter) {
-      type = TypeMaskFactory.inferredTypeForElement(element, compiler);
+      type = TypeMaskFactory.inferredTypeForElement(
+          element, globalInferenceResults);
     } else {
-      type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
+      type = TypeMaskFactory.inferredReturnTypeForElement(
+          element, globalInferenceResults);
     }
     HInstruction instruction = new HInvokeSuper(element, currentNonClosureClass,
         selector, inputs, type, sourceInformation,
@@ -5555,7 +5560,7 @@ class SsaBuilder extends ast.Visitor
       // TODO(sra): The element type of a container type mask might be better.
       Selector selector = new Selector.index();
       TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-          selector, arrayType, compiler);
+          selector, arrayType, globalInferenceResults);
 
       HInstruction index = localsHandler.readLocal(indexVariable);
       HInstruction value = new HIndex(array, index, null, type);
@@ -5699,8 +5704,8 @@ class SsaBuilder extends ast.Visitor
     // dart2js unit tests).
     TypeMask mapType =
         new TypeMask.nonNullSubtype(helpers.mapLiteralClass, closedWorld);
-    TypeMask returnTypeMask =
-        TypeMaskFactory.inferredReturnTypeForElement(constructor, compiler);
+    TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
+        constructor, globalInferenceResults);
     TypeMask instructionType =
         mapType.intersection(returnTypeMask, closedWorld);
 
@@ -6539,7 +6544,7 @@ class StringBuilderVisitor extends ast.Visitor {
     // directly.
     Selector selector = Selectors.toString_;
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-        selector, expression.instructionType, compiler);
+        selector, expression.instructionType, builder.globalInferenceResults);
     if (type.containsOnlyString(builder.closedWorld)) {
       builder.pushInvokeDynamic(node, selector, expression.instructionType,
           <HInstruction>[expression]);

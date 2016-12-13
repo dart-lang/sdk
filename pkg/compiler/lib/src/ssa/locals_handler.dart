@@ -74,6 +74,9 @@ class LocalsHandler {
 
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
+  GlobalTypeInferenceResults get _globalInferenceResults =>
+      _compiler.globalInference.results;
+
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
   DartType substInContext(DartType type) {
@@ -206,7 +209,7 @@ class LocalsHandler {
         HInstruction parameter = builder.addParameter(
             parameterElement,
             TypeMaskFactory.inferredTypeForElement(
-                parameterElement, _compiler));
+                parameterElement, _globalInferenceResults));
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
       });
@@ -640,7 +643,8 @@ class LocalsHandler {
   TypeMask getTypeOfCapturedVariable(Element element) {
     assert(element.isField);
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
-      return TypeMaskFactory.inferredTypeForElement(element, _compiler);
+      return TypeMaskFactory.inferredTypeForElement(
+          element, _globalInferenceResults);
     });
   }
 

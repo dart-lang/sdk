@@ -185,8 +185,8 @@ abstract class TypesInferrer {
 class GlobalTypeInferenceResults {
   // TODO(sigmund): store relevant data & drop reference to inference engine.
   final TypeGraphInferrer _inferrer;
-  final Compiler compiler;
-  final TypeMask dynamicType;
+  final ClosedWorld closedWorld;
+  final Compiler _compiler;
   final Map<Element, GlobalTypeInferenceElementResult> _elementResults = {};
 
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
@@ -207,13 +207,14 @@ class GlobalTypeInferenceResults {
             element,
             _inferrer.inferrer.inTreeData[key],
             _inferrer,
-            compiler.backend.isJsInterop(element),
+            _compiler.backend.isJsInterop(element),
             dynamicType));
   }
 
-  GlobalTypeInferenceResults(this._inferrer, this.compiler, CommonMasks masks,
-      TypeInformationSystem types)
-      : dynamicType = masks.dynamicType;
+  GlobalTypeInferenceResults(this._inferrer, this._compiler, this.closedWorld,
+      TypeInformationSystem types);
+
+  TypeMask get dynamicType => closedWorld.commonMasks.dynamicType;
 
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].
@@ -254,7 +255,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
       results = new GlobalTypeInferenceResults(typesInferrerInternal, compiler,
-          closedWorld.commonMasks, typesInferrerInternal.inferrer.types);
+          closedWorld, typesInferrerInternal.inferrer.types);
     });
   }
 }

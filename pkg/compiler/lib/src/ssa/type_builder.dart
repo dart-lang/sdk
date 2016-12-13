@@ -231,7 +231,7 @@ class TypeBuilder {
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
       TypeMask subtype =
-          new TypeMask.subtype(type.element, builder.compiler.closedWorld);
+          new TypeMask.subtype(type.element, builder.closedWorld);
       HInstruction representations =
           buildTypeArgumentRepresentations(type, builder.sourceElement);
       builder.add(representations);

@@ -9,7 +9,7 @@ import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CoreClasses, CommonElements;
 import '../dart_types.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
@@ -20,6 +20,7 @@ import '../tokens/token.dart'
 import '../tree/tree.dart';
 import '../util/characters.dart' show $_;
 import '../util/util.dart';
+import '../world.dart' show ClosedWorld;
 import 'entities.dart';
 import 'visitor.dart' show ElementVisitor;
 
@@ -675,18 +676,20 @@ class Elements {
     return null;
   }
 
-  static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+  static bool isNumberOrStringSupertype(
+      Element element, CommonElements commonElements) {
+    LibraryElement coreLibrary = commonElements.coreLibrary;
     return (element == coreLibrary.find('Comparable'));
   }
 
-  static bool isStringOnlySupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+  static bool isStringOnlySupertype(
+      Element element, CommonElements commonElements) {
+    LibraryElement coreLibrary = commonElements.coreLibrary;
     return element == coreLibrary.find('Pattern');
   }
 
-  static bool isListSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+  static bool isListSupertype(Element element, CommonElements commonElements) {
+    LibraryElement coreLibrary = commonElements.coreLibrary;
     return element == coreLibrary.find('Iterable');
   }
 
@@ -770,23 +773,23 @@ class Elements {
   }
 
   static bool isFixedListConstructorCall(
-      Element element, Send node, Compiler compiler) {
-    return element == compiler.unnamedListConstructor &&
+      Element element, Send node, CommonElements commonElements) {
+    return element == commonElements.unnamedListConstructor &&
         node.isCall &&
         !node.arguments.isEmpty &&
         node.arguments.tail.isEmpty;
   }
 
   static bool isGrowableListConstructorCall(
-      Element element, Send node, Compiler compiler) {
-    return element == compiler.unnamedListConstructor &&
+      Element element, Send node, CommonElements commonElements) {
+    return element == commonElements.unnamedListConstructor &&
         node.isCall &&
         node.arguments.isEmpty;
   }
 
   static bool isFilledListConstructorCall(
-      Element element, Send node, Compiler compiler) {
-    return element == compiler.filledListConstructor &&
+      Element element, Send node, CommonElements commonElements) {
+    return element == commonElements.filledListConstructor &&
         node.isCall &&
         !node.arguments.isEmpty &&
         !node.arguments.tail.isEmpty &&
@@ -794,17 +797,17 @@ class Elements {
   }
 
   static bool isConstructorOfTypedArraySubclass(
-      Element element, Compiler compiler) {
-    if (compiler.commonElements.typedDataLibrary == null) return false;
+      Element element, ClosedWorld closedWorld) {
+    if (closedWorld.commonElements.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
     ConstructorElement constructor = element.implementation;
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
-    return cls.library == compiler.commonElements.typedDataLibrary &&
-        compiler.backend.isNative(cls) &&
-        compiler.closedWorld
-            .isSubtypeOf(cls, compiler.commonElements.typedDataClass) &&
-        compiler.closedWorld.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
+    return cls.library == closedWorld.commonElements.typedDataLibrary &&
+        closedWorld.backendClasses.isNative(cls) &&
+        closedWorld.isSubtypeOf(
+            cls, closedWorld.commonElements.typedDataClass) &&
+        closedWorld.isSubtypeOf(cls, closedWorld.coreClasses.listClass) &&
         constructor.name == '';
   }
 

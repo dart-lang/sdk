@@ -434,8 +434,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       CacheStrategy cacheStrategy, this.selectorConstraintsStrategy)
       : this._backend = backend,
         this._resolution = resolution {
-    _openWorld =
-        new WorldImpl(this, backend, resolution.coreClasses, cacheStrategy);
+    _openWorld = new WorldImpl(this, backend, resolution.coreClasses,
+        resolution.coreTypes, cacheStrategy);
   }
 
   Iterable<ClassElement> get processedClasses => _processedClasses.keys

@@ -977,7 +977,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     TypeMask mapType = new TypeMask.nonNullSubtype(
         astAdapter.getElement(astAdapter.mapLiteralClass), closedWorld);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
-        astAdapter.getElement(constructor), compiler);
+        astAdapter.getElement(constructor), globalInferenceResults);
     TypeMask instructionType =
         mapType.intersection(returnTypeMask, closedWorld);
 

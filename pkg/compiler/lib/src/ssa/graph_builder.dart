@@ -46,6 +46,9 @@ abstract class GraphBuilder {
 
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
+  GlobalTypeInferenceResults get globalInferenceResults =>
+      compiler.globalInference.results;
+
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
 
@@ -198,8 +201,7 @@ abstract class GraphBuilder {
   }
 
   HInstruction buildFunctionType(FunctionType type) {
-    type.accept(
-        new ReifiedTypeRepresentationBuilder(compiler.closedWorld), this);
+    type.accept(new ReifiedTypeRepresentationBuilder(closedWorld), this);
     return pop();
   }
 

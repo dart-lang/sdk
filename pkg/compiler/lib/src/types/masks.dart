@@ -163,4 +163,33 @@ class CommonMasks {
   TypeMask get unmodifiableArrayType =>
       _unmodifiableArrayType ??= new TypeMask.nonNullExact(
           backendClasses.constListImplementation, closedWorld);
+
+  bool isTypedArray(TypeMask mask) {
+    // Just checking for [:TypedData:] is not sufficient, as it is an
+    // abstract class any user-defined class can implement. So we also
+    // check for the interface [JavaScriptIndexingBehavior].
+    ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        closedWorld.isInstantiated(typedDataClass) &&
+        mask.satisfies(typedDataClass, closedWorld) &&
+        mask.satisfies(
+            closedWorld.backendClasses.indexingBehaviorImplementation,
+            closedWorld);
+  }
+
+  bool couldBeTypedArray(TypeMask mask) {
+    bool intersects(TypeMask type1, TypeMask type2) =>
+        !type1.intersection(type2, closedWorld).isEmpty;
+    // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
+    //               jsIndexingBehaviourInterface.
+    ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        closedWorld.isInstantiated(typedDataClass) &&
+        intersects(mask, new TypeMask.subtype(typedDataClass, closedWorld)) &&
+        intersects(
+            mask,
+            new TypeMask.subtype(
+                closedWorld.backendClasses.indexingBehaviorImplementation,
+                closedWorld));
+  }
 }

@@ -362,7 +362,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
               });
     }
 
-    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
     TypeMask receiverType = receiver.instructionType;
     instruction.mask = receiverType;
 

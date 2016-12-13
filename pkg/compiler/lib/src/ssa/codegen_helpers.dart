@@ -17,13 +17,12 @@ import 'nodes.dart';
  */
 class SsaInstructionSelection extends HBaseVisitor {
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   HGraph graph;
 
-  SsaInstructionSelection(this.compiler);
+  SsaInstructionSelection(this.compiler, this.closedWorld);
 
   JavaScriptBackend get backend => compiler.backend;
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -106,7 +105,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
   HInstruction visitInvokeSuper(HInvokeSuper node) {
     if (node.isInterceptedCall) {
-      TypeMask mask = node.getDartReceiver(compiler).instructionType;
+      TypeMask mask = node.getDartReceiver(closedWorld).instructionType;
       tryReplaceInterceptorWithDummy(node, node.selector, mask);
     }
     return node;

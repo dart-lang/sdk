@@ -1533,7 +1533,7 @@ class KernelVisitor extends Object
             new ir.NullLiteral(),
             associateNode(
                 buildInvokeSelector(new ir.VariableGet(receiver), selector,
-                                    buildArguments(arguments)),
+                    buildArguments(arguments)),
                 receiverNode),
             null));
   }

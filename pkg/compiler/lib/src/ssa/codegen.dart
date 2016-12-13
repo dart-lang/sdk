@@ -9,7 +9,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -193,7 +193,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => closedWorld.commonElements;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -307,7 +307,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(compiler).visitGraph(graph);
+    new SsaInstructionSelection(compiler, closedWorld).visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(compiler).visitGraph(graph);
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
@@ -1649,7 +1649,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         methodName = 'split';
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
-        registry.registerInstantiatedClass(coreClasses.listClass);
+        registry.registerInstantiatedClass(commonElements.listClass);
       } else if (backend.isNative(target) &&
           target.isFunction &&
           !node.isInterceptedCall) {
@@ -2405,7 +2405,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
-    registry.registerInstantiatedClass(coreClasses.listClass);
+    registry.registerInstantiatedClass(commonElements.listClass);
     generateArrayLiteral(node);
   }
 
@@ -2634,9 +2634,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       DartType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
-    assert(!identical(type.element, coreClasses.listClass) &&
-        !Elements.isListSupertype(type.element, compiler) &&
-        !Elements.isStringOnlySupertype(type.element, compiler));
+    assert(!identical(type.element, commonElements.listClass) &&
+        !Elements.isListSupertype(type.element, commonElements) &&
+        !Elements.isStringOnlySupertype(type.element, commonElements));
     String relation = negative ? '!==' : '===';
     checkNum(input, relation, sourceInformation);
     js.Expression numberTest = pop();
@@ -2659,9 +2659,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void handleStringSupertypeCheck(HInstruction input, HInstruction interceptor,
       DartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
-    assert(!identical(type.element, coreClasses.listClass) &&
-        !Elements.isListSupertype(type.element, compiler) &&
-        !Elements.isNumberOrStringSupertype(type.element, compiler));
+    assert(!identical(type.element, commonElements.listClass) &&
+        !Elements.isListSupertype(type.element, commonElements) &&
+        !Elements.isNumberOrStringSupertype(type.element, commonElements));
     String relation = negative ? '!==' : '===';
     checkString(input, relation, sourceInformation);
     js.Expression stringTest = pop();
@@ -2676,9 +2676,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void handleListOrSupertypeCheck(HInstruction input, HInstruction interceptor,
       DartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
-    assert(!identical(type.element, coreClasses.stringClass) &&
-        !Elements.isStringOnlySupertype(type.element, compiler) &&
-        !Elements.isNumberOrStringSupertype(type.element, compiler));
+    assert(!identical(type.element, commonElements.stringClass) &&
+        !Elements.isStringOnlySupertype(type.element, commonElements) &&
+        !Elements.isNumberOrStringSupertype(type.element, commonElements));
     String relation = negative ? '!==' : '===';
     checkObject(input, relation, sourceInformation);
     js.Expression objectTest = pop();
@@ -2715,9 +2715,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.isRawCheck);
       HInstruction interceptor = node.interceptor;
-      ClassElement objectClass = coreClasses.objectClass;
+      ClassElement objectClass = commonElements.objectClass;
       Element element = type.element;
-      if (element == coreClasses.nullClass) {
+      if (element == commonElements.nullClass) {
         if (negative) {
           checkNonNull(input);
         } else {
@@ -2727,15 +2727,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
         push(newLiteralBool(!negative, sourceInformation));
-      } else if (element == coreClasses.stringClass) {
+      } else if (element == commonElements.stringClass) {
         checkString(input, relation, sourceInformation);
-      } else if (element == coreClasses.doubleClass) {
+      } else if (element == commonElements.doubleClass) {
         checkDouble(input, relation, sourceInformation);
-      } else if (element == coreClasses.numClass) {
+      } else if (element == commonElements.numClass) {
         checkNum(input, relation, sourceInformation);
-      } else if (element == coreClasses.boolClass) {
+      } else if (element == commonElements.boolClass) {
         checkBool(input, relation, sourceInformation);
-      } else if (element == coreClasses.intClass) {
+      } else if (element == commonElements.intClass) {
         // The is check in the code tells us that it might not be an
         // int. So we do a typeof first to avoid possible
         // deoptimizations on the JS engine due to the Math.floor check.
@@ -2748,15 +2748,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         assert(interceptor == null);
         checkTypeViaInstanceof(input, type, sourceInformation,
             negative: negative);
-      } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+      } else if (Elements.isNumberOrStringSupertype(element, commonElements)) {
         handleNumberOrStringSupertypeCheck(
             input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if (Elements.isStringOnlySupertype(element, compiler)) {
+      } else if (Elements.isStringOnlySupertype(element, commonElements)) {
         handleStringSupertypeCheck(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if (identical(element, coreClasses.listClass) ||
-          Elements.isListSupertype(element, compiler)) {
+      } else if (identical(element, commonElements.listClass) ||
+          Elements.isListSupertype(element, commonElements)) {
         handleListOrSupertypeCheck(input, interceptor, type, sourceInformation,
             negative: negative);
       } else if (type.isFunctionType) {
@@ -3000,7 +3000,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // We expect only flat types for the INSTANCE representation.
         assert(
             node.dartType == (node.dartType.element as ClassElement).thisType);
-        registry.registerInstantiatedClass(coreClasses.listClass);
+        registry.registerInstantiatedClass(commonElements.listClass);
         push(new js.ArrayInitializer(arguments)
             .withSourceInformation(node.sourceInformation));
     }

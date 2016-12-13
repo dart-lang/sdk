@@ -130,6 +130,12 @@ abstract class CommonElements extends CoreClasses {
   /// Whether [element] is the same as [functionApplyMethod]. This will not
   /// resolve the apply method if it hasn't been seen yet during compilation.
   bool isFunctionApplyMethod(Element element);
+
+  /// The unnamed constructor of `List`.
+  ConstructorElement get unnamedListConstructor;
+
+  /// The 'filled' constructor of `List`.
+  ConstructorElement get filledListConstructor;
 }
 
 /// The core types in Dart.
