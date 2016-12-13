@@ -25,4 +25,3 @@ Future retry(Future fun(), {int maxCount: 10}) async {
   }
   return await fun();
 }
-
