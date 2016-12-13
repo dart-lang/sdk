@@ -343,11 +343,14 @@ TEST_CASE(ManySimpleTasksWithZones) {
     }
 
     // Check the thread exists and is the correct size.
-    char* thread_info_buf = OS::SCreate(
-        current_zone,
-        "\"type\":\"_Thread\","
-        "\"id\":\"threads\\/%" Pd "",
-        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()));
+    char* thread_info_buf =
+        OS::SCreate(current_zone,
+                    "\"type\":\"_Thread\","
+                    "\"id\":\"threads\\/%" Pd
+                    "\","
+                    "\"kind\":\"%s\"",
+                    OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
+                    Thread::TaskKindToCString(thread->task_kind()));
 
     EXPECT_SUBSTRING(thread_info_buf, json);
   }

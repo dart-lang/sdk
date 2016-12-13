@@ -213,6 +213,7 @@ void Thread::PrintJSON(JSONStream* stream) const {
   jsobj.AddProperty("type", "_Thread");
   jsobj.AddPropertyF("id", "threads/%" Pd "",
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
+  jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
   Zone* zone = zone_;
   {
     JSONArray zone_info_array(&jsobj, "zones");
@@ -263,6 +264,27 @@ void Thread::set_sticky_error(const Error& value) {
 
 void Thread::clear_sticky_error() {
   sticky_error_ = Error::null();
+}
+
+
+const char* Thread::TaskKindToCString(TaskKind kind) {
+  switch (kind) {
+    case kUnknownTask:
+      return "kUnknownTask";
+    case kMutatorTask:
+      return "kMutatorTask";
+    case kCompilerTask:
+      return "kCompilerTask";
+    case kSweeperTask:
+      return "kSweeperTask";
+    case kMarkerTask:
+      return "kMarkerTask";
+    case kFinalizerTask:
+      return "kFinalizerTask";
+    default:
+      UNREACHABLE();
+      return "";
+  }
 }
 
 

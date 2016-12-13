@@ -161,6 +161,9 @@ class Thread : public BaseThread {
     kMarkerTask = 0x8,
     kFinalizerTask = 0x10,
   };
+  // Converts a TaskKind to its corresponding C-String name.
+  static const char* TaskKindToCString(TaskKind kind);
+
   ~Thread();
 
   // The currently executing thread, or NULL if not yet initialized.
