@@ -162,7 +162,6 @@ enum MessageKind {
   DEFERRED_LIBRARY_WITHOUT_PREFIX,
   DEFERRED_OLD_SYNTAX,
   DEFERRED_TYPE_ANNOTATION,
-  DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
   DIRECTLY_THROWING_NSM,
   DISALLOWED_LIBRARY_IMPORT,
   DUPLICATE_DEFINITION,
@@ -1633,7 +1632,7 @@ class C extends Object with String {}
 main() => new C();
 """,
             """
-typedef C = Object with String;
+class C = Object with String;
 
 main() => new C();
 """
@@ -2479,19 +2478,6 @@ main() => A.A = 1;
           howToFix: "Try removing '+'.",
           examples: const [
             "main() => +2;  // No longer a valid way to write '2'"
-          ]),
-
-      MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX: const MessageTemplate(
-          MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
-          "'typedef' not allowed here. ",
-          howToFix: "Try replacing 'typedef' with 'class'.",
-          examples: const [
-            """
-class B { }
-class M1 {  }
-typedef C = B with M1;  // Need to replace 'typedef' with 'class'.
-main() { new C(); }
-"""
           ]),
 
       MessageKind.MIRRORS_EXPECTED_STRING: const MessageTemplate(

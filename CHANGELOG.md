@@ -21,6 +21,11 @@
     pubspec can't be parsed will now be ignored by `pub get --offline` and
     deleted by `pub cache repair`.
 
+* Dart2Js
+
+  * Remove support for (long-time deprecated) mixin typedefs.
+
+
 ## 1.21.0 - 2016-12-07
 
 ### Language
