@@ -91,6 +91,31 @@ class Search {
     return results;
   }
 
+  /**
+   * Returns top-level elements with names matching the given [regExp].
+   */
+  Future<List<Element>> topLevelElements(RegExp regExp) async {
+    List<Element> elements = <Element>[];
+
+    void addElement(Element element) {
+      if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
+        elements.add(element);
+      }
+    }
+
+    for (FileState file in _driver.fsState.knownFiles) {
+      CompilationUnitElement unitElement =
+          await _driver.getUnitElement(file.path);
+      unitElement.accessors.forEach(addElement);
+      unitElement.enums.forEach(addElement);
+      unitElement.functions.forEach(addElement);
+      unitElement.functionTypeAliases.forEach(addElement);
+      unitElement.topLevelVariables.forEach(addElement);
+      unitElement.types.forEach(addElement);
+    }
+    return elements;
+  }
+
   Future<Null> _addResults(List<SearchResult> results, Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
     // Prepare the element name.

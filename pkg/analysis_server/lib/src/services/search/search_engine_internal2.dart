@@ -66,8 +66,24 @@ class SearchEngineImpl2 implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchMatch> allDeclarations = [];
+    RegExp regExp = new RegExp(pattern);
+    for (AnalysisDriver driver in _drivers) {
+      List<Element> elements = await driver.search.topLevelElements(regExp);
+      for (Element element in elements) {
+        allDeclarations.add(new _SearchMatch(
+            element.source.fullName,
+            element.librarySource,
+            element.source,
+            element.library,
+            element,
+            true,
+            true,
+            MatchKind.DECLARATION,
+            new SourceRange(element.nameOffset, element.nameLength)));
+      }
+    }
+    return allDeclarations;
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
