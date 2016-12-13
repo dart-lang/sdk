@@ -6,6 +6,8 @@ library analyzer_cli.src.options;
 
 import 'dart:io';
 
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -273,11 +275,7 @@ class CommandLineOptions {
   }
 
   static CommandLineOptions _parse(List<String> args) {
-    // Check if the args are in a file (bazel worker mode).
-    if (args.last.startsWith('@')) {
-      var argsFile = new File(args.last.substring(1));
-      args = argsFile.readAsLinesSync();
-    }
+    args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
     bool verbose = args.contains('-v') || args.contains('--verbose');
     bool hide = !verbose;

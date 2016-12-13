@@ -166,8 +166,10 @@ class ArgumentsTest {
 
   void test_preprocessArgs_noReplacement() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
-    List<String> result = preprocessArgs(provider, ['--xx' '--yy' 'baz']);
-    expect(result, orderedEquals(['--xx' '--yy' 'baz']));
+    List<String> original = ['--xx' '--yy' 'baz'];
+    List<String> result = preprocessArgs(provider, original);
+    expect(result, orderedEquals(original));
+    expect(identical(original, result), isFalse);
   }
 
   void test_preprocessArgs_replacement_exists() {
@@ -191,8 +193,13 @@ bar
     MemoryResourceProvider provider = new MemoryResourceProvider();
     String filePath = provider.convertPath('/args.txt');
     List<String> args = ['ignored', '@$filePath'];
-    List<String> result = preprocessArgs(provider, args);
-    expect(result, orderedEquals(args));
+    try {
+      preprocessArgs(provider, args);
+      fail('Expect exception');
+    } on Exception catch (e) {
+      expect(e.toString(), contains('Failed to read file'));
+      expect(e.toString(), contains('@$filePath'));
+    }
   }
 
   void test_preprocessArgs_replacement_notLast() {

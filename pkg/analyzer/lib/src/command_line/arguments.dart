@@ -227,10 +227,13 @@ ArgResults parse(
 }
 
 /**
- * Preprocess the given list of command line [args] by checking whether the real
- * arguments are in a file (Bazel worker mode).
+ * Preprocess the given list of command line [args].
+ * If the final arg is `@file_path` (Bazel worker mode),
+ * then read in all the lines of that file and add those as args.
+ * Always returns a new modifiable list.
  */
 List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
+  args = new List.from(args);
   if (args.isEmpty) {
     return args;
   }
@@ -238,16 +241,15 @@ List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
   if (lastArg.startsWith('@')) {
     File argsFile = provider.getFile(lastArg.substring(1));
     try {
-      List<String> newArgs = args.sublist(0, args.length - 1).toList();
-      newArgs.addAll(argsFile
+      args.removeLast();
+      args.addAll(argsFile
           .readAsStringSync()
           .replaceAll('\r\n', '\n')
           .replaceAll('\r', '\n')
           .split('\n')
           .where((String line) => line.isNotEmpty));
-      return newArgs;
-    } on FileSystemException {
-      // Don't modify args if the file does not exist or cannot be read.
+    } on FileSystemException catch (e) {
+      throw new Exception('Failed to read file specified by $lastArg : $e');
     }
   }
   return args;
