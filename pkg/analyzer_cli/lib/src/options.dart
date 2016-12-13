@@ -279,6 +279,9 @@ class CommandLineOptions {
       args = argsFile.readAsLinesSync();
     }
 
+    bool verbose = args.contains('-v') || args.contains('--verbose');
+    bool hide = !verbose;
+
     args = args.expand((String arg) => arg.split('=')).toList();
     var parser = new CommandLineParser()
       ..addFlag('batch',
@@ -352,9 +355,12 @@ class CommandLineOptions {
           help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',
           abbr: 'h',
-          help: 'Display this help message.',
+          help: 'Display this help message.\n'
+              'Add --verbose to show hidden options.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag('verbose',
+          abbr: 'v', defaultsTo: false, help: 'Verbose output.')
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
               'analyzer to use "library.dart" as the source for an import '
@@ -368,56 +374,56 @@ class CommandLineOptions {
           help: 'Enable Bazel persistent worker mode.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addOption('build-analysis-output',
           help:
               'Specifies the path to the file where analysis results should be written.',
-          hide: true)
+          hide: hide)
       ..addFlag('build-mode',
           // TODO(paulberry): add more documentation.
           help: 'Enable build mode.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addOption('build-summary-input',
           help: 'Path to a summary file that contains information from a '
               'previous analysis run.  May be specified multiple times.',
           allowMultiple: true,
-          hide: true)
+          hide: hide)
       ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the full summary '
               'information should be written.',
-          hide: true)
+          hide: hide)
       ..addOption('build-summary-output-semantic',
           help: 'Specifies the path to the file where the semantic summary '
               'information should be written.',
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-only-ast',
           help: 'deprecated -- Generate summaries using ASTs.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-only-diet',
           help: 'Diet parse function bodies.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-exclude-informative',
           help: 'Exclude @informative information (docs, offsets, etc).  '
               'Deprecated: please use --build-summary-output-semantic instead.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-suppress-exit-code',
           help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       //
       // Hidden flags.
       //
@@ -425,54 +431,54 @@ class CommandLineOptions {
           help: 'Enable support for the proposed async feature.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-enum',
           help: 'Enable support for the proposed enum feature.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
               'deprecated -- Enable support for conditional directives (DEP 40).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-null-aware-operators',
           help: 'Enable support for null-aware operators (DEP 9).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-strict-call-checks',
           help: 'Fix issue 21938.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-new-task-model',
           help: 'deprecated -- Ennable new task model.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('initializing-formal-access',
           help:
               'Enable support for allowing access to field formal parameters in a constructor\'s initializer list',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('supermixin',
           help: 'Relax restrictions on mixins (DEP 34).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('log',
           help: 'Log additional messages and exceptions.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable_type_checks',
           help: 'Check types in constant evaluation.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('strong',
           help: 'Enable strong static checks (https://goo.gl/DqcBsw)')
       ..addFlag('no-implicit-casts',
