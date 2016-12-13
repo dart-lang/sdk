@@ -36,9 +36,12 @@ throwUnimplementedError(message) => JS('', '''(() => {
   $throw_(new $UnimplementedError($message));
 })()''');
 
-throwAssertionError() => JS('', '''(() => {
+throwAssertionError([message]) => JS('', '''(() => {
   debugger;
-  $throw_(new $AssertionError());
+  let error = $message != null
+        ? new $AssertionErrorWithMessage($message())
+        : new $AssertionError();
+  $throw_(error);
 })()''');
 
 throwNullValueError() => JS('', '''(() => {

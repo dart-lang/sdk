@@ -1533,9 +1533,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     debugger;
     dart.throw(new core.UnimplementedError(message));
   };
-  dart.throwAssertionError = function() {
-    debugger;
-    dart.throw(new core.AssertionError());
+  dart.throwAssertionError = function(message) {
+    if (message === void 0) message = null;
+    return (() => {
+      debugger;
+      let error = message != null ? new _js_helper.AssertionErrorWithMessage(message()) : new core.AssertionError();
+      dart.throw(error);
+    })();
   };
   dart.throwNullValueError = function() {
     debugger;
@@ -1896,8 +1900,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return map;
     })();
   };
-  dart.assert = function(condition) {
-    if (!condition) dart.throwAssertionError();
+  dart.assert = function(condition, message) {
+    if (message === void 0) message = null;
+    return (() => {
+      if (!condition) dart.throwAssertionError(message);
+    })();
   };
   dart.throw = function(obj) {
     dart._stack = new Error();
@@ -11880,6 +11887,30 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: dart.definiteFunctionType(_js_helper.RuntimeError, [dart.dynamic])}),
     fields: () => ({message: dart.dynamic})
   });
+  core.AssertionError = class AssertionError extends core.Error {
+    new() {
+      super.new();
+    }
+    toString() {
+      return "Assertion failed";
+    }
+  };
+  dart.setSignature(core.AssertionError, {
+    constructors: () => ({new: dart.definiteFunctionType(core.AssertionError, [])})
+  });
+  _js_helper.AssertionErrorWithMessage = class AssertionErrorWithMessage extends core.AssertionError {
+    new(message) {
+      this[_message] = message;
+      super.new();
+    }
+    toString() {
+      return dart.str`Assertion failed: ${this[_message]}`;
+    }
+  };
+  dart.setSignature(_js_helper.AssertionErrorWithMessage, {
+    constructors: () => ({new: dart.definiteFunctionType(_js_helper.AssertionErrorWithMessage, [core.Object])}),
+    fields: () => ({[_message]: core.Object})
+  });
   _js_helper.random64 = function() {
     let int32a = Math.random() * 0x100000000 >>> 0;
     let int32b = Math.random() * 0x100000000 >>> 0;
@@ -12010,17 +12041,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return SyncIterable;
   });
   _js_helper.SyncIterable = SyncIterable();
-  core.AssertionError = class AssertionError extends core.Error {
-    new() {
-      super.new();
-    }
-    toString() {
-      return "Assertion failed";
-    }
-  };
-  dart.setSignature(core.AssertionError, {
-    constructors: () => ({new: dart.definiteFunctionType(core.AssertionError, [])})
-  });
   _js_helper.BooleanConversionAssertionError = class BooleanConversionAssertionError extends core.AssertionError {
     new() {
       super.new();

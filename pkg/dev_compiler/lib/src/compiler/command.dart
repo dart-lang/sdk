@@ -208,7 +208,7 @@ String _moduleForLibrary(
 
 String get _usageMessage =>
     'Dart Development Compiler compiles Dart into a JavaScript module.'
-        '\n\n${_argParser(hide: !_verbose).usage}';
+    '\n\n${_argParser(hide: !_verbose).usage}';
 
 void _usageException(String message) {
   throw new UsageException(message, _usageMessage);

@@ -3819,9 +3819,15 @@ class CodeGenerator extends GeneralizingAstVisitor
       new JS.EmptyStatement();
 
   @override
-  JS.Statement visitAssertStatement(AssertStatement node) =>
-      // TODO(jmesserly): only emit in checked mode.
-      _callHelperStatement('assert(#);', _visit(node.condition));
+  JS.Statement visitAssertStatement(AssertStatement node) {
+    // TODO(jmesserly): only emit in checked mode.
+    if (node.message != null) {
+      return _callHelperStatement('assert(#, () => #);',
+          [_visit(node.condition), _visit(node.message)]);
+    }
+
+    return _callHelperStatement('assert(#);', _visit(node.condition));
+  }
 
   @override
   JS.Statement visitReturnStatement(ReturnStatement node) {
