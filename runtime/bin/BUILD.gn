@@ -333,6 +333,10 @@ executable("gen_snapshot") {
       "winmm.lib",
     ]
   }
+
+  if (defined(is_fuchsia) && is_fuchsia) {
+    libs = [ "launchpad" ]
+  }
 }
 
 # A source set for the implementation of 'dart:io' library
@@ -428,6 +432,10 @@ template("dart_io") {
       deps = [
         "//third_party/boringssl",
       ]
+    }
+
+    if (defined(is_fuchsia) && is_fuchsia) {
+      libs = [ "launchpad" ]
     }
 
     sources = io_impl_sources_gypi + builtin_impl_sources_gypi
@@ -614,6 +622,10 @@ template("dart_executable") {
         "Rpcrt4.lib",
         "winmm.lib",
       ]
+    }
+
+    if (defined(is_fuchsia) && is_fuchsia) {
+      libs = [ "launchpad" ]
     }
   }
 }
