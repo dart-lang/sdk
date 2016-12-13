@@ -67,10 +67,6 @@ super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $fast_startup && $checked ]
-generic_local_functions_test: Fail # reified type for generic function not generated correctly
-generic_methods_generic_function_parameter_test: Fail # reified type for generic function not generated correctly
-
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
