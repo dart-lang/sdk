@@ -200,6 +200,7 @@ class EditDomainHandler implements RequestHandler {
             List<Fix> fixes =
                 await new DefaultFixContributor().internalComputeFixes(context);
             if (fixes.isNotEmpty) {
+              fixes.sort(Fix.SORT_BY_RELEVANCE);
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
               AnalysisErrorFixes errorFixes =
