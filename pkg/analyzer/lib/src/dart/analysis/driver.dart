@@ -1573,6 +1573,9 @@ class _TopLevelNameDeclarationsTask {
       if (!file.isPart) {
         bool isExported = false;
         TopLevelDeclaration declaration = file.topLevelDeclarations[name];
+        for (FileState part in file.partedFiles) {
+          declaration ??= part.topLevelDeclarations[name];
+        }
         if (declaration == null) {
           declaration = file.exportedTopLevelDeclarations[name];
           isExported = true;

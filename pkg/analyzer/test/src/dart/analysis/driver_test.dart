@@ -896,31 +896,53 @@ var A2 = B1;
     driver.addFile(c);
     // Don't add d.dart, it is referenced implicitly.
 
-    void assertDeclarations(List<TopLevelDeclarationInSource> declarations,
-        List<String> expectedFiles, List<bool> expectedIsExported) {
-      expect(expectedFiles, hasLength(expectedIsExported.length));
-      for (int i = 0; i < expectedFiles.length; i++) {
-        expect(declarations,
-            contains(predicate((TopLevelDeclarationInSource declaration) {
-          return declaration.source.fullName == expectedFiles[i] &&
-              declaration.isExported == expectedIsExported[i];
-        })));
-      }
-    }
-
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('A'), [a, b], [false, true]);
 
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('B'), [b], [false]);
 
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('C'), [c], [false]);
 
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('D'), [d], [false]);
 
-    assertDeclarations(await driver.getTopLevelNameDeclarations('X'), [], []);
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('X'), [], []);
+  }
+
+  test_getTopLevelNameDeclarations_parts() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+
+    provider.newFile(
+        a,
+        r'''
+library lib;
+part 'b.dart';
+part 'c.dart';
+class A {}
+''');
+    provider.newFile(b, 'part of lib; class B {}');
+    provider.newFile(c, 'part of lib; class C {}');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('A'), [a], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('B'), [a], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('C'), [a], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('X'), [], []);
   }
 
   test_getUnitElement() async {
@@ -1428,6 +1450,20 @@ var A = B;
     expect(allStatuses[0].isIdle, isFalse);
     expect(allStatuses[1].isAnalyzing, isFalse);
     expect(allStatuses[1].isIdle, isTrue);
+  }
+
+  void _assertTopLevelDeclarations(
+      List<TopLevelDeclarationInSource> declarations,
+      List<String> expectedFiles,
+      List<bool> expectedIsExported) {
+    expect(expectedFiles, hasLength(expectedIsExported.length));
+    for (int i = 0; i < expectedFiles.length; i++) {
+      expect(declarations,
+          contains(predicate((TopLevelDeclarationInSource declaration) {
+        return declaration.source.fullName == expectedFiles[i] &&
+            declaration.isExported == expectedIsExported[i];
+      })));
+    }
   }
 
   ClassDeclaration _getClass(CompilationUnit unit, String name) {
