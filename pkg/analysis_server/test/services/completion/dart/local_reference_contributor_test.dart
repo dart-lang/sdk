@@ -4561,13 +4561,6 @@ class LocalReferenceContributorTest_Driver
 
   @failingTest
   @override
-  test_Block_inherited_imported() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_Block_inherited_imported();
-  }
-
-  @failingTest
-  @override
   test_partFile_TypeName2() {
 //    Bad state: Should not be used with the new analysis driver.
     return super.test_partFile_TypeName2();

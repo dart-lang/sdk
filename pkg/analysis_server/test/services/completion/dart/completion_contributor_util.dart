@@ -566,8 +566,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void resolveSource(String path, String content) {
     Source libSource = addSource(path, content);
-    var target = new LibrarySpecificUnit(libSource, libSource);
-    context.computeResult(target, RESOLVED_UNIT);
+    if (!enableNewAnalysisDriver) {
+      var target = new LibrarySpecificUnit(libSource, libSource);
+      context.computeResult(target, RESOLVED_UNIT);
+    }
   }
 
   @override
