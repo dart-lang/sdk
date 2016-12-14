@@ -97,6 +97,10 @@ class ModuleCompiler {
     options.declaredVariables.forEach(context.declaredVariables.define);
     context.declaredVariables.define('dart.isVM', 'false');
 
+    // TODO(vsm): Should this be hardcoded?
+    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables.define('dart.library.io', 'false');
+
     return new ModuleCompiler.withContext(context, summaryData);
   }
 

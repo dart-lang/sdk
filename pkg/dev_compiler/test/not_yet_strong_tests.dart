@@ -2161,7 +2161,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'lib/mirrors/library_imports_prefixed_test',
   'lib/mirrors/library_imports_shown_test',
   'lib/mirrors/library_metadata2_test_01_multi',
-  'lib/mirrors/library_uri_io_test',
   'lib/mirrors/load_library_test',
   'lib/mirrors/metadata_allowed_values_test_01_multi',
   'lib/mirrors/metadata_allowed_values_test_02_multi',
