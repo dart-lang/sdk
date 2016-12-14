@@ -2617,6 +2617,7 @@ void Precompiler::ResetPrecompilerState() {
   ASSERT(pending_functions_.Length() == 0);
   sent_selectors_.Clear();
   enqueued_functions_.Clear();
+  consts_to_retain_.Clear();
 
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
