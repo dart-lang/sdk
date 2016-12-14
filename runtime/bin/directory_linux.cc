@@ -257,7 +257,7 @@ static bool DeleteRecursively(PathBuffer* path) {
   struct stat64 st;
   if (TEMP_FAILURE_RETRY(lstat64(path->AsString(), &st)) == -1) {
     return false;
-  } else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
+  } else if (!S_ISDIR(st.st_mode)) {
     return (NO_RETRY_EXPECTED(unlink(path->AsString())) == 0);
   }
 
@@ -301,6 +301,10 @@ static bool DeleteRecursively(PathBuffer* path) {
       case DT_DIR:
         ok = DeleteDir(entry->d_name, path);
         break;
+      case DT_BLK:
+      case DT_CHR:
+      case DT_FIFO:
+      case DT_SOCK:
       case DT_REG:
       case DT_LNK:
         // Treat all links as files. This will delete the link which
@@ -322,7 +326,7 @@ static bool DeleteRecursively(PathBuffer* path) {
         path->Reset(path_length);
         if (S_ISDIR(entry_info.st_mode)) {
           ok = DeleteDir(entry->d_name, path);
-        } else if (S_ISREG(entry_info.st_mode) || S_ISLNK(entry_info.st_mode)) {
+        } else {
           // Treat links as files. This will delete the link which is
           // what we want no matter if the link target is a file or a
           // directory.
@@ -331,6 +335,8 @@ static bool DeleteRecursively(PathBuffer* path) {
         break;
       }
       default:
+        // We should have covered all the bases. If not, let's get an error.
+        FATAL1("Unexpected d_type: %d\n", entry->d_type);
         break;
     }
     if (!ok) {
