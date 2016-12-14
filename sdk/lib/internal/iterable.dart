@@ -172,8 +172,8 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> where(bool test(E element)) => super.where(test);
 
-  Iterable<T> map<T>(T f(E element)) =>
-      new MappedListIterable<E, T >(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
+      new MappedListIterable<E, dynamic/*=T*/ >(this, f);
 
   E reduce(E combine(var value, E element)) {
     int length = this.length;
@@ -189,7 +189,9 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  /*=T*/ fold/*<T>*/(
+      var/*=T*/ initialValue, /*=T*/ combine(
+          var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -426,8 +428,8 @@ class WhereIterable<E> extends Iterable<E> {
   Iterator<E> get iterator => new WhereIterator<E>(_iterable.iterator, _f);
 
   // Specialization of [Iterable.map] to non-EfficientLengthIterable.
-  Iterable<T> map<T>(T f(E element)) =>
-     new MappedIterable<E, T>._(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
+     new MappedIterable<E, dynamic/*=T*/>._(this, f);
 }
 
 class WhereIterator<E> extends Iterator<E> {
@@ -718,13 +720,15 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> where(bool test(E element)) => this;
 
-  Iterable<T> map<T>(T f(E element)) => const EmptyIterable();
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) => const EmptyIterable();
 
   E reduce(E combine(E value, E element)) {
     throw IterableElementError.noElement();
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  /*=T*/ fold/*<T>*/(
+      var/*=T*/ initialValue, /*=T*/ combine(
+          var/*=T*/ previousValue, E element)) {
     return initialValue;
   }
 

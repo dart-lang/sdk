@@ -268,12 +268,13 @@ class JsonEncoder extends Converter<Object, String>
   // Override the base class's bind, to provide a better type.
   Stream<String> bind(Stream<Object> stream) => super.bind(stream);
 
-  Converter<Object, T> fuse<T>(Converter<String, T> other) {
+  Converter<Object, dynamic/*=T*/> fuse/*<T>*/(
+      Converter<String, dynamic/*=T*/> other) {
     if (other is Utf8Encoder) {
       return new JsonUtf8Encoder(indent, _toEncodable)
           as dynamic/*=Converter<Object, T>*/;
     }
-    return super.fuse<T>(other);
+    return super.fuse/*<T>*/(other);
   }
 }
 

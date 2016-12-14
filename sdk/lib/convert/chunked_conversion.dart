@@ -84,7 +84,7 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
   final Sink<S> _chunkedSink;
 
   _ConverterStreamEventSink(
-      Converter<S, T> converter,
+      Converter/*=Converter<S, T>*/ converter,
       EventSink<T> sink)
       : this._eventSink = sink,
         _chunkedSink = converter.startChunkedConversion(sink);

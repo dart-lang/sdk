@@ -23,8 +23,8 @@ import "dart:_internal" show POWERS_OF_TEN;
 
 @patch class Utf8Decoder {
   @patch
-  Converter<List<int>, T> fuse<T>(
-      Converter<String, T> next) {
+  Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
+      Converter<String, dynamic/*=T*/> next) {
     if (next is JsonDecoder) {
       return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;

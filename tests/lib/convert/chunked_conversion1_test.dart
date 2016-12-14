@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 // This test implements a new special interface that can be used to
 // send data more efficiently between two converters.
 
-abstract class MyChunkedIntSink extends ChunkedConversionSink<List<int>> {
+abstract class MyChunkedIntSink extends ChunkedConversionSink<int> {
   MyChunkedIntSink();
   factory MyChunkedIntSink.from(sink) = IntAdapterSink;
   factory MyChunkedIntSink.withCallback(callback) {

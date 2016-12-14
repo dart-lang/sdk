@@ -139,14 +139,14 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     if (handleData == null) handleData = _nullDataHandler;
     // TODO(floitsch): the return type should be 'void', and the type
     // should be inferred.
-    _onData = _zone.registerUnaryCallback<dynamic, T>(handleData);
+    _onData = _zone.registerUnaryCallback/*<dynamic, T>*/(handleData);
   }
 
   void onError(Function handleError) {
     if (handleError == null) handleError = _nullErrorHandler;
     // We are not allowed to use 'void' as type argument for the generic type,
     // so we use 'dynamic' instead.
-    _onError = _registerErrorHandler<dynamic>(handleError, _zone);
+    _onError = _registerErrorHandler/*<dynamic>*/(handleError, _zone);
   }
 
   void onDone(void handleDone()) {
@@ -193,8 +193,8 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     return _cancelFuture ?? Future._nullFuture;
   }
 
-  Future<E> asFuture<E>([E futureValue]) {
-    _Future<E> result = new _Future<E>();
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
+    _Future/*<E>*/ result = new _Future/*<E>*/();
 
     // Overwrite the onDone and onError handlers.
     _onDone = () { result._complete(futureValue); };
@@ -257,7 +257,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     if (_canFire) {
       _sendData(data);
     } else {
-      _addPending(new _DelayedData<T>(data));
+      _addPending(new _DelayedData<dynamic /*=T*/>(data));
     }
   }
 
@@ -309,7 +309,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
   void _addPending(_DelayedEvent event) {
     _StreamImplEvents<T> pending = _pending;
     if (_pending == null) {
-      pending = _pending = new _StreamImplEvents<T>();
+      pending = _pending = new _StreamImplEvents<dynamic /*=T*/>();
     }
     pending.add(event);
     if (!_hasPending) {
@@ -349,7 +349,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
             as Object /*=ZoneBinaryCallback<dynamic, Object, StackTrace>*/;
         _zone.runBinaryGuarded(errorCallback, error, stackTrace);
       } else {
-        _zone.runUnaryGuarded<dynamic, dynamic>(
+        _zone.runUnaryGuarded/*<dynamic, dynamic>*/(
             _onError as Object /*=ZoneUnaryCallback<dynamic, dynamic>*/, error);
       }
       _state &= ~_STATE_IN_CALLBACK;
@@ -760,8 +760,8 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
 
   Future cancel() => Future._nullFuture;
 
-  Future<E> asFuture<E>([E futureValue]) {
-    _Future<E> result = new _Future<E>();
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
+    _Future/*<E>*/ result = new _Future/*<E>*/();
     _onDone = () { result._completeWithValue(null); };
     return result;
   }
@@ -789,9 +789,9 @@ class _AsBroadcastStream<T> extends Stream<T> {
       // TODO(floitsch): the return type should be void and should be
       // inferred.
       : _onListenHandler = Zone.current.registerUnaryCallback
-            <dynamic, StreamSubscription<T>>(onListenHandler),
+            /*<dynamic, StreamSubscription<T>>*/(onListenHandler),
         _onCancelHandler = Zone.current.registerUnaryCallback
-            <dynamic, StreamSubscription<T>>(onCancelHandler),
+            /*<dynamic, StreamSubscription<T>>*/(onCancelHandler),
         _zone = Zone.current {
     _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
   }
@@ -903,7 +903,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
     return _stream._isSubscriptionPaused;
   }
 
-  Future<E> asFuture<E>([E futureValue]) {
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
     throw new UnsupportedError(
         "Cannot change handlers of asBroadcastStream source subscription.");
   }

@@ -213,7 +213,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   Future<File> close() =>
-      _openFuture.then<File>((openedFile) => openedFile.close());
+      _openFuture.then/*<File>*/((openedFile) => openedFile.close());
 }
 
 
