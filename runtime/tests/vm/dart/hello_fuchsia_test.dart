@@ -386,6 +386,13 @@ Future testProcess() async {
   print("dart --version exited with code $code");
 }
 
+Future testLs(String path) async {
+  Stream<FileSystemEntity> stream = (new Directory(path)).list();
+  await for (FileSystemEntity fse in stream) {
+    print(fse.path);
+  }
+}
+
 main() async {
   print("Hello, Fuchsia!");
 
@@ -416,6 +423,10 @@ main() async {
   print("testGoogleHttps");
   await testGoogleHttps(null, 'pass');
   print("testGoogleHttps done");
+
+  print("lsTest");
+  await testLs("/");
+  print("lsTest done");
 
   print("testProcess");
   await testProcess();
