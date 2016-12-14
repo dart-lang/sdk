@@ -653,6 +653,16 @@ class AnalysisDriver {
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
+
+        // TODO(scheglov) Remove this.
+        // https://github.com/dart-lang/sdk/issues/28110
+        analysisContext.setContents(libraryFile.source, libraryFile.content);
+        for (FileState part in libraryFile.partedFiles) {
+          if (part.exists) {
+            analysisContext.setContents(part.source, part.content);
+          }
+        }
+
         CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit2(
             file.source, libraryFile.source);
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);

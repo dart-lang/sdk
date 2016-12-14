@@ -1163,6 +1163,25 @@ var b = new B();
     expect(result.unit, isNotNull);
   }
 
+  test_part_getResult_overlayOnly() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    contentOverlay[a] = r'''
+library a;
+part 'b.dart';
+class A {}
+var b = new B();
+''';
+    contentOverlay[b] = 'part of a; class B {}';
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.errors, isEmpty);
+    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+  }
+
   test_part_results_afterLibrary() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
