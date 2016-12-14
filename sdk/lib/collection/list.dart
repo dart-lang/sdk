@@ -175,11 +175,11 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
-      new MappedListIterable/*<E, T>*/(this, f);
+  Iterable<T> map<T>(T f(E element)) =>
+      new MappedListIterable<E, T>(this, f);
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
-      new ExpandIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      new ExpandIterable<E, T>(this, f);
 
   E reduce(E combine(E previousValue, E element)) {
     int length = this.length;
@@ -194,8 +194,7 @@ abstract class ListMixin<E> implements List<E> {
     return value;
   }
 
-  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
-               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -371,7 +370,7 @@ abstract class ListMixin<E> implements List<E> {
     List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
-    if (iterable is List/*<E>*/) {
+    if (iterable is List<E>) {
       otherList = iterable;
       otherStart = skipCount;
     } else {
