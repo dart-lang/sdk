@@ -2,6 +2,14 @@
 
 ### Tool changes
 
+* Dart2Js
+
+  * Remove support for (long-time deprecated) mixin typedefs.
+
+* Dart Dev Compiler
+
+  * Support messages in `assert()` statements. (#27342)
+
 * Pub
 
   * Avoid using a barback asset server for executables unless they actually use
@@ -20,10 +28,6 @@
   * Handle parse errors from the package cache more gracefully. A package whose
     pubspec can't be parsed will now be ignored by `pub get --offline` and
     deleted by `pub cache repair`.
-
-* Dart2Js
-
-  * Remove support for (long-time deprecated) mixin typedefs.
 
 
 ## 1.21.0 - 2016-12-07
