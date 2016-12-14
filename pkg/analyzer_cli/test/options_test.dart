@@ -154,8 +154,7 @@ main() {
 
       test('notice unrecognized flags', () {
         expect(
-            () => new CommandLineParser()
-                .parse(['--bar', '--baz', 'foo.dart'], {}),
+            () => new CommandLineParser().parse(['--bar', '--baz', 'foo.dart']),
             throwsA(new isInstanceOf<FormatException>()));
       });
 
@@ -178,7 +177,7 @@ main() {
         parser.addOption('optionA');
         parser.addFlag('flagA');
         ArgResults argResults =
-            parser.parse(['--optionA=1', '--optionB=2', '--flagA'], {});
+            parser.parse(['--optionA=1', '--optionB=2', '--flagA']);
         expect(argResults['optionA'], '1');
         expect(argResults['flagA'], isTrue);
       });

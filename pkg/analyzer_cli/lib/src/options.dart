@@ -491,7 +491,8 @@ class CommandLineOptions {
       args =
           args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       Map<String, String> definedVariables = <String, String>{};
-      var results = parser.parse(args, definedVariables);
+      args = extractDefinedVariables(args, definedVariables);
+      var results = parser.parse(args);
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
@@ -633,31 +634,9 @@ class CommandLineParser {
   String getUsage() => _parser.usage;
 
   /// Parses [args], a list of command-line arguments, matches them against the
-  /// flags and options defined by this parser, and returns the result. The
-  /// values of any defined variables are captured in the given map.
+  /// flags and options defined by this parser, and returns the result.
   /// See [ArgParser].
-  ArgResults parse(List<String> args, Map<String, String> definedVariables) =>
-      _parser.parse(
-          _filterUnknowns(parseDefinedVariables(args, definedVariables)));
-
-  List<String> parseDefinedVariables(
-      List<String> args, Map<String, String> definedVariables) {
-    int count = args.length;
-    List<String> remainingArgs = <String>[];
-    for (int i = 0; i < count; i++) {
-      String arg = args[i];
-      if (arg == '--') {
-        while (i < count) {
-          remainingArgs.add(args[i++]);
-        }
-      } else if (arg.startsWith("-D")) {
-        definedVariables[arg.substring(2)] = args[++i];
-      } else {
-        remainingArgs.add(arg);
-      }
-    }
-    return remainingArgs;
-  }
+  ArgResults parse(List<String> args) => _parser.parse(_filterUnknowns(args));
 
   List<String> _filterUnknowns(List<String> args) {
     // Only filter args if the ignore flag is specified, or if

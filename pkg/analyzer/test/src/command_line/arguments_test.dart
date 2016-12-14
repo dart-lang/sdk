@@ -142,6 +142,18 @@ class ArgumentsTest {
     expect(parser.options, hasLength(12));
   }
 
+  void test_extractDefinedVariables() {
+    List<String> args = ['--a', '-Dbaz', 'go', 'back=blue', '-Dx'];
+    Map<String, String> definedVariables = {'one': 'two'};
+    args = extractDefinedVariables(args, definedVariables);
+    expect(args, orderedEquals(['--a', 'back=blue', '-Dx']));
+    expect(definedVariables['one'], 'two');
+    expect(definedVariables['two'], isNull);
+    expect(definedVariables['baz'], 'go');
+    expect(definedVariables['go'], isNull);
+    expect(definedVariables, hasLength(2));
+  }
+
   void test_filterUnknownArguments() {
     List<String> args = ['--a', '--b', '--c', 'foo', 'bar'];
     ArgParser parser = new ArgParser();

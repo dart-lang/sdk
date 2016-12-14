@@ -165,6 +165,38 @@ void defineAnalysisArguments(ArgParser parser) {
 }
 
 /**
+ * Find arguments of the form -Dkey=value
+ * or argument pairs of the form -Dkey value
+ * and place those key/value pairs into [definedVariables].
+ * Return a list of arguments with the key/value arguments removed.
+ */
+List<String> extractDefinedVariables(
+    List<String> args, Map<String, String> definedVariables) {
+  //TODO(danrubel) extracting defined variables is already handled by the
+  // createContextBuilderOptions method.
+  // Long term we should switch to using that instead.
+  int count = args.length;
+  List<String> remainingArgs = <String>[];
+  for (int i = 0; i < count; i++) {
+    String arg = args[i];
+    if (arg == '--') {
+      while (i < count) {
+        remainingArgs.add(args[i++]);
+      }
+    } else if (arg.startsWith("-D")) {
+      if (i + 1 < count) {
+        definedVariables[arg.substring(2)] = args[++i];
+      } else {
+        remainingArgs.add(arg);
+      }
+    } else {
+      remainingArgs.add(arg);
+    }
+  }
+  return remainingArgs;
+}
+
+/**
  * Return a list of command-line arguments containing all of the given [args]
  * that are defined by the given [parser]. An argument is considered to be
  * defined by the parser if
