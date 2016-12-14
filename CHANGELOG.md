@@ -8,7 +8,8 @@
 
 * Dart Dev Compiler
 
-  * Support messages in `assert()` statements. (#27342)
+  * Support messages in `assert()` statements. (SDK issue
+    [27342](https://github.com/dart-lang/sdk/issues/27342))
 
 * Pub
 
@@ -43,14 +44,28 @@
   [informal specification](https://gist.github.com/eernstg/cff159be9e34d5ea295d8c24b1a3e594)
   for details.
 * Don't warn about switch case fallthrough if the case ends in a `rethrow`
-  statement.
+  statement.  (SDK issue
+  [27650](https://github.com/dart-lang/sdk/issues/27650))
 * Also don't warn if the entire switch case is wrapped in braces - as long as
   the block ends with a `break`, `continue`, `rethrow`, `return` or `throw`.
 * Allow `=` as well as `:` as separator for named parameter default values.
 
+  ```dart
+  enableFlags({bool hidden: false}) { … }
+  ```
+
+  can now be replaced by
+
+  ```dart
+  enableFlags({bool hidden = false}) { … }
+  ```
+
+  (SDK issue [27559](https://github.com/dart-lang/sdk/issues/27559))
+
 ### Core library changes
 
-* `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.
+* `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.  (SDK
+  issue [27573](https://github.com/dart-lang/sdk/issues/27573))
 
 * `dart:developer`
 
@@ -63,13 +78,14 @@
 * Dart Dev Compiler
 
   * Support calls to `loadLibrary()` on deferred libraries. Deferred libraries
-    are still loaded eagerly. (#27343)
+    are still loaded eagerly. (SDK issue
+    [27343](https://github.com/dart-lang/sdk/issues/27343))
 
 ## 1.20.1 - 2016-10-13
 
 Patch release, resolves one issue:
 
-* Dartium: Fixes a bug that caused crashes.  No issue filed
+* Dartium: Fixes a bug that caused crashes.  No issue filed.
 
 ### Strong Mode
 
@@ -109,7 +125,8 @@ Patch release, resolves one issue:
   directory containing root certificate files hashed using `c_rehash`.
 
 * The VM now throws a catchable `Error` when method compilation fails. This
-  allows easier debugging of syntax errors, especially when testing.
+  allows easier debugging of syntax errors, especially when testing.  (SDK issue
+  [23684](https://github.com/dart-lang/sdk/issues/23684))
 
 ### Core library changes
 
@@ -117,14 +134,17 @@ Patch release, resolves one issue:
   Use the class in `package:resource` instead.
 * `dart:async`
   * `Future.wait` now catches synchronous errors and returns them in the
-    returned Future.
+    returned Future.  (SDK issue
+    [27249](https://github.com/dart-lang/sdk/issues/27249))
   * More aggressively returns a `Future` on `Stream.cancel` operations.
-    Discourages to return `null` from `cancel`.
+    Discourages to return `null` from `cancel`.  (SDK issue
+    [26777](https://github.com/dart-lang/sdk/issues/26777))
   * Fixes a few bugs where the cancel future wasn't passed through
     transformations.
 * `dart:io`
   * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
-    without a round-trip UTF-8 conversion.
+    without a round-trip UTF-8 conversion.  (SDK issue
+    [27129](https://github.com/dart-lang/sdk/issues/27129))
 
 ### Strong Mode
 
@@ -209,13 +229,16 @@ Patch release, resolves one issue:
     generates a `.packages` file, called a package spec. To generate
     a `packages/` directory in addition to the package spec, use the
     `--packages-dir` flag with `pub get`, `pub upgrade`, and `pub downgrade`.
+    See the [Good-bye
+    symlinks](http://news.dartlang.org/2016/10/good-bye-symlinks.html) article
+    for details.
 
 ## 1.19.1 - 2016-09-08
 
 Patch release, resolves one issue:
 
-* Dartdoc:  Fixes a bug that prevented generation of docs
-(Dartdoc issue [1233](https://github.com/dart-lang/dartdoc/issues/1233))
+* Dartdoc:  Fixes a bug that prevented generation of docs.
+  (Dartdoc issue [1233](https://github.com/dart-lang/dartdoc/issues/1233))
 
 ## 1.19.0 - 2016-08-26
 
