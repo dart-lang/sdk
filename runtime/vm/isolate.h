@@ -860,6 +860,7 @@ class Isolate : public BaseIsolate {
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class Scavenger;  // VisitObjectPointers
+  friend class ObjectGraph;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;

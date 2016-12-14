@@ -2339,6 +2339,7 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   Array& storage = Array::Handle(Array::New(limit));
   GetInstancesVisitor visitor(cls, storage);
   ObjectGraph graph(thread);
+  HeapIterationScope iteration_scope(true);
   graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
   JSONObject jsobj(js);

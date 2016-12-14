@@ -200,28 +200,39 @@ void Heap::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-HeapIterationScope::HeapIterationScope()
+HeapIterationScope::HeapIterationScope(bool writable)
     : StackResource(Thread::Current()),
-      old_space_(isolate()->heap()->old_space()) {
-  // It's not yet safe to iterate over a paged space while it's concurrently
-  // sweeping, so wait for any such task to complete first.
-  MonitorLocker ml(old_space_->tasks_lock());
+      old_space_(isolate()->heap()->old_space()),
+      writable_(writable) {
+  {
+    // It's not yet safe to iterate over a paged space while it's concurrently
+    // sweeping, so wait for any such task to complete first.
+    MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
-  // We currently don't support nesting of HeapIterationScopes.
-  ASSERT(old_space_->iterating_thread_ != thread());
+    // We currently don't support nesting of HeapIterationScopes.
+    ASSERT(old_space_->iterating_thread_ != thread());
 #endif
-  while (old_space_->tasks() > 0) {
-    ml.WaitWithSafepointCheck(thread());
+    while (old_space_->tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread());
+    }
+#if defined(DEBUG)
+    ASSERT(old_space_->iterating_thread_ == NULL);
+    old_space_->iterating_thread_ = thread();
+#endif
+    old_space_->set_tasks(1);
   }
-#if defined(DEBUG)
-  ASSERT(old_space_->iterating_thread_ == NULL);
-  old_space_->iterating_thread_ = thread();
-#endif
-  old_space_->set_tasks(1);
+
+  if (writable_) {
+    thread()->heap()->WriteProtectCode(false);
+  }
 }
 
 
 HeapIterationScope::~HeapIterationScope() {
+  if (writable_) {
+    thread()->heap()->WriteProtectCode(true);
+  }
+
   MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
   ASSERT(old_space_->iterating_thread_ == thread());

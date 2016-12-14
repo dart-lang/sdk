@@ -149,7 +149,7 @@ class Unmarker : public ObjectVisitor {
 
   static void UnmarkAll(Isolate* isolate) {
     Unmarker unmarker;
-    isolate->heap()->IterateObjects(&unmarker);
+    isolate->heap()->VisitObjects(&unmarker);
   }
 
  private:
@@ -161,19 +161,16 @@ ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
   ASSERT(thread->isolate() != Dart::vm_isolate());
-  thread->isolate()->heap()->WriteProtectCode(false);
 }
 
 
-ObjectGraph::~ObjectGraph() {
-  isolate()->heap()->WriteProtectCode(true);
-}
+ObjectGraph::~ObjectGraph() {}
 
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
-  isolate()->IterateObjectPointers(&stack, false);
+  isolate()->VisitObjectPointers(&stack, false);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -216,7 +213,7 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
   Stack stack(isolate());
 
   InstanceAccumulator accumulator(&stack, class_id);
-  isolate()->heap()->IterateObjects(&accumulator);
+  isolate()->heap()->VisitObjects(&accumulator);
 
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
@@ -265,6 +262,7 @@ class SizeExcludingClassVisitor : public SizeVisitor {
 
 
 intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
+  HeapIterationScope iteration_scope(true);
   SizeVisitor total;
   IterateObjects(&total);
   intptr_t size_total = total.size();
@@ -276,6 +274,7 @@ intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
 
 
 intptr_t ObjectGraph::SizeReachableByInstance(const Object& obj) {
+  HeapIterationScope iteration_scope(true);
   SizeVisitor total;
   IterateObjectsFrom(obj, &total);
   return total.size();
@@ -283,6 +282,7 @@ intptr_t ObjectGraph::SizeReachableByInstance(const Object& obj) {
 
 
 intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
+  HeapIterationScope iteration_scope(true);
   SizeVisitor total;
   IterateObjects(&total);
   intptr_t size_total = total.size();
@@ -294,6 +294,7 @@ intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
 
 
 intptr_t ObjectGraph::SizeReachableByClass(intptr_t class_id) {
+  HeapIterationScope iteration_scope(true);
   SizeVisitor total;
   IterateObjectsFrom(class_id, &total);
   return total.size();
@@ -390,6 +391,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
 
 intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
   NoSafepointScope no_safepoint_scope_;
+  HeapIterationScope iteration_scope(true);
   // To break the trivial path, the handle 'obj' is temporarily cleared during
   // the search, but restored before returning.
   RawObject* raw = obj->raw();
@@ -467,7 +469,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
 
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
-  NoSafepointScope no_safepoint_scope_;
+  NoSafepointScope no_safepoint_scope;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
   isolate()->heap()->IterateObjects(&visitor);
   return visitor.length();
@@ -611,6 +613,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
   }
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
+  HeapIterationScope iteration_scope(true);
 
   RawObject* kRootAddress = reinterpret_cast<RawObject*>(kHeapObjectTag);
   const intptr_t kRootCid = kIllegalCid;
@@ -624,7 +627,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
     // Write root "object".
     WriteHeader(kRootAddress, 0, kRootCid, stream);
     WritePointerVisitor ptr_writer(isolate(), stream, false);
-    isolate()->IterateObjectPointers(&ptr_writer, false);
+    isolate()->VisitObjectPointers(&ptr_writer, false);
     stream->WriteUnsigned(0);
   } else {
     {
@@ -640,7 +643,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
       // Write stack "object".
       WriteHeader(kStackAddress, 0, kStackCid, stream);
       WritePointerVisitor ptr_writer(isolate(), stream, true);
-      isolate()->IterateStackPointers(&ptr_writer, false);
+      isolate()->VisitStackPointers(&ptr_writer, false);
       stream->WriteUnsigned(0);
     }
   }

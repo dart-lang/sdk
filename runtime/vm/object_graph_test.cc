@@ -67,24 +67,27 @@ VM_TEST_CASE(ObjectGraph) {
     d = Array::null();
     ObjectGraph graph(thread);
     {
-      // Compare count and size when 'b' is/isn't skipped.
-      CounterVisitor with(Object::null(), Object::null());
-      graph.IterateObjectsFrom(a, &with);
-      CounterVisitor without(b_raw, a.raw());
-      graph.IterateObjectsFrom(a, &without);
-      // Only 'b' and 'c' were cut off.
-      EXPECT_EQ(2, with.count() - without.count());
-      EXPECT_EQ(b_size + c_size, with.size() - without.size());
-    }
-    {
-      // Like above, but iterate over the entire isolate. The counts and sizes
-      // are thus larger, but the difference should still be just 'b' and 'c'.
-      CounterVisitor with(Object::null(), Object::null());
-      graph.IterateObjects(&with);
-      CounterVisitor without(b_raw, a.raw());
-      graph.IterateObjects(&without);
-      EXPECT_EQ(2, with.count() - without.count());
-      EXPECT_EQ(b_size + c_size, with.size() - without.size());
+      HeapIterationScope iteration_scope(true);
+      {
+        // Compare count and size when 'b' is/isn't skipped.
+        CounterVisitor with(Object::null(), Object::null());
+        graph.IterateObjectsFrom(a, &with);
+        CounterVisitor without(b_raw, a.raw());
+        graph.IterateObjectsFrom(a, &without);
+        // Only 'b' and 'c' were cut off.
+        EXPECT_EQ(2, with.count() - without.count());
+        EXPECT_EQ(b_size + c_size, with.size() - without.size());
+      }
+      {
+        // Like above, but iterate over the entire isolate. The counts and sizes
+        // are thus larger, but the difference should still be just 'b' and 'c'.
+        CounterVisitor with(Object::null(), Object::null());
+        graph.IterateObjects(&with);
+        CounterVisitor without(b_raw, a.raw());
+        graph.IterateObjects(&without);
+        EXPECT_EQ(2, with.count() - without.count());
+        EXPECT_EQ(b_size + c_size, with.size() - without.size());
+      }
     }
     EXPECT_EQ(a_size + b_size + c_size + d_size,
               graph.SizeRetainedByInstance(a));
