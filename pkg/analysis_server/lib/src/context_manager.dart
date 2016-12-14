@@ -279,17 +279,6 @@ abstract class ContextManager {
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
 
   /**
-   * Return the [AnalysisDriver] for the "innermost" context whose associated
-   * folder is or contains the given path.  ("innermost" refers to the nesting
-   * of contexts, so if there is a context for path /foo and a context for
-   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
-   * the context for /foo/bar.)
-   *
-   * If no driver contains the given path, `null` is returned.
-   */
-  AnalysisDriver getDriverFor(String path);
-
-  /**
    * Return the [AnalysisContext] for the "innermost" context whose associated
    * folder is or contains the given path.  ("innermost" refers to the nesting
    * of contexts, so if there is a context for path /foo and a context for
@@ -299,6 +288,17 @@ abstract class ContextManager {
    * If no context contains the given path, `null` is returned.
    */
   AnalysisContext getContextFor(String path);
+
+  /**
+   * Return the [AnalysisDriver] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no driver contains the given path, `null` is returned.
+   */
+  AnalysisDriver getDriverFor(String path);
 
   /**
    * Return a list of all of the analysis drivers reachable from the given
@@ -594,11 +594,6 @@ class ContextManagerImpl implements ContextManager {
   bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
   @override
-  AnalysisDriver getDriverFor(String path) {
-    return _getInnermostContextInfoFor(path)?.analysisDriver;
-  }
-
-  @override
   AnalysisContext getContextFor(String path) {
     return _getInnermostContextInfoFor(path)?.context;
   }
@@ -612,6 +607,11 @@ class ContextManagerImpl implements ContextManager {
       return info;
     }
     return null;
+  }
+
+  @override
+  AnalysisDriver getDriverFor(String path) {
+    return _getInnermostContextInfoFor(path)?.analysisDriver;
   }
 
   @override
@@ -1706,10 +1706,18 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {
-    AnalysisContext context = folderMap[contextFolder];
-    context.sourceFactory =
-        _createSourceFactory(context, context.analysisOptions, contextFolder);
-    callbacks.updateContextPackageUriResolver(context);
+    if (enableNewAnalysisDriver) {
+      ContextInfo info = getContextInfoFor(contextFolder);
+      AnalysisDriver driver = info.analysisDriver;
+      SourceFactory sourceFactory =
+          _createSourceFactory(null, driver.analysisOptions, contextFolder);
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      AnalysisContext context = folderMap[contextFolder];
+      context.sourceFactory =
+          _createSourceFactory(context, context.analysisOptions, contextFolder);
+      callbacks.updateContextPackageUriResolver(context);
+    }
   }
 
   /**

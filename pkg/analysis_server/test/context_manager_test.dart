@@ -1742,47 +1742,6 @@ class AbstractContextManagerTest_Driver extends AbstractContextManagerTest {
     // test/context_manager_test.dart 154:13                              AbstractContextManagerTest.test_embedder_packagespec.<async>
     return super.test_embedder_packagespec();
   }
-
-  @failingTest
-  void test_setRoots_addPackageRoot() {
-    // Bad state: Should not be used with the new analysis driver
-    // package:analysis_server/src/context_manager.dart 561:7             ContextManagerImpl.folderMap
-    // package:analysis_server/src/context_manager.dart 1709:31           ContextManagerImpl._updateContextPackageUriResolver
-    // package:analysis_server/src/context_manager.dart 1668:5            ContextManagerImpl._recomputeFolderDisposition
-    // package:analysis_server/src/context_manager.dart 1420:7            ContextManagerImpl._handleWatchEvent
-    return super.test_setRoots_addPackageRoot();
-  }
-
-  @failingTest
-  void test_setRoots_changePackageRoot() {
-    // Bad state: Should not be used with the new analysis driver
-    // package:analysis_server/src/context_manager.dart 561:7             ContextManagerImpl.folderMap
-    // package:analysis_server/src/context_manager.dart 1709:31           ContextManagerImpl._updateContextPackageUriResolver
-    // package:analysis_server/src/context_manager.dart 1668:5            ContextManagerImpl._recomputeFolderDisposition
-    // package:analysis_server/src/context_manager.dart 1420:7            ContextManagerImpl._handleWatchEvent
-    return super.test_setRoots_changePackageRoot();
-  }
-
-  @failingTest
-  void test_setRoots_removePackageRoot() {
-    // Bad state: Should not be used with the new analysis driver
-    // package:analysis_server/src/context_manager.dart 561:7             ContextManagerImpl.folderMap
-    // package:analysis_server/src/context_manager.dart 1709:31           ContextManagerImpl._updateContextPackageUriResolver
-    // package:analysis_server/src/context_manager.dart 1668:5            ContextManagerImpl._recomputeFolderDisposition
-    // package:analysis_server/src/context_manager.dart 1420:7            ContextManagerImpl._handleWatchEvent
-    return super.test_setRoots_removePackageRoot();
-  }
-
-  @failingTest
-  test_watch_modifyPackageMapDependency_fail() async {
-    // Bad state: Should not be used with the new analysis driver
-    // package:analysis_server/src/context_manager.dart 561:7             ContextManagerImpl.folderMap
-    // package:analysis_server/src/context_manager.dart 1709:31           ContextManagerImpl._updateContextPackageUriResolver
-    // package:analysis_server/src/context_manager.dart 1668:5            ContextManagerImpl._recomputeFolderDisposition
-    // package:analysis_server/src/context_manager.dart 1420:7            ContextManagerImpl._handleWatchEvent
-    //return super.test_watch_modifyPackageMapDependency_fail();
-    fail('StateError thrown');
-  }
 }
 
 abstract class ContextManagerTest {
