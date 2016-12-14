@@ -139,6 +139,7 @@ multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
 
 [ $compiler == dart2js && $checked ]
+assert_message_test: Fail #28106
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 regress_26133_test: RuntimeError # Issue 26429
