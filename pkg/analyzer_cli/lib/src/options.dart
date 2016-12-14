@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
+import 'package:analyzer/src/command_line/command_line_parser.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -317,10 +318,6 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
-      ..addFlag('ignore-unrecognized-flags',
-          help: 'Ignore unrecognized command line flags.',
-          defaultsTo: false,
-          negatable: false)
       ..addFlag('fatal-hints',
           help: 'Treat hints as fatal.', defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings',
@@ -564,125 +561,5 @@ class CommandLineOptions {
     errorSink.writeln('');
     errorSink.writeln(
         'For more information, see http://www.dartlang.org/tools/analyzer.');
-  }
-}
-
-/// Commandline argument parser.
-///
-/// TODO(pq): when the args package supports ignoring unrecognized
-/// options/flags, this class can be replaced with a simple [ArgParser]
-/// instance.
-class CommandLineParser {
-  final List<String> _knownFlags;
-  final bool _alwaysIgnoreUnrecognized;
-  final ArgParser _parser;
-
-  /// Creates a new command line parser.
-  CommandLineParser({bool alwaysIgnoreUnrecognized: false})
-      : _knownFlags = <String>[],
-        _alwaysIgnoreUnrecognized = alwaysIgnoreUnrecognized,
-        _parser = new ArgParser(allowTrailingOptions: true);
-
-  ArgParser get parser => _parser;
-
-  /// Defines a flag.
-  /// See [ArgParser.addFlag()].
-  void addFlag(String name,
-      {String abbr,
-      String help,
-      bool defaultsTo: false,
-      bool negatable: true,
-      void callback(bool value),
-      bool hide: false}) {
-    _knownFlags.add(name);
-    _parser.addFlag(name,
-        abbr: abbr,
-        help: help,
-        defaultsTo: defaultsTo,
-        negatable: negatable,
-        callback: callback,
-        hide: hide);
-  }
-
-  /// Defines a value-taking option.
-  /// See [ArgParser.addOption()].
-  void addOption(String name,
-      {String abbr,
-      String help,
-      List<String> allowed,
-      Map<String, String> allowedHelp,
-      String defaultsTo,
-      void callback(value),
-      bool allowMultiple: false,
-      bool splitCommas,
-      bool hide: false}) {
-    _knownFlags.add(name);
-    _parser.addOption(name,
-        abbr: abbr,
-        help: help,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo,
-        callback: callback,
-        allowMultiple: allowMultiple,
-        splitCommas: splitCommas,
-        hide: hide);
-  }
-
-  /// Generates a string displaying usage information for the defined options.
-  /// See [ArgParser.usage].
-  String getUsage() => _parser.usage;
-
-  /// Parses [args], a list of command-line arguments, matches them against the
-  /// flags and options defined by this parser, and returns the result.
-  /// See [ArgParser].
-  ArgResults parse(List<String> args) => _parser.parse(_filterUnknowns(args));
-
-  List<String> _filterUnknowns(List<String> args) {
-    // Only filter args if the ignore flag is specified, or if
-    // _alwaysIgnoreUnrecognized was set to true.
-    if (_alwaysIgnoreUnrecognized ||
-        args.contains('--ignore-unrecognized-flags')) {
-      //TODO(pquitslund): replace w/ the following once library skew issues are
-      // sorted out
-      //return args.where((arg) => !arg.startsWith('--') ||
-      //  _knownFlags.contains(arg.substring(2)));
-
-      // Filter all unrecognized flags and options.
-      List<String> filtered = <String>[];
-      for (int i = 0; i < args.length; ++i) {
-        String arg = args[i];
-        if (arg.startsWith('--') && arg.length > 2) {
-          String option = arg.substring(2);
-          // strip the last '=value'
-          int equalsOffset = option.lastIndexOf('=');
-          if (equalsOffset != -1) {
-            option = option.substring(0, equalsOffset);
-          }
-          // Check the option
-          if (!_knownFlags.contains(option)) {
-            //"eat" params by advancing to the next flag/option
-            i = _getNextFlagIndex(args, i);
-          } else {
-            filtered.add(arg);
-          }
-        } else {
-          filtered.add(arg);
-        }
-      }
-
-      return filtered;
-    } else {
-      return args;
-    }
-  }
-
-  int _getNextFlagIndex(args, i) {
-    for (; i < args.length; ++i) {
-      if (args[i].startsWith('--')) {
-        return i;
-      }
-    }
-    return i;
   }
 }
