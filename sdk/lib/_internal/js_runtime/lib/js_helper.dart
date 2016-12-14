@@ -4049,10 +4049,9 @@ void mainHasTooManyParameters() {
 }
 
 class _AssertionError extends AssertionError {
-  final _message;
-  _AssertionError(this._message);
+  _AssertionError(Object message) : super(message);
 
-  String toString() => "Assertion failed: " + Error.safeToString(_message);
+  String toString() => "Assertion failed: " + Error.safeToString(message);
 }
 
 

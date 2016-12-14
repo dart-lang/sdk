@@ -129,10 +129,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// code for each function.
   final bool dumpInfo;
 
-  /// Whether we allow passing an extra argument to `assert`, containing a
-  /// reason for why an assertion fails. (experimental)
-  final bool enableAssertMessage;
-
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
   /// silences a warning produced by the compiler.
   final bool enableExperimentalMirrors;
@@ -267,7 +263,6 @@ class CompilerOptions implements DiagnosticOptions {
         disableInlining: _hasOption(options, Flags.disableInlining),
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
         dumpInfo: _hasOption(options, Flags.dumpInfo),
-        enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
         enableExperimentalMirrors:
             _hasOption(options, Flags.enableExperimentalMirrors),
         enableMinification: _hasOption(options, Flags.minify),
@@ -333,7 +328,6 @@ class CompilerOptions implements DiagnosticOptions {
       bool disableInlining: false,
       bool disableTypeInference: false,
       bool dumpInfo: false,
-      bool enableAssertMessage: false,
       bool enableExperimentalMirrors: false,
       bool enableMinification: false,
       bool enableNativeLiveTypeAnalysis: true,
@@ -403,7 +397,6 @@ class CompilerOptions implements DiagnosticOptions {
         disableInlining: disableInlining || hasIncrementalSupport,
         disableTypeInference: disableTypeInference,
         dumpInfo: dumpInfo,
-        enableAssertMessage: enableAssertMessage,
         enableExperimentalMirrors: enableExperimentalMirrors,
         enableMinification: enableMinification,
         enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis,
@@ -452,7 +445,6 @@ class CompilerOptions implements DiagnosticOptions {
       this.disableInlining: false,
       this.disableTypeInference: false,
       this.dumpInfo: false,
-      this.enableAssertMessage: false,
       this.enableExperimentalMirrors: false,
       this.enableMinification: false,
       this.enableNativeLiveTypeAnalysis: false,
@@ -508,7 +500,6 @@ class CompilerOptions implements DiagnosticOptions {
       disableInlining,
       disableTypeInference,
       dumpInfo,
-      enableAssertMessage,
       enableExperimentalMirrors,
       enableMinification,
       enableNativeLiveTypeAnalysis,
@@ -565,7 +556,6 @@ class CompilerOptions implements DiagnosticOptions {
         disableTypeInference:
             disableTypeInference ?? options.disableTypeInference,
         dumpInfo: dumpInfo ?? options.dumpInfo,
-        enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
         enableExperimentalMirrors:
             enableExperimentalMirrors ?? options.enableExperimentalMirrors,
         enableMinification: enableMinification ?? options.enableMinification,
