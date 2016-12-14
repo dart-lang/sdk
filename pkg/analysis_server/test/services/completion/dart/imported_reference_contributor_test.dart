@@ -21,6 +21,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportedReferenceContributorTest);
+    defineReflectiveTests(ImportedReferenceContributorTest_Driver);
   });
 }
 
@@ -32,17 +33,6 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
     return new ImportedReferenceContributor();
-  }
-
-  fail_enum_deprecated() async {
-    addSource('/libA.dart', 'library A; @deprecated enum E { one, two }');
-    addTestSource('import "/libA.dart"; main() {^}');
-    await computeSuggestions();
-    // TODO(danrube) investigate why suggestion/element is not deprecated
-    // when AST node has correct @deprecated annotation
-    assertSuggestEnum('E', isDeprecated: true);
-    assertNotSuggested('one');
-    assertNotSuggested('two');
   }
 
   test_ArgumentList() async {
@@ -1964,6 +1954,18 @@ int myFunc() {}
     addTestSource('import "/libA.dart"; main() {^}');
     await computeSuggestions();
     assertSuggestEnum('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+  }
+
+  @failingTest
+  test_enum_deprecated() async {
+    addSource('/libA.dart', 'library A; @deprecated enum E { one, two }');
+    addTestSource('import "/libA.dart"; main() {^}');
+    await computeSuggestions();
+    // TODO(danrube) investigate why suggestion/element is not deprecated
+    // when AST node has correct @deprecated annotation
+    assertSuggestEnum('E', isDeprecated: true);
     assertNotSuggested('one');
     assertNotSuggested('two');
   }
@@ -4507,5 +4509,304 @@ class B extends A {
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
+  }
+}
+
+@reflectiveTest
+class ImportedReferenceContributorTest_Driver
+    extends ImportedReferenceContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_ArgumentList() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ArgumentList();
+  }
+
+  @failingTest
+  @override
+  test_ArgumentList_imported_function() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ArgumentList_imported_function();
+  }
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ArgumentList_local_function();
+  }
+
+  @failingTest
+  @override
+  test_ArgumentList_local_method() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ArgumentList_local_method();
+  }
+
+  @failingTest
+  @override
+  test_AwaitExpression_function() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_AwaitExpression_function();
+  }
+
+  @failingTest
+  @override
+  test_Block_identifier_partial() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_Block_identifier_partial();
+  }
+
+  @failingTest
+  @override
+  test_ConditionalExpression_elseExpression_empty() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ConditionalExpression_elseExpression_empty();
+  }
+
+  @failingTest
+  @override
+  test_ConditionalExpression_partial_thenExpression_empty() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ConditionalExpression_partial_thenExpression_empty();
+  }
+
+  @failingTest
+  @override
+  test_doc_function() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_doc_function();
+  }
+
+  @failingTest
+  @override
+  test_doc_function_c_style() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_doc_function_c_style();
+  }
+
+  @override
+  test_enum_deprecated() {
+    // TODO(scheglov) remove it?
+  }
+
+  @failingTest
+  @override
+  test_ExpressionStatement_identifier() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ExpressionStatement_identifier();
+  }
+
+  @failingTest
+  @override
+  test_function_parameters_mixed_required_and_named() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_function_parameters_mixed_required_and_named();
+  }
+
+  @failingTest
+  @override
+  test_function_parameters_mixed_required_and_positional() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_function_parameters_mixed_required_and_positional();
+  }
+
+  @failingTest
+  @override
+  test_function_parameters_named() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_function_parameters_named();
+  }
+
+  @failingTest
+  @override
+  test_function_parameters_none() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_function_parameters_none();
+  }
+
+  @failingTest
+  @override
+  test_function_parameters_positional() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_function_parameters_positional();
+  }
+
+  @failingTest
+  @override
+  test_function_parameters_required() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_function_parameters_required();
+  }
+
+  @failingTest
+  @override
+  test_FunctionDeclaration_returnType_afterComment() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_FunctionDeclaration_returnType_afterComment();
+  }
+
+  @failingTest
+  @override
+  test_FunctionDeclaration_returnType_afterComment2() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_FunctionDeclaration_returnType_afterComment2();
+  }
+
+  @failingTest
+  @override
+  test_FunctionDeclaration_returnType_afterComment3() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_FunctionDeclaration_returnType_afterComment3();
+  }
+
+  @failingTest
+  @override
+  test_IndexExpression() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_IndexExpression();
+  }
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_InstanceCreationExpression();
+  }
+
+  @failingTest
+  @override
+  test_keyword() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_keyword();
+  }
+
+  @failingTest
+  @override
+  test_MapLiteralEntry2() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_MapLiteralEntry2();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_mixed_required_and_named() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_mixed_required_and_named();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_mixed_required_and_positional() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_mixed_required_and_positional();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_named() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_named();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_none() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_none();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_positional() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_positional();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_required() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_required();
+  }
+
+  @failingTest
+  @override
+  test_MethodDeclaration_returnType() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_MethodDeclaration_returnType();
+  }
+
+  @failingTest
+  @override
+  test_MethodDeclaration_returnType_afterComment() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_MethodDeclaration_returnType_afterComment();
+  }
+
+  @failingTest
+  @override
+  test_MethodDeclaration_returnType_afterComment2() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_MethodDeclaration_returnType_afterComment2();
+  }
+
+  @failingTest
+  @override
+  test_MethodDeclaration_returnType_afterComment3() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_MethodDeclaration_returnType_afterComment3();
+  }
+
+  @failingTest
+  @override
+  test_no_parameters_getter() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_no_parameters_getter();
+  }
+
+  @failingTest
+  @override
+  test_partFile_TypeName() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_partFile_TypeName();
+  }
+
+  @failingTest
+  @override
+  test_partFile_TypeName2() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_partFile_TypeName2();
+  }
+
+  @failingTest
+  @override
+  test_TypeArgumentList() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_TypeArgumentList();
+  }
+
+  @failingTest
+  @override
+  test_doc_class() {
+//    Expected: 'My class.\n'
+//        'Short description.'
+//    Actual: 'My class./// Short description.////// Longer description.'
+//    Which: is different.
+//    Expected: My class.\nShort de ...
+//    Actual: My class./// Short  ...
+//    ^
+//    Differ at offset 9
+    return super.test_doc_class();
+  }
+
+  @failingTest
+  @override
+  test_VariableDeclarationStatement_RHS_missing_semicolon() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_VariableDeclarationStatement_RHS_missing_semicolon();
   }
 }

@@ -19,6 +19,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
+    defineReflectiveTests(LocalReferenceContributorTest_Driver);
   });
 }
 
@@ -4549,5 +4550,26 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertSuggestLocalVariable('f', null);
     assertNotSuggested('x');
     assertNotSuggested('e');
+  }
+}
+
+@reflectiveTest
+class LocalReferenceContributorTest_Driver
+    extends LocalReferenceContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_Block_inherited_imported() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_Block_inherited_imported();
+  }
+
+  @failingTest
+  @override
+  test_partFile_TypeName2() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_partFile_TypeName2();
   }
 }

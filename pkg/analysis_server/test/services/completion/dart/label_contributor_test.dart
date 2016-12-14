@@ -19,6 +19,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LabelContributorTest);
+    defineReflectiveTests(LabelContributorTest_Driver);
   });
 }
 
@@ -323,4 +324,10 @@ void main() {
     await computeSuggestions();
     assertSuggestLabel('foo');
   }
+}
+
+@reflectiveTest
+class LabelContributorTest_Driver extends LabelContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

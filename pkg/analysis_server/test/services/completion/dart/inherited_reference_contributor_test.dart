@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritedContributorTest);
+    defineReflectiveTests(InheritedContributorTest_Driver);
   });
 }
 
@@ -615,5 +616,123 @@ class B extends A1 with A2 {
     assertNotSuggested('y1');
     assertNotSuggested('x2');
     assertNotSuggested('y2');
+  }
+}
+
+@reflectiveTest
+class InheritedContributorTest_Driver extends InheritedContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_AwaitExpression_inherited() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_AwaitExpression_inherited();
+  }
+
+  @failingTest
+  @override
+  test_Block_inherited_imported() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_Block_inherited_imported();
+  }
+
+  @failingTest
+  @override
+  test_inherited() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_inherited();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_mixed_required_and_named() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_mixed_required_and_named();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_mixed_required_and_positional() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_mixed_required_and_positional();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_named() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_named();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_none() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_none();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_positional() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_positional();
+  }
+
+  @failingTest
+  @override
+  test_method_parameters_required() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_method_parameters_required();
+  }
+
+  @failingTest
+  @override
+  test_mixin_ordering() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_mixin_ordering();
+  }
+
+  @failingTest
+  @override
+  test_no_parameters_field() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_no_parameters_field();
+  }
+
+  @failingTest
+  @override
+  test_no_parameters_getter() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_no_parameters_getter();
+  }
+
+  @failingTest
+  @override
+  test_no_parameters_setter() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_no_parameters_setter();
+  }
+
+  @failingTest
+  @override
+  test_ouside_class() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_ouside_class();
+  }
+
+  @failingTest
+  @override
+  test_static_field() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_static_field();
+  }
+
+  @failingTest
+  @override
+  test_static_method() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_static_method();
   }
 }

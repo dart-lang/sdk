@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
+    defineReflectiveTests(ArgListContributorTest_Driver);
   });
 }
 
@@ -630,4 +631,10 @@ main() { f("16", radix: ^);}''');
     await computeSuggestions();
     assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
   }
+}
+
+@reflectiveTest
+class ArgListContributorTest_Driver extends ArgListContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

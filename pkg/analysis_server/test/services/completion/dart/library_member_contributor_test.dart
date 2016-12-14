@@ -14,6 +14,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryMemberContributorTest);
+    defineReflectiveTests(LibraryMemberContributorTest_Driver);
   });
 }
 
@@ -267,5 +268,32 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+}
+
+@reflectiveTest
+class LibraryMemberContributorTest_Driver extends LibraryMemberContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_libraryPrefix_deferred() {
+//    'package:analyzer/src/dart/element/element.dart': Failed assertion: line 5729 pos 12: '_loadLibraryFunction != null' is not true.
+    return super.test_libraryPrefix_deferred_inPart();
+  }
+
+  @failingTest
+  @override
+  test_libraryPrefix_deferred_inPart() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_libraryPrefix_deferred_inPart();
+  }
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_library_inPart() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_PrefixedIdentifier_library_inPart();
   }
 }

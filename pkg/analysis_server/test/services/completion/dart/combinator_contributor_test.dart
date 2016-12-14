@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
+    defineReflectiveTests(CombinatorContributorTest_Driver);
   });
 }
 
@@ -149,5 +150,25 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggestTopLevelVar('PI', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
+  }
+}
+
+@reflectiveTest
+class CombinatorContributorTest_Driver extends CombinatorContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_Combinator_hide() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_Combinator_hide();
+  }
+
+  @failingTest
+  @override
+  test_Combinator_show() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_Combinator_show();
   }
 }

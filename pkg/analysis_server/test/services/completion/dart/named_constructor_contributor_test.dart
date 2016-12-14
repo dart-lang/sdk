@@ -16,6 +16,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
+    defineReflectiveTests(NamedConstructorContributorTest_Driver);
   });
 }
 
@@ -178,5 +179,26 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('T1');
     assertNotSuggested('z');
     assertNotSuggested('m');
+  }
+}
+
+@reflectiveTest
+class NamedConstructorContributorTest_Driver
+    extends NamedConstructorContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_ConstructorName_importedClass() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_ConstructorName_importedClass();
+  }
+
+  @failingTest
+  @override
+  test_ConstructorName_importedFactory() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_ConstructorName_importedFactory();
   }
 }
