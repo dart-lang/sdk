@@ -653,6 +653,23 @@ class B extends A {
     expect(_getClassMethodReturnType(result.unit, 'B', 'm'), 'int');
   }
 
+  test_getResult_invalid_annotation_functionAsConstructor() async {
+    addTestFile(
+        r'''
+fff() {}
+
+@fff()
+class C {}
+''',
+        priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
+    Annotation a = c.metadata[0];
+    expect(a.name.name, 'fff');
+    expect(a.name.staticElement, new isInstanceOf<FunctionElement>());
+  }
+
   test_getResult_invalidUri_exports_dart() async {
     String content = r'''
 export 'dart:async';

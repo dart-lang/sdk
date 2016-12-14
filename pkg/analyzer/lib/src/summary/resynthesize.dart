@@ -308,6 +308,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
  * Builder of [Expression]s from [UnlinkedExpr]s.
  */
 class _ConstExprBuilder {
+  static const ARGUMENT_LIST = 'ARGUMENT_LIST';
+
   final _UnitResynthesizer resynthesizer;
   final ElementImpl context;
   final UnlinkedExpr uc;
@@ -651,8 +653,12 @@ class _ConstExprBuilder {
       } else if (info.element is ClassElement) {
         constructorName = null;
       } else {
-        throw new StateError('Unsupported element for invokeConstructor '
-            '${info.element?.runtimeType}');
+        List<Expression> arguments = _buildArguments();
+        SimpleIdentifier name = AstTestFactory.identifier3(info.name);
+        name.staticElement = info.element;
+        name.setProperty(ARGUMENT_LIST, AstTestFactory.argumentList(arguments));
+        _push(name);
+        return;
       }
       InterfaceType definingType = resynthesizer._createConstructorDefiningType(
           context?.typeParameterContext, info, ref.typeArguments);
@@ -1530,8 +1536,11 @@ class _UnitResynthesizer {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
     Expression constExpr = _buildConstExpression(context, uc);
     if (constExpr is Identifier) {
+      ArgumentList arguments =
+          constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
       elementAnnotation.element = constExpr.staticElement;
-      elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
+      elementAnnotation.annotationAst =
+          AstTestFactory.annotation2(constExpr, null, arguments);
     } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
       Identifier typeName = constExpr.constructorName.type.name;

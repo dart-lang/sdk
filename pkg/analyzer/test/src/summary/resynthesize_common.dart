@@ -4065,6 +4065,10 @@ class C {
     checkLibrary('@a import "foo.dart"; const a = b;');
   }
 
+  test_metadata_invalid_classDeclaration() {
+    checkLibrary('f(_) {} @f(42) class C {}');
+  }
+
   test_metadata_libraryDirective() {
     checkLibrary('@a library L; const a = null;');
   }
