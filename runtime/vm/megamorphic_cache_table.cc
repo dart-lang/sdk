@@ -73,7 +73,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   function.set_is_debuggable(false);
   function.set_is_visible(false);
   function.AttachCode(code);  // Has a single entry point, as a static function.
-  // For inclusion in Snapshot::kAppWithJIT.
+  // For inclusion in Snapshot::kAppJIT.
   function.set_unoptimized_code(code);
 
   isolate->object_store()->SetMegamorphicMissHandler(code, function);

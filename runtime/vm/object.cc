@@ -3441,7 +3441,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
   ASSERT(!scr.IsNull());
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return TokenPosition::kNoSource;
   }
   TokenStream::Iterator tkit(zone, tkns, token_pos(),
@@ -7532,7 +7532,7 @@ RawString* Field::InitializingExpression() const {
   ASSERT(!scr.IsNull());
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return String::null();
   }
   TokenStream::Iterator tkit(zone, tkns, token_pos());
@@ -8680,7 +8680,7 @@ RawString* Script::Source() const {
 RawString* Script::GenerateSource() const {
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return String::null();
   }
   return token_stream.GenerateSource();
@@ -8907,7 +8907,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
 
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (tkns.IsNull()) {
-    ASSERT((Dart::snapshot_kind() == Snapshot::kAppNoJIT));
+    ASSERT((Dart::snapshot_kind() == Snapshot::kAppAOT));
     *line = -1;
     if (column != NULL) {
       *column = -1;
@@ -9005,7 +9005,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t relative_line_number = line_number - line_offset();
@@ -9055,7 +9055,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t length = src.Length();
@@ -10969,7 +10969,7 @@ bool LibraryPrefix::LoadLibrary() const {
   }
   ASSERT(is_deferred_load());
   ASSERT(num_imports() == 1);
-  if (Dart::snapshot_kind() == Snapshot::kAppNoJIT) {
+  if (Dart::snapshot_kind() == Snapshot::kAppAOT) {
     // The library list was tree-shaken away.
     this->set_is_loaded();
     return true;
@@ -12575,7 +12575,7 @@ const char* ICData::ToCString() const {
 RawFunction* ICData::Owner() const {
   Object& obj = Object::Handle(raw_ptr()->owner_);
   if (obj.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return Function::null();
   } else if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
@@ -13765,7 +13765,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   uword code_entry = instrs.PayloadStart();
   const Array& table = Array::Handle(deopt_info_array());
   if (table.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
     return TypedData::null();
   }
   // Linear search for the PC offset matching the target PC.

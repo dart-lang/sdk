@@ -3876,7 +3876,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
-    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
+    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3971,7 +3971,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4001,7 +4001,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -6518,7 +6518,7 @@ Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
                                                  2 * MB /* initial_size */);
   uint8_t* vm_isolate_snapshot_buffer = NULL;
   uint8_t* isolate_snapshot_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kAppNoJIT, &vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kAppAOT, &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer, ApiReallocate,
                             &instructions_writer);
 
@@ -6583,7 +6583,7 @@ Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer, ApiReallocate,
                                              2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppNoJIT, vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kAppAOT, vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer, ApiReallocate,
                             &instructions_writer);
 
@@ -6688,7 +6688,7 @@ Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer, ApiReallocate,
                                              2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppWithJIT, vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kAppJIT, vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer, ApiReallocate,
                             &instructions_writer);
   writer.WriteFullSnapshot();

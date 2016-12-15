@@ -152,17 +152,17 @@ enum SerializeState {
 class Snapshot {
  public:
   enum Kind {
-    kCore = 0,    // Full snapshot of core libraries. No root library, no code.
-    kScript,      // A partial snapshot of only the application script.
-    kMessage,     // A partial snapshot used only for isolate messaging.
-    kAppWithJIT,  // Full snapshot of core libraries and application. Has some
-                  // code, but may compile in the future because we haven't
-                  // necessarily included code for every function or to
-                  // (de)optimize.
-    kAppNoJIT,    // Full snapshot of core libraries and application. Has
-                  // complete code for the application that never deopts. Will
-                  // not compile in the future.
-    kNone,        // dart_bootstrap/gen_snapshot
+    kCore = 0,  // Full snapshot of core libraries. No root library, no code.
+    kScript,    // A partial snapshot of only the application script.
+    kMessage,   // A partial snapshot used only for isolate messaging.
+    kAppJIT,    // Full snapshot of core libraries and application. Has some
+                // code, but may compile in the future because we haven't
+                // necessarily included code for every function or to
+                // (de)optimize.
+    kAppAOT,    // Full snapshot of core libraries and application. Has
+                // complete code for the application that never deopts. Will
+                // not compile in the future.
+    kNone,      // dart_bootstrap/gen_snapshot
     kInvalid
   };
   static const char* KindToCString(Kind kind);
@@ -183,10 +183,10 @@ class Snapshot {
   }
 
   static bool IsFull(Kind kind) {
-    return (kind == kCore) || (kind == kAppWithJIT) || (kind == kAppNoJIT);
+    return (kind == kCore) || (kind == kAppJIT) || (kind == kAppAOT);
   }
   static bool IncludesCode(Kind kind) {
-    return (kind == kAppWithJIT) || (kind == kAppNoJIT);
+    return (kind == kAppJIT) || (kind == kAppAOT);
   }
 
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }

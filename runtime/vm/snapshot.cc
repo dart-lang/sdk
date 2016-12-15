@@ -150,9 +150,9 @@ const char* Snapshot::KindToCString(Kind kind) {
       return "script";
     case kMessage:
       return "message";
-    case kAppWithJIT:
+    case kAppJIT:
       return "app-jit";
-    case kAppNoJIT:
+    case kAppAOT:
       return "app-aot";
     case kNone:
       return "none";

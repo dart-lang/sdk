@@ -208,7 +208,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       snapshot_kind_ = snapshot->kind();
 
       if (Snapshot::IncludesCode(snapshot_kind_)) {
-        if (snapshot_kind_ == Snapshot::kAppNoJIT) {
+        if (snapshot_kind_ == Snapshot::kAppAOT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
           if (!FLAG_precompiled_runtime) {

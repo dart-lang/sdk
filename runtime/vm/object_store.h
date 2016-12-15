@@ -560,8 +560,8 @@ class ObjectStore {
     switch (kind) {
       case Snapshot::kCore:
         return reinterpret_cast<RawObject**>(&library_load_error_table_);
-      case Snapshot::kAppWithJIT:
-      case Snapshot::kAppNoJIT:
+      case Snapshot::kAppJIT:
+      case Snapshot::kAppAOT:
         return to();
       case Snapshot::kScript:
       case Snapshot::kMessage:
