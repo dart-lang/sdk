@@ -274,7 +274,8 @@ class AnalysisDriver {
    * Return `true` if the driver has a file to analyze.
    */
   bool get hasFilesToAnalyze {
-    return _requestedFiles.isNotEmpty ||
+    return _changedFiles.isNotEmpty ||
+        _requestedFiles.isNotEmpty ||
         _requestedParts.isNotEmpty ||
         _filesToAnalyze.isNotEmpty ||
         _partsToAnalyze.isNotEmpty;

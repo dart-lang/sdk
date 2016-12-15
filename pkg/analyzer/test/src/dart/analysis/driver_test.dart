@@ -999,6 +999,12 @@ main() {
     await future;
     expect(driver.hasFilesToAnalyze, isFalse);
 
+    // Change a file, even if not added, it still might affect analysis.
+    driver.changeFile(_p('/not/added.dart'));
+    expect(driver.hasFilesToAnalyze, isTrue);
+    await _waitForIdle();
+    expect(driver.hasFilesToAnalyze, isFalse);
+
     // Request of referenced names is not analysis of a file.
     driver.getFilesReferencingName('X');
     expect(driver.hasFilesToAnalyze, isFalse);
