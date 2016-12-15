@@ -4539,13 +4539,6 @@ class ImportedReferenceContributorTest_Driver
 
   @failingTest
   @override
-  test_partFile_TypeName2() {
-    // Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_TypeName2();
-  }
-
-  @failingTest
-  @override
   test_doc_class() {
 //    Expected: 'My class.\n'
 //        'Short description.'

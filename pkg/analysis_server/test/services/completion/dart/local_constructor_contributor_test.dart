@@ -4156,13 +4156,6 @@ class LocalConstructorContributorTest_Driver
 
   @failingTest
   @override
-  test_partFile_TypeName() {
-    // Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_TypeName();
-  }
-
-  @failingTest
-  @override
   test_partFile_TypeName2() async {
 //    Task failed: BuildCompilationUnitElementTask for source /testA.dart
 //    Element mismatch in /testA.dart at /testA.dart

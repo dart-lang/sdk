@@ -322,37 +322,8 @@ class LocalLibraryContributorTest_Driver extends LocalLibraryContributorTest {
 
   @failingTest
   @override
-  test_partFile_Constructor2() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_Constructor2();
-  }
-
-  @failingTest
-  @override
-  test_partFile_InstanceCreationExpression_assignment_filter() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_InstanceCreationExpression_assignment_filter();
-  }
-
-  @failingTest
-  @override
-  test_partFile_InstanceCreationExpression_variable_declaration_filter() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super
-        .test_partFile_InstanceCreationExpression_variable_declaration_filter();
-  }
-
-  @failingTest
-  @override
   test_partFile_TypeName() {
 //    Bad state: Should not be used with the new analysis driver.
     return super.test_partFile_TypeName();
-  }
-
-  @failingTest
-  @override
-  test_partFile_TypeName2() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_TypeName2();
   }
 }
