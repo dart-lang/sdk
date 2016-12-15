@@ -102,6 +102,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   // of the type variables in an environment (like the [LocalsHandler]).
   final List<DartType> currentImplicitInstantiations = <DartType>[];
 
+  HInstruction rethrowableException;
+
   @override
   JavaScriptBackend get backend => compiler.backend;
 
@@ -1631,7 +1633,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     native.NativeBehavior nativeBehavior =
-        astAdapter.getNativeBehavior(invocation);
+        astAdapter.getNativeBehaviorForJsCall(invocation);
     assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
@@ -1854,32 +1856,33 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitIsExpression(ir.IsExpression isExpression) {
     isExpression.operand.accept(this);
     HInstruction expression = pop();
+    push(buildIsNode(isExpression, isExpression.type, expression));
+  }
 
+  HInstruction buildIsNode(
+      ir.Node node, ir.DartType dart_type, HInstruction expression) {
     // TODO(sra): Convert the type testing logic here to use ir.DartType.
-    DartType type = astAdapter.getDartType(isExpression.type);
+    DartType type = astAdapter.getDartType(dart_type);
 
     type = localsHandler.substInContext(type).unaliased;
 
     if (type is MethodTypeVariableType) {
-      push(graph.addConstantBool(true, compiler));
-      return;
+      return graph.addConstantBool(true, compiler);
     }
 
     if (type is MalformedType) {
       ErroneousElement element = type.element;
-      generateTypeError(isExpression, element.message);
-      push(new HIs.compound(type, expression, pop(), commonMasks.boolType));
-      return;
+      generateTypeError(node, element.message);
+      return new HIs.compound(type, expression, pop(), commonMasks.boolType);
     }
 
     if (type.isFunctionType) {
       List arguments = <HInstruction>[buildFunctionType(type), expression];
-      _pushDynamicInvocation(isExpression, commonMasks.boolType, arguments,
+      _pushDynamicInvocation(node, commonMasks.boolType, arguments,
           selector: new Selector.call(
               new PrivateName('_isTest', astAdapter.jsHelperLibrary),
               CallStructure.ONE_ARG));
-      push(new HIs.compound(type, expression, pop(), commonMasks.boolType));
-      return;
+      return new HIs.compound(type, expression, pop(), commonMasks.boolType);
     }
 
     if (type.isTypeVariable) {
@@ -1887,21 +1890,19 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           typeBuilder.addTypeVariableReference(type, sourceElement);
       _pushStaticInvocation(astAdapter.checkSubtypeOfRuntimeType,
           <HInstruction>[expression, runtimeType], commonMasks.boolType);
-      push(new HIs.variable(type, expression, pop(), commonMasks.boolType));
-      return;
+      return new HIs.variable(type, expression, pop(), commonMasks.boolType);
     }
 
     // TODO(sra): Type with type parameters.
 
     if (backend.hasDirectCheckFor(type)) {
-      push(new HIs.direct(type, expression, commonMasks.boolType));
-      return;
+      return new HIs.direct(type, expression, commonMasks.boolType);
     }
 
     // The interceptor is not always needed.  It is removed by optimization
     // when the receiver type or tested type permit.
     HInterceptor interceptor = _interceptorFor(expression);
-    push(new HIs.raw(type, expression, interceptor, commonMasks.boolType));
+    return new HIs.raw(type, expression, interceptor, commonMasks.boolType);
   }
 
   @override
@@ -1939,5 +1940,267 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     KernelStringBuilder stringBuilder = new KernelStringBuilder(this);
     stringConcat.accept(stringBuilder);
     stack.add(stringBuilder.result);
+  }
+
+  @override
+  void visitTryCatch(ir.TryCatch tryCatch) {
+    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
+    tryCatch.body.accept(this);
+    tryBuilder
+      ..closeTryBody()
+      ..buildCatch(tryCatch)
+      ..cleanUp();
+  }
+
+  /// `try { ... } catch { ... } finally { ... }` statements are a little funny
+  /// because a try can have one or both of {catch|finally}. The way this is
+  /// encoded in kernel AST are two separate classes with no common superclass
+  /// aside from Statement. If a statement has both `catch` and `finally`
+  /// clauses then it is encoded in kernel as so that the TryCatch is the body
+  /// statement of the TryFinally. To produce more efficient code rather than
+  /// nested try statements, the visitors avoid one potential level of
+  /// recursion.
+  @override
+  void visitTryFinally(ir.TryFinally tryFinally) {
+    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
+
+    // We do these shenanigans to produce better looking code that doesn't
+    // have nested try statements.
+    if (tryFinally.body is ir.TryCatch) {
+      ir.TryCatch tryCatch = tryFinally.body;
+      tryCatch.body.accept(this);
+      tryBuilder
+        ..closeTryBody()
+        ..buildCatch(tryCatch);
+    } else {
+      tryFinally.body.accept(this);
+      tryBuilder.closeTryBody();
+    }
+
+    tryBuilder
+      ..buildFinallyBlock(tryFinally)
+      ..cleanUp();
+  }
+}
+
+/// Class in charge of building try, catch and/or finally blocks. This handles
+/// the instructions that need to be output and the dominator calculation of
+/// this sequence of code.
+class TryCatchFinallyBuilder {
+  HBasicBlock enterBlock;
+  HBasicBlock startTryBlock;
+  HBasicBlock endTryBlock;
+  HBasicBlock startCatchBlock;
+  HBasicBlock endCatchBlock;
+  HBasicBlock startFinallyBlock;
+  HBasicBlock endFinallyBlock;
+  HBasicBlock exitBlock;
+  HTry tryInstruction;
+  HLocalValue exception;
+  KernelSsaBuilder kernelBuilder;
+
+  SubGraph bodyGraph;
+  SubGraph catchGraph;
+  SubGraph finallyGraph;
+
+  // The original set of locals that were defined before this try block.
+  // The catch block and the finally block must not reuse the existing locals
+  // handler. None of the variables that have been defined in the body-block
+  // will be used, but for loops we will add (unnecessary) phis that will
+  // reference the body variables. This makes it look as if the variables were
+  // used in a non-dominated block.
+  LocalsHandler originalSavedLocals;
+
+  TryCatchFinallyBuilder(this.kernelBuilder) {
+    tryInstruction = new HTry();
+    originalSavedLocals = new LocalsHandler.from(kernelBuilder.localsHandler);
+    enterBlock = kernelBuilder.openNewBlock();
+    kernelBuilder.close(tryInstruction);
+
+    startTryBlock = kernelBuilder.graph.addNewBlock();
+    kernelBuilder.open(startTryBlock);
+  }
+
+  void _addExitTrySuccessor(successor) {
+    if (successor == null) return;
+    // Iterate over all blocks created inside this try/catch, and
+    // attach successor information to blocks that end with
+    // [HExitTry].
+    for (int i = startTryBlock.id; i < successor.id; i++) {
+      HBasicBlock block = kernelBuilder.graph.blocks[i];
+      var last = block.last;
+      if (last is HExitTry) {
+        block.addSuccessor(successor);
+      }
+    }
+  }
+
+  void _addOptionalSuccessor(block1, block2) {
+    if (block2 != null) block1.addSuccessor(block2);
+  }
+
+  /// Helper function to set up basic block successors for try-catch-finally
+  /// sequences.
+  void _setBlockSuccessors() {
+    // Setup all successors. The entry block that contains the [HTry]
+    // has 1) the body, 2) the catch, 3) the finally, and 4) the exit
+    // blocks as successors.
+    enterBlock.addSuccessor(startTryBlock);
+    _addOptionalSuccessor(enterBlock, startCatchBlock);
+    _addOptionalSuccessor(enterBlock, startFinallyBlock);
+    enterBlock.addSuccessor(exitBlock);
+
+    // The body has either the catch or the finally block as successor.
+    if (endTryBlock != null) {
+      assert(startCatchBlock != null || startFinallyBlock != null);
+      endTryBlock.addSuccessor(
+          startCatchBlock != null ? startCatchBlock : startFinallyBlock);
+      endTryBlock.addSuccessor(exitBlock);
+    }
+
+    // The catch block has either the finally or the exit block as
+    // successor.
+    endCatchBlock?.addSuccessor(
+        startFinallyBlock != null ? startFinallyBlock : exitBlock);
+
+    // The finally block has the exit block as successor.
+    endFinallyBlock?.addSuccessor(exitBlock);
+
+    // If a block inside try/catch aborts (eg with a return statement),
+    // we explicitely mark this block a predecessor of the catch
+    // block and the finally block.
+    _addExitTrySuccessor(startCatchBlock);
+    _addExitTrySuccessor(startFinallyBlock);
+  }
+
+  /// Build the finally{} clause of a try/{catch}/finally statement. Note this
+  /// does not examine the body of the try clause, only the finally portion.
+  void buildFinallyBlock(ir.TryFinally tryFinally) {
+    kernelBuilder.localsHandler = new LocalsHandler.from(originalSavedLocals);
+    startFinallyBlock = kernelBuilder.graph.addNewBlock();
+    kernelBuilder.open(startFinallyBlock);
+    tryFinally.finalizer.accept(kernelBuilder);
+    if (!kernelBuilder.isAborted()) {
+      endFinallyBlock = kernelBuilder.close(new HGoto());
+    }
+    tryInstruction.finallyBlock = startFinallyBlock;
+    finallyGraph =
+        new SubGraph(startFinallyBlock, kernelBuilder.lastOpenedBlock);
+  }
+
+  void closeTryBody() {
+    // We use a [HExitTry] instead of a [HGoto] for the try block
+    // because it will have multiple successors: the join block, and
+    // the catch or finally block.
+    if (!kernelBuilder.isAborted()) {
+      endTryBlock = kernelBuilder.close(new HExitTry());
+    }
+    bodyGraph = new SubGraph(startTryBlock, kernelBuilder.lastOpenedBlock);
+  }
+
+  void buildCatch(ir.TryCatch tryCatch) {
+    kernelBuilder.localsHandler = new LocalsHandler.from(originalSavedLocals);
+    startCatchBlock = kernelBuilder.graph.addNewBlock();
+    kernelBuilder.open(startCatchBlock);
+    // Note that the name of this local is irrelevant.
+    SyntheticLocal local = new SyntheticLocal(
+        'exception', kernelBuilder.localsHandler.executableContext);
+    exception = new HLocalValue(local, kernelBuilder.commonMasks.nonNullType);
+    kernelBuilder.add(exception);
+    HInstruction oldRethrowableException = kernelBuilder.rethrowableException;
+    kernelBuilder.rethrowableException = exception;
+
+    kernelBuilder._pushStaticInvocation(
+        kernelBuilder.astAdapter.exceptionUnwrapper,
+        [exception],
+        kernelBuilder.astAdapter.exceptionUnwrapperType);
+    HInvokeStatic unwrappedException = kernelBuilder.pop();
+    tryInstruction.exception = exception;
+    int catchesIndex = 0;
+
+    void pushCondition(ir.Catch catchBlock) {
+      if (catchBlock.guard is! ir.DynamicType) {
+        HInstruction condition = kernelBuilder.buildIsNode(
+            catchBlock.exception, catchBlock.guard, unwrappedException);
+        kernelBuilder.push(condition);
+      } else {
+        kernelBuilder.stack.add(
+            kernelBuilder.graph.addConstantBool(true, kernelBuilder.compiler));
+      }
+    }
+
+    void visitThen() {
+      ir.Catch catchBlock = tryCatch.catches[catchesIndex];
+      catchesIndex++;
+      if (catchBlock.exception != null) {
+        LocalVariableElement exceptionVariable =
+            kernelBuilder.astAdapter.getElement(catchBlock.exception);
+        kernelBuilder.localsHandler
+            .updateLocal(exceptionVariable, unwrappedException);
+      }
+      if (catchBlock.stackTrace != null) {
+        kernelBuilder._pushStaticInvocation(
+            kernelBuilder.astAdapter.traceFromException,
+            [exception],
+            kernelBuilder.astAdapter.traceFromExceptionType);
+        HInstruction traceInstruction = kernelBuilder.pop();
+        LocalVariableElement traceVariable =
+            kernelBuilder.astAdapter.getElement(catchBlock.stackTrace);
+        kernelBuilder.localsHandler
+            .updateLocal(traceVariable, traceInstruction);
+      }
+      catchBlock.body.accept(kernelBuilder);
+    }
+
+    void visitElse() {
+      if (catchesIndex >= tryCatch.catches.length) {
+        kernelBuilder.closeAndGotoExit(new HThrow(
+            exception, exception.sourceInformation,
+            isRethrow: true));
+      } else {
+        // TODO(efortuna): Make SsaBranchBuilder handle kernel elements, and
+        // pass tryCatch in here as the "diagnosticNode".
+        kernelBuilder.handleIf(
+            visitCondition: () {
+              pushCondition(tryCatch.catches[catchesIndex]);
+            },
+            visitThen: visitThen,
+            visitElse: visitElse);
+      }
+    }
+
+    ir.Catch firstBlock = tryCatch.catches[catchesIndex];
+    // TODO(efortuna): Make SsaBranchBuilder handle kernel elements, and then
+    // pass tryCatch in here as the "diagnosticNode".
+    kernelBuilder.handleIf(
+        visitCondition: () {
+          pushCondition(firstBlock);
+        },
+        visitThen: visitThen,
+        visitElse: visitElse);
+    if (!kernelBuilder.isAborted()) {
+      endCatchBlock = kernelBuilder.close(new HGoto());
+    }
+
+    kernelBuilder.rethrowableException = oldRethrowableException;
+    tryInstruction.catchBlock = startCatchBlock;
+    catchGraph = new SubGraph(startCatchBlock, kernelBuilder.lastOpenedBlock);
+  }
+
+  void cleanUp() {
+    exitBlock = kernelBuilder.graph.addNewBlock();
+    _setBlockSuccessors();
+
+    // Use the locals handler not altered by the catch and finally
+    // blocks.
+    kernelBuilder.localsHandler = originalSavedLocals;
+    kernelBuilder.open(exitBlock);
+    enterBlock.setBlockFlow(
+        new HTryBlockInformation(
+            kernelBuilder.wrapStatementGraph(bodyGraph),
+            exception,
+            kernelBuilder.wrapStatementGraph(catchGraph),
+            kernelBuilder.wrapStatementGraph(finallyGraph)),
+        exitBlock);
   }
 }

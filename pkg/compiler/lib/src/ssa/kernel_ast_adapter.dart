@@ -354,6 +354,20 @@ class KernelAstAdapter {
   ir.Procedure get mapLiteralUntypedEmptyMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedEmptyMaker];
 
+  ir.Procedure get exceptionUnwrapper =>
+      kernel.functions[_backend.helpers.exceptionUnwrapper];
+
+  TypeMask get exceptionUnwrapperType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.exceptionUnwrapper, _globalInferenceResults);
+
+  ir.Procedure get traceFromException =>
+      kernel.functions[_backend.helpers.traceFromException];
+
+  TypeMask get traceFromExceptionType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.traceFromException, _globalInferenceResults);
+
   ir.Procedure get mapLiteralUntypedMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
 
