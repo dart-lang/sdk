@@ -8,6 +8,13 @@ import 'package:test/test.dart';
 import 'class_hierarchy_basic.dart';
 import 'dart:io';
 import 'dart:math';
+import 'self_check_util.dart';
+
+main(List<String> args) {
+  runSelfCheck(args, (String filename) {
+    testClassHierarchyOnProgram(loadProgramFromBinary(filename));
+  });
+}
 
 void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
   BasicClassHierarchy basic = new BasicClassHierarchy(program);

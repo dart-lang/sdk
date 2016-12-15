@@ -123,6 +123,7 @@ abstract class TestSuite {
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
   Map<String, String> _environmentOverrides;
+  RuntimeConfiguration runtimeConfiguration;
 
   TestSuite(this.configuration, this.suiteName) {
     TestUtils.buildDir(configuration); // Sets configuration_directory.
@@ -131,6 +132,7 @@ abstract class TestSuite {
         'DART_CONFIGURATION': configuration['configuration_directory']
       };
     }
+    runtimeConfiguration = new RuntimeConfiguration(configuration);
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -293,6 +295,9 @@ abstract class TestSuite {
   //  - test if the selector matches
   // and will enqueue the test (if necessary).
   void enqueueNewTestCase(TestCase testCase) {
+    if (testCase.isNegative && runtimeConfiguration.shouldSkipNegativeTests) {
+      return;
+    }
     var expectations = testCase.expectedOutcomes;
 
     // Handle sharding based on the original test path (i.e. all multitests
@@ -1095,7 +1100,9 @@ class StandardTestSuite extends TestSuite {
             CommandBuilder.instance,
             compileTimeArguments,
             environmentOverrides);
-    commands.addAll(compilationArtifact.commands);
+    if (!configuration['skip-compilation']) {
+      commands.addAll(compilationArtifact.commands);
+    }
 
     if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
       // Do not attempt to run the compiled result. A compilation
@@ -1103,8 +1110,6 @@ class StandardTestSuite extends TestSuite {
       return commands;
     }
 
-    RuntimeConfiguration runtimeConfiguration =
-        new RuntimeConfiguration(configuration);
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             runtimeConfiguration,

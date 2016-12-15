@@ -119,6 +119,11 @@ class TestOptionsParser {
     [ff | chrome | safari | ie9 | ie10 | ie11 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
+    self_check: Pass each test or its compiled output to every file under
+        `pkg` whose name ends with `_self_check.dart`.
+        Each test is given to the self_check tester as a filename on stdin using
+        the batch-mode protocol.
+
     none: No runtime, compile only (for example, used for dart2analyzer static
           analysis tests).''',
           ['-r', '--runtime'],
@@ -141,6 +146,7 @@ class TestOptionsParser {
             'safarimobilesim',
             'ContentShellOnAndroid',
             'DartiumOnAndroid',
+            'self_check',
             'none'
           ],
           'vm'),
@@ -476,6 +482,17 @@ Note: currently only implemented for dart2js.''',
           ['--exclude-suite'],
           defaultTestSelectors,
           null),
+      new _TestOptionSpecification(
+          'skip-compilation',
+          'Skip the compilation step, using the compilation artifacts left in '
+          ' the output folder from a previous run.'
+          'This flag will often cause false positves and negatives, but can be'
+          ' useful for quick-and-dirty offline testing when not making changes'
+          ' that affect the compiler.',
+          ['--skip-compilation'],
+          [],
+          false,
+          type: 'bool')
     ];
   }
 
@@ -694,7 +711,7 @@ Note: currently only implemented for dart2js.''',
         break;
       case 'app_jit':
       case 'dartk':
-        validRuntimes = const ['vm'];
+        validRuntimes = const ['vm', 'self_check', 'none'];
         break;
       case 'precompiler':
       case 'dartkp':
