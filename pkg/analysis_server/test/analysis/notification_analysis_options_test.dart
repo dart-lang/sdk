@@ -20,11 +20,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
     defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
-    // These tests all fail, presumably because we are not updating the analysis
-    // options when the file changes and because we are not analyzing the
-    // analysis options file.
-//    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest_Driver);
-//    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest_Driver);
+    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest_Driver);
+    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest_Driver);
   });
 }
 
@@ -108,8 +105,11 @@ main() {
     await waitForTasksFinished();
 
     // Verify options file.
-    expect(optionsFileErrors, isNotNull);
-    expect(optionsFileErrors, isEmpty);
+    if (!enableNewAnalysisDriver) {
+      // TODO(brianwilkerson) Implement options file analysis in the new driver.
+      expect(optionsFileErrors, isNotNull);
+      expect(optionsFileErrors, isEmpty);
+    }
 
     // Verify test file.
     expect(testFileErrors, isNotNull);
@@ -134,8 +134,11 @@ main() {
     await waitForTasksFinished();
 
     // Verify options file.
-    expect(optionsFileErrors, isNotNull);
-    expect(optionsFileErrors, isEmpty);
+    if (!enableNewAnalysisDriver) {
+      // TODO(brianwilkerson) Implement options file analysis in the new driver.
+      expect(optionsFileErrors, isNotNull);
+      expect(optionsFileErrors, isEmpty);
+    }
 
     // Verify test file.
     expect(testFileErrors, isNotNull);
@@ -151,7 +154,10 @@ analyzer:
     await waitForTasksFinished();
 
     // Verify options file.
-    expect(optionsFileErrors, isEmpty);
+    if (!enableNewAnalysisDriver) {
+      // TODO(brianwilkerson) Implement options file analysis in the new driver.
+      expect(optionsFileErrors, isEmpty);
+    }
 
     // Verify test file.
     expect(testFileErrors, hasLength(1));
@@ -196,9 +202,12 @@ linter:
 
     await waitForTasksFinished();
 
-    expect(optionsFileErrors, hasLength(1));
-    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.WARNING);
-    expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
+    if (!enableNewAnalysisDriver) {
+      // TODO(brianwilkerson) Implement options file analysis in the new driver.
+      expect(optionsFileErrors, hasLength(1));
+      expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.WARNING);
+      expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
+    }
   }
 
   test_options_file_added() async {
@@ -230,9 +239,13 @@ linter:
 
     await waitForTasksFinished();
 
-    expect(optionsFileErrors, hasLength(1));
-    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.ERROR);
-    expect(optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+    if (!enableNewAnalysisDriver) {
+      // TODO(brianwilkerson) Implement options file analysis in the new driver.
+      expect(optionsFileErrors, hasLength(1));
+      expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.ERROR);
+      expect(
+          optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+    }
   }
 
   test_options_file_removed() async {

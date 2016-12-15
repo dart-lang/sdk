@@ -9,7 +9,6 @@ import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 
 void new_sendDartNotificationNavigation(
@@ -39,11 +38,8 @@ void new_sendDartNotificationOccurrences(
 
 void new_sendErrorNotification(
     AnalysisServer analysisServer, AnalysisResult result) {
-  var serverErrors = <protocol.AnalysisError>[];
-  for (AnalysisError error in result.errors) {
-    serverErrors
-        .add(protocol.newAnalysisError_fromEngine(result.lineInfo, error));
-  }
+  var serverErrors = protocol.doAnalysisError_listFromEngine(
+      result.driver.analysisOptions, result.lineInfo, result.errors);
   var params = new protocol.AnalysisErrorsParams(result.path, serverErrors);
   analysisServer.sendNotification(params.toNotification());
 }
