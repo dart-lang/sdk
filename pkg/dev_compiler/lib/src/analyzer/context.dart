@@ -175,25 +175,3 @@ DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
       : _createFolderBasedDartSdk(sdkPath);
   return new DartUriResolver(sdk);
 }
-
-List<String> parseDeclaredVariables(
-    List<String> args, Map<String, String> declaredVars) {
-  var count = args.length;
-  var remainingArgs = <String>[];
-  for (int i = 0; i < count; i++) {
-    var arg = args[i];
-    if (arg == '--') {
-      while (i < count) {
-        remainingArgs.add(args[i++]);
-      }
-    } else if (arg.startsWith("-D")) {
-      // The format for defined variables is:
-      //     -D<name>=<value>
-      var parts = arg.substring(2).split('=');
-      declaredVars[parts[0]] = parts.length > 1 ? parts[1] : '';
-    } else {
-      remainingArgs.add(arg);
-    }
-  }
-  return remainingArgs;
-}
