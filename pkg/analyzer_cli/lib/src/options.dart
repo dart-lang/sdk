@@ -280,7 +280,6 @@ class CommandLineOptions {
     bool verbose = args.contains('-v') || args.contains('--verbose');
     bool hide = !verbose;
 
-    args = args.expand((String arg) => arg.split('=')).toList();
     var parser = new ArgParser(allowTrailingOptions: true)
       ..addFlag('batch',
           abbr: 'b',

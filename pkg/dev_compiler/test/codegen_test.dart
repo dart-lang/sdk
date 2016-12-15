@@ -139,7 +139,6 @@ main(List<String> arguments) {
       }
 
       var declaredVars = <String, String>{};
-      args = args.expand((String arg) => arg.split('=')).toList();
       args = extractDefinedVariables(args, declaredVars);
       ArgResults argResults;
       try {

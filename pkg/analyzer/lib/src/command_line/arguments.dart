@@ -184,7 +184,10 @@ List<String> extractDefinedVariables(
         remainingArgs.add(args[i++]);
       }
     } else if (arg.startsWith("-D")) {
-      if (i + 1 < count) {
+      int end = arg.indexOf('=');
+      if (end > 2) {
+        definedVariables[arg.substring(2, end)] = arg.substring(end + 1);
+      } else if (i + 1 < count) {
         definedVariables[arg.substring(2)] = args[++i];
       } else {
         remainingArgs.add(arg);

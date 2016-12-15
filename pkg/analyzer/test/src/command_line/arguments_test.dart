@@ -143,15 +143,18 @@ class ArgumentsTest {
   }
 
   void test_extractDefinedVariables() {
-    List<String> args = ['--a', '-Dbaz', 'go', 'back=blue', '-Dx'];
+    List<String> args = ['--a', '-Dbaz', 'go', '-Dc=d', 'e=f', '-Dy=', '-Dx'];
     Map<String, String> definedVariables = {'one': 'two'};
     args = extractDefinedVariables(args, definedVariables);
-    expect(args, orderedEquals(['--a', 'back=blue', '-Dx']));
+    expect(args, orderedEquals(['--a', 'e=f', '-Dx']));
     expect(definedVariables['one'], 'two');
     expect(definedVariables['two'], isNull);
     expect(definedVariables['baz'], 'go');
     expect(definedVariables['go'], isNull);
-    expect(definedVariables, hasLength(2));
+    expect(definedVariables['c'], 'd');
+    expect(definedVariables['d'], isNull);
+    expect(definedVariables['y'], '');
+    expect(definedVariables, hasLength(4));
   }
 
   void test_filterUnknownArguments() {
