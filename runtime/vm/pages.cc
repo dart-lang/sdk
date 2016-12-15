@@ -776,7 +776,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 
 bool PageSpace::ShouldCollectCode() {
   // Try to collect code if enough time has passed since the last attempt.
-  const int64_t start = OS::GetCurrentTimeMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   const int64_t last_code_collection_in_us =
       page_space_controller_.last_code_collection_in_us();
 
@@ -852,7 +852,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       OS::PrintErr(" done.\n");
     }
 
-    const int64_t start = OS::GetCurrentTimeMicros();
+    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Make code pages writable.
     WriteProtectCode(false);
@@ -867,7 +867,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();
 
-    int64_t mid1 = OS::GetCurrentTimeMicros();
+    int64_t mid1 = OS::GetCurrentMonotonicMicros();
 
     // Abandon the remainder of the bump allocation block.
     AbandonBumpAllocation();
@@ -875,7 +875,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kData].Reset();
     freelist_[HeapPage::kExecutable].Reset();
 
-    int64_t mid2 = OS::GetCurrentTimeMicros();
+    int64_t mid2 = OS::GetCurrentMonotonicMicros();
     int64_t mid3 = 0;
 
     {
@@ -922,7 +922,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         page = next_page;
       }
 
-      mid3 = OS::GetCurrentTimeMicros();
+      mid3 = OS::GetCurrentMonotonicMicros();
 
       if (!FLAG_concurrent_sweep) {
         // Sweep all regular sized pages now.
@@ -955,7 +955,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     // Make code pages read-only.
     WriteProtectCode(true);
 
-    int64_t end = OS::GetCurrentTimeMicros();
+    int64_t end = OS::GetCurrentMonotonicMicros();
 
     // Record signals for growth control. Include size of external allocations.
     page_space_controller_.EvaluateGarbageCollection(
@@ -1117,7 +1117,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentTimeMicros()) {}
+      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()) {}
 
 
 PageSpaceController::~PageSpaceController() {}

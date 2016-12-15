@@ -693,7 +693,7 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.num_++;
   stats_.space_ = space;
   stats_.reason_ = reason;
-  stats_.before_.micros_ = OS::GetCurrentTimeMicros();
+  stats_.before_.micros_ = OS::GetCurrentMonotonicMicros();
   stats_.before_.new_ = new_space_.GetCurrentUsage();
   stats_.before_.old_ = old_space_.GetCurrentUsage();
   stats_.times_[0] = 0;
@@ -708,7 +708,7 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
 
 
 void Heap::RecordAfterGC(Space space) {
-  stats_.after_.micros_ = OS::GetCurrentTimeMicros();
+  stats_.after_.micros_ = OS::GetCurrentMonotonicMicros();
   int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
   if (stats_.space_ == kNew) {
     new_space_.AddGCTime(delta);

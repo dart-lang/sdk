@@ -504,13 +504,13 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
-  int64_t start = OS::GetCurrentTimeMicros();
+  int64_t start = OS::GetCurrentMonotonicMicros();
   isolate->VisitObjectPointers(visitor,
                                StackFrameIterator::kDontValidateFrames);
-  int64_t middle = OS::GetCurrentTimeMicros();
+  int64_t middle = OS::GetCurrentMonotonicMicros();
   IterateStoreBuffers(isolate, visitor);
   IterateObjectIdTable(isolate, visitor);
-  int64_t end = OS::GetCurrentTimeMicros();
+  int64_t end = OS::GetCurrentMonotonicMicros();
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
@@ -808,9 +808,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
     IterateRoots(isolate, &visitor);
-    int64_t start = OS::GetCurrentTimeMicros();
+    int64_t start = OS::GetCurrentMonotonicMicros();
     ProcessToSpace(&visitor);
-    int64_t middle = OS::GetCurrentTimeMicros();
+    int64_t middle = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
       if (FLAG_background_finalization) {
@@ -831,7 +831,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     page_space->ReleaseDataLock();
 
     // Scavenge finished. Run accounting.
-    int64_t end = OS::GetCurrentTimeMicros();
+    int64_t end = OS::GetCurrentMonotonicMicros();
     heap_->RecordTime(kProcessToSpace, middle - start);
     heap_->RecordTime(kIterateWeaks, end - middle);
     stats_history_.Add(ScavengeStats(

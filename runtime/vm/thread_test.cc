@@ -52,16 +52,16 @@ UNIT_TEST_CASE(Monitor) {
   int attempts = 0;
   while (attempts < kNumAttempts) {
     MonitorLocker ml(monitor);
-    int64_t start = OS::GetCurrentTimeMillis();
+    int64_t start = OS::GetCurrentMonotonicMicros();
     int64_t wait_time = 2017;
     Monitor::WaitResult wait_result = ml.Wait(wait_time);
-    int64_t stop = OS::GetCurrentTimeMillis();
+    int64_t stop = OS::GetCurrentMonotonicMicros();
 
     // We expect to be timing out here.
     EXPECT_EQ(Monitor::kTimedOut, wait_result);
 
     // Check whether this attempt falls within the exptected time limits.
-    int64_t wakeup_time = stop - start;
+    int64_t wakeup_time = (stop - start) / kMicrosecondsPerMillisecond;
     OS::Print("wakeup_time: %" Pd64 "\n", wakeup_time);
     const int kAcceptableTimeJitter = 20;    // Measured in milliseconds.
     const int kAcceptableWakeupDelay = 150;  // Measured in milliseconds.

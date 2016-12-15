@@ -370,18 +370,20 @@ void ThreadPool::Worker::SetTask(Task* task) {
 
 
 static int64_t ComputeTimeout(int64_t idle_start) {
-  if (FLAG_worker_timeout_millis <= 0) {
+  int64_t worker_timeout_micros =
+      FLAG_worker_timeout_millis * kMicrosecondsPerMillisecond;
+  if (worker_timeout_micros <= 0) {
     // No timeout.
     return 0;
   } else {
-    int64_t waited = OS::GetCurrentTimeMillis() - idle_start;
-    if (waited >= FLAG_worker_timeout_millis) {
+    int64_t waited = OS::GetCurrentMonotonicMicros() - idle_start;
+    if (waited >= worker_timeout_micros) {
       // We must have gotten a spurious wakeup just before we timed
       // out.  Give the worker one last desperate chance to live.  We
       // are merciful.
       return 1;
     } else {
-      return FLAG_worker_timeout_millis - waited;
+      return worker_timeout_micros - waited;
     }
   }
 }
@@ -408,9 +410,9 @@ bool ThreadPool::Worker::Loop() {
     }
     ASSERT(!done_);
     pool_->SetIdleAndReapExited(this);
-    idle_start = OS::GetCurrentTimeMillis();
+    idle_start = OS::GetCurrentMonotonicMicros();
     while (true) {
-      Monitor::WaitResult result = ml.Wait(ComputeTimeout(idle_start));
+      Monitor::WaitResult result = ml.WaitMicros(ComputeTimeout(idle_start));
       if (task_ != NULL) {
         // We've found a task.  Process it, regardless of whether the
         // worker is done_.
