@@ -233,6 +233,8 @@ class KernelCompilationCommand extends CompilationCommand {
       : super._(displayName, outputFile, neverSkipCompilation,
                 bootstrapDependencies, executable, arguments,
                 environmentOverrides);
+
+  int get maxNumRetries => 1;
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==
@@ -2841,6 +2843,31 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
+    final command = output.command;
+
+    // The dartk batch compiler sometimes runs out of memory. In such a case we
+    // will retry running it.
+    if (command is KernelCompilationCommand) {
+      if (output.hasCrashed) {
+        bool containsOutOfMemoryMessage(String line) {
+          return line.contains('Exhausted heap space, trying to allocat');
+        }
+
+        decodeOutput();
+        if (stdout.any(containsOutOfMemoryMessage) ||
+            stderr.any(containsOutOfMemoryMessage)) {
+          return true;
+        }
+      }
+    }
+
+    // We currently rerun dartium tests, see issue 14074.
+    if (command is BrowserTestCommand &&
+        command.retry &&
+        command.browser == 'dartium') {
+      return true;
+    }
+
     if (io.Platform.operatingSystem == 'linux') {
       decodeOutput();
       // No matter which command we ran: If we get failures due to the
@@ -2854,13 +2881,6 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    // We currently rerun dartium tests, see issue 14074.
-    final command = output.command;
-    if (command is BrowserTestCommand &&
-        command.retry &&
-        command.browser == 'dartium') {
-      return true;
-    }
   }
   return false;
 }
