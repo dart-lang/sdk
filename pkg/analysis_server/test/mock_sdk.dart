@@ -173,6 +173,8 @@ class Future<T> {
   static Future wait(List<Future> futures) => null;
 }
 
+class FutureOr<T> {}
+
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
 ''');

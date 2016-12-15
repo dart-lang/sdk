@@ -52,6 +52,8 @@ class Future<T> {
   Future<T> whenComplete(action());
 }
 
+class FutureOr<T> {}
+
 abstract class Completer<T> {
   factory Completer() => new _AsyncCompleter<T>();
   factory Completer.sync() => new _SyncCompleter<T>();

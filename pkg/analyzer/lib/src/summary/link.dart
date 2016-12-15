@@ -4007,7 +4007,7 @@ abstract class ParameterParentElementForLink implements Element {
             unlinkedParam,
             typeParameterContext,
             typeParameterContext.enclosingUnit.resynthesizerContext
-            as CompilationUnitElementForLink,
+                as CompilationUnitElementForLink,
             i);
       }
     }
@@ -4656,6 +4656,7 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _functionType;
   InterfaceType _futureDynamicType;
   InterfaceType _futureNullType;
+  InterfaceType _futureOrType;
   InterfaceType _futureType;
   InterfaceType _intType;
   InterfaceType _iterableDynamicType;
@@ -4703,6 +4704,10 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get futureNullType =>
       _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+
+  @override
+  InterfaceType get futureOrType =>
+      _futureOrType ??= _buildInterfaceType(_linker.asyncLibrary, 'FutureOr');
 
   @override
   InterfaceType get futureType =>

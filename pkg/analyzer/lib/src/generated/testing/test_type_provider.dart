@@ -64,6 +64,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _futureNullType;
 
   /**
+   * The type representing the built-in type 'FutureOr'
+   */
+  InterfaceType _futureOrType;
+
+  /**
    * The type representing the built-in type 'Future'
    */
   InterfaceType _futureType;
@@ -259,6 +264,26 @@ class TestTypeProvider extends TypeProviderBase {
       _futureNullType = futureType.instantiate(<DartType>[nullType]);
     }
     return _futureNullType;
+  }
+
+  @override
+  InterfaceType get futureOrType {
+    if (_futureOrType == null) {
+      Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      _context.setContents(asyncSource, "");
+      CompilationUnitElementImpl asyncUnit =
+          new CompilationUnitElementImpl("async.dart");
+      LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+          _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
+      asyncLibrary.definingCompilationUnit = asyncUnit;
+      asyncUnit.librarySource = asyncUnit.source = asyncSource;
+
+      ClassElementImpl futureOr =
+          ElementFactory.classElement2("FutureOr", ["T"]);
+      _futureOrType = futureOr.type;
+      asyncUnit.types = <ClassElement>[futureOr];
+    }
+    return _futureOrType;
   }
 
   @override
