@@ -190,7 +190,6 @@ enum MessageKind {
   EXISTING_DEFINITION,
   EXISTING_LABEL,
   EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
-  EXPERIMENTAL_ASSERT_MESSAGE,
   EXPONENT_MISSING,
   EXPORT_BEFORE_PARTS,
   EXTERNAL_WITH_BODY,
@@ -3657,21 +3656,6 @@ main() => foo();
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors end.
       //////////////////////////////////////////////////////////////////////////////
-
-      MessageKind.EXPERIMENTAL_ASSERT_MESSAGE: const MessageTemplate(
-          MessageKind.EXPERIMENTAL_ASSERT_MESSAGE,
-          "Experimental language feature 'assertion with message'"
-          " is not supported.",
-          howToFix:
-              "Use option '--assert-message' to use assertions with messages.",
-          examples: const [
-            r'''
-main() {
-  int n = -7;
-  assert(n > 0, 'must be positive: $n');
-}
-'''
-          ]),
 
       MessageKind.IMPORT_EXPERIMENTAL_MIRRORS: const MessageTemplate(
           MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,

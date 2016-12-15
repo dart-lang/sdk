@@ -131,6 +131,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
+  ///
+  /// This is only included so that tests can pass the --assert-message flag
+  /// without causing dart2js to crash. The flag has no effect.
   final bool enableAssertMessage;
 
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
