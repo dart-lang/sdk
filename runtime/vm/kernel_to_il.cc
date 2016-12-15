@@ -3951,6 +3951,7 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   //     checker and the runtime unless explicitly specified otherwise.
   //
   // So we convert malformed return/parameter types to `dynamic`.
+  TypeParameterScope scope(this, &node->type_parameters());
 
   const Function& signature_function = Function::ZoneHandle(
       Z, Function::NewSignatureFunction(*active_class_->klass,
@@ -4014,11 +4015,28 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
 }
 
 
-void DartTypeTranslator::VisitTypeParameterType(TypeParameterType* node) {
-  ASSERT(active_class_->kernel_class != NULL);
+static intptr_t FindTypeParameterIndex(List<TypeParameter>* parameters,
+                                       TypeParameter* param) {
+  for (intptr_t i = 0; i < parameters->length(); i++) {
+    if (param == (*parameters)[i]) {
+      return i;
+    }
+  }
+  return -1;
+}
 
-  List<TypeParameter>* parameters =
-      &active_class_->kernel_class->type_parameters();
+
+void DartTypeTranslator::VisitTypeParameterType(TypeParameterType* node) {
+  for (TypeParameterScope* scope = type_parameter_scope_; scope != NULL;
+       scope = scope->outer()) {
+    const intptr_t index =
+        FindTypeParameterIndex(scope->parameters(), node->parameter());
+    if (index >= 0) {
+      result_ ^= dart::Type::DynamicType();
+      return;
+    }
+  }
+
   if ((active_class_->member != NULL) && active_class_->member->IsProcedure()) {
     Procedure* procedure = Procedure::Cast(active_class_->member);
     if ((procedure->function() != NULL) &&
@@ -4041,20 +4059,34 @@ void DartTypeTranslator::VisitTypeParameterType(TypeParameterType* node) {
       //     static A.x<T'>() { return new B<T'>(); }
       //   }
       //
-      parameters = &procedure->function()->type_parameters();
+      const intptr_t index = FindTypeParameterIndex(
+          &procedure->function()->type_parameters(), node->parameter());
+      if (index >= 0) {
+        if (procedure->kind() == Procedure::kFactory) {
+          // The index of the type parameter in [parameters] is
+          // the same index into the `klass->type_parameters()` array.
+          result_ ^= dart::TypeArguments::Handle(
+                         Z, active_class_->klass->type_parameters())
+                         .TypeAt(index);
+        } else {
+          result_ ^= dart::Type::DynamicType();
+        }
+        return;
+      }
     }
   }
 
-  for (intptr_t i = 0; i < parameters->length(); i++) {
-    TypeParameter* type_parameter = (*parameters)[i];
-    if (node->parameter() == type_parameter) {
-      // The index of the type parameter in [parameters] is
-      // the same index into the `klass->type_parameters()` array.
-      result_ ^= dart::TypeArguments::Handle(
-                     Z, active_class_->klass->type_parameters())
-                     .TypeAt(i);
-      return;
-    }
+  ASSERT(active_class_->kernel_class != NULL);
+  List<TypeParameter>* parameters =
+      &active_class_->kernel_class->type_parameters();
+  const intptr_t index = FindTypeParameterIndex(parameters, node->parameter());
+  if (index >= 0) {
+    // The index of the type parameter in [parameters] is
+    // the same index into the `klass->type_parameters()` array.
+    result_ ^=
+        dart::TypeArguments::Handle(Z, active_class_->klass->type_parameters())
+            .TypeAt(index);
+    return;
   }
 
   UNREACHABLE();
@@ -4392,7 +4424,7 @@ void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
   } else {
-    ASSERT(node->arguments()->types().length() == 0);
+    // TODO(28109) Support generic methods in the VM or reify them away.
   }
 
   // Special case identical(x, y) call.
@@ -4453,9 +4485,7 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
 
-  // Dart does not support generic methods yet.
-  ASSERT(node->arguments()->types().length() == 0);
-
+  // TODO(28109) Support generic methods in the VM or reify them away.
   Array& argument_names = Array::ZoneHandle(Z);
   instructions += TranslateArguments(node->arguments(), &argument_names);
 
@@ -4482,7 +4512,7 @@ void FlowGraphBuilder::VisitDirectMethodInvocation(
   intptr_t argument_count = node->arguments()->count() + 1;
   Array& argument_names = Array::ZoneHandle(Z);
 
-  ASSERT(node->arguments()->types().length() == 0);
+  // TODO(28109) Support generic methods in the VM or reify them away.
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
   instructions += TranslateArguments(node->arguments(), &argument_names);
