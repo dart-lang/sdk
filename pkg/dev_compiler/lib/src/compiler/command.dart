@@ -4,7 +4,10 @@
 
 import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart'
-    show extractDefinedVariables;
+    show
+        extractDefinedVariables,
+        filterUnknownArguments,
+        ignoreUnrecognizedFlagsFlag;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource;
@@ -29,7 +32,11 @@ int compile(List<String> args, {void printFn(Object obj)}) {
   var declaredVars = <String, String>{};
   try {
     args = extractDefinedVariables(args, declaredVars);
-    argResults = _argParser().parse(args);
+    var parser = _argParser();
+    if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
+      args = filterUnknownArguments(args, parser);
+    }
+    argResults = parser.parse(args);
     _verbose = argResults['verbose'];
   } on FormatException catch (error) {
     printFn('$error\n\n$_usageMessage');
@@ -77,6 +84,10 @@ ArgParser _argParser({bool hide: true}) {
             'Add --verbose to show hidden options.',
         negatable: false)
     ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
+    ..addFlag(ignoreUnrecognizedFlagsFlag,
+        help: 'Ignore unrecognized command line flags.',
+        defaultsTo: false,
+        negatable: false)
     ..addOption('out',
         abbr: 'o', allowMultiple: true, help: 'Output file (required).')
     ..addOption('module-root',

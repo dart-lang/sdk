@@ -155,12 +155,14 @@ class ArgumentsTest {
   }
 
   void test_filterUnknownArguments() {
-    List<String> args = ['--a', '--b', '--c', 'foo', 'bar'];
+    List<String> args = ['--a', '--b', '--c=0', '--d=1', '-e=2', '-f', 'bar'];
     ArgParser parser = new ArgParser();
     parser.addFlag('a');
-    parser.addFlag('c');
+    parser.addOption('c');
+    parser.addOption('ee', abbr: 'e');
+    parser.addFlag('ff', abbr: 'f');
     List<String> result = filterUnknownArguments(args, parser);
-    expect(result, orderedEquals(['--a', '--c', 'foo', 'bar']));
+    expect(result, orderedEquals(['--a', '--c=0', '-e=2', '-f', 'bar']));
   }
 
   void test_parse_noReplacement_noIgnored() {

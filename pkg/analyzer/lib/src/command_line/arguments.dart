@@ -19,7 +19,7 @@ const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
 const String enableSuperInMixinFlag = 'supermixin';
-const String ignoreUnrecognizedFlagsFlag = 'ignore_unrecognized_flags';
+const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
 const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
 const String packageRootOption = 'package-root';
@@ -207,7 +207,7 @@ List<String> extractDefinedVariables(
  * - it starts with something other than '--' or '-'.
  *
  * This function allows command-line tools to implement the
- * '--ignore_unrecognized_flags' option.
+ * '--ignore-unrecognized-flags' option.
  */
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownOptions = new HashSet<String>();

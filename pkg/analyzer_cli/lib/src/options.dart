@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
-import 'package:analyzer/src/command_line/command_line_parser.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -282,7 +281,7 @@ class CommandLineOptions {
     bool hide = !verbose;
 
     args = args.expand((String arg) => arg.split('=')).toList();
-    var parser = new CommandLineParser()
+    var parser = new ArgParser(allowTrailingOptions: true)
       ..addFlag('batch',
           abbr: 'b',
           help: 'Read commands from standard input (for testing).',
@@ -318,6 +317,10 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
+      ..addFlag(ignoreUnrecognizedFlagsFlag,
+          help: 'Ignore unrecognized command line flags.',
+          defaultsTo: false,
+          negatable: false)
       ..addFlag('fatal-hints',
           help: 'Treat hints as fatal.', defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings',
@@ -489,6 +492,9 @@ class CommandLineOptions {
           args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       Map<String, String> definedVariables = <String, String>{};
       args = extractDefinedVariables(args, definedVariables);
+      if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
+        args = filterUnknownArguments(args, parser);
+      }
       var results = parser.parse(args);
 
       // Persistent worker.
