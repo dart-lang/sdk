@@ -158,7 +158,7 @@ class PackageDescription {
   @override
   int get hashCode {
     int hashCode = 0;
-    for (int value in options.encodeCrossContextOptions()) {
+    for (int value in options.signature) {
       hashCode = JenkinsSmiHash.combine(hashCode, value);
     }
     hashCode = JenkinsSmiHash.combine(hashCode, id.hashCode);
@@ -170,9 +170,8 @@ class PackageDescription {
   bool operator ==(Object other) {
     return other is PackageDescription &&
         other.sdk == sdk &&
-        AnalysisOptions.crossContextOptionsEqual(
-            other.options.encodeCrossContextOptions(),
-            options.encodeCrossContextOptions()) &&
+        AnalysisOptions.signaturesEqual(
+            other.options.signature, options.signature) &&
         other.id == id;
   }
 }

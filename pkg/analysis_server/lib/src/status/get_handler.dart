@@ -421,7 +421,7 @@ class GetHandler implements AbstractGetHandler {
    */
   String _encodeSdkDescriptor(SdkDescription descriptor) {
     StringBuffer buffer = new StringBuffer();
-    buffer.write(descriptor.options.encodeCrossContextOptions().join(','));
+    buffer.write(descriptor.options.signature.join(','));
     for (String path in descriptor.paths) {
       buffer.write('+');
       buffer.write(path);

@@ -122,8 +122,7 @@ class AnalysisDriver {
   /**
    * The salt to mix into all hashes used as keys for serialized data.
    */
-  final Uint32List _salt =
-      new Uint32List(1 + AnalysisOptions.crossContextOptionsLength);
+  final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
 
   /**
    * The current file system state.
@@ -820,10 +819,8 @@ class AnalysisDriver {
    */
   void _fillSalt() {
     _salt[0] = DATA_VERSION;
-    List<int> crossContextOptions =
-        _analysisOptions.encodeCrossContextOptions();
-    assert(crossContextOptions.length ==
-        AnalysisOptions.crossContextOptionsLength);
+    List<int> crossContextOptions = _analysisOptions.signature;
+    assert(crossContextOptions.length == AnalysisOptions.signatureLength);
     for (int i = 0; i < crossContextOptions.length; i++) {
       _salt[i + 1] = crossContextOptions[i];
     }

@@ -9,7 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptions, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
@@ -213,7 +213,7 @@ class SdkDescription {
   @override
   int get hashCode {
     int hashCode = 0;
-    for (int value in options.encodeCrossContextOptions()) {
+    for (int value in options.signature) {
       hashCode = JenkinsSmiHash.combine(hashCode, value);
     }
     for (String path in paths) {
@@ -225,9 +225,8 @@ class SdkDescription {
   @override
   bool operator ==(Object other) {
     if (other is SdkDescription) {
-      if (!AnalysisOptions.crossContextOptionsEqual(
-          options.encodeCrossContextOptions(),
-          other.options.encodeCrossContextOptions())) {
+      if (!AnalysisOptions.signaturesEqual(
+          options.signature, other.options.signature)) {
         return false;
       }
       int length = paths.length;
@@ -263,8 +262,7 @@ class SdkDescription {
       buffer.write(' ');
     }
     buffer.write('(');
-    buffer.write(AnalysisOptionsImpl
-        .decodeCrossContextOptions(options.encodeCrossContextOptions()));
+    buffer.write(options.signature);
     buffer.write(')');
     return buffer.toString();
   }
