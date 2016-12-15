@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -1003,6 +1004,70 @@ main() {
     expect(driver.hasFilesToAnalyze, isFalse);
   }
 
+  test_hermetic_modifyLibraryFile_resolvePart() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    provider.newFile(
+        a,
+        r'''
+library a;
+part 'b.dart';
+class C {
+  int foo;
+}
+''');
+    provider.newFile(
+        b,
+        r'''
+part of a;
+var c = new C();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    await driver.getResult(b);
+
+    // Modify the library, but don't notify the driver.
+    // The driver should use the previous library content and elements.
+    provider.newFile(
+        a,
+        r'''
+library a;
+part 'b.dart';
+class C {
+  int bar;
+}
+''');
+
+    var result = await driver.getResult(b);
+    var c = _getTopLevelVar(result.unit, 'c');
+    var typeC = c.element.type as InterfaceType;
+    // The class C has an old field 'foo', not the new 'bar'.
+    expect(typeC.element.getField('foo'), isNotNull);
+    expect(typeC.element.getField('bar'), isNull);
+  }
+
+  test_hermetic_overlayOnly_part() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    contentOverlay[a] = r'''
+library a;
+part 'b.dart';
+class A {}
+var b = new B();
+''';
+    contentOverlay[b] = 'part of a; class B {}';
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.errors, isEmpty);
+    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+  }
+
   test_knownFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -1161,25 +1226,6 @@ var b = new B();
     AnalysisResult result = await driver.getResult(c);
     expect(result.errors, isNotEmpty);
     expect(result.unit, isNotNull);
-  }
-
-  test_part_getResult_overlayOnly() async {
-    var a = _p('/test/lib/a.dart');
-    var b = _p('/test/lib/b.dart');
-    contentOverlay[a] = r'''
-library a;
-part 'b.dart';
-class A {}
-var b = new B();
-''';
-    contentOverlay[b] = 'part of a; class B {}';
-
-    driver.addFile(a);
-    driver.addFile(b);
-
-    AnalysisResult result = await driver.getResult(a);
-    expect(result.errors, isEmpty);
-    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
   }
 
   test_part_results_afterLibrary() async {
