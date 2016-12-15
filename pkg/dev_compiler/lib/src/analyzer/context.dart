@@ -78,12 +78,6 @@ class AnalyzerOptions {
     parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
-      ..addOption('dart-sdk',
-          help: 'Dart SDK Path', defaultsTo: null, hide: hide)
-      ..addOption('dart-sdk-summary',
-          help: 'Dart SDK Summary Path', defaultsTo: null, hide: hide)
-      ..addOption('package-root',
-          abbr: 'p', help: 'Package root to resolve "package:" imports')
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
               'library.dart as the source for an import of of "libraryUri".',

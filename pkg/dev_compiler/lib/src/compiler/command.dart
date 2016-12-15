@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart'
     show
+        defineDDCAnalysisArguments,
         extractDefinedVariables,
         filterUnknownArguments,
         ignoreUnrecognizedFlagsFlag;
@@ -96,6 +97,7 @@ ArgParser _argParser({bool hide: true}) {
     ..addOption('library-root',
         help: 'Root of source files.\n'
             'Generated library names are relative to this root.');
+  defineDDCAnalysisArguments(argParser, hide: hide);
   addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
   AnalyzerOptions.addArguments(argParser, hide: hide);
   CompilerOptions.addArguments(argParser, hide: hide);

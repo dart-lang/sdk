@@ -280,25 +280,14 @@ class CommandLineOptions {
     bool verbose = args.contains('-v') || args.contains('--verbose');
     bool hide = !verbose;
 
-    var parser = new ArgParser(allowTrailingOptions: true)
+    var parser = new ArgParser(allowTrailingOptions: true);
+    defineAnalysisArguments(parser, hide: hide);
+    parser
       ..addFlag('batch',
           abbr: 'b',
           help: 'Read commands from standard input (for testing).',
           defaultsTo: false,
           negatable: false)
-      ..addOption('dart-sdk', help: 'The path to the Dart SDK.')
-      ..addOption('dart-sdk-summary',
-          help: 'The path to the Dart SDK summary file.', hide: true)
-      ..addOption('packages',
-          help:
-              'Path to the package resolution configuration file, which supplies '
-              'a mapping of package names to paths.  This option cannot be '
-              'used with --package-root.')
-      ..addOption('package-root',
-          abbr: 'p',
-          help: 'Path to a package root directory (deprecated). This option '
-              'cannot be used with --packages.')
-      ..addOption('options', help: 'Path to an analysis options file.')
       ..addOption('format',
           help: 'Specifies the format in which errors are displayed.')
       ..addFlag('machine',
@@ -445,24 +434,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('enable-strict-call-checks',
-          help: 'Fix issue 21938.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
       ..addFlag('enable-new-task-model',
           help: 'deprecated -- Ennable new task model.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('initializing-formal-access',
-          help:
-              'Enable support for allowing access to field formal parameters in a constructor\'s initializer list',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('supermixin',
-          help: 'Relax restrictions on mixins (DEP 34).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -475,15 +448,7 @@ class CommandLineOptions {
           help: 'Check types in constant evaluation.',
           defaultsTo: false,
           negatable: false,
-          hide: hide)
-      ..addFlag('strong',
-          help: 'Enable strong static checks (https://goo.gl/DqcBsw)')
-      ..addFlag('no-implicit-casts',
-          negatable: false,
-          help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)')
-      ..addFlag('no-implicit-dynamic',
-          negatable: false,
-          help: 'Disable implicit dynamic (https://goo.gl/m0UgXD)');
+          hide: hide);
 
     try {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
