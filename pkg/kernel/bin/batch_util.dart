@@ -7,7 +7,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-enum CompilerOutcome { Ok, Fail, }
+enum CompilerOutcome {
+  Ok,
+  Fail,
+}
 
 typedef Future<CompilerOutcome> BatchCallback(List<String> arguments);
 

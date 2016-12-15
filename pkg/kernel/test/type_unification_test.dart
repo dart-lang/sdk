@@ -43,8 +43,10 @@ final List<TestCase> testCases = <TestCase>[
 
   successCase('(x:int,y:String) => int', '(y:String,x:int) => int', {}),
   successCase('<S,T>(x:S,y:T) => S', '<S,T>(y:T,x:S) => S', {}),
-  successCase('(x:<T>(T)=>T,y:<S>(S)=>S) => int', '(y:<S>(S)=>S,x:<T>(T)=>T) => int', {}),
-  successCase('(x:<T>(T)=>T,y:<S>(S,S,S)=>S) => int', '(y:<S>(S,S,S)=>S,x:<T>(T)=>T) => int', {}),
+  successCase('(x:<T>(T)=>T,y:<S>(S)=>S) => int',
+      '(y:<S>(S)=>S,x:<T>(T)=>T) => int', {}),
+  successCase('(x:<T>(T)=>T,y:<S>(S,S,S)=>S) => int',
+      '(y:<S>(S,S,S)=>S,x:<T>(T)=>T) => int', {}),
 ];
 
 class TestCase {

@@ -155,9 +155,7 @@ class SelfCheckTransformer {
     // is allowed to occur.  We use this because it is hard to check directly
     // that a value is of the 'other' type.
     bool disallowOtherValues = expected.valueBits & ValueBit.other == 0;
-    List<Expression> anyChecks = disallowOtherValues
-        ? <Expression>[]
-        : null;
+    List<Expression> anyChecks = disallowOtherValues ? <Expression>[] : null;
 
     void checkType(int bit, DartType type) {
       if (expected.valueBits & bit == 0) {

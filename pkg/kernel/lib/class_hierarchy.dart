@@ -365,6 +365,7 @@ class ClassHierarchy {
       inherited = _getUnshadowedInheritedMembers(declared, inherited);
       allInheritedMembers = _merge(allInheritedMembers, inherited);
     }
+
     inheritFrom(classNode.supertype);
     inheritFrom(classNode.mixedInType);
     classNode.implementedTypes.forEach(inheritFrom);

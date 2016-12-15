@@ -51,7 +51,12 @@ class TypePropagation {
   }
 }
 
-enum BaseClassKind { None, Exact, Subclass, Subtype, }
+enum BaseClassKind {
+  None,
+  Exact,
+  Subclass,
+  Subtype,
+}
 
 /// An abstract value inferred by type propagation.
 ///

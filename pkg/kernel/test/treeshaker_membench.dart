@@ -12,9 +12,8 @@ import 'package:args/args.dart';
 import 'dart:io';
 
 ArgParser argParser = new ArgParser()
-  ..addOption('count', abbr: 'c',
-      help: 'Build N copies of the tree shaker',
-      defaultsTo: '100');
+  ..addOption('count',
+      abbr: 'c', help: 'Build N copies of the tree shaker', defaultsTo: '100');
 
 String usage = """
 Usage: treeshaker_membench [options] FILE.dart

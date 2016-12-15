@@ -89,6 +89,7 @@ stack_trace:third_party/pkg/stack_trace/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
 test:third_party/pkg/test/lib
+testing:third_party/testing/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 typed_data:third_party/pkg/typed_data/lib
 typed_mock:pkg/typed_mock/lib

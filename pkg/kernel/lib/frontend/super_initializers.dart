@@ -33,10 +33,10 @@ void moveSuperInitializerLast(Constructor node) {
   // [LocalInitializer]s.
   initializers.length += argumentCount;
   initializers.setRange(
-      superIndex + argumentCount,  // desination start (inclusive)
-      initializers.length - 1,     // desination end (exclusive)
-      initializers,                // source list
-      superIndex + 1);             // source start index
+      superIndex + argumentCount, // desination start (inclusive)
+      initializers.length - 1, // desination end (exclusive)
+      initializers, // source list
+      superIndex + 1); // source start index
   initializers[initializers.length - 1] = superCall;
 
   // Fill in the [argumentCount] reserved slots with the evaluation expressions

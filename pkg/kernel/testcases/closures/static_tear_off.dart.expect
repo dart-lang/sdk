@@ -1,0 +1,84 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Closure#f_1_1_no_default extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic a, [dynamic b]) → dynamic
+    return self::f_1_1_no_default(a, b);
+}
+class Closure#f_1_1_default extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic a, [dynamic b = 2]) → dynamic
+    return self::f_1_1_default(a, b);
+}
+class Closure#f_1_b_no_default extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic a, {dynamic b}) → dynamic
+    return self::f_1_b_no_default(a, b: b);
+}
+class Closure#f_1_b_default extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic a, {dynamic b = 2}) → dynamic
+    return self::f_1_b_default(a, b: b);
+}
+static method f_1_1_no_default(dynamic a, [dynamic b]) → dynamic {
+  return a.+(b);
+}
+static method f_1_1_default(dynamic a, [dynamic b = 2]) → dynamic {
+  return a.+(b);
+}
+static method f_1_b_no_default(dynamic a, {dynamic b}) → dynamic {
+  return a.+(b);
+}
+static method f_1_b_default(dynamic a, {dynamic b = 2}) → dynamic {
+  return a.+(b);
+}
+static method test_1_1(core::Function f, core::bool hasDefault) → dynamic {
+  dynamic result = f.call(40, 2);
+  if(!42.==(result))
+    throw "Unexpected result: ${result}";
+  self::test_1(f, hasDefault);
+}
+static method test_1_b(core::Function f, core::bool hasDefault) → dynamic {
+  dynamic result = f.call(40, b: 2);
+  if(!42.==(result))
+    throw "Unexpected result: ${result}";
+  self::test_1(f, hasDefault);
+}
+static method test_1(core::Function f, core::bool hasDefault) → dynamic {
+  dynamic result = 0;
+  core::bool threw = true;
+  try {
+    result = f.call(40);
+    threw = false;
+  }
+  on dynamic catch(dynamic _) {
+  }
+  if(hasDefault) {
+    if(threw)
+      throw "Unexpected exception.";
+    if(!42.==(result))
+      throw "Unexpected result: ${result}.";
+  }
+  else {
+    if(!threw)
+      throw "Expected exception missing.";
+    if(!0.==(result))
+      throw "Unexpected result: ${result}.";
+  }
+}
+static method main(dynamic arguments) → dynamic {
+  self::test_1_1(new self::Closure#f_1_1_no_default::•(), false);
+  self::test_1_1(new self::Closure#f_1_1_default::•(), true);
+  self::test_1_b(new self::Closure#f_1_b_no_default::•(), false);
+  self::test_1_b(new self::Closure#f_1_b_default::•(), true);
+}

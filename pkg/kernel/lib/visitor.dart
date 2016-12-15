@@ -235,9 +235,7 @@ class MemberReferenceVisitor<R> {
 }
 
 class Visitor<R> extends TreeVisitor<R>
-    implements
-        DartTypeVisitor<R>,
-        MemberReferenceVisitor<R> {
+    implements DartTypeVisitor<R>, MemberReferenceVisitor<R> {
   /// The catch-all case, except for references.
   R defaultNode(Node node) => null;
   R defaultTreeNode(TreeNode node) => defaultNode(node);

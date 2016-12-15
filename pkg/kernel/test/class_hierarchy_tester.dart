@@ -115,12 +115,14 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
       String eq = setter ? '=' : '';
       return '$member$eq overrides $superMember$eq';
     }
+
     Set<String> expectedOverrides = new Set<String>();
     basic.forEachOverridePair(classNode, (member, superMember, setter) {
       expectedOverrides.add(getHash(member, superMember, setter));
     });
     Set<String> actualOverrides = new Set<String>();
-    classHierarchy.forEachOverridePair(classNode, (member, superMember, setter) {
+    classHierarchy.forEachOverridePair(classNode,
+        (member, superMember, setter) {
       actualOverrides.add(getHash(member, superMember, setter));
     });
     for (var actual in actualOverrides) {
@@ -142,7 +144,7 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
 var random = new Random(12345);
 
 List/*<T>*/ pickRandom/*<T>*/(List/*<T>*/ items, int n) {
-  var result = /*<T>*/[];
+  var result = /*<T>*/ [];
   for (int i = 0; i < n; ++i) {
     result.add(items[random.nextInt(items.length)]);
   }
