@@ -4,11 +4,12 @@
 // Dart test program for testing setting/getting of instance fields.
 
 import "package:expect/expect.dart";
+import "package:meta/meta.dart" show virtual;
 
 class First {
   First() {}
-  var a;
-  var b;
+  @virtual var a;
+  @virtual var b;
 
   addFields() {
     return a + b;

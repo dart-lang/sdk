@@ -599,6 +599,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'hot_set_field_test': fail,
       'inherited_metadata_test': fail,
       'instance_members_unimplemented_interface_test': fail,
+      'instance_members_with_override_test': fail, // JsClassMirror.instanceMembers unimplemented
       'instantiate_abstract_class_test': fail,
       'intercepted_superclass_test': fail,
       'invocation_fuzz_test_emptyarray_multi': fail,
