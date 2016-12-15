@@ -138,7 +138,7 @@ namespace bin {
   V(Socket_LeaveMulticast, 4)                                                  \
   V(Socket_GetSocketId, 1)                                                     \
   V(Socket_SetSocketId, 2)                                                     \
-  V(Stdin_ReadByte, 1)                                                         \
+  V(Stdin_ReadByte, 0)                                                         \
   V(Stdin_GetEchoMode, 0)                                                      \
   V(Stdin_SetEchoMode, 1)                                                      \
   V(Stdin_GetLineMode, 0)                                                      \
