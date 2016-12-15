@@ -416,6 +416,8 @@ class IndexError extends ArgumentError implements RangeError {
  */
 class FallThroughError extends Error {
   FallThroughError();
+
+  external String toString();
 }
 
 /**
@@ -423,8 +425,9 @@ class FallThroughError extends Error {
  */
 class AbstractClassInstantiationError extends Error {
   final String _className;
-  AbstractClassInstantiationError(String this._className);
-  String toString() => "Cannot instantiate abstract class: '$_className'";
+  AbstractClassInstantiationError(String className) : _className = className;
+
+  external String toString();
 }
 
 
@@ -461,16 +464,11 @@ class NoSuchMethodError extends Error {
    * the signature of the method that would have been called if the parameters
    * had matched.
    */
-  NoSuchMethodError(Object receiver,
-                    Symbol memberName,
-                    List positionalArguments,
-                    Map<Symbol ,dynamic> namedArguments,
-                    [List existingArgumentNames = null])
-      : _receiver = receiver,
-        _memberName = memberName,
-        _arguments = positionalArguments,
-        _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames;
+  external NoSuchMethodError(Object receiver,
+                             Symbol memberName,
+                             List positionalArguments,
+                             Map<Symbol, dynamic> namedArguments,
+                             [List existingArgumentNames = null]);
 
   external String toString();
 }

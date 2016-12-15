@@ -83,8 +83,8 @@ class ObjectPointerVisitor;
   V(ListFactory, "List.")                                                      \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
-  V(ImmutableMap, "ImmutableMap")                                              \
-  V(ImmutableMapConstructor, "ImmutableMap._create")                           \
+  V(ImmutableMap, "_ImmutableMap")                                             \
+  V(ImmutableMapConstructor, "_ImmutableMap._create")                          \
   V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
   V(InterpolateSingle, "_interpolateSingle")                                   \

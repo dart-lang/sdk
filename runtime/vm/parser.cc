@@ -13075,8 +13075,8 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     ArgumentListNode* constr_args = new (Z) ArgumentListNode(TokenPos());
     constr_args->Add(new (Z) LiteralNode(literal_pos, key_value_array));
     const Function& map_constr = Function::ZoneHandle(
-        Z, immutable_map_class.LookupConstructor(Library::PrivateCoreLibName(
-               Symbols::ImmutableMapConstructor())));
+        Z, immutable_map_class.LookupConstructorAllowPrivate(
+               Symbols::ImmutableMapConstructor()));
     ASSERT(!map_constr.IsNull());
     const Object& constructor_result = Object::Handle(
         Z, EvaluateConstConstructorCall(immutable_map_class, map_type_arguments,

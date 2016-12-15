@@ -110,6 +110,7 @@ class _CastError extends Error implements CastError {
 
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
 
+  @patch
   String toString() {
     return "'$_url': Switch case fall-through at line $_line.";
   }
