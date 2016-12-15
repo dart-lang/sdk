@@ -139,8 +139,15 @@ main(List<String> arguments) {
       }
 
       var declaredVars = <String, String>{};
-      var argResults =
-          compileArgParser.parse(extractDefinedVariables(args, declaredVars));
+      args = args.expand((String arg) => arg.split('=')).toList();
+      args = extractDefinedVariables(args, declaredVars);
+      ArgResults argResults;
+      try {
+        argResults = compileArgParser.parse(args);
+      } catch (e) {
+        print('Failed to parse $args');
+        rethrow;
+      }
       var options = new CompilerOptions.fromArguments(argResults);
       var moduleFormat = parseModuleFormatOption(argResults).first;
 
