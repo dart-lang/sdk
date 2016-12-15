@@ -38,23 +38,7 @@ class Asset {
   }
 
   /// Call to request assets from the embedder.
-  static HashMap<String, Asset> request() {
-    HashMap<String, Asset> assets = new HashMap<String, Asset>();
-    Uint8List tarBytes = _requestAssets();
-    if (tarBytes == null) {
-      return assets;
-    }
-    _TarArchive archive = new _TarArchive(tarBytes);
-    while (archive.hasNext()) {
-      Asset asset = archive.next();
-      if (asset == null) {
-        // Skip over special files.
-        continue;
-      }
-      assets[asset.name] = asset;
-    }
-    return assets;
-  }
+  external static HashMap<String, Asset> request();
 
   String toString() => '$name ($mimeType)';
 }

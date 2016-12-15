@@ -114,7 +114,7 @@ class Symbol implements core.Symbol {
 
   external int get hashCode;
 
-  toString() => 'Symbol("$_name")';
+  external toString();
 
   /// Platform-private accessor which cannot be called from user libraries.
   static String getName(Symbol symbol) => symbol._name;
