@@ -761,7 +761,7 @@ void Heap::PrintStats() {
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate()->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    MicrosecondsToSeconds(stats_.before_.micros_ - isolate()->start_time()),
+    MicrosecondsToSeconds(isolate()->UptimeMicros()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_.used_in_words),

@@ -704,7 +704,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
-    int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
+    int64_t run_time = isolate->UptimeMicros();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
     double avg_time_between_collections =
@@ -1144,8 +1144,8 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
   static const double kInitialTimeoutSeconds = 1.00;
   if (history_.IsEmpty()) {
-    double seconds_since_init = MicrosecondsToSeconds(
-        OS::GetCurrentTimeMicros() - heap_->isolate()->start_time());
+    double seconds_since_init =
+        MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
     if (seconds_since_init > kInitialTimeoutSeconds) {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }

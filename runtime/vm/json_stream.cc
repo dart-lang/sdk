@@ -108,7 +108,7 @@ void JSONStream::Setup(Zone* zone,
     const char* isolate_name = isolate->name();
     setup_time_micros_ = OS::GetCurrentTimeMicros();
     OS::Print("[+%" Pd64 "ms] Isolate %s processing service request %s\n",
-              Dart::timestamp(), isolate_name, method_);
+              Dart::UptimeMillis(), isolate_name, method_);
   }
   buffer_.Printf("{\"jsonrpc\":\"2.0\", \"result\":");
 }
@@ -266,12 +266,12 @@ void JSONStream::PostReply() {
       OS::Print("[+%" Pd64
                 "ms] Isolate %s processed service request %s "
                 "(%" Pd64 "us)\n",
-                Dart::timestamp(), isolate_name, method_, total_time);
+                Dart::UptimeMillis(), isolate_name, method_, total_time);
     } else {
       OS::Print("[+%" Pd64
                 "ms] Isolate %s processed service request %s "
                 "(%" Pd64 "us) FAILED\n",
-                Dart::timestamp(), isolate_name, method_, total_time);
+                Dart::UptimeMillis(), isolate_name, method_, total_time);
     }
   }
 }

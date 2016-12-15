@@ -779,7 +779,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
-      start_time_(OS::GetCurrentTimeMicros()),
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       main_port_(0),
       origin_id_(0),
       pause_capability_(0),
@@ -1038,6 +1038,11 @@ void Isolate::ScheduleMessageInterrupts() {
 void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);
+}
+
+
+int64_t Isolate::UptimeMicros() const {
+  return OS::GetCurrentMonotonicMicros() - start_time_micros_;
 }
 
 
@@ -1990,8 +1995,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
   jsobj.AddPropertyF("_originNumber", "%" Pd64 "",
                      static_cast<int64_t>(origin_id()));
-  int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
-  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
+  int64_t uptime_millis = UptimeMicros() / kMicrosecondsPerMillisecond;
+  int64_t start_time = OS::GetCurrentTimeMillis() - uptime_millis;
+  jsobj.AddPropertyTimeMillis("startTime", start_time);
   {
     JSONObject jsheap(&jsobj, "_heaps");
     heap()->PrintToJSONObject(Heap::kNew, &jsheap);
@@ -2240,12 +2246,12 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
 
     if (FLAG_trace_service) {
       OS::Print("[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
-                Dart::timestamp(), name(), method_name.ToCString());
+                Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     result = DartEntry::InvokeFunction(run_extension, arguments);
     if (FLAG_trace_service) {
       OS::Print("[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
-                Dart::timestamp(), name(), method_name.ToCString());
+                Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     // Propagate the error.
     if (result.IsError()) {
@@ -2284,7 +2290,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const Instance& id) {
   if (FLAG_trace_service) {
     OS::Print("[+%" Pd64 "ms] Isolate %s ENQUEUING request for extension %s\n",
-              Dart::timestamp(), name(), method_name.ToCString());
+              Dart::UptimeMillis(), name(), method_name.ToCString());
   }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
