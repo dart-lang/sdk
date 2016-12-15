@@ -18,6 +18,7 @@ class Flags {
       '--disable-native-live-type-analysis';
   static const String disableTypeInference = '--disable-type-inference';
   static const String dumpInfo = '--dump-info';
+  static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String enableExperimentalMirrors =
