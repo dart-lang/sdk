@@ -3221,6 +3221,8 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const { return (ic_data() != NULL) && !ic_data()->IsNull(); }
 
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
+
   DECLARE_INSTRUCTION(StaticCall)
   virtual CompileType ComputeType() const;
   virtual Definition* Canonicalize(FlowGraph* flow_graph);

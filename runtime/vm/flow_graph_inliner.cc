@@ -5,6 +5,7 @@
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/aot_optimizer.h"
+#include "vm/precompiler.h"
 #include "vm/block_scheduler.h"
 #include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
@@ -213,8 +214,11 @@ struct InlinedInfo {
 // A collection of call sites to consider for inlining.
 class CallSites : public ValueObject {
  public:
-  explicit CallSites(FlowGraph* flow_graph)
-      : static_calls_(), closure_calls_(), instance_calls_() {}
+  explicit CallSites(FlowGraph* flow_graph, intptr_t threshold)
+      : inlining_depth_threshold_(threshold),
+        static_calls_(),
+        closure_calls_(),
+        instance_calls_() {}
 
   struct InstanceCallInfo {
     PolymorphicInstanceCallInstr* call;
@@ -357,7 +361,7 @@ class CallSites : public ValueObject {
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
     ASSERT(graph != NULL);
-    if (depth > FLAG_inlining_depth_threshold) {
+    if (depth > inlining_depth_threshold_) {
       if (FLAG_print_inlining_tree) {
         RecordAllNotInlinedFunction(graph, depth, inlined_info);
       }
@@ -367,7 +371,7 @@ class CallSites : public ValueObject {
     // Recognized methods are not treated as normal calls. They don't have
     // calls in themselves, so we keep adding those even when at the threshold.
     const bool inline_only_recognized_methods =
-        (depth == FLAG_inlining_depth_threshold);
+        (depth == inlining_depth_threshold_);
 
     const intptr_t instance_call_start_ix = instance_calls_.length();
     const intptr_t static_call_start_ix = static_calls_.length();
@@ -423,6 +427,7 @@ class CallSites : public ValueObject {
   }
 
  private:
+  intptr_t inlining_depth_threshold_;
   GrowableArray<StaticCallInfo> static_calls_;
   GrowableArray<ClosureCallInfo> closure_calls_;
   GrowableArray<InstanceCallInfo> instance_calls_;
@@ -513,7 +518,7 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
 
 class CallSiteInliner : public ValueObject {
  public:
-  explicit CallSiteInliner(FlowGraphInliner* inliner)
+  explicit CallSiteInliner(FlowGraphInliner* inliner, intptr_t threshold)
       : inliner_(inliner),
         caller_graph_(inliner->flow_graph()),
         inlined_(false),
@@ -522,6 +527,7 @@ class CallSiteInliner : public ValueObject {
         inlined_recursive_call_(false),
         inlining_depth_(1),
         inlining_recursion_depth_(0),
+        inlining_depth_threshold_(threshold),
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
         function_cache_(),
@@ -570,14 +576,14 @@ class CallSiteInliner : public ValueObject {
 
   void InlineCalls() {
     // If inlining depth is less then one abort.
-    if (FLAG_inlining_depth_threshold < 1) return;
+    if (inlining_depth_threshold_ < 1) return;
     if (caller_graph_->function().deoptimization_counter() >=
         FLAG_deoptimization_counter_inlining_threshold) {
       return;
     }
     // Create two call site collections to swap between.
-    CallSites sites1(caller_graph_);
-    CallSites sites2(caller_graph_);
+    CallSites sites1(caller_graph_, inlining_depth_threshold_);
+    CallSites sites2(caller_graph_, inlining_depth_threshold_);
     CallSites* call_sites_temp = NULL;
     collected_call_sites_ = &sites1;
     inlining_call_sites_ = &sites2;
@@ -663,6 +669,15 @@ class CallSiteInliner : public ValueObject {
     // Do not rely on function type feedback or presence of code to determine
     // if a function was compiled.
     if (!FLAG_precompiled_mode && !function.was_compiled()) {
+      TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
+      PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
+                          call_data->call);
+      return false;
+    }
+
+    if ((inliner_->precompiler_ != NULL) &&
+        inliner_->precompiler_->HasFeedback() &&
+        (function.usage_counter() <= 0) && !inliner_->AlwaysInline(function)) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
                           call_data->call);
@@ -790,6 +805,14 @@ class CallSiteInliner : public ValueObject {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();
           }
+#ifdef DART_PRECOMPILER
+          Precompiler::PopulateWithICData(parsed_function->function(),
+                                          callee_graph);
+          if (inliner_->precompiler_ != NULL) {
+            inliner_->precompiler_->TryApplyFeedback(
+                parsed_function->function(), callee_graph);
+          }
+#endif
         }
 
         // The parameter stubs are a copy of the actual arguments providing
@@ -857,7 +880,6 @@ class CallSiteInliner : public ValueObject {
             AotOptimizer optimizer(inliner_->precompiler_, callee_graph,
                                    inliner_->use_speculative_inlining_,
                                    inliner_->inlining_black_list_);
-            optimizer.PopulateWithICData();
 
             optimizer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1375,6 +1397,7 @@ class CallSiteInliner : public ValueObject {
   bool inlined_recursive_call_;
   intptr_t inlining_depth_;
   intptr_t inlining_recursion_depth_;
+  intptr_t inlining_depth_threshold_;
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
   GrowableArray<ParsedFunction*> function_cache_;
@@ -1929,6 +1952,11 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
+  if (function.is_const()) {
+    // Inlined const fields are smaller than a call.
+    return true;
+  }
+
   if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
       (function.kind() == RawFunction::kConstructor)) {
@@ -1962,7 +1990,13 @@ void FlowGraphInliner::Inline() {
     printer.PrintBlocks();
   }
 
-  CallSiteInliner inliner(this);
+  intptr_t inlining_depth_threshold = FLAG_inlining_depth_threshold;
+  if ((precompiler_ != NULL) && precompiler_->HasFeedback() &&
+      (top.usage_counter() <= 0)) {
+    inlining_depth_threshold = 1;
+  }
+
+  CallSiteInliner inliner(this, inlining_depth_threshold);
   inliner.InlineCalls();
   if (FLAG_print_inlining_tree) {
     inliner.PrintInlinedInfo(top);

@@ -67,14 +67,6 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, trace_compiler);
-DECLARE_FLAG(int, inlining_hotness);
-DECLARE_FLAG(int, inlining_size_threshold);
-DECLARE_FLAG(int, inlining_callee_size_threshold);
-DECLARE_FLAG(int, inline_getters_setters_smaller_than);
-DECLARE_FLAG(int, inlining_depth_threshold);
-DECLARE_FLAG(int, inlining_caller_size_threshold);
-DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
-DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, unbox_numeric_fields);
 
@@ -82,22 +74,6 @@ static void PrecompilationModeHandler(bool value) {
   if (value) {
 #if defined(TARGET_ARCH_IA32)
     FATAL("Precompilation not supported on IA32");
-#endif
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Flags affecting compilation only:
-    // There is no counter feedback in precompilation, so ignore the counter
-    // when making inlining decisions.
-    FLAG_inlining_hotness = 0;
-    // Use smaller thresholds in precompilation as we are compiling everything
-    // with the optimizing compiler instead of only hot functions.
-    FLAG_inlining_size_threshold = 5;
-    FLAG_inline_getters_setters_smaller_than = 5;
-    FLAG_inlining_callee_size_threshold = 20;
-    FLAG_inlining_depth_threshold = 4;
-    FLAG_inlining_caller_size_threshold = 1000;
-    FLAG_inlining_constant_arguments_max_size_threshold = 100;
-    FLAG_inlining_constant_arguments_min_size_threshold = 30;
 #endif
 
     FLAG_background_compilation = false;
