@@ -1297,8 +1297,10 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
     Platform::Exit(kErrorExitCode);
   }
 
-  *vmisolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
-                      (vmisolate_position - vmisolate_position);
+  if (vmisolate_size != 0) {
+    *vmisolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
+                        (vmisolate_position - vmisolate_position);
+  }
   *isolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
                     (isolate_position - vmisolate_position);
   if (rodata_size == 0) {
@@ -1507,9 +1509,8 @@ static void GeneratePrecompiledJITSnapshot() {
   uint8_t* rodata_blob_buffer = NULL;
   intptr_t rodata_blob_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshot(
-      &vm_isolate_buffer, &vm_isolate_size, &isolate_buffer, &isolate_size,
-      &instructions_blob_buffer, &instructions_blob_size, &rodata_blob_buffer,
-      &rodata_blob_size);
+      &isolate_buffer, &isolate_size, &instructions_blob_buffer,
+      &instructions_blob_size, &rodata_blob_buffer, &rodata_blob_size);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

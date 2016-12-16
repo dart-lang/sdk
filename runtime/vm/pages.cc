@@ -139,6 +139,8 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 
 
 void HeapPage::WriteProtect(bool read_only) {
+  ASSERT(!embedder_allocated());
+
   VirtualMemory::Protection prot;
   if (read_only) {
     if (type_ == kExecutable) {
@@ -1100,7 +1102,13 @@ void PageSpace::SetupExternalPage(void* pointer,
   if (*first == NULL) {
     *first = page;
   } else {
+    if (is_executable && FLAG_write_protect_code) {
+      (*tail)->WriteProtect(false);
+    }
     (*tail)->set_next(page);
+    if (is_executable && FLAG_write_protect_code) {
+      (*tail)->WriteProtect(true);
+    }
   }
   (*tail) = page;
 }

@@ -6612,9 +6612,7 @@ DART_EXPORT Dart_Handle Dart_PrecompileJIT() {
 
 
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
-                          intptr_t* vm_isolate_snapshot_size,
-                          uint8_t** isolate_snapshot_buffer,
+Dart_CreateAppJITSnapshot(uint8_t** isolate_snapshot_buffer,
                           intptr_t* isolate_snapshot_size,
                           uint8_t** instructions_blob_buffer,
                           intptr_t* instructions_blob_size,
@@ -6631,12 +6629,6 @@ Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
   if (!FLAG_load_deferred_eagerly) {
     return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
-  }
-  if (vm_isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
-  }
-  if (vm_isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
   }
   if (isolate_snapshot_buffer == NULL) {
     RETURN_NULL_ERROR(isolate_snapshot_buffer);
@@ -6668,11 +6660,9 @@ Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer, ApiReallocate,
                                              2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppJIT, vm_isolate_snapshot_buffer,
-                            isolate_snapshot_buffer, ApiReallocate,
-                            &instructions_writer);
+  FullSnapshotWriter writer(Snapshot::kAppJIT, NULL, isolate_snapshot_buffer,
+                            ApiReallocate, &instructions_writer);
   writer.WriteFullSnapshot();
-  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
   *instructions_blob_size = instructions_writer.InstructionsBlobSize();
   *rodata_blob_size = instructions_writer.RodataBlobSize();

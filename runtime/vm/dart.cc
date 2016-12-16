@@ -224,22 +224,20 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         if (data_snapshot == NULL) {
           return strdup("Missing rodata snapshot");
         }
-        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
-        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       } else if (Snapshot::IsFull(snapshot_kind_)) {
 #if defined(DART_PRECOMPILED_RUNTIME)
         return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
-        if (instructions_snapshot != NULL) {
-          return strdup("Unexpected instructions snapshot");
-        }
-        if (data_snapshot != NULL) {
-          return strdup("Unexpected rodata snapshot");
-        }
         StubCode::InitOnce();
 #endif
       } else {
         return strdup("Invalid vm isolate snapshot seen");
+      }
+      if (instructions_snapshot != NULL) {
+        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+      }
+      if (instructions_snapshot != NULL) {
+        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
       VmIsolateSnapshotReader reader(snapshot->kind(), snapshot->content(),
                                      snapshot->length(), instructions_snapshot,
@@ -533,7 +531,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
       const String& message = String::Handle(String::New("Invalid snapshot"));
       return ApiError::New(message);
     }
-    if (snapshot->kind() != snapshot_kind_) {
+    if (snapshot->kind() != snapshot_kind_ &&
+        !((snapshot->kind() == Snapshot::kAppJIT) &&
+          (snapshot_kind_ == Snapshot::kCore))) {
       const String& message = String::Handle(
           String::NewFormatted("Invalid snapshot kind: got '%s', expected '%s'",
                                Snapshot::KindToCString(snapshot->kind()),

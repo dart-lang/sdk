@@ -3264,9 +3264,7 @@ DART_EXPORT Dart_Handle Dart_PrecompileJIT();
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
-                          intptr_t* vm_isolate_snapshot_size,
-                          uint8_t** isolate_snapshot_buffer,
+Dart_CreateAppJITSnapshot(uint8_t** isolate_snapshot_buffer,
                           intptr_t* isolate_snapshot_size,
                           uint8_t** instructions_blob_buffer,
                           intptr_t* instructions_blob_size,
