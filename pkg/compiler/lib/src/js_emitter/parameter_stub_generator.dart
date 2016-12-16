@@ -10,8 +10,10 @@ class ParameterStubGenerator {
   final Namer namer;
   final Compiler compiler;
   final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
 
-  ParameterStubGenerator(this.compiler, this.namer, this.backend);
+  ParameterStubGenerator(
+      this.compiler, this.namer, this.backend, this.closedWorld);
 
   Emitter get emitter => backend.emitter.emitter;
   CodeEmitterTask get emitterTask => backend.emitter;
@@ -267,8 +269,7 @@ class ParameterStubGenerator {
     for (Selector selector in selectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (!selectors[selector]
-          .applies(member, selector, compiler.closedWorld)) {
+      if (!selectors[selector].applies(member, selector, closedWorld)) {
         continue;
       }
 

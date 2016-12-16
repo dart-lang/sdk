@@ -402,7 +402,8 @@ class Namer {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
-  final Compiler compiler;
+  final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
 
   /// Used disambiguated names in the global namespace, issued by
   /// [_disambiguateGlobal], and [_disambiguateInternalGlobal].
@@ -459,23 +460,22 @@ class Namer {
   final Map<LibraryElement, String> _libraryKeys =
       new HashMap<LibraryElement, String>();
 
-  Namer(Compiler compiler)
-      : compiler = compiler,
-        constantHasher = new ConstantCanonicalHasher(compiler),
-        functionTypeNamer = new FunctionTypeNamer(compiler) {
+  Namer(JavaScriptBackend backend, this.closedWorld)
+      : this.backend = backend,
+        constantHasher =
+            new ConstantCanonicalHasher(backend.rtiEncoder, backend.reporter),
+        functionTypeNamer = new FunctionTypeNamer(backend.rtiEncoder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
     _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
-  JavaScriptBackend get backend => compiler.backend;
-
   BackendHelpers get helpers => backend.helpers;
 
-  DiagnosticReporter get reporter => compiler.reporter;
+  DiagnosticReporter get reporter => backend.reporter;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CoreClasses get coreClasses => closedWorld.coreClasses;
 
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
@@ -591,8 +591,9 @@ class Namer {
   String constantLongName(ConstantValue constant) {
     String longName = constantLongNames[constant];
     if (longName == null) {
-      longName =
-          new ConstantNamingVisitor(compiler, constantHasher).getName(constant);
+      longName = new ConstantNamingVisitor(
+              backend.rtiEncoder, reporter, constantHasher)
+          .getName(constant);
       constantLongNames[constant] = longName;
     }
     return longName;
@@ -854,7 +855,6 @@ class Namer {
     // mangle the field names of classes extending native classes.
     // Methods on such classes are stored on the interceptor, not the instance,
     // so only fields have the potential to clash with a native property name.
-    ClosedWorld closedWorld = compiler.closedWorld;
     if (closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
@@ -1643,7 +1643,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   static const MAX_EXTRA_LENGTH = 30;
   static const DEFAULT_TAG_LENGTH = 3;
 
-  final Compiler compiler;
+  final RuntimeTypesEncoder rtiEncoder;
+  final DiagnosticReporter reporter;
   final ConstantCanonicalHasher hasher;
 
   String root = null; // First word, usually a type name.
@@ -1651,9 +1652,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   List<String> fragments = <String>[];
   int length = 0;
 
-  ConstantNamingVisitor(this.compiler, this.hasher);
-
-  DiagnosticReporter get reporter => compiler.reporter;
+  ConstantNamingVisitor(this.rtiEncoder, this.reporter, this.hasher);
 
   String getName(ConstantValue constant) {
     _visit(constant);
@@ -1797,8 +1796,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     String name = type.element?.name;
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
-      JavaScriptBackend backend = compiler.backend;
-      name = backend.rtiEncoder.getTypeRepresentationForTypeConstant(type);
+      name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     }
     addIdentifier(name);
     add(getHashTag(constant, 3));
@@ -1846,12 +1844,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
+  final RuntimeTypesEncoder rtiEncoder;
   final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
 
-  ConstantCanonicalHasher(this.compiler);
-
-  DiagnosticReporter get reporter => compiler.reporter;
+  ConstantCanonicalHasher(this.rtiEncoder, this.reporter);
 
   int getHash(ConstantValue constant) => _visit(constant);
 
@@ -1918,9 +1915,8 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
-    JavaScriptBackend backend = compiler.backend;
     // This name includes the library name and type parameters.
-    String name = backend.rtiEncoder.getTypeRepresentationForTypeConstant(type);
+    String name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
@@ -2027,12 +2023,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 }
 
 class FunctionTypeNamer extends BaseDartTypeVisitor {
-  final Compiler compiler;
+  final RuntimeTypesEncoder rtiEncoder;
   StringBuffer sb;
 
-  FunctionTypeNamer(this.compiler);
-
-  JavaScriptBackend get backend => compiler.backend;
+  FunctionTypeNamer(this.rtiEncoder);
 
   String computeName(DartType type) {
     sb = new StringBuffer();
@@ -2049,7 +2043,7 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
   }
 
   visitFunctionType(FunctionType type, _) {
-    if (backend.rtiEncoder.isSimpleFunctionType(type)) {
+    if (rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;
     }

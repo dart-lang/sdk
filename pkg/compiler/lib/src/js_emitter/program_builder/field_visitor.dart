@@ -33,10 +33,11 @@ typedef void AcceptField(
 class FieldVisitor {
   final Compiler compiler;
   final Namer namer;
+  final ClosedWorld closedWorld;
 
   JavaScriptBackend get backend => compiler.backend;
 
-  FieldVisitor(this.compiler, this.namer);
+  FieldVisitor(this.compiler, this.namer, this.closedWorld);
 
   /**
    * Invokes [f] for each of the fields of [element].
@@ -140,7 +141,7 @@ class FieldVisitor {
     if (fieldAccessNeverThrows(field)) return false;
     if (backend.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedGetter(field, compiler.closedWorld);
+        compiler.codegenWorld.hasInvokedGetter(field, closedWorld);
   }
 
   bool fieldNeedsSetter(VariableElement field) {
@@ -149,7 +150,7 @@ class FieldVisitor {
     if (field.isFinal || field.isConst) return false;
     if (backend.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedSetter(field, compiler.closedWorld);
+        compiler.codegenWorld.hasInvokedSetter(field, closedWorld);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {

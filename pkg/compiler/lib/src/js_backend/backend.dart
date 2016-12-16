@@ -305,7 +305,7 @@ enum SyntheticConstantKind {
 class JavaScriptBackend extends Backend {
   String get patchVersion => emitter.patchVersion;
 
-  bool get supportsReflection => emitter.emitter.supportsReflection;
+  bool get supportsReflection => emitter.supportsReflection;
 
   final Annotations annotations;
 
@@ -343,7 +343,13 @@ class JavaScriptBackend extends Backend {
   bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
 
-  final Namer namer;
+  Namer _namer;
+
+  Namer get namer {
+    assert(invariant(NO_LOCATION_SPANNABLE, _namer != null,
+        message: "Namer has not been created yet."));
+    return _namer;
+  }
 
   /**
    * A collection of selectors that must have a one shot interceptor
@@ -558,8 +564,7 @@ class JavaScriptBackend extends Backend {
       bool useStartupEmitter: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : namer = determineNamer(compiler),
-        oneShotInterceptors = new Map<jsAst.Name, Selector>(),
+      : oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
         rti = new _RuntimeTypes(compiler),
         rtiEncoder = new _RuntimeTypesEncoder(compiler),
@@ -574,8 +579,8 @@ class JavaScriptBackend extends Backend {
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
         super(compiler) {
-    emitter = new CodeEmitterTask(
-        compiler, namer, generateSourceMap, useStartupEmitter);
+    emitter =
+        new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
@@ -640,12 +645,12 @@ class JavaScriptBackend extends Backend {
         library == helpers.jsHelperLibrary;
   }
 
-  static Namer determineNamer(Compiler compiler) {
+  Namer determineNamer(ClosedWorld closedWorld) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(compiler)
-            : new MinifyNamer(compiler)
-        : new Namer(compiler);
+            ? new FrequencyBasedNamer(this, closedWorld)
+            : new MinifyNamer(this, closedWorld)
+        : new Namer(this, closedWorld);
   }
 
   /// The backend must *always* call this method when enqueuing an
@@ -1534,8 +1539,8 @@ class JavaScriptBackend extends Backend {
     return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
-  int assembleProgram() {
-    int programSize = emitter.assembleProgram();
+  int assembleProgram(ClosedWorld closedWorld) {
+    int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic();
     int totalMethodCount = generatedCode.length;
     if (totalMethodCount != preMirrorsMethodCount) {
@@ -2357,7 +2362,9 @@ class JavaScriptBackend extends Backend {
     jsInteropAnalysis.onQueueClosed();
   }
 
-  WorldImpact onCodegenStart() {
+  WorldImpact onCodegenStart(ClosedWorld closedWorld) {
+    _namer = determineNamer(closedWorld);
+    emitter.createEmitter(_namer, closedWorld);
     lookupMapAnalysis.onCodegenStart();
     if (hasIsolateSupport) {
       return enableIsolateSupport(forResolution: false);

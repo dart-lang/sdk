@@ -5,7 +5,10 @@
 part of dart2js.js_emitter.full_emitter;
 
 class InterceptorEmitter extends CodeEmitterHelper {
+  final ClosedWorld closedWorld;
   final Set<jsAst.Name> interceptorInvocationNames = new Set<jsAst.Name>();
+
+  InterceptorEmitter(this.closedWorld);
 
   void recordMangledNameOfMemberMethod(
       FunctionElement member, jsAst.Name name) {
@@ -17,7 +20,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
   jsAst.Expression buildGetInterceptorMethod(
       jsAst.Name key, Set<ClassElement> classes) {
     InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(compiler, namer, backend);
+        new InterceptorStubGenerator(compiler, namer, backend, closedWorld);
     jsAst.Expression function =
         stubGenerator.generateGetInterceptorMethod(classes);
 
@@ -53,7 +56,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       ..sort();
 
     InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(compiler, namer, backend);
+        new InterceptorStubGenerator(compiler, namer, backend, closedWorld);
     String globalObject =
         namer.globalObjectFor(backend.helpers.interceptorsLibrary);
     for (jsAst.Name name in names) {

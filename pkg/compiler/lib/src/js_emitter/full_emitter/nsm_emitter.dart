@@ -5,7 +5,10 @@
 part of dart2js.js_emitter.full_emitter;
 
 class NsmEmitter extends CodeEmitterHelper {
+  final ClosedWorld closedWorld;
   final List<Selector> trivialNsmHandlers = <Selector>[];
+
+  NsmEmitter(this.closedWorld);
 
   /// If this is true then we can generate the noSuchMethod handlers at startup
   /// time, instead of them being emitted as part of the Object class.
@@ -19,8 +22,9 @@ class NsmEmitter extends CodeEmitterHelper {
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
-    ClassStubGenerator generator =
-        new ClassStubGenerator(compiler, namer, backend);
+    ClassStubGenerator generator = new ClassStubGenerator(
+        namer, backend, codegenWorld, closedWorld,
+        enableMinification: compiler.options.enableMinification);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
@@ -55,7 +59,7 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible = compiler.closedWorld.allFunctions
+          bool accessible = closedWorld.allFunctions
               .filter(selector, null)
               .any((Element e) => backend.isAccessibleByReflection(e));
           addProperty(

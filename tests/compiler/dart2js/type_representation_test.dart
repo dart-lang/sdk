@@ -41,6 +41,8 @@ void testTypeRepresentations() {
       m9(int a, String b, {List<int> c, d}) {}
       m10(void f(int a, [b])) {}
       """).then((env) {
+        var closedWorld = env.compiler.closeResolution();
+        env.compiler.backend.onCodegenStart(closedWorld);
         TypeRepresentationGenerator typeRepresentation =
             new TypeRepresentationGenerator(env.compiler);
 

@@ -8,8 +8,10 @@ class InterceptorStubGenerator {
   final Compiler compiler;
   final Namer namer;
   final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
 
-  InterceptorStubGenerator(this.compiler, this.namer, this.backend);
+  InterceptorStubGenerator(
+      this.compiler, this.namer, this.backend, this.closedWorld);
 
   Emitter get emitter => backend.emitter.emitter;
 
@@ -248,8 +250,8 @@ class InterceptorStubGenerator {
       bool containsJsIndexable =
           helpers.jsIndexingBehaviorInterface.isResolved &&
               classes.any((cls) {
-                return compiler.closedWorld
-                    .isSubtypeOf(cls, helpers.jsIndexingBehaviorInterface);
+                return closedWorld.isSubtypeOf(
+                    cls, helpers.jsIndexingBehaviorInterface);
               });
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the

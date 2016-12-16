@@ -13,11 +13,26 @@ import '../../elements/elements.dart'
     show ClassElement, Element, FieldElement, FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
-import '../js_emitter.dart' show NativeEmitter;
-import '../js_emitter.dart' as emitterTask show Emitter;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter.dart' as emitterTask show Emitter, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
+
+class EmitterFactory implements emitterTask.EmitterFactory {
+  @override
+  String get patchVersion => "lazy";
+
+  @override
+  bool get supportsReflection => false;
+
+  @override
+  Emitter createEmitter(
+      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
+    return new Emitter(task.compiler, namer, task.nativeEmitter);
+  }
+}
 
 class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
@@ -34,16 +49,10 @@ class Emitter implements emitterTask.Emitter {
   DiagnosticReporter get reporter => _compiler.reporter;
 
   @override
-  String get patchVersion => "lazy";
-
-  @override
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram();
     return _emitter.emitProgram(program);
   }
-
-  @override
-  bool get supportsReflection => false;
 
   // TODO(floitsch): copied from full emitter. Adjust or share.
   @override

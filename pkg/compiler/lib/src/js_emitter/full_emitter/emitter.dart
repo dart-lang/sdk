@@ -52,13 +52,15 @@ import '../../js_backend/js_backend.dart'
         TypeVariableHandler;
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
+import '../../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
 import '../../util/uri_extras.dart' show relativize;
 import '../../util/util.dart' show equalElements;
+import '../../world.dart' show ClosedWorld;
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
-import '../js_emitter.dart' hide Emitter;
-import '../js_emitter.dart' as js_emitter show Emitter;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../js_emitter.dart' as js_emitter show Emitter, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
 
@@ -72,6 +74,25 @@ part 'interceptor_emitter.dart';
 part 'nsm_emitter.dart';
 part 'setup_program_builder.dart';
 
+class EmitterFactory implements js_emitter.EmitterFactory {
+  final bool generateSourceMap;
+
+  EmitterFactory({this.generateSourceMap});
+
+  @override
+  String get patchVersion => "full";
+
+  @override
+  bool get supportsReflection => true;
+
+  @override
+  Emitter createEmitter(
+      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
+    return new Emitter(
+        task.compiler, namer, closedWorld, generateSourceMap, task);
+  }
+}
+
 class Emitter implements js_emitter.Emitter {
   final Compiler compiler;
   final CodeEmitterTask task;
@@ -83,9 +104,9 @@ class Emitter implements js_emitter.Emitter {
   List<TypedefElement> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder = new ContainerBuilder();
-  final ClassEmitter classEmitter = new ClassEmitter();
-  final NsmEmitter nsmEmitter = new NsmEmitter();
-  final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
+  final ClassEmitter classEmitter;
+  final NsmEmitter nsmEmitter;
+  final InterceptorEmitter interceptorEmitter;
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final Set<ConstantValue> cachedEmittedConstants;
@@ -154,18 +175,30 @@ class Emitter implements js_emitter.Emitter {
 
   final bool generateSourceMap;
 
-  Emitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
+  Emitter(Compiler compiler, Namer namer, ClosedWorld closedWorld,
+      this.generateSourceMap, this.task)
       : this.compiler = compiler,
         this.namer = namer,
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
         cachedClassBuilders = compiler.cacheStrategy.newMap(),
-        cachedElements = compiler.cacheStrategy.newSet() {
+        cachedElements = compiler.cacheStrategy.newSet(),
+        classEmitter = new ClassEmitter(closedWorld),
+        interceptorEmitter = new InterceptorEmitter(closedWorld),
+        nsmEmitter = new NsmEmitter(closedWorld) {
     constantEmitter = new ConstantEmitter(
         compiler, namer, this.constantReference, constantListGenerator);
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
     interceptorEmitter.emitter = this;
+    if (compiler.options.hasIncrementalSupport) {
+      // Much like a scout, an incremental compiler is always prepared. For
+      // mixins, classes, and lazy statics, at least.
+      needsClassSupport = true;
+      needsMixinSupport = true;
+      needsLazyInitializer = true;
+      needsStructuredMemberInfo = true;
+    }
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -187,9 +220,6 @@ class Emitter implements js_emitter.Emitter {
     _cspPrecompiledFunctions.clear();
     _cspPrecompiledConstructorNames.clear();
   }
-
-  @override
-  String get patchVersion => "full";
 
   @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
@@ -271,9 +301,6 @@ class Emitter implements js_emitter.Emitter {
   /// Contains the global state that is needed to initialize and load a
   /// deferred library.
   String get globalsHolder => r"$globals$";
-
-  @override
-  bool get supportsReflection => true;
 
   @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {

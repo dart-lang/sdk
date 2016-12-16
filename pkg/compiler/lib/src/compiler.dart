@@ -720,7 +720,7 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        enqueuer.codegen.applyImpact(backend.onCodegenStart());
+        enqueuer.codegen.applyImpact(backend.onCodegenStart(closedWorld));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
@@ -730,7 +730,7 @@ abstract class Compiler implements LibraryLoaderListener {
             onProgress: showCodegenProgress);
         enqueuer.codegen.logSummary(reporter.log);
 
-        int programSize = backend.assembleProgram();
+        int programSize = backend.assembleProgram(closedWorld);
 
         if (options.dumpInfo) {
           dumpInfoTask.reportSize(programSize);
