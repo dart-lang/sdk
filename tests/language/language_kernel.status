@@ -95,6 +95,7 @@ vm/regress_27201_test: DartkCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
+config_import_corelib_test: RuntimeError
 enum_syntax_test/05: MissingCompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError
 type_variable_conflict2_test/06: MissingCompileTimeError
@@ -103,6 +104,7 @@ type_variable_conflict2_test/10: MissingCompileTimeError
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
+config_import_corelib_test: RuntimeError
 
 
 ###############################################################################
