@@ -65,6 +65,10 @@ class DiagnosticCollector implements CompilerDiagnostics {
     return filterMessagesByKinds([Diagnostic.CRASH]);
   }
 
+  Iterable<CollectedMessage> get verboseInfos {
+    return filterMessagesByKinds([Diagnostic.VERBOSE_INFO]);
+  }
+
   /// `true` if non-verbose messages has been collected.
   bool get hasRegularMessages {
     return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);

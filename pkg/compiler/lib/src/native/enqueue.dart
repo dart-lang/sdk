@@ -487,7 +487,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
     // Give an info so that library developers can compile with -v to find why
     // all the native classes are included.
-    if (unusedBefore == matchingClasses.length) {
+    if (unusedBefore > 0 && unusedBefore == matchingClasses.length) {
       reporter.log('All native types marked as used due to $cause.');
     }
   }
