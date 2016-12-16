@@ -20,11 +20,12 @@ import 'package:analyzer/analyzer.dart'
         StringLiteral,
         UriBasedDirective,
         parseDirectives;
+import 'package:analyzer/src/command_line/arguments.dart'
+    show extractDefinedVariables;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:dev_compiler/src/analyzer/context.dart'
-    show AnalyzerOptions, parseDeclaredVariables;
+import 'package:dev_compiler/src/analyzer/context.dart';
 import 'package:dev_compiler/src/compiler/compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
@@ -138,8 +139,14 @@ main(List<String> arguments) {
       }
 
       var declaredVars = <String, String>{};
-      var argResults =
-          compileArgParser.parse(parseDeclaredVariables(args, declaredVars));
+      args = extractDefinedVariables(args, declaredVars);
+      ArgResults argResults;
+      try {
+        argResults = compileArgParser.parse(args);
+      } catch (e) {
+        print('Failed to parse $args');
+        rethrow;
+      }
       var options = new CompilerOptions.fromArguments(argResults);
       var moduleFormat = parseModuleFormatOption(argResults).first;
 

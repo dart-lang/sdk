@@ -20,7 +20,10 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
+            '<!@(["python", "../../tools/list_files.py",  "relative", '
+                '"\\.dart$", '
+                '"../../runtime/lib", '
+                '"../../sdk/lib/_internal/dartdoc"])',
             'create_snapshot.dart',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
             '../../tools/VERSION',
@@ -51,7 +54,8 @@
           'action_name': 'make_dart2js_files_stamp',
           'inputs': [
             '../../tools/create_timestamp_file.py',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$",'
+            '<!@(["python", "../../tools/list_files.py", "relative", '
+                '"\\.dart$", '
                 ' "../../pkg/compiler/lib"])',
           ],
           'outputs': [

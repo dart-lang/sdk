@@ -290,6 +290,17 @@ abstract class ContextManager {
   AnalysisContext getContextFor(String path);
 
   /**
+   * Return the [AnalysisDriver] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no driver contains the given path, `null` is returned.
+   */
+  AnalysisDriver getDriverFor(String path);
+
+  /**
    * Return a list of all of the analysis drivers reachable from the given
    * [analysisRoot] (the driver associated with [analysisRoot] and all of its
    * descendants).
@@ -596,6 +607,11 @@ class ContextManagerImpl implements ContextManager {
       return info;
     }
     return null;
+  }
+
+  @override
+  AnalysisDriver getDriverFor(String path) {
+    return _getInnermostContextInfoFor(path)?.analysisDriver;
   }
 
   @override
@@ -988,14 +1004,14 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, ChangeType changeType) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       if (enableNewAnalysisDriver) {
-        // TODO(brianwilkerson) Implement this.
-//        AnalysisDriver driver = info.analysisDriver;
-//        String contextRoot = info.folder.path;
-//        ContextBuilder builder =
-//        callbacks.createContextBuilder(info.folder, defaultContextOptions);
-//        AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
-//        driver.analysisOptions = options;
-//        driver.sourceFactory = builder.createSourceFactory(contextRoot, options);
+        AnalysisDriver driver = info.analysisDriver;
+        String contextRoot = info.folder.path;
+        ContextBuilder builder =
+            callbacks.createContextBuilder(info.folder, defaultContextOptions);
+        AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
+        SourceFactory factory =
+            builder.createSourceFactory(contextRoot, options);
+        driver.configure(analysisOptions: options, sourceFactory: factory);
         // TODO(brianwilkerson) Set exclusion patterns.
       } else {
         var analysisContext = info.context;
@@ -1022,8 +1038,13 @@ class ContextManagerImpl implements ContextManager {
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
       AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
       SourceFactory factory = builder.createSourceFactory(contextRoot, options);
-      info.context.analysisOptions = options;
-      info.context.sourceFactory = factory;
+      if (enableNewAnalysisDriver) {
+        AnalysisDriver driver = info.analysisDriver;
+        driver.configure(analysisOptions: options, sourceFactory: factory);
+      } else {
+        info.context.analysisOptions = options;
+        info.context.sourceFactory = factory;
+      }
     }
   }
 
@@ -1685,10 +1706,18 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {
-    AnalysisContext context = folderMap[contextFolder];
-    context.sourceFactory =
-        _createSourceFactory(context, context.analysisOptions, contextFolder);
-    callbacks.updateContextPackageUriResolver(context);
+    if (enableNewAnalysisDriver) {
+      ContextInfo info = getContextInfoFor(contextFolder);
+      AnalysisDriver driver = info.analysisDriver;
+      SourceFactory sourceFactory =
+          _createSourceFactory(null, driver.analysisOptions, contextFolder);
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      AnalysisContext context = folderMap[contextFolder];
+      context.sourceFactory =
+          _createSourceFactory(context, context.analysisOptions, contextFolder);
+      callbacks.updateContextPackageUriResolver(context);
+    }
   }
 
   /**

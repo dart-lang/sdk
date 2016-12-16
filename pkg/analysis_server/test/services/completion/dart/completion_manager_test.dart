@@ -22,6 +22,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionManagerTest);
+    defineReflectiveTests(CompletionManagerTest_Driver);
   });
 }
 
@@ -103,5 +104,18 @@ part '$testFile';
     // Assert that the new imports each have an export namespace
     assertImportedLib(null /* dart:core */);
     assertImportedLib('/libA.dart');
+  }
+}
+
+@reflectiveTest
+class CompletionManagerTest_Driver extends CompletionManagerTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_resolveDirectives() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_resolveDirectives();
   }
 }

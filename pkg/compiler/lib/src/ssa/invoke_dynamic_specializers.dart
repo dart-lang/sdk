@@ -25,8 +25,8 @@ class InvokeDynamicSpecializer {
 
   TypeMask computeTypeFromInputTypes(
       HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
-    return TypeMaskFactory.inferredTypeForSelector(
-        instruction.selector, instruction.mask, compiler);
+    return TypeMaskFactory.inferredTypeForSelector(instruction.selector,
+        instruction.mask, compiler.globalInference.results);
   }
 
   HInstruction tryConvertToBuiltin(
@@ -111,9 +111,9 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       return null;
     }
     TypeMask receiverType =
-        instruction.getDartReceiver(compiler).instructionType;
+        instruction.getDartReceiver(closedWorld).instructionType;
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-        instruction.selector, receiverType, compiler);
+        instruction.selector, receiverType, compiler.globalInference.results);
     return new HIndex(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, type);
   }
@@ -754,7 +754,7 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
-    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver.isStringOrNull(closedWorld)) {
       // Even if there is no builtin equivalent instruction, we know
       // String.codeUnitAt does not have any side effect (other than throwing),
@@ -774,7 +774,7 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
-    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver.isNumberOrNull(closedWorld)) {
       // Even if there is no builtin equivalent instruction, we know the
       // instruction does not have any side effect, and that it can be GVN'ed.

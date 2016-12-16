@@ -58,7 +58,6 @@ bias.right: ${formatTime(rightBiasTime)}
 ''');
 }
 
-
 String formatTime(int microseconds) {
   double seconds = microseconds / 1000000.0;
   return '$seconds s';

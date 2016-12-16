@@ -18,14 +18,14 @@ import '../common/backend_api.dart'
         ForeignResolver,
         NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
-import '../common/names.dart' show Identifiers, Selectors, Uris;
+import '../common/names.dart' show Identifiers, Uris;
 import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CommonElements, CoreClasses, CoreTypes;
 import '../dart_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
@@ -596,6 +596,8 @@ class JavaScriptBackend extends Backend {
   ConstantSystem get constantSystem => constants.constantSystem;
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  CommonElements get commonElements => compiler.commonElements;
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -1282,13 +1284,14 @@ class JavaScriptBackend extends Backend {
     return impactBuilder;
   }
 
-  onResolutionComplete(ClosedWorldRefiner closedWorldRefiner) {
+  onResolutionComplete(
+      ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
     }
-    super.onResolutionComplete(closedWorldRefiner);
-    computeMembersNeededForReflection();
-    rti.computeClassesNeedingRti();
+    computeMembersNeededForReflection(closedWorld);
+    rti.computeClassesNeedingRti(
+        compiler.enqueuer.resolution.universe, closedWorld);
     _registeredMetadata.clear();
   }
 
@@ -1654,7 +1657,7 @@ class JavaScriptBackend extends Backend {
         element == helpers.jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return typeCast ? 'intTypeCast' : 'intTypeCheck';
-    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+    } else if (Elements.isNumberOrStringSupertype(element, commonElements)) {
       if (nativeCheck) {
         return typeCast
             ? 'numberOrStringSuperNativeTypeCast'
@@ -1664,7 +1667,7 @@ class JavaScriptBackend extends Backend {
             ? 'numberOrStringSuperTypeCast'
             : 'numberOrStringSuperTypeCheck';
       }
-    } else if (Elements.isStringOnlySupertype(element, compiler)) {
+    } else if (Elements.isStringOnlySupertype(element, commonElements)) {
       if (nativeCheck) {
         return typeCast
             ? 'stringSuperNativeTypeCast'
@@ -1678,7 +1681,7 @@ class JavaScriptBackend extends Backend {
       if (nativeCheckOnly) return null;
       return typeCast ? 'listTypeCast' : 'listTypeCheck';
     } else {
-      if (Elements.isListSupertype(element, compiler)) {
+      if (Elements.isListSupertype(element, commonElements)) {
         if (nativeCheck) {
           return typeCast
               ? 'listSuperNativeTypeCast'
@@ -2025,9 +2028,9 @@ class JavaScriptBackend extends Backend {
    * be visible by reflection unless some other interfaces makes them
    * accessible.
    */
-  void computeMembersNeededForReflection() {
+  void computeMembersNeededForReflection(ClosedWorld closedWorld) {
     if (_membersNeededForReflection != null) return;
-    if (compiler.commonElements.mirrorsLibrary == null) {
+    if (closedWorld.commonElements.mirrorsLibrary == null) {
       _membersNeededForReflection = const ImmutableEmptySet<Element>();
       return;
     }
@@ -2069,9 +2072,8 @@ class JavaScriptBackend extends Backend {
           }
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
-        if (compiler.closedWorld.hasAnyStrictSubtype(cls)) {
-          compiler.closedWorld.forEachStrictSubtypeOf(cls,
-              (ClassElement subcls) {
+        if (closedWorld.hasAnyStrictSubtype(cls)) {
+          closedWorld.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
@@ -2150,8 +2152,8 @@ class JavaScriptBackend extends Backend {
       reflectableMembers.add(helpers.boundClosureClass);
     }
     // Add typedefs.
-    reflectableMembers.addAll(
-        compiler.closedWorld.allTypedefs.where(referencedFromMirrorSystem));
+    reflectableMembers
+        .addAll(closedWorld.allTypedefs.where(referencedFromMirrorSystem));
     // Register all symbols of reflectable elements
     for (Element element in reflectableMembers) {
       symbolsUsed.add(element.name);
@@ -2186,34 +2188,6 @@ class JavaScriptBackend extends Backend {
     FunctionElement helper = helpers.isJsIndexable;
     jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
-  }
-
-  bool isTypedArray(TypeMask mask) {
-    // Just checking for [:TypedData:] is not sufficient, as it is an
-    // abstract class any user-defined class can implement. So we also
-    // check for the interface [JavaScriptIndexingBehavior].
-    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
-    return typedDataClass != null &&
-        compiler.closedWorld.isInstantiated(typedDataClass) &&
-        mask.satisfies(typedDataClass, compiler.closedWorld) &&
-        mask.satisfies(
-            helpers.jsIndexingBehaviorInterface, compiler.closedWorld);
-  }
-
-  bool couldBeTypedArray(TypeMask mask) {
-    bool intersects(TypeMask type1, TypeMask type2) =>
-        !type1.intersection(type2, compiler.closedWorld).isEmpty;
-    // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
-    //               jsIndexingBehaviourInterface.
-    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
-    return typedDataClass != null &&
-        compiler.closedWorld.isInstantiated(typedDataClass) &&
-        intersects(
-            mask, new TypeMask.subtype(typedDataClass, compiler.closedWorld)) &&
-        intersects(
-            mask,
-            new TypeMask.subtype(
-                helpers.jsIndexingBehaviorInterface, compiler.closedWorld));
   }
 
   /// Returns all static fields that are referenced through [targetsUsed].
@@ -3230,6 +3204,8 @@ class JavaScriptBackendClasses implements BackendClasses {
   ClassElement get indexableImplementation => helpers.jsIndexableClass;
   ClassElement get mutableIndexableImplementation =>
       helpers.jsMutableIndexableClass;
+  ClassElement get indexingBehaviorImplementation =>
+      helpers.jsIndexingBehaviorInterface;
 
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');
@@ -3237,5 +3213,15 @@ class JavaScriptBackendClasses implements BackendClasses {
     return classElement == helpers.coreClasses.objectClass ||
         classElement == helpers.jsInterceptorClass ||
         classElement == helpers.jsNullClass;
+  }
+
+  @override
+  bool isInterceptorClass(ClassElement cls) {
+    return helpers.backend.isInterceptorClass(cls);
+  }
+
+  @override
+  bool isNative(Element element) {
+    return helpers.backend.isNative(element);
   }
 }

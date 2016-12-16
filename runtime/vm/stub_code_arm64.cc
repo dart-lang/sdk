@@ -1944,7 +1944,7 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ LoadFromOffset(R0, THR, Thread::active_exception_offset());
   __ StoreToOffset(R2, THR, Thread::active_exception_offset());
 
-  // Stacktrace object.
+  // StackTrace object.
   __ LoadFromOffset(R1, THR, Thread::active_stacktrace_offset());
   __ StoreToOffset(R2, THR, Thread::active_stacktrace_offset());
 

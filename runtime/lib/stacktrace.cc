@@ -34,10 +34,10 @@ static void IterateFrames(const GrowableObjectArray& code_list,
   }
 }
 
-// Creates a Stacktrace object from the current stack.
+// Creates a StackTrace object from the current stack.
 //
 // Skips the first skip_frames Dart frames.
-const Stacktrace& GetCurrentStacktrace(int skip_frames) {
+const StackTrace& GetCurrentStackTrace(int skip_frames) {
   const GrowableObjectArray& code_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& pc_offset_list =
@@ -46,8 +46,8 @@ const Stacktrace& GetCurrentStacktrace(int skip_frames) {
   const Array& code_array = Array::Handle(Array::MakeArray(code_list));
   const Array& pc_offset_array =
       Array::Handle(Array::MakeArray(pc_offset_list));
-  const Stacktrace& stacktrace =
-      Stacktrace::Handle(Stacktrace::New(code_array, pc_offset_array));
+  const StackTrace& stacktrace =
+      StackTrace::Handle(StackTrace::New(code_array, pc_offset_array));
   return stacktrace;
 }
 
@@ -56,13 +56,13 @@ const Stacktrace& GetCurrentStacktrace(int skip_frames) {
 // valid exit frame information. It will not work when a breakpoint is
 // set in dart code and control is got inside 'gdb' without going through
 // the runtime or native transition stub.
-void _printCurrentStacktrace() {
-  const Stacktrace& stacktrace = GetCurrentStacktrace(0);
+void _printCurrentStackTrace() {
+  const StackTrace& stacktrace = GetCurrentStackTrace(0);
   OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 }
 
-// Like _printCurrentStacktrace, but works in a NoSafepointScope.
-void _printCurrentStacktraceNoSafepoint() {
+// Like _printCurrentStackTrace, but works in a NoSafepointScope.
+void _printCurrentStackTraceNoSafepoint() {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   while (frame != NULL) {
@@ -72,7 +72,7 @@ void _printCurrentStacktraceNoSafepoint() {
 }
 
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {
-  const Stacktrace& stacktrace = GetCurrentStacktrace(1);
+  const StackTrace& stacktrace = GetCurrentStackTrace(1);
   return stacktrace.raw();
 }
 

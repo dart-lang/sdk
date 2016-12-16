@@ -37,6 +37,7 @@ class Library;
 class LongJumpScope;
 class Object;
 class OSThread;
+class JSONObject;
 class PcDescriptors;
 class RawBool;
 class RawObject;
@@ -160,6 +161,9 @@ class Thread : public BaseThread {
     kMarkerTask = 0x8,
     kFinalizerTask = 0x10,
   };
+  // Converts a TaskKind to its corresponding C-String name.
+  static const char* TaskKindToCString(TaskKind kind);
+
   ~Thread();
 
   // The currently executing thread, or NULL if not yet initialized.
@@ -645,6 +649,10 @@ class Thread : public BaseThread {
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream) const;
+#endif
 
  private:
   template <class T>

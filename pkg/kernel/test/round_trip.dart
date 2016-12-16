@@ -53,7 +53,6 @@ class BinaryPrinterWithExpectedOutput extends BinaryPrinter {
   BinaryPrinterWithExpectedOutput(this.expectedBytes)
       : super(new IOSink(new DummyStreamConsumer()));
 
-
   String show(int byte) {
     if (byte == eof) return 'EOF';
     return '$byte (0x${byte.toRadixString(16).padLeft(2, "0")})';

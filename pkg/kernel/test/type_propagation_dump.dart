@@ -105,6 +105,7 @@ main(List<String> args) {
       String dotCode = visualizer.dumpMember(member);
       new File(path).writeAsStringSync(dotCode);
     }
+
     for (var library in program.libraries) {
       library.members.forEach(dumpMember);
       for (var class_ in library.classes) {

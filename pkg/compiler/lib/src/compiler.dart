@@ -485,20 +485,6 @@ abstract class Compiler implements LibraryLoaderListener {
   // [JavaScriptBackend]. Currently needed for testing.
   String get patchVersion => backend.patchVersion;
 
-  Element _unnamedListConstructor;
-  Element get unnamedListConstructor {
-    if (_unnamedListConstructor != null) return _unnamedListConstructor;
-    return _unnamedListConstructor =
-        coreClasses.listClass.lookupDefaultConstructor();
-  }
-
-  Element _filledListConstructor;
-  Element get filledListConstructor {
-    if (_filledListConstructor != null) return _filledListConstructor;
-    return _filledListConstructor =
-        coreClasses.listClass.lookupConstructor("filled");
-  }
-
   /**
    * Get an [Uri] pointing to a patch for the dart: library with
    * the given path. Returns null if there is no patch.
@@ -748,7 +734,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
         if (options.dumpInfo) {
           dumpInfoTask.reportSize(programSize);
-          dumpInfoTask.dumpInfo();
+          dumpInfoTask.dumpInfo(closedWorld);
         }
 
         backend.sourceInformationStrategy.onComplete();
@@ -763,7 +749,7 @@ abstract class Compiler implements LibraryLoaderListener {
     WorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionComplete(world);
+    backend.onResolutionComplete(world, world);
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
@@ -1491,6 +1477,14 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
     }
     return element;
   }
+
+  ConstructorElement _unnamedListConstructor;
+  ConstructorElement get unnamedListConstructor =>
+      _unnamedListConstructor ??= listClass.lookupDefaultConstructor();
+
+  ConstructorElement _filledListConstructor;
+  ConstructorElement get filledListConstructor =>
+      _filledListConstructor ??= listClass.lookupConstructor("filled");
 }
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {

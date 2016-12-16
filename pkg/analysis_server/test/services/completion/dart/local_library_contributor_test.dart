@@ -14,6 +14,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
+    defineReflectiveTests(LocalLibraryContributorTest_Driver);
   });
 }
 
@@ -304,5 +305,25 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_d');
     assertNotSuggested('z');
     assertNotSuggested('m');
+  }
+}
+
+@reflectiveTest
+class LocalLibraryContributorTest_Driver extends LocalLibraryContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_partFile_Constructor() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_partFile_Constructor();
+  }
+
+  @failingTest
+  @override
+  test_partFile_TypeName() {
+//    Bad state: Should not be used with the new analysis driver.
+    return super.test_partFile_TypeName();
   }
 }

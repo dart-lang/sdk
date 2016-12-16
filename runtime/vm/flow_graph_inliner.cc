@@ -381,7 +381,8 @@ class CallSites : public ValueObject {
               current->AsPolymorphicInstanceCall();
           if (!inline_only_recognized_methods ||
               instance_call->HasSingleRecognizedTarget() ||
-              instance_call->ic_data().HasOnlyDispatcherTargets()) {
+              instance_call->ic_data()
+                  .HasOnlyDispatcherOrImplicitAccessorTargets()) {
             instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
@@ -397,7 +398,8 @@ class CallSites : public ValueObject {
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
           if (!inline_only_recognized_methods ||
-              static_call->function().IsRecognized()) {
+              static_call->function().IsRecognized() ||
+              static_call->function().IsDispatcherOrImplicitAccessor()) {
             static_calls_.Add(StaticCallInfo(static_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
@@ -936,10 +938,8 @@ class CallSiteInliner : public ValueObject {
         }
 
         // Inline dispatcher methods regardless of the current depth.
-        const intptr_t depth = (function.IsInvokeFieldDispatcher() ||
-                                function.IsNoSuchMethodDispatcher())
-                                   ? 0
-                                   : inlining_depth_;
+        const intptr_t depth =
+            function.IsDispatcherOrImplicitAccessor() ? 0 : inlining_depth_;
         collected_call_sites_->FindCallSites(callee_graph, depth,
                                              &inlined_info_);
 
@@ -1924,9 +1924,8 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
-  if (function.IsImplicitGetterFunction() ||
-      function.IsImplicitSetterFunction()) {
-    // Inlined accessors are smaller than a call.
+  if (function.IsDispatcherOrImplicitAccessor()) {
+    // Smaller or same size as the call.
     return true;
   }
 

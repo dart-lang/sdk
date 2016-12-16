@@ -61,7 +61,6 @@ class SimulatorSetjmpBuffer {
     simulator_ = sim;
     link_ = sim->last_setjmp_buffer();
     sim->set_last_setjmp_buffer(this);
-    sp_ = sim->sp_;
     fp_ = sim->fp_;
   }
 
@@ -72,13 +71,11 @@ class SimulatorSetjmpBuffer {
 
   SimulatorSetjmpBuffer* link() const { return link_; }
 
-  uword sp() const { return reinterpret_cast<uword>(sp_); }
   uword fp() const { return reinterpret_cast<uword>(fp_); }
 
   jmp_buf buffer_;
 
  private:
-  RawObject** sp_;
   RawObject** fp_;
   Simulator* simulator_;
   SimulatorSetjmpBuffer* link_;
@@ -510,7 +507,7 @@ void Simulator::InitOnce() {
 }
 
 
-Simulator::Simulator() : stack_(NULL), fp_(NULL), sp_(NULL) {
+Simulator::Simulator() : stack_(NULL), fp_(NULL) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -581,8 +578,8 @@ void Simulator::Exit(Thread* thread,
   frame[1] = Code::null();
   frame[2] = reinterpret_cast<RawObject*>(pc);
   frame[3] = reinterpret_cast<RawObject*>(base);
-  fp_ = sp_ = frame + kDartFrameFixedSize;
-  thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));
+  fp_ = frame + kDartFrameFixedSize;
+  thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
 }
 
 // TODO(vegorov): Investigate advantages of using
@@ -1060,8 +1057,8 @@ static DART_NOINLINE bool InvokeNativeWrapper(Thread* thread,
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
     if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
-      fp_ = sp_ = reinterpret_cast<RawObject**>(fp_[0]);                       \
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));           \
+      fp_ = reinterpret_cast<RawObject**>(fp_[0]);                             \
+      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));           \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
       return special_[kExceptionSpecialIndex];                                 \
@@ -1112,8 +1109,8 @@ RawObject* Simulator::Call(const Code& code,
   uint32_t op;  // Currently executing op.
   uint16_t rA;  // A component of the currently executing op.
 
-  if (sp_ == NULL) {
-    fp_ = sp_ = reinterpret_cast<RawObject**>(stack_);
+  if (fp_ == NULL) {
+    fp_ = reinterpret_cast<RawObject**>(stack_);
   }
 
   // Save current VM tag and mark thread as executing Dart code.
@@ -1442,6 +1439,16 @@ RawObject* Simulator::Call(const Code& code,
         NativeArguments args(thread, 0, NULL, NULL);
         INVOKE_RUNTIME(DRT_StackOverflow, args);
       }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckStackAlwaysExit, A);
+    {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_StackOverflow, args);
     }
     DISPATCH();
   }
@@ -2565,9 +2572,8 @@ RawObject* Simulator::Call(const Code& code,
     // Check if it is a fake PC marking the entry frame.
     if ((reinterpret_cast<uword>(pc) & 2) != 0) {
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
-      fp_ = sp_ =
-          reinterpret_cast<RawObject**>(FrameArguments(FP, argc + 1)[0]);
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));
+      fp_ = reinterpret_cast<RawObject**>(FrameArguments(FP, argc + 1)[0]);
+      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
       return result;
@@ -3713,7 +3719,6 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
 
-  sp_ = reinterpret_cast<RawObject**>(sp);
   fp_ = reinterpret_cast<RawObject**>(fp);
 
   if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
@@ -3723,7 +3728,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     RawObject* raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
     special_[kExceptionSpecialIndex] = raw_exception;
-    special_[kStacktraceSpecialIndex] = raw_stacktrace;
+    special_[kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
   } else if (pc == StubCode::DeoptForRewind_entry()->EntryPoint()) {
     // The DeoptForRewind stub is a placeholder.  We will eventually

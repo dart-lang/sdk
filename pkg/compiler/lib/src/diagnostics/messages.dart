@@ -162,7 +162,6 @@ enum MessageKind {
   DEFERRED_LIBRARY_WITHOUT_PREFIX,
   DEFERRED_OLD_SYNTAX,
   DEFERRED_TYPE_ANNOTATION,
-  DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
   DIRECTLY_THROWING_NSM,
   DISALLOWED_LIBRARY_IMPORT,
   DUPLICATE_DEFINITION,
@@ -191,7 +190,6 @@ enum MessageKind {
   EXISTING_DEFINITION,
   EXISTING_LABEL,
   EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
-  EXPERIMENTAL_ASSERT_MESSAGE,
   EXPONENT_MISSING,
   EXPORT_BEFORE_PARTS,
   EXTERNAL_WITH_BODY,
@@ -1633,7 +1631,7 @@ class C extends Object with String {}
 main() => new C();
 """,
             """
-typedef C = Object with String;
+class C = Object with String;
 
 main() => new C();
 """
@@ -2479,19 +2477,6 @@ main() => A.A = 1;
           howToFix: "Try removing '+'.",
           examples: const [
             "main() => +2;  // No longer a valid way to write '2'"
-          ]),
-
-      MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX: const MessageTemplate(
-          MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
-          "'typedef' not allowed here. ",
-          howToFix: "Try replacing 'typedef' with 'class'.",
-          examples: const [
-            """
-class B { }
-class M1 {  }
-typedef C = B with M1;  // Need to replace 'typedef' with 'class'.
-main() { new C(); }
-"""
           ]),
 
       MessageKind.MIRRORS_EXPECTED_STRING: const MessageTemplate(
@@ -3671,21 +3656,6 @@ main() => foo();
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors end.
       //////////////////////////////////////////////////////////////////////////////
-
-      MessageKind.EXPERIMENTAL_ASSERT_MESSAGE: const MessageTemplate(
-          MessageKind.EXPERIMENTAL_ASSERT_MESSAGE,
-          "Experimental language feature 'assertion with message'"
-          " is not supported.",
-          howToFix:
-              "Use option '--assert-message' to use assertions with messages.",
-          examples: const [
-            r'''
-main() {
-  int n = -7;
-  assert(n > 0, 'must be positive: $n');
-}
-'''
-          ]),
 
       MessageKind.IMPORT_EXPERIMENTAL_MIRRORS: const MessageTemplate(
           MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,

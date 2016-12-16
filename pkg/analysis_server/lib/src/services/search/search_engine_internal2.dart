@@ -38,8 +38,13 @@ class SearchEngineImpl2 implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchMatch> allDeclarations = [];
+    RegExp regExp = new RegExp('^$name\$');
+    for (AnalysisDriver driver in _drivers) {
+      List<Element> elements = await driver.search.classMembers(regExp);
+      allDeclarations.addAll(elements.map(_SearchMatch.forElement));
+    }
+    return allDeclarations;
   }
 
   @override
@@ -66,8 +71,13 @@ class SearchEngineImpl2 implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchMatch> allDeclarations = [];
+    RegExp regExp = new RegExp(pattern);
+    for (AnalysisDriver driver in _drivers) {
+      List<Element> elements = await driver.search.topLevelElements(regExp);
+      allDeclarations.addAll(elements.map(_SearchMatch.forElement));
+    }
+    return allDeclarations;
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
@@ -150,6 +160,19 @@ class _SearchMatch implements SearchMatch {
         result.isQualified,
         toMatchKind(result.kind),
         new SourceRange(result.offset, result.length));
+  }
+
+  static _SearchMatch forElement(Element element) {
+    return new _SearchMatch(
+        element.source.fullName,
+        element.librarySource,
+        element.source,
+        element.library,
+        element,
+        true,
+        true,
+        MatchKind.DECLARATION,
+        new SourceRange(element.nameOffset, element.nameLength));
   }
 
   static MatchKind toMatchKind(SearchResultKind kind) {

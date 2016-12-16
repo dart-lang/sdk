@@ -23,15 +23,15 @@
           'inputs': [
             # Xcode can only handle a certain amount of files in one list
             # (also depending on the length of the path from where you run).
-            '<!@(["python", "tools/list_files.py",'
-                '"dart$",'
+            '<!@(["python", "tools/list_files.py", "relative", "dart$",'
                 '"sdk/lib"])',
             'sdk/lib/dart_client.platform',
             'sdk/lib/dart_server.platform',
             'sdk/lib/dart_shared.platform',
-            '<!@(["python", "tools/list_files.py", "", '
+            '<!@(["python", "tools/list_files.py", "relative", "", '
                 '"sdk/lib/_internal/js_runtime/lib/preambles"])',
-            '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
+            '<!@(["python", "tools/list_files.py", "relative",  "", '
+                '"sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',

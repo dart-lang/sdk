@@ -18,14 +18,14 @@ namespace dart {
 DECLARE_FLAG(bool, trace_type_checks);
 
 // Helper function in stacktrace.cc.
-void _printCurrentStacktrace();
+void _printCurrentStackTrace();
 
 DEFINE_NATIVE_ENTRY(DartCore_fatal, 1) {
   // The core library code entered an unrecoverable state.
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:core\n");
-  _printCurrentStacktrace();
+  _printCurrentStackTrace();
   FATAL(msg);
   return Object::null();
 }

@@ -37,13 +37,15 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:dev_compiler/src/compiler/command.dart';
 
 Future main(List<String> args) async {
   // Always returns a new modifiable list.
-  args = _preprocessArgs(args);
+  args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
   if (args.contains('--persistent_worker')) {
     new _CompilerWorker(args..remove('--persistent_worker')).run();
@@ -70,20 +72,4 @@ class _CompilerWorker extends AsyncWorkerLoop {
       ..exitCode = exitCode
       ..output = output.toString();
   }
-}
-
-/// Always returns a new modifiable list.
-///
-/// If the final arg is `@file_path` then read in all the lines of that file
-/// and add those as args.
-///
-/// Bazel actions that support workers must provide all their per-WorkRequest
-/// arguments in a file like this instead of as normal args.
-List<String> _preprocessArgs(List<String> args) {
-  args = new List.from(args);
-  if (args.isNotEmpty && args.last.startsWith('@')) {
-    var fileArg = args.removeLast();
-    args.addAll(new File(fileArg.substring(1)).readAsLinesSync());
-  }
-  return args;
 }

@@ -216,6 +216,19 @@ class StdoutException implements IOException {
   }
 }
 
+
+class StdinException implements IOException {
+  final String message;
+  final OSError osError;
+
+  const StdinException(this.message, [this.osError]);
+
+  String toString() {
+    return "StdinException: $message${osError == null ? "" : ", $osError"}";
+  }
+}
+
+
 class _StdConsumer implements StreamConsumer<List<int>> {
   final _file;
 

@@ -135,6 +135,17 @@ class OpType {
       !includeVoidReturnSuggestions;
 
   /**
+   * Return `true` if free standing identifiers should be suggested
+   */
+  bool get includeIdentifiers {
+    return !isPrefixed &&
+        (includeReturnValueSuggestions ||
+            includeTypeNameSuggestions ||
+            includeVoidReturnSuggestions ||
+            includeConstructorSuggestions);
+  }
+
+  /**
    * Indicate whether only type names should be suggested
    */
   bool get includeOnlyTypeNameSuggestions =>

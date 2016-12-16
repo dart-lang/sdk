@@ -139,7 +139,7 @@ class ProcessCommand extends Command {
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
-    var command = ([executable]..addAll(arguments))
+    var command = ([executable]..addAll(batchArguments)..addAll(arguments))
         .map(escapeCommandLineArgument)
         .join(' ');
     if (workingDirectory != null) {
@@ -149,6 +149,11 @@ class ProcessCommand extends Command {
   }
 
   Future<bool> get outputIsUpToDate => new Future.value(false);
+
+  /// Arguments that are passed to the process when starting batch mode.
+  ///
+  /// In non-batch mode, they should be passed before [arguments].
+  List<String> get batchArguments => const [];
 }
 
 class CompilationCommand extends ProcessCommand {
@@ -233,6 +238,8 @@ class KernelCompilationCommand extends CompilationCommand {
       : super._(displayName, outputFile, neverSkipCompilation,
                 bootstrapDependencies, executable, arguments,
                 environmentOverrides);
+
+  int get maxNumRetries => 1;
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==
@@ -360,6 +367,35 @@ class VmCommand extends ProcessCommand {
   VmCommand._(String executable, List<String> arguments,
       Map<String, String> environmentOverrides)
       : super._("vm", executable, arguments, environmentOverrides);
+}
+
+class VmBatchCommand extends ProcessCommand implements VmCommand {
+  final String dartFile;
+  final bool checked;
+
+  VmBatchCommand._(String executable, String dartFile, List<String> arguments,
+      Map<String, String> environmentOverrides, {this.checked: true})
+      : this.dartFile = dartFile,
+        super._('vm-batch', executable, arguments, environmentOverrides);
+
+  @override
+  List<String> get batchArguments => checked
+      ? ['--checked', dartFile]
+      : [dartFile];
+
+  @override
+  bool _equal(VmBatchCommand other) {
+    return super._equal(other) &&
+        dartFile == other.dartFile &&
+        checked == other.checked;
+  }
+
+  @override
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(dartFile);
+    builder.addJson(checked);
+  }
 }
 
 class AdbPrecompilationCommand extends Command {
@@ -701,6 +737,15 @@ class CommandBuilder {
     return _getUniqueCommand(command);
   }
 
+  VmBatchCommand getVmBatchCommand(String executable, String tester,
+      List<String> arguments, Map<String, String> environmentOverrides,
+      {bool checked: true}) {
+    var command =
+        new VmBatchCommand._(executable, tester, arguments, environmentOverrides,
+            checked: checked);
+    return _getUniqueCommand(command);
+  }
+
   AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
                                                     String processTest,
                                                     String testDirectory,
@@ -848,7 +893,7 @@ class TestCase extends UniqueObject {
   bool get expectCompileError => _expectations & EXPECT_COMPILE_ERROR != 0;
 
   bool get unexpectedOutput {
-    var outcome = lastCommandOutput.result(this);
+    var outcome = this.result;
     return !expectedOutcomes.any((expectation) {
       return outcome.canBeOutcomeOf(expectation);
     });
@@ -2179,7 +2224,7 @@ class BatchRunnerProcess {
   _startProcess(callback) {
     assert(_command is ProcessCommand);
     var executable = _command.executable;
-    var arguments = ['--batch'];
+    var arguments = []..addAll(_command.batchArguments)..add('--batch');
     var environment = new Map.from(io.Platform.environment);
     if (_processEnvironmentOverrides != null) {
       for (var key in _processEnvironmentOverrides.keys) {
@@ -2640,6 +2685,10 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         });
       });
+    } else if (command is VmBatchCommand) {
+      var name = command.displayName;
+      return _getBatchRunner(command.displayName + command.dartFile)
+          .runCommand(name, command, timeout, command.arguments);
     } else {
       return new RunningProcess(command, timeout).run();
     }
@@ -2841,6 +2890,31 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
+    final command = output.command;
+
+    // The dartk batch compiler sometimes runs out of memory. In such a case we
+    // will retry running it.
+    if (command is KernelCompilationCommand) {
+      if (output.hasCrashed) {
+        bool containsOutOfMemoryMessage(String line) {
+          return line.contains('Exhausted heap space, trying to allocat');
+        }
+
+        decodeOutput();
+        if (stdout.any(containsOutOfMemoryMessage) ||
+            stderr.any(containsOutOfMemoryMessage)) {
+          return true;
+        }
+      }
+    }
+
+    // We currently rerun dartium tests, see issue 14074.
+    if (command is BrowserTestCommand &&
+        command.retry &&
+        command.browser == 'dartium') {
+      return true;
+    }
+
     if (io.Platform.operatingSystem == 'linux') {
       decodeOutput();
       // No matter which command we ran: If we get failures due to the
@@ -2854,13 +2928,6 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    // We currently rerun dartium tests, see issue 14074.
-    final command = output.command;
-    if (command is BrowserTestCommand &&
-        command.retry &&
-        command.browser == 'dartium') {
-      return true;
-    }
   }
   return false;
 }

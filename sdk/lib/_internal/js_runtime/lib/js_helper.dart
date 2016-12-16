@@ -2607,18 +2607,21 @@ abstract class Closure implements Function {
                 })(#, #)''',
              RAW_DART_FUNCTION_REF(getType),
              functionType);
-    } else if (!isStatic
-               && JS('bool', 'typeof # == "function"', functionType)) {
-      var getReceiver = isIntercepted
-          ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
-          : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-      signatureFunction = JS(
-        '',
-        'function(f,r){'
-          'return function(){'
-            'return f.apply({\$receiver:r(this)},arguments)'
-          '}'
-        '}(#,#)', functionType, getReceiver);
+    } else if (JS('bool', 'typeof # == "function"', functionType)) {
+      if (isStatic) {
+        signatureFunction = functionType;
+      } else {
+        var getReceiver = isIntercepted
+            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
+            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+        signatureFunction = JS(
+          '',
+          'function(f,r){'
+            'return function(){'
+              'return f.apply({\$receiver:r(this)},arguments)'
+            '}'
+          '}(#,#)', functionType, getReceiver);
+      }
     } else {
       throw 'Error in reflectionInfo.';
     }
@@ -4046,10 +4049,9 @@ void mainHasTooManyParameters() {
 }
 
 class _AssertionError extends AssertionError {
-  final _message;
-  _AssertionError(this._message);
+  _AssertionError(Object message) : super(message);
 
-  String toString() => "Assertion failed: " + Error.safeToString(_message);
+  String toString() => "Assertion failed: " + Error.safeToString(message);
 }
 
 

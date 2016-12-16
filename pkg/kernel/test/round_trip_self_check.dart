@@ -3,17 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.round_trip_test;
 
-import 'package:test/test.dart';
+import 'self_check_util.dart';
 import 'round_trip.dart' as cmd;
 
-void main() {
-  test('dart2js', () {
-    cmd.main(['test/data/dart2js.dill']);
-  });
-  test('dart2js-strong', () {
-    cmd.main(['test/data/dart2js-strong.dill']);
-  });
-  test('boms', () {
-    cmd.main(['test/data/boms.dill']);
+void main(List<String> args) {
+  runSelfCheck(args, (String filename) {
+    cmd.main([filename]);
   });
 }

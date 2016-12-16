@@ -43,6 +43,7 @@ class BasicClassHierarchy {
         callback(member, superMember, setter);
       }
     }
+
     // Report declared members overriding inheritable members.
     for (var member in class_.mixin.members) {
       for (var supertype in class_.supers) {
@@ -172,6 +173,7 @@ class BasicClassHierarchy {
           interfaceGettersAndCalls[node]);
       mergeMaps(interfaceSetters[type.classNode], interfaceSetters[node]);
     }
+
     inheritFrom(node.supertype);
     inheritFrom(node.mixedInType);
     node.implementedTypes.forEach(inheritFrom);

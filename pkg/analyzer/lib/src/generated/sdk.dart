@@ -7,10 +7,9 @@ library analyzer.src.generated.sdk;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptions, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
@@ -214,7 +213,7 @@ class SdkDescription {
   @override
   int get hashCode {
     int hashCode = 0;
-    for (int value in options.encodeCrossContextOptions()) {
+    for (int value in options.signature) {
       hashCode = JenkinsSmiHash.combine(hashCode, value);
     }
     for (String path in paths) {
@@ -226,9 +225,8 @@ class SdkDescription {
   @override
   bool operator ==(Object other) {
     if (other is SdkDescription) {
-      if (!AnalysisOptions.crossContextOptionsEqual(
-          options.encodeCrossContextOptions(),
-          other.options.encodeCrossContextOptions())) {
+      if (!AnalysisOptions.signaturesEqual(
+          options.signature, other.options.signature)) {
         return false;
       }
       int length = paths.length;
@@ -264,8 +262,7 @@ class SdkDescription {
       buffer.write(' ');
     }
     buffer.write('(');
-    buffer.write(AnalysisOptionsImpl
-        .decodeCrossContextOptions(options.encodeCrossContextOptions()));
+    buffer.write(options.signature);
     buffer.write(')');
     return buffer.toString();
   }
@@ -291,11 +288,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   static String _DART2JS_PATH = "dart2jsPath";
 
   /**
-   * The name of the `dart2js` platform.
-   */
-  static String _DART2JS_PLATFORM = 'DART2JS_PLATFORM';
-
-  /**
    * The name of the optional parameter used to indicate whether the library is
    * documented.
    */
@@ -306,12 +298,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    * library.
    */
   static String _CATEGORIES = "categories";
-
-  /**
-   * The name of the optional parameter used to specify the patches for
-   * the library.
-   */
-  static String _PATCHES = "patches";
 
   /**
    * The name of the optional parameter used to specify the platforms on which
@@ -391,30 +377,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
             library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
             library.documented = (expression as BooleanLiteral).value;
-          } else if (name == _PATCHES) {
-            if (expression is MapLiteral) {
-              expression.entries.forEach((MapLiteralEntry entry) {
-                int platforms = _convertPlatforms(entry.key);
-                Expression pathsListLiteral = entry.value;
-                if (pathsListLiteral is ListLiteral) {
-                  List<String> paths = <String>[];
-                  pathsListLiteral.elements.forEach((Expression pathExpr) {
-                    if (pathExpr is SimpleStringLiteral) {
-                      String path = pathExpr.value;
-                      _validatePatchPath(path);
-                      paths.add(path);
-                    } else {
-                      throw new ArgumentError(
-                          'The "patch" argument items must be simple strings.');
-                    }
-                  });
-                  library.setPatchPaths(platforms, paths);
-                } else {
-                  throw new ArgumentError(
-                      'The "patch" argument values must be list literals.');
-                }
-              });
-            }
           } else if (name == _PLATFORMS) {
             if (expression is SimpleIdentifier) {
               String identifier = expression.name;
@@ -434,61 +396,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
       _librariesMap.setLibrary(libraryName, library);
     }
     return null;
-  }
-
-  /**
-   * Validate the given [path] to a patch file. Throw [ArgumentError] if not a
-   * valid path: is absolute, or contains `..`.
-   */
-  void _validatePatchPath(String path) {
-    if (path.contains(r'\')) {
-      throw new ArgumentError('The path to a patch file must be posix: $path');
-    }
-    if (path.contains('..')) {
-      throw new ArgumentError(
-          'The path to a patch file cannot contain "..": $path');
-    }
-    if (path.startsWith('/')) {
-      throw new ArgumentError(
-          'The path to a patch file cannot be absolute: $path');
-    }
-  }
-
-  /**
-   * Return the platform constant value for the given [expr].
-   * Throw [ArgumentError] if not a valid platform name given.
-   */
-  static int _convertPlatform(Expression expr) {
-    if (expr is SimpleIdentifier) {
-      String name = expr.name;
-      if (name == _DART2JS_PLATFORM) {
-        return SdkLibraryImpl.DART2JS_PLATFORM;
-      }
-      if (name == _VM_PLATFORM) {
-        return SdkLibraryImpl.VM_PLATFORM;
-      }
-      throw new ArgumentError('Invalid platform name: $name');
-    }
-    throw new ArgumentError('Invalid platform type: ${expr.runtimeType}');
-  }
-
-  /**
-   * Return the platforms combination value for the [expr], which should be
-   * either `name1 | name2` or `name`.  Throw [ArgumentError] if any of the
-   * names is not a valid platform name.
-   */
-  static int _convertPlatforms(Expression expr) {
-    if (expr is BinaryExpression) {
-      TokenType operator = expr.operator?.type;
-      if (operator == TokenType.BAR) {
-        return _convertPlatforms(expr.leftOperand) |
-            _convertPlatforms(expr.rightOperand);
-      } else {
-        throw new ArgumentError('Invalid platforms combination: $operator');
-      }
-    } else {
-      return _convertPlatform(expr);
-    }
   }
 }
 
@@ -542,12 +449,6 @@ abstract class SdkLibrary {
    * including `dart:`.
    */
   String get shortName;
-
-  /**
-   * Return the list of paths to the patch files that should be applied
-   * to this library for the given [platform], not `null`.
-   */
-  List<String> getPatches(int platform);
 }
 
 /**
@@ -600,14 +501,6 @@ class SdkLibraryImpl implements SdkLibrary {
   int _platforms = 0;
 
   /**
-   * The mapping from the platform combination to the list of paths (relative
-   * to the `sdk/lib` folder) of patches that should be applied to this library
-   * on every platform in the combination.
-   */
-  final Map<int, List<String>> _platformsToPatchPaths =
-      new HashMap<int, List<String>>();
-
-  /**
    * Initialize a newly created library to represent the library with the given
    * [name].
    */
@@ -638,30 +531,11 @@ class SdkLibraryImpl implements SdkLibrary {
   @override
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 
-  @override
-  List<String> getPatches(int platform) {
-    List<String> paths = <String>[];
-    _platformsToPatchPaths.forEach((int platforms, List<String> value) {
-      if ((platforms & platform) != 0) {
-        paths.addAll(value);
-      }
-    });
-    return paths;
-  }
-
   /**
    * Record that this library can be compiled to JavaScript by dart2js.
    */
   void setDart2JsLibrary() {
     _platforms |= DART2JS_PLATFORM;
-  }
-
-  /**
-   * Add a new patch with the given [path] that should be applied for the
-   * given [platforms].
-   */
-  void setPatchPaths(int platforms, List<String> paths) {
-    _platformsToPatchPaths[platforms] = paths;
   }
 
   /**

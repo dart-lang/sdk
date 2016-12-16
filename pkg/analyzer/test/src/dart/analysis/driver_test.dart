@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -302,9 +303,9 @@ main() {
     await _waitForIdle();
     assertNumberOfErrorsInB(0);
 
-    // Change 'b' t have a hint again.
-    // Add and remove 'b'.
-    // The file must be refreshed, and the hint must be reported.
+    // Change 'b' content so that it has a hint.
+    // Remove 'b' and add it again.
+    // The file 'b' must be refreshed, and the hint must be reported.
     provider.newFile(
         b,
         r'''
@@ -653,6 +654,23 @@ class B extends A {
     expect(_getClassMethodReturnType(result.unit, 'B', 'm'), 'int');
   }
 
+  test_getResult_invalid_annotation_functionAsConstructor() async {
+    addTestFile(
+        r'''
+fff() {}
+
+@fff()
+class C {}
+''',
+        priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
+    Annotation a = c.metadata[0];
+    expect(a.name.name, 'fff');
+    expect(a.name.staticElement, new isInstanceOf<FunctionElement>());
+  }
+
   test_getResult_invalidUri_exports_dart() async {
     String content = r'''
 export 'dart:async';
@@ -896,31 +914,53 @@ var A2 = B1;
     driver.addFile(c);
     // Don't add d.dart, it is referenced implicitly.
 
-    void assertDeclarations(List<TopLevelDeclarationInSource> declarations,
-        List<String> expectedFiles, List<bool> expectedIsExported) {
-      expect(expectedFiles, hasLength(expectedIsExported.length));
-      for (int i = 0; i < expectedFiles.length; i++) {
-        expect(declarations,
-            contains(predicate((TopLevelDeclarationInSource declaration) {
-          return declaration.source.fullName == expectedFiles[i] &&
-              declaration.isExported == expectedIsExported[i];
-        })));
-      }
-    }
-
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('A'), [a, b], [false, true]);
 
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('B'), [b], [false]);
 
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('C'), [c], [false]);
 
-    assertDeclarations(
+    _assertTopLevelDeclarations(
         await driver.getTopLevelNameDeclarations('D'), [d], [false]);
 
-    assertDeclarations(await driver.getTopLevelNameDeclarations('X'), [], []);
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('X'), [], []);
+  }
+
+  test_getTopLevelNameDeclarations_parts() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+
+    provider.newFile(
+        a,
+        r'''
+library lib;
+part 'b.dart';
+part 'c.dart';
+class A {}
+''');
+    provider.newFile(b, 'part of lib; class B {}');
+    provider.newFile(c, 'part of lib; class C {}');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('A'), [a], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('B'), [a], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('C'), [a], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('X'), [], []);
   }
 
   test_getUnitElement() async {
@@ -959,9 +999,79 @@ main() {
     await future;
     expect(driver.hasFilesToAnalyze, isFalse);
 
+    // Change a file, even if not added, it still might affect analysis.
+    driver.changeFile(_p('/not/added.dart'));
+    expect(driver.hasFilesToAnalyze, isTrue);
+    await _waitForIdle();
+    expect(driver.hasFilesToAnalyze, isFalse);
+
     // Request of referenced names is not analysis of a file.
     driver.getFilesReferencingName('X');
     expect(driver.hasFilesToAnalyze, isFalse);
+  }
+
+  test_hermetic_modifyLibraryFile_resolvePart() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    provider.newFile(
+        a,
+        r'''
+library a;
+part 'b.dart';
+class C {
+  int foo;
+}
+''');
+    provider.newFile(
+        b,
+        r'''
+part of a;
+var c = new C();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    await driver.getResult(b);
+
+    // Modify the library, but don't notify the driver.
+    // The driver should use the previous library content and elements.
+    provider.newFile(
+        a,
+        r'''
+library a;
+part 'b.dart';
+class C {
+  int bar;
+}
+''');
+
+    var result = await driver.getResult(b);
+    var c = _getTopLevelVar(result.unit, 'c');
+    var typeC = c.element.type as InterfaceType;
+    // The class C has an old field 'foo', not the new 'bar'.
+    expect(typeC.element.getField('foo'), isNotNull);
+    expect(typeC.element.getField('bar'), isNull);
+  }
+
+  test_hermetic_overlayOnly_part() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    contentOverlay[a] = r'''
+library a;
+part 'b.dart';
+class A {}
+var b = new B();
+''';
+    contentOverlay[b] = 'part of a; class B {}';
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.errors, isEmpty);
+    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
   }
 
   test_knownFiles() async {
@@ -1428,6 +1538,20 @@ var A = B;
     expect(allStatuses[0].isIdle, isFalse);
     expect(allStatuses[1].isAnalyzing, isFalse);
     expect(allStatuses[1].isIdle, isTrue);
+  }
+
+  void _assertTopLevelDeclarations(
+      List<TopLevelDeclarationInSource> declarations,
+      List<String> expectedFiles,
+      List<bool> expectedIsExported) {
+    expect(expectedFiles, hasLength(expectedIsExported.length));
+    for (int i = 0; i < expectedFiles.length; i++) {
+      expect(declarations,
+          contains(predicate((TopLevelDeclarationInSource declaration) {
+        return declaration.source.fullName == expectedFiles[i] &&
+            declaration.isExported == expectedIsExported[i];
+      })));
+    }
   }
 
   ClassDeclaration _getClass(CompilationUnit unit, String name) {

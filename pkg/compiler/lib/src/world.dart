@@ -8,7 +8,7 @@ import 'cache_strategy.dart';
 import 'closure.dart' show SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
-import 'core_types.dart' show CoreClasses, CommonElements;
+import 'core_types.dart' show CoreTypes, CoreClasses, CommonElements;
 import 'dart_types.dart';
 import 'elements/elements.dart'
     show
@@ -46,6 +46,8 @@ abstract class ClosedWorld implements World {
 
   /// Access to core classes used in the Dart language.
   CoreClasses get coreClasses;
+
+  CoreTypes get coreTypes;
 
   CommonElements get commonElements;
 
@@ -878,6 +880,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
 
   final CommonElements commonElements;
 
+  final CoreTypes coreTypes;
+
   final CacheStrategy cacheStrategy;
 
   final ResolutionWorldBuilder resolverWorld;
@@ -889,7 +893,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   WorldImpl(this.resolverWorld, this._backend, this.commonElements,
-      CacheStrategy cacheStrategy)
+      this.coreTypes, CacheStrategy cacheStrategy)
       : this.cacheStrategy = cacheStrategy,
         alreadyPopulated = cacheStrategy.newSet() {
     _allFunctions = new FunctionSet(this);

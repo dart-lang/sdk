@@ -173,6 +173,8 @@ class Future<T> {
   static Future wait(List<Future> futures) => null;
 }
 
+class FutureOr<T> {}
+
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
 ''');
@@ -439,7 +441,4 @@ class MockSdkLibrary implements SdkLibrary {
   bool get isVmLibrary => throw unimplemented;
 
   UnimplementedError get unimplemented => new UnimplementedError();
-
-  @override
-  List<String> getPatches(int platform) => const <String>[];
 }

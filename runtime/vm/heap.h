@@ -350,6 +350,8 @@ class Heap {
 
   friend class Become;       // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
+  friend class ObjectGraph;  // VisitObjects
+  friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
   friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
@@ -360,12 +362,13 @@ class Heap {
 
 class HeapIterationScope : public StackResource {
  public:
-  HeapIterationScope();
+  explicit HeapIterationScope(bool writable = false);
   ~HeapIterationScope();
 
  private:
   NoSafepointScope no_safepoint_scope_;
   PageSpace* old_space_;
+  bool writable_;
 
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };

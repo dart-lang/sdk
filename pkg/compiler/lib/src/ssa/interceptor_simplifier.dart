@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
-import '../js_backend/js_backend.dart';
+import '../js_backend/backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -47,9 +46,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   JavaScriptBackend get backend => compiler.backend;
 
-  BackendHelpers get helpers => backend.helpers;
-
   ClosedWorld get closedWorld => compiler.closedWorld;
+
+  BackendClasses get backendClasses => closedWorld.backendClasses;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -102,14 +101,15 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
     if (receiver.canBeNull() &&
-        interceptedClasses.contains(helpers.jsNullClass)) {
+        interceptedClasses.contains(backendClasses.nullImplementation)) {
       // Need the JSNull interceptor.
       return false;
     }
 
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
-    return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
+    return new TypeMask.nonNullSubclass(
+            backend.helpers.jsInterceptorClass, closedWorld)
         .isDisjoint(receiver.instructionType, closedWorld);
   }
 
@@ -143,25 +143,25 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       TypeMask type, Set<ClassElement> interceptedClasses) {
     if (type.isNullable) {
       if (type.isNull) {
-        return helpers.jsNullClass;
+        return backendClasses.nullImplementation;
       }
     } else if (type.containsOnlyInt(closedWorld)) {
-      return helpers.jsIntClass;
+      return backendClasses.intImplementation;
     } else if (type.containsOnlyDouble(closedWorld)) {
-      return helpers.jsDoubleClass;
+      return backendClasses.doubleImplementation;
     } else if (type.containsOnlyBool(closedWorld)) {
-      return helpers.jsBoolClass;
+      return backendClasses.boolImplementation;
     } else if (type.containsOnlyString(closedWorld)) {
-      return helpers.jsStringClass;
-    } else if (type.satisfies(helpers.jsArrayClass, closedWorld)) {
-      return helpers.jsArrayClass;
+      return backendClasses.stringImplementation;
+    } else if (type.satisfies(backendClasses.listImplementation, closedWorld)) {
+      return backendClasses.listImplementation;
     } else if (type.containsOnlyNum(closedWorld) &&
-        !interceptedClasses.contains(helpers.jsIntClass) &&
-        !interceptedClasses.contains(helpers.jsDoubleClass)) {
+        !interceptedClasses.contains(backendClasses.intImplementation) &&
+        !interceptedClasses.contains(backendClasses.doubleImplementation)) {
       // If the method being intercepted is not defined in [int] or [double] we
       // can safely use the number interceptor.  This is because none of the
       // [int] or [double] methods are called from a method defined on [num].
-      return helpers.jsNumberClass;
+      return backendClasses.numImplementation;
     } else {
       // Try to find constant interceptor for a native class.  If the receiver
       // is constrained to a leaf native class, we can use the class's
@@ -175,7 +175,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
       ClassElement element = type.singleClass(closedWorld);
-      if (element != null && backend.isNative(element)) {
+      if (element != null && backendClasses.isNative(element)) {
         return element;
       }
     }
@@ -222,7 +222,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // If there is a call that dominates all other uses, we can use just the
     // selector of that instruction.
     if (dominator is HInvokeDynamic &&
-        dominator.isCallOnInterceptor(compiler) &&
+        dominator.isCallOnInterceptor(closedWorld) &&
         node == dominator.receiver &&
         useCount(dominator, node) == 1) {
       interceptedClasses =
@@ -230,21 +230,21 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
-      if (interceptedClasses.contains(helpers.jsNumberClass) &&
-          !(interceptedClasses.contains(helpers.jsDoubleClass) ||
-              interceptedClasses.contains(helpers.jsIntClass))) {
+      if (interceptedClasses.contains(backendClasses.numImplementation) &&
+          !(interceptedClasses.contains(backendClasses.doubleImplementation) ||
+              interceptedClasses.contains(backendClasses.intImplementation))) {
         Set<ClassElement> required;
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
           Set<ClassElement> intercepted =
               backend.getInterceptedClassesOn(user.selector.name);
-          if (intercepted.contains(helpers.jsIntClass)) {
+          if (intercepted.contains(backendClasses.intImplementation)) {
             required ??= new Set<ClassElement>();
-            required.add(helpers.jsIntClass);
+            required.add(backendClasses.intImplementation);
           }
-          if (intercepted.contains(helpers.jsDoubleClass)) {
+          if (intercepted.contains(backendClasses.doubleImplementation)) {
             required ??= new Set<ClassElement>();
-            required.add(helpers.jsDoubleClass);
+            required.add(backendClasses.doubleImplementation);
           }
         }
         // Don't modify the result of [backend.getInterceptedClassesOn].
@@ -256,13 +256,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       interceptedClasses = new Set<ClassElement>();
       for (HInstruction user in node.usedBy) {
         if (user is HInvokeDynamic &&
-            user.isCallOnInterceptor(compiler) &&
+            user.isCallOnInterceptor(closedWorld) &&
             node == user.receiver &&
             useCount(user, node) == 1) {
           interceptedClasses
               .addAll(backend.getInterceptedClassesOn(user.selector.name));
         } else if (user is HInvokeSuper &&
-            user.isCallOnInterceptor(compiler) &&
+            user.isCallOnInterceptor(closedWorld) &&
             node == user.receiver &&
             useCount(user, node) == 1) {
           interceptedClasses
@@ -310,7 +310,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // constant interceptor `C`.  Then we can use `(receiver && C)` for the
     // interceptor.
     if (receiver.canBeNull()) {
-      if (!interceptedClasses.contains(helpers.jsNullClass)) {
+      if (!interceptedClasses.contains(backendClasses.nullImplementation)) {
         // Can use `(receiver && C)` only if receiver is either null or truthy.
         if (!(receiver.canBePrimitiveNumber(closedWorld) ||
             receiver.canBePrimitiveBoolean(closedWorld) ||

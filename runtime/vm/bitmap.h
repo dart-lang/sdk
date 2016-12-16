@@ -12,8 +12,8 @@
 namespace dart {
 
 // Forward declarations.
-class RawStackmap;
-class Stackmap;
+class RawStackMap;
+class StackMap;
 
 
 // BitmapBuilder is used to build a bitmap. The implementation is optimized

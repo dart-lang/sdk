@@ -24,7 +24,6 @@ mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
 mixin_of_mixin_test: CompileTimeError # Issue 23773
-mixin_illegal_syntax_test/00: MissingCompileTimeError # Issue 14410
 
 # The following tests are supposed to fail.
 # In testing-mode, dart2js supports all dart:X libraries (because it
@@ -66,10 +65,6 @@ regress_18535_test: Fail # mirrors not supported
 super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $fast_startup && $checked ]
-generic_local_functions_test: Fail # reified type for generic function not generated correctly
-generic_methods_generic_function_parameter_test: Fail # reified type for generic function not generated correctly
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728

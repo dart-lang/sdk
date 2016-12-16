@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixContributorTest);
+    defineReflectiveTests(LibraryPrefixContributorTest_Driver);
   });
 }
 
@@ -373,5 +374,18 @@ main() {new ^ String x = "hello";}''');
 main() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+}
+
+@reflectiveTest
+class LibraryPrefixContributorTest_Driver extends LibraryPrefixContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression_inPart() {
+    // Bad state: Should not be used with the new analysis driver.
+    return super.test_InstanceCreationExpression_inPart();
   }
 }

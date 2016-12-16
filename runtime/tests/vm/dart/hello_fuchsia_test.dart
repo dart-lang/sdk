@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 
 testAddressParse() async {
@@ -378,6 +379,20 @@ Future testGoogleHttps(SecurityContext context, String outcome) async {
   }
 }
 
+Future testProcess() async {
+  Process p = await Process.start(Platform.executable, ["--version"]);
+  p.stderr.transform(UTF8.decoder).listen(print);
+  int code = await p.exitCode;
+  print("dart --version exited with code $code");
+}
+
+Future testLs(String path) async {
+  Stream<FileSystemEntity> stream = (new Directory(path)).list();
+  await for (FileSystemEntity fse in stream) {
+    print(fse.path);
+  }
+}
+
 main() async {
   print("Hello, Fuchsia!");
 
@@ -408,6 +423,14 @@ main() async {
   print("testGoogleHttps");
   await testGoogleHttps(null, 'pass');
   print("testGoogleHttps done");
+
+  print("lsTest");
+  await testLs("/");
+  print("lsTest done");
+
+  print("testProcess");
+  await testProcess();
+  print("testProcess done");
 
   print("Goodbyte, Fuchsia!");
 }

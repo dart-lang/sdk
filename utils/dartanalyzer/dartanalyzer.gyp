@@ -16,8 +16,10 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer_cli"])',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../pkg/analyzer_cli"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../pkg/analyzer"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
@@ -33,8 +35,10 @@
           'action_name': 'generate_summary_spec',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib"])',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../sdk/lib"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../pkg/analyzer"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/spec.sum',
@@ -51,8 +55,10 @@
           'action_name': 'generate_summary_strong',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib"])',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../sdk/lib"])',
+            '<!@(["python", "../../tools/list_dart_files.py", "relative", '
+                '"../../pkg/analyzer"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/strong.sum',

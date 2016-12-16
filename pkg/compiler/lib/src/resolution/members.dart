@@ -464,12 +464,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAssert(Assert node) {
-    if (!options.enableAssertMessage) {
-      if (node.hasMessage) {
-        reporter.reportErrorMessage(
-            node, MessageKind.EXPERIMENTAL_ASSERT_MESSAGE);
-      }
-    }
     // TODO(sra): We could completely ignore the assert in production mode if we
     // didn't need it to be resolved for type checking.
     registry.registerFeature(

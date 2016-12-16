@@ -254,14 +254,10 @@ generic_creation_test: RuntimeError
 generic_field_mixin2_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
-generic_functions_test: Crash
 generic_inheritance_test: RuntimeError
 generic_local_functions_test: Crash
-generic_methods_function_type_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_new_test: Crash
-generic_methods_test: Crash
-generic_methods_type_expression_test: Crash
+generic_method_types_test: Pass, RuntimeError
+generic_methods_type_expression_test: RuntimeError
 generic_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError
 getter_setter_in_lib_test: RuntimeError
@@ -369,7 +365,7 @@ if_null_assignment_static_test/35: Crash
 instance_creation_in_function_annotation_test: Crash
 invocation_mirror_invoke_on2_test: Crash
 issue21079_test: Crash
-large_class_declaration_test: Timeout
+large_class_declaration_test: Pass, Timeout
 library_env_test/has_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 regress_18535_test: Crash

@@ -8,6 +8,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
@@ -205,6 +206,27 @@ void Thread::InitVMConstants() {
 }
 
 
+#ifndef PRODUCT
+// Collect information about each individual zone associated with this thread.
+void Thread::PrintJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "_Thread");
+  jsobj.AddPropertyF("id", "threads/%" Pd "",
+                     OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
+  jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
+  Zone* zone = zone_;
+  {
+    JSONArray zone_info_array(&jsobj, "zones");
+    zone = zone_;
+    while (zone != NULL) {
+      zone_info_array.AddValue(zone);
+      zone = zone->previous();
+    }
+  }
+}
+#endif
+
+
 RawGrowableObjectArray* Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
@@ -242,6 +264,27 @@ void Thread::set_sticky_error(const Error& value) {
 
 void Thread::clear_sticky_error() {
   sticky_error_ = Error::null();
+}
+
+
+const char* Thread::TaskKindToCString(TaskKind kind) {
+  switch (kind) {
+    case kUnknownTask:
+      return "kUnknownTask";
+    case kMutatorTask:
+      return "kMutatorTask";
+    case kCompilerTask:
+      return "kCompilerTask";
+    case kSweeperTask:
+      return "kSweeperTask";
+    case kMarkerTask:
+      return "kMarkerTask";
+    case kFinalizerTask:
+      return "kFinalizerTask";
+    default:
+      UNREACHABLE();
+      return "";
+  }
 }
 
 
@@ -465,7 +508,7 @@ void Thread::DeferOOBMessageInterrupts() {
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
     OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
-              Dart::timestamp(), isolate()->name());
+              Dart::UptimeMillis(), isolate()->name());
   }
 }
 
@@ -488,7 +531,7 @@ void Thread::RestoreOOBMessageInterrupts() {
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
     OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
-              Dart::timestamp(), isolate()->name());
+              Dart::UptimeMillis(), isolate()->name());
   }
 }
 

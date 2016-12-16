@@ -826,7 +826,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
+DART_EXPORT Dart_Handle Dart_ErrorGetStackTrace(Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsUnhandledException()) {
@@ -866,7 +866,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
       RETURN_TYPE_ERROR(Z, exception, Instance);
     }
   }
-  const Stacktrace& stacktrace = Stacktrace::Handle(Z);
+  const StackTrace& stacktrace = StackTrace::Handle(Z);
   return Api::NewHandle(T, UnhandledException::New(obj, stacktrace));
 }
 
@@ -3876,7 +3876,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
-    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
+    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3971,7 +3971,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4001,7 +4001,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4658,16 +4658,16 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
-  const Stacktrace* saved_stacktrace;
+  const StackTrace* saved_stacktrace;
   {
     NoSafepointScope no_safepoint;
     RawInstance* raw_exception =
         Api::UnwrapInstanceHandle(zone, exception).raw();
-    RawStacktrace* raw_stacktrace =
-        Api::UnwrapStacktraceHandle(zone, stacktrace).raw();
+    RawStackTrace* raw_stacktrace =
+        Api::UnwrapStackTraceHandle(zone, stacktrace).raw();
     thread->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
-    saved_stacktrace = &Stacktrace::Handle(raw_stacktrace);
+    saved_stacktrace = &StackTrace::Handle(raw_stacktrace);
   }
   Exceptions::ReThrow(thread, *saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");
@@ -5029,7 +5029,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
       !Api::IsError(retval)) {
     // Print the current stack trace to make the problematic caller
     // easier to find.
-    const Stacktrace& stacktrace = GetCurrentStacktrace(0);
+    const StackTrace& stacktrace = GetCurrentStackTrace(0);
     OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
@@ -5860,7 +5860,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
     // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
     const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
     const Field& dirty_bit = Field::Handle(
-        Z, libmirrors.LookupLocalField(String::Handle(String::New("dirty"))));
+        Z, libmirrors.LookupLocalField(String::Handle(String::New("_dirty"))));
     ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
     dirty_bit.SetStaticValue(Bool::True());
   }
@@ -6518,7 +6518,7 @@ Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
                                                  2 * MB /* initial_size */);
   uint8_t* vm_isolate_snapshot_buffer = NULL;
   uint8_t* isolate_snapshot_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kAppNoJIT, &vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kAppAOT, &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer, ApiReallocate,
                             &instructions_writer);
 
@@ -6583,7 +6583,7 @@ Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer, ApiReallocate,
                                              2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppNoJIT, vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kAppAOT, vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer, ApiReallocate,
                             &instructions_writer);
 
@@ -6688,7 +6688,7 @@ Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer, ApiReallocate,
                                              2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppWithJIT, vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kAppJIT, vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer, ApiReallocate,
                             &instructions_writer);
   writer.WriteFullSnapshot();

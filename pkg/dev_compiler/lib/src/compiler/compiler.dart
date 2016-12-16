@@ -97,6 +97,10 @@ class ModuleCompiler {
     options.declaredVariables.forEach(context.declaredVariables.define);
     context.declaredVariables.define('dart.isVM', 'false');
 
+    // TODO(vsm): Should this be hardcoded?
+    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables.define('dart.library.io', 'false');
+
     return new ModuleCompiler.withContext(context, summaryData);
   }
 
@@ -305,19 +309,19 @@ class CompilerOptions {
         bazelMapping = _parseBazelMappings(args['bazel-mapping']),
         summaryOutPath = args['summary-out'];
 
-  static void addArguments(ArgParser parser) {
+  static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
       ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
       ..addOption('summary-extension',
           help: 'file extension for Dart summary files',
           defaultsTo: 'sum',
-          hide: true)
+          hide: hide)
       ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
       ..addFlag('source-map-comment',
           help: 'adds a sourceMappingURL comment to the end of the JS,\n'
               'disable if using X-SourceMap header',
           defaultsTo: true,
-          hide: true)
+          hide: hide)
       ..addFlag('inline-source-map',
           help: 'emit source mapping inline', defaultsTo: false)
       ..addFlag('emit-metadata',
@@ -327,39 +331,39 @@ class CompilerOptions {
           help: 'emit Closure Compiler-friendly code (experimental)',
           defaultsTo: false)
       ..addFlag('destructure-named-params',
-          help: 'Destructure named parameters', defaultsTo: false, hide: true)
+          help: 'Destructure named parameters', defaultsTo: false, hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',
           defaultsTo: false,
-          hide: true)
+          hide: hide)
       ..addFlag('repl-compile',
-          help: 'Compile code more permissively when in REPL mode allowing '
-              'access to private members across library boundaries.',
+          help: 'Compile code more permissively when in REPL mode\n'
+              'allowing access to private members across library boundaries.',
           defaultsTo: false,
-          hide: true)
+          hide: hide)
       ..addFlag('hoist-instance-creation',
           help: 'Hoist the class type from generic instance creations',
           defaultsTo: true,
-          hide: true)
+          hide: hide)
       ..addFlag('hoist-signature-types',
           help: 'Hoist types from class signatures',
           defaultsTo: false,
-          hide: true)
+          hide: hide)
       ..addFlag('name-type-tests',
-          help: 'Name types used in type tests', defaultsTo: true, hide: true)
+          help: 'Name types used in type tests', defaultsTo: true, hide: hide)
       ..addFlag('hoist-type-tests',
-          help: 'Hoist types used in type tests', defaultsTo: true, hide: true)
-      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true)
+          help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
+      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: hide)
       ..addOption('bazel-mapping',
           help:
               '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
               'to/library.dart as the path for library.dart in source maps.',
           allowMultiple: true,
           splitCommas: false,
-          hide: true)
+          hide: hide)
       ..addOption('summary-out',
-          help: 'location to write the summary file', hide: true);
+          help: 'location to write the summary file', hide: hide);
   }
 
   static Map<String, String> _parseBazelMappings(Iterable argument) {

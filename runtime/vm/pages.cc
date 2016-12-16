@@ -227,7 +227,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   } else {
     // Should not allocate executable pages when running from a precompiled
     // snapshot.
-    ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
+    ASSERT(Dart::snapshot_kind() != Snapshot::kAppAOT);
 
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
@@ -704,7 +704,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
-    int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
+    int64_t run_time = isolate->UptimeMicros();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
     double avg_time_between_collections =
@@ -776,7 +776,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 
 bool PageSpace::ShouldCollectCode() {
   // Try to collect code if enough time has passed since the last attempt.
-  const int64_t start = OS::GetCurrentTimeMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   const int64_t last_code_collection_in_us =
       page_space_controller_.last_code_collection_in_us();
 
@@ -852,7 +852,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       OS::PrintErr(" done.\n");
     }
 
-    const int64_t start = OS::GetCurrentTimeMicros();
+    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Make code pages writable.
     WriteProtectCode(false);
@@ -867,7 +867,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();
 
-    int64_t mid1 = OS::GetCurrentTimeMicros();
+    int64_t mid1 = OS::GetCurrentMonotonicMicros();
 
     // Abandon the remainder of the bump allocation block.
     AbandonBumpAllocation();
@@ -875,7 +875,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kData].Reset();
     freelist_[HeapPage::kExecutable].Reset();
 
-    int64_t mid2 = OS::GetCurrentTimeMicros();
+    int64_t mid2 = OS::GetCurrentMonotonicMicros();
     int64_t mid3 = 0;
 
     {
@@ -922,7 +922,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         page = next_page;
       }
 
-      mid3 = OS::GetCurrentTimeMicros();
+      mid3 = OS::GetCurrentMonotonicMicros();
 
       if (!FLAG_concurrent_sweep) {
         // Sweep all regular sized pages now.
@@ -955,7 +955,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     // Make code pages read-only.
     WriteProtectCode(true);
 
-    int64_t end = OS::GetCurrentTimeMicros();
+    int64_t end = OS::GetCurrentMonotonicMicros();
 
     // Record signals for growth control. Include size of external allocations.
     page_space_controller_.EvaluateGarbageCollection(
@@ -1117,7 +1117,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentTimeMicros()) {}
+      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()) {}
 
 
 PageSpaceController::~PageSpaceController() {}
@@ -1144,8 +1144,8 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
   static const double kInitialTimeoutSeconds = 1.00;
   if (history_.IsEmpty()) {
-    double seconds_since_init = MicrosecondsToSeconds(
-        OS::GetCurrentTimeMicros() - heap_->isolate()->start_time());
+    double seconds_since_init =
+        MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
     if (seconds_since_init > kInitialTimeoutSeconds) {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }

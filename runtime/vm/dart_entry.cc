@@ -177,7 +177,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
         if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
               Instance::Handle(zone, isolate->object_store()->stack_overflow());
-          return UnhandledException::New(exception, Stacktrace::Handle(zone));
+          return UnhandledException::New(exception, StackTrace::Handle(zone));
         }
 
         const Array& getter_arguments = Array::Handle(zone, Array::New(1));

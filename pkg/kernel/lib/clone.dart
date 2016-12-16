@@ -374,11 +374,13 @@ class CloneVisitor extends TreeVisitor {
     return newNode;
   }
 
+  TreeNode cloneFunctionNodeBody(FunctionNode node) => cloneOptional(node.body);
+
   visitFunctionNode(FunctionNode node) {
     var typeParameters = node.typeParameters.map(clone).toList();
     var positional = node.positionalParameters.map(clone).toList();
     var named = node.namedParameters.map(clone).toList();
-    return new FunctionNode(cloneOptional(node.body),
+    return new FunctionNode(cloneFunctionNodeBody(node),
         typeParameters: typeParameters,
         positionalParameters: positional,
         namedParameters: named,

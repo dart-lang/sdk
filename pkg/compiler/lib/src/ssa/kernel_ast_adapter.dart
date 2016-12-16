@@ -69,8 +69,11 @@ class KernelAstAdapter {
   Element get _target => _resolvedAst.element;
   ClosedWorld get _closedWorld => _compiler.closedWorld;
 
+  GlobalTypeInferenceResults get _globalInferenceResults =>
+      _compiler.globalInference.results;
+
   GlobalTypeInferenceElementResult _resultOf(Element e) =>
-      _compiler.globalInference.results.resultOf(e);
+      _globalInferenceResults.resultOf(e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
@@ -133,7 +136,7 @@ class KernelAstAdapter {
 
   TypeMask returnTypeOf(ir.Member node) {
     return TypeMaskFactory.inferredReturnTypeForElement(
-        getElement(node), _compiler);
+        getElement(node), _globalInferenceResults);
   }
 
   SideEffects getSideEffects(ir.Node node) {
@@ -265,27 +268,29 @@ class KernelAstAdapter {
         mask.containsOnly(
             _closedWorld.backendClasses.constListImplementation) ||
         mask.containsOnlyString(_closedWorld) ||
-        backend.isTypedArray(mask)) {
+        _closedWorld.commonMasks.isTypedArray(mask)) {
       return true;
     }
     return false;
   }
 
   TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
-    return TypeMaskFactory.inferredTypeForSelector(
-        new Selector.index(), typeOfIterator(forInStatement), _compiler);
+    return TypeMaskFactory.inferredTypeForSelector(new Selector.index(),
+        typeOfIterator(forInStatement), _globalInferenceResults);
   }
 
   TypeMask inferredTypeOf(ir.Member node) {
-    return TypeMaskFactory.inferredTypeForElement(getElement(node), _compiler);
+    return TypeMaskFactory.inferredTypeForElement(
+        getElement(node), _globalInferenceResults);
   }
 
   TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
-    return TypeMaskFactory.inferredTypeForSelector(selector, mask, _compiler);
+    return TypeMaskFactory.inferredTypeForSelector(
+        selector, mask, _globalInferenceResults);
   }
 
   TypeMask typeFromNativeBehavior(native.NativeBehavior nativeBehavior) {
-    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, _compiler);
+    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
   }
 
   ConstantValue getConstantFor(ir.Node node) {
@@ -349,6 +354,20 @@ class KernelAstAdapter {
   ir.Procedure get mapLiteralUntypedEmptyMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedEmptyMaker];
 
+  ir.Procedure get exceptionUnwrapper =>
+      kernel.functions[_backend.helpers.exceptionUnwrapper];
+
+  TypeMask get exceptionUnwrapperType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.exceptionUnwrapper, _globalInferenceResults);
+
+  ir.Procedure get traceFromException =>
+      kernel.functions[_backend.helpers.traceFromException];
+
+  TypeMask get traceFromExceptionType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.traceFromException, _globalInferenceResults);
+
   ir.Procedure get mapLiteralUntypedMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
 
@@ -359,7 +378,8 @@ class KernelAstAdapter {
 
   TypeMask get checkConcurrentModificationErrorReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.checkConcurrentModificationError, _compiler);
+          _backend.helpers.checkConcurrentModificationError,
+          _globalInferenceResults);
 
   ir.Procedure get checkSubtype =>
       kernel.functions[_backend.helpers.checkSubtype];
@@ -370,16 +390,19 @@ class KernelAstAdapter {
   ir.Procedure get assertHelper =>
       kernel.functions[_backend.helpers.assertHelper];
 
-  TypeMask get throwTypeErrorType => TypeMaskFactory
-      .inferredReturnTypeForElement(_backend.helpers.throwTypeError, _compiler);
+  TypeMask get throwTypeErrorType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.throwTypeError, _globalInferenceResults);
 
-  TypeMask get assertHelperReturnType => TypeMaskFactory
-      .inferredReturnTypeForElement(_backend.helpers.assertHelper, _compiler);
+  TypeMask get assertHelperReturnType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.assertHelper, _globalInferenceResults);
 
   ir.Procedure get assertTest => kernel.functions[_backend.helpers.assertTest];
 
-  TypeMask get assertTestReturnType => TypeMaskFactory
-      .inferredReturnTypeForElement(_backend.helpers.assertTest, _compiler);
+  TypeMask get assertTestReturnType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.assertTest, _globalInferenceResults);
 
   ir.Procedure get assertThrow =>
       kernel.functions[_backend.helpers.assertThrow];
@@ -387,8 +410,9 @@ class KernelAstAdapter {
   ir.Procedure get setRuntimeTypeInfo =>
       kernel.functions[_backend.helpers.setRuntimeTypeInfo];
 
-  TypeMask get assertThrowReturnType => TypeMaskFactory
-      .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
+  TypeMask get assertThrowReturnType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.assertThrow, _globalInferenceResults);
 
   ir.Procedure get runtimeTypeToString =>
       kernel.functions[_backend.helpers.runtimeTypeToString];
@@ -398,7 +422,7 @@ class KernelAstAdapter {
 
   TypeMask get createRuntimeTypeReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.createRuntimeType, _compiler);
+          _backend.helpers.createRuntimeType, _globalInferenceResults);
 
   ir.Class get objectClass => kernel.classes[_compiler.coreClasses.objectClass];
 

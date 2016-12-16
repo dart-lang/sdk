@@ -551,8 +551,7 @@ class BinaryBuilder {
             readExpression(), readMemberReference(), readExpression());
       case Tag.StaticGet:
         int offset = readOffset();
-        return new StaticGet(readMemberReference())
-          ..fileOffset = offset;
+        return new StaticGet(readMemberReference())..fileOffset = offset;
       case Tag.StaticSet:
         return new StaticSet(readMemberReference(), readExpression());
       case Tag.MethodInvocation:

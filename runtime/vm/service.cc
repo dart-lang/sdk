@@ -2339,6 +2339,7 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   Array& storage = Array::Handle(Array::New(limit));
   GetInstancesVisitor visitor(cls, storage);
   ObjectGraph graph(thread);
+  HeapIterationScope iteration_scope(true);
   graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
@@ -3759,12 +3760,10 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
 class ServiceIsolateVisitor : public IsolateVisitor {
  public:
   explicit ServiceIsolateVisitor(JSONArray* jsarr) : jsarr_(jsarr) {}
-
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if ((isolate != Dart::vm_isolate()) &&
-        !ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
+    if (!IsVMInternalIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -3786,7 +3785,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   if (ref) {
     return;
   }
-  Isolate* vm_isolate = Dart::vm_isolate();
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
@@ -3794,9 +3792,8 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
-  int64_t start_time_millis =
-      (vm_isolate->start_time() / kMicrosecondsPerMillisecond);
-  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis(
+      "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

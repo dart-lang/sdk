@@ -51,8 +51,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    if (ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
-        (isolate == Dart::vm_isolate())) {
+    if (IsVMInternalIsolate(isolate)) {
       // We do not register the service (and descendants) or the vm-isolate.
       return;
     }

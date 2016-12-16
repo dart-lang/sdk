@@ -125,7 +125,7 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  *
  *   An unhandled exception error provides access to an exception and
  *   stacktrace via the functions Dart_ErrorGetException and
- *   Dart_ErrorGetStacktrace.
+ *   Dart_ErrorGetStackTrace.
  *
  * - Compilation error handles are produced when, during the execution
  *   of Dart code, a compile-time error occurs.  As above, this can
@@ -284,7 +284,7 @@ DART_EXPORT bool Dart_IsApiError(Dart_Handle handle);
  * This can occur in any function which triggers the execution of Dart
  * code.
  *
- * See Dart_ErrorGetException and Dart_ErrorGetStacktrace.
+ * See Dart_ErrorGetException and Dart_ErrorGetStackTrace.
  *
  * Requires there to be a current isolate.
  */
@@ -347,7 +347,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle);
 /**
  * Gets the stack trace Object from an unhandled exception error handle.
  */
-DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle);
+DART_EXPORT Dart_Handle Dart_ErrorGetStackTrace(Dart_Handle handle);
 
 /**
  * Produces an api error handle with the provided error message.

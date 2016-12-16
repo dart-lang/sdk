@@ -10,6 +10,8 @@
                                             {bool defaultValue: false})
       native "Bool_fromEnvironment";
 
+  @patch
   int get hashCode => this ? 1231 : 1237;
+
   int get _identityHashCode => this ? 1231 : 1237;
 }

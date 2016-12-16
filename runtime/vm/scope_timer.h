@@ -17,11 +17,11 @@ class ScopeTimer : public ValueObject {
     if (!enabled_) {
       return;
     }
-    start_ = OS::GetCurrentTimeMicros();
+    start_ = OS::GetCurrentMonotonicMicros();
   }
 
   int64_t GetElapsed() const {
-    int64_t end = OS::GetCurrentTimeMicros();
+    int64_t end = OS::GetCurrentMonotonicMicros();
     ASSERT(end >= start_);
     return end - start_;
   }

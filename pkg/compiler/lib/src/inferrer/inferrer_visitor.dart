@@ -7,6 +7,7 @@ library inferrer_visitor;
 import 'dart:collection' show IterableMixin;
 
 import '../common.dart';
+import '../options.dart' show CompilerOptions;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
@@ -371,13 +372,16 @@ abstract class MinimalInferrerEngine<T> {
    * Records that the variable [local] is being updated.
    */
   void recordLocalUpdate(Local local, T type);
+
+  /// The [ClosedWorld] on which inference reasoning is based.
+  ClosedWorld get closedWorld;
 }
 
 /**
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler<T> {
-  final Compiler compiler;
+  final CompilerOptions options;
   final TypeSystem<T> types;
   final MinimalInferrerEngine<T> inferrer;
   final VariableScope<T> locals;
@@ -394,7 +398,7 @@ class LocalsHandler<T> {
 
   bool get inTryBlock => tryBlock != null;
 
-  LocalsHandler(this.inferrer, this.types, this.compiler, Node block,
+  LocalsHandler(this.inferrer, this.types, this.options, Node block,
       [this.fieldScope])
       : locals = new VariableScope<T>(block),
         captured = new Map<Local, Element>(),
@@ -409,7 +413,7 @@ class LocalsHandler<T> {
         capturedAndBoxed = other.capturedAndBoxed,
         types = other.types,
         inferrer = other.inferrer,
-        compiler = other.compiler {
+        options = other.options {
     tryBlock = useOtherTryBlock ? other.tryBlock : this;
   }
 
@@ -421,7 +425,7 @@ class LocalsHandler<T> {
         tryBlock = other.tryBlock,
         types = other.types,
         inferrer = other.inferrer,
-        compiler = other.compiler;
+        options = other.options;
 
   LocalsHandler.topLevelCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.topLevelCopyOf(other.locals),
@@ -431,7 +435,7 @@ class LocalsHandler<T> {
         tryBlock = other.tryBlock,
         types = other.types,
         inferrer = other.inferrer,
-        compiler = other.compiler;
+        options = other.options;
 
   T use(Local local) {
     if (capturedAndBoxed.containsKey(local)) {
@@ -446,8 +450,7 @@ class LocalsHandler<T> {
 
   void update(LocalElement local, T type, Node node) {
     assert(type != null);
-    if (compiler.options.trustTypeAnnotations ||
-        compiler.options.enableTypeAssertions) {
+    if (options.trustTypeAnnotations || options.enableTypeAssertions) {
       type = types.narrowType(type, local.type);
     }
     updateLocal() {
@@ -746,12 +749,13 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
         analyzedElement.isGenerativeConstructor
             ? new FieldInitializationScope<T>(types)
             : null;
-    locals = new LocalsHandler<T>(inferrer, types, compiler, node, fieldScope);
+    locals = new LocalsHandler<T>(
+        inferrer, types, compiler.options, node, fieldScope);
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  ClosedWorld get closedWorld => inferrer.closedWorld;
 
   @override
   SemanticSendVisitor get sendVisitor => this;
@@ -887,7 +891,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(compiler.coreClasses.symbolClass);
+    return types.nonNullSubtype(closedWorld.coreClasses.symbolClass);
   }
 
   @override
@@ -1038,7 +1042,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
           }
         } else {
           // Narrow the elements to a non-null type.
-          DartType objectType = compiler.coreTypes.objectType;
+          DartType objectType = closedWorld.coreTypes.objectType;
           if (Elements.isLocal(receiverElement)) {
             narrow(receiverElement, objectType, node);
           }

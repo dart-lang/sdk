@@ -362,30 +362,12 @@ class Parser {
 
   Token parseTypedef(Token token) {
     Token typedefKeyword = token;
-    if (optional('=', peekAfterType(token.next))) {
-      // TODO(aprelev@gmail.com): Remove deprecated 'typedef' mixin application,
-      // remove corresponding diagnostic from members.dart.
-      listener.beginNamedMixinApplication(token);
-      token = parseIdentifier(token.next);
-      token = parseTypeVariablesOpt(token);
-      token = expect('=', token);
-      token = parseModifiers(token);
-      token = parseMixinApplication(token);
-      Token implementsKeyword = null;
-      if (optional('implements', token)) {
-        implementsKeyword = token;
-        token = parseTypeList(token.next);
-      }
-      listener.endNamedMixinApplication(
-          typedefKeyword, implementsKeyword, token);
-    } else {
-      listener.beginFunctionTypeAlias(token);
-      token = parseReturnTypeOpt(token.next);
-      token = parseIdentifier(token);
-      token = parseTypeVariablesOpt(token);
-      token = parseFormalParameters(token);
-      listener.endFunctionTypeAlias(typedefKeyword, token);
-    }
+    listener.beginFunctionTypeAlias(token);
+    token = parseReturnTypeOpt(token.next);
+    token = parseIdentifier(token);
+    token = parseTypeVariablesOpt(token);
+    token = parseFormalParameters(token);
+    listener.endFunctionTypeAlias(typedefKeyword, token);
     return expect(';', token);
   }
 
@@ -682,17 +664,10 @@ class Parser {
     var isMixinApplication = optional('=', peekAfterType(token.next));
     if (isMixinApplication) {
       listener.beginNamedMixinApplication(begin);
-      token = parseIdentifier(token.next);
-      token = parseTypeVariablesOpt(token);
-      token = expect('=', token);
     } else {
       listener.beginClassDeclaration(begin);
     }
 
-    // TODO(aprelev@gmail.com): Once 'typedef' named mixin application is
-    // removed, move modifiers for named mixin application to the bottom of
-    // listener stack. This is so stacks for class declaration and named
-    // mixin application look similar.
     int modifierCount = 0;
     if (abstractKeyword != null) {
       parseModifier(abstractKeyword);
@@ -701,6 +676,9 @@ class Parser {
     listener.handleModifiers(modifierCount);
 
     if (isMixinApplication) {
+      token = parseIdentifier(token.next);
+      token = parseTypeVariablesOpt(token);
+      token = expect('=', token);
       return parseNamedMixinApplication(token, classKeyword);
     } else {
       return parseClass(begin, classKeyword);

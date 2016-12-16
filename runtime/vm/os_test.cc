@@ -11,11 +11,12 @@
 namespace dart {
 
 UNIT_TEST_CASE(Sleep) {
-  int64_t start_time = OS::GetCurrentTimeMillis();
-  int64_t sleep_time = 702;
-  OS::Sleep(sleep_time);
-  int64_t delta = OS::GetCurrentTimeMillis() - start_time;
-  const int kAcceptableSleepWakeupJitter = 200;  // Measured in milliseconds.
+  // All times measured in microseconds.
+  int64_t start_time = OS::GetCurrentMonotonicMicros();
+  int64_t sleep_time = 702000;
+  OS::SleepMicros(sleep_time);
+  int64_t delta = OS::GetCurrentMonotonicMicros() - start_time;
+  const int kAcceptableSleepWakeupJitter = 200000;
   EXPECT_GE(delta, sleep_time - kAcceptableSleepWakeupJitter);
   EXPECT_LE(delta, sleep_time + kAcceptableSleepWakeupJitter);
 }

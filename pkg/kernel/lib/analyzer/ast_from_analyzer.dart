@@ -295,8 +295,11 @@ class ReferenceScope {
 class TypeScope extends ReferenceScope {
   final Map<TypeParameterElement, ast.TypeParameter> localTypeParameters =
       <TypeParameterElement, ast.TypeParameter>{};
+  TypeAnnotationBuilder _typeBuilder;
 
-  TypeScope(ReferenceLevelLoader loader) : super(loader);
+  TypeScope(ReferenceLevelLoader loader) : super(loader) {
+    _typeBuilder = new TypeAnnotationBuilder(this);
+  }
 
   String get location => '?';
 
@@ -319,7 +322,7 @@ class TypeScope extends ReferenceScope {
   }
 
   ast.DartType buildType(DartType type) {
-    return new TypeAnnotationBuilder(this).buildFromDartType(type);
+    return _typeBuilder.buildFromDartType(type);
   }
 
   ast.Supertype buildSupertype(DartType type) {
@@ -339,11 +342,11 @@ class TypeScope extends ReferenceScope {
   }
 
   ast.DartType buildTypeAnnotation(AstNode node) {
-    return new TypeAnnotationBuilder(this).build(node);
+    return _typeBuilder.build(node);
   }
 
   ast.DartType buildOptionalTypeAnnotation(AstNode node) {
-    return node == null ? null : new TypeAnnotationBuilder(this).build(node);
+    return node == null ? null : _typeBuilder.build(node);
   }
 
   ast.DartType getInferredType(Expression node) {
@@ -390,11 +393,11 @@ class TypeScope extends ReferenceScope {
 
   List<ast.DartType> buildOptionalTypeArgumentList(TypeArgumentList node) {
     if (node == null) return null;
-    return new TypeAnnotationBuilder(this).buildList(node.arguments);
+    return _typeBuilder.buildList(node.arguments);
   }
 
   List<ast.DartType> buildTypeArgumentList(TypeArgumentList node) {
-    return new TypeAnnotationBuilder(this).buildList(node.arguments);
+    return _typeBuilder.buildList(node.arguments);
   }
 
   List<ast.TypeParameter> buildOptionalTypeParameterList(
@@ -889,7 +892,7 @@ class LabelStack {
 
 class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
   final ExpressionScope scope;
-  final LabelStack breakStack, continueStack;
+  LabelStack breakStack, continueStack;
 
   StatementBuilder(this.scope, [this.breakStack, this.continueStack]);
 
@@ -903,7 +906,14 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
   ast.Statement buildInScope(
       Statement node, LabelStack breakNode, LabelStack continueNode) {
-    return new StatementBuilder(scope, breakNode, continueNode).build(node);
+    var oldBreak = this.breakStack;
+    var oldContinue = this.continueStack;
+    breakStack = breakNode;
+    continueStack = continueNode;
+    var result = build(node);
+    this.breakStack = oldBreak;
+    this.continueStack = oldContinue;
+    return result;
   }
 
   void buildBlockMember(Statement node, List<ast.Statement> output) {
@@ -1088,11 +1098,14 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
       currentCase = null;
     }
     // Now that the label environment is set up, build the bodies.
-    var innerBuilder = new StatementBuilder(scope, breakNode, continueNode);
+    var oldBreak = this.breakStack;
+    var oldContinue = this.continueStack;
+    this.breakStack = breakNode;
+    this.continueStack = continueNode;
     for (int i = 0; i < cases.length; ++i) {
       var blockNodes = <ast.Statement>[];
       for (var statement in bodies[i]) {
-        innerBuilder.buildBlockMember(statement, blockNodes);
+        buildBlockMember(statement, blockNodes);
       }
       if (blockNodes.isEmpty || !isBreakingStatement(blockNodes.last)) {
         if (i < cases.length - 1) {
@@ -1107,7 +1120,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
       cases[i].body = new ast.Block(blockNodes)..parent = cases[i];
     }
     // Unwind the stack of case labels and bind their jumps to the case target.
-    while (continueNode != continueStack) {
+    while (continueNode != oldContinue) {
       for (var jump in continueNode.jumps) {
         (jump as ast.ContinueSwitchStatement).target =
             labelToNode[continueNode.labels.first];
@@ -1116,6 +1129,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     }
     var expression = scope.buildExpression(node.expression);
     var result = new ast.SwitchStatement(expression, cases);
+    this.breakStack = oldBreak;
+    this.continueStack = oldContinue;
     return makeBreakTarget(result, breakNode);
   }
 
@@ -1279,8 +1294,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 class ExpressionBuilder
     extends GeneralizingAstVisitor /* <ast.Expression | Accessor> */ {
   final ExpressionScope scope;
-  final ast.VariableDeclaration cascadeReceiver;
-  ExpressionBuilder(this.scope, [this.cascadeReceiver]);
+  ast.VariableDeclaration cascadeReceiver;
+  ExpressionBuilder(this.scope);
 
   ast.Expression build(Expression node) {
     var result = node.accept(this);
@@ -1433,12 +1448,14 @@ class ExpressionBuilder
     // might be reassigned in one of the cascade sections.
     var receiverVariable = new ast.VariableDeclaration.forValue(receiver,
         type: scope.getInferredType(node.target));
-    var inner = new ExpressionBuilder(scope, receiverVariable);
+    var oldReceiver = this.cascadeReceiver;
+    cascadeReceiver = receiverVariable;
     ast.Expression result = new ast.VariableGet(receiverVariable);
     for (var section in node.cascadeSections.reversed) {
-      var dummy = new ast.VariableDeclaration.forValue(inner.build(section));
+      var dummy = new ast.VariableDeclaration.forValue(build(section));
       result = new ast.Let(dummy, result);
     }
+    cascadeReceiver = oldReceiver;
     return new ast.Let(receiverVariable, result);
   }
 
@@ -2102,7 +2119,7 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     } else if (type is InterfaceType) {
       var classNode = scope.getClassReference(type.element);
       if (type.typeArguments.length == 0) {
-        return new ast.InterfaceType(classNode);
+        return classNode.rawType;
       }
       if (type.typeArguments.length != classNode.typeParameters.length) {
         log.warning('Type parameter arity error in $type');
@@ -2182,7 +2199,7 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     Element element = node.staticElement;
     switch (ElementKind.of(element)) {
       case ElementKind.CLASS:
-        return new ast.InterfaceType(scope.getClassReference(element));
+        return scope.getClassReference(element).rawType;
 
       case ElementKind.DYNAMIC:
         return const ast.DynamicType();
@@ -2449,8 +2466,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
-    var intType =
-        new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
+    var intType = scope.loader.getCoreClassReference('int').rawType;
     var indexFieldElement = element.fields.firstWhere(_isIndexField);
     ast.Field indexField = scope.getMemberReference(indexFieldElement);
     indexField.type = intType;
@@ -2474,7 +2490,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
       field.initializer = new ast.ConstructorInvocation(
           constructor, new ast.Arguments([new ast.IntLiteral(index)]),
           isConst: true)..parent = field;
-      field.type = new ast.InterfaceType(classNode);
+      field.type = classNode.rawType;
       classNode.addMember(field);
       ++index;
       enumConstantFields.add(field);
@@ -2482,7 +2498,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     // Add the 'values' field.
     var valuesFieldElement = element.fields.firstWhere(_isValuesField);
     ast.Field valuesField = scope.getMemberReference(valuesFieldElement);
-    var enumType = new ast.InterfaceType(classNode);
+    var enumType = classNode.rawType;
     valuesField.type = new ast.InterfaceType(
         scope.loader.getCoreClassReference('List'), <ast.DartType>[enumType]);
     valuesField.initializer = new ast.ListLiteral(
@@ -2644,10 +2660,16 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       scope.localTypeParameters[classElement.typeParameters[i]] =
           types.freshTypeParameters[i];
     }
+    var inferredReturnType = types.freshTypeParameters.isEmpty
+        ? classNode.rawType
+        : new ast.InterfaceType(
+            classNode,
+            types.freshTypeParameters
+                .map(makeTypeParameterType)
+                .toList(growable: false));
     var function = scope.buildFunctionNode(node.parameters, node.body,
         typeParameters: types.freshTypeParameters,
-        inferredReturnType: new ast.InterfaceType(classNode,
-            types.freshTypeParameters.map(makeTypeParameterType).toList()));
+        inferredReturnType: inferredReturnType);
     procedure.function = function..parent = procedure;
     handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {

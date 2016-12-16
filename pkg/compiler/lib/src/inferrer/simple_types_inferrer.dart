@@ -1695,26 +1695,28 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     T returnType = handleStaticSend(node, selector, mask, target, arguments);
-    if (Elements.isGrowableListConstructorCall(constructor, node, compiler)) {
+    if (Elements.isGrowableListConstructorCall(
+        constructor, node, closedWorld.commonElements)) {
       return inferrer.concreteTypes.putIfAbsent(
           node,
           () => types.allocateList(types.growableListType, node,
               outermostElement, types.nonNullEmpty(), 0));
     } else if (Elements.isFixedListConstructorCall(
-            constructor, node, compiler) ||
-        Elements.isFilledListConstructorCall(constructor, node, compiler)) {
+            constructor, node, closedWorld.commonElements) ||
+        Elements.isFilledListConstructorCall(
+            constructor, node, closedWorld.commonElements)) {
       int length = findLength(node);
-      T elementType =
-          Elements.isFixedListConstructorCall(constructor, node, compiler)
-              ? types.nullType
-              : arguments.positional[1];
+      T elementType = Elements.isFixedListConstructorCall(
+              constructor, node, closedWorld.commonElements)
+          ? types.nullType
+          : arguments.positional[1];
 
       return inferrer.concreteTypes.putIfAbsent(
           node,
           () => types.allocateList(types.fixedListType, node, outermostElement,
               elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(
-        constructor, compiler)) {
+        constructor, closedWorld)) {
       int length = findLength(node);
       T elementType = inferrer
           .returnTypeOfElement(target.enclosingClass.lookupMember('[]'));

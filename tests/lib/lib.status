@@ -8,6 +8,8 @@ mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type check
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 
+async/future_or_strong_test: RuntimeError, OK
+
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
@@ -265,7 +267,15 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
+async/future_or_bad_type_test/00: RuntimeError # Issue 28010
+async/future_or_bad_type_test/01: RuntimeError # Issue 28010
+async/future_or_bad_type_test/implements: MissingCompileTimeError # Issue 28010
+async/future_or_non_strong_test: RuntimeError # Issue 28010
+async/future_or_strong_test: RuntimeError, OK
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+async/future_or_bad_type_test/implements: Pass # Issue 28084
+
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
@@ -297,6 +307,11 @@ mirrors/null_test: Fail # Issue 16831
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+async/future_or_bad_type_test/00: MissingStaticWarning # Issue 28008
+async/future_or_bad_type_test/implements: MissingCompileTimeError # Issue 28008
+async/future_or_non_strong_test: StaticWarning # Issue 28008
+async/future_or_strong_test: StaticWarning # Issue 28008
+
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
 
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'

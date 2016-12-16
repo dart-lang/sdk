@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:args/args.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -56,9 +55,11 @@ main() {
 
       test('defined variables', () {
         CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
+            .parse(['--dart-sdk', '.', '-Dfoo=bar', '-Da', 'b', 'foo.dart']);
         expect(options.definedVariables['foo'], equals('bar'));
         expect(options.definedVariables['bar'], isNull);
+        expect(options.definedVariables['a'], equals('b'));
+        expect(options.definedVariables['b'], isNull);
       });
 
       test('disable cache flushing', () {
@@ -152,13 +153,6 @@ main() {
         expect(options.warningsAreFatal, isTrue);
       });
 
-      test('notice unrecognized flags', () {
-        expect(
-            () => new CommandLineParser()
-                .parse(['--bar', '--baz', 'foo.dart'], {}),
-            throwsA(new isInstanceOf<FormatException>()));
-      });
-
       test('ignore unrecognized flags', () {
         CommandLineOptions options = CommandLineOptions.parse([
           '--ignore-unrecognized-flags',
@@ -170,17 +164,6 @@ main() {
         ]);
         expect(options, isNotNull);
         expect(options.sourceFiles, equals(['foo.dart']));
-      });
-
-      test('ignore unrecognized options', () {
-        CommandLineParser parser =
-            new CommandLineParser(alwaysIgnoreUnrecognized: true);
-        parser.addOption('optionA');
-        parser.addFlag('flagA');
-        ArgResults argResults =
-            parser.parse(['--optionA=1', '--optionB=2', '--flagA'], {});
-        expect(argResults['optionA'], '1');
-        expect(argResults['flagA'], isTrue);
       });
 
       test('strong mode', () {

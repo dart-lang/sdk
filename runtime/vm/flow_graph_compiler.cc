@@ -785,8 +785,8 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
 }
 
 
-void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
-  exception_handlers_list_->SetNeedsStacktrace(try_index);
+void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
+  exception_handlers_list_->SetNeedsStackTrace(try_index);
 }
 
 
@@ -1070,13 +1070,13 @@ RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
 }
 
 
-void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
+void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
   if (stackmap_table_builder_ == NULL) {
     code.set_stackmaps(Object::null_array());
   } else {
     // Finalize the stack map array and add it to the code object.
     code.set_stackmaps(
-        Array::Handle(stackmap_table_builder_->FinalizeStackmaps(code)));
+        Array::Handle(stackmap_table_builder_->FinalizeStackMaps(code)));
   }
 }
 

@@ -109,21 +109,20 @@ class AnalysisDriver {
   final FileContentOverlay _contentOverlay;
 
   /**
+   * The analysis options to analyze with.
+   */
+  AnalysisOptions _analysisOptions;
+
+  /**
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
-  final SourceFactory sourceFactory;
-
-  /**
-   * The analysis options to analyze with.
-   */
-  final AnalysisOptions analysisOptions;
+  SourceFactory _sourceFactory;
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
    */
-  final Uint32List _salt =
-      new Uint32List(1 + AnalysisOptions.crossContextOptionsLength);
+  final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
 
   /**
    * The current file system state.
@@ -233,8 +232,8 @@ class AnalysisDriver {
       this._byteStore,
       this._contentOverlay,
       SourceFactory sourceFactory,
-      this.analysisOptions)
-      : sourceFactory = sourceFactory.clone() {
+      this._analysisOptions)
+      : _sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(
@@ -243,7 +242,7 @@ class AnalysisDriver {
         _contentOverlay,
         _resourceProvider,
         sourceFactory,
-        analysisOptions,
+        _analysisOptions,
         _salt,
         _sdkBundle.apiSignature);
     _scheduler._add(this);
@@ -254,6 +253,11 @@ class AnalysisDriver {
    * Return the set of files explicitly added to analysis using [addFile].
    */
   Set<String> get addedFiles => _addedFiles;
+
+  /**
+   * Return the analysis options used to control analysis.
+   */
+  AnalysisOptions get analysisOptions => _analysisOptions;
 
   /**
    * Return the stream that produces [ExceptionResult]s.
@@ -269,7 +273,8 @@ class AnalysisDriver {
    * Return `true` if the driver has a file to analyze.
    */
   bool get hasFilesToAnalyze {
-    return _requestedFiles.isNotEmpty ||
+    return _changedFiles.isNotEmpty ||
+        _requestedFiles.isNotEmpty ||
         _requestedParts.isNotEmpty ||
         _filesToAnalyze.isNotEmpty ||
         _partsToAnalyze.isNotEmpty;
@@ -333,6 +338,12 @@ class AnalysisDriver {
   Search get search => _search;
 
   /**
+   * Return the source factory used to resolve URIs to paths and restore URIs
+   * from file paths.
+   */
+  SourceFactory get sourceFactory => _sourceFactory;
+
+  /**
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get status => _statusSupport.stream;
@@ -386,7 +397,6 @@ class AnalysisDriver {
   void addFile(String path) {
     if (AnalysisEngine.isDartFileName(path)) {
       _addedFiles.add(path);
-      _changedFiles.add(path);
       _filesToAnalyze.add(path);
     }
     _statusSupport.transitionToAnalyzing();
@@ -418,6 +428,37 @@ class AnalysisDriver {
         _filesToAnalyze.add(path);
       }
     }
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+  }
+
+  /**
+   * Some state on which analysis depends has changed, so the driver needs to be
+   * re-configured with the new state.
+   *
+   * At least one of the optional parameters should be provided, but only those
+   * that represent state that has actually changed need be provided.
+   */
+  void configure(
+      {AnalysisOptions analysisOptions, SourceFactory sourceFactory}) {
+    if (analysisOptions != null) {
+      _analysisOptions = analysisOptions;
+    }
+    if (sourceFactory != null) {
+      _sourceFactory = sourceFactory;
+      _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
+    }
+    _fillSalt();
+    _fsState = new FileSystemState(
+        _logger,
+        _byteStore,
+        _contentOverlay,
+        _resourceProvider,
+        _sourceFactory,
+        _analysisOptions,
+        _salt,
+        _sdkBundle.apiSignature);
+    _filesToAnalyze.addAll(_addedFiles);
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
@@ -612,6 +653,16 @@ class AnalysisDriver {
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
+
+        // TODO(scheglov) Remove this.
+        // https://github.com/dart-lang/sdk/issues/28110
+        analysisContext.setContents(libraryFile.source, libraryFile.content);
+        for (FileState part in libraryFile.partedFiles) {
+          if (part.exists) {
+            analysisContext.setContents(part.source, part.content);
+          }
+        }
+
         CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit2(
             file.source, libraryFile.source);
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
@@ -674,9 +725,9 @@ class AnalysisDriver {
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.analysisOptions = analysisOptions;
+    analysisContext.analysisOptions = _analysisOptions;
 
-    analysisContext.sourceFactory = sourceFactory.clone();
+    analysisContext.sourceFactory = _sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, libraryContext.store);
     analysisContext
@@ -746,7 +797,7 @@ class AnalysisDriver {
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, analysisOptions.strongMode);
+        }, (_) => null, _analysisOptions.strongMode);
         _logger.writeln('Linked ${linkedLibraries.length} bundles.');
       });
 
@@ -768,9 +819,8 @@ class AnalysisDriver {
    */
   void _fillSalt() {
     _salt[0] = DATA_VERSION;
-    List<int> crossContextOptions = analysisOptions.encodeCrossContextOptions();
-    assert(crossContextOptions.length ==
-        AnalysisOptions.crossContextOptionsLength);
+    List<int> crossContextOptions = _analysisOptions.signature;
+    assert(crossContextOptions.length == AnalysisOptions.signatureLength);
     for (int i = 0; i < crossContextOptions.length; i++) {
       _salt[i + 1] = crossContextOptions[i];
     }
@@ -786,8 +836,17 @@ class AnalysisDriver {
     List<AnalysisError> errors = withErrors
         ? _getErrorsFromSerialized(file, unit.errors)
         : const <AnalysisError>[];
-    return new AnalysisResult(this, sourceFactory, file.path, file.uri, content,
-        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
+    return new AnalysisResult(
+        this,
+        _sourceFactory,
+        file.path,
+        file.uri,
+        content,
+        file.contentHash,
+        file.lineInfo,
+        resolvedUnit,
+        errors,
+        unit.index);
   }
 
   /**
@@ -831,7 +890,7 @@ class AnalysisDriver {
   ErrorCode _lintCodeByUniqueName(String errorName) {
     if (errorName.startsWith('_LintCode.')) {
       String lintName = errorName.substring(10);
-      List<Linter> lintRules = analysisOptions.lintRules;
+      List<Linter> lintRules = _analysisOptions.lintRules;
       for (Linter linter in lintRules) {
         if (linter.name == lintName) {
           return linter.lintCode;
@@ -1522,6 +1581,9 @@ class _TopLevelNameDeclarationsTask {
       if (!file.isPart) {
         bool isExported = false;
         TopLevelDeclaration declaration = file.topLevelDeclarations[name];
+        for (FileState part in file.partedFiles) {
+          declaration ??= part.topLevelDeclarations[name];
+        }
         if (declaration == null) {
           declaration = file.exportedTopLevelDeclarations[name];
           isExported = true;

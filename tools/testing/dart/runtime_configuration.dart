@@ -4,14 +4,22 @@
 
 library runtime_configuration;
 
+import 'dart:io' show Directory, File;
+
 import 'compiler_configuration.dart' show CommandArtifact;
 
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
-import 'test_suite.dart' show TestSuite;
+import 'test_suite.dart' show TestSuite, TestUtils;
 
 import 'test_runner.dart' show Command, CommandBuilder;
 
+/// Describes the commands to run a given test case or its compiled output.
+///
+/// A single runtime configuration object exists per test suite, and is thus
+/// shared between multiple test cases, it should not be mutated after
+/// construction.
+//
 // TODO(ahe): I expect this class will become abstract very soon.
 class RuntimeConfiguration {
   // TODO(ahe): Remove this constructor and move the switch to
@@ -59,6 +67,9 @@ class RuntimeConfiguration {
       case 'drt':
         return new DrtRuntimeConfiguration();
 
+      case 'self_check':
+        return new SelfCheckRuntimeConfiguration();
+
       default:
         throw "Unknown runtime '$runtime'";
     }
@@ -82,6 +93,8 @@ class RuntimeConfiguration {
   }
 
   List<String> dart2jsPreambles(Uri preambleDir) => [];
+
+  bool get shouldSkipNegativeTests => false;
 }
 
 /// The 'none' runtime configuration.
@@ -285,6 +298,40 @@ class DartPrecompiledAdbRuntimeConfiguration
                                               useBlobs)
     ];
   }
+}
+
+class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  final List<String> selfCheckers = <String>[];
+
+  SelfCheckRuntimeConfiguration() {
+    searchForSelfCheckers();
+  }
+
+  void searchForSelfCheckers() {
+    Uri pkg = TestUtils.dartDirUri.resolve('pkg');
+    for (var entry in  new Directory.fromUri(pkg).listSync(recursive: true)) {
+      if (entry is File && entry.path.endsWith('_self_check.dart')) {
+        selfCheckers.add(entry.path);
+      }
+    }
+  }
+
+  List<Command> computeRuntimeCommands(
+      TestSuite suite,
+      CommandBuilder commandBuilder,
+      CommandArtifact artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    String executable = suite.dartVmBinaryFileName;
+    return selfCheckers
+        .map((String tester) => commandBuilder.getVmBatchCommand(
+            executable, tester, arguments, environmentOverrides,
+            checked: suite.configuration['checked']))
+        .toList();
+  }
+
+  @override
+  bool get shouldSkipNegativeTests => true;
 }
 
 /// Temporary runtime configuration for browser runtimes that haven't been

@@ -7,14 +7,14 @@
 
 namespace dart {
 
-class Stacktrace;
+class StackTrace;
 
-// Creates a Stacktrace object from the current stack.  Skips the
+// Creates a StackTrace object from the current stack.  Skips the
 // first skip_frames Dart frames.
 //
 // This function is exposed to provide stack trace printing in
 // assertion failures, etc.
-const Stacktrace& GetCurrentStacktrace(int skip_frames);
+const StackTrace& GetCurrentStackTrace(int skip_frames);
 
 }  // namespace dart
 

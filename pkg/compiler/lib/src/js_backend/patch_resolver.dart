@@ -84,7 +84,7 @@ class PatchResolverTask extends CompilerTask {
             // We special case the list constructor because of the
             // optional parameter.
             &&
-            origin != compiler.unnamedListConstructor) {
+            origin != compiler.commonElements.unnamedListConstructor) {
           reporter.reportError(
               reporter.createMessage(
                   originParameter, MessageKind.PATCH_PARAMETER_MISMATCH, {

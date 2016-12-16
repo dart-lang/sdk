@@ -19,6 +19,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
+    defineReflectiveTests(LocalReferenceContributorTest_Driver);
   });
 }
 
@@ -4550,4 +4551,11 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
+}
+
+@reflectiveTest
+class LocalReferenceContributorTest_Driver
+    extends LocalReferenceContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

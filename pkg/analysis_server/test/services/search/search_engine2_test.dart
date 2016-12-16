@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -103,6 +105,55 @@ class C extends B {}
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
   }
 
+  test_searchMemberDeclarations() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    var codeA = '''
+class A {
+  int test; // 1
+  int testTwo;
+}
+''';
+    var codeB = '''
+class B {
+  void test() {} // 2
+  void testTwo() {}
+}
+int test;
+''';
+
+    provider.newFile(a, codeA);
+    provider.newFile(b, codeB);
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+
+    while (scheduler.isAnalyzing) {
+      await new Future.delayed(new Duration(milliseconds: 1));
+    }
+
+    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberDeclarations('test');
+    expect(matches, hasLength(2));
+
+    void assertHasElement(String name, int nameOffset) {
+      expect(
+          matches,
+          contains(predicate((SearchMatch m) =>
+              m.kind == MatchKind.DECLARATION &&
+              m.element.name == name &&
+              m.element.nameOffset == nameOffset)));
+    }
+
+    assertHasElement('test', codeA.indexOf('test; // 1'));
+    assertHasElement('test', codeB.indexOf('test() {} // 2'));
+  }
+
   test_searchReferences() async {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
@@ -136,6 +187,51 @@ T b;
         matches, contains(predicate((SearchMatch m) => m.element.name == 'a')));
     expect(
         matches, contains(predicate((SearchMatch m) => m.element.name == 'b')));
+  }
+
+  test_searchTopLevelDeclarations() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(
+        a,
+        '''
+class A {}
+int a;
+''');
+    provider.newFile(
+        b,
+        '''
+class B {}
+get b => 42;
+''');
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+
+    while (scheduler.isAnalyzing) {
+      await new Future.delayed(new Duration(milliseconds: 1));
+    }
+
+    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    List<SearchMatch> matches =
+        await searchEngine.searchTopLevelDeclarations('.*');
+    expect(matches, hasLength(4));
+
+    void assertHasElement(String name) {
+      expect(
+          matches,
+          contains(predicate((SearchMatch m) =>
+              m.kind == MatchKind.DECLARATION && m.element.name == name)));
+    }
+
+    assertHasElement('A');
+    assertHasElement('a');
+    assertHasElement('B');
+    assertHasElement('b');
   }
 
   AnalysisDriver _newDriver() => new AnalysisDriver(

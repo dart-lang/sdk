@@ -1487,6 +1487,11 @@ class AnalysisServer {
         driverMap.values.forEach((driver) {
           driver.changeFile(file);
         });
+
+        // If the file did not exist, and is "overlay only", it still should be
+        // analyzed. Add it to driver to which it should have been added.
+        contextManager.getDriverFor(file)?.addFile(file);
+
         // TODO(scheglov) implement other cases
       });
       return;
@@ -1832,9 +1837,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           result.unit != null) {
         analysisServer.priorityFileResults[result.path] = result;
       }
-      _runDelayed(() {
-        new_sendErrorNotification(analysisServer, result);
-      });
+      new_sendErrorNotification(analysisServer, result);
       String path = result.path;
       CompilationUnit unit = result.unit;
       if (unit != null) {
@@ -1851,16 +1854,31 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OCCURRENCES, path)) {
+          _runDelayed(() {
+            new_sendDartNotificationOccurrences(analysisServer, result);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OVERRIDES, path)) {
           _runDelayed(() {
             sendAnalysisNotificationOverrides(analysisServer, path, unit);
           });
         }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OUTLINE, path)) {
+          _runDelayed(() {
+            SourceKind sourceKind =
+                unit.directives.any((d) => d is PartOfDirective)
+                    ? SourceKind.PART
+                    : SourceKind.LIBRARY;
+            sendAnalysisNotificationOutline(
+                analysisServer, path, result.lineInfo, sourceKind, unit);
+          });
+        }
       }
       // TODO(scheglov) Implement more notifications.
       // IMPLEMENTED
-      // OCCURRENCES (not used in IDEA)
-      // OUTLINE (not used in IDEA)
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
       AnalysisEngine.instance.logger

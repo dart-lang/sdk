@@ -13,25 +13,25 @@ import '../world.dart' show ClosedWorld;
 
 class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
-      Element element, Compiler compiler) {
-    return compiler.globalInference.results.resultOf(element).returnType ??
-        compiler.closedWorld.commonMasks.dynamicType;
+      Element element, GlobalTypeInferenceResults results) {
+    return results.resultOf(element).returnType ??
+        results.closedWorld.commonMasks.dynamicType;
   }
 
-  static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
-    return compiler.globalInference.results.resultOf(element).type ??
-        compiler.closedWorld.commonMasks.dynamicType;
+  static TypeMask inferredTypeForElement(
+      Element element, GlobalTypeInferenceResults results) {
+    return results.resultOf(element).type ??
+        results.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForSelector(
-      Selector selector, TypeMask mask, Compiler compiler) {
-    return compiler.globalInference.results.typeOfSelector(selector, mask) ??
-        compiler.closedWorld.commonMasks.dynamicType;
+      Selector selector, TypeMask mask, GlobalTypeInferenceResults results) {
+    return results.typeOfSelector(selector, mask) ??
+        results.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask fromNativeBehavior(
-      native.NativeBehavior nativeBehavior, Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
     CommonMasks commonMasks = closedWorld.commonMasks;
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return commonMasks.dynamicType;

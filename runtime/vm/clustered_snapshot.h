@@ -448,7 +448,7 @@ class VmIsolateSnapshotReader {
         size_(size),
         instructions_buffer_(instructions_buffer),
         data_buffer_(data_buffer) {
-    thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppNoJIT);
+    thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppAOT);
   }
 
   ~VmIsolateSnapshotReader() {}
@@ -481,7 +481,7 @@ class IsolateSnapshotReader {
         size_(size),
         instructions_buffer_(instructions_buffer),
         data_buffer_(data_buffer) {
-    thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppNoJIT);
+    thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppAOT);
   }
 
   ~IsolateSnapshotReader() {}

@@ -71,6 +71,26 @@ class SearchTest extends BaseAnalysisDriverTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
+  test_classMembers() async {
+    await _resolveTestUnit('''
+class A {
+  test() {}
+}
+class B {
+  int test = 1;
+  int testTwo = 2;
+  main() {
+    int test = 3;
+  }
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    RegExp regExp = new RegExp(r'^test$');
+    expect(await driver.search.classMembers(regExp),
+        unorderedEquals([a.methods[0], b.fields[0]]));
+  }
+
   test_searchReferences_ClassElement_definedInside() async {
     await _resolveTestUnit('''
 class A {};
@@ -528,6 +548,31 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
+  test_searchReferences_ParameterElement_named() async {
+    await _resolveTestUnit('''
+foo({p}) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(p: 42);
+}
+''');
+    ParameterElement element = _findElement('p');
+    Element fooElement = _findElement('foo');
+    Element mainElement = _findElement('main');
+    var expected = [
+      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, SearchResultKind.READ, 'p);'),
+      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ParameterElement_ofConstructor() async {
     await _resolveTestUnit('''
 class C {
@@ -623,31 +668,6 @@ main() {
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
       _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_ParameterElement_named() async {
-    await _resolveTestUnit('''
-foo({p}) {
-  p = 1;
-  p += 2;
-  print(p);
-  p();
-}
-main() {
-  foo(p: 42);
-}
-''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
-    Element mainElement = _findElement('main');
-    var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
-      _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
     ];
     await _verifyReferences(element, expected);
   }
@@ -922,6 +942,25 @@ class C implements T {} // C
       _expectId(c, SearchResultKind.REFERENCE, 'T {} // C'),
     ];
     await _verifyReferences(element, expected);
+  }
+
+  test_topLevelElements() async {
+    await _resolveTestUnit('''
+class A {} // A
+class B = Object with A;
+typedef C();
+D() {}
+var E = null;
+class NoMatchABCDE {}
+''');
+    Element a = _findElement('A');
+    Element b = _findElement('B');
+    Element c = _findElement('C');
+    Element d = _findElement('D');
+    Element e = _findElement('E');
+    RegExp regExp = new RegExp(r'^[A-E]$');
+    expect(await driver.search.topLevelElements(regExp),
+        unorderedEquals([a, b, c, d, e]));
   }
 
   ExpectedResult _expectId(

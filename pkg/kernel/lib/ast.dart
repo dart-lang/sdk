@@ -342,7 +342,7 @@ class Class extends TreeNode {
       this.supertype,
       this.mixedInType,
       List<TypeParameter> typeParameters,
-      List<InterfaceType> implementedTypes,
+      List<Supertype> implementedTypes,
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,

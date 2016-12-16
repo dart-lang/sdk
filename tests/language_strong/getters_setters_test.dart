@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:meta/meta.dart" show virtual;
 
 class GettersSettersTest {
 
@@ -61,7 +62,7 @@ class GettersSettersTest {
 }
 
 class A {
-  int x_;
+  @virtual int x_;
   static int foo;
 
   static get bar {

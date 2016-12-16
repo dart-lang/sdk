@@ -20,7 +20,7 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
     // the inlining meta-data so we cannot walk the inline-aware stack trace.
     // Second, the script text itself is missing so whatever script is returned
     // from here will be missing the assertion expression text.
-    iterator->NextFrame();  // Skip _AssertionError._checkAssertion frame
+    iterator->NextFrame();  // Skip _AssertionError._evaluateAssertion frame
     return Exceptions::GetCallerScript(iterator);
   }
   StackFrame* stack_frame = iterator->NextFrame();
@@ -62,8 +62,9 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
 // Arg1: index of the first token after the failed assertion.
+// Arg2: Message object or null.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
+DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const TokenPosition assertion_start =
@@ -71,7 +72,8 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   const TokenPosition assertion_end =
       TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(1)).Value());
 
-  const Array& args = Array::Handle(Array::New(4));
+  const Instance& message = Instance::CheckedHandle(arguments->NativeArgAt(2));
+  const Array& args = Array::Handle(Array::New(5));
 
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
@@ -92,6 +94,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   args.SetAt(1, String::Handle(script.url()));
   args.SetAt(2, Smi::Handle(Smi::New(from_line)));
   args.SetAt(3, Smi::Handle(Smi::New(script.HasSource() ? from_column : -1)));
+  args.SetAt(4, message);
 
   Exceptions::ThrowByType(Exceptions::kAssertion, args);
   UNREACHABLE();

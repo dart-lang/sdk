@@ -9,10 +9,18 @@ import 'dart:collection';
 
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
-import 'dart:_js_helper' show SyncIterable, BooleanConversionAssertionError,
-  CastErrorImplementation, TypeErrorImplementation,
-  StrongModeCastError, StrongModeTypeError, StrongModeErrorImplementation,
-  getTraceFromException, Primitives;
+import 'dart:_js_helper'
+    show
+        AssertionErrorWithMessage,
+        BooleanConversionAssertionError,
+        CastErrorImplementation,
+        getTraceFromException,
+        Primitives,
+        TypeErrorImplementation,
+        StrongModeCastError,
+        StrongModeErrorImplementation,
+        StrongModeTypeError,
+        SyncIterable;
 
 part 'classes.dart';
 part 'rtti.dart';

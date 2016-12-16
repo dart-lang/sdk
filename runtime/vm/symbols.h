@@ -75,8 +75,7 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
-  V(CheckAssertion, "_checkAssertion")                                         \
-  V(CheckConstAssertion, "_checkConstAssertion")                               \
+  V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
@@ -84,8 +83,8 @@ class ObjectPointerVisitor;
   V(ListFactory, "List.")                                                      \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
-  V(ImmutableMap, "ImmutableMap")                                              \
-  V(ImmutableMapConstructor, "ImmutableMap._create")                           \
+  V(ImmutableMap, "_ImmutableMap")                                             \
+  V(ImmutableMapConstructor, "_ImmutableMap._create")                          \
   V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
   V(InterpolateSingle, "_interpolateSingle")                                   \
@@ -170,7 +169,7 @@ class ObjectPointerVisitor;
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
   V(CodeSourceMap, "CodeSourceMap")                                            \
-  V(Stackmap, "Stackmap")                                                      \
+  V(StackMap, "StackMap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
   V(DeoptInfo, "DeoptInfo")                                                    \

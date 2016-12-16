@@ -91,6 +91,10 @@ class IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) = 0;
 
+ protected:
+  // Returns true if |isolate| is the VM or service isolate.
+  bool IsVMInternalIsolate(Isolate* isolate) const;
+
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
@@ -200,7 +204,7 @@ class Isolate : public BaseIsolate {
   const char* debugger_name() const { return debugger_name_; }
   void set_debugger_name(const char* name);
 
-  int64_t start_time() const { return start_time_; }
+  int64_t UptimeMicros() const;
 
   Dart_Port main_port() const { return main_port_; }
   void set_main_port(Dart_Port port) {
@@ -713,7 +717,7 @@ class Isolate : public BaseIsolate {
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
-  int64_t start_time_;
+  int64_t start_time_micros_;
   Dart_Port main_port_;
   Dart_Port origin_id_;  // Isolates created by spawnFunc have some origin id.
   uint64_t pause_capability_;
@@ -856,6 +860,7 @@ class Isolate : public BaseIsolate {
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class Scavenger;  // VisitObjectPointers
+  friend class ObjectGraph;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;

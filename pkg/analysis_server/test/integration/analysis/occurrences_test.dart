@@ -73,10 +73,4 @@ class OccurrencesTest extends AbstractOccurrencesTest {}
 class OccurrencesTest_Driver extends AbstractOccurrencesTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_occurrences() {
-    //  NoSuchMethodError: The getter 'iterator' was called on null.
-    return super.test_occurrences();
-  }
 }

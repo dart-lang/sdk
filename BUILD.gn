@@ -4,12 +4,20 @@
 
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     ":runtime",
   ]
 }
 
 group("most") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     ":analysis_server",
     ":create_sdk",
@@ -22,6 +30,10 @@ group("most") {
 }
 
 group("runtime") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     "runtime/bin:dart",
     "runtime/bin:dart_bootstrap($host_toolchain)",
@@ -42,6 +54,9 @@ group("runtime_precompiled") {
 }
 
 group("runtime_and_noopt") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    testonly = true
+  }
   deps = [
     "runtime/bin:dart",
     "runtime/bin:dart_bootstrap($host_toolchain)",
@@ -70,12 +85,13 @@ action("create_sdk") {
   ]
 
   sdk_lib_files = exec_script("tools/list_dart_files.py",
-                              [ rebase_path("sdk/lib") ],
+                              [ "absolute", rebase_path("sdk/lib") ],
                               "list lines")
 
   preamble_files =
       exec_script("tools/list_files.py",
                   [
+                    "absolute",
                     "",
                     rebase_path("sdk/lib/_internal/js_runtime/lib/preambles"),
                   ],
@@ -83,14 +99,13 @@ action("create_sdk") {
 
   sdk_bin_files = exec_script("tools/list_files.py",
                               [
+                                "absolute",
                                 "",
                                 rebase_path("sdk/bin"),
                               ],
                               "list lines")
 
-  inputs = rebase_path(sdk_lib_files, "", "sdk/lib") +
-           rebase_path(preamble_files, "", "sdk/lib") +
-           rebase_path(sdk_bin_files, "", "sdk/bin") +
+  inputs = sdk_lib_files + preamble_files + sdk_bin_files +
            [
              "sdk/lib/dart_client.platform",
              "sdk/lib/dart_server.platform",

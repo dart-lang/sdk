@@ -19,13 +19,13 @@ namespace bin {
 
 class Stdin {
  public:
-  static int ReadByte();
+  static bool ReadByte(int* byte);
 
-  static bool GetEchoMode();
-  static void SetEchoMode(bool enabled);
+  static bool GetEchoMode(bool* enabled);
+  static bool SetEchoMode(bool enabled);
 
-  static bool GetLineMode();
-  static void SetLineMode(bool enabled);
+  static bool GetLineMode(bool* enabled);
+  static bool SetLineMode(bool enabled);
 
  private:
   DISALLOW_ALLOCATION();

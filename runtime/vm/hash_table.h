@@ -287,17 +287,23 @@ class HashTable : public ValueObject {
   intptr_t NumGT25Collisions() const {
     return GetSmiValueAt(kNumGT25LookupsIndex);
   }
-  void UpdateGrowth() const { AdjustSmiValueAt(kNumGrowsIndex, 1); }
-  void UpdateCollisions(intptr_t collisions) const {
-    if (data_->raw()->IsVMHeapObject()) {
-      return;
+  void UpdateGrowth() const {
+    if (KeyTraits::ReportStats()) {
+      AdjustSmiValueAt(kNumGrowsIndex, 1);
     }
-    if (collisions < 5) {
-      AdjustSmiValueAt(kNumLT5LookupsIndex, 1);
-    } else if (collisions < 25) {
-      AdjustSmiValueAt(kNumLT25LookupsIndex, 1);
-    } else {
-      AdjustSmiValueAt(kNumGT25LookupsIndex, 1);
+  }
+  void UpdateCollisions(intptr_t collisions) const {
+    if (KeyTraits::ReportStats()) {
+      if (data_->raw()->IsVMHeapObject()) {
+        return;
+      }
+      if (collisions < 5) {
+        AdjustSmiValueAt(kNumLT5LookupsIndex, 1);
+      } else if (collisions < 25) {
+        AdjustSmiValueAt(kNumLT25LookupsIndex, 1);
+      } else {
+        AdjustSmiValueAt(kNumGT25LookupsIndex, 1);
+      }
     }
   }
   void PrintStats() const {

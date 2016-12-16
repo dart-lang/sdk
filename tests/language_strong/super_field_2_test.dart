@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:meta/meta.dart" show virtual;
 
 class A {
-  var foo;
+  @virtual var foo;
   A(this.foo);
 
   B_Sfoo() => 'A.B_Sfoo()';

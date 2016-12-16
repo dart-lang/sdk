@@ -284,6 +284,7 @@ class DartTypeTranslator : public DartTypeVisitor {
                      bool finalize = false)
       : translation_helper_(*helper),
         active_class_(active_class),
+        type_parameter_scope_(NULL),
         zone_(helper->zone()),
         result_(AbstractType::Handle(helper->zone())),
         finalize_(finalize) {}
@@ -327,11 +328,31 @@ class DartTypeTranslator : public DartTypeVisitor {
   const Type& ReceiverType(const dart::Class& klass);
 
  private:
+  class TypeParameterScope {
+   public:
+    TypeParameterScope(DartTypeTranslator* translator,
+                       List<TypeParameter>* parameters)
+        : parameters_(parameters),
+          outer_(translator->type_parameter_scope_),
+          translator_(translator) {
+      translator_->type_parameter_scope_ = this;
+    }
+    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
+
+    TypeParameterScope* outer() const { return outer_; }
+    List<TypeParameter>* parameters() const { return parameters_; }
+
+   private:
+    List<TypeParameter>* parameters_;
+    TypeParameterScope* outer_;
+    DartTypeTranslator* translator_;
+  };
+
   TranslationHelper& translation_helper_;
   ActiveClass* active_class_;
+  TypeParameterScope* type_parameter_scope_;
   Zone* zone_;
   AbstractType& result_;
-
   bool finalize_;
 };
 

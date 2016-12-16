@@ -192,12 +192,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   @override
   bool get includeIdentifiers {
-    opType; // <<< ensure _opType is initialized
-    return !_opType.isPrefixed &&
-        (_opType.includeReturnValueSuggestions ||
-            _opType.includeTypeNameSuggestions ||
-            _opType.includeVoidReturnSuggestions ||
-            _opType.includeConstructorSuggestions);
+    return opType.includeIdentifiers;
   }
 
   @override
@@ -229,7 +224,13 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  String get sourceContents => context.getContents(source)?.data;
+  String get sourceContents {
+    if (result != null) {
+      return result.content;
+    } else {
+      return context.getContents(source)?.data;
+    }
+  }
 
   @override
   SourceFactory get sourceFactory {

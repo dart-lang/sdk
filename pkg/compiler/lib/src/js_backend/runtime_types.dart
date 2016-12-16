@@ -34,7 +34,8 @@ abstract class RuntimeTypes {
 
   Set<ClassElement> getClassesUsedInSubstitutions(
       JavaScriptBackend backend, TypeChecks checks);
-  void computeClassesNeedingRti();
+  void computeClassesNeedingRti(
+      ResolutionWorldBuilder resolverWorld, ClosedWorld closedWorld);
 
   /// Compute the required type checkes and substitutions for the given
   /// instantitated and checked classes.
@@ -214,7 +215,8 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   @override
-  void computeClassesNeedingRti() {
+  void computeClassesNeedingRti(
+      ResolutionWorldBuilder resolverWorld, ClosedWorld closedWorld) {
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
@@ -227,7 +229,7 @@ class _RuntimeTypes implements RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      compiler.closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
+      closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
         potentiallyAddForRti(sub);
       });
 
@@ -240,7 +242,7 @@ class _RuntimeTypes implements RuntimeTypes {
     }
 
     Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
-    compiler.resolverWorld.isChecks.forEach((DartType type) {
+    resolverWorld.isChecks.forEach((DartType type) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         // GENERIC_METHODS: When generic method support is complete enough to
@@ -609,8 +611,10 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   jsAst.Expression getTypeRepresentation(
       DartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
+    // GENERIC_METHODS: When generic method support is complete enough to
+    // include a runtime value for method type variables this must be updated.
     return representationGenerator.getTypeRepresentation(
-        type, onVariable, shouldEncodeTypedef);
+        type.dynamifyMethodTypeVariableType, onVariable, shouldEncodeTypedef);
   }
 
   @override

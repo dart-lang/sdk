@@ -1434,8 +1434,11 @@ class Types implements DartTypes {
    * [type], or [:null:] if [type] does not contain type variables.
    */
   static ClassElement getClassContext(DartType type) {
-    TypeVariableType typeVariable = type.typeVariableOccurrence;
-    if (typeVariable == null) return null;
+    ClassElement contextClass;
+    type.forEachTypeVariable((TypeVariableType typeVariable) {
+      if (typeVariable.element.typeDeclaration is! ClassElement) return;
+      contextClass = typeVariable.element.typeDeclaration;
+    });
     // GENERIC_METHODS: When generic method support is complete enough to
     // include a runtime value for method type variables this must be updated.
     // For full support the global assumption that all type variables are
@@ -1444,8 +1447,7 @@ class Types implements DartTypes {
     // type cannot be [ClassElement] and the caller must be prepared to look in
     // two locations, not one. Currently we ignore method type variables by
     // returning in the next statement.
-    if (typeVariable.element.typeDeclaration is! ClassElement) return null;
-    return typeVariable.element.typeDeclaration;
+    return contextClass;
   }
 
   /**

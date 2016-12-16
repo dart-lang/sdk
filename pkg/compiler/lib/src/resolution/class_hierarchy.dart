@@ -276,13 +276,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           element, 'cyclic resolution of class $element');
     }
 
-    if (identical(node.classKeyword.stringValue, 'typedef')) {
-      // TODO(aprelev@gmail.com): Remove this deprecation diagnostic
-      // together with corresponding TODO in parser.dart.
-      reporter.reportWarningMessage(
-          node.classKeyword, MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
-    }
-
     element.computeType(resolution);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);

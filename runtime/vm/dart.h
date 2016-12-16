@@ -56,9 +56,10 @@ class Dart : public AllStatic {
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
 
-  // Returns a timestamp for use in debugging output in milliseconds
-  // since start time.
-  static int64_t timestamp();
+  static int64_t UptimeMicros();
+  static int64_t UptimeMillis() {
+    return UptimeMicros() / kMicrosecondsPerMillisecond;
+  }
 
   static void set_pprof_symbol_generator(DebugInfo* value) {
     pprof_symbol_generator_ = value;
@@ -126,7 +127,7 @@ class Dart : public AllStatic {
   static void WaitForApplicationIsolateShutdown();
 
   static Isolate* vm_isolate_;
-  static int64_t start_time_;
+  static int64_t start_time_micros_;
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;

@@ -301,7 +301,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins ||
-        this._options.patchPlatform != options.patchPlatform;
+        !_samePatchPaths(this._options.patchPaths, options.patchPaths);
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
     this._options.generateImplicitErrors = options.generateImplicitErrors;
@@ -329,7 +329,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
-    this._options.patchPlatform = options.patchPlatform;
+    this._options.patchPaths = options.patchPaths;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
       this._options.implicitCasts = options.implicitCasts;
@@ -1966,6 +1966,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       driver.reset();
       return true;
     });
+  }
+
+  static bool _samePatchPaths(
+      Map<String, List<String>> a, Map<String, List<String>> b) {
+    if (a.length != b.length) return false;
+    for (var key in a.keys) {
+      if (!b.containsKey(key)) return false;
+      var aValue = a[key];
+      var bValue = b[key];
+      if (aValue.length != bValue.length) return false;
+      for (var i = 0; i < aValue.length; i++) {
+        if (aValue[i] != bValue[i]) return false;
+      }
+    }
+    return true;
   }
 }
 

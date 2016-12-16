@@ -84,6 +84,32 @@ main() {
       expect(outputJsFile.existsSync(), isTrue);
     });
 
+    test('unknown options', () {
+      var args = new List<String>.from(executableArgs)
+        ..add('--does-not-exist')
+        ..addAll(compilerArgs);
+      var result = Process.runSync('dart', args);
+
+      expect(result.exitCode, 64);
+      expect(result.stdout,
+          contains('Could not find an option named "does-not-exist"'));
+      expect(result.stderr, isEmpty);
+      expect(outputJsFile.existsSync(), isFalse);
+    });
+
+    test('unknown options ignored', () {
+      var args = new List<String>.from(executableArgs)
+        ..add('--does-not-exist')
+        ..add('--ignore-unrecognized-flags')
+        ..addAll(compilerArgs);
+      var result = Process.runSync('dart', args);
+
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(outputJsFile.existsSync(), isTrue);
+    });
+
     test('can compile in basic mode with args in a file', () async {
       argsFile.createSync();
       argsFile.writeAsStringSync(compilerArgs.join('\n'));
@@ -169,7 +195,12 @@ main() {
     });
 
     test('incorrect usage', () {
-      var result = Process.runSync('dart', ['bin/dartdevc.dart', '--dart-sdk-summary', dartSdkSummary.path, 'oops',]);
+      var result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        'oops',
+      ]);
       expect(result.exitCode, 64);
       expect(
           result.stdout, contains('Please include the output file location.'));

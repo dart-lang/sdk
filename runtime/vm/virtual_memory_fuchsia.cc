@@ -37,7 +37,7 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   const int prot =
       MX_VM_FLAG_PERM_READ | MX_VM_FLAG_PERM_WRITE | MX_VM_FLAG_PERM_EXECUTE;
   uintptr_t addr;
-  status = mx_process_map_vm(mx_process_self(), vmo, 0, size, &addr, prot);
+  status = mx_vmar_map(mx_vmar_root_self(), 0, vmo, 0, size, prot, &addr);
   if (status != NO_ERROR) {
     mx_handle_close(vmo);
     FATAL("VirtualMemory::ReserveInternal FAILED");
@@ -55,7 +55,7 @@ VirtualMemory::~VirtualMemory() {
     // Issue MG-162.
     uintptr_t addr = reinterpret_cast<uintptr_t>(address());
     mx_status_t status =
-        mx_process_unmap_vm(mx_process_self(), addr, 0 /*reserved_size_*/);
+        mx_vmar_unmap(mx_vmar_root_self(), addr, 0 /*reserved_size_*/);
     if (status != NO_ERROR) {
       FATAL("VirtualMemory::~VirtualMemory: unamp FAILED");
     }

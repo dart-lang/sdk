@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 /// Helpers for Analyzer's Element model and corelib model.
 
 import 'package:analyzer/dart/ast/ast.dart'
@@ -14,7 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart'
         MethodInvocation,
         SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart'
-    show Element, ExecutableElement, FunctionElement;
+    show ClassElement, Element, ExecutableElement, FunctionElement;
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, ParameterizedType;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
@@ -120,3 +122,20 @@ ExecutableElement getFunctionBodyElement(FunctionBody body) {
 /// return the string 'FooBar'.
 String getAnnotationName(Element element, bool match(DartObjectImpl value)) =>
     findAnnotation(element, match)?.getField('name')?.toStringValue();
+
+List<ClassElement> getSuperclasses(ClassElement cls) {
+  var result = <ClassElement>[];
+  var visited = new HashSet<ClassElement>();
+  while (cls != null && visited.add(cls)) {
+    for (var mixinType in cls.mixins.reversed) {
+      var mixin = mixinType.element;
+      if (mixin != null) result.add(mixin);
+    }
+    var supertype = cls.supertype;
+    if (supertype == null) break;
+
+    cls = supertype.element;
+    result.add(cls);
+  }
+  return result;
+}

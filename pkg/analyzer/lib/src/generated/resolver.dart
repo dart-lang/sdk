@@ -8997,6 +8997,11 @@ abstract class TypeProvider {
   InterfaceType get futureNullType;
 
   /**
+   * Return the type representing the built-in type 'FutureOr'.
+   */
+  InterfaceType get futureOrType;
+
+  /**
    * Return the type representing the built-in type 'Future'.
    */
   InterfaceType get futureType;
@@ -9185,6 +9190,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _futureNullType;
 
   /**
+   * The type representing the built-in type 'FutureOr'.
+   */
+  InterfaceType _futureOrType;
+
+  /**
    * The type representing the built-in type 'Future'.
    */
   InterfaceType _futureType;
@@ -9315,6 +9325,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureNullType => _futureNullType;
 
   @override
+  InterfaceType get futureOrType => _futureOrType;
+
+  @override
   InterfaceType get futureType => _futureType;
 
   @override
@@ -9399,6 +9412,7 @@ class TypeProviderImpl extends TypeProviderBase {
     _doubleType = _getType(coreNamespace, "double");
     _dynamicType = DynamicTypeImpl.instance;
     _functionType = _getType(coreNamespace, "Function");
+    _futureOrType = _getType(asyncNamespace, "FutureOr");
     _futureType = _getType(asyncNamespace, "Future");
     _intType = _getType(coreNamespace, "int");
     _iterableType = _getType(coreNamespace, "Iterable");

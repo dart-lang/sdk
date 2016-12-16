@@ -44,7 +44,7 @@ DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 
 Isolate* Dart::vm_isolate_ = NULL;
-int64_t Dart::start_time_ = 0;
+int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
@@ -143,6 +143,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
   OS::InitOnce();
+  start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
   if (FLAG_support_timeline) {
@@ -183,7 +184,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
-    start_time_ = vm_isolate_->start_time();
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -208,7 +208,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       snapshot_kind_ = snapshot->kind();
 
       if (Snapshot::IncludesCode(snapshot_kind_)) {
-        if (snapshot_kind_ == Snapshot::kAppNoJIT) {
+        if (snapshot_kind_ == Snapshot::kAppAOT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
           if (!FLAG_precompiled_runtime) {
@@ -358,14 +358,15 @@ const char* Dart::Cleanup() {
   }
 
   if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Starting shutdown\n", timestamp());
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Starting shutdown\n",
+                 UptimeMillis());
   }
 
   if (FLAG_profiler) {
     // Shut down profiling.
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
-                   timestamp());
+                   UptimeMillis());
     }
     Profiler::Shutdown();
   }
@@ -376,7 +377,7 @@ const char* Dart::Cleanup() {
     // Metrics so that we can use a StackZone.
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
-                   timestamp());
+                   UptimeMillis());
     }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
@@ -387,14 +388,14 @@ const char* Dart::Cleanup() {
   // Disable the creation of new isolates.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling isolate creation\n",
-                 timestamp());
+                 UptimeMillis());
   }
   Isolate::DisableIsolateCreation();
 
   // Send the OOB Kill message to all remaining application isolates.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Killing all app isolates\n",
-                 timestamp());
+                 UptimeMillis());
   }
   Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
 
@@ -403,7 +404,7 @@ const char* Dart::Cleanup() {
   if (ServiceIsolate::IsRunning()) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down app isolates\n",
-                   timestamp());
+                   UptimeMillis());
     }
     WaitForApplicationIsolateShutdown();
   }
@@ -411,7 +412,7 @@ const char* Dart::Cleanup() {
   // Shutdown the service isolate.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down service isolate\n",
-                 timestamp());
+                 UptimeMillis());
   }
   ServiceIsolate::Shutdown();
 
@@ -419,14 +420,14 @@ const char* Dart::Cleanup() {
   // before shutting down the thread pool.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",
-                 timestamp());
+                 UptimeMillis());
   }
   WaitForIsolateShutdown();
 
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
-                 timestamp());
+                 UptimeMillis());
   }
   delete thread_pool_;
   thread_pool_ = NULL;
@@ -439,14 +440,14 @@ const char* Dart::Cleanup() {
   // pool, messing up its bookkeeping.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling OS Thread creation\n",
-                 timestamp());
+                 UptimeMillis());
   }
   OSThread::DisableOSThreadCreation();
 
   // Set the VM isolate as current isolate.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Cleaning up vm isolate\n",
-                 timestamp());
+                 UptimeMillis());
   }
   bool result = Thread::EnterIsolate(vm_isolate_);
   ASSERT(result);
@@ -465,23 +466,24 @@ const char* Dart::Cleanup() {
   OSThread::SetCurrent(NULL);
   delete os_thread;
   if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n", timestamp());
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleted os_thread\n",
+                 UptimeMillis());
   }
 
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting code observers\n",
-                 timestamp());
+                 UptimeMillis());
   }
   NOT_IN_PRODUCT(CodeObservers::DeleteAll());
   if (FLAG_support_timeline) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
-                   timestamp());
+                   UptimeMillis());
     }
     Timeline::Shutdown();
   }
   if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", timestamp());
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
 
   return NULL;
@@ -712,9 +714,8 @@ void Dart::ShutdownIsolate() {
 }
 
 
-int64_t Dart::timestamp() {
-  return ((OS::GetCurrentTimeMicros() - Dart::start_time_) /
-          kMillisecondsPerSecond);
+int64_t Dart::UptimeMicros() {
+  return OS::GetCurrentMonotonicMicros() - Dart::start_time_micros_;
 }
 
 

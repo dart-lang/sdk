@@ -45,6 +45,8 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
         error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
   };
 
+  String myPkgLibPath = '/packages/my_pkg/lib';
+
   Fix fix;
   SourceChange change;
   String resultCode;
@@ -153,10 +155,10 @@ bool test() {
    */
   void _configureMyPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('/packages/my_pkg/lib/$path', code);
+      provider.newFile('$myPkgLibPath/$path', code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
+    Folder myPkgFolder = provider.getResource(myPkgLibPath);
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
       'my_pkg': [myPkgFolder]
     });
@@ -3088,6 +3090,35 @@ Future main() async {
   }
 
   test_importLibraryPackage_preferDirectOverExport() async {
+    _configureMyPkg({'b.dart': 'class Test {}', 'a.dart': "export 'b.dart';"});
+    resolveTestUnit('''
+main() {
+  Test test = null;
+}
+''');
+    performAllAnalysisTasks();
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
+        '''
+import 'package:my_pkg/b.dart';
+
+main() {
+  Test test = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT2,
+        '''
+import 'package:my_pkg/a.dart';
+
+main() {
+  Test test = null;
+}
+''');
+  }
+
+  test_importLibraryPackage_preferDirectOverExport_src() async {
+    myPkgLibPath = '/my/src/packages/my_pkg/lib';
     _configureMyPkg({'b.dart': 'class Test {}', 'a.dart': "export 'b.dart';"});
     resolveTestUnit('''
 main() {

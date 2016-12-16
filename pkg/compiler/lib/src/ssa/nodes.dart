@@ -1121,7 +1121,7 @@ abstract class HInstruction implements Spannable {
   TypeMask instructionType;
 
   Selector get selector => null;
-  HInstruction getDartReceiver(Compiler compiler) => null;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
@@ -1304,7 +1304,7 @@ abstract class HInstruction implements Spannable {
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
 
-  bool isInterceptor(Compiler compiler) => false;
+  bool isInterceptor(ClosedWorld closedWorld) => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1544,15 +1544,15 @@ abstract class HInvokeDynamic extends HInvoke {
             : const InvokeDynamicSpecializer();
   toString() => 'invoke dynamic: selector=$selector, mask=$mask';
   HInstruction get receiver => inputs[0];
-  HInstruction getDartReceiver(Compiler compiler) {
-    return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
+  HInstruction getDartReceiver(ClosedWorld closedWorld) {
+    return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
   /**
    * Returns whether this call is on an interceptor object.
    */
-  bool isCallOnInterceptor(Compiler compiler) {
-    return isInterceptedCall && receiver.isInterceptor(compiler);
+  bool isCallOnInterceptor(ClosedWorld closedWorld) {
+    return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
@@ -1649,15 +1649,15 @@ class HInvokeSuper extends HInvokeStatic {
   }
 
   HInstruction get receiver => inputs[0];
-  HInstruction getDartReceiver(Compiler compiler) {
-    return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
+  HInstruction getDartReceiver(ClosedWorld closedWorld) {
+    return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
   /**
    * Returns whether this call is on an interceptor object.
    */
-  bool isCallOnInterceptor(Compiler compiler) {
-    return isInterceptedCall && receiver.isInterceptor(compiler);
+  bool isCallOnInterceptor(ClosedWorld closedWorld) {
+    return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
   toString() => 'invoke super: $element';
@@ -1707,22 +1707,22 @@ class HFieldGet extends HFieldAccess {
     }
   }
 
-  bool isInterceptor(Compiler compiler) {
+  bool isInterceptor(ClosedWorld closedWorld) {
     if (sourceElement == null) return false;
     // In case of a closure inside an interceptor class, [:this:] is
     // stored in the generated closure class, and accessed through a
     // [HFieldGet].
-    JavaScriptBackend backend = compiler.backend;
     if (sourceElement is ThisLocal) {
       ThisLocal thisLocal = sourceElement;
-      return backend.isInterceptorClass(thisLocal.enclosingClass);
+      return closedWorld.backendClasses
+          .isInterceptorClass(thisLocal.enclosingClass);
     }
     return false;
   }
 
   bool canThrow() => receiver.canBeNull();
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
   bool get isNullCheck => element == null;
 
@@ -1745,7 +1745,7 @@ class HFieldSet extends HFieldAccess {
 
   bool canThrow() => receiver.canBeNull();
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
@@ -1797,7 +1797,7 @@ class HReadModifyWrite extends HLateInstruction {
 
   bool canThrow() => receiver.canBeNull();
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
@@ -2254,7 +2254,7 @@ class HConstant extends HInstruction {
   bool isConstantFalse() => constant.isFalse;
   bool isConstantTrue() => constant.isTrue;
 
-  bool isInterceptor(Compiler compiler) => constant.isInterceptor;
+  bool isInterceptor(ClosedWorld closedWorld) => constant.isInterceptor;
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
@@ -2320,9 +2320,9 @@ class HThis extends HParameterValue {
 
   bool isCodeMotionInvariant() => true;
 
-  bool isInterceptor(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return backend.isInterceptorClass(sourceElement.enclosingClass);
+  bool isInterceptor(ClosedWorld closedWorld) {
+    return closedWorld.backendClasses
+        .isInterceptorClass(sourceElement.enclosingClass);
   }
 
   String toString() => 'this';
@@ -2528,7 +2528,7 @@ class HInterceptor extends HInstruction {
     inputs.add(constant);
   }
 
-  bool isInterceptor(Compiler compiler) => true;
+  bool isInterceptor(ClosedWorld closedWorld) => true;
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
@@ -2556,7 +2556,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
     assert(inputs[0] is HConstant);
     assert(inputs[0].isNull());
   }
-  bool isCallOnInterceptor(Compiler compiler) => true;
+  bool isCallOnInterceptor(ClosedWorld closedWorld) => true;
 
   String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
@@ -2631,7 +2631,7 @@ class HIndex extends HInstruction {
   // TODO(27272): Make HIndex dependent on bounds checking.
   bool get isMovable => false;
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
   bool canThrow() => receiver.canBeNull();
 
@@ -2665,7 +2665,7 @@ class HIndexAssign extends HInstruction {
   // TODO(27272): Make HIndex dependent on bounds checking.
   bool get isMovable => false;
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
   bool canThrow() => receiver.canBeNull();
 }

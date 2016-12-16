@@ -47,6 +47,9 @@ int identityHashCode(Object object) => objectHashCode(object);
 @patch
 class Object {
   @patch
+  bool operator==(other) => identical(this, other);
+
+  @patch
   int get hashCode => Primitives.objectHashCode(this);
 
 
@@ -64,6 +67,12 @@ class Object {
 
   @patch
   Type get runtimeType => getRuntimeType(this);
+}
+
+@patch
+class Null {
+  @patch
+  int get hashCode => super.hashCode;
 }
 
 // Patch for Function implementation.
@@ -205,6 +214,18 @@ class Error {
 
   @patch
   StackTrace get stackTrace => Primitives.extractStackTrace(this);
+}
+
+@patch
+class FallThroughError {
+  @patch
+  String toString() => super.toString();
+}
+
+@patch
+class AbstractClassInstantiationError {
+  @patch
+  String toString() => "Cannot instantiate abstract class: '$_className'";
 }
 
 // Patch for DateTime implementation.
@@ -461,6 +482,9 @@ class bool {
     throw new UnsupportedError(
         'bool.fromEnvironment can only be used as a const constructor');
   }
+
+  @patch
+  int get hashCode => super.hashCode;
 }
 
 @patch
@@ -547,6 +571,18 @@ class StringBuffer {
 
 @patch
 class NoSuchMethodError {
+  @patch
+  NoSuchMethodError(Object receiver,
+                    Symbol memberName,
+                    List positionalArguments,
+                    Map<Symbol, dynamic> namedArguments,
+                    [List existingArgumentNames = null])
+      : _receiver = receiver,
+        _memberName = memberName,
+        _arguments = positionalArguments,
+        _namedArguments = namedArguments,
+        _existingArgumentNames = existingArgumentNames;
+
   @patch
   String toString() {
     StringBuffer sb = new StringBuffer('');

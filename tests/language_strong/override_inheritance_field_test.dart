@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:meta/meta.dart" show virtual;
+
 class A {
   get getter1 => null; /// 01: ok
   num get getter2 => null; /// 02: ok
@@ -24,12 +26,12 @@ class A {
   set setter10(int _) => null; /// 30: static type warning
   set setter11(int _) => null; /// 31: static type warning
 
-  int field1; /// 41: ok
+  @virtual int field1; /// 41: ok
   num field2; /// 42: ok
   int field3; /// 43: ok
   int field4; /// 44: static type warning
   int field5; /// 45: ok
-  num field6; /// 46: ok
+  @virtual num field6; /// 46: ok
   num field7; /// 47: static type warning
   num get field8 => null; /// 48: static type warning
   num field9; /// 49: ok

@@ -98,7 +98,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
     ];
     if (stacktrace != null) {
       content.addAll([
-        new SpanElement()..text = 'Stacktrace:',
+        new SpanElement()..text = 'StackTrace:',
         new BRElement(),
         new BRElement(),
         new DivElement()..text = stacktrace.toString(),

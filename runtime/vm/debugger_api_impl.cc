@@ -247,7 +247,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsUnhandledException()) {
     const UnhandledException& error = UnhandledException::Cast(obj);
-    Stacktrace& dart_stacktrace = Stacktrace::Handle(Z);
+    StackTrace& dart_stacktrace = StackTrace::Handle(Z);
     dart_stacktrace ^= error.stacktrace();
     if (dart_stacktrace.IsNull()) {
       *trace = NULL;

@@ -4,18 +4,20 @@
 
 // Test type promotion of locals potentially mutated in closures.
 
+import "package:meta/meta.dart" show virtual;
+
 class A {
-  var a = "a";
+  @virtual var a = "a";
   A operator +(int i) => this;
 }
 class B extends A {
-  var b = "b";
+  @virtual var b = "b";
 }
 class C extends B {
-  var c = "c";
+  @virtual var c = "c";
 }
 class D extends A {
-  var d = "d";
+  @virtual var d = "d";
 }
 class E extends D implements C {
   var a = "";

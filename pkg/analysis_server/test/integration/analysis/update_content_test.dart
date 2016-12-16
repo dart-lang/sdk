@@ -16,54 +16,95 @@ main() {
 }
 
 class AbstractUpdateContentTest extends AbstractAnalysisServerIntegrationTest {
-  test_updateContent() {
-    String pathname = sourcePath('test.dart');
+  test_updateContent() async {
+    String path = sourcePath('test.dart');
     String goodText = r'''
 main() {
   print("Hello, world!");
 }''';
+
     String badText = goodText.replaceAll(';', '');
-    writeFile(pathname, badText);
+    writeFile(path, badText);
     standardAnalysisSetup();
-    return analysisFinished
-        .then((_) {
-          // The contents on disk (badText) are missing a semicolon.
-          expect(currentAnalysisErrors[pathname], isNotEmpty);
-        })
-        .then((_) => sendAnalysisUpdateContent(
-            {pathname: new AddContentOverlay(goodText)}))
-        .then((result) => analysisFinished)
-        .then((_) {
-          // There should be no errors now because the contents on disk have been
-          // overridden with goodText.
-          expect(currentAnalysisErrors[pathname], isEmpty);
-          return sendAnalysisUpdateContent({
-            pathname: new ChangeContentOverlay(
-                [new SourceEdit(goodText.indexOf(';'), 1, '')])
-          });
-        })
-        .then((result) => analysisFinished)
-        .then((_) {
-          // There should be errors now because we've removed the semicolon.
-          expect(currentAnalysisErrors[pathname], isNotEmpty);
-          return sendAnalysisUpdateContent({
-            pathname: new ChangeContentOverlay(
-                [new SourceEdit(goodText.indexOf(';'), 0, ';')])
-          });
-        })
-        .then((result) => analysisFinished)
-        .then((_) {
-          // There should be no errors now because we've added the semicolon back.
-          expect(currentAnalysisErrors[pathname], isEmpty);
-          return sendAnalysisUpdateContent(
-              {pathname: new RemoveContentOverlay()});
-        })
-        .then((result) => analysisFinished)
-        .then((_) {
-          // Now there should be errors again, because the contents on disk are no
-          // longer overridden.
-          expect(currentAnalysisErrors[pathname], isNotEmpty);
-        });
+
+    // The contents on disk (badText) are missing a semicolon.
+    await analysisFinished;
+    expect(currentAnalysisErrors[path], isNotEmpty);
+
+    // There should be no errors now because the contents on disk have been
+    // overridden with goodText.
+    sendAnalysisUpdateContent({path: new AddContentOverlay(goodText)});
+    await analysisFinished;
+    expect(currentAnalysisErrors[path], isEmpty);
+
+    // There should be errors now because we've removed the semicolon.
+    sendAnalysisUpdateContent({
+      path: new ChangeContentOverlay(
+          [new SourceEdit(goodText.indexOf(';'), 1, '')])
+    });
+    await analysisFinished;
+    expect(currentAnalysisErrors[path], isNotEmpty);
+
+    // There should be no errors now because we've added the semicolon back.
+    sendAnalysisUpdateContent({
+      path: new ChangeContentOverlay(
+          [new SourceEdit(goodText.indexOf(';'), 0, ';')])
+    });
+    await analysisFinished;
+    expect(currentAnalysisErrors[path], isEmpty);
+
+    // Now there should be errors again, because the contents on disk are no
+    // longer overridden.
+    sendAnalysisUpdateContent({path: new RemoveContentOverlay()});
+    await analysisFinished;
+    expect(currentAnalysisErrors[path], isNotEmpty);
+  }
+
+  @failingTest
+  test_updateContent_multipleAdds() async {
+    String pathname = sourcePath('test.dart');
+    writeFile(
+        pathname,
+        r'''
+class Person {
+  String _name;
+  Person(this._name);
+  String get name => this._name;
+  String toString() => "Name: ${name}";
+}
+void main() {
+  var p = new Person("Skeletor");
+  p.xname = "Faker";
+  print(p);
+}
+''');
+    standardAnalysisSetup();
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    List<AnalysisError> errors1 = currentAnalysisErrors[pathname];
+    expect(errors1, hasLength(1));
+    expect(errors1[0].location.file, equals(pathname));
+
+    await sendAnalysisUpdateContent({
+      pathname: new AddContentOverlay(r'''
+class Person {
+  String _name;
+  Person(this._name);
+  String get name => this._name;
+  String toString() => "Name: ${name}";
+}
+void main() {
+  var p = new Person("Skeletor");
+  p.name = "Faker";
+  print(p);
+}
+''')
+    });
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    List<AnalysisError> errors2 = currentAnalysisErrors[pathname];
+    expect(errors2, hasLength(1));
+    expect(errors2[0].location.file, equals(pathname));
   }
 }
 
@@ -74,11 +115,4 @@ class UpdateContentTest extends AbstractUpdateContentTest {}
 class UpdateContentTest_Driver extends AbstractUpdateContentTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_updateContent() {
-    //  Expected: non-empty
-    //    Actual: []
-    return super.test_updateContent();
-  }
 }

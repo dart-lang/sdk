@@ -312,7 +312,8 @@ dsend(obj, method, @rest args) => _callMethod(obj, method, null, args, method);
 dgsend(obj, typeArgs, method, @rest args) =>
     _callMethod(obj, method, typeArgs, args, method);
 
-dindex(obj, index) => _callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
+dindex(obj, index) =>
+    _callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
 
 dsetindex(obj, index, value) =>
     _callMethod(obj, '_set', null, JS('', '[#, #]', index, value), '[]=');
@@ -546,10 +547,10 @@ map(values, [K, V]) => JS(
 })()''');
 
 @JSExportName('assert')
-assert_(condition) => JS(
+assert_(condition, [message]) => JS(
     '',
     '''(() => {
-  if (!$condition) $throwAssertionError();
+  if (!$condition) $throwAssertionError(message);
 })()''');
 
 var _stack = null;

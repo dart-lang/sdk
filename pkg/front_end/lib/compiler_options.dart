@@ -8,6 +8,9 @@ import 'compilation_error.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
 
+/// Default error handler used by [CompielerOptions.onError].
+void defaultErrorHandler(CompilationError error) => throw error;
+
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationError error);
 
@@ -25,9 +28,9 @@ class CompilerOptions {
 
   /// Callback to which compilation errors should be delivered.
   ///
-  /// If `null`, the first error will be reported by throwing an exception of
+  /// By default, the first error will be reported by throwing an exception of
   /// type [CompilationError].
-  ErrorHandler onError;
+  ErrorHandler onError = defaultErrorHandler;
 
   /// Path to the ".packages" file.
   ///

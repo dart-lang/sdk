@@ -54,6 +54,7 @@ f() {}
     });
     sendAnalysisSetAnalysisRoots([projPath], [],
         packageRoots: {projPath: packagesPath});
+    sendAnalysisSetPriorityFiles([mainPath]);
     return analysisFinished.then((_) {
       // Verify that fooBarPath was properly resolved by checking that f()
       // refers to it.
@@ -84,10 +85,4 @@ class SetAnalysisRootsTest extends AbstractSetAnalysisRootsTest {}
 class SetAnalysisRootsTest_Driver extends AbstractSetAnalysisRootsTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_package_root() {
-    //  NoSuchMethodError: The getter 'iterator' was called on null.
-    return super.test_package_root();
-  }
 }

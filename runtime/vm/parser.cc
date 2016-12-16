@@ -70,6 +70,7 @@ DEFINE_FLAG(bool,
             assert_initializer,
             false,
             "Allow asserts in initializer lists.");
+DEFINE_FLAG(bool, assert_message, false, "Allow message in assert statements");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -6375,7 +6376,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode* body) {
       try_scope->LocalLookupVariable(Symbols::SavedExceptionVar());
   LocalVariable* saved_stack_trace_var =
       try_scope->LocalLookupVariable(Symbols::SavedStackTraceVar());
-  SaveExceptionAndStacktrace(current_block_->statements, exception_var,
+  SaveExceptionAndStackTrace(current_block_->statements, exception_var,
                              stack_trace_var, saved_exception_var,
                              saved_stack_trace_var);
 
@@ -6523,7 +6524,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       try_scope->LocalLookupVariable(Symbols::SavedExceptionVar());
   LocalVariable* saved_stack_trace_var =
       try_scope->LocalLookupVariable(Symbols::SavedStackTraceVar());
-  SaveExceptionAndStacktrace(current_block_->statements, exception_var,
+  SaveExceptionAndStackTrace(current_block_->statements, exception_var,
                              stack_trace_var, saved_exception_var,
                              saved_stack_trace_var);
 
@@ -9164,32 +9165,91 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   const TokenPosition condition_pos = TokenPos();
   if (!I->asserts()) {
     SkipExpr();
+    if (FLAG_assert_message && (CurrentToken() == Token::kCOMMA)) {
+      ConsumeToken();
+      SkipExpr();
+    }
     ExpectToken(Token::kRPAREN);
     return NULL;
   }
-  AstNode* condition = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
+
+  BoolScope saved_seen_await(&parsed_function()->have_seen_await_expr_, false);
+  AstNode* condition = ParseExpr(kAllowConst, kConsumeCascades);
   if (is_const && !condition->IsPotentiallyConst()) {
     ReportError(condition_pos,
                 "initializer assert expression must be compile time constant.");
   }
   const TokenPosition condition_end = TokenPos();
+  AstNode* message = NULL;
+  TokenPosition message_pos = TokenPosition::kNoSource;
+  if (FLAG_assert_message && CurrentToken() == Token::kCOMMA) {
+    ConsumeToken();
+    message_pos = TokenPos();
+    message = ParseExpr(kAllowConst, kConsumeCascades);
+    if (is_const && !message->IsPotentiallyConst()) {
+      ReportError(
+          message_pos,
+          "initializer assert expression must be compile time constant.");
+    }
+  }
   ExpectToken(Token::kRPAREN);
 
+  if (!is_const) {
+    // Check for assertion condition being a function if not const.
+    ArgumentListNode* arguments = new (Z) ArgumentListNode(condition_pos);
+    arguments->Add(condition);
+    condition = MakeStaticCall(
+        Symbols::AssertionError(),
+        Library::PrivateCoreLibName(Symbols::EvaluateAssertion()), arguments);
+  }
+  AstNode* not_condition =
+      new (Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
+
+  // Build call to _AsertionError._throwNew(start, end, message)
   ArgumentListNode* arguments = new (Z) ArgumentListNode(condition_pos);
-  arguments->Add(condition);
   arguments->Add(new (Z) LiteralNode(
       condition_pos,
-      Integer::ZoneHandle(Z, Integer::New(condition_pos.value(), Heap::kOld))));
+      Integer::ZoneHandle(Z, Integer::New(condition_pos.Pos()))));
   arguments->Add(new (Z) LiteralNode(
       condition_end,
-      Integer::ZoneHandle(Z, Integer::New(condition_end.value(), Heap::kOld))));
+      Integer::ZoneHandle(Z, Integer::New(condition_end.Pos()))));
+  if (message == NULL) {
+    message = new (Z) LiteralNode(condition_end, Instance::ZoneHandle(Z));
+  }
+  arguments->Add(message);
   AstNode* assert_throw = MakeStaticCall(
       Symbols::AssertionError(),
-      Library::PrivateCoreLibName(is_const ? Symbols::CheckConstAssertion()
-                                           : Symbols::CheckAssertion()),
-      arguments);
+      Library::PrivateCoreLibName(Symbols::ThrowNew()), arguments);
 
-  return assert_throw;
+  AstNode* assertion_check = NULL;
+  if (parsed_function()->have_seen_await()) {
+    // The await transformation must be done manually because assertions
+    // are parsed as statements, not expressions. Thus, we need to check
+    // explicitely whether the arguments contain await operators. (Note that
+    // we must not parse the arguments with ParseAwaitableExpr(). In the
+    // corner case of assert(await a, await b), this would create two
+    // sibling scopes containing the temporary values for a and b. Both
+    // values would be allocated in the same internal context variable.)
+    //
+    // Build !condition ? _AsertionError._throwNew(...) : null;
+    // We need to use a conditional expression because the await transformer
+    // cannot transform if statements.
+    assertion_check = new (Z) ConditionalExprNode(
+        condition_pos, not_condition, assert_throw,
+        new (Z) LiteralNode(condition_pos, Object::null_instance()));
+    OpenBlock();
+    AwaitTransformer at(current_block_->statements, async_temp_scope_);
+    AstNode* transformed_assertion = at.Transform(assertion_check);
+    SequenceNode* preamble = CloseBlock();
+    preamble->Add(transformed_assertion);
+    assertion_check = preamble;
+  } else {
+    // Build if (!condition) _AsertionError._throwNew(...)
+    assertion_check = new (Z)
+        IfNode(condition_pos, not_condition,
+               NodeAsSequenceNode(condition_pos, assert_throw, NULL), NULL);
+  }
+  return assertion_check;
 }
 
 
@@ -9227,7 +9287,7 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
 // the saved exception variable (:saved_exception_var) used to rethrow.
 // Generate code to load the stack trace object (:stack_trace_var) into
 // the saved stacktrace variable (:saved_stack_trace_var) used to rethrow.
-void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
+void Parser::SaveExceptionAndStackTrace(SequenceNode* statements,
                                         LocalVariable* exception_var,
                                         LocalVariable* stack_trace_var,
                                         LocalVariable* saved_exception_var,
@@ -9300,7 +9360,7 @@ SequenceNode* Parser::EnsureFinallyClause(
     // there is an outer try or not. Note that this is only necessary if the
     // finally clause contains an await or yield.
     // TODO(hausner): Optimize.
-    SaveExceptionAndStacktrace(current_block_->statements, exception_var,
+    SaveExceptionAndStackTrace(current_block_->statements, exception_var,
                                stack_trace_var, rethrow_exception_var,
                                rethrow_stack_trace_var);
   }
@@ -9581,7 +9641,7 @@ SequenceNode* Parser::ParseCatchClauses(
                 LoadLocalNode(TokenPosition::kNoSource, async_saved_try_ctx)));
       }
     }
-    SaveExceptionAndStacktrace(async_code, exception_var, stack_trace_var,
+    SaveExceptionAndStackTrace(async_code, exception_var, stack_trace_var,
                                rethrow_exception_var, rethrow_stack_trace_var);
     // The async_code node sequence contains code to restore the context (if
     // an outer try block is present) and code to save the exception and
@@ -13015,8 +13075,8 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     ArgumentListNode* constr_args = new (Z) ArgumentListNode(TokenPos());
     constr_args->Add(new (Z) LiteralNode(literal_pos, key_value_array));
     const Function& map_constr = Function::ZoneHandle(
-        Z, immutable_map_class.LookupConstructor(Library::PrivateCoreLibName(
-               Symbols::ImmutableMapConstructor())));
+        Z, immutable_map_class.LookupConstructorAllowPrivate(
+               Symbols::ImmutableMapConstructor()));
     ASSERT(!map_constr.IsNull());
     const Object& constructor_result = Object::Handle(
         Z, EvaluateConstConstructorCall(immutable_map_class, map_type_arguments,

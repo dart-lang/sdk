@@ -21,7 +21,7 @@ namespace dart {
 static const TokenPosition kPos = TokenPosition::kNoSource;
 
 
-CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
+CODEGEN_TEST_GENERATE(StackMapCodegen, test) {
   ParsedFunction* parsed_function =
       new ParsedFunction(Thread::Current(), test->function());
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1)));
@@ -45,7 +45,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   if (setjmp(*jump.Set()) == 0) {
     // Build a stackmap table and some stackmap table entries.
     const intptr_t kStackSlotCount = 11;
-    StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder();
+    StackMapTableBuilder* stackmap_table_builder = new StackMapTableBuilder();
     EXPECT(stackmap_table_builder != NULL);
 
     BitmapBuilder* stack_bitmap = new BitmapBuilder();
@@ -125,11 +125,11 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     const Code& code = Code::Handle(test->function().CurrentCode());
 
     const Array& stack_maps =
-        Array::Handle(stackmap_table_builder->FinalizeStackmaps(code));
+        Array::Handle(stackmap_table_builder->FinalizeStackMaps(code));
     code.set_stackmaps(stack_maps);
     const Array& stack_map_list = Array::Handle(code.stackmaps());
     EXPECT(!stack_map_list.IsNull());
-    Stackmap& stack_map = Stackmap::Handle();
+    StackMap& stack_map = StackMap::Handle();
     EXPECT_EQ(4, stack_map_list.Length());
 
     // Validate the first stack map entry.
@@ -165,7 +165,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   }
   EXPECT(retval);
 }
-CODEGEN_TEST_RUN(StackmapCodegen, Smi::New(1))
+CODEGEN_TEST_RUN(StackMapCodegen, Smi::New(1))
 
 
 static void NativeFunc(Dart_NativeArguments args) {
@@ -192,7 +192,7 @@ static Dart_NativeFunction native_resolver(Dart_Handle name,
 }
 
 
-TEST_CASE(StackmapGC) {
+TEST_CASE(StackMapGC) {
   const char* kScriptChars =
       "class A {"
       "  static void func(var i, var k) native 'NativeFunc';"
@@ -237,7 +237,7 @@ TEST_CASE(StackmapGC) {
 
   // Build and setup a stackmap for the call to 'func' in 'A.foo' in order
   // to test the traversal of stack maps when a GC happens.
-  StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder();
+  StackMapTableBuilder* stackmap_table_builder = new StackMapTableBuilder();
   EXPECT(stackmap_table_builder != NULL);
   BitmapBuilder* stack_bitmap = new BitmapBuilder();
   EXPECT(stack_bitmap != NULL);
@@ -260,7 +260,7 @@ TEST_CASE(StackmapGC) {
   // we did if there was exactly one call seen.
   EXPECT(call_count == 1);
   const Array& stack_maps =
-      Array::Handle(stackmap_table_builder->FinalizeStackmaps(code));
+      Array::Handle(stackmap_table_builder->FinalizeStackMaps(code));
   code.set_stackmaps(stack_maps);
 
   // Now invoke 'A.moo' and it will trigger a GC when the native function

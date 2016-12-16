@@ -910,7 +910,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   CHECK_RESULT(result);
 
   if (!Dart_IsKernelIsolate(isolate) && use_dart_frontend) {
-    Log::PrintErr("Waiting for Kernel isolate to load.\n");
     // This must be the main script to be loaded. Wait for Kernel isolate
     // to finish initialization.
     Dart_Port port = Dart_ServiceWaitForKernelPort();

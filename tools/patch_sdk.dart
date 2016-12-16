@@ -182,20 +182,6 @@ void main(List<String> argv) {
         }
 
         for (var i = 0; i < outPaths.length; i++) {
-          if (path.basename(outPaths[i]) == 'internal.dart') {
-            contents[i] += '''
-
-/// Marks a function as an external implementation ("native" in the Dart VM).
-///
-/// Provides a backend-specific String that can be used to identify the
-/// function's implementation
-class ExternalName {
-  final String name;
-  const ExternalName(this.name);
-}
-''';
-          }
-
           _writeSync(outPaths[i], contents[i]);
         }
       }

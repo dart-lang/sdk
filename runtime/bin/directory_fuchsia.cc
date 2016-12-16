@@ -7,9 +7,11 @@
 
 #include "bin/directory.h"
 
+#include <dirent.h>    // NOLINT
 #include <errno.h>     // NOLINT
 #include <stdlib.h>    // NOLINT
 #include <string.h>    // NOLINT
+#include <sys/param.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>    // NOLINT
 
@@ -79,19 +81,164 @@ void PathBuffer::Reset(intptr_t new_length) {
 }
 
 
+// A linked list of symbolic links, with their unique file system identifiers.
+// These are scanned to detect loops while doing a recursive directory listing.
+struct LinkList {
+  dev_t dev;
+  ino64_t ino;
+  LinkList* next;
+};
+
+
 ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
-  UNIMPLEMENTED();
-  return kListError;
+  if (done_) {
+    return kListDone;
+  }
+
+  if (lister_ == 0) {
+    lister_ =
+        reinterpret_cast<intptr_t>(opendir(listing->path_buffer().AsString()));
+    if (lister_ == 0) {
+      perror("opendir failed: ");
+      done_ = true;
+      return kListError;
+    }
+    if (parent_ != NULL) {
+      if (!listing->path_buffer().Add(File::PathSeparator())) {
+        return kListError;
+      }
+    }
+    path_length_ = listing->path_buffer().length();
+  }
+  // Reset.
+  listing->path_buffer().Reset(path_length_);
+  ResetLink();
+
+  // Iterate the directory and post the directories and files to the
+  // ports.
+  errno = 0;
+  dirent* entry = readdir(reinterpret_cast<DIR*>(lister_));
+  if (entry == NULL) {
+    perror("readdir failed: ");
+  }
+  if (entry != NULL) {
+    if (!listing->path_buffer().Add(entry->d_name)) {
+      done_ = true;
+      return kListError;
+    }
+    switch (entry->d_type) {
+      case DT_DIR:
+        if ((strcmp(entry->d_name, ".") == 0) ||
+            (strcmp(entry->d_name, "..") == 0)) {
+          return Next(listing);
+        }
+        return kListDirectory;
+      case DT_BLK:
+      case DT_CHR:
+      case DT_FIFO:
+      case DT_SOCK:
+      case DT_REG:
+        return kListFile;
+      case DT_LNK:
+        if (!listing->follow_links()) {
+          return kListLink;
+        }
+      // Else fall through to next case.
+      // Fall through.
+      case DT_UNKNOWN: {
+        // On some file systems the entry type is not determined by
+        // readdir. For those and for links we use stat to determine
+        // the actual entry type. Notice that stat returns the type of
+        // the file pointed to.
+        struct stat64 entry_info;
+        int stat_success;
+        stat_success = NO_RETRY_EXPECTED(
+            lstat64(listing->path_buffer().AsString(), &entry_info));
+        if (stat_success == -1) {
+          perror("lstat64 failed: ");
+          return kListError;
+        }
+        if (listing->follow_links() && S_ISLNK(entry_info.st_mode)) {
+          // Check to see if we are in a loop created by a symbolic link.
+          LinkList current_link = {entry_info.st_dev, entry_info.st_ino, link_};
+          LinkList* previous = link_;
+          while (previous != NULL) {
+            if ((previous->dev == current_link.dev) &&
+                (previous->ino == current_link.ino)) {
+              // Report the looping link as a link, rather than following it.
+              return kListLink;
+            }
+            previous = previous->next;
+          }
+          stat_success = NO_RETRY_EXPECTED(
+              stat64(listing->path_buffer().AsString(), &entry_info));
+          if (stat_success == -1) {
+            perror("lstat64 failed");
+            // Report a broken link as a link, even if follow_links is true.
+            return kListLink;
+          }
+          if (S_ISDIR(entry_info.st_mode)) {
+            // Recurse into the subdirectory with current_link added to the
+            // linked list of seen file system links.
+            link_ = new LinkList(current_link);
+            if ((strcmp(entry->d_name, ".") == 0) ||
+                (strcmp(entry->d_name, "..") == 0)) {
+              return Next(listing);
+            }
+            return kListDirectory;
+          }
+        }
+        if (S_ISDIR(entry_info.st_mode)) {
+          if ((strcmp(entry->d_name, ".") == 0) ||
+              (strcmp(entry->d_name, "..") == 0)) {
+            return Next(listing);
+          }
+          return kListDirectory;
+        } else if (S_ISREG(entry_info.st_mode) || S_ISCHR(entry_info.st_mode) ||
+                   S_ISBLK(entry_info.st_mode) ||
+                   S_ISFIFO(entry_info.st_mode) ||
+                   S_ISSOCK(entry_info.st_mode)) {
+          return kListFile;
+        } else if (S_ISLNK(entry_info.st_mode)) {
+          return kListLink;
+        } else {
+          FATAL1("Unexpected st_mode: %d\n", entry_info.st_mode);
+          return kListError;
+        }
+      }
+
+      default:
+        // We should have covered all the bases. If not, let's get an error.
+        FATAL1("Unexpected d_type: %d\n", entry->d_type);
+        return kListError;
+    }
+  }
+  done_ = true;
+
+  if (errno != 0) {
+    return kListError;
+  }
+
+  return kListDone;
 }
 
 
 DirectoryListingEntry::~DirectoryListingEntry() {
-  UNIMPLEMENTED();
+  ResetLink();
+  if (lister_ != 0) {
+    VOID_NO_RETRY_EXPECTED(closedir(reinterpret_cast<DIR*>(lister_)));
+  }
 }
 
 
 void DirectoryListingEntry::ResetLink() {
-  UNIMPLEMENTED();
+  if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
+    delete link_;
+    link_ = NULL;
+  }
+  if (parent_ != NULL) {
+    link_ = parent_->link_;
+  }
 }
 
 

@@ -6,6 +6,8 @@ library analyzer_cli.src.options;
 
 import 'dart:io';
 
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -273,32 +275,19 @@ class CommandLineOptions {
   }
 
   static CommandLineOptions _parse(List<String> args) {
-    // Check if the args are in a file (bazel worker mode).
-    if (args.last.startsWith('@')) {
-      var argsFile = new File(args.last.substring(1));
-      args = argsFile.readAsLinesSync();
-    }
+    args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
-    args = args.expand((String arg) => arg.split('=')).toList();
-    var parser = new CommandLineParser()
+    bool verbose = args.contains('-v') || args.contains('--verbose');
+    bool hide = !verbose;
+
+    var parser = new ArgParser(allowTrailingOptions: true);
+    defineAnalysisArguments(parser, hide: hide);
+    parser
       ..addFlag('batch',
           abbr: 'b',
           help: 'Read commands from standard input (for testing).',
           defaultsTo: false,
           negatable: false)
-      ..addOption('dart-sdk', help: 'The path to the Dart SDK.')
-      ..addOption('dart-sdk-summary',
-          help: 'The path to the Dart SDK summary file.', hide: true)
-      ..addOption('packages',
-          help:
-              'Path to the package resolution configuration file, which supplies '
-              'a mapping of package names to paths.  This option cannot be '
-              'used with --package-root.')
-      ..addOption('package-root',
-          abbr: 'p',
-          help: 'Path to a package root directory (deprecated). This option '
-              'cannot be used with --packages.')
-      ..addOption('options', help: 'Path to an analysis options file.')
       ..addOption('format',
           help: 'Specifies the format in which errors are displayed.')
       ..addFlag('machine',
@@ -316,7 +305,7 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
-      ..addFlag('ignore-unrecognized-flags',
+      ..addFlag(ignoreUnrecognizedFlagsFlag,
           help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,
           negatable: false)
@@ -352,9 +341,12 @@ class CommandLineOptions {
           help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',
           abbr: 'h',
-          help: 'Display this help message.',
+          help: 'Display this help message.\n'
+              'Add --verbose to show hidden options.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag('verbose',
+          abbr: 'v', defaultsTo: false, help: 'Verbose output.')
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
               'analyzer to use "library.dart" as the source for an import '
@@ -368,56 +360,56 @@ class CommandLineOptions {
           help: 'Enable Bazel persistent worker mode.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addOption('build-analysis-output',
           help:
               'Specifies the path to the file where analysis results should be written.',
-          hide: true)
+          hide: hide)
       ..addFlag('build-mode',
           // TODO(paulberry): add more documentation.
           help: 'Enable build mode.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addOption('build-summary-input',
           help: 'Path to a summary file that contains information from a '
               'previous analysis run.  May be specified multiple times.',
           allowMultiple: true,
-          hide: true)
+          hide: hide)
       ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the full summary '
               'information should be written.',
-          hide: true)
+          hide: hide)
       ..addOption('build-summary-output-semantic',
           help: 'Specifies the path to the file where the semantic summary '
               'information should be written.',
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-only-ast',
           help: 'deprecated -- Generate summaries using ASTs.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-only-diet',
           help: 'Diet parse function bodies.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-summary-exclude-informative',
           help: 'Exclude @informative information (docs, offsets, etc).  '
               'Deprecated: please use --build-summary-output-semantic instead.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('build-suppress-exit-code',
           help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       //
       // Hidden flags.
       //
@@ -425,69 +417,49 @@ class CommandLineOptions {
           help: 'Enable support for the proposed async feature.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-enum',
           help: 'Enable support for the proposed enum feature.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
               'deprecated -- Enable support for conditional directives (DEP 40).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-null-aware-operators',
           help: 'Enable support for null-aware operators (DEP 9).',
           defaultsTo: false,
           negatable: false,
-          hide: true)
-      ..addFlag('enable-strict-call-checks',
-          help: 'Fix issue 21938.',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable-new-task-model',
           help: 'deprecated -- Ennable new task model.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
-      ..addFlag('initializing-formal-access',
-          help:
-              'Enable support for allowing access to field formal parameters in a constructor\'s initializer list',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
-      ..addFlag('supermixin',
-          help: 'Relax restrictions on mixins (DEP 34).',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('log',
           help: 'Log additional messages and exceptions.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
+          hide: hide)
       ..addFlag('enable_type_checks',
           help: 'Check types in constant evaluation.',
           defaultsTo: false,
           negatable: false,
-          hide: true)
-      ..addFlag('strong',
-          help: 'Enable strong static checks (https://goo.gl/DqcBsw)')
-      ..addFlag('no-implicit-casts',
-          negatable: false,
-          help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)')
-      ..addFlag('no-implicit-dynamic',
-          negatable: false,
-          help: 'Disable implicit dynamic (https://goo.gl/m0UgXD)');
+          hide: hide);
 
     try {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
       args =
           args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       Map<String, String> definedVariables = <String, String>{};
-      var results = parser.parse(args, definedVariables);
+      args = extractDefinedVariables(args, definedVariables);
+      if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
+        args = filterUnknownArguments(args, parser);
+      }
+      var results = parser.parse(args);
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
@@ -559,147 +531,5 @@ class CommandLineOptions {
     errorSink.writeln('');
     errorSink.writeln(
         'For more information, see http://www.dartlang.org/tools/analyzer.');
-  }
-}
-
-/// Commandline argument parser.
-///
-/// TODO(pq): when the args package supports ignoring unrecognized
-/// options/flags, this class can be replaced with a simple [ArgParser]
-/// instance.
-class CommandLineParser {
-  final List<String> _knownFlags;
-  final bool _alwaysIgnoreUnrecognized;
-  final ArgParser _parser;
-
-  /// Creates a new command line parser.
-  CommandLineParser({bool alwaysIgnoreUnrecognized: false})
-      : _knownFlags = <String>[],
-        _alwaysIgnoreUnrecognized = alwaysIgnoreUnrecognized,
-        _parser = new ArgParser(allowTrailingOptions: true);
-
-  ArgParser get parser => _parser;
-
-  /// Defines a flag.
-  /// See [ArgParser.addFlag()].
-  void addFlag(String name,
-      {String abbr,
-      String help,
-      bool defaultsTo: false,
-      bool negatable: true,
-      void callback(bool value),
-      bool hide: false}) {
-    _knownFlags.add(name);
-    _parser.addFlag(name,
-        abbr: abbr,
-        help: help,
-        defaultsTo: defaultsTo,
-        negatable: negatable,
-        callback: callback,
-        hide: hide);
-  }
-
-  /// Defines a value-taking option.
-  /// See [ArgParser.addOption()].
-  void addOption(String name,
-      {String abbr,
-      String help,
-      List<String> allowed,
-      Map<String, String> allowedHelp,
-      String defaultsTo,
-      void callback(value),
-      bool allowMultiple: false,
-      bool splitCommas,
-      bool hide: false}) {
-    _knownFlags.add(name);
-    _parser.addOption(name,
-        abbr: abbr,
-        help: help,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo,
-        callback: callback,
-        allowMultiple: allowMultiple,
-        splitCommas: splitCommas,
-        hide: hide);
-  }
-
-  /// Generates a string displaying usage information for the defined options.
-  /// See [ArgParser.usage].
-  String getUsage() => _parser.usage;
-
-  /// Parses [args], a list of command-line arguments, matches them against the
-  /// flags and options defined by this parser, and returns the result. The
-  /// values of any defined variables are captured in the given map.
-  /// See [ArgParser].
-  ArgResults parse(List<String> args, Map<String, String> definedVariables) =>
-      _parser.parse(
-          _filterUnknowns(parseDefinedVariables(args, definedVariables)));
-
-  List<String> parseDefinedVariables(
-      List<String> args, Map<String, String> definedVariables) {
-    int count = args.length;
-    List<String> remainingArgs = <String>[];
-    for (int i = 0; i < count; i++) {
-      String arg = args[i];
-      if (arg == '--') {
-        while (i < count) {
-          remainingArgs.add(args[i++]);
-        }
-      } else if (arg.startsWith("-D")) {
-        definedVariables[arg.substring(2)] = args[++i];
-      } else {
-        remainingArgs.add(arg);
-      }
-    }
-    return remainingArgs;
-  }
-
-  List<String> _filterUnknowns(List<String> args) {
-    // Only filter args if the ignore flag is specified, or if
-    // _alwaysIgnoreUnrecognized was set to true.
-    if (_alwaysIgnoreUnrecognized ||
-        args.contains('--ignore-unrecognized-flags')) {
-      //TODO(pquitslund): replace w/ the following once library skew issues are
-      // sorted out
-      //return args.where((arg) => !arg.startsWith('--') ||
-      //  _knownFlags.contains(arg.substring(2)));
-
-      // Filter all unrecognized flags and options.
-      List<String> filtered = <String>[];
-      for (int i = 0; i < args.length; ++i) {
-        String arg = args[i];
-        if (arg.startsWith('--') && arg.length > 2) {
-          String option = arg.substring(2);
-          // strip the last '=value'
-          int equalsOffset = option.lastIndexOf('=');
-          if (equalsOffset != -1) {
-            option = option.substring(0, equalsOffset);
-          }
-          // Check the option
-          if (!_knownFlags.contains(option)) {
-            //"eat" params by advancing to the next flag/option
-            i = _getNextFlagIndex(args, i);
-          } else {
-            filtered.add(arg);
-          }
-        } else {
-          filtered.add(arg);
-        }
-      }
-
-      return filtered;
-    } else {
-      return args;
-    }
-  }
-
-  int _getNextFlagIndex(args, i) {
-    for (; i < args.length; ++i) {
-      if (args[i].startsWith('--')) {
-        return i;
-      }
-    }
-    return i;
   }
 }

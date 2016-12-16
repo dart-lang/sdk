@@ -1580,9 +1580,7 @@ class FixProcessor {
         }
         // Compute the fix kind.
         FixKind fixKind;
-        if (resourceProvider.pathContext
-            .split(librarySource.fullName)
-            .contains('src')) {
+        if (_isLibSrcPath(librarySource.fullName)) {
           // Bad: non-API.
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
         } else if (declaration.isExported) {
@@ -2807,6 +2805,16 @@ class FixProcessor {
   bool _isAwaitNode() {
     AstNode node = this.node;
     return node is SimpleIdentifier && node.name == 'await';
+  }
+
+  bool _isLibSrcPath(String path) {
+    List<String> parts = resourceProvider.pathContext.split(path);
+    for (int i = 0; i < parts.length - 2; i++) {
+      if (parts[i] == 'lib' && parts[i + 1] == 'src') {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

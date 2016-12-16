@@ -74,16 +74,10 @@ class AnalyzerOptions {
         declaredVariables: declaredVariables);
   }
 
-  static void addArguments(ArgParser parser) {
+  static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
-      ..addOption('dart-sdk',
-          help: 'Dart SDK Path', defaultsTo: null, hide: true)
-      ..addOption('dart-sdk-summary',
-          help: 'Dart SDK Summary Path', defaultsTo: null, hide: true)
-      ..addOption('package-root',
-          abbr: 'p', help: 'Package root to resolve "package:" imports')
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
               'library.dart as the source for an import of of "libraryUri".',
@@ -174,26 +168,4 @@ DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
       ? new SummaryBasedDartSdk(sdkSummaryPath, true)
       : _createFolderBasedDartSdk(sdkPath);
   return new DartUriResolver(sdk);
-}
-
-List<String> parseDeclaredVariables(
-    List<String> args, Map<String, String> declaredVars) {
-  var count = args.length;
-  var remainingArgs = <String>[];
-  for (int i = 0; i < count; i++) {
-    var arg = args[i];
-    if (arg == '--') {
-      while (i < count) {
-        remainingArgs.add(args[i++]);
-      }
-    } else if (arg.startsWith("-D")) {
-      // The format for defined variables is:
-      //     -D<name>=<value>
-      var parts = arg.substring(2).split('=');
-      declaredVars[parts[0]] = parts.length > 1 ? parts[1] : '';
-    } else {
-      remainingArgs.add(arg);
-    }
-  }
-  return remainingArgs;
 }

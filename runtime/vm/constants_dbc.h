@@ -821,6 +821,7 @@ namespace dart {
   V(CheckDenseSwitch,              A_D, reg, num, ___) \
   V(CheckCids,                   A_B_C, reg, num, num) \
   V(CheckStack,                      0, ___, ___, ___) \
+  V(CheckStackAlwaysExit,            0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \
   V(Deopt,                         A_D, num, num, ___)

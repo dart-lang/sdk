@@ -47,18 +47,47 @@
 }
 
 @patch class Stdin {
-  @patch int readByteSync() native "Stdin_ReadByte";
+  @patch int readByteSync() {
+    var result = _readByte();
+    if (result is OSError) {
+      throw new StdinException("Error reading byte from stdin", result);
+    }
+    return result;
+  }
 
-  @patch bool get echoMode => _echoMode;
-  @patch void set echoMode(bool enabled) { _echoMode = enabled; }
+  @patch bool get echoMode {
+    var result = _echoMode();
+    if (result is OSError) {
+      throw new StdinException("Error getting terminal echo mode", result);
+    }
+    return result;
+  }
+  @patch void set echoMode(bool enabled) {
+    var result = _setEchoMode(enabled);
+    if (result is OSError) {
+      throw new StdinException("Error setting terminal echo mode", result);
+    }
+  }
 
-  @patch bool get lineMode => _lineMode;
-  @patch void set lineMode(bool enabled) { _lineMode = enabled; }
+  @patch bool get lineMode {
+    var result = _lineMode();
+    if (result is OSError) {
+      throw new StdinException("Error getting terminal line mode", result);
+    }
+    return result;
+  }
+  @patch void set lineMode(bool enabled) {
+    var result = _setLineMode(enabled);
+    if (result is OSError) {
+      throw new StdinException("Error setting terminal line mode", result);
+    }
+  }
 
-  static bool get _echoMode native "Stdin_GetEchoMode";
-  static void set _echoMode(bool enabled) native "Stdin_SetEchoMode";
-  static bool get _lineMode native "Stdin_GetLineMode";
-  static void set _lineMode(bool enabled) native "Stdin_SetLineMode";
+  static _echoMode() native "Stdin_GetEchoMode";
+  static _setEchoMode(bool enabled) native "Stdin_SetEchoMode";
+  static _lineMode() native "Stdin_GetLineMode";
+  static _setLineMode(bool enabled) native "Stdin_SetLineMode";
+  static _readByte() native "Stdin_ReadByte";
 }
 
 @patch class Stdout {
