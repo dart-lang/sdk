@@ -429,22 +429,14 @@ abstract class AssertStatement extends Statement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AssignmentExpression extends Expression {
+abstract class AssignmentExpression extends Expression
+    implements MethodReferenceExpression {
   /**
    * Initialize a newly created assignment expression.
    */
   factory AssignmentExpression(
           Expression leftHandSide, Token operator, Expression rightHandSide) =>
       new AssignmentExpressionImpl(leftHandSide, operator, rightHandSide);
-
-  /**
-   * Return the best element available for this operator. If resolution was able
-   * to find a better element based on type propagation, that element will be
-   * returned. Otherwise, the element found using the result of static analysis
-   * will be returned. If resolution has not been performed, then `null` will be
-   * returned.
-   */
-  MethodElement get bestElement;
 
   /**
    * Return the expression used to compute the left hand side.
@@ -467,20 +459,6 @@ abstract class AssignmentExpression extends Expression {
   void set operator(Token token);
 
   /**
-   * Return the element associated with the operator based on the propagated
-   * type of the left-hand-side, or `null` if the AST structure has not been
-   * resolved, if the operator is not a compound operator, or if the operator
-   * could not be resolved.
-   */
-  MethodElement get propagatedElement;
-
-  /**
-   * Set the element associated with the operator based on the propagated
-   * type of the left-hand-side to the given [element].
-   */
-  void set propagatedElement(MethodElement element);
-
-  /**
    * Return the expression used to compute the right hand side.
    */
   Expression get rightHandSide;
@@ -490,20 +468,6 @@ abstract class AssignmentExpression extends Expression {
    * [expression].
    */
   void set rightHandSide(Expression expression);
-
-  /**
-   * Return the element associated with the operator based on the static type of
-   * the left-hand-side, or `null` if the AST structure has not been resolved,
-   * if the operator is not a compound operator, or if the operator could not be
-   * resolved.
-   */
-  MethodElement get staticElement;
-
-  /**
-   * Set the element associated with the operator based on the static type of
-   * the left-hand-side to the given [element].
-   */
-  void set staticElement(MethodElement element);
 }
 
 /**
@@ -892,22 +856,14 @@ abstract class AwaitExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class BinaryExpression extends Expression {
+abstract class BinaryExpression extends Expression
+    implements MethodReferenceExpression {
   /**
    * Initialize a newly created binary expression.
    */
   factory BinaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
       new BinaryExpressionImpl(leftOperand, operator, rightOperand);
-
-  /**
-   * Return the best element available for this operator. If resolution was able
-   * to find a better element based on type propagation, that element will be
-   * returned. Otherwise, the element found using the result of static analysis
-   * will be returned. If resolution has not been performed, then `null` will be
-   * returned.
-   */
-  MethodElement get bestElement;
 
   /**
    * Return the expression used to compute the left operand.
@@ -931,20 +887,6 @@ abstract class BinaryExpression extends Expression {
   void set operator(Token token);
 
   /**
-   * Return the element associated with the operator based on the propagated
-   * type of the left operand, or `null` if the AST structure has not been
-   * resolved, if the operator is not user definable, or if the operator could
-   * not be resolved.
-   */
-  MethodElement get propagatedElement;
-
-  /**
-   * Set the element associated with the operator based on the propagated
-   * type of the left operand to the given [element].
-   */
-  void set propagatedElement(MethodElement element);
-
-  /**
    * Return the expression used to compute the right operand.
    */
   Expression get rightOperand;
@@ -954,20 +896,6 @@ abstract class BinaryExpression extends Expression {
    * [expression].
    */
   void set rightOperand(Expression expression);
-
-  /**
-   * Return the element associated with the operator based on the static type of
-   * the left operand, or `null` if the AST structure has not been resolved, if
-   * the operator is not user definable, or if the operator could not be
-   * resolved.
-   */
-  MethodElement get staticElement;
-
-  /**
-   * Set the element associated with the operator based on the static type of
-   * the left operand to the given [element].
-   */
-  void set staticElement(MethodElement element);
 }
 
 /**
@@ -2395,7 +2323,8 @@ abstract class ConstructorInitializer extends AstNode {}
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ConstructorName extends AstNode {
+abstract class ConstructorName extends AstNode
+    implements ConstructorReferenceNode {
   /**
    * Initialize a newly created constructor name. The [period] and [name] can be
    * `null` if the constructor being named is the unnamed constructor.
@@ -2427,19 +2356,6 @@ abstract class ConstructorName extends AstNode {
   void set period(Token token);
 
   /**
-   * Return the element associated with this constructor name based on static
-   * type information, or `null` if the AST structure has not been resolved or
-   * if this constructor name could not be resolved.
-   */
-  ConstructorElement get staticElement;
-
-  /**
-   * Set the element associated with this constructor name based on static type
-   * information to the given [element].
-   */
-  void set staticElement(ConstructorElement element);
-
-  /**
    * Return the name of the type defining the constructor.
    */
   TypeName get type;
@@ -2448,6 +2364,26 @@ abstract class ConstructorName extends AstNode {
    * Set the name of the type defining the constructor to the given [type] name.
    */
   void set type(TypeName type);
+}
+
+/**
+ * An AST node that makes reference to a constructor.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ConstructorReferenceNode {
+  /**
+   * Return the element associated with the referenced constructor based on
+   * static type information, or `null` if the AST structure has not been
+   * resolved or if the constructor could not be resolved.
+   */
+  ConstructorElement get staticElement;
+
+  /**
+   * Set the element associated with the referenced constructor based on static
+   * type information to the given [element].
+   */
+  void set staticElement(ConstructorElement element);
 }
 
 /**
@@ -4158,25 +4094,6 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
   void set propagatedElement(ExecutableElement element);
 
   /**
-   * Return the function type of the method invocation based on the propagated
-   * type information, or `null` if the AST structure has not been resolved, or
-   * if the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  @override
-  DartType get propagatedInvokeType;
-
-  /**
-   * Set the function type of the method invocation based on the propagated type
-   * information to the given [type].
-   */
-  @override
-  void set propagatedInvokeType(DartType type);
-
-  /**
    * Return the element associated with the function being invoked based on
    * static type information, or `null` if the AST structure has not been
    * resolved or the function could not be resolved.
@@ -4188,25 +4105,6 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
    * type information to the given [element].
    */
   void set staticElement(ExecutableElement element);
-
-  /**
-   * Return the function type of the method invocation based on the static type
-   * information, or `null` if the AST structure has not been resolved, or if
-   * the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  @override
-  DartType get staticInvokeType;
-
-  /**
-   * Set the function type of the method invocation based on the static type
-   * information to the given [type].
-   */
-  @override
-  void set staticInvokeType(DartType type);
 
   /**
    * Set the type arguments to be applied to the method being invoked to the
@@ -4747,7 +4645,8 @@ abstract class ImportDirective extends NamespaceDirective {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class IndexExpression extends Expression {
+abstract class IndexExpression extends Expression
+    implements MethodReferenceExpression {
   /**
    * Initialize a newly created index expression.
    */
@@ -4779,15 +4678,6 @@ abstract class IndexExpression extends Expression {
    */
   // TODO(brianwilkerson) Replace this API.
   void set auxiliaryElements(AuxiliaryElements elements);
-
-  /**
-   * Return the best element available for this operator. If resolution was able
-   * to find a better element based on type propagation, that element will be
-   * returned. Otherwise, the element found using the result of static analysis
-   * will be returned. If resolution has not been performed, then `null` will be
-   * returned.
-   */
-  MethodElement get bestElement;
 
   /**
    * Return the expression used to compute the index.
@@ -4829,19 +4719,6 @@ abstract class IndexExpression extends Expression {
   void set period(Token token);
 
   /**
-   * Return the element associated with the operator based on the propagated
-   * type of the target, or `null` if the AST structure has not been resolved or
-   * if the operator could not be resolved.
-   */
-  MethodElement get propagatedElement;
-
-  /**
-   * Set the element associated with the operator based on the propagated
-   * type of the target to the given [element].
-   */
-  void set propagatedElement(MethodElement element);
-
-  /**
    * Return the expression used to compute the object being indexed. If this
    * index expression is not part of a cascade expression, then this is the same
    * as [target]. If this index expression is part of a cascade expression, then
@@ -4853,19 +4730,6 @@ abstract class IndexExpression extends Expression {
    * Return the right square bracket.
    */
   Token get rightBracket;
-
-  /**
-   * Return the element associated with the operator based on the static type of
-   * the target, or `null` if the AST structure has not been resolved or if the
-   * operator could not be resolved.
-   */
-  MethodElement get staticElement;
-
-  /**
-   * Set the element associated with the operator based on the static type of
-   * the target to the given [element].
-   */
-  void set staticElement(MethodElement element);
 
   /**
    * Return the expression used to compute the object being indexed, or `null`
@@ -4915,7 +4779,8 @@ abstract class IndexExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class InstanceCreationExpression extends Expression {
+abstract class InstanceCreationExpression extends Expression
+    implements ConstructorReferenceNode {
   /**
    * Initialize a newly created instance creation expression.
    */
@@ -4961,19 +4826,6 @@ abstract class InstanceCreationExpression extends Expression {
    * created to the given [token].
    */
   void set keyword(Token token);
-
-  /**
-   * Return the element associated with the constructor based on static type
-   * information, or `null` if the AST structure has not been resolved or if the
-   * constructor could not be resolved.
-   */
-  ConstructorElement get staticElement;
-
-  /**
-   * Set the element associated with the constructor based on static type
-   * information to the given [element].
-   */
-  void set staticElement(ConstructorElement element);
 }
 
 /**
@@ -5804,50 +5656,12 @@ abstract class MethodInvocation extends InvocationExpression {
   void set operator(Token token);
 
   /**
-   * Return the function type of the method invocation based on the propagated
-   * type information, or `null` if the AST structure has not been resolved, or
-   * if the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  @override
-  DartType get propagatedInvokeType;
-
-  /**
-   * Set the function type of the method invocation based on the propagated type
-   * information to the given [type].
-   */
-  @override
-  void set propagatedInvokeType(DartType type);
-
-  /**
    * Return the expression used to compute the receiver of the invocation. If
    * this invocation is not part of a cascade expression, then this is the same
    * as [target]. If this invocation is part of a cascade expression, then the
    * target stored with the cascade expression is returned.
    */
   Expression get realTarget;
-
-  /**
-   * Return the function type of the method invocation based on the static type
-   * information, or `null` if the AST structure has not been resolved, or if
-   * the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  @override
-  DartType get staticInvokeType;
-
-  /**
-   * Set the function type of the method invocation based on the static type
-   * information to the given [type].
-   */
-  @override
-  void set staticInvokeType(DartType type);
 
   /**
    * Return the expression producing the object on which the method is defined,
@@ -5870,6 +5684,52 @@ abstract class MethodInvocation extends InvocationExpression {
    * given [typeArguments].
    */
   void set typeArguments(TypeArgumentList typeArguments);
+}
+
+/**
+ * An expression that implicity makes reference to a method.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class MethodReferenceExpression {
+  /**
+   * Return the best element available for this expression. If resolution was
+   * able to find a better element based on type propagation, that element will
+   * be returned. Otherwise, the element found using the result of static
+   * analysis will be returned. If resolution has not been performed, then
+   * `null` will be returned.
+   */
+  MethodElement get bestElement;
+
+  /**
+   * Return the element associated with the expression based on propagated
+   * types, or `null` if the AST structure has not been resolved, or there is
+   * no meaningful propagated element to return (e.g. because this is a
+   * non-compound assignment expression, or because the method referred to could
+   * not be resolved).
+   */
+  MethodElement get propagatedElement;
+
+  /**
+   * Set the element associated with the expression based on propagated types to
+   * the given [element].
+   */
+  void set propagatedElement(MethodElement element);
+
+  /**
+   * Return the element associated with the expression based on the static
+   * types, or `null` if the AST structure has not been resolved, or there is no
+   * meaningful static element to return (e.g. because this is a non-compound
+   * assignment expression, or because the method referred to could not be
+   * resolved).
+   */
+  MethodElement get staticElement;
+
+  /**
+   * Set the element associated with the expression based on static types to the
+   * given [element].
+   */
+  void set staticElement(MethodElement element);
 }
 
 /**
@@ -6367,21 +6227,13 @@ abstract class PartOfDirective extends Directive {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PostfixExpression extends Expression {
+abstract class PostfixExpression extends Expression
+    implements MethodReferenceExpression {
   /**
    * Initialize a newly created postfix expression.
    */
   factory PostfixExpression(Expression operand, Token operator) =>
       new PostfixExpressionImpl(operand, operator);
-
-  /**
-   * Return the best element available for this operator. If resolution was able
-   * to find a better element based on type propagation, that element will be
-   * returned. Otherwise, the element found using the result of static analysis
-   * will be returned. If resolution has not been performed, then `null` will be
-   * returned.
-   */
-  MethodElement get bestElement;
 
   /**
    * Return the expression computing the operand for the operator.
@@ -6403,33 +6255,6 @@ abstract class PostfixExpression extends Expression {
    * Set the postfix operator being applied to the operand to the given [token].
    */
   void set operator(Token token);
-
-  /**
-   * Return the element associated with this the operator based on the
-   * propagated type of the operand, or `null` if the AST structure has not been
-   * resolved, if the operator is not user definable, or if the operator could
-   * not be resolved.
-   */
-  MethodElement get propagatedElement;
-
-  /**
-   * Set the element associated with this the operator based on the propagated
-   * type of the operand to the given [element].
-   */
-  void set propagatedElement(MethodElement element);
-
-  /**
-   * Return the element associated with the operator based on the static type of
-   * the operand, or `null` if the AST structure has not been resolved, if the
-   * operator is not user definable, or if the operator could not be resolved.
-   */
-  MethodElement get staticElement;
-
-  /**
-   * Set the element associated with the operator based on the static type of
-   * the operand to the given [element].
-   */
-  void set staticElement(MethodElement element);
 }
 
 /**
@@ -6500,21 +6325,13 @@ abstract class PrefixedIdentifier extends Identifier {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class PrefixExpression extends Expression {
+abstract class PrefixExpression extends Expression
+    implements MethodReferenceExpression {
   /**
    * Initialize a newly created prefix expression.
    */
   factory PrefixExpression(Token operator, Expression operand) =>
       new PrefixExpressionImpl(operator, operand);
-
-  /**
-   * Return the best element available for this operator. If resolution was able
-   * to find a better element based on type propagation, that element will be
-   * returned. Otherwise, the element found using the result of static analysis
-   * will be returned. If resolution has not been performed, then `null` will be
-   * returned.
-   */
-  MethodElement get bestElement;
 
   /**
    * Return the expression computing the operand for the operator.
@@ -6536,33 +6353,6 @@ abstract class PrefixExpression extends Expression {
    * Set the prefix operator being applied to the operand to the given [token].
    */
   void set operator(Token token);
-
-  /**
-   * Return the element associated with the operator based on the propagated
-   * type of the operand, or `null` if the AST structure has not been resolved,
-   * if the operator is not user definable, or if the operator could not be
-   * resolved.
-   */
-  MethodElement get propagatedElement;
-
-  /**
-   * Set the element associated with the operator based on the propagated type
-   * of the operand to the given [element].
-   */
-  void set propagatedElement(MethodElement element);
-
-  /**
-   * Return the element associated with the operator based on the static type of
-   * the operand, or `null` if the AST structure has not been resolved, if the
-   * operator is not user definable, or if the operator could not be resolved.
-   */
-  MethodElement get staticElement;
-
-  /**
-   * Set the element associated with the operator based on the static type of
-   * the operand to the given [element].
-   */
-  void set staticElement(MethodElement element);
 }
 
 /**
@@ -6645,7 +6435,8 @@ abstract class PropertyAccess extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class RedirectingConstructorInvocation extends ConstructorInitializer {
+abstract class RedirectingConstructorInvocation extends ConstructorInitializer
+    implements ConstructorReferenceNode {
   /**
    * Initialize a newly created redirecting invocation to invoke the constructor
    * with the given name with the given arguments. The [constructorName] can be
@@ -6689,19 +6480,6 @@ abstract class RedirectingConstructorInvocation extends ConstructorInitializer {
    * being invoked to the given [token].
    */
   void set period(Token token);
-
-  /**
-   * Return the element associated with the constructor based on static type
-   * information, or `null` if the AST structure has not been resolved or if the
-   * constructor could not be resolved.
-   */
-  ConstructorElement get staticElement;
-
-  /**
-   * Set the element associated with the constructor based on static type
-   * information to the given [element].
-   */
-  void set staticElement(ConstructorElement element);
 
   /**
    * Return the token for the 'this' keyword.
@@ -7143,7 +6921,8 @@ abstract class StringLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class SuperConstructorInvocation extends ConstructorInitializer {
+abstract class SuperConstructorInvocation extends ConstructorInitializer
+    implements ConstructorReferenceNode {
   /**
    * Initialize a newly created super invocation to invoke the inherited
    * constructor with the given name with the given arguments. The [period] and
@@ -7188,19 +6967,6 @@ abstract class SuperConstructorInvocation extends ConstructorInitializer {
    * being invoked to the given [token].
    */
   void set period(Token token);
-
-  /**
-   * Return the element associated with the constructor based on static type
-   * information, or `null` if the AST structure has not been resolved or if the
-   * constructor could not be resolved.
-   */
-  ConstructorElement get staticElement;
-
-  /**
-   * Set the element associated with the constructor based on static type
-   * information to the given [element].
-   */
-  void set staticElement(ConstructorElement element);
 
   /**
    * Return the token for the 'super' keyword.

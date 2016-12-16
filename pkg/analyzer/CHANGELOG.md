@@ -1,3 +1,7 @@
+## 0.29.2
+* Add new ResolverMap class for accessing the results of resolution from the AST.  In a future release, this will replace the existing AST getters.
+* Add new base classes MethodReferenceExpression and ConstructorReferenceNode.
+
 ## 0.29.1
 * Add new AstTestFactory class.  This will replace the existing AstFactory class in 0.30.
 * Add new AstFactory class.  This will replace explicit AST constructors in 0.30.
