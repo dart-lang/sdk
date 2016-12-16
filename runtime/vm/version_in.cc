@@ -26,13 +26,7 @@ const char* Version::SnapshotString() {
   return snapshot_hash_;
 }
 
-
-const char* Version::CommitString() {
-  return commit_;
-}
-
 const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";
 const char* Version::str_ = "{{VERSION_STR}} ({{BUILD_TIME}})";
-const char* Version::commit_ = "{{VERSION_STR}}";
 
 }  // namespace dart

@@ -210,28 +210,6 @@ static const char* MergeSubStrings(Zone* zone,
 }
 
 
-// Remove private keys, but retain getter/setter/constructor/mixin manglings.
-RawString* String::RemovePrivateKey(const String& name) {
-  ASSERT(name.IsOneByteString());
-  GrowableArray<uint8_t> without_key(name.Length());
-  intptr_t i = 0;
-  while (i < name.Length()) {
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i++);
-      if (c == '@') break;
-      without_key.Add(c);
-    }
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i);
-      if ((c < '0') || (c > '9')) break;
-      i++;
-    }
-  }
-
-  return String::FromLatin1(without_key.data(), without_key.length());
-}
-
-
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -7040,8 +7018,28 @@ RawString* Function::GetSource() const {
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
-  return Script::Handle(script()).SourceFingerprint(token_pos(),
-                                                    end_token_pos());
+  uint32_t result = 0;
+  Zone* zone = Thread::Current()->zone();
+  TokenStream::Iterator tokens_iterator(
+      zone, TokenStream::Handle(zone, Script::Handle(zone, script()).tokens()),
+      token_pos());
+  Object& obj = Object::Handle(zone);
+  String& literal = String::Handle(zone);
+  while (tokens_iterator.CurrentPosition() < end_token_pos()) {
+    uint32_t val = 0;
+    obj = tokens_iterator.CurrentToken();
+    if (obj.IsSmi()) {
+      val = Smi::Cast(obj).Value();
+    } else {
+      literal = tokens_iterator.MakeLiteralToken(obj);
+      val = literal.Hash();
+    }
+    result = 31 * result + val;
+    tokens_iterator.Advance();
+  }
+  result = result & ((static_cast<uint32_t>(1) << 31) - 1);
+  ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
+  return result;
 }
 
 
@@ -7141,7 +7139,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys runtime/vm/method_recognizer.h
+      // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print(
@@ -9001,43 +8999,6 @@ void Script::TokenRangeAtLine(intptr_t line_number,
     tkit.Advance();
   }
   *last_token_index = end_pos;
-}
-
-
-int32_t Script::SourceFingerprint() const {
-  return SourceFingerprint(TokenPosition(TokenPosition::kMinSourcePos),
-                           TokenPosition(TokenPosition::kMaxSourcePos));
-}
-
-
-int32_t Script::SourceFingerprint(TokenPosition start,
-                                  TokenPosition end) const {
-  uint32_t result = 0;
-  Zone* zone = Thread::Current()->zone();
-  TokenStream::Iterator tokens_iterator(
-      zone, TokenStream::Handle(zone, tokens()), start);
-  Object& obj = Object::Handle(zone);
-  String& literal = String::Handle(zone);
-  while ((tokens_iterator.CurrentTokenKind() != Token::kEOS) &&
-         (tokens_iterator.CurrentPosition() < end)) {
-    uint32_t val = 0;
-    obj = tokens_iterator.CurrentToken();
-    if (obj.IsSmi()) {
-      val = Smi::Cast(obj).Value();
-    } else {
-      literal = tokens_iterator.MakeLiteralToken(obj);
-      if (tokens_iterator.CurrentTokenKind() == Token::kIDENT ||
-          tokens_iterator.CurrentTokenKind() == Token::kINTERPOL_VAR) {
-        literal = String::RemovePrivateKey(literal);
-      }
-      val = literal.Hash();
-    }
-    result = 31 * result + val;
-    tokens_iterator.Advance();
-  }
-  result = result & ((static_cast<uint32_t>(1) << 31) - 1);
-  ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
-  return result;
 }
 
 
@@ -12996,8 +12957,7 @@ bool ICData::ValidateInterceptor(const Function& target) const {
 }
 
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
-                      const Function& target,
-                      intptr_t count) const {
+                      const Function& target) const {
   ASSERT(!target.IsNull());
   ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
   DEBUG_ASSERT(!HasCheck(class_ids));
@@ -13041,7 +13001,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   }
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
-  value = Smi::New(count);
+  value = Smi::New(1);
   data.SetAt(data_pos, value);
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.

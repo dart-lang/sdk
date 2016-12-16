@@ -3185,22 +3185,6 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  * ==============
  */
 
-/**
- * Saves a serialized version of the information collected for use by the
- * optimizing compiler, such as type feedback and usage counters. When this
- * information is passed to Dart_Precompile, the AOT compiler may use it to
- * produce faster and smaller code. The feedback is only used if the JIT that
- * created it and the AOT compiler consuming it
- *   - are running the same Dart program
- *   - are built from the same version of the VM
- *   - agree on whether type checks and assertions are enabled
- *
- * \return Returns an error handler if the VM was built in a mode that does not
- * support saving JIT feedback.
- */
-DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
-                                             intptr_t* buffer_length);
-
 
 typedef struct {
   const char* library_uri;
@@ -3230,10 +3214,7 @@ typedef struct {
  * constructors was encountered.
  */
 DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                bool reset_fields,
-                uint8_t* jit_feedback,
-                intptr_t jit_feedback_length);
+Dart_Precompile(Dart_QualifiedFunctionName entry_points[], bool reset_fields);
 
 
 /**

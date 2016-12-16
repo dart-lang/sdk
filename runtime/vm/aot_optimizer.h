@@ -28,6 +28,10 @@ class AotOptimizer : public FlowGraphVisitor {
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
+  // Add ICData to InstanceCalls, so that optimizations can be run on them.
+  // TODO(srdjan): StaticCals as well?
+  void PopulateWithICData();
+
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
