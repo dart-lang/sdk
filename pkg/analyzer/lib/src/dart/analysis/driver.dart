@@ -30,6 +30,7 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
 import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
+import 'package:meta/meta.dart';
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -219,6 +220,8 @@ class AnalysisDriver {
    */
   Search _search;
 
+  AnalysisDriverTestView _testView;
+
   /**
    * Create a new instance of [AnalysisDriver].
    *
@@ -234,6 +237,7 @@ class AnalysisDriver {
       SourceFactory sourceFactory,
       this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
+    _testView = new AnalysisDriverTestView(this);
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(
@@ -347,6 +351,9 @@ class AnalysisDriver {
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get status => _statusSupport.stream;
+
+  @visibleForTesting
+  AnalysisDriverTestView get test => _testView;
 
   /**
    * Return the priority of work that the driver needs to perform.
@@ -907,7 +914,11 @@ class AnalysisDriver {
     // Verify all changed files one at a time.
     if (_changedFiles.isNotEmpty) {
       String path = _removeFirst(_changedFiles);
-      _verifyApiSignature(path);
+      // If the file has not been accessed yet, we either will eventually read
+      // it later while analyzing one of the added files, or don't need it.
+      if (_fsState.knownFilePaths.contains(path)) {
+        _verifyApiSignature(path);
+      }
       return;
     }
 
@@ -1254,6 +1265,15 @@ class AnalysisDriverScheduler {
     }
     return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
   }
+}
+
+@visibleForTesting
+class AnalysisDriverTestView {
+  final AnalysisDriver driver;
+
+  AnalysisDriverTestView(this.driver);
+
+  Set<String> get filesToAnalyze => driver._filesToAnalyze;
 }
 
 /**
