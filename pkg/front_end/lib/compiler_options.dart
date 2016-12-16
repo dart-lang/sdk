@@ -36,6 +36,8 @@ class CompilerOptions {
   ///
   /// If `null`, the ".packages" file will be found via the standard
   /// package_config search algorithm.
+  ///
+  /// If the empty string, no packages file will be used.
   String packagesFilePath;
 
   /// Paths to the input summary files (excluding the SDK summary).  These files

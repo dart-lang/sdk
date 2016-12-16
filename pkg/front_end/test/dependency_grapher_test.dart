@@ -30,7 +30,7 @@ class DependencyGrapherTest {
   }
 
   Future<List<LibraryCycleNode>> getCycles(Map<String, String> contents,
-      [List<String> startingPoints]) async {
+      {List<String> startingPoints, String packagesFilePath = ''}) async {
     // If no starting points given, assume the first entry in [contents] is the
     // single starting point.
     startingPoints ??= [contents.keys.first];
@@ -41,7 +41,8 @@ class DependencyGrapherTest {
     // TODO(paulberry): implement and test other option possibilities.
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..chaseDependencies = true;
+      ..chaseDependencies = true
+      ..packagesFilePath = packagesFilePath;
     var graph = await graphForProgram(
         startingPoints.map(pathos.posix.toUri).toList(), options);
     return graph.topologicallySortedCycles;
@@ -83,7 +84,7 @@ class DependencyGrapherTest {
       '/a.dart': 'import "c.dart";',
       '/b.dart': 'import "c.dart";',
       '/c.dart': ''
-    }, [
+    }, startingPoints: [
       '/a.dart',
       '/b.dart'
     ]);
@@ -97,6 +98,24 @@ class DependencyGrapherTest {
         dependencies: ['file:///c.dart']);
     checkLibrary(otherCycles[1], 'file:///b.dart',
         dependencies: ['file:///c.dart']);
+  }
+
+  test_packages() async {
+    var cycles = await getCycles({
+      '/foo.dart': 'import "package:foo/bar.dart";',
+      '/.packages': 'foo:pkg/foo/lib\nbar:pkg/bar/lib\n',
+      '/pkg/foo/lib/bar.dart': 'import "package:bar/baz.dart";',
+      '/pkg/bar/lib/baz.dart': ''
+    }, packagesFilePath: '/.packages');
+    expect(cycles, hasLength(3));
+    expect(cycles[0].libraries, hasLength(1));
+    checkLibrary(cycles[0], 'package:bar/baz.dart');
+    expect(cycles[1].libraries, hasLength(1));
+    checkLibrary(cycles[1], 'package:foo/bar.dart',
+        dependencies: ['package:bar/baz.dart']);
+    expect(cycles[2].libraries, hasLength(1));
+    checkLibrary(cycles[2], 'file:///foo.dart',
+        dependencies: ['package:foo/bar.dart']);
   }
 
   test_parts() async {

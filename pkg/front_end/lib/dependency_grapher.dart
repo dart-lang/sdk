@@ -12,6 +12,7 @@ import 'package:front_end/file_system.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
 import 'package:front_end/src/base/uri_resolver.dart';
 import 'package:front_end/src/scanner/scanner.dart';
+import 'package:package_config/packages_file.dart' as package_config;
 
 import 'compiler_options.dart';
 
@@ -22,7 +23,19 @@ import 'compiler_options.dart';
 /// in the program.
 Future<Graph> graphForProgram(
     List<Uri> sources, CompilerOptions options) async {
-  var packages = <String, Uri>{}; // TODO(paulberry): support packages
+  Map<String, Uri> packages;
+  if (options.packagesFilePath == null) {
+    throw new UnimplementedError(); // TODO(paulberry): search for .packages
+  } else if (options.packagesFilePath.isEmpty) {
+    packages = {};
+  } else {
+    var contents = await options.fileSystem
+        .entityForPath(options.packagesFilePath)
+        .readAsBytes();
+    var baseLocation =
+        options.fileSystem.context.toUri(options.packagesFilePath);
+    packages = package_config.parse(contents, baseLocation);
+  }
   var sdkLibraries = <String, Uri>{}; // TODO(paulberry): support SDK libraries
   var uriResolver =
       new UriResolver(packages, sdkLibraries, options.fileSystem.context);
@@ -136,9 +149,13 @@ class _WalkerNode extends Node<_WalkerNode> {
   Future<List<_WalkerNode>> computeDependencies() async {
     var dependencies = <_WalkerNode>[];
     // TODO(paulberry): add error recovery if the file can't be read.
-    var contents = await walker.fileSystem
-        .entityForPath(walker.uriResolver.resolve(uri))
-        .readAsString();
+    var path = walker.uriResolver.resolve(uri);
+    if (path == null) {
+      // TODO(paulberry): If an error reporter was provided, report the error
+      // in the proper way and continue.
+      throw new StateError('Invalid URI: $uri');
+    }
+    var contents = await walker.fileSystem.entityForPath(path).readAsString();
     var scanner = new _Scanner(contents);
     var token = scanner.tokenize();
     // TODO(paulberry): report errors.
