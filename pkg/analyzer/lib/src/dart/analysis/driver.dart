@@ -848,6 +848,7 @@ class AnalysisDriver {
         _sourceFactory,
         file.path,
         file.uri,
+        file.exists,
         content,
         file.contentHash,
         file.lineInfo,
@@ -1311,6 +1312,11 @@ class AnalysisResult {
   final Uri uri;
 
   /**
+   * Return `true` if the file exists.
+   */
+  final bool exists;
+
+  /**
    * The content of the file that was scanned, parsed and resolved.
    */
   final String content;
@@ -1345,6 +1351,7 @@ class AnalysisResult {
       this.sourceFactory,
       this.path,
       this.uri,
+      this.exists,
       this.content,
       this.contentHash,
       this.lineInfo,

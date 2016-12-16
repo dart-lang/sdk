@@ -598,6 +598,7 @@ main() {
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
+    expect(result.exists, isTrue);
     expect(result.content, content);
     expect(result.contentHash, _md5(content));
     expect(result.unit, isNotNull);
@@ -631,6 +632,16 @@ main() {
 
     AnalysisResult result = await driver.getResult(b);
     expect(result.errors, isEmpty);
+  }
+
+  test_getResult_doesNotExist() async {
+    var a = _p('/test/lib/a.dart');
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.path, a);
+    expect(result.uri.toString(), 'package:test/a.dart');
+    expect(result.exists, isFalse);
+    expect(result.content, '');
   }
 
   test_getResult_errors() async {

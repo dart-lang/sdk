@@ -13,6 +13,7 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart'
     show NavigationOperation, OccurrencesOperation;
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -147,26 +148,24 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
 
-    void send(CompilationUnit unit) {
-      if (unit == null) {
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisDriver driver = server.getContainingDriver(file);
+      if (driver == null) {
         server.sendResponse(new Response.getNavigationInvalidFile(request));
       } else {
-        CompilationUnitElement unitElement = unit.element;
-        NavigationCollectorImpl collector = computeNavigation(
-            server,
-            unitElement.context,
-            unitElement.source,
-            params.offset,
-            params.length);
-        server.sendResponse(new AnalysisGetNavigationResult(
-                collector.files, collector.targets, collector.regions)
-            .toResponse(request.id));
+        AnalysisResult result = await server.getAnalysisResult(file);
+        CompilationUnit unit = result?.unit;
+        if (unit == null || !result.exists) {
+          server.sendResponse(new Response.getNavigationInvalidFile(request));
+        } else {
+          NavigationCollectorImpl collector = new NavigationCollectorImpl();
+          computeDartNavigation(collector, unit, params.offset, params.length);
+          collector.createRegions();
+          server.sendResponse(new AnalysisGetNavigationResult(
+                  collector.files, collector.targets, collector.regions)
+              .toResponse(request.id));
+        }
       }
-    }
-
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisResult result = await server.getAnalysisResult(file);
-      send(result?.unit);
       return;
     }
 
@@ -179,7 +178,20 @@ class AnalysisDomainHandler implements RequestHandler {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
           CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-          send(unit);
+          if (unit == null) {
+            server.sendResponse(new Response.getNavigationInvalidFile(request));
+          } else {
+            CompilationUnitElement unitElement = unit.element;
+            NavigationCollectorImpl collector = computeNavigation(
+                server,
+                unitElement.context,
+                unitElement.source,
+                params.offset,
+                params.length);
+            server.sendResponse(new AnalysisGetNavigationResult(
+                    collector.files, collector.targets, collector.regions)
+                .toResponse(request.id));
+          }
           break;
         case AnalysisDoneReason.CONTEXT_REMOVED:
           // The active contexts have changed, so try again.

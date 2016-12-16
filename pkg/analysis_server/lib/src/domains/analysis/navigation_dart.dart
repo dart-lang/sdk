@@ -15,14 +15,29 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-NavigationCollector computeSimpleDartNavigation(
-    NavigationCollector collector, CompilationUnit unit) {
+NavigationCollector computeDartNavigation(NavigationCollector collector,
+    CompilationUnit unit, int offset, int length) {
   _DartNavigationCollector dartCollector =
       new _DartNavigationCollector(collector);
   _DartNavigationComputerVisitor visitor =
       new _DartNavigationComputerVisitor(dartCollector);
-  unit.accept(visitor);
+  if (offset == null || length == null) {
+    unit.accept(visitor);
+  } else {
+    AstNode node = _getNodeForRange(unit, offset, length);
+    node?.accept(visitor);
+  }
   return collector;
+}
+
+AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
+  AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+  for (AstNode n = node; n != null; n = n.parent) {
+    if (n is Directive) {
+      return n;
+    }
+  }
+  return node;
 }
 
 /**
@@ -37,29 +52,9 @@ class DartNavigationComputer implements NavigationContributor {
       CompilationUnit unit =
           context.getResolvedCompilationUnit2(source, libraries.first);
       if (unit != null) {
-        _DartNavigationCollector dartCollector =
-            new _DartNavigationCollector(collector);
-        _DartNavigationComputerVisitor visitor =
-            new _DartNavigationComputerVisitor(dartCollector);
-        if (offset == null || length == null) {
-          unit.accept(visitor);
-        } else {
-          AstNode node = _getNodeForRange(unit, offset, length);
-          node?.accept(visitor);
-        }
+        computeDartNavigation(collector, unit, offset, length);
       }
     }
-  }
-
-  static AstNode _getNodeForRange(
-      CompilationUnit unit, int offset, int length) {
-    AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
-    for (AstNode n = node; n != null; n = n.parent) {
-      if (n is Directive) {
-        return n;
-      }
-    }
-    return node;
   }
 }
 

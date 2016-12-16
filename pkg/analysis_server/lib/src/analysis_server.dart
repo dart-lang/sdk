@@ -678,6 +678,19 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [nd.AnalysisDriver] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no context contains the given path, `null` is returned.
+   */
+  nd.AnalysisDriver getContainingDriver(String path) {
+    return contextManager.getDriverFor(path);
+  }
+
+  /**
    * Return the primary [ContextSourcePair] representing the given [path].
    *
    * The [AnalysisContext] of this pair will be the context that explicitly
