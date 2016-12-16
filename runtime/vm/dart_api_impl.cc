@@ -1586,9 +1586,9 @@ Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
 }
 
 
-static Dart_Handle createLibrarySnapshot(Dart_Handle library,
-                                         uint8_t** buffer,
-                                         intptr_t* size) {
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
+                                                  intptr_t* size) {
+  API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (buffer == NULL) {
@@ -1602,12 +1602,7 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
   if (::Dart_IsError(state)) {
     return state;
   }
-  Library& lib = Library::Handle(Z);
-  if (library == Dart_Null()) {
-    lib ^= I->object_store()->root_library();
-  } else {
-    lib ^= Api::UnwrapHandle(library);
-  }
+  Library& lib = Library::Handle(Z, I->object_store()->root_library());
 
 #if defined(DEBUG)
   I->heap()->CollectAllGarbage();
@@ -1619,21 +1614,6 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
   writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();
   return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
-                                                  intptr_t* size) {
-  API_TIMELINE_DURATION;
-  return createLibrarySnapshot(Dart_Null(), buffer, size);
-}
-
-
-DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
-                                                   uint8_t** buffer,
-                                                   intptr_t* size) {
-  API_TIMELINE_DURATION;
-  return createLibrarySnapshot(library, buffer, size);
 }
 
 

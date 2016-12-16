@@ -1034,27 +1034,6 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size);
 
 /**
- * Creates a snapshot of the specified library loaded in the isolate.
- *
- * A library snapshot can be used for implementing fast startup of applications
- * (skips tokenizing and parsing process). A Snapshot of the library
- * can only be created before any dart code has executed.
- *
- * Requires there to be a current isolate which already has loaded the library.
- *
- * \param library A library for which the snapshot needs to be created.
- * \param buffer Returns a pointer to a buffer containing
- *   the snapshot. This buffer is scope allocated and is only valid
- *   until the next call to Dart_ExitScope.
- * \param size Returns the size of the buffer.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
-                                                   uint8_t** buffer,
-                                                   intptr_t* size);
-
-/**
  * Schedules an interrupt for the specified isolate.
  *
  * When the isolate is interrupted, the isolate interrupt callback
