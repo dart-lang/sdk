@@ -130,8 +130,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   ResolvedUriTranslator get resolvedUriTranslator;
 
-  Tracer tracer;
-
   LibraryElement mainApp;
   FunctionElement mainFunction;
 
@@ -217,7 +215,6 @@ abstract class Compiler implements LibraryLoaderListener {
     // make its field final.
     _coreTypes = new _CompilerCoreTypes(_resolution, reporter);
     types = new Types(_resolution);
-    tracer = new Tracer(this, this.outputProvider);
 
     if (options.verbose) {
       progress = new Stopwatch()..start();
@@ -344,7 +341,6 @@ abstract class Compiler implements LibraryLoaderListener {
         return new Future.sync(() => runInternal(uri))
             .catchError((error) => _reporter.onError(uri, error))
             .whenComplete(() {
-          tracer.close();
           measurer.stopWallClock();
         }).then((_) {
           return !compilationFailed;
@@ -737,7 +733,7 @@ abstract class Compiler implements LibraryLoaderListener {
           dumpInfoTask.dumpInfo(closedWorld);
         }
 
-        backend.sourceInformationStrategy.onComplete();
+        backend.onCodegenEnd();
 
         checkQueues();
       });

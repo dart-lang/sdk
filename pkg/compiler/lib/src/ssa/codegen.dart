@@ -59,36 +59,41 @@ class SsaCodeGeneratorTask extends CompilerTask {
             .buildDeclaration(resolvedAst));
   }
 
-  js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
+  js.Expression generateCode(
+      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     if (work.element.isField) {
-      return generateLazyInitializer(work, graph);
+      return generateLazyInitializer(work, graph, closedWorld);
     } else {
-      return generateMethod(work, graph);
+      return generateMethod(work, graph, closedWorld);
     }
   }
 
-  js.Expression generateLazyInitializer(CodegenWorkItem work, HGraph graph) {
+  js.Expression generateLazyInitializer(
+      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
-      compiler.tracer.traceGraph("codegen", graph);
+      backend.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
           .createBuilderForContext(work.resolvedAst)
           .buildDeclaration(work.resolvedAst);
-      SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
+      SsaCodeGenerator codegen =
+          new SsaCodeGenerator(backend, closedWorld, work);
       codegen.visitGraph(graph);
       return new js.Fun(codegen.parameters, codegen.body)
           .withSourceInformation(sourceInformation);
     });
   }
 
-  js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
+  js.Expression generateMethod(
+      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
       FunctionElement element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
         work.registry.registerAsyncMarker(element);
       }
-      SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
+      SsaCodeGenerator codegen =
+          new SsaCodeGenerator(backend, closedWorld, work);
       codegen.visitGraph(graph);
-      compiler.tracer.traceGraph("codegen", graph);
+      backend.tracer.traceGraph("codegen", graph);
       return buildJavaScriptFunction(
           work.resolvedAst, codegen.parameters, codegen.body);
     });
@@ -121,6 +126,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool isGeneratingExpression = false;
 
   final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
   final CodegenWorkItem work;
 
   final Set<HInstruction> generateAtUseSite;
@@ -163,7 +169,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // if branches.
   SubGraph subGraph;
 
-  SsaCodeGenerator(this.backend, CodegenWorkItem work,
+  SsaCodeGenerator(this.backend, this.closedWorld, CodegenWorkItem work,
       {SourceInformation sourceInformation})
       : this.work = work,
         declaredLocals = new Set<String>(),
@@ -178,8 +184,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         continueAction = new Map<Entity, EntityAction>();
 
   Compiler get compiler => backend.compiler;
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
 
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 

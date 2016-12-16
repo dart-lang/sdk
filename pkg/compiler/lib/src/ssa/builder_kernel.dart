@@ -53,15 +53,21 @@ class SsaKernelBuilderTask extends CompilerTask {
       : backend = backend,
         super(backend.compiler.measurer);
 
-  HGraph build(CodegenWorkItem work) {
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
       AstElement element = work.element.implementation;
       Kernel kernel = backend.kernelTask.kernel;
-      KernelSsaBuilder builder = new KernelSsaBuilder(element, work.resolvedAst,
-          backend.compiler, work.registry, sourceInformationFactory, kernel);
+      KernelSsaBuilder builder = new KernelSsaBuilder(
+          element,
+          work.resolvedAst,
+          backend.compiler,
+          closedWorld,
+          work.registry,
+          sourceInformationFactory,
+          kernel);
       HGraph graph = builder.build();
 
-      if (backend.compiler.tracer.isEnabled) {
+      if (backend.tracer.isEnabled) {
         String name;
         if (element.isClassMember) {
           String className = element.enclosingClass.name;
@@ -73,8 +79,8 @@ class SsaKernelBuilderTask extends CompilerTask {
         } else {
           name = "${element.name}";
         }
-        backend.compiler.tracer.traceCompilation(name);
-        backend.compiler.tracer.traceGraph('builder', graph);
+        backend.tracer.traceCompilation(name);
+        backend.tracer.traceGraph('builder', graph);
       }
 
       return graph;
@@ -86,6 +92,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   final AstElement targetElement;
   final ResolvedAst resolvedAst;
+  final ClosedWorld closedWorld;
   final CodegenRegistry registry;
 
   /// Helper accessor for all kernel function-like targets (Procedure,
@@ -126,6 +133,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.targetElement,
       this.resolvedAst,
       Compiler compiler,
+      this.closedWorld,
       this.registry,
       SourceInformationStrategy sourceInformationFactory,
       Kernel kernel) {
@@ -564,7 +572,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     // If the expression being iterated over is a JS indexable type, we can
     // generate an optimized version of for-in that uses indexing.
-    if (astAdapter.isJsIndexableIterator(forInStatement)) {
+    if (astAdapter.isJsIndexableIterator(forInStatement, closedWorld)) {
       _buildForInIndexable(forInStatement);
     } else {
       _buildForInIterator(forInStatement);
@@ -617,7 +625,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     void buildInitializer() {
       forInStatement.iterable.accept(this);
       array = pop();
-      isFixed = astAdapter.isFixedLength(array.instructionType);
+      isFixed = astAdapter.isFixedLength(array.instructionType, closedWorld);
       localsHandler.updateLocal(
           indexVariable, graph.addConstantInt(0, compiler));
       originalLength = buildGetLength();
@@ -905,7 +913,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
     }
 
-    TypeMask type = astAdapter.typeOfListLiteral(targetElement, listLiteral);
+    TypeMask type =
+        astAdapter.typeOfListLiteral(targetElement, listLiteral, closedWorld);
     if (!type.containsAll(closedWorld)) {
       listInstruction.instructionType = type;
     }
@@ -1098,7 +1107,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     propertySet.value.accept(this);
     HInstruction value = pop();
 
-    _pushDynamicInvocation(propertySet, astAdapter.typeOfSet(propertySet),
+    _pushDynamicInvocation(
+        propertySet,
+        astAdapter.typeOfSet(propertySet, closedWorld),
         <HInstruction>[receiver, value]);
 
     pop();
@@ -1529,7 +1540,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
-    TypeMask ssaType = astAdapter.typeFromNativeBehavior(nativeBehavior);
+    TypeMask ssaType =
+        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(expr, ssaType, const <HInstruction>[],
         nativeBehavior: nativeBehavior));
   }
@@ -1570,7 +1582,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
-    TypeMask ssaType = astAdapter.typeFromNativeBehavior(nativeBehavior);
+    TypeMask ssaType =
+        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(template, ssaType, inputs,
         nativeBehavior: nativeBehavior));
   }
@@ -1658,7 +1671,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           astAdapter.getNode(invocation), MessageKind.JS_PLACEHOLDER_CAPTURE);
     }
 
-    TypeMask ssaType = astAdapter.typeFromNativeBehavior(nativeBehavior);
+    TypeMask ssaType =
+        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation = null;
     push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
@@ -1680,12 +1694,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
     HInvokeStatic instruction = new HInvokeStatic(
         astAdapter.getMember(target), arguments, typeMask,
-        targetCanThrow: astAdapter.getCanThrow(target));
+        targetCanThrow: astAdapter.getCanThrow(target, closedWorld));
     if (currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
           new List<DartType>.from(currentImplicitInstantiations);
     }
-    instruction.sideEffects = astAdapter.getSideEffects(target);
+    instruction.sideEffects = astAdapter.getSideEffects(target, closedWorld);
 
     push(instruction);
   }
@@ -1771,7 +1785,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     Selector selector = astAdapter.getSelector(invocation);
     _pushDynamicInvocation(
         invocation,
-        astAdapter.typeOfInvocation(invocation),
+        astAdapter.typeOfInvocation(invocation, closedWorld),
         <HInstruction>[receiver]
           ..addAll(
               _visitArgumentsForDynamicTarget(selector, invocation.arguments)));

@@ -7,10 +7,11 @@ library tracer;
 import 'dart:async' show EventSink;
 
 import '../compiler.dart' as api;
-import 'compiler.dart' show Compiler;
+import 'js_backend/namer.dart' show Namer;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
 import 'util/util.dart' show Indentation;
+import 'world.dart' show ClosedWorld;
 
 /**
  * If non-null, we only trace methods whose name match the regexp defined by the
@@ -26,14 +27,15 @@ final RegExp TRACE_FILTER =
  * readable by IR Hydra.
  */
 class Tracer extends TracerUtil {
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
+  final Namer namer;
   bool traceActive = false;
   final EventSink<String> output;
   final bool isEnabled = TRACE_FILTER != null;
 
-  Tracer(Compiler compiler, api.CompilerOutputProvider outputProvider)
-      : this.compiler = compiler,
-        output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
+  Tracer(
+      this.closedWorld, this.namer, api.CompilerOutputProvider outputProvider)
+      : output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
 
   void traceCompilation(String methodName) {
     if (!isEnabled) return;
@@ -49,7 +51,7 @@ class Tracer extends TracerUtil {
   void traceGraph(String name, var irObject) {
     if (!traceActive) return;
     if (irObject is ssa.HGraph) {
-      new HTracer(output, compiler).traceGraph(name, irObject);
+      new HTracer(output, closedWorld, namer).traceGraph(name, irObject);
     }
   }
 

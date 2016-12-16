@@ -42,7 +42,7 @@ abstract class GraphBuilder {
 
   CodegenRegistry get registry;
 
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  ClosedWorld get closedWorld;
 
   CommonMasks get commonMasks => closedWorld.commonMasks;
 

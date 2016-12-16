@@ -66,7 +66,7 @@ class SsaBuilderTask extends CompilerTask {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  HGraph build(CodegenWorkItem work) {
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
       Element element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
@@ -75,6 +75,7 @@ class SsaBuilderTask extends CompilerTask {
             work.resolvedAst,
             work.registry,
             backend,
+            closedWorld,
             emitter.nativeEmitter,
             sourceInformationFactory);
         HGraph graph = builder.build();
@@ -91,7 +92,7 @@ class SsaBuilderTask extends CompilerTask {
             work.registry.registerCompileTimeConstant(constant);
           });
         }
-        if (compiler.tracer.isEnabled) {
+        if (backend.tracer.isEnabled) {
           String name;
           if (element.isClassMember) {
             String className = element.enclosingClass.name;
@@ -103,8 +104,8 @@ class SsaBuilderTask extends CompilerTask {
           } else {
             name = "${element.name}";
           }
-          compiler.tracer.traceCompilation(name);
-          compiler.tracer.traceGraph('builder', graph);
+          backend.tracer.traceCompilation(name);
+          backend.tracer.traceGraph('builder', graph);
         }
         return graph;
       });
@@ -127,6 +128,7 @@ class SsaBuilder extends ast.Visitor
     implements SemanticSendVisitor {
   /// The element for which this SSA builder is being used.
   final Element target;
+  final ClosedWorld closedWorld;
 
   ResolvedAst resolvedAst;
 
@@ -198,6 +200,7 @@ class SsaBuilder extends ast.Visitor
       this.resolvedAst,
       this.registry,
       JavaScriptBackend backend,
+      this.closedWorld,
       this.nativeEmitter,
       SourceInformationStrategy sourceInformationFactory)
       : this.infoReporter = backend.compiler.dumpInfoTask,
@@ -5533,7 +5536,7 @@ class SsaBuilder extends ast.Visitor
     void buildInitializer() {
       visit(node.expression);
       array = pop();
-      isFixed = isFixedLength(array.instructionType, compiler);
+      isFixed = isFixedLength(array.instructionType, closedWorld);
       localsHandler.updateLocal(
           indexVariable, graph.addConstantInt(0, compiler));
       originalLength = buildGetLength();

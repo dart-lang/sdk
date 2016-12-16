@@ -37,16 +37,16 @@ import 'optimize.dart';
 class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
+  final ClosedWorld closedWorld;
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Element element;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.compiler, this.constantSystem, this.element);
+  SsaSimplifyInterceptors(
+      this.compiler, this.closedWorld, this.constantSystem, this.element);
 
   JavaScriptBackend get backend => compiler.backend;
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
 
   BackendClasses get backendClasses => closedWorld.backendClasses;
 

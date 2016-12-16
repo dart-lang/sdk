@@ -313,6 +313,9 @@ abstract class Backend extends Target {
   /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(ClosedWorld closedWorld) => const WorldImpact();
 
+  /// Called when code generation has been completed.
+  void onCodegenEnd() {}
+
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
 

@@ -6,9 +6,8 @@ library ssa.tracer;
 
 import 'dart:async' show EventSink;
 
-import '../compiler.dart' show Compiler;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../js_backend/js_backend.dart';
+import '../js_backend/namer.dart' show Namer;
 import '../tracer.dart';
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
@@ -19,10 +18,11 @@ import 'nodes.dart';
  * to enable it.
  */
 class HTracer extends HGraphVisitor with TracerUtil {
-  Compiler compiler;
+  final ClosedWorld closedWorld;
+  final Namer namer;
   final EventSink<String> output;
 
-  HTracer(this.output, this.compiler);
+  HTracer(this.output, this.closedWorld, this.namer);
 
   void traceGraph(String name, HGraph graph) {
     DEBUG_MODE = true;
@@ -76,7 +76,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(block, compiler);
+        new HInstructionStringifier(block, closedWorld, namer);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -113,12 +113,11 @@ class HTracer extends HGraphVisitor with TracerUtil {
 }
 
 class HInstructionStringifier implements HVisitor<String> {
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
+  final Namer namer;
   final HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.currentBlock, this.compiler);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  HInstructionStringifier(this.currentBlock, this.closedWorld, this.namer);
 
   visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
@@ -295,9 +294,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
-      JavaScriptBackend backend = compiler.backend;
-      String cls =
-          backend.namer.suffixForGetInterceptor(node.interceptedClasses);
+      String cls = namer.suffixForGetInterceptor(node.interceptedClasses);
       return "Interceptor ($cls): $value";
     }
     return "Interceptor: $value";

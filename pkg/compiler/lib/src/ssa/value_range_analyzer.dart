@@ -602,17 +602,17 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   final ConstantSystem constantSystem;
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
   HGraph graph;
 
-  SsaValueRangeAnalyzer(this.compiler, constantSystem, this.optimizer)
+  SsaValueRangeAnalyzer(
+      this.compiler, this.closedWorld, constantSystem, this.optimizer)
       : info = new ValueRangeInfo(constantSystem),
         this.constantSystem = constantSystem;
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;

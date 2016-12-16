@@ -35,18 +35,21 @@ abstract class OptimizationPhase {
 
 class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
+
+  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
+
   SsaOptimizerTask(JavaScriptBackend backend)
       : this.backend = backend,
         super(backend.compiler.measurer);
-  String get name => 'SSA optimizer';
-  Compiler get compiler => backend.compiler;
-  ClosedWorld get closedWorld => compiler.closedWorld;
-  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
-  void optimize(CodegenWorkItem work, HGraph graph) {
+  String get name => 'SSA optimizer';
+
+  Compiler get compiler => backend.compiler;
+
+  void optimize(CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
-      compiler.tracer.traceGraph(phase.name, graph);
+      backend.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid());
     }
 
@@ -59,36 +62,40 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(
+            constantSystem, backend, closedWorld, this, registry),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(compiler),
+        new SsaTypePropagator(compiler, closedWorld),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(
+            constantSystem, backend, closedWorld, this, registry),
         new SsaCheckInserter(
             trustPrimitives, backend, closedWorld, boundsChecked),
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(
+            constantSystem, backend, closedWorld, this, registry),
         new SsaCheckInserter(
             trustPrimitives, backend, closedWorld, boundsChecked),
-        new SsaTypePropagator(compiler),
+        new SsaTypePropagator(compiler, closedWorld),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
-        new SsaDeadCodeEliminator(compiler, this),
+        new SsaDeadCodeEliminator(compiler, closedWorld, this),
         new SsaGlobalValueNumberer(compiler),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(compiler),
+        new SsaTypePropagator(compiler, closedWorld),
         codeMotion = new SsaCodeMotion(),
-        new SsaLoadElimination(compiler),
+        new SsaLoadElimination(compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(compiler),
-        new SsaValueRangeAnalyzer(compiler, constantSystem, this),
+        new SsaTypePropagator(compiler, closedWorld),
+        new SsaValueRangeAnalyzer(compiler, closedWorld, constantSystem, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(
+            constantSystem, backend, closedWorld, this, registry),
         new SsaCheckInserter(
             trustPrimitives, backend, closedWorld, boundsChecked),
       ];
@@ -97,29 +104,34 @@ class SsaOptimizerTask extends CompilerTask {
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(
-          new SsaSimplifyInterceptors(compiler, constantSystem, work.element));
+      runPhase(new SsaSimplifyInterceptors(
+          compiler, closedWorld, constantSystem, work.element));
 
-      SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
+      SsaDeadCodeEliminator dce =
+          new SsaDeadCodeEliminator(compiler, closedWorld, this);
       runPhase(dce);
       if (codeMotion.movedCode || dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(compiler),
+          new SsaTypePropagator(compiler, closedWorld),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, this),
-          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+          new SsaValueRangeAnalyzer(
+              compiler, closedWorld, constantSystem, this),
+          new SsaInstructionSimplifier(
+              constantSystem, backend, closedWorld, this, registry),
           new SsaCheckInserter(
               trustPrimitives, backend, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
-          new SsaDeadCodeEliminator(compiler, this),
+          new SsaSimplifyInterceptors(
+              compiler, closedWorld, constantSystem, work.element),
+          new SsaDeadCodeEliminator(compiler, closedWorld, this),
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(compiler),
+          new SsaTypePropagator(compiler, closedWorld),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+          new SsaInstructionSimplifier(
+              constantSystem, backend, closedWorld, this, registry),
         ];
       }
       phases.forEach(runPhase);
@@ -131,9 +143,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// cannot change.  The current implementation is conservative for the purpose
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
-bool isFixedLength(mask, Compiler compiler) {
-  ClosedWorld closedWorld = compiler.closedWorld;
-  JavaScriptBackend backend = compiler.backend;
+bool isFixedLength(mask, ClosedWorld closedWorld) {
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
     return true;
@@ -161,16 +171,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
   final ConstantSystem constantSystem;
   final CodegenRegistry registry;
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
 
-  SsaInstructionSimplifier(
-      this.constantSystem, this.backend, this.optimizer, this.registry);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  SsaInstructionSimplifier(this.constantSystem, this.backend, this.closedWorld,
+      this.optimizer, this.registry);
 
   CommonElements get commonElements => closedWorld.commonElements;
 
@@ -343,7 +352,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantInt(constant.length, compiler);
       }
       MemberElement element = helpers.jsIndexableLength;
-      bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
+      bool isFixed = isFixedLength(actualReceiver.instructionType, closedWorld);
       TypeMask actualType = node.instructionType;
       TypeMask resultType = closedWorld.commonMasks.positiveIntType;
       // If we already have computed a more specific type, keep that type.
@@ -1330,7 +1339,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     Compiler compiler = backend.compiler;
     HFieldGet length = new HFieldGet(helpers.jsIndexableLength, array,
         closedWorld.commonMasks.positiveIntType,
-        isAssignable: !isFixedLength(array.instructionType, compiler));
+        isAssignable: !isFixedLength(array.instructionType, closedWorld));
     indexNode.block.addBefore(indexNode, length);
 
     TypeMask type = indexArgument.isPositiveInteger(closedWorld)
@@ -1383,15 +1392,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
   SsaLiveBlockAnalyzer analyzer;
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
 
-  SsaDeadCodeEliminator(this.compiler, this.optimizer);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  SsaDeadCodeEliminator(this.compiler, this.closedWorld, this.optimizer);
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
@@ -2228,13 +2236,12 @@ class SsaTypeConversionInserter extends HBaseVisitor
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
 
-  SsaLoadElimination(this.compiler);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  SsaLoadElimination(this.compiler, this.closedWorld);
 
   void visitGraph(HGraph graph) {
     memories = new List<MemorySet>(graph.blocks.length);
