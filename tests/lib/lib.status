@@ -269,7 +269,7 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 
 async/future_or_bad_type_test/00: RuntimeError # Issue 28010
 async/future_or_bad_type_test/01: RuntimeError # Issue 28010
-async/future_or_bad_type_test/implements: MissingCompileTimeError # Issue 28010
+async/future_or_bad_type_test/implements: Fail # Issue 28010
 async/future_or_non_strong_test: RuntimeError # Issue 28010
 async/future_or_strong_test: RuntimeError, OK
 
