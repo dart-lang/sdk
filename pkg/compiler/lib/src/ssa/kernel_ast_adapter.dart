@@ -761,9 +761,14 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     } else if (node.parameter.parent is ir.FunctionNode) {
       ir.FunctionNode func = node.parameter.parent;
       int index = func.typeParameters.indexOf(node.parameter);
-      ConstructorElement constructorElement = astAdapter.getElement(func);
-      ClassElement classElement = constructorElement.enclosingClass;
-      return classElement.typeVariables[index];
+      Element element = astAdapter.getElement(func);
+      if (element.isConstructor) {
+        ClassElement classElement = element.enclosingClass;
+        return classElement.typeVariables[index];
+      } else {
+        GenericElement genericElement = element;
+        return genericElement.typeVariables[index];
+      }
     }
     throw new UnsupportedError('Unsupported type parameter type node $node.');
   }

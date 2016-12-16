@@ -3001,7 +3001,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitSend(Send node) {
     // Resolve type arguments to ensure that these are well-formed types.
-    visit(node.typeArgumentsNode);
+    if (node.typeArgumentsNode != null) {
+      for (TypeAnnotation type in node.typeArgumentsNode.nodes) {
+        resolveTypeAnnotation(type, registerCheckedModeCheck: false);
+      }
+    }
     if (node.isOperator) {
       // `a && b`, `a + b`, `-a`, or `a is T`.
       return handleOperatorSend(node);

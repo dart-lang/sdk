@@ -168,6 +168,8 @@ main() {
   testForwardingConstructorTyped();
   testForwardingConstructorGeneric();
   testEnum();
+  testStaticGenericMethod();
+  testInstanceGenericMethod();
 }
 
 testEmpty() {}
@@ -583,6 +585,15 @@ testForwardingConstructorGeneric() {
 
 enum Enum { A }
 testEnum() => Enum.A;
+
+List<T> staticGenericMethod<T>(T arg) => [arg];
+testStaticGenericMethod() {
+  staticGenericMethod<int>(0);
+}
+
+testInstanceGenericMethod() {
+  new GenericClass<int, String>.generative().genericMethod<bool>(false);
+}
 ''',
   'helper.dart': '''
 class Class {
@@ -594,6 +605,8 @@ class GenericClass<X, Y> {
   const GenericClass.generative();
   factory GenericClass.fact() => null;
   const factory GenericClass.redirect() = GenericClass<X, Y>.generative;
+
+  Map<X, T> genericMethod<T>(T arg) => { null: arg };
 }
 typedef Typedef();
 typedef X GenericTypedef<X, Y>(Y y);
@@ -614,7 +627,9 @@ main(List<String> args) {
         ]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
+    checkLibrary(compiler, compiler.mainApp, fullTest: args.contains('--full'));
     compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+      if (library == compiler.mainApp) return;
       checkLibrary(compiler, library, fullTest: args.contains('--full'));
     });
   });

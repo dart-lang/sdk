@@ -2025,8 +2025,7 @@ class KernelVisitor extends Object
   }
 
   ir.FunctionNode buildFunctionNode(FunctionElement function, Node bodyNode) {
-    List<ir.TypeParameter> typeParameters =
-        kernel.typeParametersNotImplemented();
+    List<ir.TypeParameter> typeParameters = <ir.TypeParameter>[];
     List<ir.VariableDeclaration> positionalParameters =
         <ir.VariableDeclaration>[];
     List<ir.VariableDeclaration> namedParameters = <ir.VariableDeclaration>[];

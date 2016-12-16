@@ -302,13 +302,8 @@ class Kernel {
     }
   }
 
-  // TODO(ahe): Remove this method when dart2js support generic type arguments.
-  List<ir.TypeParameter> typeParametersNotImplemented() {
-    return const <ir.TypeParameter>[];
-  }
-
   ir.FunctionType functionTypeToIr(FunctionType type) {
-    List<ir.TypeParameter> typeParameters = typeParametersNotImplemented();
+    List<ir.TypeParameter> typeParameters = <ir.TypeParameter>[];
     int requiredParameterCount = type.parameterTypes.length;
     List<ir.DartType> positionalParameters =
         new List<ir.DartType>.from(typesToIr(type.parameterTypes))
@@ -462,6 +457,8 @@ class Kernel {
           procedure.kind = irFunction.kind;
         }
         endFactoryScope(function);
+        irFunction.node.typeParameters
+            .addAll(typeVariablesToIr(function.typeVariables));
         member.transformerFlags = visitor.transformerFlags;
         assert(() {
           visitor.locals.forEach(checkMember);
@@ -556,11 +553,14 @@ class Kernel {
     return typeParameters.putIfAbsent(variable, () {
       ir.TypeParameter parameter = new ir.TypeParameter(variable.name, null);
       addWork(variable, () {
-        // TODO(ahe): This assignment will probably not be correct when dart2js
-        // supports generic methods.
-        ClassElement cls = variable.typeDeclaration;
-        cls.ensureResolved(compiler.resolution);
-        parameter.parent = classToIr(cls);
+        if (variable.typeDeclaration.isClass) {
+          ClassElement cls = variable.typeDeclaration;
+          cls.ensureResolved(compiler.resolution);
+          parameter.parent = classToIr(cls);
+        } else {
+          FunctionElement method = variable.typeDeclaration;
+          parameter.parent = functionToIr(method).function;
+        }
         parameter.bound = typeToIr(variable.bound);
       });
       return parameter;
