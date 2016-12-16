@@ -20,7 +20,8 @@ main() {
 @reflectiveTest
 class DependencyGrapherTest {
   LibraryNode checkLibrary(LibraryCycleNode cycle, String uri,
-      {List<String> dependencies: const [], List<String> parts: const []}) {
+      {List<String> dependencies: const ['dart:core'],
+      List<String> parts: const []}) {
     var library = cycle.libraries[Uri.parse(uri)];
     expect('${library.uri}', uri);
     expect(library.dependencies.map((dep) => '${dep.uri}'),
@@ -57,6 +58,15 @@ class DependencyGrapherTest {
     return result;
   }
 
+  test_explicitCoreDependency() async {
+    // If "dart:core" is explicitly imported, there shouldn't be two imports of
+    // "dart:core", just one.
+    var cycles = await getCycles({'/foo.dart': 'import "dart:core";'});
+    expect(cycles, hasLength(1));
+    expect(cycles[0].libraries, hasLength(1));
+    checkLibrary(cycles[0], 'file:///foo.dart');
+  }
+
   test_exportDependency() async {
     var cycles =
         await getCycles({'/foo.dart': 'export "bar.dart";', '/bar.dart': ''});
@@ -65,7 +75,7 @@ class DependencyGrapherTest {
     checkLibrary(cycles[0], 'file:///bar.dart');
     expect(cycles[1].libraries, hasLength(1));
     checkLibrary(cycles[1], 'file:///foo.dart',
-        dependencies: ['file:///bar.dart']);
+        dependencies: ['file:///bar.dart', 'dart:core']);
   }
 
   test_importDependency() async {
@@ -76,7 +86,7 @@ class DependencyGrapherTest {
     checkLibrary(cycles[0], 'file:///bar.dart');
     expect(cycles[1].libraries, hasLength(1));
     checkLibrary(cycles[1], 'file:///foo.dart',
-        dependencies: ['file:///bar.dart']);
+        dependencies: ['file:///bar.dart', 'dart:core']);
   }
 
   test_multipleStartingPoints() async {
@@ -95,9 +105,9 @@ class DependencyGrapherTest {
     // reproducibility.
     List<LibraryCycleNode> otherCycles = sortCycles(cycles.sublist(1));
     checkLibrary(otherCycles[0], 'file:///a.dart',
-        dependencies: ['file:///c.dart']);
+        dependencies: ['file:///c.dart', 'dart:core']);
     checkLibrary(otherCycles[1], 'file:///b.dart',
-        dependencies: ['file:///c.dart']);
+        dependencies: ['file:///c.dart', 'dart:core']);
   }
 
   test_packages() async {
@@ -112,10 +122,10 @@ class DependencyGrapherTest {
     checkLibrary(cycles[0], 'package:bar/baz.dart');
     expect(cycles[1].libraries, hasLength(1));
     checkLibrary(cycles[1], 'package:foo/bar.dart',
-        dependencies: ['package:bar/baz.dart']);
+        dependencies: ['package:bar/baz.dart', 'dart:core']);
     expect(cycles[2].libraries, hasLength(1));
     checkLibrary(cycles[2], 'file:///foo.dart',
-        dependencies: ['package:foo/bar.dart']);
+        dependencies: ['package:foo/bar.dart', 'dart:core']);
   }
 
   test_parts() async {
@@ -142,13 +152,23 @@ class DependencyGrapherTest {
     checkLibrary(cycles[0], 'file:///b/f.dart');
     expect(cycles[1].libraries, hasLength(1));
     checkLibrary(cycles[1], 'file:///b/d/e.dart',
-        dependencies: ['file:///b/f.dart']);
+        dependencies: ['file:///b/f.dart', 'dart:core']);
     expect(cycles[2].libraries, hasLength(1));
     checkLibrary(cycles[2], 'file:///b/c.dart',
-        dependencies: ['file:///b/d/e.dart']);
+        dependencies: ['file:///b/d/e.dart', 'dart:core']);
     expect(cycles[3].libraries, hasLength(1));
     checkLibrary(cycles[3], 'file:///a.dart',
-        dependencies: ['file:///b/c.dart']);
+        dependencies: ['file:///b/c.dart', 'dart:core']);
+  }
+
+  test_sdkDependency() async {
+    // Dependencies on the SDK should be recorded even if SDK libraries aren't
+    // being included in the graph.
+    var cycles = await getCycles({'/foo.dart': 'import "dart:async";'});
+    expect(cycles, hasLength(1));
+    expect(cycles[0].libraries, hasLength(1));
+    checkLibrary(cycles[0], 'file:///foo.dart',
+        dependencies: ['dart:core', 'dart:async']);
   }
 
   test_simpleCycle() async {
@@ -157,9 +177,9 @@ class DependencyGrapherTest {
     expect(cycles, hasLength(1));
     expect(cycles[0].libraries, hasLength(2));
     var foo = checkLibrary(cycles[0], 'file:///foo.dart',
-        dependencies: ['file:///bar.dart']);
+        dependencies: ['file:///bar.dart', 'dart:core']);
     var bar = checkLibrary(cycles[0], 'file:///bar.dart',
-        dependencies: ['file:///foo.dart']);
+        dependencies: ['file:///foo.dart', 'dart:core']);
     expect(foo.dependencies[0], same(bar));
     expect(bar.dependencies[0], same(foo));
   }

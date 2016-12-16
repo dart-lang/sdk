@@ -39,7 +39,7 @@ Future<Graph> graphForProgram(
   var sdkLibraries = <String, Uri>{}; // TODO(paulberry): support SDK libraries
   var uriResolver =
       new UriResolver(packages, sdkLibraries, options.fileSystem.context);
-  var walker = new _Walker(options.fileSystem, uriResolver);
+  var walker = new _Walker(options.fileSystem, uriResolver, options.compileSdk);
   var startingPoint = new _StartingPoint(walker, sources);
   await walker.walk(startingPoint);
   return walker.graph;
@@ -110,8 +110,9 @@ class _Walker extends AsyncDependencyWalker<_WalkerNode> {
   final UriResolver uriResolver;
   final _nodesByUri = <Uri, _WalkerNode>{};
   final graph = new Graph._();
+  final bool compileSdk;
 
-  _Walker(this.fileSystem, this.uriResolver);
+  _Walker(this.fileSystem, this.uriResolver, this.compileSdk);
 
   @override
   Future<Null> evaluate(_WalkerNode v) {
@@ -137,6 +138,7 @@ class _Walker extends AsyncDependencyWalker<_WalkerNode> {
 }
 
 class _WalkerNode extends Node<_WalkerNode> {
+  static final dartCoreUri = Uri.parse('dart:core');
   final _Walker walker;
   final Uri uri;
   final LibraryNode library;
@@ -161,6 +163,18 @@ class _WalkerNode extends Node<_WalkerNode> {
     // TODO(paulberry): report errors.
     var parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
     var unit = parser.parseDirectives(token);
+    bool coreUriFound = false;
+    void handleDependency(Uri referencedUri) {
+      _WalkerNode dependencyNode = walker.nodeForUri(referencedUri);
+      library.dependencies.add(dependencyNode.library);
+      if (referencedUri.scheme != 'dart' || walker.compileSdk) {
+        dependencies.add(dependencyNode);
+      }
+      if (referencedUri == dartCoreUri) {
+        coreUriFound = true;
+      }
+    }
+
     for (var directive in unit.directives) {
       if (directive is UriBasedDirective) {
         // TODO(paulberry): when we support SDK libraries, we'll need more
@@ -169,11 +183,12 @@ class _WalkerNode extends Node<_WalkerNode> {
         if (directive is PartDirective) {
           library.parts.add(referencedUri);
         } else {
-          _WalkerNode dependencyNode = walker.nodeForUri(referencedUri);
-          dependencies.add(dependencyNode);
-          library.dependencies.add(dependencyNode.library);
+          handleDependency(referencedUri);
         }
       }
+    }
+    if (!coreUriFound) {
+      handleDependency(dartCoreUri);
     }
     return dependencies;
   }
