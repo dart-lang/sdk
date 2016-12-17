@@ -380,16 +380,26 @@ Future testGoogleHttps(SecurityContext context, String outcome) async {
 }
 
 Future testProcess() async {
-  Process p = await Process.start(Platform.executable, ["--version"]);
+  String exe = Platform.resolvedExecutable;
+  print("Running $exe --version");
+  Process p = await Process.start(exe, ["--version"]);
   p.stderr.transform(UTF8.decoder).listen(print);
   int code = await p.exitCode;
-  print("dart --version exited with code $code");
+  print("$exe --version exited with code $code");
 }
 
 Future testLs(String path) async {
   Stream<FileSystemEntity> stream = (new Directory(path)).list();
   await for (FileSystemEntity fse in stream) {
     print(fse.path);
+  }
+}
+
+void testPlatformEnvironment() {
+  Map<String, String> env = Platform.environment;
+  for (String k in env.keys) {
+    String v = env[k];
+    print("$k = '$v'");
   }
 }
 
@@ -427,6 +437,10 @@ main() async {
   print("lsTest");
   await testLs("/");
   print("lsTest done");
+
+  print("testPlatformEnvironment");
+  testPlatformEnvironment();
+  print("testPlatformEnvironment done");
 
   print("testProcess");
   await testProcess();
