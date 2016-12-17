@@ -404,6 +404,7 @@ class KernelVisitor extends Object
       ir.Statement statement, Node node, JumpTarget jumpTarget) {
     assert(node.isValidBreakTarget());
     assert(jumpTarget == elements.getTargetDefinition(node));
+    associateNode(statement, node);
     if (jumpTarget != null && jumpTarget.isBreakTarget) {
       ir.LabeledStatement breakTarget = getBreakTarget(jumpTarget);
       breakTarget.body = statement;

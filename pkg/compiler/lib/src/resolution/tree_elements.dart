@@ -361,9 +361,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   void defineTarget(Node node, JumpTarget target) {
-    if (_definedTargets == null) {
-      _definedTargets = new Maplet<Node, JumpTarget>();
-    }
+    _definedTargets ??= new Maplet<Node, JumpTarget>();
     _definedTargets[node] = target;
   }
 
@@ -382,9 +380,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   void registerTargetOf(GotoStatement node, JumpTarget target) {
-    if (_usedTargets == null) {
-      _usedTargets = new Maplet<GotoStatement, JumpTarget>();
-    }
+    _usedTargets ??= new Maplet<GotoStatement, JumpTarget>();
     _usedTargets[node] = target;
   }
 
@@ -394,9 +390,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   void defineLabel(Label label, LabelDefinition target) {
-    if (_definedLabels == null) {
-      _definedLabels = new Maplet<Label, LabelDefinition>();
-    }
+    _definedLabels ??= new Maplet<Label, LabelDefinition>();
     _definedLabels[label] = target;
   }
 

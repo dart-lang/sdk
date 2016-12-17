@@ -5,13 +5,14 @@
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
-import '../constants/expressions.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
+import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/modelx.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
@@ -40,6 +41,8 @@ class KernelAstAdapter {
   final Map<ir.Node, Element> _nodeToElement;
   final Map<ir.VariableDeclaration, SyntheticLocal> _syntheticLocals =
       <ir.VariableDeclaration, SyntheticLocal>{};
+  final Map<ir.LabeledStatement, KernelJumpTarget> _jumpTargets =
+      <ir.LabeledStatement, KernelJumpTarget>{};
   DartTypeConverter _typeConverter;
 
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
@@ -340,6 +343,16 @@ class KernelAstAdapter {
 
   JumpTarget getTargetDefinition(ir.Node node) =>
       elements.getTargetDefinition(getNode(node));
+
+  JumpTarget getTargetOf(ir.Node node) => elements.getTargetOf(getNode(node));
+
+  KernelJumpTarget getJumpTarget(ir.LabeledStatement labeledStatement) =>
+      _jumpTargets.putIfAbsent(labeledStatement, () {
+        return new KernelJumpTarget();
+      });
+
+  LabelDefinition getTargetLabel(ir.Node node) =>
+      elements.getTargetLabel(getNode(node));
 
   ir.Class get mapLiteralClass =>
       kernel.classes[_backend.helpers.mapLiteralClass];
@@ -878,4 +891,56 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visitStringLiteral(ir.StringLiteral node) {
     return new StringConstantExpression(node.value);
   }
+}
+
+class KernelJumpTarget extends JumpTarget {
+  static int index = 0;
+
+  KernelJumpTarget() {
+    labels = <LabelDefinition>[
+      new LabelDefinitionX(null, 'l${index++}', this)..setBreakTarget()
+    ];
+  }
+
+  @override
+  bool get isBreakTarget => true;
+
+  set isBreakTarget(bool x) {
+    // do nothing, these are always break targets
+  }
+
+  @override
+  bool get isContinueTarget => false;
+
+  set isContinueTarget(bool x) {
+    // do nothing, these are always break targets
+  }
+
+  @override
+  LabelDefinition addLabel(ast.Label label, String labelName) {
+    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
+    labels.add(result);
+    return result;
+  }
+
+  @override
+  ExecutableElement get executableContext => null;
+
+  @override
+  bool get isSwitch => false;
+
+  @override
+  bool get isTarget => true;
+
+  @override
+  List<LabelDefinition> labels;
+
+  @override
+  String get name => null;
+
+  @override
+  int get nestingLevel => 1;
+
+  @override
+  ast.Node get statement => null;
 }

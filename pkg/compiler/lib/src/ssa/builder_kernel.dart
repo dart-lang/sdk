@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/text/ast_to_text.dart' show debugNodeToString;
 
 import '../closure.dart';
 import '../common.dart';
@@ -26,14 +25,15 @@ import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
-import '../tree/nodes.dart' show FunctionExpression, Node;
+import '../tree/nodes.dart' show Node, BreakStatement;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
-import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/side_effects.dart' show SideEffects;
-import '../world.dart' show ClosedWorld;
+import '../universe/use.dart' show StaticUse;
+import '../world.dart';
 import 'graph_builder.dart';
+import 'jump_handler.dart';
 import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
@@ -825,6 +825,59 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     handleIf(visitCondition: buildCondition, visitThen: fail);
+  }
+
+  @override
+  void visitBreakStatement(ir.BreakStatement breakStatement) {
+    assert(!isAborted());
+    JumpTarget target = astAdapter.getJumpTarget(breakStatement.target);
+    assert(target != null);
+    JumpHandler handler = jumpTargets[target];
+    assert(handler != null);
+    handler.generateBreak(handler.labels.first);
+  }
+
+  @override
+  void visitLabeledStatement(ir.LabeledStatement labeledStatement) {
+    JumpTarget target = astAdapter.getJumpTarget(labeledStatement);
+    JumpHandler handler = new JumpHandler(this, target);
+
+    ir.Statement body = labeledStatement.body;
+    if (body is ir.WhileStatement ||
+        body is ir.DoStatement ||
+        body is ir.ForStatement ||
+        body is ir.ForInStatement) {
+      // loops handle breaks on their own
+      body.accept(this);
+      return;
+    }
+    LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
+
+    HBasicBlock newBlock = openNewBlock();
+    body.accept(this);
+    SubGraph bodyGraph = new SubGraph(newBlock, lastOpenedBlock);
+
+    HBasicBlock joinBlock = graph.addNewBlock();
+    List<LocalsHandler> breakHandlers = <LocalsHandler>[];
+    handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+      breakInstruction.block.addSuccessor(joinBlock);
+      breakHandlers.add(locals);
+    });
+
+    if (!isAborted()) {
+      goto(current, joinBlock);
+      breakHandlers.add(localsHandler);
+    }
+
+    open(joinBlock);
+    localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
+
+    // There was at least one reachable break, so the label is needed.
+    newBlock.setBlockFlow(
+        new HLabeledBlockInformation(
+            new HSubGraphBlockInformation(bodyGraph), handler.labels),
+        joinBlock);
+    handler.close();
   }
 
   @override

@@ -834,7 +834,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Loop loop;
 
     switch (info.kind) {
-      // Treate all three "test-first" loops the same way.
+      // Treat all three "test-first" loops the same way.
       case HLoopBlockInformation.FOR_LOOP:
       case HLoopBlockInformation.WHILE_LOOP:
       case HLoopBlockInformation.FOR_IN_LOOP:

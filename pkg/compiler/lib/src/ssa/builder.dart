@@ -1769,7 +1769,7 @@ class SsaBuilder extends ast.Visitor
         localsHandler =
             savedLocals.mergeMultiple(continueHandlers, conditionBlock);
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        List<LabelDefinition> labels = jumpHandler.labels();
+        List<LabelDefinition> labels = jumpHandler.labels;
         HSubGraphBlockInformation bodyInfo =
             new HSubGraphBlockInformation(bodyGraph);
         HLabeledBlockInformation info;
@@ -5633,7 +5633,7 @@ class SsaBuilder extends ast.Visitor
       // There was at least one reachable break, so the label is needed.
       entryBlock.setBlockFlow(
           new HLabeledBlockInformation(
-              new HSubGraphBlockInformation(bodyGraph), handler.labels()),
+              new HSubGraphBlockInformation(bodyGraph), handler.labels),
           joinBlock);
     }
     handler.close();
@@ -6079,8 +6079,8 @@ class SsaBuilder extends ast.Visitor
         new HSubExpressionBlockInformation(
             new SubExpression(expressionStart, expressionEnd));
     expressionStart.setBlockFlow(
-        new HSwitchBlockInformation(expressionInfo, statements,
-            jumpHandler.target, jumpHandler.labels()),
+        new HSwitchBlockInformation(
+            expressionInfo, statements, jumpHandler.target, jumpHandler.labels),
         joinBlock);
 
     jumpHandler.close();

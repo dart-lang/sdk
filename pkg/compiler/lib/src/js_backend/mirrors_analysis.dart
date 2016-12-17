@@ -82,7 +82,7 @@ class MirrorsHandler {
     return includedEnclosing || _backend.requiredByMirrorSystem(element);
   }
 
-  /// Enqeue the constructor [ctor] if it is required for reflection.
+  /// Enqueue the constructor [ctor] if it is required for reflection.
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
@@ -99,7 +99,7 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue the member [element] if it is required for reflection.
+  /// Enqueue the member [element] if it is required for reflection.
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
@@ -131,7 +131,7 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue the member [element] if it is required for reflection.
+  /// Enqueue the member [element] if it is required for reflection.
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
@@ -163,7 +163,7 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue special classes that might not be visible by normal means or that
+  /// Enqueue special classes that might not be visible by normal means or that
   /// would not normally be enqueued:
   ///
   /// [Closure] is treated specially as it is the superclass of all closures.
@@ -182,7 +182,7 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue all local members of the library [lib] if they are required for
+  /// Enqueue all local members of the library [lib] if they are required for
   /// reflection.
   void _enqueueReflectiveElementsInLibrary(
       LibraryElement lib, Iterable<ClassEntity> recents) {

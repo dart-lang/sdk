@@ -12,12 +12,12 @@ import 'locals_handler.dart';
 import 'nodes.dart';
 
 /// A single break/continue instruction.
-class JumpHandlerEntry {
+class _JumpHandlerEntry {
   final HJump jumpInstruction;
   final LocalsHandler locals;
   bool isBreak() => jumpInstruction is HBreak;
   bool isContinue() => jumpInstruction is HContinue;
-  JumpHandlerEntry(this.jumpInstruction, this.locals);
+  _JumpHandlerEntry(this.jumpInstruction, this.locals);
 }
 
 abstract class JumpHandler {
@@ -33,7 +33,7 @@ abstract class JumpHandler {
   bool hasAnyBreak();
   void close();
   final JumpTarget target;
-  List<LabelDefinition> labels();
+  List<LabelDefinition> get labels;
 }
 
 /// Jump handler used to avoid null checks when a target isn't used as the
@@ -60,7 +60,7 @@ class NullJumpHandler implements JumpHandler {
   bool hasAnyContinue() => false;
   bool hasAnyBreak() => false;
 
-  List<LabelDefinition> labels() => const <LabelDefinition>[];
+  List<LabelDefinition> get labels => const <LabelDefinition>[];
   JumpTarget get target => null;
 }
 
@@ -71,11 +71,11 @@ class NullJumpHandler implements JumpHandler {
 class TargetJumpHandler implements JumpHandler {
   final GraphBuilder builder;
   final JumpTarget target;
-  final List<JumpHandlerEntry> jumps;
+  final List<_JumpHandlerEntry> jumps;
 
   TargetJumpHandler(GraphBuilder builder, this.target)
       : this.builder = builder,
-        jumps = <JumpHandlerEntry>[] {
+        jumps = <_JumpHandlerEntry>[] {
     assert(builder.jumpTargets[target] == null);
     builder.jumpTargets[target] = this;
   }
@@ -89,7 +89,7 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction);
-    jumps.add(new JumpHandlerEntry(breakInstruction, locals));
+    jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
   }
 
   void generateContinue([LabelDefinition label]) {
@@ -104,30 +104,30 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
-    jumps.add(new JumpHandlerEntry(continueInstruction, locals));
+    jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
   }
 
   void forEachBreak(Function action) {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
   void forEachContinue(Function action) {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
   bool hasAnyContinue() {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) return true;
     }
     return false;
   }
 
   bool hasAnyBreak() {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) return true;
     }
     return false;
@@ -138,13 +138,13 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets.remove(target);
   }
 
-  List<LabelDefinition> labels() {
+  List<LabelDefinition> get labels {
     List<LabelDefinition> result = null;
     for (LabelDefinition element in target.labels) {
-      if (result == null) result = <LabelDefinition>[];
+      result ??= <LabelDefinition>[];
       result.add(element);
     }
-    return (result == null) ? const <LabelDefinition>[] : result;
+    return result ?? const <LabelDefinition>[];
   }
 }
 
@@ -191,7 +191,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
           new HBreak(target, breakSwitchContinueLoop: true);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction);
-      jumps.add(new JumpHandlerEntry(breakInstruction, locals));
+      jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
     } else {
       super.generateBreak(label);
     }
@@ -218,7 +218,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
       HInstruction continueInstruction = new HContinue(target);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction);
-      jumps.add(new JumpHandlerEntry(continueInstruction, locals));
+      jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
     } else {
       super.generateContinue(label);
     }

@@ -2161,11 +2161,9 @@ abstract class HJump extends HControlFlow {
 }
 
 class HBreak extends HJump {
-  /**
-   * Signals that this is a special break instruction for the synthetic loop
-   * generatedfor a switch statement with continue statements. See
-   * [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
-   */
+  /// Signals that this is a special break instruction for the synthetic loop
+  /// generated for a switch statement with continue statements. See
+  /// [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
   final bool breakSwitchContinueLoop;
   HBreak(JumpTarget target, {bool this.breakSwitchContinueLoop: false})
       : super(target);

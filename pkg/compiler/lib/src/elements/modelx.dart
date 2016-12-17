@@ -3209,7 +3209,7 @@ class JumpTargetX implements JumpTarget {
   final ExecutableElement executableContext;
   final Node statement;
   final int nestingLevel;
-  Link<LabelDefinition> labels = const Link<LabelDefinition>();
+  List<LabelDefinition> labels = <LabelDefinition>[];
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
@@ -3223,7 +3223,7 @@ class JumpTargetX implements JumpTarget {
 
   LabelDefinition addLabel(Label label, String labelName) {
     LabelDefinition result = new LabelDefinitionX(label, labelName, this);
-    labels = labels.prepend(result);
+    labels.add(result);
     return result;
   }
 
