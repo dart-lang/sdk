@@ -5,8 +5,7 @@
 import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart'
     show
-        defineDDCAnalysisArguments,
-        extractDefinedVariables,
+        defineAnalysisArguments,
         filterUnknownArguments,
         ignoreUnrecognizedFlagsFlag;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -29,22 +28,29 @@ bool _verbose = false;
 /// worker support.
 int compile(List<String> args, {void printFn(Object obj)}) {
   printFn ??= print;
+
   ArgResults argResults;
-  var declaredVars = <String, String>{};
+  AnalyzerOptions analyzerOptions;
   try {
-    args = extractDefinedVariables(args, declaredVars);
     var parser = _argParser();
     if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
       args = filterUnknownArguments(args, parser);
     }
     argResults = parser.parse(args);
-    _verbose = argResults['verbose'];
+    analyzerOptions = new AnalyzerOptions.fromArguments(argResults);
   } on FormatException catch (error) {
     printFn('$error\n\n$_usageMessage');
     return 64;
   }
+
+  _verbose = argResults['verbose'];
+  if (argResults['help']) {
+    printFn(_usageMessage);
+    return 0;
+  }
+
   try {
-    _compile(argResults, declaredVars, printFn);
+    _compile(argResults, analyzerOptions, printFn);
     return 0;
   } on UsageException catch (error) {
     // Incorrect usage, input file not found, etc.
@@ -97,7 +103,7 @@ ArgParser _argParser({bool hide: true}) {
     ..addOption('library-root',
         help: 'Root of source files.\n'
             'Generated library names are relative to this root.');
-  defineDDCAnalysisArguments(argParser, hide: hide);
+  defineAnalysisArguments(argParser, hide: hide, ddc: true);
   addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
   AnalyzerOptions.addArguments(argParser, hide: hide);
   CompilerOptions.addArguments(argParser, hide: hide);
@@ -113,14 +119,9 @@ bool _changed(List<int> list1, List<int> list2) {
   return false;
 }
 
-void _compile(ArgResults argResults, Map<String, String> declaredVars,
+void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     void printFn(Object obj)) {
-  if (argResults['help']) {
-    printFn(_usageMessage);
-    return;
-  }
-  var compiler = new ModuleCompiler(
-      new AnalyzerOptions.fromArguments(argResults, declaredVars));
+  var compiler = new ModuleCompiler(analyzerOptions);
   var compilerOpts = new CompilerOptions.fromArguments(argResults);
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);

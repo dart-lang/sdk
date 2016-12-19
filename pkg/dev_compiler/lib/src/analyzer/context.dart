@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
@@ -24,11 +25,13 @@ import 'package:path/path.dart' as path;
 
 /// Options used to set up Source URI resolution in the analysis context.
 class AnalyzerOptions {
+  final ContextBuilderOptions contextBuilderOptions;
+
   /// Custom URI mappings, such as "dart:foo" -> "path/to/foo.dart"
   final Map<String, String> customUrlMappings;
 
   /// Package root when resolving 'package:' urls the standard way.
-  final String packageRoot;
+  String get packageRoot => contextBuilderOptions.defaultPackagesDirectoryPath;
 
   /// List of summary file paths.
   final List<String> summaryPaths;
@@ -39,39 +42,52 @@ class AnalyzerOptions {
 
   /// Path to the dart-sdk summary.  If this is set, it will be used in favor
   /// of the unsummarized one.
-  final String dartSdkSummaryPath;
+  String get dartSdkSummaryPath => contextBuilderOptions.dartSdkSummaryPath;
 
   /// Defined variables used by `bool.fromEnvironment` etc.
-  final Map<String, String> declaredVariables;
+  Map<String, String> get declaredVariables =>
+      contextBuilderOptions.declaredVariables;
 
-  AnalyzerOptions(
-      {this.summaryPaths: const [],
+  AnalyzerOptions._(
+      {this.contextBuilderOptions,
+      this.summaryPaths: const [],
       String dartSdkPath,
-      this.dartSdkSummaryPath,
-      this.customUrlMappings: const {},
-      this.packageRoot: null,
-      this.declaredVariables: const {}})
-      : dartSdkPath = dartSdkPath ?? getSdkDir().path;
+      this.customUrlMappings: const {}})
+      : dartSdkPath = dartSdkPath ?? getSdkDir().path {
+    contextBuilderOptions.declaredVariables ??= const {};
+  }
 
-  factory AnalyzerOptions.fromArguments(
-      ArgResults args, Map<String, String> declaredVariables) {
-    var sdkPath = args['dart-sdk'] ?? getSdkDir().path;
-    var sdkSummaryPath = args['dart-sdk-summary'];
+  factory AnalyzerOptions.basic(
+      {String dartSdkPath,
+      String dartSdkSummaryPath,
+      List<String> summaryPaths}) {
+    var contextBuilderOptions = new ContextBuilderOptions();
+    contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
 
-    if (sdkSummaryPath == null) {
-      sdkSummaryPath = path.join(sdkPath, 'lib', '_internal', 'ddc_sdk.sum');
-    } else if (sdkSummaryPath == 'build') {
+    return new AnalyzerOptions._(
+        contextBuilderOptions: contextBuilderOptions,
+        dartSdkPath: dartSdkPath,
+        summaryPaths: summaryPaths);
+  }
+
+  factory AnalyzerOptions.fromArguments(ArgResults args,
+      {String dartSdkSummaryPath, List<String> summaryPaths}) {
+    var contextBuilderOptions = createContextBuilderOptions(args);
+
+    if (dartSdkSummaryPath != null)
+      contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
+    contextBuilderOptions.dartSdkSummaryPath ??=
+        path.join(args['dart-sdk'], 'lib', '_internal', 'ddc_sdk.sum');
+    if (contextBuilderOptions.dartSdkSummaryPath == 'build') {
       // For building the SDK, we explicitly set the path to none.
-      sdkSummaryPath = null;
+      contextBuilderOptions.dartSdkSummaryPath = null;
     }
 
-    return new AnalyzerOptions(
-        summaryPaths: args['summary'] as List<String>,
-        dartSdkPath: sdkPath,
-        dartSdkSummaryPath: sdkSummaryPath,
-        customUrlMappings: _parseUrlMappings(args['url-mapping']),
-        packageRoot: args['package-root'],
-        declaredVariables: declaredVariables);
+    return new AnalyzerOptions._(
+        contextBuilderOptions: contextBuilderOptions,
+        summaryPaths: summaryPaths ?? args['summary'] as List<String>,
+        dartSdkPath: args['dart-sdk'],
+        customUrlMappings: _parseUrlMappings(args['url-mapping']));
   }
 
   static void addArguments(ArgParser parser, {bool hide: true}) {

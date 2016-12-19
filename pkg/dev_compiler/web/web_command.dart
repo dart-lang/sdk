@@ -116,7 +116,7 @@ class WebCompileCommand extends Command {
     var fileResolvers = [summaryResolver, resourceUriResolver];
 
     var compiler = new ModuleCompiler(
-        new AnalyzerOptions(dartSdkPath: '/dart-sdk'),
+        new AnalyzerOptions.basic(dartSdkPath: '/dart-sdk'),
         sdkResolver: sdkResolver,
         fileResolvers: fileResolvers,
         resourceProvider: resourceProvider);

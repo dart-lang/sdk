@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -32,9 +33,6 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
-  /// The path to an analysis options file
-  final String analysisOptionsFile;
-
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -67,14 +65,14 @@ class CommandLineOptions {
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
 
+  /// The options defining the context in which analysis is performed.
+  final ContextBuilderOptions contextBuilderOptions;
+
   /// The path to the dart SDK.
   String dartSdkPath;
 
   /// The path to the dart SDK summary file.
   String dartSdkSummaryPath;
-
-  /// A table mapping the names of defined variables to their values.
-  final Map<String, String> definedVariables;
 
   /// Whether to disable cache flushing.  This option can improve analysis
   /// speed at the expense of memory usage.  It may also be useful for working
@@ -89,13 +87,6 @@ class CommandLineOptions {
 
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
-
-  /// Whether to strictly follow the specification when generating warnings on
-  /// "call" methods (fixes dartbug.com/21938).
-  final bool enableStrictCallChecks;
-
-  /// Whether to relax restrictions on mixins (DEP 34).
-  final bool enableSuperMixins;
 
   /// Whether to treat type mismatches found during constant evaluation as
   /// errors.
@@ -115,12 +106,6 @@ class CommandLineOptions {
 
   /// Whether to use machine format for error display
   final bool machineFormat;
-
-  /// The path to the package root
-  final String packageRootPath;
-
-  /// The path to a `.packages` configuration file
-  final String packageConfigPath;
 
   /// The path to a file to write a performance log.
   /// (Or null if not enabled.)
@@ -157,8 +142,7 @@ class CommandLineOptions {
   final bool lintsAreFatal;
 
   /// Initialize options from the given parsed [args].
-  CommandLineOptions._fromArgs(
-      ArgResults args, Map<String, String> definedVariables)
+  CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
@@ -170,24 +154,19 @@ class CommandLineOptions {
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
+        contextBuilderOptions = createContextBuilderOptions(args),
         dartSdkPath = args['dart-sdk'],
         dartSdkSummaryPath = args['dart-sdk-summary'],
-        definedVariables = definedVariables,
-        analysisOptionsFile = args['options'],
         disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
-        enableStrictCallChecks = args['enable-strict-call-checks'],
-        enableSuperMixins = args['supermixin'],
         enableTypeChecks = args['enable_type_checks'],
         hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
-        packageConfigPath = args['packages'],
-        packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
         shouldBatch = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
@@ -201,6 +180,30 @@ class CommandLineOptions {
         implicitCasts = !args['no-implicit-casts'],
         implicitDynamic = !args['no-implicit-dynamic'],
         lintsAreFatal = args['fatal-lints'];
+
+  /// The path to an analysis options file
+  String get analysisOptionsFile =>
+      contextBuilderOptions.defaultAnalysisOptionsFilePath;
+
+  /// A table mapping the names of defined variables to their values.
+  Map<String, String> get definedVariables =>
+      contextBuilderOptions.declaredVariables;
+
+  /// Whether to strictly follow the specification when generating warnings on
+  /// "call" methods (fixes dartbug.com/21938).
+  bool get enableStrictCallChecks =>
+      contextBuilderOptions.defaultOptions.enableStrictCallChecks;
+
+  /// Whether to relax restrictions on mixins (DEP 34).
+  bool get enableSuperMixins =>
+      contextBuilderOptions.defaultOptions.enableSuperMixins;
+
+  /// The path to the package root
+  String get packageRootPath =>
+      contextBuilderOptions.defaultPackagesDirectoryPath;
+
+  /// The path to a `.packages` configuration file
+  String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
@@ -454,8 +457,6 @@ class CommandLineOptions {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
       args =
           args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
-      Map<String, String> definedVariables = <String, String>{};
-      args = extractDefinedVariables(args, definedVariables);
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
@@ -479,7 +480,7 @@ class CommandLineOptions {
               'option. Got: $args');
           return null; // Only reachable in testing.
         }
-        return new CommandLineOptions._fromArgs(results, definedVariables);
+        return new CommandLineOptions._fromArgs(results);
       }
 
       // Help requests.
@@ -515,7 +516,7 @@ class CommandLineOptions {
           return null; // Only reachable in testing.
         }
       }
-      return new CommandLineOptions._fromArgs(results, definedVariables);
+      return new CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
       _showUsage(parser);
