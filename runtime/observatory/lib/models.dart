@@ -45,11 +45,13 @@ part 'src/models/objects/script.dart';
 part 'src/models/objects/sentinel.dart';
 part 'src/models/objects/source_location.dart';
 part 'src/models/objects/target.dart';
+part 'src/models/objects/thread.dart';
 part 'src/models/objects/token_stream.dart';
 part 'src/models/objects/timeline_event.dart';
 part 'src/models/objects/type_arguments.dart';
 part 'src/models/objects/unknown.dart';
 part 'src/models/objects/vm.dart';
+part 'src/models/objects/zone.dart';
 
 part 'src/models/repositories/allocation_profile.dart';
 part 'src/models/repositories/breakpoint.dart';
