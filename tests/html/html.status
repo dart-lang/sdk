@@ -47,7 +47,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
-js_test/JsArray: RuntimeError # Issue 26197
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
@@ -323,7 +322,6 @@ indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
 
 
-js_test/JsArray: RuntimeError # Fails 10 out of 10.
 indexeddb_3_test: Skip # Times out 1 out of 10.
 
 [  $compiler == dart2js && $runtime == ff ]

@@ -34094,6 +34094,17 @@ core.Function = class Function extends core.Object {
     return result;
   }
 };
+core.Function.is = function is_Function(o) {
+  return typeof o == "function";
+};
+core.Function.as = function as_Function(o) {
+  if (typeof o == "function" || o == null) return o;
+  return dart.as(o, core.Function);
+};
+core.Function._check = function check_String(o) {
+  if (typeof o == "function" || o == null) return o;
+  return dart.check(o, core.Function);
+};
 dart.setSignature(core.Function, {
   statics: () => ({
     apply: dart.definiteFunctionType(dart.dynamic, [core.Function, core.List], [MapOfSymbol$dynamic()]),
@@ -52684,7 +52695,7 @@ js.JsObject = class JsObject extends core.Object {
     }
     if (args != null) args = core.List.from(args[dartx.map](dart.dynamic)(js._convertToJS));
     let fn = this[_jsObject][method];
-    if (!(fn instanceof Function)) {
+    if (typeof fn !== "function") {
       dart.throw(new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(core.String._check(method)), args, dart.map({}, core.Symbol, dart.dynamic)));
     }
     return js._convertToDart(fn.apply(this[_jsObject], args));
@@ -52886,7 +52897,7 @@ js.JsArray$ = dart.generic(E => {
 });
 js.JsArray = JsArray();
 js._isBrowserType = function(o) {
-  return o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || o instanceof ImageData || o instanceof Node || window.TypedData && o instanceof TypedData || o instanceof Window;
+  return o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || window.IDBKeyRange && o instanceof IDBKeyRange || o instanceof ImageData || o instanceof Node || window.Int8Array && o instanceof Int8Array.__proto__ || o instanceof Window;
 };
 dart.fn(js._isBrowserType, dynamicTobool());
 const _dartObj = Symbol('_dartObj');
@@ -52931,11 +52942,15 @@ js._convertToDart = function(o) {
   } else if (js._DartObject.is(o) && dart.jsobject != dart.getReifiedType(o)) {
     return o[_dartObj];
   } else {
-    return js._putIfAbsent(js._dartProxies, o, js._wrapToDart);
+    return js._wrapToDart(o);
   }
 };
 dart.fn(js._convertToDart, dynamicToObject());
 js._wrapToDart = function(o) {
+  return js.JsObject._check(js._putIfAbsent(js._dartProxies, o, js._wrapToDartHelper));
+};
+dart.fn(js._wrapToDart, dynamicToJsObject());
+js._wrapToDartHelper = function(o) {
   if (typeof o == "function") {
     return new js.JsFunction._fromJs(o);
   }
@@ -52944,7 +52959,7 @@ js._wrapToDart = function(o) {
   }
   return new js.JsObject._fromJs(o);
 };
-dart.fn(js._wrapToDart, dynamicToJsObject());
+dart.fn(js._wrapToDartHelper, dynamicToJsObject());
 dart.defineLazy(js, {
   get _dartProxies() {
     return new WeakMap();
@@ -59489,10 +59504,10 @@ html.Blob = class Blob extends _interceptors.Interceptor {
     return html.Blob._check(html.Blob._create_2(blobParts, bag));
   }
   static _create_1(parts) {
-    return new Blob(parts);
+    return new window.Blob(parts);
   }
   static _create_2(parts, bag) {
-    return new Blob(parts, bag);
+    return new window.Blob(parts, bag);
   }
   static _create_bag() {
     return {};
