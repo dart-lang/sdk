@@ -791,7 +791,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 }
 
 
-void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
+CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -800,6 +800,7 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
                                      pending_deoptimization_env_);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
+  return info;
 }
 
 

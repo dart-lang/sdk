@@ -118,6 +118,11 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // will be able to find them during materialization.
   slot_ix = builder->EmitMaterializationArguments(slot_ix);
 
+  if (lazy_deopt_with_result_) {
+    ASSERT(reason() == ICData::kDeoptAtCall);
+    builder->AddCopy(NULL, Location::StackSlot(stack_height), slot_ix++);
+  }
+
   // For the innermost environment, set outgoing arguments and the locals.
   for (intptr_t i = current->Length() - 1;
        i >= current->fixed_parameter_count(); i--) {
@@ -179,6 +184,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
                                               intptr_t deopt_id,
                                               intptr_t argument_count,
+                                              CallResult result,
                                               LocationSummary* locs) {
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
@@ -190,7 +196,10 @@ void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
     // On all other architectures caller drops outgoing arguments itself
     // hence the difference.
     pending_deoptimization_env_->DropArguments(argument_count);
-    AddDeoptIndexAtCall(deopt_id_after);
+    CompilerDeoptInfo* info = AddDeoptIndexAtCall(deopt_id_after);
+    if (result == kHasResult) {
+      info->mark_lazy_deopt_with_result();
+    }
     // This descriptor is needed for exception handling in optimized code.
     AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id_after, token_pos);
   } else {
@@ -201,9 +210,9 @@ void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
 }
 
 
-void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
+void FlowGraphCompiler::RecordAfterCall(Instruction* instr, CallResult result) {
   RecordAfterCallHelper(instr->token_pos(), instr->deopt_id(),
-                        instr->ArgumentCount(), instr->locs());
+                        instr->ArgumentCount(), result, instr->locs());
 }
 
 
@@ -263,7 +272,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     locs->SetStackBit(locs->out(0).reg());
   }
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
-  RecordAfterCallHelper(token_pos, deopt_id, 0, locs);
+  const intptr_t kArgCount = 0;
+  RecordAfterCallHelper(token_pos, deopt_id, kArgCount,
+                        FlowGraphCompiler::kHasResult, locs);
   if (is_optimizing()) {
     // Assert assignable keeps the instance on the stack as the result,
     // all other arguments are popped.
