@@ -238,6 +238,9 @@ abstract class ServiceObject {
       case 'SourceLocation':
         obj = new SourceLocation._empty(owner);
         break;
+      case '_Thread':
+        obj = new Thread._empty(owner);
+        break;
       case 'UnresolvedSourceLocation':
         obj = new UnresolvedSourceLocation._empty(owner);
         break;
@@ -1501,6 +1504,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   List<ByteData> _chunksInProgress;
 
+  List<Thread> get threads => _threads;
+  final List<Thread> _threads = new List<Thread>();
+
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1623,6 +1629,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     extensionRPCs.clear();
     if (map['extensionRPCs'] != null) {
       extensionRPCs.addAll(map['extensionRPCs']);
+    }
+
+    threads.clear();
+    if(map['threads'] != null) {
+      threads.addAll(map['threads']);
     }
   }
 
@@ -3054,6 +3065,58 @@ class Sentinel extends ServiceObject implements M.Sentinel {
 
   String toString() => 'Sentinel($kind)';
   String get shortName => valueAsString;
+}
+
+class Thread extends ServiceObject implements M.Thread {
+  M.ThreadKind get kind => _kind;
+  M.ThreadKind _kind;
+  List<Zone> get zones => _zones;
+  final List<Zone> _zones = new List<Zone>();
+
+  Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    String kindString = map['kind'];
+    List<Map> zoneList = map['zones'];
+
+    switch(kindString) {
+      case "kUnknownTask":
+        _kind = M.ThreadKind.unknownTask;
+        break;
+      case "kMutatorTask":
+        _kind = M.ThreadKind.mutatorTask;
+        break;
+      case "kCompilerTask":
+        _kind = M.ThreadKind.compilerTask;
+        break;
+      case "kSweeperTask":
+        _kind = M.ThreadKind.sweeperTask;
+        break;
+      case "kMarkerTask":
+        _kind = M.ThreadKind.markerTask;
+        break;
+      case "kFinalizerTask":
+        _kind = M.ThreadKind.finalizerTask;
+        break;
+      default:
+        assert(false);
+    }
+    zones.clear();
+    zoneList.forEach((zone) {
+      int capacity = zone['capacity'];
+      int used = zone['used'];
+      zones.add(new Zone(capacity, used));
+    });
+  }
+}
+
+class Zone implements M.Zone {
+  int get capacity => _capacity;
+  int _capacity;
+  int get used => _used;
+  int _used;
+
+  Zone(this._capacity, this._used);
 }
 
 class Field extends HeapObject implements M.Field {
