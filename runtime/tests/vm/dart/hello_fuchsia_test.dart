@@ -412,6 +412,25 @@ void testPlatformEnvironment() {
   }
 }
 
+Future testCopy() async {
+  final String sourceName = "foo";
+  final String destName = "bar";
+  Directory tmp = await Directory.systemTemp.createTemp("testCopy");
+  File sourceFile = new File("${tmp.path}/$sourceName");
+  File destFile = new File("${tmp.path}/$destName");
+  List<int> data = new List<int>.generate(10 * 1024, (int i) => i & 0xff);
+  await sourceFile.writeAsBytes(data);
+  await sourceFile.copy(destFile.path);
+  List<int> resultData = await destFile.readAsBytes();
+  assert(data.length == resultData.length);
+  for (int i = 0; i < data.length; i++) {
+    assert(data[i] == resultData[i]);
+  }
+  await sourceFile.delete();
+  await destFile.delete();
+  await tmp.delete();
+}
+
 main() async {
   print("Hello, Fuchsia!");
 
@@ -458,6 +477,10 @@ main() async {
   print("testProcessRunSync");
   testProcessRunSync();
   print("testProcessRunSync done");
+
+  print("testCopy");
+  await testCopy();
+  print("testCopy done");
 
   print("Goodbyte, Fuchsia!");
 }

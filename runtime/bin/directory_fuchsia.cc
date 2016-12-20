@@ -355,6 +355,8 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     }
     return NO_RETRY_EXPECTED(rmdir(dir_name)) == 0;
   } else {
+    // TODO(MG-416): After the issue is addressed, this can use the same code
+    // as on Linux, etc.
     UNIMPLEMENTED();
     return false;
   }
