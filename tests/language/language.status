@@ -89,7 +89,6 @@ type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-assert_message_test: RuntimeError # Issue 28150
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
 vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
