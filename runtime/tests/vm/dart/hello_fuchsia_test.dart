@@ -388,6 +388,15 @@ Future testProcess() async {
   print("$exe --version exited with code $code");
 }
 
+void testProcessRunSync() {
+  String exe = Platform.resolvedExecutable;
+  print("Running $exe --version");
+  var result = Process.runSync(exe, ["--version"]);
+  print("$exe --version exited with code ${result.exitCode}");
+  print("$exe --version had stdout = '${result.stdout}'");
+  print("$exe --version had stderr = '${result.stderr}'");
+}
+
 Future testLs(String path) async {
   Stream<FileSystemEntity> stream = (new Directory(path)).list();
   await for (FileSystemEntity fse in stream) {
@@ -445,6 +454,10 @@ main() async {
   print("testProcess");
   await testProcess();
   print("testProcess done");
+
+  print("testProcessRunSync");
+  testProcessRunSync();
+  print("testProcessRunSync done");
 
   print("Goodbyte, Fuchsia!");
 }
