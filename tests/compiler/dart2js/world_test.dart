@@ -49,7 +49,7 @@ testClassSets() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
@@ -69,7 +69,7 @@ testClassSets() async {
           foundClasses.contains(expectedClass),
           "Expect $expectedClass in '$property' on $cls. "
           "Found:\n ${foundClasses.join('\n ')}\n"
-          "${env.compiler.closedWorld.dump(cls)}");
+          "${closedWorld.dump(cls)}");
     }
     if (exact) {
       Expect.equals(
@@ -78,7 +78,7 @@ testClassSets() async {
           "Unexpected classes "
           "${foundClasses.where((c) => !expectedClasses.contains(c))} "
           "in '$property' on $cls.\n"
-          "${env.compiler.closedWorld.dump(cls)}");
+          "${closedWorld.dump(cls)}");
     }
   }
 
@@ -104,7 +104,7 @@ testClassSets() async {
           expectedClasses.length,
           count,
           "Unexpected class count in '$property' on $cls.\n"
-          "${env.compiler.closedWorld.dump(cls)}");
+          "${closedWorld.dump(cls)}");
     }
   }
 
@@ -239,7 +239,7 @@ testProperties() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassElement cls = env.getElement(name);
@@ -316,7 +316,7 @@ testNativeClasses() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
   LibraryElement dart_html =
       env.compiler.libraryLoader.lookupLibrary(Uris.dart_html);
 

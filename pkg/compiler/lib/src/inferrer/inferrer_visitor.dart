@@ -861,16 +861,16 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
-    return types.getConcreteTypeFor(
-        computeTypeMask(compiler, constantSystem.createDouble(node.value)));
+    return types.getConcreteTypeFor(computeTypeMask(closedWorld,
+        compiler.backend, constantSystem.createDouble(node.value)));
   }
 
   T visitLiteralInt(LiteralInt node) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     // The JavaScript backend may turn this literal into a double at
     // runtime.
-    return types.getConcreteTypeFor(
-        computeTypeMask(compiler, constantSystem.createInt(node.value)));
+    return types.getConcreteTypeFor(computeTypeMask(
+        closedWorld, compiler.backend, constantSystem.createInt(node.value)));
   }
 
   T visitLiteralList(LiteralList node) {

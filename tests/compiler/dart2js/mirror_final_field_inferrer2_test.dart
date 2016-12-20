@@ -28,9 +28,12 @@ void main() {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
     var element = findElement(compiler, 'field');
-    var commonMasks = compiler.closedWorld.commonMasks;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    Expect.equals(commonMasks.uint31Type,
-        simplify(typesInferrer.getTypeOfElement(element), compiler), 'field');
+    var closedWorld = typesInferrer.closedWorld;
+    var commonMasks = closedWorld.commonMasks;
+    Expect.equals(
+        commonMasks.uint31Type,
+        simplify(typesInferrer.getTypeOfElement(element), closedWorld),
+        'field');
   });
 }

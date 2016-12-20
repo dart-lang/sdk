@@ -6,6 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/world.dart' show ClosedWorld;
 
 import 'memory_compiler.dart';
 import 'compiler_helper.dart' show findElement;
@@ -30,17 +31,18 @@ void main() {
     CompilationResult result = await runCompiler(memorySourceFiles: TEST);
     Compiler compiler = result.compiler;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    ClosedWorld closedWorld = typesInferrer.closedWorld;
 
     checkType(String name, type, length) {
       var element = findElement(compiler, name);
       TypeMask mask = typesInferrer.getTypeOfElement(element);
       Expect.isTrue(mask.isContainer);
       ContainerTypeMask container = mask;
-      Expect.equals(type, simplify(container.elementType, compiler), name);
+      Expect.equals(type, simplify(container.elementType, closedWorld), name);
       Expect.equals(container.length, length);
     }
 
-    checkType('myList', compiler.closedWorld.commonMasks.numType, 42);
-    checkType('myOtherList', compiler.closedWorld.commonMasks.uint31Type, 32);
+    checkType('myList', closedWorld.commonMasks.numType, 42);
+    checkType('myOtherList', closedWorld.commonMasks.uint31Type, 32);
   });
 }

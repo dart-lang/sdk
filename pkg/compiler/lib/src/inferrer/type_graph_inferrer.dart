@@ -863,7 +863,8 @@ class TypeGraphInferrerEngine
                   // Although we might find a better type, we have to keep
                   // the old type around to ensure that we get a complete view
                   // of the type graph and do not drop any flow edges.
-                  TypeMask refinedType = computeTypeMask(compiler, value);
+                  TypeMask refinedType =
+                      computeTypeMask(closedWorld, compiler.backend, value);
                   assert(TypeMask.assertIsNormalized(refinedType, closedWorld));
                   type = new NarrowTypeInformation(type, refinedType);
                   types.allocatedTypes.add(type);

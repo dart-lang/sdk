@@ -43,6 +43,7 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkArgument(String functionName, type) {
           var functionElement = findElement(compiler, functionName);
@@ -52,7 +53,7 @@ void main() {
               : signature.optionalParameters.first;
           Expect.equals(
               type,
-              simplify(typesInferrer.getTypeOfElement(element), compiler),
+              simplify(typesInferrer.getTypeOfElement(element), closedWorld),
               functionName);
         }
 
@@ -62,51 +63,45 @@ void main() {
           var element = signature.optionalParameters.first;
           Expect.equals(
               type,
-              simplify(typesInferrer.getTypeOfElement(element), compiler),
+              simplify(typesInferrer.getTypeOfElement(element), closedWorld),
               functionName);
         }
 
-        checkArgument('foo1', compiler.closedWorld.commonMasks.functionType);
+        checkArgument('foo1', closedWorld.commonMasks.functionType);
 
         /// 01: ok
-        checkArgument('foo2', compiler.closedWorld.commonMasks.functionType);
+        checkArgument('foo2', closedWorld.commonMasks.functionType);
 
         /// 02: ok
-        checkArgument('foo3', compiler.closedWorld.commonMasks.functionType);
+        checkArgument('foo3', closedWorld.commonMasks.functionType);
 
         /// 03: ok
-        checkArgument('foo4', compiler.closedWorld.commonMasks.functionType);
+        checkArgument('foo4', closedWorld.commonMasks.functionType);
 
         /// 04: ok
-        checkArgument('foo5', compiler.closedWorld.commonMasks.dynamicType);
+        checkArgument('foo5', closedWorld.commonMasks.dynamicType);
 
         /// 05: ok
-        checkArgument('foo6', compiler.closedWorld.commonMasks.dynamicType);
+        checkArgument('foo6', closedWorld.commonMasks.dynamicType);
 
         /// 06: ok
 
-        checkArgument(
-            'defaultFn1', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('defaultFn1', closedWorld.commonMasks.uint31Type);
 
         /// 07: ok
-        checkArgument(
-            'defaultFn2', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('defaultFn2', closedWorld.commonMasks.uint31Type);
 
         /// 08: ok
-        checkArgument(
-            'defaultFn3', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('defaultFn3', closedWorld.commonMasks.uint31Type);
 
         /// 09: ok
-        checkArgument(
-            'defaultFn4', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('defaultFn4', closedWorld.commonMasks.uint31Type);
 
         /// 10: ok
-        checkArgument(
-            'defaultFn5', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('defaultFn5', closedWorld.commonMasks.uint31Type);
 
         /// 11: ok
-        checkArgument(
-            'defaultFn6', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('defaultFn6', closedWorld.commonMasks.uint31Type);
 
         /// 12: ok
       }));

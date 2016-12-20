@@ -52,7 +52,7 @@ testClassSets() async {
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
 
-    closedWorld = env.compiler.closedWorld;
+    closedWorld = env.closedWorld;
     superclass = env.getElement('Superclass');
     subclass = env.getElement('Subclass');
     subtype = env.getElement('Subtype');

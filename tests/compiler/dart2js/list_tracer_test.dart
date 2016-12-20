@@ -198,14 +198,15 @@ void doTest(String allocation, {bool nullify}) {
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
 
         checkType(String name, type) {
           var element = findElement(compiler, name);
           ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
           if (nullify) type = type.nullable();
-          Expect.equals(type, simplify(mask.elementType, compiler), name);
+          Expect.equals(type, simplify(mask.elementType, closedWorld), name);
         }
 
         checkType('listInField', commonMasks.numType);

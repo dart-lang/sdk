@@ -8,6 +8,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'type_mask_test_helper.dart';
 import 'memory_compiler.dart';
 
@@ -51,6 +52,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
+    ClosedWorld closedWorld = compiler.closedWorld;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
     Expect.isNotNull(backend.annotations.expectNoInlineClass,
@@ -65,12 +67,12 @@ main() {
       for (ParameterElement parameter in function.parameters) {
         TypeMask type = inferrer.getTypeOfElement(parameter);
         Expect.equals(
-            expectedParameterType, simplify(type, compiler), "$parameter");
+            expectedParameterType, simplify(type, closedWorld), "$parameter");
       }
       if (expectedReturnType != null) {
         TypeMask type = inferrer.getReturnTypeOfElement(function);
         Expect.equals(
-            expectedReturnType, simplify(type, compiler), "$function");
+            expectedReturnType, simplify(type, closedWorld), "$function");
       }
     }
 
@@ -97,15 +99,15 @@ main() {
         testTypeMatch(
             method, expectedParameterType, expectedReturnType, inferrer);
       } else if (expectAssumeDynamic) {
-        testTypeMatch(method, compiler.closedWorld.commonMasks.dynamicType,
-            null, inferrer);
+        testTypeMatch(
+            method, closedWorld.commonMasks.dynamicType, null, inferrer);
       }
     }
 
-    TypeMask jsStringType = compiler.closedWorld.commonMasks.stringType;
-    TypeMask jsIntType = compiler.closedWorld.commonMasks.intType;
-    TypeMask coreStringType = new TypeMask.subtype(
-        compiler.coreClasses.stringClass, compiler.closedWorld);
+    TypeMask jsStringType = closedWorld.commonMasks.stringType;
+    TypeMask jsIntType = closedWorld.commonMasks.intType;
+    TypeMask coreStringType =
+        new TypeMask.subtype(compiler.coreClasses.stringClass, closedWorld);
 
     test('method');
     test('methodAssumeDynamic', expectAssumeDynamic: true);

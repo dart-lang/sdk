@@ -3234,6 +3234,7 @@ class JavaScriptBackendClasses implements BackendClasses {
       helpers.jsMutableIndexableClass;
   ClassElement get indexingBehaviorImplementation =>
       helpers.jsIndexingBehaviorInterface;
+  ClassElement get interceptorImplementation => helpers.jsInterceptorClass;
 
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');

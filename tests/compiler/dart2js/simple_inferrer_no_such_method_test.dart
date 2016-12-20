@@ -160,88 +160,82 @@ main() {
 }
 """;
 
-main() {
+checkReturn(MockCompiler compiler, String name, type) {
+  var typesInferrer = compiler.globalInference.typesInferrerInternal;
+  var element = findElement(compiler, name);
+  Expect.equals(
+      type,
+      simplify(typesInferrer.getReturnTypeOfElement(element),
+          typesInferrer.closedWorld),
+      name);
+}
+
+test1() async {
   Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(TEST1, uri);
+  await compiler.run(uri);
+  var closedWorld = compiler.closedWorld;
+  checkReturn(compiler, 'test1', closedWorld.commonMasks.uint31Type);
+  checkReturn(
+      compiler, 'test2', closedWorld.commonMasks.dynamicType.nonNullable());
+  checkReturn(compiler, 'test3', closedWorld.commonMasks.uint31Type);
+  checkReturn(compiler, 'test4', closedWorld.commonMasks.mapType);
+  checkReturn(
+      compiler, 'test5', closedWorld.commonMasks.dynamicType.nonNullable());
+  checkReturn(
+      compiler, 'test6', closedWorld.commonMasks.dynamicType.nonNullable());
+}
 
-  checkReturn(MockCompiler compiler, String name, type) {
-    var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    var element = findElement(compiler, name);
-    Expect.equals(
-        type,
-        simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
-        name);
-  }
+test2() async {
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(TEST2, uri);
+  await compiler.run(uri);
+  var closedWorld = compiler.closedWorld;
+  checkReturn(compiler, 'test1', closedWorld.commonMasks.mapType.nonNullable());
+  checkReturn(compiler, 'test2', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test3', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test4', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test5', closedWorld.commonMasks.mapType);
 
-  var compiler1 = compilerFor(TEST1, uri);
-  asyncTest(() => compiler1.run(uri).then((_) {
-        checkReturn(
-            compiler1, 'test1', compiler1.closedWorld.commonMasks.uint31Type);
-        checkReturn(compiler1, 'test2',
-            compiler1.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn(
-            compiler1, 'test3', compiler1.closedWorld.commonMasks.uint31Type);
-        checkReturn(
-            compiler1, 'test4', compiler1.closedWorld.commonMasks.mapType);
-        checkReturn(compiler1, 'test5',
-            compiler1.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn(compiler1, 'test6',
-            compiler1.closedWorld.commonMasks.dynamicType.nonNullable());
-      }));
+  checkReturn(compiler, 'test6', closedWorld.commonMasks.numType);
+  checkReturn(compiler, 'test7', closedWorld.commonMasks.uint31Type);
+  checkReturn(compiler, 'test8', closedWorld.commonMasks.uint31Type);
+  checkReturn(compiler, 'test9', closedWorld.commonMasks.uint31Type);
+  checkReturn(compiler, 'test10', closedWorld.commonMasks.numType);
+  checkReturn(compiler, 'test11', closedWorld.commonMasks.doubleType);
+}
 
-  var compiler2 = compilerFor(TEST2, uri);
-  asyncTest(() => compiler2.run(uri).then((_) {
-        checkReturn(compiler2, 'test1',
-            compiler2.closedWorld.commonMasks.mapType.nonNullable());
-        checkReturn(
-            compiler2, 'test2', compiler2.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler2, 'test3', compiler2.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler2, 'test4', compiler2.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler2, 'test5', compiler2.closedWorld.commonMasks.mapType);
+test3() async {
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(TEST3, uri);
+  await compiler.run(uri);
+  var closedWorld = compiler.closedWorld;
+  checkReturn(compiler, 'test1', const TypeMask.nonNullEmpty());
+  checkReturn(compiler, 'test2', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test3', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test4', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test5', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test6', closedWorld.commonMasks.mapType);
+}
 
-        checkReturn(
-            compiler2, 'test6', compiler2.closedWorld.commonMasks.numType);
-        checkReturn(
-            compiler2, 'test7', compiler2.closedWorld.commonMasks.uint31Type);
-        checkReturn(
-            compiler2, 'test8', compiler2.closedWorld.commonMasks.uint31Type);
-        checkReturn(
-            compiler2, 'test9', compiler2.closedWorld.commonMasks.uint31Type);
-        checkReturn(
-            compiler2, 'test10', compiler2.closedWorld.commonMasks.numType);
-        checkReturn(
-            compiler2, 'test11', compiler2.closedWorld.commonMasks.doubleType);
-      }));
+test4() async {
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(TEST4, uri);
+  await compiler.run(uri);
+  var closedWorld = compiler.closedWorld;
+  checkReturn(compiler, 'test1', const TypeMask.nonNullEmpty());
+  checkReturn(compiler, 'test2', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test3', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test4', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test5', closedWorld.commonMasks.mapType);
+  checkReturn(compiler, 'test6', closedWorld.commonMasks.mapType);
+}
 
-  var compiler3 = compilerFor(TEST3, uri);
-  asyncTest(() => compiler3.run(uri).then((_) {
-        checkReturn(compiler3, 'test1', const TypeMask.nonNullEmpty());
-        checkReturn(
-            compiler3, 'test2', compiler3.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler3, 'test3', compiler3.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler3, 'test4', compiler3.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler3, 'test5', compiler3.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler3, 'test6', compiler3.closedWorld.commonMasks.mapType);
-      }));
-
-  var compiler4 = compilerFor(TEST4, uri);
-  asyncTest(() => compiler4.run(uri).then((_) {
-        checkReturn(compiler4, 'test1', const TypeMask.nonNullEmpty());
-        checkReturn(
-            compiler4, 'test2', compiler4.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler4, 'test3', compiler4.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler4, 'test4', compiler4.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler4, 'test5', compiler4.closedWorld.commonMasks.mapType);
-        checkReturn(
-            compiler4, 'test6', compiler4.closedWorld.commonMasks.mapType);
-      }));
+main() {
+  asyncTest(() async {
+    await test1();
+    await test2();
+    await test3();
+    await test4();
+  });
 }

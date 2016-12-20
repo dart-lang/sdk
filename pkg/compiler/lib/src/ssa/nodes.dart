@@ -216,7 +216,8 @@ class HGraph {
         // We use `null` as the value for invalid constant expressions.
         constant = const NullConstantValue();
       }
-      TypeMask type = computeTypeMask(compiler, constant);
+      TypeMask type =
+          computeTypeMask(compiler.closedWorld, compiler.backend, constant);
       result = new HConstant.internal(constant, type)
         ..sourceInformation = sourceInformation;
       entry.addAtExit(result);

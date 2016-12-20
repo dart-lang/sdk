@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/types/masks.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
@@ -206,109 +207,85 @@ const String TEST_18 = r"""
   }
 """;
 
-void doTest(String test, bool enableInlining, Function f) {
+typedef List<TypeMask> TestCallback(CommonMasks masks);
+
+void doTest(String test, bool enableInlining, TestCallback f) {
   compileAndFind(test, 'A', 'x', enableInlining, (compiler, element) {
-    var expectedTypes = f(compiler);
+    var inferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = inferrer.closedWorld;
+    var expectedTypes = f(closedWorld.commonMasks);
     var signature = element.functionSignature;
     int index = 0;
-    var inferrer = compiler.globalInference.typesInferrerInternal;
     signature.forEachParameter((Element element) {
       Expect.equals(expectedTypes[index++],
-          simplify(inferrer.getTypeOfElement(element), compiler), test);
+          simplify(inferrer.getTypeOfElement(element), closedWorld), test);
     });
     Expect.equals(index, expectedTypes.length);
   });
 }
 
-void runTest(String test, Function f) {
+void runTest(String test, TestCallback f) {
   doTest(test, false, f);
   doTest(test, true, f);
 }
 
-subclassOfInterceptor(compiler) {
-  return findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
-}
-
 void test() {
-  runTest(TEST_1, (compiler) => [compiler.closedWorld.commonMasks.stringType]);
-  runTest(TEST_2, (compiler) => [compiler.closedWorld.commonMasks.uint31Type]);
-  runTest(TEST_3, (compiler) => [compiler.closedWorld.commonMasks.intType]);
-  runTest(TEST_4, (compiler) => [compiler.closedWorld.commonMasks.numType]);
-  runTest(TEST_5, (compiler) => [compiler.closedWorld.commonMasks.numType]);
-  runTest(TEST_6, (compiler) => [compiler.closedWorld.commonMasks.numType]);
-  runTest(TEST_7a, (compiler) => [subclassOfInterceptor(compiler)]);
-  runTest(
-      TEST_7b,
-      (compiler) =>
-          [compiler.closedWorld.commonMasks.dynamicType.nonNullable()]);
+  runTest(TEST_1, (commonMasks) => [commonMasks.stringType]);
+  runTest(TEST_2, (commonMasks) => [commonMasks.uint31Type]);
+  runTest(TEST_3, (commonMasks) => [commonMasks.intType]);
+  runTest(TEST_4, (commonMasks) => [commonMasks.numType]);
+  runTest(TEST_5, (commonMasks) => [commonMasks.numType]);
+  runTest(TEST_6, (commonMasks) => [commonMasks.numType]);
+  runTest(TEST_7a, (commonMasks) => [commonMasks.interceptorType]);
+  runTest(TEST_7b, (commonMasks) => [commonMasks.dynamicType.nonNullable()]);
 
   runTest(
       TEST_8,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.uint31Type,
-            subclassOfInterceptor(compiler),
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable()
+      (commonMasks) => [
+            commonMasks.uint31Type,
+            commonMasks.interceptorType,
+            commonMasks.dynamicType.nonNullable()
           ]);
-  runTest(
-      TEST_9,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.uint31Type,
-            compiler.closedWorld.commonMasks.uint31Type
-          ]);
-  runTest(
-      TEST_10,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.uint31Type,
-            compiler.closedWorld.commonMasks.uint31Type
-          ]);
+  runTest(TEST_9,
+      (commonMasks) => [commonMasks.uint31Type, commonMasks.uint31Type]);
+  runTest(TEST_10,
+      (commonMasks) => [commonMasks.uint31Type, commonMasks.uint31Type]);
   runTest(
       TEST_11,
-      (compiler) =>
-          [subclassOfInterceptor(compiler), subclassOfInterceptor(compiler)]);
+      (commonMasks) =>
+          [commonMasks.interceptorType, commonMasks.interceptorType]);
+
+  runTest(TEST_12,
+      (commonMasks) => [commonMasks.stringType, commonMasks.uint31Type]);
+
+  runTest(TEST_13, (commonMasks) => [commonMasks.numType]);
+
+  runTest(TEST_14,
+      (commonMasks) => [commonMasks.uint31Type, commonMasks.stringType]);
 
   runTest(
-      TEST_12,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.stringType,
-            compiler.closedWorld.commonMasks.uint31Type
-          ]);
-
-  runTest(TEST_13, (compiler) => [compiler.closedWorld.commonMasks.numType]);
-
-  runTest(
-      TEST_14,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.uint31Type,
-            compiler.closedWorld.commonMasks.stringType
-          ]);
-
-  runTest(
-      TEST_15,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.stringType,
-            compiler.closedWorld.commonMasks.boolType
-          ]);
+      TEST_15, (commonMasks) => [commonMasks.stringType, commonMasks.boolType]);
 
   runTest(
       TEST_16,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.uint31Type,
-            compiler.closedWorld.commonMasks.uint31Type,
-            compiler.closedWorld.commonMasks.stringType
+      (commonMasks) => [
+            commonMasks.uint31Type,
+            commonMasks.uint31Type,
+            commonMasks.stringType
           ]);
 
   runTest(
       TEST_17,
-      (compiler) => [
-            compiler.closedWorld.commonMasks.uint31Type,
-            compiler.closedWorld.commonMasks.boolType,
-            compiler.closedWorld.commonMasks.doubleType
+      (commonMasks) => [
+            commonMasks.uint31Type,
+            commonMasks.boolType,
+            commonMasks.doubleType
           ]);
 
   runTest(
       TEST_18,
-      (compiler) =>
-          [subclassOfInterceptor(compiler), subclassOfInterceptor(compiler)]);
+      (commonMasks) =>
+          [commonMasks.interceptorType, commonMasks.interceptorType]);
 }
 
 void main() {

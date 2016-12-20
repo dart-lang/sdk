@@ -421,6 +421,7 @@ abstract class BackendClasses {
   ClassElement get indexableImplementation;
   ClassElement get mutableIndexableImplementation;
   ClassElement get indexingBehaviorImplementation;
+  ClassElement get interceptorImplementation;
 
   bool isDefaultEqualityImplementation(Element element);
   bool isInterceptorClass(ClassElement cls);

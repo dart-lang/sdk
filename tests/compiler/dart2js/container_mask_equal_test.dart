@@ -31,6 +31,7 @@ main() {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
 
     var element = compiler.mainApp.find('a');
     var mask1 = typesInferrer.getReturnTypeOfElement(element);
@@ -44,7 +45,7 @@ main() {
     element = compiler.mainApp.find('d');
     var mask4 = typesInferrer.getReturnTypeOfElement(element);
 
-    Expect.notEquals(mask1.union(mask2, compiler.closedWorld),
-        mask3.union(mask4, compiler.closedWorld));
+    Expect.notEquals(
+        mask1.union(mask2, closedWorld), mask3.union(mask4, closedWorld));
   });
 }

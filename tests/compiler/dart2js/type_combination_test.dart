@@ -102,8 +102,9 @@ class RuleSet {
 }
 
 void testUnion(MockCompiler compiler) {
-  RuleSet ruleSet = new RuleSet('union',
-      (t1, t2) => simplify(t1.union(t2, compiler.closedWorld), compiler));
+  ClosedWorld closedWorld = compiler.closedWorld;
+  RuleSet ruleSet = new RuleSet(
+      'union', (t1, t2) => simplify(t1.union(t2, closedWorld), closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
   check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
 
@@ -415,8 +416,9 @@ void testUnion(MockCompiler compiler) {
 void testIntersection(MockCompiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   BackendHelpers helpers = backend.helpers;
-  RuleSet ruleSet = new RuleSet(
-      'intersection', (t1, t2) => t1.intersection(t2, compiler.closedWorld));
+  ClosedWorld closedWorld = compiler.closedWorld;
+  RuleSet ruleSet =
+      new RuleSet('intersection', (t1, t2) => t1.intersection(t2, closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
 
   rule(emptyType, emptyType, emptyType);
@@ -557,9 +559,9 @@ void testIntersection(MockCompiler compiler) {
   rule(jsIndexable, nonPrimitive1, emptyType);
   rule(jsIndexable, nonPrimitive2, emptyType);
   rule(jsIndexable, potentialArray,
-      new TypeMask.nonNullSubtype(helpers.jsArrayClass, compiler.closedWorld));
+      new TypeMask.nonNullSubtype(helpers.jsArrayClass, closedWorld));
   rule(jsIndexable, potentialString,
-      new TypeMask.nonNullSubtype(helpers.jsStringClass, compiler.closedWorld));
+      new TypeMask.nonNullSubtype(helpers.jsStringClass, closedWorld));
   rule(jsIndexable, jsBooleanOrNull, emptyType);
   rule(jsIndexable, jsNumberOrNull, emptyType);
   rule(jsIndexable, jsIntegerOrNull, emptyType);
@@ -724,10 +726,11 @@ void testIntersection(MockCompiler compiler) {
 }
 
 void testRegressions(MockCompiler compiler) {
+  ClosedWorld closedWorld = compiler.closedWorld;
   TypeMask nonNullPotentialString =
-      new TypeMask.nonNullSubtype(patternClass, compiler.closedWorld);
+      new TypeMask.nonNullSubtype(patternClass, closedWorld);
   Expect.equals(potentialString,
-      jsStringOrNull.union(nonNullPotentialString, compiler.closedWorld));
+      jsStringOrNull.union(nonNullPotentialString, closedWorld));
 }
 
 void main() {
@@ -757,57 +760,62 @@ void main() {
         .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
     compiler.enqueuer.resolution.applyImpact(impactBuilder);
     compiler.closeResolution();
-    ClosedWorld world = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.closedWorld;
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.
-    patternClass = compiler.commonElements.coreLibrary.find('Pattern');
+    patternClass = closedWorld.commonElements.coreLibrary.find('Pattern');
 
-    nonPrimitive1 =
-        new TypeMask.nonNullSubtype(compiler.coreClasses.mapClass, world);
-    nonPrimitive2 =
-        new TypeMask.nonNullSubtype(compiler.coreClasses.functionClass, world);
+    nonPrimitive1 = new TypeMask.nonNullSubtype(
+        closedWorld.coreClasses.mapClass, closedWorld);
+    nonPrimitive2 = new TypeMask.nonNullSubtype(
+        closedWorld.coreClasses.functionClass, closedWorld);
     potentialArray =
-        new TypeMask.subtype(compiler.coreClasses.listClass, world);
-    potentialString = new TypeMask.subtype(patternClass, world);
+        new TypeMask.subtype(closedWorld.coreClasses.listClass, closedWorld);
+    potentialString = new TypeMask.subtype(patternClass, closedWorld);
     jsInterceptor =
-        new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, world);
-    jsArrayOrNull = new TypeMask.subclass(helpers.jsArrayClass, world);
-    jsReadableArray = new TypeMask.nonNullSubclass(helpers.jsArrayClass, world);
+        new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld);
+    jsArrayOrNull = new TypeMask.subclass(helpers.jsArrayClass, closedWorld);
+    jsReadableArray =
+        new TypeMask.nonNullSubclass(helpers.jsArrayClass, closedWorld);
     jsMutableArrayOrNull =
-        new TypeMask.subclass(helpers.jsMutableArrayClass, world);
+        new TypeMask.subclass(helpers.jsMutableArrayClass, closedWorld);
     jsMutableArray =
-        new TypeMask.nonNullSubclass(helpers.jsMutableArrayClass, world);
-    jsFixedArrayOrNull = new TypeMask.exact(helpers.jsFixedArrayClass, world);
-    jsFixedArray = new TypeMask.nonNullExact(helpers.jsFixedArrayClass, world);
+        new TypeMask.nonNullSubclass(helpers.jsMutableArrayClass, closedWorld);
+    jsFixedArrayOrNull =
+        new TypeMask.exact(helpers.jsFixedArrayClass, closedWorld);
+    jsFixedArray =
+        new TypeMask.nonNullExact(helpers.jsFixedArrayClass, closedWorld);
     jsExtendableArrayOrNull =
-        new TypeMask.exact(helpers.jsExtendableArrayClass, world);
+        new TypeMask.exact(helpers.jsExtendableArrayClass, closedWorld);
     jsExtendableArray =
-        new TypeMask.nonNullExact(helpers.jsExtendableArrayClass, world);
+        new TypeMask.nonNullExact(helpers.jsExtendableArrayClass, closedWorld);
     jsUnmodifiableArrayOrNull =
-        new TypeMask.exact(helpers.jsUnmodifiableArrayClass, world);
-    jsUnmodifiableArray =
-        new TypeMask.nonNullExact(helpers.jsUnmodifiableArrayClass, world);
-    jsIndexableOrNull = new TypeMask.subtype(helpers.jsIndexableClass, world);
-    jsIndexable = new TypeMask.nonNullSubtype(helpers.jsIndexableClass, world);
+        new TypeMask.exact(helpers.jsUnmodifiableArrayClass, closedWorld);
+    jsUnmodifiableArray = new TypeMask.nonNullExact(
+        helpers.jsUnmodifiableArrayClass, closedWorld);
+    jsIndexableOrNull =
+        new TypeMask.subtype(helpers.jsIndexableClass, closedWorld);
+    jsIndexable =
+        new TypeMask.nonNullSubtype(helpers.jsIndexableClass, closedWorld);
     jsInterceptorOrNull =
-        new TypeMask.subclass(helpers.jsInterceptorClass, world);
-    jsStringOrNull = new TypeMask.exact(helpers.jsStringClass, world);
-    jsString = new TypeMask.nonNullExact(helpers.jsStringClass, world);
-    jsBoolean = new TypeMask.nonNullExact(helpers.jsBoolClass, world);
-    jsNumber = new TypeMask.nonNullSubclass(helpers.jsNumberClass, world);
-    jsInteger = new TypeMask.nonNullExact(helpers.jsIntClass, world);
-    jsDouble = new TypeMask.nonNullExact(helpers.jsDoubleClass, world);
-    jsBooleanOrNull = new TypeMask.exact(helpers.jsBoolClass, world);
-    jsNumberOrNull = new TypeMask.subclass(helpers.jsNumberClass, world);
-    jsIntegerOrNull = new TypeMask.exact(helpers.jsIntClass, world);
-    jsDoubleOrNull = new TypeMask.exact(helpers.jsDoubleClass, world);
+        new TypeMask.subclass(helpers.jsInterceptorClass, closedWorld);
+    jsStringOrNull = new TypeMask.exact(helpers.jsStringClass, closedWorld);
+    jsString = new TypeMask.nonNullExact(helpers.jsStringClass, closedWorld);
+    jsBoolean = new TypeMask.nonNullExact(helpers.jsBoolClass, closedWorld);
+    jsNumber = new TypeMask.nonNullSubclass(helpers.jsNumberClass, closedWorld);
+    jsInteger = new TypeMask.nonNullExact(helpers.jsIntClass, closedWorld);
+    jsDouble = new TypeMask.nonNullExact(helpers.jsDoubleClass, closedWorld);
+    jsBooleanOrNull = new TypeMask.exact(helpers.jsBoolClass, closedWorld);
+    jsNumberOrNull = new TypeMask.subclass(helpers.jsNumberClass, closedWorld);
+    jsIntegerOrNull = new TypeMask.exact(helpers.jsIntClass, closedWorld);
+    jsDoubleOrNull = new TypeMask.exact(helpers.jsDoubleClass, closedWorld);
     nullType = const TypeMask.empty();
-    objectType =
-        new TypeMask.nonNullSubclass(compiler.coreClasses.objectClass, world);
+    objectType = new TypeMask.nonNullSubclass(
+        closedWorld.coreClasses.objectClass, closedWorld);
     emptyType = const TypeMask.nonNullEmpty();
     dynamicType =
-        new TypeMask.subclass(compiler.coreClasses.objectClass, world);
+        new TypeMask.subclass(closedWorld.coreClasses.objectClass, closedWorld);
 
     Expect.notEquals(
         emptyType, nonPrimitive1, "nonPrimitive1 expected to be non-empty.");

@@ -197,35 +197,6 @@ lego.Element findElement(compiler, String name, [Uri library]) {
   return element;
 }
 
-types.TypeMask findTypeMask(compiler, String name,
-    [String how = 'nonNullExact']) {
-  var sourceName = name;
-  var element = compiler.mainApp.find(sourceName);
-  if (element == null) {
-    element = compiler.backend.helpers.interceptorsLibrary.find(sourceName);
-  }
-  if (element == null) {
-    element = compiler.commonElements.coreLibrary.find(sourceName);
-  }
-  Expect.isNotNull(element, 'Could not locate $name');
-  switch (how) {
-    case 'exact':
-      return new types.TypeMask.exact(element, compiler.closedWorld);
-    case 'nonNullExact':
-      return new types.TypeMask.nonNullExact(element, compiler.closedWorld);
-    case 'subclass':
-      return new types.TypeMask.subclass(element, compiler.closedWorld);
-    case 'nonNullSubclass':
-      return new types.TypeMask.nonNullSubclass(element, compiler.closedWorld);
-    case 'subtype':
-      return new types.TypeMask.subtype(element, compiler.closedWorld);
-    case 'nonNullSubtype':
-      return new types.TypeMask.nonNullSubtype(element, compiler.closedWorld);
-  }
-  Expect.fail('Unknown TypeMask constructor $how');
-  return null;
-}
-
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 String getIntTypeCheck(String variable) {

@@ -57,8 +57,8 @@ void doTest(
   var compiler = compilerFor(generateTest(key, value, initial), uri,
       expectedErrors: 0, expectedWarnings: 0);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var commonMasks = typesInferrer.closedWorld.commonMasks;
         var aDoubleType =
             typesInferrer.getTypeOfElement(findElement(compiler, 'aDouble'));
         var aListType =

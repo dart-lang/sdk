@@ -67,6 +67,7 @@ class CommonMasks {
   TypeMask _fixedArrayType;
   TypeMask _extendableArrayType;
   TypeMask _unmodifiableArrayType;
+  TypeMask _interceptorType;
 
   TypeMask get dynamicType => _dynamicType ??=
       new TypeMask.subclass(closedWorld.coreClasses.objectClass, closedWorld);
@@ -163,6 +164,10 @@ class CommonMasks {
   TypeMask get unmodifiableArrayType =>
       _unmodifiableArrayType ??= new TypeMask.nonNullExact(
           backendClasses.constListImplementation, closedWorld);
+
+  TypeMask get interceptorType =>
+      _interceptorType ??= new TypeMask.nonNullSubclass(
+          backendClasses.interceptorImplementation, closedWorld);
 
   bool isTypedArray(TypeMask mask) {
     // Just checking for [:TypedData:] is not sufficient, as it is an

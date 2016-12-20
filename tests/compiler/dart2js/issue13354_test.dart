@@ -29,14 +29,16 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
           Expect.equals(
               type,
-              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
               name);
         }
 
@@ -46,7 +48,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), compiler));
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
         }
 
         checkReturn('bar', commonMasks.uint31Type);

@@ -87,7 +87,7 @@ $mainSource
       return cls;
     }
 
-    ClosedWorld world = env.compiler.closedWorld;
+    ClosedWorld world = env.closedWorld;
     JavaScriptBackend backend = env.compiler.backend;
     ClassElement Object_ = registerClass(env.compiler.coreClasses.objectClass);
     ClassElement Interceptor =
