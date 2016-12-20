@@ -917,7 +917,12 @@ EMIT_NATIVE_CODE(StringInterpolate,
   __ PushConstant(CallFunction());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
   __ StaticCall(kArgumentCount, argdesc_kidx);
-  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
+  // Note: can't use RecordAfterCall here because
+  // StringInterpolateInstr::ArgumentCount() is 0. However
+  // internally it does a call with 1 argument which needs to
+  // be reflected in the lazy deoptimization environment.
+  compiler->RecordAfterCallHelper(token_pos(), deopt_id(), kArgumentCount,
+                                  FlowGraphCompiler::kHasResult, locs());
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
@@ -1145,7 +1150,15 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   compiler->AddExceptionHandler(catch_try_index(), try_index(),
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_, needs_stacktrace());
-
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id,
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
