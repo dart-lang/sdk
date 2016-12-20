@@ -27,8 +27,7 @@ void checkPrintType(String expression, checkType(closedWorld, type)) {
       compileAndFind('main() { var x = print; print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        checkType(
-            compiler.closedWorld, _typeOf(compiler, parameter));
+        checkType(compiler.closedWorld, _typeOf(compiler, parameter));
       }));
 
   asyncTest(() => compileAndFind(

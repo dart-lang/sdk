@@ -211,7 +211,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
       // TODO(het): change the graph 'addConstantXXX' to take a ConstantSystem
       // instead of a Compiler.
       HInstruction value = builder.graph
-          .addConstantInt(targetIndexMap[label.target], builder.compiler);
+          .addConstantInt(targetIndexMap[label.target], builder.closedWorld);
       builder.localsHandler.updateLocal(target, value);
 
       assert(label.target.labels.contains(label));

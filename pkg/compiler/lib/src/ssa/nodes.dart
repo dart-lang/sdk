@@ -207,7 +207,7 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstant(ConstantValue constant, Compiler compiler,
+  HConstant addConstant(ConstantValue constant, ClosedWorld closedWorld,
       {SourceInformation sourceInformation}) {
     HConstant result = constants[constant];
     // TODO(johnniwinther): Support source information per constant reference.
@@ -216,8 +216,7 @@ class HGraph {
         // We use `null` as the value for invalid constant expressions.
         constant = const NullConstantValue();
       }
-      TypeMask type =
-          computeTypeMask(compiler.closedWorld, compiler.backend, constant);
+      TypeMask type = computeTypeMask(closedWorld, constant);
       result = new HConstant.internal(constant, type)
         ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
@@ -229,43 +228,47 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(ConstantValue constant, Entity prefix,
-      SourceInformation sourceInformation, Compiler compiler) {
+  HConstant addDeferredConstant(
+      ConstantValue constant,
+      Entity prefix,
+      SourceInformation sourceInformation,
+      Compiler compiler,
+      ClosedWorld closedWorld) {
     // TODO(sigurdm,johnniwinther): These deferred constants should be created
     // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
-    return addConstant(wrapper, compiler, sourceInformation: sourceInformation);
+    return addConstant(wrapper, closedWorld,
+        sourceInformation: sourceInformation);
   }
 
-  HConstant addConstantInt(int i, Compiler compiler) {
-    return addConstant(compiler.backend.constantSystem.createInt(i), compiler);
+  HConstant addConstantInt(int i, ClosedWorld closedWorld) {
+    return addConstant(closedWorld.constantSystem.createInt(i), closedWorld);
   }
 
-  HConstant addConstantDouble(double d, Compiler compiler) {
+  HConstant addConstantDouble(double d, ClosedWorld closedWorld) {
+    return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
+  }
+
+  HConstant addConstantString(ast.DartString str, ClosedWorld closedWorld) {
     return addConstant(
-        compiler.backend.constantSystem.createDouble(d), compiler);
+        closedWorld.constantSystem.createString(str), closedWorld);
   }
 
-  HConstant addConstantString(ast.DartString str, Compiler compiler) {
-    return addConstant(
-        compiler.backend.constantSystem.createString(str), compiler);
-  }
-
-  HConstant addConstantStringFromName(js.Name name, Compiler compiler) {
+  HConstant addConstantStringFromName(js.Name name, ClosedWorld closedWorld) {
     return addConstant(
         new SyntheticConstantValue(
             SyntheticConstantKind.NAME, js.quoteName(name)),
-        compiler);
+        closedWorld);
   }
 
-  HConstant addConstantBool(bool value, Compiler compiler) {
+  HConstant addConstantBool(bool value, ClosedWorld closedWorld) {
     return addConstant(
-        compiler.backend.constantSystem.createBool(value), compiler);
+        closedWorld.constantSystem.createBool(value), closedWorld);
   }
 
-  HConstant addConstantNull(Compiler compiler) {
-    return addConstant(compiler.backend.constantSystem.createNull(), compiler);
+  HConstant addConstantNull(ClosedWorld closedWorld) {
+    return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
   }
 
   void finalize() {

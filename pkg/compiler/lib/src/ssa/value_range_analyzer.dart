@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/backend_helpers.dart';
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
@@ -601,18 +601,19 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
-  final Compiler compiler;
+  final BackendHelpers backendHelpers;
   final ClosedWorld closedWorld;
-  final ConstantSystem constantSystem;
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
   HGraph graph;
 
   SsaValueRangeAnalyzer(
-      this.compiler, this.closedWorld, constantSystem, this.optimizer)
-      : info = new ValueRangeInfo(constantSystem),
-        this.constantSystem = constantSystem;
+      this.backendHelpers, ClosedWorld closedWorld, this.optimizer)
+      : info = new ValueRangeInfo(closedWorld.constantSystem),
+        this.closedWorld = closedWorld;
+
+  ConstantSystem get constantSystem => closedWorld.constantSystem;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -702,8 +703,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (!fieldGet.receiver.isIndexablePrimitive(closedWorld)) {
       return visitInstruction(fieldGet);
     }
-    JavaScriptBackend backend = compiler.backend;
-    assert(fieldGet.element == backend.helpers.jsIndexableLength);
+    assert(fieldGet.element == backendHelpers.jsIndexableLength);
     PositiveValue value = info.newPositiveValue(fieldGet);
     // We know this range is above zero. To simplify the analysis, we
     // put the zero value as the lower bound of this range. This
@@ -790,11 +790,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       handleEqualityCheck(relational);
     } else if (operation.apply(leftRange, rightRange)) {
       relational.block
-          .rewrite(relational, graph.addConstantBool(true, compiler));
+          .rewrite(relational, graph.addConstantBool(true, closedWorld));
       relational.block.remove(relational);
     } else if (negateOperation(operation).apply(leftRange, rightRange)) {
       relational.block
-          .rewrite(relational, graph.addConstantBool(false, compiler));
+          .rewrite(relational, graph.addConstantBool(false, closedWorld));
       relational.block.remove(relational);
     }
     return info.newUnboundRange();
@@ -804,7 +804,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range right = ranges[node.right];
     Range left = ranges[node.left];
     if (left.isSingleValue && right.isSingleValue && left == right) {
-      node.block.rewrite(node, graph.addConstantBool(true, compiler));
+      node.block.rewrite(node, graph.addConstantBool(true, closedWorld));
       node.block.remove(node);
     }
   }

@@ -14,22 +14,18 @@ import '../world.dart' show ClosedWorld;
 import 'masks.dart';
 
 /// Computes the [TypeMask] for the constant [value].
-// TODO(johnniwinther): Avoid the need for [backend].
-TypeMask computeTypeMask(
-    ClosedWorld closedWorld, JavaScriptBackend backend, ConstantValue value) {
-  return value.accept(new ConstantValueTypeMasks(backend), closedWorld);
+TypeMask computeTypeMask(ClosedWorld closedWorld, ConstantValue value) {
+  return value.accept(const ConstantValueTypeMasks(), closedWorld);
 }
 
 class ConstantValueTypeMasks
     extends ConstantValueVisitor<TypeMask, ClosedWorld> {
-  final JavaScriptBackend backend;
-
-  ConstantValueTypeMasks(this.backend);
+  const ConstantValueTypeMasks();
 
   @override
   TypeMask visitConstructed(
       ConstructedConstantValue constant, ClosedWorld closedWorld) {
-    if (backend.isInterceptorClass(constant.type.element)) {
+    if (closedWorld.backendClasses.isInterceptorClass(constant.type.element)) {
       return closedWorld.commonMasks.nonNullType;
     }
     return new TypeMask.nonNullExact(constant.type.element, closedWorld);
@@ -44,7 +40,7 @@ class ConstantValueTypeMasks
   @override
   TypeMask visitDouble(DoubleConstantValue constant, ClosedWorld closedWorld) {
     // We have to recognize double constants that are 'is int'.
-    if (backend.constantSystem.isInt(constant)) {
+    if (closedWorld.constantSystem.isInt(constant)) {
       if (constant.isMinusZero) {
         return closedWorld.commonMasks.uint31Type;
       } else {
@@ -68,10 +64,8 @@ class ConstantValueTypeMasks
       case SyntheticConstantKind.NAME:
         return closedWorld.commonMasks.stringType;
       default:
-        DiagnosticReporter reporter = backend.reporter;
-        reporter.internalError(
-            CURRENT_ELEMENT_SPANNABLE, "Unexpected DummyConstantKind.");
-        return null;
+        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected DummyConstantKind: ${constant.toStructuredText()}.");
     }
   }
 
