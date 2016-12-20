@@ -5,7 +5,7 @@
   * The `assert()` statement has been expanded to support an optional second
     `message` argument (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
 
-    The message is display if the assert fails. It can be any object, and it
+    The message is displayed if the assert fails. It can be any object, and it
     is accessible as `AssertionError.message`. It can be used to provide more
     user friendly exception outputs. As an example, the following assert:
 
