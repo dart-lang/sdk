@@ -142,6 +142,6 @@ class TypeEnvironment {
   }
 
   ClosedWorld get closedWorld {
-    return compiler.closedWorld;
+    return compiler.resolverWorld.closedWorldForTesting;
   }
 }

@@ -174,7 +174,7 @@ test1() async {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST1, uri);
   await compiler.run(uri);
-  var closedWorld = compiler.closedWorld;
+  var closedWorld = compiler.resolverWorld.closedWorldForTesting;
   checkReturn(compiler, 'test1', closedWorld.commonMasks.uint31Type);
   checkReturn(
       compiler, 'test2', closedWorld.commonMasks.dynamicType.nonNullable());
@@ -190,7 +190,7 @@ test2() async {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST2, uri);
   await compiler.run(uri);
-  var closedWorld = compiler.closedWorld;
+  var closedWorld = compiler.resolverWorld.closedWorldForTesting;
   checkReturn(compiler, 'test1', closedWorld.commonMasks.mapType.nonNullable());
   checkReturn(compiler, 'test2', closedWorld.commonMasks.mapType);
   checkReturn(compiler, 'test3', closedWorld.commonMasks.mapType);
@@ -209,7 +209,7 @@ test3() async {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST3, uri);
   await compiler.run(uri);
-  var closedWorld = compiler.closedWorld;
+  var closedWorld = compiler.resolverWorld.closedWorldForTesting;
   checkReturn(compiler, 'test1', const TypeMask.nonNullEmpty());
   checkReturn(compiler, 'test2', closedWorld.commonMasks.mapType);
   checkReturn(compiler, 'test3', closedWorld.commonMasks.mapType);
@@ -222,7 +222,7 @@ test4() async {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST4, uri);
   await compiler.run(uri);
-  var closedWorld = compiler.closedWorld;
+  var closedWorld = compiler.resolverWorld.closedWorldForTesting;
   checkReturn(compiler, 'test1', const TypeMask.nonNullEmpty());
   checkReturn(compiler, 'test2', closedWorld.commonMasks.mapType);
   checkReturn(compiler, 'test3', closedWorld.commonMasks.mapType);

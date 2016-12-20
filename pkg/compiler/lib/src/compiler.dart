@@ -78,7 +78,7 @@ import 'universe/world_impact.dart'
         WorldImpactBuilder,
         WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, WorldImpl;
 
 typedef Backend MakeBackendFuncion(Compiler compiler);
 
@@ -89,7 +89,6 @@ abstract class Compiler implements LibraryLoaderListener {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  WorldImpl get _world => resolverWorld.openWorld;
   Types types;
   _CompilerCoreTypes _coreTypes;
   CompilerDiagnosticReporter _reporter;
@@ -274,13 +273,6 @@ abstract class Compiler implements LibraryLoaderListener {
         new ParsingContext(reporter, parser, patchParser, backend);
 
     tasks.addAll(backend.tasks);
-  }
-
-  /// The closed world after resolution and inference.
-  ClosedWorld get closedWorld {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
-        message: "Closed world not computed yet."));
-    return _world;
   }
 
   /// Creates the backend.
@@ -704,6 +696,9 @@ abstract class Compiler implements LibraryLoaderListener {
         assert(mainFunction != null);
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution();
+        // TODO(johnniwinther): Make [ClosedWorld] a property of
+        // [ClosedWorldRefiner].
+        ClosedWorld closedWorld = resolverWorld.closedWorldForTesting;
 
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(

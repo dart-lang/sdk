@@ -59,7 +59,7 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.enableCheckedMode, Flags.enableAssertMessage]);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
 
     void check(String methodName, TypeMask expectedReturnType) {
       Element element = compiler.mainApp.find(methodName);

@@ -40,7 +40,7 @@ void main() {
   var compiler = compilerFor(TEST, uri, analyzeOnly: true);
   asyncTest(() => compiler.run(uri).then((_) {
         ClosedWorldRefiner closedWorldRefiner = compiler.closeResolution();
-        ClosedWorld closedWorld = compiler.closedWorld;
+        ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
         var inferrer =
             new MyInferrer(compiler, closedWorld, closedWorldRefiner);
         compiler.globalInference.typesInferrerInternal = inferrer;

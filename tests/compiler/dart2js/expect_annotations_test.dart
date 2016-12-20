@@ -52,7 +52,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.closedWorld;
+    ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
     Expect.isNotNull(backend.annotations.expectNoInlineClass,

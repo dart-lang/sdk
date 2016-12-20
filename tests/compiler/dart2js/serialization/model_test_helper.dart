@@ -98,8 +98,8 @@ Future checkModels(Uri entryPoint,
     checkResolutionEnqueuers(compilerNormal.enqueuer.resolution,
         compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
-    checkClosedWorlds(
-        compilerNormal.closedWorld, compilerDeserialized.closedWorld,
+    checkClosedWorlds(compilerNormal.resolverWorld.closedWorldForTesting,
+        compilerDeserialized.resolverWorld.closedWorldForTesting,
         verbose: verbose);
     checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
   });
