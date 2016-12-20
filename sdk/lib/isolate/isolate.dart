@@ -439,7 +439,8 @@ class Isolate {
    * The isolate is requested to terminate itself.
    * The [priority] argument specifies when this must happen.
    *
-   * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
+   * The [priority], when provided, must be one of [IMMEDIATE] or
+   * [BEFORE_NEXT_EVENT] (the default).
    * The shutdown is performed at different times depending on the priority:
    *
    * * `IMMEDIATE`: The isolate shuts down as soon as possible.
