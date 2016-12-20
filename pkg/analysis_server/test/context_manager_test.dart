@@ -2136,6 +2136,46 @@ linter:
     expect(lints[0].name, 'camel_case_types');
   }
 
+  test_analysis_options_include_package() async {
+    // Create files.
+    String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup package
+    String booLibPosixPath = '/my/pkg/boo/lib';
+    newFile(
+        [booLibPosixPath, 'other_options.yaml'],
+        r'''
+analyzer:
+  language:
+    enableStrictCallChecks: true
+  errors:
+    unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
+''');
+    // Setup analysis options file which includes another options file.
+    newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME],
+        'boo:$booLibPosixPath\n');
+    newFile(
+        [projPath, optionsFileName],
+        r'''
+include: package:boo/other_options.yaml
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+    // Verify options were set.
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
+    expect(errorProcessors, hasLength(1));
+    expect(lints, hasLength(1));
+    expect(lints[0].name, 'camel_case_types');
+  }
+
   test_analysis_options_parse_failure() async {
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
