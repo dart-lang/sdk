@@ -9,7 +9,7 @@
     is accessible as `AssertionError.message`. It can be used to provide more
     user friendly exception outputs. As an example, the following assert:
 
-    ```
+    ```dart
     assert(configFile != null, "Tool config missing. Please see https://goo.gl/k8iAi for details.");
     ```
 
