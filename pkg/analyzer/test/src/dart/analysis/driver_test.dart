@@ -362,6 +362,9 @@ var A = B;
     provider.updateFile(b, 'var B = 1.2;');
     driver.changeFile(b);
 
+    // "b" is not an added file, so it is not scheduled for analysis.
+    expect(driver.test.filesToAnalyze, isEmpty);
+
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // The change causes "a" to be reanalyzed.
     await _waitForIdle();
@@ -370,6 +373,28 @@ var A = B;
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
       expect(_getTopLevelVarType(ar.unit, 'A'), 'double');
     }
+  }
+
+  test_changeFile_notUsed() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/other/b.dart');
+    provider.newFile(a, '');
+    provider.newFile(b, 'class B1 {}');
+
+    driver.addFile(a);
+
+    await _waitForIdle();
+    allResults.clear();
+
+    // Change "b" and notify.
+    // Nothing depends on "b", so nothing is analyzed.
+    provider.updateFile(b, 'class B2 {}');
+    driver.changeFile(b);
+    await _waitForIdle();
+    expect(allResults, isEmpty);
+
+    // This should not add "b" to the file state.
+    expect(driver.fsState.knownFilePaths, isNot(contains(b)));
   }
 
   test_changeFile_selfConsistent() async {
@@ -454,6 +479,9 @@ var A2 = B1;
 
     // Notify the driver about the change.
     driver.changeFile(testFile);
+
+    // The file was added, so it is scheduled for analysis.
+    expect(driver.test.filesToAnalyze, contains(testFile));
 
     // We get a new result.
     {
@@ -570,6 +598,7 @@ main() {
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
+    expect(result.exists, isTrue);
     expect(result.content, content);
     expect(result.contentHash, _md5(content));
     expect(result.unit, isNotNull);
@@ -603,6 +632,16 @@ main() {
 
     AnalysisResult result = await driver.getResult(b);
     expect(result.errors, isEmpty);
+  }
+
+  test_getResult_doesNotExist() async {
+    var a = _p('/test/lib/a.dart');
+
+    AnalysisResult result = await driver.getResult(a);
+    expect(result.path, a);
+    expect(result.uri.toString(), 'package:test/a.dart');
+    expect(result.exists, isFalse);
+    expect(result.content, '');
   }
 
   test_getResult_errors() async {

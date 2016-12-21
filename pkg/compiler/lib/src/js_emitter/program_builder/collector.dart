@@ -14,6 +14,7 @@ class Collector {
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer namer;
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   final Set<ClassElement> rtiNeededClasses;
   final Emitter emitter;
 
@@ -46,7 +47,8 @@ class Collector {
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
-  Collector(this.compiler, this.namer, this.rtiNeededClasses, this.emitter);
+  Collector(this.compiler, this.namer, this.closedWorld, this.rtiNeededClasses,
+      this.emitter);
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
@@ -129,7 +131,7 @@ class Collector {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           backend.retainMetadataOf(cls);
-          new FieldVisitor(compiler, namer).visitFields(cls, false,
+          new FieldVisitor(compiler, namer, closedWorld).visitFields(cls, false,
               (Element member, js.Name name, js.Name accessorName,
                   bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
             bool needsAccessor = needsGetter || needsSetter;
@@ -169,8 +171,8 @@ class Collector {
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(compiler
-        .closedWorld.allTypedefs
+    typedefsNeededForReflection = Elements.sortedByPosition(closedWorld
+        .allTypedefs
         .where(backend.isAccessibleByReflection)
         .toList());
 

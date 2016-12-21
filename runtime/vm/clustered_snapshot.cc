@@ -4666,6 +4666,12 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
+
+  if (kind_ != Snapshot::kAppAOT) {
+    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+      AddBaseObject(StubCode::EntryAt(i)->code());
+    }
+  }
 }
 
 
@@ -4679,7 +4685,9 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   Push(symbols.raw());
   Push(scripts.raw());
   if (Snapshot::IncludesCode(kind_)) {
-    StubCode::Push(this);
+    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+      Push(StubCode::EntryAt(i)->code());
+    }
   }
 
   Serialize();
@@ -4688,7 +4696,9 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   WriteRef(symbols.raw());
   WriteRef(scripts.raw());
   if (Snapshot::IncludesCode(kind_)) {
-    StubCode::WriteRef(this);
+    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+      WriteRef(StubCode::EntryAt(i)->code());
+    }
   }
 
 #if defined(DEBUG)
@@ -5050,6 +5060,12 @@ void Deserializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
+
+  if (kind_ != Snapshot::kAppAOT) {
+    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+      AddBaseObject(StubCode::EntryAt(i)->code());
+    }
+  }
 }
 
 
@@ -5071,7 +5087,11 @@ void Deserializer::ReadVMSnapshot() {
     isolate()->object_store()->set_symbol_table(symbol_table);
     ReadRef();  // Script list.
     if (Snapshot::IncludesCode(kind_)) {
-      StubCode::ReadRef(this);
+      Code& code = Code::Handle(zone_);
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        code ^= ReadRef();
+        StubCode::EntryAtPut(i, new StubEntry(code));
+      }
     }
 
 #if defined(DEBUG)
@@ -5316,8 +5336,10 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 
   if (Snapshot::IncludesCode(kind_)) {
     instructions_writer_->Write(
-        *vm_isolate_snapshot_buffer_, vm_isolate_snapshot_size_,
-        *isolate_snapshot_buffer_, isolate_snapshot_size_);
+        vm_isolate_snapshot_buffer_ == NULL ? NULL
+                                            : *vm_isolate_snapshot_buffer_,
+        vm_isolate_snapshot_size_, *isolate_snapshot_buffer_,
+        isolate_snapshot_size_);
 
     if (FLAG_print_snapshot_sizes) {
       OS::Print("ReadOnlyData(CodeSize): %" Pd "\n",

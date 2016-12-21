@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'dart:typed_data' show ByteBuffer, Int32List;
+import 'dart:typed_data' show Int32List;
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
+import 'package:js/js_util.dart' as js_util;
 
 import 'package:expect/minitest.dart';
 
@@ -508,8 +509,6 @@ main() {
 
     test('pass Array to JS', () {
       context['a'] = [1, 2, 3];
-      expect(context.callMethod('isPropertyInstanceOf',
-          ['a', context['Array']]), isTrue);
       var a = context['a'];
       expect(a is List, isTrue);
       expect(a is JsArray, isFalse);
@@ -842,8 +841,6 @@ main() {
         expect(context['window'] is Window, isTrue);
       });
 
-      // Bug: dartbug.com/24520
-      /*
       test('foreign browser objects should be proxied', () {
         var iframe = new IFrameElement();
         document.body.children.add(iframe);
@@ -851,26 +848,48 @@ main() {
 
         // Window
         var contentWindow = proxy['contentWindow'];
-        expect(contentWindow, isNot(new isInstanceOf<Window>()));
-        expect(contentWindow, new isInstanceOf<JsObject>());
+        expect(contentWindow is! Window, isTrue);
+        expect(contentWindow is JsObject, isTrue);
 
         // Node
         var foreignDoc = contentWindow['document'];
-        expect(foreignDoc, isNot(new isInstanceOf<Node>()));
-        expect(foreignDoc, new isInstanceOf<JsObject>());
+        expect(foreignDoc is! Node, isTrue);
+        expect(foreignDoc is JsObject, isTrue);
 
         // Event
         var clicked = false;
         foreignDoc['onclick'] = (e) {
-          expect(e, isNot(new isInstanceOf<Event>()));
-          expect(e, new isInstanceOf<JsObject>());
+          expect(e is! Event, isTrue);
+          expect(e is JsObject, isTrue);
           clicked = true;
         };
 
         context.callMethod('fireClickEvent', [contentWindow]);
         expect(clicked, isTrue);
       });
-      */
+
+      test('foreign functions pass function is checks', () {
+        var iframe = new IFrameElement();
+        document.body.children.add(iframe);
+        var proxy = new JsObject.fromBrowserObject(iframe);
+
+        var contentWindow = proxy['contentWindow'];
+        var foreignDoc = contentWindow['document'];
+
+        // Function
+        var foreignFunction = foreignDoc['createElement'];
+        expect(foreignFunction is JsFunction, isTrue);
+
+        // Verify that internal isChecks in callMethod work.
+        foreignDoc.callMethod('createElement', ['div']);
+
+        var typedContentWindow = js_util.getProperty(iframe, 'contentWindow');
+        var typedForeignDoc = js_util.getProperty(typedContentWindow, 'document');
+
+        var typedForeignFunction = js_util.getProperty(typedForeignDoc, 'createElement');
+        expect(typedForeignFunction is Function, isTrue);
+        js_util.callMethod(typedForeignDoc, 'createElement', ['div']);
+      });
 
       test('document', () {
         expect(context['document'] is Document, isTrue);

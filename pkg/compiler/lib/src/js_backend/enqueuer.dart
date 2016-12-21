@@ -86,7 +86,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
   CodegenWorldBuilder get universe => _universe;
 
   // TODO(johnniwinther): Remove these hacks:
-  ClosedWorld get _world => _backend.compiler.closedWorld;
+  ClosedWorld get _world =>
+      _backend.compiler.resolverWorld.closedWorldForTesting;
   DumpInfoTask get _dumpInfoTask => _backend.compiler.dumpInfoTask;
 
   bool get queueIsEmpty => _queue.isEmpty;

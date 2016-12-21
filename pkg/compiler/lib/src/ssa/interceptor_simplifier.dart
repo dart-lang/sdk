@@ -37,18 +37,18 @@ import 'optimize.dart';
 class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
-  final ConstantSystem constantSystem;
+  final ClosedWorld closedWorld;
   final Compiler compiler;
   final Element element;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.compiler, this.constantSystem, this.element);
+  SsaSimplifyInterceptors(this.compiler, this.closedWorld, this.element);
 
   JavaScriptBackend get backend => compiler.backend;
 
-  ClosedWorld get closedWorld => compiler.closedWorld;
-
   BackendClasses get backendClasses => closedWorld.backendClasses;
+
+  ConstantSystem get constantSystem => closedWorld.constantSystem;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -136,7 +136,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     ConstantValue constant =
         new InterceptorConstantValue(constantInterceptor.thisType);
-    return graph.addConstant(constant, compiler);
+    return graph.addConstant(constant, closedWorld);
   }
 
   ClassElement tryComputeConstantInterceptorFromType(
@@ -320,7 +320,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
           if (interceptorClass != null) {
             HInstruction constantInstruction = graph.addConstant(
                 new InterceptorConstantValue(interceptorClass.thisType),
-                compiler);
+                closedWorld);
             node.conditionalConstantInterceptor = constantInstruction;
             constantInstruction.usedBy.add(node);
             return false;
@@ -360,7 +360,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     } else if (user is HInvokeDynamic) {
       if (node == user.inputs[0]) {
         // Replace the user with a [HOneShotInterceptor].
-        HConstant nullConstant = graph.addConstantNull(compiler);
+        HConstant nullConstant = graph.addConstantNull(closedWorld);
         List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
         inputs[0] = nullConstant;
         HOneShotInterceptor oneShotInterceptor = new HOneShotInterceptor(

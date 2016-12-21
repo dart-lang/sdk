@@ -122,6 +122,9 @@ class CompilerDeoptInfo : public ZoneAllocated {
         deopt_id_(deopt_id),
         reason_(reason),
         flags_(flags),
+#if defined(TARGET_ARCH_DBC)
+        lazy_deopt_with_result_(false),
+#endif
         deopt_env_(deopt_env) {
     ASSERT(deopt_env != NULL);
   }
@@ -143,6 +146,18 @@ class CompilerDeoptInfo : public ZoneAllocated {
   uint32_t flags() const { return flags_; }
   const Environment* deopt_env() const { return deopt_env_; }
 
+#if defined(TARGET_ARCH_DBC)
+  // On DBC calls return results on the stack but not all calls have a result.
+  // This needs to be taken into account when constructing lazy deoptimization
+  // environment.
+  // For calls with results we add a deopt instruction that would copy top
+  // of the stack from optimized frame to unoptimized frame effectively
+  // preserving the result of the call.
+  // For calls with no results we don't emit such instruction - because there
+  // is no result pushed by the return sequence.
+  void mark_lazy_deopt_with_result() { lazy_deopt_with_result_ = true; }
+#endif
+
  private:
   void EmitMaterializations(Environment* env, DeoptInfoBuilder* builder);
 
@@ -153,6 +168,9 @@ class CompilerDeoptInfo : public ZoneAllocated {
   const intptr_t deopt_id_;
   const ICData::DeoptReasonId reason_;
   const uint32_t flags_;
+#if defined(TARGET_ARCH_DBC)
+  bool lazy_deopt_with_result_;
+#endif
   Environment* deopt_env_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
@@ -499,7 +517,7 @@ class FlowGraphCompiler : public ValueObject {
   uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
 #endif  // defined(TARGET_ARCH_DBC)
 
-  void AddDeoptIndexAtCall(intptr_t deopt_id);
+  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 
@@ -583,11 +601,16 @@ class FlowGraphCompiler : public ValueObject {
   bool EndCodeSourceRange(TokenPosition token_pos);
 
 #if defined(TARGET_ARCH_DBC)
+  enum CallResult {
+    kHasResult,
+    kNoResult,
+  };
   void RecordAfterCallHelper(TokenPosition token_pos,
                              intptr_t deopt_id,
                              intptr_t argument_count,
+                             CallResult result,
                              LocationSummary* locs);
-  void RecordAfterCall(Instruction* instr);
+  void RecordAfterCall(Instruction* instr, CallResult result);
 #endif
 
  private:

@@ -103,7 +103,7 @@ abstract class Backend extends Target {
   }
 
   /// Generates the output and returns the total size of the generated code.
-  int assembleProgram();
+  int assembleProgram(ClosedWorld closedWorld);
 
   List<CompilerTask> get tasks;
 
@@ -311,7 +311,10 @@ abstract class Backend extends Target {
 
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
-  WorldImpact onCodegenStart() => const WorldImpact();
+  WorldImpact onCodegenStart(ClosedWorld closedWorld) => const WorldImpact();
+
+  /// Called when code generation has been completed.
+  void onCodegenEnd() {}
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
@@ -418,6 +421,7 @@ abstract class BackendClasses {
   ClassElement get indexableImplementation;
   ClassElement get mutableIndexableImplementation;
   ClassElement get indexingBehaviorImplementation;
+  ClassElement get interceptorImplementation;
 
   bool isDefaultEqualityImplementation(Element element);
   bool isInterceptorClass(ClassElement cls);

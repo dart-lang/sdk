@@ -1034,27 +1034,6 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size);
 
 /**
- * Creates a snapshot of the specified library loaded in the isolate.
- *
- * A library snapshot can be used for implementing fast startup of applications
- * (skips tokenizing and parsing process). A Snapshot of the library
- * can only be created before any dart code has executed.
- *
- * Requires there to be a current isolate which already has loaded the library.
- *
- * \param library A library for which the snapshot needs to be created.
- * \param buffer Returns a pointer to a buffer containing
- *   the snapshot. This buffer is scope allocated and is only valid
- *   until the next call to Dart_ExitScope.
- * \param size Returns the size of the buffer.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
-                                                   uint8_t** buffer,
-                                                   intptr_t* size);
-
-/**
  * Schedules an interrupt for the specified isolate.
  *
  * When the isolate is interrupted, the isolate interrupt callback
@@ -3185,6 +3164,22 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  * ==============
  */
 
+/**
+ * Saves a serialized version of the information collected for use by the
+ * optimizing compiler, such as type feedback and usage counters. When this
+ * information is passed to Dart_Precompile, the AOT compiler may use it to
+ * produce faster and smaller code. The feedback is only used if the JIT that
+ * created it and the AOT compiler consuming it
+ *   - are running the same Dart program
+ *   - are built from the same version of the VM
+ *   - agree on whether type checks and assertions are enabled
+ *
+ * \return Returns an error handler if the VM was built in a mode that does not
+ * support saving JIT feedback.
+ */
+DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
+                                             intptr_t* buffer_length);
+
 
 typedef struct {
   const char* library_uri;
@@ -3214,7 +3209,10 @@ typedef struct {
  * constructors was encountered.
  */
 DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[], bool reset_fields);
+Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
+                bool reset_fields,
+                uint8_t* jit_feedback,
+                intptr_t jit_feedback_length);
 
 
 /**
@@ -3285,9 +3283,7 @@ DART_EXPORT Dart_Handle Dart_PrecompileJIT();
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
-                          intptr_t* vm_isolate_snapshot_size,
-                          uint8_t** isolate_snapshot_buffer,
+Dart_CreateAppJITSnapshot(uint8_t** isolate_snapshot_buffer,
                           intptr_t* isolate_snapshot_size,
                           uint8_t** instructions_blob_buffer,
                           intptr_t* instructions_blob_size,

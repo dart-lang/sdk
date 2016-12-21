@@ -1,15 +1,34 @@
 ## 1.22.0
 
+### Language
+
+  * The `assert()` statement has been expanded to support an optional second
+    `message` argument (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
+
+    The message is displayed if the assert fails. It can be any object, and it
+    is accessible as `AssertionError.message`. It can be used to provide more
+    user friendly exception outputs. As an example, the following assert:
+
+    ```dart
+    assert(configFile != null, "Tool config missing. Please see https://goo.gl/k8iAi for details.");
+    ```
+
+    would produce the following exception output:
+
+    ```
+    Unhandled exception:
+    'file:///Users/mit/tmp/tool/bin/main.dart': Failed assertion: line 9 pos 10: 
+    'configFile != null': Tool config missing. Please see https://goo.gl/k8iAi for details.
+    #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:33)
+    #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:29)
+    #2      main (file:///Users/mit/tmp/tool/bin/main.dart:9:10)
+    ```
+
 ### Tool changes
 
 * Dart2Js
 
   * Remove support for (long-time deprecated) mixin typedefs.
-
-* Dart Dev Compiler
-
-  * Support messages in `assert()` statements. (SDK issue
-    [27342](https://github.com/dart-lang/sdk/issues/27342))
 
 * Pub
 

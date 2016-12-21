@@ -587,12 +587,11 @@ class ResolvedAstDeserializer {
     }
     jumpTargetLabels.forEach((JumpTargetX jumpTarget, List<int> labelIds) {
       if (labelIds.isEmpty) return;
-      LinkBuilder<LabelDefinition> linkBuilder =
-          new LinkBuilder<LabelDefinition>();
+      List<LabelDefinition> labels = <LabelDefinition>[];
       for (int labelId in labelIds) {
-        linkBuilder.addLast(labelDefinitions[labelId]);
+        labels.add(labelDefinitions[labelId]);
       }
-      jumpTarget.labels = linkBuilder.toLink();
+      jumpTarget.labels = labels;
     });
 
     ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);

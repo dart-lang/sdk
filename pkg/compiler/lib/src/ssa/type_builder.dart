@@ -72,7 +72,7 @@ class TypeBuilder {
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(type));
     if (type is MethodTypeVariableType) {
-      return builder.graph.addConstantNull(builder.compiler);
+      return builder.graph.addConstantNull(builder.closedWorld);
     }
     bool isClosure = member.enclosingElement.isClosure;
     if (isClosure) {
@@ -177,7 +177,7 @@ class TypeBuilder {
     argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
-      return builder.graph.addConstantNull(builder.compiler);
+      return builder.graph.addConstantNull(builder.closedWorld);
     }
 
     if (argument.isTypeVariable) {

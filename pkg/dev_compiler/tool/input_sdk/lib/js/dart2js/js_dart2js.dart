@@ -273,7 +273,7 @@ class JsObject {
     }
     if (args != null) args = new List.from(args.map(_convertToJS));
     var fn = JS('', '#[#]', _jsObject, method);
-    if (!JS('bool', '# instanceof Function', fn)) {
+    if (JS('bool', 'typeof(#) !== "function"', fn)) {
       throw new NoSuchMethodError(_jsObject, new Symbol(method), args, {});
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
@@ -435,10 +435,12 @@ bool _isBrowserType(o) => JS('bool',
     '# instanceof Blob || '
     '# instanceof Event || '
     '(window.KeyRange && # instanceof KeyRange) || '
+    '(window.IDBKeyRange && # instanceof IDBKeyRange) || '
     '# instanceof ImageData || '
     '# instanceof Node || '
-    '(window.TypedData && # instanceof TypedData) || '
-    '# instanceof Window', o, o, o, o, o, o, o);
+    // Int8Array.__proto__ is TypedArray.
+    '(window.Int8Array && # instanceof Int8Array.__proto__) || '
+    '# instanceof Window', o, o, o, o, o, o, o, o);
 
 class _DartObject {
   final _dartObj;
@@ -491,11 +493,13 @@ Object _convertToDart(o) {
              JS('bool', 'dart.jsobject != dart.getReifiedType(#)', o)) {
     return o._dartObj;
   } else {
-    return _putIfAbsent(_dartProxies, o, _wrapToDart);
+    return _wrapToDart(o);
   }
 }
 
-JsObject _wrapToDart(o) {
+JsObject _wrapToDart(o) => _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
+
+JsObject _wrapToDartHelper(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return new JsFunction._fromJs(o);
   }

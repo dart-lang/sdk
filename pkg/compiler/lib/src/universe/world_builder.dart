@@ -172,6 +172,11 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// The [OpenWorld] being created by this world builder.
   // TODO(johnniwinther): Merge this with [ResolutionWorldBuilder].
   OpenWorld get openWorld;
+
+  /// The closed world computed by this world builder.
+  ///
+  /// This is only available after the world builder has been closed.
+  ClosedWorld get closedWorldForTesting;
 }
 
 /// The type and kind of an instantiation registered through
@@ -425,7 +430,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// and classes.
   bool useInstantiationMap = false;
 
-  OpenWorld _openWorld;
+  WorldImpl _openWorld;
 
   final Backend _backend;
   final Resolution _resolution;
@@ -442,6 +447,14 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       .where((cls) => _processedClasses[cls].isInstantiated);
 
   OpenWorld get openWorld => _openWorld;
+
+  ClosedWorld get closedWorldForTesting {
+    if (!_openWorld.isClosed) {
+      throw new SpannableAssertionFailure(
+          NO_LOCATION_SPANNABLE, "The world builder has not yet been closed.");
+    }
+    return _openWorld;
+  }
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a

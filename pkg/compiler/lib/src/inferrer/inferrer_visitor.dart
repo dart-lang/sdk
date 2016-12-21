@@ -862,7 +862,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
     return types.getConcreteTypeFor(
-        computeTypeMask(compiler, constantSystem.createDouble(node.value)));
+        computeTypeMask(closedWorld, constantSystem.createDouble(node.value)));
   }
 
   T visitLiteralInt(LiteralInt node) {
@@ -870,7 +870,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     // The JavaScript backend may turn this literal into a double at
     // runtime.
     return types.getConcreteTypeFor(
-        computeTypeMask(compiler, constantSystem.createInt(node.value)));
+        computeTypeMask(closedWorld, constantSystem.createInt(node.value)));
   }
 
   T visitLiteralList(LiteralList node) {

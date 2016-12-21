@@ -97,32 +97,31 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), compiler));
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
         }
 
-        var subclassOfInterceptor =
-            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var subclassOfInterceptor = closedWorld.commonMasks.interceptorType;
 
         checkReturn('returnDyn1', subclassOfInterceptor);
         checkReturn('returnDyn2', subclassOfInterceptor);
         checkReturn('returnDyn3', subclassOfInterceptor);
-        checkReturn('returnDyn4',
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnDyn5',
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnDyn6',
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn4', closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn5', closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn6', closedWorld.commonMasks.dynamicType.nonNullable());
         checkReturn('returnDyn7', subclassOfInterceptor);
         checkReturn('returnDyn7b', subclassOfInterceptor);
         checkReturn('returnDyn8', subclassOfInterceptor);
         checkReturn('returnDyn9', subclassOfInterceptor);
-        checkReturn(
-            'returnString', compiler.closedWorld.commonMasks.stringType);
+        checkReturn('returnString', closedWorld.commonMasks.stringType);
       }));
 }

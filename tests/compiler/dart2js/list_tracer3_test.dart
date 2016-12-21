@@ -27,16 +27,16 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkType(String name, type) {
           var element = findElement(compiler, name);
           ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-          Expect.equals(type, simplify(mask.elementType, compiler), name);
+          Expect.equals(type, simplify(mask.elementType, closedWorld), name);
         }
 
         var interceptorType =
-            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
-
+            typesInferrer.closedWorld.commonMasks.interceptorType;
         checkType('myList', interceptorType);
       }));
 }

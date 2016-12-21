@@ -21,7 +21,7 @@ import 'package:analyzer/analyzer.dart'
         UriBasedDirective,
         parseDirectives;
 import 'package:analyzer/src/command_line/arguments.dart'
-    show extractDefinedVariables;
+    show defineAnalysisArguments;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart' show ArgParser, ArgResults;
@@ -79,7 +79,7 @@ main(List<String> arguments) {
       .where((p) => p.endsWith('.sum'))
       .toList();
 
-  var sharedCompiler = new ModuleCompiler(new AnalyzerOptions(
+  var sharedCompiler = new ModuleCompiler(new AnalyzerOptions.basic(
       dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
 
   var testDirs = [
@@ -104,6 +104,8 @@ main(List<String> arguments) {
   // Our default compiler options. Individual tests can override these.
   var defaultOptions = ['--no-source-map', '--no-summarize'];
   var compileArgParser = new ArgParser();
+  defineAnalysisArguments(compileArgParser, ddc: true);
+  AnalyzerOptions.addArguments(compileArgParser);
   CompilerOptions.addArguments(compileArgParser);
   addModuleFormatOptions(compileArgParser);
 
@@ -138,16 +140,12 @@ main(List<String> arguments) {
         args.addAll(matchedArgs.where((s) => !ignoreOptions.contains(s)));
       }
 
-      var declaredVars = <String, String>{};
-      args = extractDefinedVariables(args, declaredVars);
-      ArgResults argResults;
-      try {
-        argResults = compileArgParser.parse(args);
-      } catch (e) {
-        print('Failed to parse $args');
-        rethrow;
-      }
+      ArgResults argResults = compileArgParser.parse(args);
+      var analyzerOptions = new AnalyzerOptions.fromArguments(argResults,
+          dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths);
+
       var options = new CompilerOptions.fromArguments(argResults);
+
       var moduleFormat = parseModuleFormatOption(argResults).first;
 
       // Collect any other files we've imported.
@@ -157,11 +155,8 @@ main(List<String> arguments) {
           name, path.dirname(testFile), files.toList(), _moduleForLibrary);
 
       var compiler = sharedCompiler;
-      if (declaredVars.isNotEmpty) {
-        compiler = new ModuleCompiler(new AnalyzerOptions(
-            dartSdkSummaryPath: sdkSummaryFile,
-            summaryPaths: summaryPaths,
-            declaredVariables: declaredVars));
+      if (analyzerOptions.declaredVariables.isNotEmpty) {
+        compiler = new ModuleCompiler(analyzerOptions);
       }
       var module = compiler.compile(unit, options);
 

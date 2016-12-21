@@ -22,9 +22,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   JavaScriptBackend get backend => compiler.backend;
   String get name => 'type propagator';
 
-  SsaTypePropagator(Compiler compiler)
-      : this.compiler = compiler,
-        this.closedWorld = compiler.closedWorld;
+  SsaTypePropagator(this.compiler, this.closedWorld);
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);

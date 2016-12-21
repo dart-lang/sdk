@@ -171,7 +171,8 @@ class SsaBranchBuilder {
     }
 
     handleIf(visitCondition, visitThen, null);
-    HConstant notIsAnd = builder.graph.addConstantBool(!isAnd, compiler);
+    HConstant notIsAnd =
+        builder.graph.addConstantBool(!isAnd, builder.closedWorld);
     HPhi result = new HPhi.manyInputs(
         null,
         <HInstruction>[boolifiedRight, notIsAnd],

@@ -147,7 +147,7 @@ class SsaInstructionSelection extends HBaseVisitor {
         ConstantValue constant = new SyntheticConstantValue(
             SyntheticConstantKind.DUMMY_INTERCEPTOR,
             receiverArgument.instructionType);
-        HConstant dummy = graph.addConstant(constant, compiler);
+        HConstant dummy = graph.addConstant(constant, closedWorld);
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
         dummy.usedBy.add(node);

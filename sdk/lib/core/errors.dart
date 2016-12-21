@@ -222,7 +222,7 @@ class RangeError extends ArgumentError {
                     (message != null) ? message : "Value not in range");
 
   /**
-   * Create a new [RangeError] with for an invalid value being outside a range.
+   * Create a new [RangeError] for a value being outside the valid range.
    *
    * The allowed range is from [minValue] to [maxValue], inclusive.
    * If `minValue` or `maxValue` are `null`, the range is infinite in

@@ -133,17 +133,18 @@ main() {
 Future runTest(String test, checker) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(test, uri);
-
-  checkTypeOf(String name, TypeMask type) {
-    var commonMasks = compiler.closedWorld.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    var element = findElement(compiler, name);
-    var mask = typesInferrer.getReturnTypeOfElement(element);
-    Expect.equals(type, simplify(mask, compiler));
-  }
-
   return compiler.run(uri).then((_) {
-    checker(compiler.closedWorld.commonMasks, checkTypeOf);
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var commonMasks = closedWorld.commonMasks;
+
+    checkTypeOf(String name, TypeMask type) {
+      var element = findElement(compiler, name);
+      var mask = typesInferrer.getReturnTypeOfElement(element);
+      Expect.equals(type, simplify(mask, closedWorld));
+    }
+
+    checker(commonMasks, checkTypeOf);
   });
 }
 

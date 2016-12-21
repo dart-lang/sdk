@@ -8,7 +8,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements, CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
@@ -35,22 +35,24 @@ abstract class OptimizationPhase {
 
 class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
+
+  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
+
   SsaOptimizerTask(JavaScriptBackend backend)
       : this.backend = backend,
         super(backend.compiler.measurer);
-  String get name => 'SSA optimizer';
-  Compiler get compiler => backend.compiler;
-  ClosedWorld get closedWorld => compiler.closedWorld;
-  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
-  void optimize(CodegenWorkItem work, HGraph graph) {
+  String get name => 'SSA optimizer';
+
+  Compiler get compiler => backend.compiler;
+
+  void optimize(CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
-      compiler.tracer.traceGraph(phase.name, graph);
+      backend.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid());
     }
 
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
     bool trustPrimitives = compiler.options.trustPrimitives;
     CodegenRegistry registry = work.registry;
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
@@ -59,36 +61,36 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(backend, closedWorld, this, registry),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(compiler),
+        new SsaTypePropagator(compiler, closedWorld),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(backend, closedWorld, this, registry),
         new SsaCheckInserter(
             trustPrimitives, backend, closedWorld, boundsChecked),
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(backend, closedWorld, this, registry),
         new SsaCheckInserter(
             trustPrimitives, backend, closedWorld, boundsChecked),
-        new SsaTypePropagator(compiler),
+        new SsaTypePropagator(compiler, closedWorld),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
-        new SsaDeadCodeEliminator(compiler, this),
-        new SsaGlobalValueNumberer(compiler),
+        new SsaDeadCodeEliminator(closedWorld, this),
+        new SsaGlobalValueNumberer(),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(compiler),
+        new SsaTypePropagator(compiler, closedWorld),
         codeMotion = new SsaCodeMotion(),
-        new SsaLoadElimination(compiler),
+        new SsaLoadElimination(compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(compiler),
-        new SsaValueRangeAnalyzer(compiler, constantSystem, this),
+        new SsaTypePropagator(compiler, closedWorld),
+        new SsaValueRangeAnalyzer(backend.helpers, closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaInstructionSimplifier(backend, closedWorld, this, registry),
         new SsaCheckInserter(
             trustPrimitives, backend, closedWorld, boundsChecked),
       ];
@@ -98,28 +100,28 @@ class SsaOptimizerTask extends CompilerTask {
       // required for implementation correctness because the code generator
       // assumes it is always performed.
       runPhase(
-          new SsaSimplifyInterceptors(compiler, constantSystem, work.element));
+          new SsaSimplifyInterceptors(compiler, closedWorld, work.element));
 
-      SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
+      SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
       if (codeMotion.movedCode || dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(compiler),
-          new SsaGlobalValueNumberer(compiler),
+          new SsaTypePropagator(compiler, closedWorld),
+          new SsaGlobalValueNumberer(),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, this),
-          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+          new SsaValueRangeAnalyzer(backend.helpers, closedWorld, this),
+          new SsaInstructionSimplifier(backend, closedWorld, this, registry),
           new SsaCheckInserter(
               trustPrimitives, backend, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
-          new SsaDeadCodeEliminator(compiler, this),
+          new SsaSimplifyInterceptors(compiler, closedWorld, work.element),
+          new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(compiler),
+          new SsaTypePropagator(compiler, closedWorld),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+          new SsaInstructionSimplifier(backend, closedWorld, this, registry),
         ];
       }
       phases.forEach(runPhase);
@@ -131,9 +133,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// cannot change.  The current implementation is conservative for the purpose
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
-bool isFixedLength(mask, Compiler compiler) {
-  ClosedWorld closedWorld = compiler.closedWorld;
-  JavaScriptBackend backend = compiler.backend;
+bool isFixedLength(mask, ClosedWorld closedWorld) {
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
     return true;
@@ -161,20 +161,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
-  final ConstantSystem constantSystem;
+  final ClosedWorld closedWorld;
   final CodegenRegistry registry;
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
 
   SsaInstructionSimplifier(
-      this.constantSystem, this.backend, this.optimizer, this.registry);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+      this.backend, this.closedWorld, this.optimizer, this.registry);
 
   CommonElements get commonElements => closedWorld.commonElements;
 
   BackendHelpers get helpers => backend.helpers;
+
+  ConstantSystem get constantSystem => closedWorld.constantSystem;
 
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;
@@ -249,7 +249,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (node.usedBy.isEmpty) return;
     ConstantValue value = getConstantFromType(node);
     if (value != null) {
-      HConstant constant = graph.addConstant(value, compiler);
+      HConstant constant = graph.addConstant(value, closedWorld);
       for (HInstruction user in node.usedBy.toList()) {
         user.changeUse(node, constant);
       }
@@ -296,7 +296,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
     if (!mask.contains(helpers.jsBoolClass, closedWorld)) {
-      return graph.addConstantBool(false, compiler);
+      return graph.addConstantBool(false, closedWorld);
     }
     return node;
   }
@@ -308,7 +308,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (input is HConstant) {
       HConstant constant = input;
       bool isTrue = constant.constant.isTrue;
-      return graph.addConstantBool(!isTrue, compiler);
+      return graph.addConstantBool(!isTrue, closedWorld);
     } else if (input is HNot) {
       return input.inputs[0];
     }
@@ -325,7 +325,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (operand is HConstant) {
       HConstant receiver = operand;
       ConstantValue folded = operation.fold(receiver.constant);
-      if (folded != null) return graph.addConstant(folded, compiler);
+      if (folded != null) return graph.addConstant(folded, closedWorld);
     }
     return null;
   }
@@ -336,14 +336,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstantValue constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, compiler);
+        return graph.addConstantInt(constant.length, closedWorld);
       } else if (actualReceiver.isConstantList()) {
         HConstant constantInput = actualReceiver;
         ListConstantValue constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, compiler);
+        return graph.addConstantInt(constant.length, closedWorld);
       }
       MemberElement element = helpers.jsIndexableLength;
-      bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
+      bool isFixed = isFixedLength(actualReceiver.instructionType, closedWorld);
       TypeMask actualType = node.instructionType;
       TypeMask resultType = closedWorld.commonMasks.positiveIntType;
       // If we already have computed a more specific type, keep that type.
@@ -360,7 +360,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
       MapConstantValue constant = constantInput.constant;
-      return graph.addConstantInt(constant.length, compiler);
+      return graph.addConstantInt(constant.length, closedWorld);
     }
     return null;
   }
@@ -585,7 +585,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       HConstant op1 = left;
       HConstant op2 = right;
       ConstantValue folded = operation.fold(op1.constant, op2.constant);
-      if (folded != null) return graph.addConstant(folded, compiler);
+      if (folded != null) return graph.addConstant(folded, closedWorld);
     }
     return null;
   }
@@ -646,8 +646,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask leftType = left.instructionType;
     TypeMask rightType = right.instructionType;
 
-    HInstruction makeTrue() => graph.addConstantBool(true, compiler);
-    HInstruction makeFalse() => graph.addConstantBool(false, compiler);
+    HInstruction makeTrue() => graph.addConstantBool(true, closedWorld);
+    HInstruction makeFalse() => graph.addConstantBool(false, closedWorld);
 
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
@@ -698,7 +698,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   void simplifyCondition(
       HBasicBlock block, HInstruction condition, bool value) {
     condition.dominatedUsers(block.first).forEach((user) {
-      HInstruction newCondition = graph.addConstantBool(value, compiler);
+      HInstruction newCondition = graph.addConstantBool(value, closedWorld);
       user.changeUse(condition, newCondition);
     });
   }
@@ -741,7 +741,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     if (type.isObject || type.treatAsDynamic) {
-      return graph.addConstantBool(true, compiler);
+      return graph.addConstantBool(true, closedWorld);
     }
 
     HInstruction expression = node.expression;
@@ -749,30 +749,30 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (element == commonElements.intClass ||
           element == commonElements.numClass ||
           Elements.isNumberOrStringSupertype(element, commonElements)) {
-        return graph.addConstantBool(true, compiler);
+        return graph.addConstantBool(true, closedWorld);
       } else if (element == commonElements.doubleClass) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will always return true.
         return node;
       } else {
-        return graph.addConstantBool(false, compiler);
+        return graph.addConstantBool(false, closedWorld);
       }
     } else if (expression.isDouble(closedWorld)) {
       if (element == commonElements.doubleClass ||
           element == commonElements.numClass ||
           Elements.isNumberOrStringSupertype(element, commonElements)) {
-        return graph.addConstantBool(true, compiler);
+        return graph.addConstantBool(true, closedWorld);
       } else if (element == commonElements.intClass) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will return true for a double that can be
         // represented as a 31-bit integer and for -0.0.
         return node;
       } else {
-        return graph.addConstantBool(false, compiler);
+        return graph.addConstantBool(false, closedWorld);
       }
     } else if (expression.isNumber(closedWorld)) {
       if (element == commonElements.numClass) {
-        return graph.addConstantBool(true, compiler);
+        return graph.addConstantBool(true, closedWorld);
       } else {
         // We cannot just return false, because the expression may be of
         // type int or double.
@@ -792,9 +792,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
           ? new TypeMask.subtype(element, closedWorld)
           : new TypeMask.nonNullSubtype(element, closedWorld);
       if (expressionMask.union(typeMask, closedWorld) == typeMask) {
-        return graph.addConstantBool(true, compiler);
+        return graph.addConstantBool(true, closedWorld);
       } else if (expressionMask.isDisjoint(typeMask, closedWorld)) {
-        return graph.addConstantBool(false, compiler);
+        return graph.addConstantBool(false, closedWorld);
       }
     }
     return node;
@@ -865,11 +865,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
           return receiver.inputs[0];
         }
       } else if (receiver.isConstantList() || receiver.isConstantString()) {
-        return graph.addConstantInt(receiver.constant.length, compiler);
+        return graph.addConstantInt(receiver.constant.length, closedWorld);
       } else {
         var type = receiver.instructionType;
         if (type.isContainer && type.length != null) {
-          HInstruction constant = graph.addConstantInt(type.length, compiler);
+          HInstruction constant =
+              graph.addConstantInt(type.length, closedWorld);
           if (type.isNullable) {
             // If the container can be null, we update all uses of the
             // length access to use the constant instead, but keep the
@@ -893,7 +894,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         Map<Element, ConstantValue> fields = constructedConstant.fields;
         ConstantValue value = fields[node.element];
         if (value != null) {
-          return graph.addConstant(value, compiler);
+          return graph.addConstant(value, closedWorld);
         }
       }
     }
@@ -908,7 +909,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       instruction = node.index;
       int index = instruction.constant.primitiveValue;
       if (index >= 0 && index < entries.length) {
-        return graph.addConstant(entries[index], compiler);
+        return graph.addConstant(entries[index], closedWorld);
       }
     }
     return node;
@@ -1063,7 +1064,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction folded = graph.addConstant(
         constantSystem.createString(new ast.DartString.concat(
             leftString.primitiveValue, rightString.primitiveValue)),
-        compiler);
+        closedWorld);
     if (prefix == null) return folded;
     return new HStringConcat(
         prefix, folded, closedWorld.commonMasks.stringType);
@@ -1087,7 +1088,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
       PrimitiveConstantValue primitive = constant.constant;
       return graph.addConstant(
-          constantSystem.createString(primitive.toDartString()), compiler);
+          constantSystem.createString(primitive.toDartString()), closedWorld);
     }
 
     HInstruction tryToString() {
@@ -1280,7 +1281,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return finishSubstituted(
             object.element,
             // If there are type arguments, all type arguments are 'dynamic'.
-            (int i) => graph.addConstantNull(compiler));
+            (int i) => graph.addConstantNull(closedWorld));
       }
     }
 
@@ -1327,10 +1328,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   HBoundsCheck insertBoundsCheck(
       HInstruction indexNode, HInstruction array, HInstruction indexArgument) {
-    Compiler compiler = backend.compiler;
     HFieldGet length = new HFieldGet(helpers.jsIndexableLength, array,
         closedWorld.commonMasks.positiveIntType,
-        isAssignable: !isFixedLength(array.instructionType, compiler));
+        isAssignable: !isFixedLength(array.instructionType, closedWorld));
     indexNode.block.addBefore(indexNode, length);
 
     TypeMask type = indexArgument.isPositiveInteger(closedWorld)
@@ -1372,8 +1372,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     // `0` is the index we want to check, but we want to report `-1`, as if we
     // executed `a[a.length-1]`
     HBoundsCheck check = insertBoundsCheck(
-        node, node.receiver, graph.addConstantInt(0, backend.compiler));
-    HInstruction minusOne = graph.addConstantInt(-1, backend.compiler);
+        node, node.receiver, graph.addConstantInt(0, closedWorld));
+    HInstruction minusOne = graph.addConstantInt(-1, closedWorld);
     check.inputs.add(minusOne);
     minusOne.usedBy.add(check);
   }
@@ -1382,16 +1382,14 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
   SsaLiveBlockAnalyzer analyzer;
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
 
-  SsaDeadCodeEliminator(this.compiler, this.optimizer);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  SsaDeadCodeEliminator(this.closedWorld, this.optimizer);
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
@@ -1399,7 +1397,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       // A constant with no type does not pollute types at phi nodes.
       ConstantValue constant = new SyntheticConstantValue(
           SyntheticConstantKind.EMPTY_VALUE, const TypeMask.nonNullEmpty());
-      zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
+      zapInstructionCache = analyzer.graph.addConstant(constant, closedWorld);
     }
     return zapInstructionCache;
   }
@@ -1794,13 +1792,12 @@ class GvnWorkItem {
 
 class SsaGlobalValueNumberer implements OptimizationPhase {
   final String name = "SsaGlobalValueNumberer";
-  final Compiler compiler;
   final Set<int> visited;
 
   List<int> blockChangesFlags;
   List<int> loopChangesFlags;
 
-  SsaGlobalValueNumberer(this.compiler) : visited = new Set<int>();
+  SsaGlobalValueNumberer() : visited = new Set<int>();
 
   void visitGraph(HGraph graph) {
     computeChangesFlags(graph);
@@ -2228,13 +2225,12 @@ class SsaTypeConversionInserter extends HBaseVisitor
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
 
-  SsaLoadElimination(this.compiler);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  SsaLoadElimination(this.compiler, this.closedWorld);
 
   void visitGraph(HGraph graph) {
     memories = new List<MemorySet>(graph.blocks.length);

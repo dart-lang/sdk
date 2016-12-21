@@ -575,7 +575,7 @@ class LocalsHandler {
   LocalsHandler mergeMultiple(
       List<LocalsHandler> localsHandlers, HBasicBlock joinBlock) {
     assert(localsHandlers.length > 0);
-    if (localsHandlers.length == 1) return localsHandlers[0];
+    if (localsHandlers.length == 1) return localsHandlers.single;
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Local local, HInstruction instruction) {

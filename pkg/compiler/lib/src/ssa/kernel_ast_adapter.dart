@@ -5,13 +5,14 @@
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
-import '../constants/expressions.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
+import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/modelx.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
@@ -40,6 +41,8 @@ class KernelAstAdapter {
   final Map<ir.Node, Element> _nodeToElement;
   final Map<ir.VariableDeclaration, SyntheticLocal> _syntheticLocals =
       <ir.VariableDeclaration, SyntheticLocal>{};
+  final Map<ir.LabeledStatement, KernelJumpTarget> _jumpTargets =
+      <ir.LabeledStatement, KernelJumpTarget>{};
   DartTypeConverter _typeConverter;
 
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
@@ -67,7 +70,6 @@ class KernelAstAdapter {
   TreeElements get elements => _resolvedAst.elements;
   DiagnosticReporter get reporter => _compiler.reporter;
   Element get _target => _resolvedAst.element;
-  ClosedWorld get _closedWorld => _compiler.closedWorld;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
       _compiler.globalInference.results;
@@ -129,9 +131,9 @@ class KernelAstAdapter {
     return getElement(variable) as LocalElement;
   }
 
-  bool getCanThrow(ir.Node procedure) {
+  bool getCanThrow(ir.Node procedure, ClosedWorld closedWorld) {
     FunctionElement function = getElement(procedure);
-    return !_closedWorld.getCannotThrow(function);
+    return !closedWorld.getCannotThrow(function);
   }
 
   TypeMask returnTypeOf(ir.Member node) {
@@ -139,8 +141,8 @@ class KernelAstAdapter {
         getElement(node), _globalInferenceResults);
   }
 
-  SideEffects getSideEffects(ir.Node node) {
-    return _closedWorld.getSideEffectsOfElement(getElement(node));
+  SideEffects getSideEffects(ir.Node node, ClosedWorld closedWorld) {
+    return closedWorld.getSideEffectsOfElement(getElement(node));
   }
 
   CallStructure getCallStructure(ir.Arguments arguments) {
@@ -202,13 +204,13 @@ class KernelAstAdapter {
     return new Selector.setter(name);
   }
 
-  TypeMask typeOfInvocation(ir.MethodInvocation send) {
+  TypeMask typeOfInvocation(ir.MethodInvocation send, ClosedWorld closedWorld) {
     ast.Node operatorNode = kernel.nodeToAstOperator[send];
     if (operatorNode != null) {
       return _resultOf(_target).typeOfOperator(operatorNode);
     }
     if (send.name.name == '[]=') {
-      return _compiler.closedWorld.commonMasks.dynamicType;
+      return closedWorld.commonMasks.dynamicType;
     }
     return _resultOf(_target).typeOfSend(getNode(send));
   }
@@ -217,8 +219,8 @@ class KernelAstAdapter {
     return _resultOf(_target).typeOfSend(getNode(getter));
   }
 
-  TypeMask typeOfSet(ir.PropertySet setter) {
-    return _closedWorld.commonMasks.dynamicType;
+  TypeMask typeOfSet(ir.PropertySet setter, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.dynamicType;
   }
 
   TypeMask typeOfSend(ir.Expression send) {
@@ -226,14 +228,15 @@ class KernelAstAdapter {
     return _resultOf(_target).typeOfSend(getNode(send));
   }
 
-  TypeMask typeOfListLiteral(Element owner, ir.ListLiteral listLiteral) {
+  TypeMask typeOfListLiteral(
+      Element owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
     ast.Node node = getNodeOrNull(listLiteral);
     if (node == null) {
       assertNodeIsSynthetic(listLiteral);
-      return _closedWorld.commonMasks.growableListType;
+      return closedWorld.commonMasks.growableListType;
     }
     return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
-        _closedWorld.commonMasks.dynamicType;
+        closedWorld.commonMasks.dynamicType;
   }
 
   TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
@@ -248,27 +251,25 @@ class KernelAstAdapter {
     return _resultOf(_target).typeOfIteratorMoveNext(getNode(forInStatement));
   }
 
-  bool isJsIndexableIterator(ir.ForInStatement forInStatement) {
+  bool isJsIndexableIterator(
+      ir.ForInStatement forInStatement, ClosedWorld closedWorld) {
     TypeMask mask = typeOfIterator(forInStatement);
     return mask != null &&
-        mask.satisfies(_backend.helpers.jsIndexableClass, _closedWorld) &&
+        mask.satisfies(_backend.helpers.jsIndexableClass, closedWorld) &&
         // String is indexable but not iterable.
-        !mask.satisfies(_backend.helpers.jsStringClass, _closedWorld);
+        !mask.satisfies(_backend.helpers.jsStringClass, closedWorld);
   }
 
-  bool isFixedLength(TypeMask mask) {
-    JavaScriptBackend backend = _compiler.backend;
+  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
     if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
       // A container on which we have inferred the length.
       return true;
     }
     // TODO(sra): Recognize any combination of fixed length indexables.
-    if (mask.containsOnly(
-            _closedWorld.backendClasses.fixedListImplementation) ||
-        mask.containsOnly(
-            _closedWorld.backendClasses.constListImplementation) ||
-        mask.containsOnlyString(_closedWorld) ||
-        _closedWorld.commonMasks.isTypedArray(mask)) {
+    if (mask.containsOnly(closedWorld.backendClasses.fixedListImplementation) ||
+        mask.containsOnly(closedWorld.backendClasses.constListImplementation) ||
+        mask.containsOnlyString(closedWorld) ||
+        closedWorld.commonMasks.isTypedArray(mask)) {
       return true;
     }
     return false;
@@ -289,8 +290,9 @@ class KernelAstAdapter {
         selector, mask, _globalInferenceResults);
   }
 
-  TypeMask typeFromNativeBehavior(native.NativeBehavior nativeBehavior) {
-    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
+  TypeMask typeFromNativeBehavior(
+      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
+    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 
   ConstantValue getConstantFor(ir.Node node) {
@@ -341,6 +343,16 @@ class KernelAstAdapter {
 
   JumpTarget getTargetDefinition(ir.Node node) =>
       elements.getTargetDefinition(getNode(node));
+
+  JumpTarget getTargetOf(ir.Node node) => elements.getTargetOf(getNode(node));
+
+  KernelJumpTarget getJumpTarget(ir.LabeledStatement labeledStatement) =>
+      _jumpTargets.putIfAbsent(labeledStatement, () {
+        return new KernelJumpTarget();
+      });
+
+  LabelDefinition getTargetLabel(ir.Node node) =>
+      elements.getTargetLabel(getNode(node));
 
   ir.Class get mapLiteralClass =>
       kernel.classes[_backend.helpers.mapLiteralClass];
@@ -761,9 +773,14 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     } else if (node.parameter.parent is ir.FunctionNode) {
       ir.FunctionNode func = node.parameter.parent;
       int index = func.typeParameters.indexOf(node.parameter);
-      ConstructorElement constructorElement = astAdapter.getElement(func);
-      ClassElement classElement = constructorElement.enclosingClass;
-      return classElement.typeVariables[index];
+      Element element = astAdapter.getElement(func);
+      if (element.isConstructor) {
+        ClassElement classElement = element.enclosingClass;
+        return classElement.typeVariables[index];
+      } else {
+        GenericElement genericElement = element;
+        return genericElement.typeVariables[index];
+      }
     }
     throw new UnsupportedError('Unsupported type parameter type node $node.');
   }
@@ -874,4 +891,56 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visitStringLiteral(ir.StringLiteral node) {
     return new StringConstantExpression(node.value);
   }
+}
+
+class KernelJumpTarget extends JumpTarget {
+  static int index = 0;
+
+  KernelJumpTarget() {
+    labels = <LabelDefinition>[
+      new LabelDefinitionX(null, 'l${index++}', this)..setBreakTarget()
+    ];
+  }
+
+  @override
+  bool get isBreakTarget => true;
+
+  set isBreakTarget(bool x) {
+    // do nothing, these are always break targets
+  }
+
+  @override
+  bool get isContinueTarget => false;
+
+  set isContinueTarget(bool x) {
+    // do nothing, these are always break targets
+  }
+
+  @override
+  LabelDefinition addLabel(ast.Label label, String labelName) {
+    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
+    labels.add(result);
+    return result;
+  }
+
+  @override
+  ExecutableElement get executableContext => null;
+
+  @override
+  bool get isSwitch => false;
+
+  @override
+  bool get isTarget => true;
+
+  @override
+  List<LabelDefinition> labels;
+
+  @override
+  String get name => null;
+
+  @override
+  int get nestingLevel => 1;
+
+  @override
+  ast.Node get statement => null;
 }

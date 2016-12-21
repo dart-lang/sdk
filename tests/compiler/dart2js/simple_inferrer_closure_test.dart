@@ -119,29 +119,31 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
           Expect.equals(
               type,
-              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
               name);
         }
 
-        checkReturn('returnInt1', compiler.closedWorld.commonMasks.uint31Type);
-        checkReturn('returnInt2', compiler.closedWorld.commonMasks.uint31Type);
-        checkReturn('returnInt3', compiler.closedWorld.commonMasks.uint31Type);
-        checkReturn('returnInt4', compiler.closedWorld.commonMasks.uint31Type);
-        checkReturn('returnIntOrNull',
-            compiler.closedWorld.commonMasks.uint31Type.nullable());
+        checkReturn('returnInt1', closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt2', closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt3', closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt4', closedWorld.commonMasks.uint31Type);
+        checkReturn(
+            'returnIntOrNull', closedWorld.commonMasks.uint31Type.nullable());
 
-        checkReturn('returnDyn1',
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnDyn2',
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnDyn3',
-            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnNum1', compiler.closedWorld.commonMasks.numType);
+        checkReturn(
+            'returnDyn1', closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn2', closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn(
+            'returnDyn3', closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn('returnNum1', closedWorld.commonMasks.numType);
 
         checkReturnInClass(String className, String methodName, type) {
           var cls = findElement(compiler, className);
@@ -149,11 +151,11 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), compiler));
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
         }
 
         var cls = findElement(compiler, 'A');
         checkReturnInClass(
-            'A', 'foo', new TypeMask.nonNullExact(cls, compiler.closedWorld));
+            'A', 'foo', new TypeMask.nonNullExact(cls, closedWorld));
       }));
 }

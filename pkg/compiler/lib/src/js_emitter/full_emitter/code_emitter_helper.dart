@@ -19,6 +19,8 @@ class CodeEmitterHelper {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  CodegenWorldBuilder get codegenWorld => compiler.codegenWorld;
+
   String get n => emitter.n;
 
   String get _ => emitter._;

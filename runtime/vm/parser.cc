@@ -70,7 +70,6 @@ DEFINE_FLAG(bool,
             assert_initializer,
             false,
             "Allow asserts in initializer lists.");
-DEFINE_FLAG(bool, assert_message, false, "Allow message in assert statements");
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
@@ -9165,7 +9164,7 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   const TokenPosition condition_pos = TokenPos();
   if (!I->asserts()) {
     SkipExpr();
-    if (FLAG_assert_message && (CurrentToken() == Token::kCOMMA)) {
+    if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
       SkipExpr();
     }
@@ -9182,7 +9181,7 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   const TokenPosition condition_end = TokenPos();
   AstNode* message = NULL;
   TokenPosition message_pos = TokenPosition::kNoSource;
-  if (FLAG_assert_message && CurrentToken() == Token::kCOMMA) {
+  if (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
     message_pos = TokenPos();
     message = ParseExpr(kAllowConst, kConsumeCascades);

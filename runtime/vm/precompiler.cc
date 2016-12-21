@@ -33,6 +33,7 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/program_visitor.h"
 #include "vm/redundancy_elimination.h"
 #include "vm/regexp_assembler.h"
 #include "vm/regexp_parser.h"
@@ -42,9 +43,10 @@
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
+#include "vm/version.h"
+#include "vm/json_parser.h"
 
 namespace dart {
-
 
 #define T (thread())
 #define I (isolate())
@@ -76,6 +78,15 @@ DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
+DECLARE_FLAG(int, inlining_hotness);
+DECLARE_FLAG(int, inlining_size_threshold);
+DECLARE_FLAG(int, inlining_callee_size_threshold);
+DECLARE_FLAG(int, inline_getters_setters_smaller_than);
+DECLARE_FLAG(int, inlining_depth_threshold);
+DECLARE_FLAG(int, inlining_caller_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
+
 
 #ifdef DART_PRECOMPILER
 
@@ -185,12 +196,37 @@ static void Jump(const Error& error) {
 }
 
 
+TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
+                               Thread* thread,
+                               intptr_t num_cids)
+    : precompiler_(precompiler),
+      thread_(thread),
+      lower_limits_(thread->zone()->Alloc<intptr_t>(num_cids)),
+      upper_limits_(thread->zone()->Alloc<intptr_t>(num_cids)) {
+  for (intptr_t i = 0; i < num_cids; i++) {
+    lower_limits_[i] = kNotComputed;
+    upper_limits_[i] = kNotComputed;
+  }
+  ASSERT(precompiler->type_range_cache() == NULL);
+  precompiler->set_type_range_cache(this);
+}
+
+
+TypeRangeCache::~TypeRangeCache() {
+  ASSERT(precompiler_->type_range_cache() == this);
+  precompiler_->set_type_range_cache(NULL);
+}
+
+
 RawError* Precompiler::CompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[],
-    bool reset_fields) {
+    bool reset_fields,
+    uint8_t* jit_feedback,
+    intptr_t jit_feedback_length) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current(), reset_fields);
+    precompiler.LoadFeedback(jit_feedback, jit_feedback_length);
     precompiler.DoCompileAll(embedder_entry_points);
     return Error::null();
   } else {
@@ -294,6 +330,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields)
       zone_(NULL),
       isolate_(thread->isolate()),
       reset_fields_(reset_fields),
+      jit_feedback_(NULL),
       changed_(false),
       function_count_(0),
       class_count_(0),
@@ -316,8 +353,50 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields)
       types_to_retain_(),
       consts_to_retain_(),
       field_type_map_(),
+      type_range_cache_(NULL),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {}
+
+
+void Precompiler::LoadFeedback(uint8_t* buffer, intptr_t length) {
+  if (buffer == NULL) {
+    if (FLAG_trace_precompiler) {
+      THR_Print("Precompiler running without JIT feedback\n");
+    }
+
+    // Flags affecting compilation only:
+    // There is no counter feedback in precompilation, so ignore the counter
+    // when making inlining decisions.
+    FLAG_inlining_hotness = 0;
+    // Use smaller thresholds in precompilation as we are compiling everything
+    // with the optimizing compiler instead of only hot functions.
+    FLAG_inlining_size_threshold = 5;
+    FLAG_inline_getters_setters_smaller_than = 5;
+    FLAG_inlining_callee_size_threshold = 20;
+    FLAG_inlining_depth_threshold = 4;
+    FLAG_inlining_caller_size_threshold = 1000;
+    FLAG_inlining_constant_arguments_max_size_threshold = 100;
+    FLAG_inlining_constant_arguments_min_size_threshold = 30;
+    return;
+  }
+
+  if (FLAG_trace_precompiler) {
+    THR_Print("Loading JIT feedback\n");
+  }
+
+  JSONParser parser(reinterpret_cast<const char*>(buffer), length,
+                    Thread::Current()->zone());
+  ParsedJSONValue* root = parser.ParseValue();
+  if (root->IsError()) {
+    ParsedJSONError* error = static_cast<ParsedJSONError*>(root);
+    THR_Print("Error parsing JIT feedback: %s:%" Pd "\n", error->message(),
+              error->position());
+  } else if (!root->IsObject()) {
+    THR_Print("Error parsing JIT feedback: object expected\n");
+  } else {
+    jit_feedback_ = static_cast<ParsedJSONObject*>(root);
+  }
+}
 
 
 void Precompiler::DoCompileAll(
@@ -336,7 +415,8 @@ void Precompiler::DoCompileAll(
       FinalizeAllClasses();
 
       SortClasses();
-      TypeRangeCache trc(T, I->class_table()->NumCids());
+      TypeRangeCache trc(this, T, I->class_table()->NumCids());
+      VerifyJITFeedback();
 
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
@@ -478,7 +558,7 @@ void Precompiler::PrecompileStaticInitializers() {
 
   HANDLESCOPE(T);
   StaticInitializerVisitor visitor(Z);
-  VisitClasses(&visitor);
+  ProgramVisitor::VisitClasses(&visitor);
 }
 
 
@@ -508,7 +588,7 @@ void Precompiler::PrecompileConstructors() {
 
   HANDLESCOPE(T);
   ConstructorVisitor visitor(this, zone_);
-  VisitFunctions(&visitor);
+  ProgramVisitor::VisitFunctions(&visitor);
 
   FieldTypeMap::Iterator it(field_type_map_.GetIterator());
   for (FieldTypePair* current = it.Next(); current != NULL;
@@ -533,13 +613,13 @@ void Precompiler::ClearAllCode() {
     }
   };
   ClearCodeFunctionVisitor function_visitor;
-  VisitFunctions(&function_visitor);
+  ProgramVisitor::VisitFunctions(&function_visitor);
 
   class ClearCodeClassVisitor : public ClassVisitor {
     void Visit(const Class& cls) { cls.DisableAllocationStub(); }
   };
   ClearCodeClassVisitor class_visitor;
-  VisitClasses(&class_visitor);
+  ProgramVisitor::VisitClasses(&class_visitor);
 }
 
 
@@ -2081,7 +2161,7 @@ void Precompiler::BindStaticCalls() {
   };
 
   BindStaticCallsVisitor visitor(Z);
-  VisitFunctions(&visitor);
+  ProgramVisitor::VisitFunctions(&visitor);
 }
 
 
@@ -2170,7 +2250,7 @@ void Precompiler::SwitchICCalls() {
 
   ASSERT(!I->compilation_allowed());
   SwitchICCallsVisitor visitor(Z);
-  VisitFunctions(&visitor);
+  ProgramVisitor::VisitFunctions(&visitor);
 #endif
 }
 
@@ -2243,7 +2323,7 @@ void Precompiler::DedupStackMaps() {
   };
 
   DedupStackMapsVisitor visitor(Z);
-  VisitFunctions(&visitor);
+  ProgramVisitor::VisitFunctions(&visitor);
 }
 
 
@@ -2310,7 +2390,7 @@ void Precompiler::DedupLists() {
   };
 
   DedupListsVisitor visitor(Z);
-  VisitFunctions(&visitor);
+  ProgramVisitor::VisitFunctions(&visitor);
 }
 
 
@@ -2356,81 +2436,7 @@ void Precompiler::DedupInstructions() {
   };
 
   DedupInstructionsVisitor visitor(Z);
-  VisitFunctions(&visitor);
-}
-
-
-void Precompiler::VisitClasses(ClassVisitor* visitor) {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      visitor->Visit(cls);
-    }
-  }
-}
-
-
-void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Array& functions = Array::Handle(Z);
-  Array& fields = Array::Handle(Z);
-  Field& field = Field::Handle(Z);
-  Object& object = Object::Handle(Z);
-  Function& function = Function::Handle(Z);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
-      functions = cls.functions();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        function ^= functions.At(j);
-        visitor->Visit(function);
-        if (function.HasImplicitClosureFunction()) {
-          function = function.ImplicitClosureFunction();
-          visitor->Visit(function);
-        }
-      }
-
-      functions = cls.invocation_dispatcher_cache();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        object = functions.At(j);
-        if (object.IsFunction()) {
-          function ^= functions.At(j);
-          visitor->Visit(function);
-        }
-      }
-      fields = cls.fields();
-      for (intptr_t j = 0; j < fields.Length(); j++) {
-        field ^= fields.At(j);
-        if (field.is_static() && field.HasPrecompiledInitializer()) {
-          function ^= field.PrecompiledInitializer();
-          visitor->Visit(function);
-        }
-      }
-    }
-  }
-  closures = isolate()->object_store()->closure_functions();
-  for (intptr_t j = 0; j < closures.Length(); j++) {
-    function ^= closures.At(j);
-    visitor->Visit(function);
-    ASSERT(!function.HasImplicitClosureFunction());
-  }
+  ProgramVisitor::VisitFunctions(&visitor);
 }
 
 
@@ -2607,6 +2613,342 @@ void Precompiler::RemapClassIds(intptr_t* old_to_new_cid) {
 }
 
 
+void Precompiler::VerifyJITFeedback() {
+  if (jit_feedback_ == NULL) return;
+
+  ParsedJSONString* js_vmversion = jit_feedback_->StringAt("vmVersion");
+  if ((js_vmversion == NULL) ||
+      strcmp(js_vmversion->value(), Version::CommitString()) != 0) {
+    THR_Print(
+        "JIT feedback contains invalid vm version "
+        "(saw %s, expected %s).\n",
+        js_vmversion->value(), Version::CommitString());
+    jit_feedback_ = NULL;
+    return;
+  }
+  ParsedJSONBoolean* js_asserts = jit_feedback_->BooleanAt("asserts");
+  if ((js_asserts == NULL) || (FLAG_enable_asserts != js_asserts->value())) {
+    THR_Print("JIT feedback contains invalid FLAG_enable_asserts\n");
+    jit_feedback_ = NULL;
+    return;
+  }
+  ParsedJSONBoolean* js_typechecks = jit_feedback_->BooleanAt("typeChecks");
+  if ((js_typechecks == NULL) ||
+      (FLAG_enable_type_checks != js_typechecks->value())) {
+    THR_Print("JIT feedback contains invalid FLAG_enable_type_checks\n");
+    jit_feedback_ = NULL;
+    return;
+  }
+
+  ParsedJSONArray* js_scripts = jit_feedback_->ArrayAt("scripts");
+  ASSERT(js_scripts != NULL);
+  Script& script = Script::Handle(Z);
+  for (intptr_t i = 0; i < js_scripts->Length(); i++) {
+    ParsedJSONObject* js_script = js_scripts->ObjectAt(i);
+    ASSERT(js_script != NULL);
+    ParsedJSONString* js_uri = js_script->StringAt("uri");
+    ASSERT(js_uri != NULL);
+    ParsedJSONNumber* js_fp = js_script->NumberAt("checksum");
+    ASSERT(js_fp != NULL);
+    script = LookupScript(js_uri->value());
+    if (script.IsNull()) {
+      THR_Print("Cannot find script %s\n", js_uri->value());
+      continue;
+    }
+    intptr_t fp = script.SourceFingerprint();
+    if (fp != js_fp->value()) {
+      THR_Print(
+          "Fingerprint has changed for %s. Continuing without JIT "
+          "feedback.\n",
+          js_uri->value());
+      jit_feedback_ = NULL;
+      return;
+    }
+  }
+
+  ParsedJSONArray* js_classes = jit_feedback_->ArrayAt("classes");
+  ASSERT(js_classes != NULL);
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  String& str = String::Handle(Z);
+  for (intptr_t i = 0; i < js_classes->Length(); i++) {
+    ParsedJSONObject* js_class = js_classes->ObjectAt(i);
+    ASSERT(js_class != NULL);
+    ParsedJSONString* js_uri = js_class->StringAt("uri");
+    ASSERT(js_uri != NULL);
+    ParsedJSONString* js_name = js_class->StringAt("name");
+    ASSERT(js_name != NULL);
+    ParsedJSONNumber* js_cid = js_class->NumberAt("cid");
+    ASSERT(js_cid != NULL);
+
+    str = String::New(js_uri->value());
+    lib = Library::LookupLibrary(T, str);
+    if (lib.IsNull()) {
+      THR_Print("Cannot find library %s\n", js_uri->value());
+      continue;
+    }
+    str = String::New(js_name->value());
+    if (str.Equals(Symbols::TopLevel())) {
+      cls = lib.toplevel_class();
+    } else {
+      cls = lib.LookupClassAllowPrivate(str);
+    }
+    if (cls.IsNull()) {
+      THR_Print("Missing class %s\n", js_name->value());
+      continue;
+    }
+
+    feedback_cid_map_.Insert(IntptrPair(js_cid->value(), cls.id()));
+  }
+
+  ParsedJSONArray* js_functions = jit_feedback_->ArrayAt("functions");
+  ASSERT(js_functions != NULL);
+  for (intptr_t i = 0; i < js_functions->Length(); i++) {
+    ParsedJSONObject* js_function = js_functions->ObjectAt(i);
+    ASSERT(js_function != NULL);
+    ParsedJSONString* js_name = js_function->StringAt("name");
+    ASSERT(js_name != NULL);
+    ParsedJSONNumber* js_cid = js_function->NumberAt("class");
+    ASSERT(js_cid != NULL);
+    ParsedJSONNumber* js_token = js_function->NumberAt("tokenPos");
+    ASSERT(js_token != NULL);
+    ParsedJSONNumber* js_kind = js_function->NumberAt("kind");
+    ASSERT(js_kind != NULL);
+    function_feedback_map_.Insert(FunctionFeedbackPair(
+        FunctionFeedbackKey(MapCid(js_cid->value()), js_token->value(),
+                            js_kind->value()),
+        js_function));
+  }
+
+  class ApplyUsageVisitor : public FunctionVisitor {
+   public:
+    explicit ApplyUsageVisitor(Precompiler* precompiler)
+        : precompiler_(precompiler) {}
+    void Visit(const Function& function) {
+      ParsedJSONObject* js_function = precompiler_->LookupFeedback(function);
+      if (js_function == NULL) {
+        function.set_usage_counter(0);
+      } else {
+        ParsedJSONNumber* js_usage = js_function->NumberAt("usageCounter");
+        ASSERT(js_usage != NULL);
+        function.set_usage_counter(js_usage->value());
+      }
+    }
+
+   private:
+    Precompiler* precompiler_;
+  };
+
+  ApplyUsageVisitor visitor(this);
+  ProgramVisitor::VisitFunctions(&visitor);
+}
+
+
+ParsedJSONObject* Precompiler::LookupFeedback(const Function& function) {
+  const Class& owner = Class::Handle(Z, function.Owner());
+
+  FunctionFeedbackKey key(owner.id(), function.token_pos().value(),
+                          function.kind());
+  FunctionFeedbackPair* pair = function_feedback_map_.Lookup(key);
+  if (pair == NULL) {
+    return NULL;
+  }
+  return pair->value_;
+}
+
+
+RawScript* Precompiler::LookupScript(const char* uri) {
+  String& dart_uri = String::Handle(Z, String::New(uri));
+  Library& lib = Library::Handle(Z);
+  Script& script = Script::Handle(Z);
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    script = lib.LookupScript(dart_uri);
+    if (!script.IsNull()) {
+      return script.raw();
+    }
+  }
+  return Script::null();
+}
+
+
+intptr_t Precompiler::MapCid(intptr_t feedback_cid) {
+  if (feedback_cid < kNumPredefinedCids) {
+    return feedback_cid;
+  }
+  IntptrPair* pair = feedback_cid_map_.Lookup(feedback_cid);
+  if (pair == NULL) return kIllegalCid;
+  return pair->value_;
+}
+
+
+void Precompiler::PopulateWithICData(const Function& function,
+                                     FlowGraph* graph) {
+  Zone* zone = Thread::Current()->zone();
+
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (instr->IsInstanceCall()) {
+        InstanceCallInstr* call = instr->AsInstanceCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor = Array::Handle(
+              zone, ArgumentsDescriptor::New(call->ArgumentCount(),
+                                             call->argument_names()));
+          const ICData& ic_data = ICData::ZoneHandle(
+              zone, ICData::New(function, call->function_name(),
+                                arguments_descriptor, call->deopt_id(),
+                                call->checked_argument_count(), false));
+          call->set_ic_data(&ic_data);
+        }
+      } else if (instr->IsStaticCall()) {
+        StaticCallInstr* call = instr->AsStaticCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor = Array::Handle(
+              zone, ArgumentsDescriptor::New(call->ArgumentCount(),
+                                             call->argument_names()));
+          const Function& target = call->function();
+          MethodRecognizer::Kind recognized_kind =
+              MethodRecognizer::RecognizeKind(target);
+          int num_args_checked = 0;
+          switch (recognized_kind) {
+            case MethodRecognizer::kDoubleFromInteger:
+            case MethodRecognizer::kMathMin:
+            case MethodRecognizer::kMathMax:
+              num_args_checked = 2;
+              break;
+            default:
+              break;
+          }
+          const ICData& ic_data = ICData::ZoneHandle(
+              zone, ICData::New(function, String::Handle(zone, target.name()),
+                                arguments_descriptor, call->deopt_id(),
+                                num_args_checked, true));
+          ic_data.AddTarget(target);
+          call->set_ic_data(&ic_data);
+        }
+      }
+    }
+  }
+}
+
+
+void Precompiler::TryApplyFeedback(const Function& function, FlowGraph* graph) {
+  ParsedJSONObject* js_function = LookupFeedback(function);
+  if (js_function == NULL) {
+    if (FLAG_trace_precompiler) {
+      THR_Print("No feedback available for %s\n",
+                function.ToQualifiedCString());
+    }
+    return;
+  }
+
+  ParsedJSONArray* js_icdatas = js_function->ArrayAt("ics");
+  ASSERT(js_icdatas != NULL);
+
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (instr->IsInstanceCall()) {
+        InstanceCallInstr* call = instr->AsInstanceCall();
+        TryApplyFeedback(js_icdatas, *call->ic_data());
+      } else if (instr->IsStaticCall()) {
+        StaticCallInstr* call = instr->AsStaticCall();
+        TryApplyFeedback(js_icdatas, *call->ic_data());
+      }
+    }
+  }
+}
+
+
+void Precompiler::TryApplyFeedback(ParsedJSONArray* js_icdatas,
+                                   const ICData& ic) {
+  for (intptr_t j = 0; j < js_icdatas->Length(); j++) {
+    ParsedJSONObject* js_icdata = js_icdatas->ObjectAt(j);
+    ASSERT(js_icdata != NULL);
+
+    ParsedJSONNumber* js_deoptid = js_icdata->NumberAt("deoptId");
+    ASSERT(js_deoptid != NULL);
+    if (js_deoptid->value() != ic.deopt_id()) continue;
+
+    ParsedJSONBoolean* js_isstaticcall = js_icdata->BooleanAt("isStaticCall");
+    ASSERT(js_isstaticcall != NULL);
+    if (js_isstaticcall->value() != ic.is_static_call()) return;
+
+    ParsedJSONNumber* js_argsTested = js_icdata->NumberAt("argsTested");
+    ASSERT(js_argsTested != NULL);
+    if (js_argsTested->value() != ic.NumArgsTested()) return;
+
+    ParsedJSONString* js_selector = js_icdata->StringAt("selector");
+    ASSERT(js_selector != NULL);
+    const String& feedback_selector =
+        String::Handle(String::New(js_selector->value()));
+    const String& selector = String::Handle(ic.target_name());
+    // N.B.: EqualsIgnoringPrivateKey is not symmetric.
+    if (!String::EqualsIgnoringPrivateKey(selector, feedback_selector)) return;
+
+    ParsedJSONArray* js_entries = js_icdata->ArrayAt("entries");
+    ASSERT(js_entries != NULL);
+    if (ic.is_static_call()) {
+      // [cid [cid]] target count
+      ParsedJSONNumber* entry = js_entries->NumberAt(js_entries->Length() - 1);
+      ASSERT(entry != NULL);
+      ic.SetCountAt(0, entry->value());
+    } else {
+      // [cid [cid [cid]]] target count
+      const Array& arguments_descriptor =
+          Array::Handle(ic.arguments_descriptor());
+      ArgumentsDescriptor args_desc(arguments_descriptor);
+
+      intptr_t num_args_checked = ic.NumArgsTested();
+      for (intptr_t k = 0; k < js_entries->Length();
+           k += num_args_checked + 1) {
+        GrowableArray<intptr_t> class_ids(num_args_checked);
+        for (intptr_t arg = 0; arg < num_args_checked; arg++) {
+          ParsedJSONNumber* entry = js_entries->NumberAt(k + arg);
+          ASSERT(entry != NULL);
+          class_ids.Add(MapCid(entry->value()));
+        }
+        ParsedJSONNumber* entry = js_entries->NumberAt(k + num_args_checked);
+        ASSERT(entry != NULL);
+        intptr_t count = entry->value();
+
+        bool has_missing_cid = false;
+        for (intptr_t arg = 0; arg < num_args_checked; arg++) {
+          if (class_ids[arg] == kIllegalCid) {
+            has_missing_cid = true;
+          }
+        }
+        if (has_missing_cid) continue;
+
+        intptr_t receiver_cid = class_ids[0];
+        const Class& receiver_cls =
+            Class::Handle(I->class_table()->At(receiver_cid));
+        if (receiver_cls.IsClass()) {
+          const Function& target =
+              Function::Handle(Resolver::ResolveDynamicForReceiverClass(
+                  receiver_cls, selector, args_desc, false));
+          // TODO(rmacnak): Create missing dispatchers.
+          if (!target.IsNull()) {
+            if (num_args_checked == 1) {
+              ic.AddReceiverCheck(receiver_cid, target, count);
+            } else {
+              ic.AddCheck(class_ids, target, count);
+            }
+          }
+        }
+      }
+    }
+
+    return;
+  }
+}
+
+
 void Precompiler::ResetPrecompilerState() {
   changed_ = false;
   function_count_ = 0;
@@ -2757,6 +3099,15 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             zone, parsed_function(), *ic_data_array, Compiler::kNoOSRDeoptId);
       }
 
+      if (optimized()) {
+        Precompiler::PopulateWithICData(parsed_function()->function(),
+                                        flow_graph);
+        if (precompiler_ != NULL) {
+          precompiler_->TryApplyFeedback(parsed_function()->function(),
+                                         flow_graph);
+        }
+      }
+
       const bool print_flow_graph =
           (FLAG_print_flow_graph ||
            (optimized() && FLAG_print_flow_graph_optimized)) &&
@@ -2807,7 +3158,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         AotOptimizer optimizer(precompiler_, flow_graph,
                                use_speculative_inlining, &inlining_black_list);
-        optimizer.PopulateWithICData();
 
         optimizer.ApplyClassIds();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());

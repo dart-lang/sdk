@@ -8,6 +8,7 @@ import 'cache_strategy.dart';
 import 'closure.dart' show SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
+import 'constants/constant_system.dart';
 import 'core_types.dart' show CoreTypes, CoreClasses, CommonElements;
 import 'dart_types.dart';
 import 'elements/elements.dart'
@@ -52,6 +53,8 @@ abstract class ClosedWorld implements World {
   CommonElements get commonElements;
 
   CommonMasks get commonMasks;
+
+  ConstantSystem get constantSystem;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
@@ -907,6 +910,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   CoreClasses get coreClasses => commonElements;
+
+  ConstantSystem get constantSystem => _backend.constantSystem;
 
   /// Called to add [cls] to the set of known classes.
   ///

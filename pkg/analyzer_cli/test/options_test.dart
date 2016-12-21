@@ -55,11 +55,9 @@ main() {
 
       test('defined variables', () {
         CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '-Dfoo=bar', '-Da', 'b', 'foo.dart']);
+            .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
         expect(options.definedVariables['foo'], equals('bar'));
         expect(options.definedVariables['bar'], isNull);
-        expect(options.definedVariables['a'], equals('b'));
-        expect(options.definedVariables['b'], isNull);
       });
 
       test('disable cache flushing', () {

@@ -23,13 +23,15 @@ Future runTest() async {
     // Assertions enabled:
     var compiler = compilerFor(TEST, uri, enableUserAssertions: true);
     await compiler.run(uri);
-    var commonMasks = compiler.closedWorld.commonMasks;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var commonMasks = closedWorld.commonMasks;
     var foo = findElement(compiler, "foo");
     // Return type is null|bool.
     var mask = typesInferrer.getReturnTypeOfElement(foo);
     Expect.isTrue(mask.isNullable);
-    Expect.equals(commonMasks.boolType, simplify(mask.nonNullable(), compiler));
+    Expect.equals(
+        commonMasks.boolType, simplify(mask.nonNullable(), closedWorld));
     // First parameter is uint31|String|bool.
     var mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
     Expect.isTrue(mask1.isUnion);
@@ -37,7 +39,7 @@ Future runTest() async {
         [commonMasks.uint31Type, commonMasks.stringType, commonMasks.boolType]);
     for (var typeMask in mask1.disjointMasks) {
       Expect.isFalse(typeMask.isNullable);
-      var simpleType = simplify(typeMask, compiler);
+      var simpleType = simplify(typeMask, closedWorld);
       Expect.isTrue(expectedTypes.remove(simpleType), "$simpleType");
     }
     Expect.isTrue(expectedTypes.isEmpty);
@@ -45,15 +47,16 @@ Future runTest() async {
     var mask2 = typesInferrer.getTypeOfElement(foo.parameters[1]);
     Expect.isTrue(mask2.isNullable);
     Expect.equals(
-        commonMasks.boolType, simplify(mask2.nonNullable(), compiler));
+        commonMasks.boolType, simplify(mask2.nonNullable(), closedWorld));
   }
 
   {
     // Assertions disabled:
     var compiler = compilerFor(TEST, uri, enableUserAssertions: false);
     await compiler.run(uri);
-    var commonMasks = compiler.closedWorld.commonMasks;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var commonMasks = closedWorld.commonMasks;
     var foo = findElement(compiler, "foo");
     // Return type is null.
     var mask = typesInferrer.getReturnTypeOfElement(foo);
@@ -62,11 +65,11 @@ Future runTest() async {
     // First parameter is uint31.
     var mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
     Expect.isFalse(mask1.isNullable);
-    Expect.equals(commonMasks.uint31Type, simplify(mask1, compiler));
+    Expect.equals(commonMasks.uint31Type, simplify(mask1, closedWorld));
     // Second parameter is null.
     var mask2 = typesInferrer.getTypeOfElement(foo.parameters[1]);
     Expect.isTrue(mask2.isNullable);
-    Expect.isTrue(simplify(mask2.nonNullable(), compiler).isEmpty);
+    Expect.isTrue(simplify(mask2.nonNullable(), closedWorld).isEmpty);
   }
 }
 

@@ -5,8 +5,13 @@
 part of dart2js.js_emitter.full_emitter;
 
 class ClassEmitter extends CodeEmitterHelper {
+  final ClosedWorld closedWorld;
+
+  ClassEmitter(this.closedWorld);
+
   ClassStubGenerator get _stubGenerator =>
-      new ClassStubGenerator(compiler, namer, backend);
+      new ClassStubGenerator(namer, backend, codegenWorld, closedWorld,
+          enableMinification: compiler.options.enableMinification);
 
   /**
    * Documentation wanted -- johnniwinther

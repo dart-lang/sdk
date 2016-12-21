@@ -15,6 +15,7 @@ import 'notification_navigation_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
+    defineReflectiveTests(GetNavigationTest_Driver);
   });
 }
 
@@ -246,5 +247,15 @@ main() {
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;
+  }
+}
+
+@reflectiveTest
+class GetNavigationTest_Driver extends GetNavigationTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
+    super.setUp();
   }
 }

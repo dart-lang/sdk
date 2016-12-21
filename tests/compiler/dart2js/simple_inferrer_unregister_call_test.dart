@@ -41,6 +41,6 @@ void main() {
         }
 
         checkReturnInClass(
-            'A', '+', compiler.closedWorld.commonMasks.uint31Type);
+            'A', '+', typesInferrer.closedWorld.commonMasks.uint31Type);
       }));
 }

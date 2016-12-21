@@ -3554,19 +3554,13 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(Deopt, A_D);
+
+    // Note: frame translation will take care of preserving result at the
+    // top of the stack. See CompilerDeoptInfo::CreateDeoptInfo.
     const bool is_lazy = rD == 0;
 
-    // Preserve result of the previous call.
-    // TODO(vegorov) we could have actually included result into the
-    // deoptimization environment because it is passed through the stack.
-    // If we do then we could remove special result handling from this code.
-    RawObject* result = SP[0];
-
-    // When not preserving the result, we still need to preserve SP[0] as it
-    // contains some temporary expression.
-    if (!is_lazy) {
-      SP++;
-    }
+    // Make sure we preserve SP[0] when entering synthetic frame below.
+    SP++;
 
     // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
     // The code in this frame may not cause GC.
@@ -3582,9 +3576,6 @@ RawObject* Simulator::Call(const Code& code,
 
     // We are now inside a valid frame.
     {
-      if (is_lazy) {
-        *++SP = result;  // Preserve result (call below can cause GC).
-      }
       *++SP = 0;  // Space for the result: number of materialization args.
       Exit(thread, FP, SP + 1, /*pc=*/0);
       NativeArguments native_args(thread, 0, SP, SP);
@@ -3592,10 +3583,6 @@ RawObject* Simulator::Call(const Code& code,
     }
     const intptr_t materialization_arg_count =
         Smi::Value(RAW_CAST(Smi, *SP--)) / kWordSize;
-    if (is_lazy) {
-      // Reload the result. It might have been relocated by GC.
-      result = *SP--;
-    }
 
     // Restore caller PC.
     pc = SavedCallerPC(FP);
@@ -3604,21 +3591,13 @@ RawObject* Simulator::Call(const Code& code,
     // Check if it is a fake PC marking the entry frame.
     ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);
 
-    // Restore SP, FP and PP. Push result and dispatch.
-    // Note: unlike in a normal return sequence we don't need to drop
-    // arguments - those are not part of the innermost deoptimization
-    // environment they were dropped by FlowGraphCompiler::RecordAfterCall.
-
-    // If the result is not preserved, the unoptimized frame ends at the
-    // next slot.
-    SP = FrameArguments(FP, materialization_arg_count);
+    // Restore SP, FP and PP.
+    // Unoptimized frame SP is one below FrameArguments(...) because
+    // FrameArguments(...) returns a pointer to the first argument.
+    SP = FrameArguments(FP, materialization_arg_count) - 1;
     FP = SavedCallerFP(FP);
     pp = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_->ptr();
-    if (is_lazy) {
-      SP[0] = result;  // Put the result on the stack.
-    } else {
-      SP--;  // No result to push.
-    }
+
     DISPATCH();
   }
 

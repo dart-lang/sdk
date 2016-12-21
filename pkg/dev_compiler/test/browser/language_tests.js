@@ -471,8 +471,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'interactive_test': async_unittest,
       'isolates_test': async_unittest,
 
-      // Failing on "identical JS objects should have identical proxies".
-      'js_test': 'fail',
       'js_interop_1_test': async_unittest,
 
       // Failing because accessing "zSomeInvalidName" does not throw.

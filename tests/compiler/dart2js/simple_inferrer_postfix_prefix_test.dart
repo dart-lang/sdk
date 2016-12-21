@@ -66,20 +66,21 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
 
         checkReturnInClass(String className, String methodName, type) {
           var cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(methodName);
           Expect.equals(
               type,
-              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
               methodName);
         }
 
-        var subclassOfInterceptor =
-            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var subclassOfInterceptor = commonMasks.interceptorType;
 
         checkReturnInClass('A', 'returnNum1', commonMasks.numType);
         checkReturnInClass('A', 'returnNum2', commonMasks.numType);

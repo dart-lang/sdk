@@ -204,7 +204,7 @@ EMIT_NATIVE_CODE(InstanceOf,
   __ InstanceOf(negate_result() ? 1 : 0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
@@ -227,7 +227,7 @@ EMIT_NATIVE_CODE(AssertBoolean,
   __ AssertBoolean(Isolate::Current()->type_checks() ? 1 : 0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   if (compiler->is_optimizing()) {
     __ Drop1();
   }
@@ -280,7 +280,7 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
   __ StaticCall(instance_call()->ArgumentCount(), argdesc_kidx);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  instance_call()->token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   __ PopLocal(locs()->out(0).reg());
 }
 
@@ -301,7 +301,7 @@ EMIT_NATIVE_CODE(CheckStackOverflow,
   }
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
 }
 
 
@@ -431,7 +431,7 @@ EMIT_NATIVE_CODE(InitStaticField,
   } else {
     __ InitStaticTOS();
   }
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
 }
 
 
@@ -449,7 +449,7 @@ EMIT_NATIVE_CODE(ClosureCall,
   const intptr_t argdesc_kidx =
       compiler->assembler()->AddConstant(arguments_descriptor);
   __ StaticCall(argument_count, argdesc_kidx);
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
@@ -699,11 +699,11 @@ EMIT_NATIVE_CODE(CreateArray,
     __ Push(type_arguments);
     __ Push(length);
     __ CreateArrayTOS();
-    compiler->RecordAfterCall(this);
+    compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
     __ PopLocal(out);
   } else {
     __ CreateArrayTOS();
-    compiler->RecordAfterCall(this);
+    compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   }
 }
 
@@ -917,7 +917,12 @@ EMIT_NATIVE_CODE(StringInterpolate,
   __ PushConstant(CallFunction());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
   __ StaticCall(kArgumentCount, argdesc_kidx);
-  compiler->RecordAfterCall(this);
+  // Note: can't use RecordAfterCall here because
+  // StringInterpolateInstr::ArgumentCount() is 0. However
+  // internally it does a call with 1 argument which needs to
+  // be reflected in the lazy deoptimization environment.
+  compiler->RecordAfterCallHelper(token_pos(), deopt_id(), kArgumentCount,
+                                  FlowGraphCompiler::kHasResult, locs());
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
@@ -1145,7 +1150,15 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   compiler->AddExceptionHandler(catch_try_index(), try_index(),
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_, needs_stacktrace());
-
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id,
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -1176,7 +1189,7 @@ EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
   __ Throw(0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
   __ Trap();
 }
 
@@ -1186,7 +1199,7 @@ EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
   __ Throw(1);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
   __ Trap();
 }
 

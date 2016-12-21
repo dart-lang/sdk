@@ -51,6 +51,9 @@ abstract class Isolate extends IsolateRef {
   /// [optional] The error that is causing this isolate to exit, if applicable.
   Error get error;
 
+  /// The list of threads associated with this isolate.
+  Iterable<Thread> get threads;
+
   /// The current pause on exception mode for this isolate.
   //ExceptionPauseMode get exceptionPauseMode;
 

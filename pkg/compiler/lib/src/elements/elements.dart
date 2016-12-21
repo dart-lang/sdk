@@ -1664,7 +1664,7 @@ abstract class LabelDefinition extends Entity {
 abstract class JumpTarget extends Local {
   Node get statement;
   int get nestingLevel;
-  Link<LabelDefinition> get labels;
+  List<LabelDefinition> get labels;
 
   bool get isTarget;
   bool get isBreakTarget;

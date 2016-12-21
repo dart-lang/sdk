@@ -5,119 +5,123 @@
 library types.constants;
 
 import '../common.dart';
+import '../constants/constant_system.dart' show ConstantSystem;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../js_backend/js_backend.dart' show SyntheticConstantKind;
+import '../js_backend/js_backend.dart'
+    show JavaScriptBackend, SyntheticConstantKind;
+import '../world.dart' show ClosedWorld;
 import 'masks.dart';
 
 /// Computes the [TypeMask] for the constant [value].
-TypeMask computeTypeMask(Compiler compiler, ConstantValue value) {
-  return value.accept(const ConstantValueTypeMasks(), compiler);
+TypeMask computeTypeMask(ClosedWorld closedWorld, ConstantValue value) {
+  return value.accept(const ConstantValueTypeMasks(), closedWorld);
 }
 
-class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
+class ConstantValueTypeMasks
+    extends ConstantValueVisitor<TypeMask, ClosedWorld> {
   const ConstantValueTypeMasks();
 
   @override
   TypeMask visitConstructed(
-      ConstructedConstantValue constant, Compiler compiler) {
-    if (compiler.backend.isInterceptorClass(constant.type.element)) {
-      return compiler.closedWorld.commonMasks.nonNullType;
+      ConstructedConstantValue constant, ClosedWorld closedWorld) {
+    if (closedWorld.backendClasses.isInterceptorClass(constant.type.element)) {
+      return closedWorld.commonMasks.nonNullType;
     }
-    return new TypeMask.nonNullExact(
-        constant.type.element, compiler.closedWorld);
+    return new TypeMask.nonNullExact(constant.type.element, closedWorld);
   }
 
   @override
-  TypeMask visitDeferred(DeferredConstantValue constant, Compiler compiler) {
-    return constant.referenced.accept(this, compiler);
+  TypeMask visitDeferred(
+      DeferredConstantValue constant, ClosedWorld closedWorld) {
+    return constant.referenced.accept(this, closedWorld);
   }
 
   @override
-  TypeMask visitDouble(DoubleConstantValue constant, Compiler compiler) {
+  TypeMask visitDouble(DoubleConstantValue constant, ClosedWorld closedWorld) {
     // We have to recognize double constants that are 'is int'.
-    if (compiler.backend.constantSystem.isInt(constant)) {
+    if (closedWorld.constantSystem.isInt(constant)) {
       if (constant.isMinusZero) {
-        return compiler.closedWorld.commonMasks.uint31Type;
+        return closedWorld.commonMasks.uint31Type;
       } else {
         assert(constant.isPositiveInfinity || constant.isNegativeInfinity);
-        return compiler.closedWorld.commonMasks.intType;
+        return closedWorld.commonMasks.intType;
       }
     }
-    return compiler.closedWorld.commonMasks.doubleType;
+    return closedWorld.commonMasks.doubleType;
   }
 
   @override
-  TypeMask visitSynthetic(SyntheticConstantValue constant, Compiler compiler) {
+  TypeMask visitSynthetic(
+      SyntheticConstantValue constant, ClosedWorld closedWorld) {
     switch (constant.valueKind) {
       case SyntheticConstantKind.DUMMY_INTERCEPTOR:
         return constant.payload;
       case SyntheticConstantKind.EMPTY_VALUE:
         return constant.payload;
       case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        return compiler.closedWorld.commonMasks.intType;
+        return closedWorld.commonMasks.intType;
       case SyntheticConstantKind.NAME:
-        return compiler.closedWorld.commonMasks.stringType;
+        return closedWorld.commonMasks.stringType;
       default:
-        DiagnosticReporter reporter = compiler.reporter;
-        reporter.internalError(
-            CURRENT_ELEMENT_SPANNABLE, "Unexpected DummyConstantKind.");
-        return null;
+        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected DummyConstantKind: ${constant.toStructuredText()}.");
     }
   }
 
   @override
-  TypeMask visitBool(BoolConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.boolType;
+  TypeMask visitBool(BoolConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.boolType;
   }
 
   @override
-  TypeMask visitFunction(FunctionConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.functionType;
+  TypeMask visitFunction(
+      FunctionConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.functionType;
   }
 
   @override
-  TypeMask visitInt(IntConstantValue constant, Compiler compiler) {
-    if (constant.isUInt31()) return compiler.closedWorld.commonMasks.uint31Type;
-    if (constant.isUInt32()) return compiler.closedWorld.commonMasks.uint32Type;
-    if (constant.isPositive())
-      return compiler.closedWorld.commonMasks.positiveIntType;
-    return compiler.closedWorld.commonMasks.intType;
+  TypeMask visitInt(IntConstantValue constant, ClosedWorld closedWorld) {
+    if (constant.isUInt31()) return closedWorld.commonMasks.uint31Type;
+    if (constant.isUInt32()) return closedWorld.commonMasks.uint32Type;
+    if (constant.isPositive()) return closedWorld.commonMasks.positiveIntType;
+    return closedWorld.commonMasks.intType;
   }
 
   @override
   TypeMask visitInterceptor(
-      InterceptorConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.nonNullType;
+      InterceptorConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.nonNullType;
   }
 
   @override
-  TypeMask visitList(ListConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.constListType;
+  TypeMask visitList(ListConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.constListType;
   }
 
   @override
-  TypeMask visitMap(MapConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.constMapType;
+  TypeMask visitMap(MapConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.constMapType;
   }
 
   @override
-  TypeMask visitNull(NullConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.nullType;
+  TypeMask visitNull(NullConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.nullType;
   }
 
   @override
-  TypeMask visitNonConstant(NonConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.nullType;
+  TypeMask visitNonConstant(
+      NonConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.nullType;
   }
 
   @override
-  TypeMask visitString(StringConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.stringType;
+  TypeMask visitString(StringConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.stringType;
   }
 
   @override
-  TypeMask visitType(TypeConstantValue constant, Compiler compiler) {
-    return compiler.closedWorld.commonMasks.typeType;
+  TypeMask visitType(TypeConstantValue constant, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.typeType;
   }
 }

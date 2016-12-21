@@ -68,16 +68,6 @@ Future<CompilerImpl> reuseCompiler(
             environment: environment));
     backend = compiler.backend;
 
-    full.Emitter emitter = backend.emitter.emitter;
-
-    // Much like a scout, an incremental compiler is always prepared. For
-    // mixins, classes, and lazy statics, at least.
-    emitter
-        ..needsClassSupport = true
-        ..needsMixinSupport = true
-        ..needsLazyInitializer = true
-        ..needsStructuredMemberInfo = true;
-
     Uri core = Uri.parse("dart:core");
 
     return compiler.setupSdk().then((_) {

@@ -66,7 +66,7 @@ class SsaBuilderTask extends CompilerTask {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  HGraph build(CodegenWorkItem work) {
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
       Element element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
@@ -75,6 +75,7 @@ class SsaBuilderTask extends CompilerTask {
             work.resolvedAst,
             work.registry,
             backend,
+            closedWorld,
             emitter.nativeEmitter,
             sourceInformationFactory);
         HGraph graph = builder.build();
@@ -91,7 +92,7 @@ class SsaBuilderTask extends CompilerTask {
             work.registry.registerCompileTimeConstant(constant);
           });
         }
-        if (compiler.tracer.isEnabled) {
+        if (backend.tracer.isEnabled) {
           String name;
           if (element.isClassMember) {
             String className = element.enclosingClass.name;
@@ -103,8 +104,8 @@ class SsaBuilderTask extends CompilerTask {
           } else {
             name = "${element.name}";
           }
-          compiler.tracer.traceCompilation(name);
-          compiler.tracer.traceGraph('builder', graph);
+          backend.tracer.traceCompilation(name);
+          backend.tracer.traceGraph('builder', graph);
         }
         return graph;
       });
@@ -127,6 +128,7 @@ class SsaBuilder extends ast.Visitor
     implements SemanticSendVisitor {
   /// The element for which this SSA builder is being used.
   final Element target;
+  final ClosedWorld closedWorld;
 
   ResolvedAst resolvedAst;
 
@@ -198,6 +200,7 @@ class SsaBuilder extends ast.Visitor
       this.resolvedAst,
       this.registry,
       JavaScriptBackend backend,
+      this.closedWorld,
       this.nativeEmitter,
       SourceInformationStrategy sourceInformationFactory)
       : this.infoReporter = backend.compiler.dumpInfoTask,
@@ -576,7 +579,7 @@ class SsaBuilder extends ast.Visitor
           instanceType: instanceType);
       inlinedFrom(functionResolvedAst, () {
         if (!isReachable) {
-          emitReturn(graph.addConstantNull(compiler), null);
+          emitReturn(graph.addConstantNull(closedWorld), null);
         } else {
           doInline(functionResolvedAst);
         }
@@ -637,7 +640,7 @@ class SsaBuilder extends ast.Visitor
         backend.constants.getConstantValue(parameter.constant);
     assert(invariant(parameter, constantValue != null,
         message: 'No constant computed for $parameter'));
-    return graph.addConstant(constantValue, compiler);
+    return graph.addConstant(constantValue, closedWorld);
   }
 
   ClassElement get currentNonClosureClass {
@@ -674,7 +677,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction addConstant(ast.Node node) {
-    return graph.addConstant(getConstantForNode(node), compiler);
+    return graph.addConstant(getConstantForNode(node), closedWorld);
   }
 
   /**
@@ -709,12 +712,12 @@ class SsaBuilder extends ast.Visitor
             node: function,
             visitCondition: () {
               HParameterValue parameter = parameters.values.first;
-              push(new HIdentity(parameter, graph.addConstantNull(compiler),
+              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
                   null, commonMasks.boolType));
             },
             visitThen: () {
               closeAndGotoExit(new HReturn(
-                  graph.addConstantBool(false, compiler),
+                  graph.addConstantBool(false, closedWorld),
                   sourceInformationBuilder
                       .buildImplicitReturn(functionElement)));
             },
@@ -859,7 +862,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler.closureData =
         compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
-    localsHandler.updateLocal(returnLocal, graph.addConstantNull(compiler));
+    localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
 
     inTryStatement = false; // TODO(lry): why? Document.
 
@@ -984,7 +987,7 @@ class SsaBuilder extends ast.Visitor
           for (TypeVariableType variable in typeVariables) {
             localsHandler.updateLocal(
                 localsHandler.getTypeVariableAsLocal(variable),
-                graph.addConstantNull(compiler));
+                graph.addConstantNull(closedWorld));
           }
         }
       }
@@ -1187,7 +1190,7 @@ class SsaBuilder extends ast.Visitor
           // Unassigned fields of native classes are not initialized to
           // prevent overwriting pre-initialized native properties.
           if (!backend.isNativeOrExtendsNative(classElement)) {
-            fieldValues[member] = graph.addConstantNull(compiler);
+            fieldValues[member] = graph.addConstantNull(closedWorld);
           }
         } else {
           ast.Node right = initializer;
@@ -1351,7 +1354,7 @@ class SsaBuilder extends ast.Visitor
         if (interceptor == null) {
           ConstantValue constant =
               new InterceptorConstantValue(classElement.thisType);
-          interceptor = graph.addConstant(constant, compiler);
+          interceptor = graph.addConstant(constant, closedWorld);
         }
         bodyCallInputs.add(interceptor);
       }
@@ -1508,7 +1511,8 @@ class SsaBuilder extends ast.Visitor
     if (JavaScriptBackend.TRACE_METHOD == 'post') {
       if (element == backend.helpers.traceHelper) return;
       // TODO(sigmund): create a better uuid for elements.
-      HConstant idConstant = graph.addConstantInt(element.hashCode, compiler);
+      HConstant idConstant =
+          graph.addConstantInt(element.hashCode, closedWorld);
       HConstant nameConstant = addConstantString(element.name);
       add(new HInvokeStatic(backend.helpers.traceHelper,
           <HInstruction>[idConstant, nameConstant], commonMasks.dynamicType));
@@ -1521,8 +1525,8 @@ class SsaBuilder extends ast.Visitor
         localsHandler.substInContext(subtype), sourceElement);
     HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(supertype), sourceElement);
-    HInstruction messageInstruction =
-        graph.addConstantString(new ast.DartString.literal(message), compiler);
+    HInstruction messageInstruction = graph.addConstantString(
+        new ast.DartString.literal(message), closedWorld);
     MethodElement element = helpers.assertIsSubtype;
     var inputs = <HInstruction>[
       subtypeInstruction,
@@ -1674,7 +1678,7 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction buildCondition() {
       if (node.condition == null) {
-        return graph.addConstantBool(true, compiler);
+        return graph.addConstantBool(true, closedWorld);
       }
       visit(node.condition);
       return popBoolified();
@@ -1766,7 +1770,7 @@ class SsaBuilder extends ast.Visitor
         localsHandler =
             savedLocals.mergeMultiple(continueHandlers, conditionBlock);
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        List<LabelDefinition> labels = jumpHandler.labels();
+        List<LabelDefinition> labels = jumpHandler.labels;
         HSubGraphBlockInformation bodyInfo =
             new HSubGraphBlockInformation(bodyGraph);
         HLabeledBlockInformation info;
@@ -1990,7 +1994,7 @@ class SsaBuilder extends ast.Visitor
       HConstant constant = operand;
       ConstantValue folded = operation.fold(constant.constant);
       if (folded != null) {
-        stack.add(graph.addConstant(folded, compiler));
+        stack.add(graph.addConstant(folded, closedWorld));
         return;
       }
     }
@@ -2111,7 +2115,7 @@ class SsaBuilder extends ast.Visitor
       assert(invariant(node, element == null || element.isMalformed));
       // TODO(ahe): Do something like the above, that is, emit a runtime
       // error.
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     }
   }
 
@@ -2125,10 +2129,10 @@ class SsaBuilder extends ast.Visitor
     PrefixElement prefix =
         compiler.deferredLoadTask.deferredPrefixElement(node, elements);
     if (prefix != null) {
-      instruction =
-          graph.addDeferredConstant(value, prefix, sourceInformation, compiler);
+      instruction = graph.addDeferredConstant(
+          value, prefix, sourceInformation, compiler, closedWorld);
     } else {
-      instruction = graph.addConstant(value, compiler,
+      instruction = graph.addConstant(value, closedWorld,
           sourceInformation: sourceInformation);
     }
     stack.add(instruction);
@@ -2355,7 +2359,7 @@ class SsaBuilder extends ast.Visitor
       generateNoSuchSetter(location, element, send == null ? null : value);
     } else if (Elements.isMalformed(element)) {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     } else {
       stack.add(value);
       LocalElement local = element;
@@ -2465,7 +2469,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction isFieldName = addConstantStringFromName(operator);
       HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element)
           ? addConstantStringFromName(backend.namer.substitutionName(element))
-          : graph.addConstantNull(compiler);
+          : graph.addConstantNull(closedWorld);
       List<HInstruction> inputs = <HInstruction>[
         expression,
         isFieldName,
@@ -2667,7 +2671,8 @@ class SsaBuilder extends ast.Visitor
         'text': 'Mismatch between number of placeholders'
             ' and number of arguments.'
       });
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -2763,7 +2768,7 @@ class SsaBuilder extends ast.Visitor
         reporter.reportErrorMessage(node, MessageKind.GENERIC,
             {'text': 'Error: Unknown internal flag "$name".'});
     }
-    stack.add(graph.addConstantBool(value, compiler));
+    stack.add(graph.addConstantBool(value, closedWorld));
   }
 
   void handleForeignJsGetName(ast.Send node) {
@@ -2891,7 +2896,7 @@ class SsaBuilder extends ast.Visitor
         if (argumentConstant is TypeConstantValue) {
           ConstantValue constant =
               new InterceptorConstantValue(argumentConstant.representedType);
-          HInstruction instruction = graph.addConstant(constant, compiler);
+          HInstruction instruction = graph.addConstant(constant, closedWorld);
           stack.add(instruction);
           return;
         }
@@ -2899,7 +2904,7 @@ class SsaBuilder extends ast.Visitor
     }
     reporter.reportErrorMessage(
         node, MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-    stack.add(graph.addConstantNull(compiler));
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   void handleForeignJsCallInIsolate(ast.Send node) {
@@ -3011,7 +3016,7 @@ class SsaBuilder extends ast.Visitor
     } else if (name == 'JS_GET_FLAG') {
       handleForeignJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     } else if (name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       handleJsInterceptorConstant(node);
     } else if (name == 'JS_STRING_CONCAT') {
@@ -3030,7 +3035,7 @@ class SsaBuilder extends ast.Visitor
     String loadId =
         compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
     var inputs = [
-      graph.addConstantString(new ast.DartString.literal(loadId), compiler)
+      graph.addConstantString(new ast.DartString.literal(loadId), closedWorld)
     ];
     push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
         targetCanThrow: false)..sourceInformation = sourceInformation);
@@ -3069,7 +3074,7 @@ class SsaBuilder extends ast.Visitor
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
           constantSystem.createString(new ast.DartString.literal(argumentName));
-      argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
+      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
     add(argumentNamesInstruction);
@@ -3081,9 +3086,9 @@ class SsaBuilder extends ast.Visitor
         null,
         createInvocationMirror,
         [
-          graph.addConstant(nameConstant, compiler),
-          graph.addConstantStringFromName(internalName, compiler),
-          graph.addConstant(kindConstant, compiler),
+          graph.addConstant(nameConstant, closedWorld),
+          graph.addConstantStringFromName(internalName, closedWorld),
+          graph.addConstant(kindConstant, closedWorld),
           argumentsInstruction,
           argumentNamesInstruction
         ],
@@ -3396,7 +3401,7 @@ class SsaBuilder extends ast.Visitor
 
     if (compiler.elementHasCompileTimeError(constructor)) {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -3431,7 +3436,7 @@ class SsaBuilder extends ast.Visitor
         backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
         !backend.isJsInterop(constructor)) {
       // Native class generative constructors take a pre-constructed object.
-      inputs.add(graph.addConstantNull(compiler));
+      inputs.add(graph.addConstantNull(closedWorld));
     }
     inputs.addAll(makeStaticArgumentList(
         callStructure, send.arguments, constructorImplementation));
@@ -3721,18 +3726,18 @@ class SsaBuilder extends ast.Visitor
       handleInvalidStaticInvoke(node, element);
     } else {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     }
     return;
   }
 
   HConstant addConstantString(String string) {
     ast.DartString dartString = new ast.DartString.literal(string);
-    return graph.addConstantString(dartString, compiler);
+    return graph.addConstantString(dartString, closedWorld);
   }
 
   HConstant addConstantStringFromName(js.Name name) {
-    return graph.addConstantStringFromName(name, compiler);
+    return graph.addConstantStringFromName(name, closedWorld);
   }
 
   visitClassTypeLiteralGet(ast.Send node, ConstantExpression constant, _) {
@@ -3862,10 +3867,10 @@ class SsaBuilder extends ast.Visitor
     Element helper = helpers.throwNoSuchMethod;
     ConstantValue receiverConstant =
         constantSystem.createString(new ast.DartString.empty());
-    HInstruction receiver = graph.addConstant(receiverConstant, compiler);
+    HInstruction receiver = graph.addConstant(receiverConstant, closedWorld);
     ast.DartString dartString = new ast.DartString.literal(methodName);
     ConstantValue nameConstant = constantSystem.createString(dartString);
-    HInstruction name = graph.addConstant(nameConstant, compiler);
+    HInstruction name = graph.addConstant(nameConstant, closedWorld);
     if (argumentValues == null) {
       argumentValues = <HInstruction>[];
       argumentNodes.forEach((argumentNode) {
@@ -3880,14 +3885,14 @@ class SsaBuilder extends ast.Visitor
     if (existingArguments != null) {
       List<HInstruction> existingNames = <HInstruction>[];
       for (String name in existingArguments) {
-        HInstruction nameConstant =
-            graph.addConstantString(new ast.DartString.literal(name), compiler);
+        HInstruction nameConstant = graph.addConstantString(
+            new ast.DartString.literal(name), closedWorld);
         existingNames.add(nameConstant);
       }
       existingNamesList = buildLiteralList(existingNames);
       add(existingNamesList);
     } else {
-      existingNamesList = graph.addConstantNull(compiler);
+      existingNamesList = graph.addConstantNull(closedWorld);
     }
     pushInvokeStatic(
         diagnosticNode, helper, [receiver, name, arguments, existingNamesList],
@@ -3938,7 +3943,7 @@ class SsaBuilder extends ast.Visitor
       }
     } else if (Elements.isMalformed(element)) {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     } else if (node.isConst) {
       stack.add(addConstant(node));
       if (isSymbolConstructor) {
@@ -4206,7 +4211,7 @@ class SsaBuilder extends ast.Visitor
       ast.SendSet node, HInstruction receiver, Link<ast.Node> arguments) {
     HInstruction rhs;
     if (node.isPrefix || node.isPostfix) {
-      rhs = graph.addConstantInt(1, compiler);
+      rhs = graph.addConstantInt(1, closedWorld);
     } else {
       visit(arguments.head);
       assert(arguments.tail.isEmpty);
@@ -4966,19 +4971,19 @@ class SsaBuilder extends ast.Visitor
   }
 
   void visitLiteralInt(ast.LiteralInt node) {
-    stack.add(graph.addConstantInt(node.value, compiler));
+    stack.add(graph.addConstantInt(node.value, closedWorld));
   }
 
   void visitLiteralDouble(ast.LiteralDouble node) {
-    stack.add(graph.addConstantDouble(node.value, compiler));
+    stack.add(graph.addConstantDouble(node.value, closedWorld));
   }
 
   void visitLiteralBool(ast.LiteralBool node) {
-    stack.add(graph.addConstantBool(node.value, compiler));
+    stack.add(graph.addConstantBool(node.value, closedWorld));
   }
 
   void visitLiteralString(ast.LiteralString node) {
-    stack.add(graph.addConstantString(node.dartString, compiler));
+    stack.add(graph.addConstantString(node.dartString, closedWorld));
   }
 
   void visitLiteralSymbol(ast.LiteralSymbol node) {
@@ -4989,7 +4994,7 @@ class SsaBuilder extends ast.Visitor
   void visitStringJuxtaposition(ast.StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
-      stack.add(graph.addConstantString(node.dartString, compiler));
+      stack.add(graph.addConstantString(node.dartString, closedWorld));
       return;
     }
     StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);
@@ -4998,7 +5003,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   void visitLiteralNull(ast.LiteralNull node) {
-    stack.add(graph.addConstantNull(compiler));
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   visitNodeList(ast.NodeList node) {
@@ -5044,7 +5049,7 @@ class SsaBuilder extends ast.Visitor
   visitRethrow(ast.Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
-      exception = graph.addConstantNull(compiler);
+      exception = graph.addConstantNull(closedWorld);
       reporter.internalError(node, 'rethrowableException should not be null.');
     }
     handleInTryStatement();
@@ -5089,7 +5094,7 @@ class SsaBuilder extends ast.Visitor
         inputs.add(handleConstantForOptionalParameter(optionalParameter));
       } else {
         // Wrong.
-        inputs.add(graph.addConstantNull(compiler));
+        inputs.add(graph.addConstantNull(closedWorld));
       }
     }
 
@@ -5160,7 +5165,7 @@ class SsaBuilder extends ast.Visitor
     }
     HInstruction value;
     if (node.expression == null) {
-      value = graph.addConstantNull(compiler);
+      value = graph.addConstantNull(closedWorld);
     } else {
       visit(node.expression);
       value = pop();
@@ -5218,7 +5223,7 @@ class SsaBuilder extends ast.Visitor
       ast.Node definition = link.head;
       LocalElement local = elements[definition];
       if (definition is ast.Identifier) {
-        HInstruction initialValue = graph.addConstantNull(compiler);
+        HInstruction initialValue = graph.addConstantNull(closedWorld);
         localsHandler.updateLocal(local, initialValue);
       } else {
         ast.SendSet node = definition;
@@ -5357,7 +5362,7 @@ class SsaBuilder extends ast.Visitor
     visit(node.expression);
     HInstruction expression = pop();
     pushInvokeStatic(node, helpers.streamIteratorConstructor,
-        [expression, graph.addConstantNull(compiler)]);
+        [expression, graph.addConstantNull(closedWorld)]);
     streamIterator = pop();
 
     void buildInitializer() {}
@@ -5533,9 +5538,9 @@ class SsaBuilder extends ast.Visitor
     void buildInitializer() {
       visit(node.expression);
       array = pop();
-      isFixed = isFixedLength(array.instructionType, compiler);
+      isFixed = isFixedLength(array.instructionType, closedWorld);
       localsHandler.updateLocal(
-          indexVariable, graph.addConstantInt(0, compiler));
+          indexVariable, graph.addConstantInt(0, closedWorld));
       originalLength = buildGetLength();
     }
 
@@ -5579,7 +5584,7 @@ class SsaBuilder extends ast.Visitor
       // but the code is horrible as `i+1` is carried around the loop in an
       // additional variable.
       HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction one = graph.addConstantInt(1, compiler);
+      HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
           new HAdd(index, one, null, commonMasks.positiveIntType);
       add(addInstruction);
@@ -5630,7 +5635,7 @@ class SsaBuilder extends ast.Visitor
       // There was at least one reachable break, so the label is needed.
       entryBlock.setBlockFlow(
           new HLabeledBlockInformation(
-              new HSubGraphBlockInformation(bodyGraph), handler.labels()),
+              new HSubGraphBlockInformation(bodyGraph), handler.labels),
           joinBlock);
     }
     handler.close();
@@ -5848,7 +5853,7 @@ class SsaBuilder extends ast.Visitor
     //   }
 
     JumpTarget switchTarget = elements.getTargetDefinition(node);
-    HInstruction initialValue = graph.addConstantNull(compiler);
+    HInstruction initialValue = graph.addConstantNull(closedWorld);
     localsHandler.updateLocal(switchTarget, initialValue);
 
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
@@ -5884,11 +5889,11 @@ class SsaBuilder extends ast.Visitor
       if (switchCase != null) {
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
-        HInstruction value = graph.addConstantInt(index, compiler);
+        HInstruction value = graph.addConstantInt(index, closedWorld);
         localsHandler.updateLocal(switchTarget, value);
       } else {
         // Generate synthetic default case 'target = null; break;'.
-        HInstruction value = graph.addConstantNull(compiler);
+        HInstruction value = graph.addConstantNull(closedWorld);
         localsHandler.updateLocal(switchTarget, value);
       }
       jumpTargets[switchTarget].generateBreak();
@@ -5898,7 +5903,7 @@ class SsaBuilder extends ast.Visitor
         isDefaultCase, buildSwitchCase);
     jumpHandler.close();
 
-    HInstruction buildCondition() => graph.addConstantBool(true, compiler);
+    HInstruction buildCondition() => graph.addConstantBool(true, closedWorld);
 
     void buildSwitch() {
       HInstruction buildExpression() {
@@ -5993,7 +5998,7 @@ class SsaBuilder extends ast.Visitor
       ast.SwitchCase switchCase = caseIterator.next();
       HBasicBlock block = graph.addNewBlock();
       for (ConstantValue constant in getConstants(switchCase)) {
-        HConstant hConstant = graph.addConstant(constant, compiler);
+        HConstant hConstant = graph.addConstant(constant, closedWorld);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);
         expressionEnd.addSuccessor(block);
@@ -6076,8 +6081,8 @@ class SsaBuilder extends ast.Visitor
         new HSubExpressionBlockInformation(
             new SubExpression(expressionStart, expressionEnd));
     expressionStart.setBlockFlow(
-        new HSwitchBlockInformation(expressionInfo, statements,
-            jumpHandler.target, jumpHandler.labels()),
+        new HSwitchBlockInformation(
+            expressionInfo, statements, jumpHandler.target, jumpHandler.labels),
         joinBlock);
 
     jumpHandler.close();
@@ -6248,7 +6253,7 @@ class SsaBuilder extends ast.Visitor
           ast.VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
           if (declaration.type == null) {
-            condition = graph.addConstantBool(true, compiler);
+            condition = graph.addConstantBool(true, closedWorld);
             stack.add(condition);
           } else {
             // TODO(aprelev@gmail.com): Once old catch syntax is removed

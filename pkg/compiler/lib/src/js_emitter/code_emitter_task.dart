@@ -13,12 +13,11 @@ const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
  * The code for the containing (used) methods must exist in the `universe`.
  */
 class CodeEmitterTask extends CompilerTask {
-  // TODO(floitsch): the code-emitter task should not need a namer.
-  final Namer namer;
-  final TypeTestRegistry typeTestRegistry;
+  TypeTestRegistry typeTestRegistry;
   NativeEmitter nativeEmitter;
   MetadataCollector metadataCollector;
-  Emitter emitter;
+  EmitterFactory _emitterFactory;
+  Emitter _emitter;
   final Compiler compiler;
 
   /// Records if a type variable is read dynamically for type tests.
@@ -34,30 +33,36 @@ class CodeEmitterTask extends CompilerTask {
   /// Contains a list of all classes that are emitted.
   Set<ClassElement> neededClasses;
 
-  CodeEmitterTask(Compiler compiler, Namer namer, bool generateSourceMap,
-      bool useStartupEmitter)
+  CodeEmitterTask(
+      Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
-        this.namer = namer,
-        this.typeTestRegistry = new TypeTestRegistry(compiler),
         super(compiler.measurer) {
     nativeEmitter = new NativeEmitter(this);
     if (USE_LAZY_EMITTER) {
-      emitter = new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter);
+      _emitterFactory = new lazy_js_emitter.EmitterFactory();
     } else if (useStartupEmitter) {
-      emitter = new startup_js_emitter.Emitter(
-          compiler, namer, nativeEmitter, generateSourceMap);
+      _emitterFactory = new startup_js_emitter.EmitterFactory(
+          generateSourceMap: generateSourceMap);
     } else {
-      emitter =
-          new full_js_emitter.Emitter(compiler, namer, generateSourceMap, this);
+      _emitterFactory = new full_js_emitter.EmitterFactory(
+          generateSourceMap: generateSourceMap);
     }
-    metadataCollector = new MetadataCollector(compiler, emitter);
+  }
+
+  Emitter get emitter {
+    assert(invariant(NO_LOCATION_SPANNABLE, _emitter != null,
+        message: "Emitter has not been created yet."));
+    return _emitter;
   }
 
   String get name => 'Code emitter';
 
   /// Returns the string that is used to find library patches that are
   /// specialized for the emitter.
-  String get patchVersion => emitter.patchVersion;
+  String get patchVersion => _emitterFactory.patchVersion;
+
+  /// Returns true, if the emitter supports reflection.
+  bool get supportsReflection => _emitterFactory.supportsReflection;
 
   /// Returns the closure expression of a static function.
   jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
@@ -138,13 +143,22 @@ class CodeEmitterTask extends CompilerTask {
     return typeTestRegistry.computeRtiNeededClasses();
   }
 
-  int assembleProgram() {
+  /// Creates the [Emitter] for this task.
+  void createEmitter(Namer namer, ClosedWorld closedWorld) {
+    measure(() {
+      _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
+      metadataCollector = new MetadataCollector(compiler, _emitter);
+      typeTestRegistry = new TypeTestRegistry(compiler, closedWorld);
+    });
+  }
+
+  int assembleProgram(Namer namer, ClosedWorld closedWorld) {
     return measure(() {
       emitter.invalidateCaches();
 
       Set<ClassElement> rtiNeededClasses = _finalizeRti();
-      ProgramBuilder programBuilder =
-          new ProgramBuilder(compiler, namer, this, emitter, rtiNeededClasses);
+      ProgramBuilder programBuilder = new ProgramBuilder(
+          compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
@@ -153,17 +167,23 @@ class CodeEmitterTask extends CompilerTask {
   }
 }
 
-abstract class Emitter {
+abstract class EmitterFactory {
   /// Returns the string that is used to find library patches that are
   /// specialized for this emitter.
   String get patchVersion;
 
+  /// Returns true, if the emitter supports reflection.
+  bool get supportsReflection;
+
+  /// Create the [Emitter] for the emitter [task] that uses the given [namer].
+  Emitter createEmitter(
+      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld);
+}
+
+abstract class Emitter {
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder);
-
-  /// Returns true, if the emitter supports reflection.
-  bool get supportsReflection;
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.

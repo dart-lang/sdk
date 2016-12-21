@@ -6,10 +6,14 @@ part of dart2js.js_emitter;
 
 class ClassStubGenerator {
   final Namer namer;
-  final Compiler compiler;
   final JavaScriptBackend backend;
+  final CodegenWorldBuilder codegenWorld;
+  final ClosedWorld closedWorld;
+  final bool enableMinification;
 
-  ClassStubGenerator(this.compiler, this.namer, this.backend);
+  ClassStubGenerator(
+      this.namer, this.backend, this.codegenWorld, this.closedWorld,
+      {this.enableMinification});
 
   jsAst.Expression generateClassConstructor(ClassElement classElement,
       Iterable<jsAst.Name> fields, bool hasRtiField) {
@@ -93,7 +97,7 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (selectors[selector].applies(member, selector, compiler.closedWorld)) {
+      if (selectors[selector].applies(member, selector, closedWorld)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = namer.invocationName(selector);
@@ -126,7 +130,7 @@ class ClassStubGenerator {
     Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
 
     // Do not generate no such method handlers if there is no class.
-    if (compiler.codegenWorld.directlyInstantiatedClasses.isEmpty) {
+    if (codegenWorld.directlyInstantiatedClasses.isEmpty) {
       return jsNames;
     }
 
@@ -134,16 +138,16 @@ class ClassStubGenerator {
         String ignore, Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
         SelectorConstraints maskSet = selectors[selector];
-        if (maskSet.needsNoSuchMethodHandling(selector, compiler.closedWorld)) {
+        if (maskSet.needsNoSuchMethodHandling(selector, closedWorld)) {
           jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
         }
       }
     }
 
-    compiler.codegenWorld.forEachInvokedName(addNoSuchMethodHandlers);
-    compiler.codegenWorld.forEachInvokedGetter(addNoSuchMethodHandlers);
-    compiler.codegenWorld.forEachInvokedSetter(addNoSuchMethodHandlers);
+    codegenWorld.forEachInvokedName(addNoSuchMethodHandlers);
+    codegenWorld.forEachInvokedGetter(addNoSuchMethodHandlers);
+    codegenWorld.forEachInvokedSetter(addNoSuchMethodHandlers);
     return jsNames;
   }
 
@@ -175,8 +179,8 @@ class ClassStubGenerator {
           'noSuchMethodName': namer.noSuchMethodName,
           'createInvocationMirror': backend.emitter
               .staticFunctionAccess(backend.helpers.createInvocationMirror),
-          'methodName': js.quoteName(
-              compiler.options.enableMinification ? internalName : methodName),
+          'methodName':
+              js.quoteName(enableMinification ? internalName : methodName),
           'internalName': js.quoteName(internalName),
           'type': js.number(type),
           'arguments':

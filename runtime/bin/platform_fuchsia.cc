@@ -10,6 +10,7 @@
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
 
@@ -52,15 +53,59 @@ bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 
 
 char** Platform::Environment(intptr_t* count) {
-  char** result =
-      reinterpret_cast<char**>(Dart_ScopeAllocate(1 * sizeof(*result)));
-  result[0] = NULL;
+  // Using environ directly is only safe as long as we do not
+  // provide access to modifying environment variables.
+  intptr_t i = 0;
+  char** tmp = environ;
+  while (*(tmp++) != NULL) {
+    i++;
+  }
+  *count = i;
+  char** result;
+  result = reinterpret_cast<char**>(Dart_ScopeAllocate(i * sizeof(*result)));
+  for (intptr_t current = 0; current < i; current++) {
+    result[current] = environ[current];
+  }
   return result;
 }
 
 
 const char* Platform::ResolveExecutablePath() {
-  return "dart";
+  // The string used on the command line to spawn the executable is in argv_[0].
+  // If that string is a relative or absolute path, i.e. it contains a '/', then
+  // we make the path absolute if it is not already and return it. If argv_[0]
+  // does not contain a '/', we assume it is a program whose location is
+  // resolved via the PATH environment variable, and search for it using the
+  // paths found there.
+  const char* path = getenv("PATH");
+  if ((strchr(argv_[0], '/') != NULL) || (path == NULL)) {
+    if (argv_[0][0] == '/') {
+      return File::GetCanonicalPath(argv_[0]);
+    } else {
+      char* result = DartUtils::ScopedCString(PATH_MAX + 1);
+      char* cwd = DartUtils::ScopedCString(PATH_MAX + 1);
+      getcwd(cwd, PATH_MAX);
+      snprintf(result, PATH_MAX, "%s/%s", cwd, argv_[0]);
+      result[PATH_MAX] = '\0';
+      ASSERT(File::Exists(result));
+      return File::GetCanonicalPath(result);
+    }
+  } else {
+    char* pathcopy = DartUtils::ScopedCopyCString(path);
+    char* result = DartUtils::ScopedCString(PATH_MAX + 1);
+    char* save = NULL;
+    while ((pathcopy = strtok_r(pathcopy, ":", &save)) != NULL) {
+      snprintf(result, PATH_MAX, "%s/%s", pathcopy, argv_[0]);
+      result[PATH_MAX] = '\0';
+      if (File::Exists(result)) {
+        return File::GetCanonicalPath(result);
+      }
+      pathcopy = NULL;
+    }
+    // Couldn't find it. This causes null to be returned for
+    // Platform.resovledExecutable.
+    return NULL;
+  }
 }
 
 

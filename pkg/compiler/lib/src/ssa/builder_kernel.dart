@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/text/ast_to_text.dart' show debugNodeToString;
 
 import '../closure.dart';
 import '../common.dart';
@@ -26,14 +25,15 @@ import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
-import '../tree/nodes.dart' show FunctionExpression, Node;
+import '../tree/nodes.dart' show Node, BreakStatement;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
-import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/side_effects.dart' show SideEffects;
-import '../world.dart' show ClosedWorld;
+import '../universe/use.dart' show StaticUse;
+import '../world.dart';
 import 'graph_builder.dart';
+import 'jump_handler.dart';
 import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
@@ -53,15 +53,21 @@ class SsaKernelBuilderTask extends CompilerTask {
       : backend = backend,
         super(backend.compiler.measurer);
 
-  HGraph build(CodegenWorkItem work) {
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
       AstElement element = work.element.implementation;
       Kernel kernel = backend.kernelTask.kernel;
-      KernelSsaBuilder builder = new KernelSsaBuilder(element, work.resolvedAst,
-          backend.compiler, work.registry, sourceInformationFactory, kernel);
+      KernelSsaBuilder builder = new KernelSsaBuilder(
+          element,
+          work.resolvedAst,
+          backend.compiler,
+          closedWorld,
+          work.registry,
+          sourceInformationFactory,
+          kernel);
       HGraph graph = builder.build();
 
-      if (backend.compiler.tracer.isEnabled) {
+      if (backend.tracer.isEnabled) {
         String name;
         if (element.isClassMember) {
           String className = element.enclosingClass.name;
@@ -73,8 +79,8 @@ class SsaKernelBuilderTask extends CompilerTask {
         } else {
           name = "${element.name}";
         }
-        backend.compiler.tracer.traceCompilation(name);
-        backend.compiler.tracer.traceGraph('builder', graph);
+        backend.tracer.traceCompilation(name);
+        backend.tracer.traceGraph('builder', graph);
       }
 
       return graph;
@@ -86,6 +92,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   final AstElement targetElement;
   final ResolvedAst resolvedAst;
+  final ClosedWorld closedWorld;
   final CodegenRegistry registry;
 
   /// Helper accessor for all kernel function-like targets (Procedure,
@@ -126,6 +133,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.targetElement,
       this.resolvedAst,
       Compiler compiler,
+      this.closedWorld,
       this.registry,
       SourceInformationStrategy sourceInformationFactory,
       Kernel kernel) {
@@ -192,7 +200,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           fieldValue, astAdapter.getDartType(field.type));
       stack.add(checkInstruction);
     } else {
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     }
     HInstruction value = pop();
     closeAndGotoExit(new HReturn(value, null));
@@ -267,7 +275,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     for (var field in clazz.fields) {
       if (field.initializer == null) {
-        fieldValues[field] = graph.addConstantNull(compiler);
+        fieldValues[field] = graph.addConstantNull(closedWorld);
       } else {
         field.initializer.accept(this);
         fieldValues[field] = pop();
@@ -332,7 +340,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
               backend.constants.getConstantValue(element.constant);
           assert(invariant(element, constantValue != null,
               message: 'No constant computed for $element'));
-          builtArguments.add(graph.addConstant(constantValue, compiler));
+          builtArguments.add(graph.addConstant(constantValue, closedWorld));
         }
       });
     } else {
@@ -348,7 +356,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
               backend.constants.getConstantValue(element.constant);
           assert(invariant(element, constantValue != null,
               message: 'No constant computed for $element'));
-          builtArguments.add(graph.addConstant(constantValue, compiler));
+          builtArguments.add(graph.addConstant(constantValue, closedWorld));
         }
       });
     }
@@ -428,7 +436,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
-    push(new HIdentity(expression, graph.addConstantNull(compiler), null,
+    push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
         commonMasks.boolType));
   }
 
@@ -445,9 +453,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _trap(String message) {
-    HInstruction nullValue = graph.addConstantNull(compiler);
+    HInstruction nullValue = graph.addConstantNull(closedWorld);
     HInstruction errorMessage =
-        graph.addConstantString(new DartString.literal(message), compiler);
+        graph.addConstantString(new DartString.literal(message), closedWorld);
     HInstruction trap = new HForeignCode(js.js.parseForeignJS("#.#"),
         commonMasks.dynamicType, <HInstruction>[nullValue, errorMessage]);
     trap.sideEffects
@@ -507,7 +515,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitReturnStatement(ir.ReturnStatement returnStatement) {
     HInstruction value;
     if (returnStatement.expression == null) {
-      value = graph.addConstantNull(compiler);
+      value = graph.addConstantNull(closedWorld);
     } else {
       assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       returnStatement.expression.accept(this);
@@ -532,7 +540,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     HInstruction buildCondition() {
       if (forStatement.condition == null) {
-        return graph.addConstantBool(true, compiler);
+        return graph.addConstantBool(true, closedWorld);
       }
       forStatement.condition.accept(this);
       return popBoolified();
@@ -564,7 +572,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     // If the expression being iterated over is a JS indexable type, we can
     // generate an optimized version of for-in that uses indexing.
-    if (astAdapter.isJsIndexableIterator(forInStatement)) {
+    if (astAdapter.isJsIndexableIterator(forInStatement, closedWorld)) {
       _buildForInIndexable(forInStatement);
     } else {
       _buildForInIterator(forInStatement);
@@ -617,9 +625,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     void buildInitializer() {
       forInStatement.iterable.accept(this);
       array = pop();
-      isFixed = astAdapter.isFixedLength(array.instructionType);
+      isFixed = astAdapter.isFixedLength(array.instructionType, closedWorld);
       localsHandler.updateLocal(
-          indexVariable, graph.addConstantInt(0, compiler));
+          indexVariable, graph.addConstantInt(0, closedWorld));
       originalLength = buildGetLength();
     }
 
@@ -664,7 +672,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // but the code is horrible as `i+1` is carried around the loop in an
       // additional variable.
       HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction one = graph.addConstantInt(1, compiler);
+      HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
           new HAdd(index, one, null, commonMasks.positiveIntType);
       add(addInstruction);
@@ -783,7 +791,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void generateError(ir.Node node, String message, TypeMask typeMask) {
     HInstruction errorMessage =
-        graph.addConstantString(new DartString.literal(message), compiler);
+        graph.addConstantString(new DartString.literal(message), closedWorld);
     _pushStaticInvocation(node, [errorMessage], typeMask);
   }
 
@@ -820,6 +828,59 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitBreakStatement(ir.BreakStatement breakStatement) {
+    assert(!isAborted());
+    JumpTarget target = astAdapter.getJumpTarget(breakStatement.target);
+    assert(target != null);
+    JumpHandler handler = jumpTargets[target];
+    assert(handler != null);
+    handler.generateBreak(handler.labels.first);
+  }
+
+  @override
+  void visitLabeledStatement(ir.LabeledStatement labeledStatement) {
+    JumpTarget target = astAdapter.getJumpTarget(labeledStatement);
+    JumpHandler handler = new JumpHandler(this, target);
+
+    ir.Statement body = labeledStatement.body;
+    if (body is ir.WhileStatement ||
+        body is ir.DoStatement ||
+        body is ir.ForStatement ||
+        body is ir.ForInStatement) {
+      // loops handle breaks on their own
+      body.accept(this);
+      return;
+    }
+    LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
+
+    HBasicBlock newBlock = openNewBlock();
+    body.accept(this);
+    SubGraph bodyGraph = new SubGraph(newBlock, lastOpenedBlock);
+
+    HBasicBlock joinBlock = graph.addNewBlock();
+    List<LocalsHandler> breakHandlers = <LocalsHandler>[];
+    handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+      breakInstruction.block.addSuccessor(joinBlock);
+      breakHandlers.add(locals);
+    });
+
+    if (!isAborted()) {
+      goto(current, joinBlock);
+      breakHandlers.add(localsHandler);
+    }
+
+    open(joinBlock);
+    localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
+
+    // There was at least one reachable break, so the label is needed.
+    newBlock.setBlockFlow(
+        new HLabeledBlockInformation(
+            new HSubGraphBlockInformation(bodyGraph), handler.labels),
+        joinBlock);
+    handler.close();
+  }
+
+  @override
   void visitConditionalExpression(ir.ConditionalExpression conditional) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler);
     brancher.handleConditional(
@@ -838,35 +899,35 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitIntLiteral(ir.IntLiteral intLiteral) {
-    stack.add(graph.addConstantInt(intLiteral.value, compiler));
+    stack.add(graph.addConstantInt(intLiteral.value, closedWorld));
   }
 
   @override
   void visitDoubleLiteral(ir.DoubleLiteral doubleLiteral) {
-    stack.add(graph.addConstantDouble(doubleLiteral.value, compiler));
+    stack.add(graph.addConstantDouble(doubleLiteral.value, closedWorld));
   }
 
   @override
   void visitBoolLiteral(ir.BoolLiteral boolLiteral) {
-    stack.add(graph.addConstantBool(boolLiteral.value, compiler));
+    stack.add(graph.addConstantBool(boolLiteral.value, closedWorld));
   }
 
   @override
   void visitStringLiteral(ir.StringLiteral stringLiteral) {
     stack.add(graph.addConstantString(
-        new DartString.literal(stringLiteral.value), compiler));
+        new DartString.literal(stringLiteral.value), closedWorld));
   }
 
   @override
   void visitSymbolLiteral(ir.SymbolLiteral symbolLiteral) {
     stack.add(graph.addConstant(
-        astAdapter.getConstantForSymbol(symbolLiteral), compiler));
+        astAdapter.getConstantForSymbol(symbolLiteral), closedWorld));
     registry?.registerConstSymbol(symbolLiteral.value);
   }
 
   @override
   void visitNullLiteral(ir.NullLiteral nullLiteral) {
-    stack.add(graph.addConstantNull(compiler));
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   /// Set the runtime type information if necessary.
@@ -890,8 +951,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitListLiteral(ir.ListLiteral listLiteral) {
     HInstruction listInstruction;
     if (listLiteral.isConst) {
-      listInstruction =
-          graph.addConstant(astAdapter.getConstantFor(listLiteral), compiler);
+      listInstruction = graph.addConstant(
+          astAdapter.getConstantFor(listLiteral), closedWorld);
     } else {
       List<HInstruction> elements = <HInstruction>[];
       for (ir.Expression element in listLiteral.expressions) {
@@ -905,7 +966,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
     }
 
-    TypeMask type = astAdapter.typeOfListLiteral(targetElement, listLiteral);
+    TypeMask type =
+        astAdapter.typeOfListLiteral(targetElement, listLiteral, closedWorld);
     if (!type.containsAll(closedWorld)) {
       listInstruction.instructionType = type;
     }
@@ -915,8 +977,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitMapLiteral(ir.MapLiteral mapLiteral) {
     if (mapLiteral.isConst) {
-      stack.add(
-          graph.addConstant(astAdapter.getConstantFor(mapLiteral), compiler));
+      stack.add(graph.addConstant(
+          astAdapter.getConstantFor(mapLiteral), closedWorld));
       return;
     }
 
@@ -1001,7 +1063,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ir.DartType type = typeLiteral.type;
     if (type is ir.InterfaceType) {
       ConstantValue constant = astAdapter.getConstantForType(type);
-      stack.add(graph.addConstant(constant, compiler));
+      stack.add(graph.addConstant(constant, closedWorld));
       return;
     }
     if (type is ir.TypeParameterType) {
@@ -1033,7 +1095,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (staticTarget is ir.Field && staticTarget.isConst) {
       assert(staticTarget.initializer != null);
       stack.add(graph.addConstant(
-          astAdapter.getConstantFor(staticTarget.initializer), compiler));
+          astAdapter.getConstantFor(staticTarget.initializer), closedWorld));
     } else {
       if (_isLazyStatic(staticTarget)) {
         push(new HLazyStatic(astAdapter.getField(staticTarget),
@@ -1098,7 +1160,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     propertySet.value.accept(this);
     HInstruction value = pop();
 
-    _pushDynamicInvocation(propertySet, astAdapter.typeOfSet(propertySet),
+    _pushDynamicInvocation(
+        propertySet,
+        astAdapter.typeOfSet(propertySet, closedWorld),
         <HInstruction>[receiver, value]);
 
     pop();
@@ -1116,7 +1180,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitVariableDeclaration(ir.VariableDeclaration declaration) {
     Local local = astAdapter.getLocal(declaration);
     if (declaration.initializer == null) {
-      HInstruction initialValue = graph.addConstantNull(compiler);
+      HInstruction initialValue = graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(local, initialValue);
     } else {
       declaration.initializer.accept(this);
@@ -1231,12 +1295,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   HInstruction _defaultValueForParameter(ir.VariableDeclaration parameter) {
     ir.Expression initializer = parameter.initializer;
-    if (initializer == null) return graph.addConstantNull(compiler);
+    if (initializer == null) return graph.addConstantNull(closedWorld);
     // TODO(sra): Evaluate constant in ir.Node domain.
     ConstantValue constant =
         astAdapter.getConstantForParameterDefaultValue(initializer);
-    if (constant == null) return graph.addConstantNull(compiler);
-    return graph.addConstant(constant, compiler);
+    if (constant == null) return graph.addConstantNull(closedWorld);
+    return graph.addConstant(constant, closedWorld);
   }
 
   @override
@@ -1282,7 +1346,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (name == 'JS_GET_FLAG') {
       handleForeignJsGetFlag(invocation);
     } else if (name == 'JS_EFFECT') {
-      stack.add(graph.addConstantNull(compiler));
+      stack.add(graph.addConstantNull(closedWorld));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
       handleJsInterceptorConstant(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
@@ -1368,7 +1432,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void handleForeignJsCurrentIsolateContext(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 0, 0)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1394,7 +1459,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void handleForeignJsCallInIsolate(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 2, 2)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1426,7 +1492,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void handleForeignRawFunctionRef(
       ir.StaticInvocation invocation, String name) {
     if (_unexpectedForeignArguments(invocation, 1, 1)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1458,13 +1525,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     compiler.reporter.reportErrorMessage(astAdapter.getNode(invocation),
         MessageKind.GENERIC, {'text': "'$name' $problem."});
-    stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+    stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
   }
 
   void handleForeignJsSetStaticState(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 1, 1)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1481,7 +1549,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void handleForeignJsGetStaticState(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 0, 0)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1492,7 +1561,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void handleForeignJsGetName(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 1, 1)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1503,7 +1573,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (instruction is HConstant) {
       js.Name name =
           astAdapter.getNameForJsGetName(argument, instruction.constant);
-      stack.add(graph.addConstantStringFromName(name, compiler));
+      stack.add(graph.addConstantStringFromName(name, closedWorld));
       return;
     }
 
@@ -1511,12 +1581,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         astAdapter.getNode(argument),
         MessageKind.GENERIC,
         {'text': 'Error: Expected a JsGetName enum value.'});
-    stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+    // Result expected on stack.
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   void handleForeignJsEmbeddedGlobal(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 2, 2)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
     String globalName = _foreignConstantStringArgument(
@@ -1529,14 +1601,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
-    TypeMask ssaType = astAdapter.typeFromNativeBehavior(nativeBehavior);
+    TypeMask ssaType =
+        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(expr, ssaType, const <HInstruction>[],
         nativeBehavior: nativeBehavior));
   }
 
   void handleForeignJsBuiltin(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 2)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1555,7 +1629,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           astAdapter.getNode(nameArgument),
           MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1570,7 +1645,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
-    TypeMask ssaType = astAdapter.typeFromNativeBehavior(nativeBehavior);
+    TypeMask ssaType =
+        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(template, ssaType, inputs,
         nativeBehavior: nativeBehavior));
   }
@@ -1578,7 +1654,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void handleForeignJsGetFlag(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 1, 1)) {
       stack.add(
-          graph.addConstantBool(false, compiler)); // Result expected on stack.
+          // Result expected on stack.
+          graph.addConstantBool(false, closedWorld));
       return;
     }
     String name = _foreignConstantStringArgument(invocation, 0, 'JS_GET_FLAG');
@@ -1596,14 +1673,15 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
             MessageKind.GENERIC,
             {'text': 'Error: Unknown internal flag "$name".'});
     }
-    stack.add(graph.addConstantBool(value, compiler));
+    stack.add(graph.addConstantBool(value, closedWorld));
   }
 
   void handleJsInterceptorConstant(ir.StaticInvocation invocation) {
     // Single argument must be a TypeConstant which is converted into a
     // InterceptorConstant.
     if (_unexpectedForeignArguments(invocation, 1, 1)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
     ir.Expression argument = invocation.arguments.positional.single;
@@ -1615,7 +1693,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // TODO(sra): Check that type is a subclass of [Interceptor].
         ConstantValue constant =
             new InterceptorConstantValue(argumentConstant.representedType);
-        HInstruction instruction = graph.addConstant(constant, compiler);
+        HInstruction instruction = graph.addConstant(constant, closedWorld);
         stack.add(instruction);
         return;
       }
@@ -1623,12 +1701,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     compiler.reporter.reportErrorMessage(astAdapter.getNode(invocation),
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-    stack.add(graph.addConstantNull(compiler));
+    stack.add(graph.addConstantNull(closedWorld));
   }
 
   void handleForeignJs(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 2)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1649,7 +1728,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         'text': 'Mismatch between number of placeholders'
             ' and number of arguments.'
       });
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
 
@@ -1658,7 +1738,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           astAdapter.getNode(invocation), MessageKind.JS_PLACEHOLDER_CAPTURE);
     }
 
-    TypeMask ssaType = astAdapter.typeFromNativeBehavior(nativeBehavior);
+    TypeMask ssaType =
+        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation = null;
     push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
@@ -1669,7 +1750,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void handleJsStringConcat(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation, 2, 2)) {
-      stack.add(graph.addConstantNull(compiler)); // Result expected on stack.
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
       return;
     }
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
@@ -1680,12 +1762,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
     HInvokeStatic instruction = new HInvokeStatic(
         astAdapter.getMember(target), arguments, typeMask,
-        targetCanThrow: astAdapter.getCanThrow(target));
+        targetCanThrow: astAdapter.getCanThrow(target, closedWorld));
     if (currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
           new List<DartType>.from(currentImplicitInstantiations);
     }
-    instruction.sideEffects = astAdapter.getSideEffects(target);
+    instruction.sideEffects = astAdapter.getSideEffects(target, closedWorld);
 
     push(instruction);
   }
@@ -1771,7 +1853,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     Selector selector = astAdapter.getSelector(invocation);
     _pushDynamicInvocation(
         invocation,
-        astAdapter.typeOfInvocation(invocation),
+        astAdapter.typeOfInvocation(invocation, closedWorld),
         <HInstruction>[receiver]
           ..addAll(
               _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
@@ -1867,7 +1949,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     type = localsHandler.substInContext(type).unaliased;
 
     if (type is MethodTypeVariableType) {
-      return graph.addConstantBool(true, compiler);
+      return graph.addConstantBool(true, closedWorld);
     }
 
     if (type is MalformedType) {
@@ -2124,8 +2206,8 @@ class TryCatchFinallyBuilder {
             catchBlock.exception, catchBlock.guard, unwrappedException);
         kernelBuilder.push(condition);
       } else {
-        kernelBuilder.stack.add(
-            kernelBuilder.graph.addConstantBool(true, kernelBuilder.compiler));
+        kernelBuilder.stack.add(kernelBuilder.graph
+            .addConstantBool(true, kernelBuilder.closedWorld));
       }
     }
 

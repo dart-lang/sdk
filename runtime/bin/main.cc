@@ -65,6 +65,16 @@ static bool use_dart_frontend = false;
 
 static const char* frontend_filename = NULL;
 
+// Value of the --save-feedback flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* save_feedback_filename = NULL;
+
+// Value of the --load-feedback flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* load_feedback_filename = NULL;
+
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
 // free'd.)
@@ -217,6 +227,28 @@ static bool ProcessPackagesOption(const char* arg,
     return false;
   }
   commandline_packages_file = arg;
+  return true;
+}
+
+
+static bool ProcessSaveFeedbackOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  save_feedback_filename = arg;
+  return true;
+}
+
+
+static bool ProcessLoadFeedbackOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  load_feedback_filename = arg;
   return true;
 }
 
@@ -564,6 +596,8 @@ static struct {
     {"--snapshot=", ProcessSnapshotFilenameOption},
     {"--snapshot-kind=", ProcessSnapshotKindOption},
     {"--use-blobs", ProcessUseBlobsOption},
+    {"--save-feedback=", ProcessSaveFeedbackOption},
+    {"--load-feedback=", ProcessLoadFeedbackOption},
     {"--trace-loading", ProcessTraceLoadingOption},
     {"--hot-reload-test-mode", ProcessHotReloadTestModeOption},
     {"--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption},
@@ -1297,8 +1331,10 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
     Platform::Exit(kErrorExitCode);
   }
 
-  *vmisolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
-                      (vmisolate_position - vmisolate_position);
+  if (vmisolate_size != 0) {
+    *vmisolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
+                        (vmisolate_position - vmisolate_position);
+  }
   *isolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
                     (isolate_position - vmisolate_position);
   if (rodata_size == 0) {
@@ -1497,7 +1533,7 @@ static void GeneratePrecompiledSnapshot() {
 
 
 #if defined(TARGET_ARCH_X64)
-static void GeneratePrecompiledJITSnapshot() {
+static void GenerateAppJITSnapshot() {
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
@@ -1507,9 +1543,8 @@ static void GeneratePrecompiledJITSnapshot() {
   uint8_t* rodata_blob_buffer = NULL;
   intptr_t rodata_blob_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshot(
-      &vm_isolate_buffer, &vm_isolate_size, &isolate_buffer, &isolate_size,
-      &instructions_blob_buffer, &instructions_blob_size, &rodata_blob_buffer,
-      &rodata_blob_size);
+      &isolate_buffer, &isolate_size, &instructions_blob_buffer,
+      &instructions_blob_size, &rodata_blob_buffer, &rodata_blob_size);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
@@ -1528,7 +1563,7 @@ static void GenerateAppSnapshot() {
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  GeneratePrecompiledJITSnapshot();
+  GenerateAppJITSnapshot();
 #else
   // Create an application snapshot of the script.
   uint8_t* vm_isolate_buffer = NULL;
@@ -1687,8 +1722,27 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
           {NULL, NULL, NULL}  // Must be terminated with NULL entries.
       };
 
+      uint8_t* feedback_buffer = NULL;
+      intptr_t feedback_length = 0;
+      if (load_feedback_filename != NULL) {
+        File* file = File::Open(load_feedback_filename, File::kRead);
+        if (file == NULL) {
+          ErrorExit(kErrorExitCode, "Failed to read JIT feedback.\n");
+        }
+        feedback_length = file->Length();
+        feedback_buffer = reinterpret_cast<uint8_t*>(malloc(feedback_length));
+        if (!file->ReadFully(feedback_buffer, feedback_length)) {
+          ErrorExit(kErrorExitCode, "Failed to read JIT feedback.\n");
+        }
+        file->Release();
+      }
+
       const bool reset_fields = gen_snapshot_kind == kAppAOT;
-      result = Dart_Precompile(standalone_entry_points, reset_fields);
+      result = Dart_Precompile(standalone_entry_points, reset_fields,
+                               feedback_buffer, feedback_length);
+      if (feedback_buffer != NULL) {
+        free(feedback_buffer);
+      }
       CHECK_RESULT(result);
     }
 
@@ -1732,6 +1786,16 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         }
       }
       CHECK_RESULT(result);
+
+      if (save_feedback_filename != NULL) {
+        uint8_t* buffer = NULL;
+        intptr_t size = 0;
+        result = Dart_SaveJITFeedback(&buffer, &size);
+        if (Dart_IsError(result)) {
+          ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+        }
+        WriteSnapshotFile(save_feedback_filename, false, buffer, size);
+      }
     }
   }
 

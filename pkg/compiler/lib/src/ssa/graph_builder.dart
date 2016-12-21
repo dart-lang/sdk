@@ -6,6 +6,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../compiler.dart';
+import '../constants/constant_system.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
@@ -42,7 +43,7 @@ abstract class GraphBuilder {
 
   CodegenRegistry get registry;
 
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  ClosedWorld get closedWorld;
 
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
@@ -82,7 +83,7 @@ abstract class GraphBuilder {
 
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
-    push(new HIdentity(expression, graph.addConstantNull(compiler), null,
+    push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
         closedWorld.commonMasks.boolType));
   }
 
@@ -292,7 +293,8 @@ class ReifiedTypeRepresentationBuilder
     List<String> names = type.namedParameters;
     for (int index = 0; index < names.length; index++) {
       ast.DartString dartString = new ast.DartString.literal(names[index]);
-      inputs.add(builder.graph.addConstantString(dartString, builder.compiler));
+      inputs.add(
+          builder.graph.addConstantString(dartString, builder.closedWorld));
       namedParameterTypes[index].accept(this, builder);
       inputs.add(builder.pop());
     }

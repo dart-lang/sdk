@@ -78,7 +78,7 @@ import 'universe/world_impact.dart'
         WorldImpactBuilder,
         WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, WorldImpl;
 
 typedef Backend MakeBackendFuncion(Compiler compiler);
 
@@ -89,7 +89,6 @@ abstract class Compiler implements LibraryLoaderListener {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  WorldImpl get _world => resolverWorld.openWorld;
   Types types;
   _CompilerCoreTypes _coreTypes;
   CompilerDiagnosticReporter _reporter;
@@ -129,8 +128,6 @@ abstract class Compiler implements LibraryLoaderListener {
   List<Uri> librariesToAnalyzeWhenRun;
 
   ResolvedUriTranslator get resolvedUriTranslator;
-
-  Tracer tracer;
 
   LibraryElement mainApp;
   FunctionElement mainFunction;
@@ -217,7 +214,6 @@ abstract class Compiler implements LibraryLoaderListener {
     // make its field final.
     _coreTypes = new _CompilerCoreTypes(_resolution, reporter);
     types = new Types(_resolution);
-    tracer = new Tracer(this, this.outputProvider);
 
     if (options.verbose) {
       progress = new Stopwatch()..start();
@@ -279,13 +275,6 @@ abstract class Compiler implements LibraryLoaderListener {
     tasks.addAll(backend.tasks);
   }
 
-  /// The closed world after resolution and inference.
-  ClosedWorld get closedWorld {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
-        message: "Closed world not computed yet."));
-    return _world;
-  }
-
   /// Creates the backend.
   ///
   /// Override this to mock the backend for testing.
@@ -344,7 +333,6 @@ abstract class Compiler implements LibraryLoaderListener {
         return new Future.sync(() => runInternal(uri))
             .catchError((error) => _reporter.onError(uri, error))
             .whenComplete(() {
-          tracer.close();
           measurer.stopWallClock();
         }).then((_) {
           return !compilationFailed;
@@ -708,6 +696,9 @@ abstract class Compiler implements LibraryLoaderListener {
         assert(mainFunction != null);
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution();
+        // TODO(johnniwinther): Make [ClosedWorld] a property of
+        // [ClosedWorldRefiner].
+        ClosedWorld closedWorld = resolverWorld.closedWorldForTesting;
 
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(
@@ -720,7 +711,7 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        enqueuer.codegen.applyImpact(backend.onCodegenStart());
+        enqueuer.codegen.applyImpact(backend.onCodegenStart(closedWorld));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
@@ -730,14 +721,14 @@ abstract class Compiler implements LibraryLoaderListener {
             onProgress: showCodegenProgress);
         enqueuer.codegen.logSummary(reporter.log);
 
-        int programSize = backend.assembleProgram();
+        int programSize = backend.assembleProgram(closedWorld);
 
         if (options.dumpInfo) {
           dumpInfoTask.reportSize(programSize);
           dumpInfoTask.dumpInfo(closedWorld);
         }
 
-        backend.sourceInformationStrategy.onComplete();
+        backend.onCodegenEnd();
 
         checkQueues();
       });

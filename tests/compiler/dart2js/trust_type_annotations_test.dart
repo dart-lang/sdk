@@ -51,6 +51,7 @@ void main() {
   var compiler = compilerFor(TEST, uri, trustTypeAnnotations: true);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         ClassElement classA = findElement(compiler, "A");
 
@@ -58,18 +59,17 @@ void main() {
           var element = classA.lookupMember(name);
           var mask = typesInferrer.getReturnTypeOfElement(element);
           Expect.isTrue(type.containsMask(
-              typesInferrer.getReturnTypeOfElement(element),
-              compiler.closedWorld));
+              typesInferrer.getReturnTypeOfElement(element), closedWorld));
         }
 
         checkType(String name, type) {
           var element = classA.lookupMember(name);
           Expect.isTrue(type.containsMask(
-              typesInferrer.getTypeOfElement(element), compiler.closedWorld));
+              typesInferrer.getTypeOfElement(element), closedWorld));
         }
 
-        var intMask = new TypeMask.subtype(
-            compiler.coreClasses.intClass, compiler.closedWorld);
+        var intMask =
+            new TypeMask.subtype(compiler.coreClasses.intClass, closedWorld);
 
         checkReturn('foo', intMask);
         checkReturn('faa', intMask);

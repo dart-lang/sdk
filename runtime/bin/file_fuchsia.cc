@@ -16,6 +16,7 @@
 #include <unistd.h>     // NOLINT
 
 #include "bin/builtin.h"
+#include "bin/fdutils.h"
 #include "bin/log.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
@@ -280,7 +281,48 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
 
 
 bool File::Copy(const char* old_path, const char* new_path) {
-  UNIMPLEMENTED();
+  File::Type type = File::GetType(old_path, true);
+  if (type == kIsFile) {
+    struct stat64 st;
+    if (NO_RETRY_EXPECTED(stat64(old_path, &st)) != 0) {
+      return false;
+    }
+    int old_fd = NO_RETRY_EXPECTED(open64(old_path, O_RDONLY | O_CLOEXEC));
+    if (old_fd < 0) {
+      return false;
+    }
+    int new_fd = NO_RETRY_EXPECTED(
+        open64(new_path, O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
+    if (new_fd < 0) {
+      VOID_TEMP_FAILURE_RETRY(close(old_fd));
+      return false;
+    }
+    // TODO(MG-429): Use sendfile/copyfile or equivalent when there is one.
+    intptr_t result;
+    const intptr_t kBufferSize = 8 * KB;
+    uint8_t buffer[kBufferSize];
+    while ((result = NO_RETRY_EXPECTED(read(old_fd, buffer, kBufferSize))) >
+           0) {
+      int wrote = NO_RETRY_EXPECTED(write(new_fd, buffer, result));
+      if (wrote != result) {
+        result = -1;
+        break;
+      }
+    }
+    FDUtils::SaveErrorAndClose(old_fd);
+    FDUtils::SaveErrorAndClose(new_fd);
+    if (result < 0) {
+      int e = errno;
+      VOID_NO_RETRY_EXPECTED(unlink(new_path));
+      errno = e;
+      return false;
+    }
+    return true;
+  } else if (type == kIsDirectory) {
+    errno = EISDIR;
+  } else {
+    errno = ENOENT;
+  }
   return false;
 }
 
@@ -353,6 +395,8 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 const char* File::GetCanonicalPath(const char* pathname) {
+  // TODO(MG-425): realpath() is not implemented.
+#if 0
   char* abs_path = NULL;
   if (pathname != NULL) {
     char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
@@ -364,6 +408,9 @@ const char* File::GetCanonicalPath(const char* pathname) {
     ASSERT((abs_path == NULL) || (abs_path == resolved_path));
   }
   return abs_path;
+#else
+  return pathname;
+#endif
 }
 
 

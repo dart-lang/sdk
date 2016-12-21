@@ -404,6 +404,7 @@ class KernelVisitor extends Object
       ir.Statement statement, Node node, JumpTarget jumpTarget) {
     assert(node.isValidBreakTarget());
     assert(jumpTarget == elements.getTargetDefinition(node));
+    associateNode(statement, node);
     if (jumpTarget != null && jumpTarget.isBreakTarget) {
       ir.LabeledStatement breakTarget = getBreakTarget(jumpTarget);
       breakTarget.body = statement;
@@ -2025,8 +2026,7 @@ class KernelVisitor extends Object
   }
 
   ir.FunctionNode buildFunctionNode(FunctionElement function, Node bodyNode) {
-    List<ir.TypeParameter> typeParameters =
-        kernel.typeParametersNotImplemented();
+    List<ir.TypeParameter> typeParameters = <ir.TypeParameter>[];
     List<ir.VariableDeclaration> positionalParameters =
         <ir.VariableDeclaration>[];
     List<ir.VariableDeclaration> namedParameters = <ir.VariableDeclaration>[];

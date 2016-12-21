@@ -34,6 +34,7 @@ import '../../js_backend/js_backend.dart'
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
+import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart'
     show
         ClassStubGenerator,
@@ -57,6 +58,7 @@ class ProgramBuilder {
   final Compiler _compiler;
   final Namer namer;
   final CodeEmitterTask _task;
+  final ClosedWorld closedWorld;
 
   /// Contains the collected information the program builder used to build
   /// the model.
@@ -71,11 +73,12 @@ class ProgramBuilder {
   bool _storeFunctionTypesInMetadata = false;
 
   ProgramBuilder(Compiler compiler, Namer namer, this._task, Emitter emitter,
-      Set<ClassElement> rtiNeededClasses)
+      ClosedWorld closedWorld, Set<ClassElement> rtiNeededClasses)
       : this._compiler = compiler,
         this.namer = namer,
-        this.collector =
-            new Collector(compiler, namer, rtiNeededClasses, emitter),
+        this.closedWorld = closedWorld,
+        this.collector = new Collector(
+            compiler, namer, closedWorld, rtiNeededClasses, emitter),
         this._registry = new Registry(compiler);
 
   JavaScriptBackend get backend => _compiler.backend;
@@ -205,7 +208,7 @@ class ProgramBuilder {
 
   js.Expression _buildTypeToInterceptorMap() {
     InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(_compiler, namer, backend);
+        new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
     return stubGenerator.generateTypeToInterceptorMap();
   }
 
@@ -517,8 +520,9 @@ class ProgramBuilder {
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
 
-    ClassStubGenerator classStubGenerator =
-        new ClassStubGenerator(_compiler, namer, backend);
+    ClassStubGenerator classStubGenerator = new ClassStubGenerator(
+        namer, backend, universe, closedWorld,
+        enableMinification: _compiler.options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator =
         new RuntimeTypeGenerator(_compiler, _task, namer);
 
@@ -676,7 +680,7 @@ class ProgramBuilder {
 
   bool _methodCanBeApplied(FunctionElement method) {
     return backend.hasFunctionApplySupport &&
-        _compiler.closedWorld.getMightBePassedToApply(method);
+        closedWorld.getMightBePassedToApply(method);
   }
 
   // TODO(herhut): Refactor incremental compilation and remove method.
@@ -736,9 +740,8 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff =
-            universe.hasInvokedGetter(element, _compiler.closedWorld) ||
-                (canBeReflected && !element.isOperator);
+        canTearOff = universe.hasInvokedGetter(element, closedWorld) ||
+            (canBeReflected && !element.isOperator);
         assert(canTearOff ||
             !universe.methodsNeedingSuperGetter.contains(element));
         tearOffName = namer.getterForElement(element);
@@ -813,7 +816,7 @@ class ProgramBuilder {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
     ParameterStubGenerator generator =
-        new ParameterStubGenerator(_compiler, namer, backend);
+        new ParameterStubGenerator(_compiler, namer, backend, closedWorld);
     return generator.generateParameterStubs(element, canTearOff: canTearOff);
   }
 
@@ -841,7 +844,7 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
     InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(_compiler, namer, backend);
+        new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
 
     String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
@@ -860,9 +863,13 @@ class ProgramBuilder {
 
   List<Field> _buildFields(Element holder, bool visitStatics) {
     List<Field> fields = <Field>[];
-    new FieldVisitor(_compiler, namer).visitFields(holder, visitStatics,
-        (VariableElement field, js.Name name, js.Name accessorName,
-            bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
+    new FieldVisitor(_compiler, namer, closedWorld)
+        .visitFields(holder, visitStatics, (VariableElement field,
+            js.Name name,
+            js.Name accessorName,
+            bool needsGetter,
+            bool needsSetter,
+            bool needsCheckedSetter) {
       assert(invariant(field, field.isDeclaration));
 
       int getterFlags = 0;
@@ -901,7 +908,7 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateOneShotInterceptors() {
     InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(_compiler, namer, backend);
+        new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
 
     String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of

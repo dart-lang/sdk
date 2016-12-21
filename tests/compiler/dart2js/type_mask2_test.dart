@@ -104,7 +104,7 @@ Future testUnionTypeMaskFlatten() async {
       """,
       useMockCompiler: false);
 
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
@@ -213,12 +213,11 @@ Future testStringSubtypes() async {
       }
       """,
       useMockCompiler: false);
-  var closedWorld = env.compiler.closedWorld;
-  var backend = env.compiler.backend;
+  ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement String_ = env.getElement("String");
-  ClassElement JSString = backend.helpers.jsStringClass;
+  ClassElement JSString = closedWorld.backendClasses.stringImplementation;
 
   List<ClassElement> allClasses = <ClassElement>[Object_, String_];
 

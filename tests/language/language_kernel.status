@@ -95,6 +95,7 @@ vm/regress_27201_test: DartkCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
+config_import_corelib_test: RuntimeError
 enum_syntax_test/05: MissingCompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError
 type_variable_conflict2_test/06: MissingCompileTimeError
@@ -103,6 +104,7 @@ type_variable_conflict2_test/10: MissingCompileTimeError
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
+config_import_corelib_test: RuntimeError
 
 
 ###############################################################################
@@ -349,7 +351,6 @@ redirecting_factory_reflection_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
 async_star_regression_fisk_test: Crash  # Stack mismatch during expression translation.
 async_star_test: Crash  # Stack mismatch during expression translation.
-generic_sends_test: Crash
 issue23244_test: Crash  # Class finalization issue
 not_enough_positional_arguments_test/02: Crash
 not_enough_positional_arguments_test/05: Crash
@@ -379,6 +380,5 @@ super_call4_test: RuntimeError
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
 constructor_named_arguments_test/01: Crash
-generic_sends_test: Crash
 not_enough_positional_arguments_test/05: Crash
 enum_syntax_test/05: Crash

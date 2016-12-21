@@ -974,7 +974,7 @@ Future testPatchAndSelector() async {
       runCompiler: true,
       analyzeOnly: true);
   compiler.closeResolution();
-  ClosedWorld world = compiler.closedWorld;
+  ClosedWorld world = compiler.resolverWorld.closedWorldForTesting;
 
   ClassElement cls = ensure(
       compiler, "A", compiler.commonElements.coreLibrary.find,

@@ -17,8 +17,6 @@ class ObjectPointerVisitor;
 class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
-class Serializer;
-class Deserializer;
 
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
@@ -125,10 +123,6 @@ class StubCode : public AllStatic {
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
 
-  static void Push(Serializer* serializer);
-  static void WriteRef(Serializer* serializer);
-  static void ReadRef(Deserializer* deserializer);
-
   // Generate all stubs which are generated on a per isolate basis as they
   // have embedded objects which are isolate specific.
   static void Init(Isolate* isolate);
@@ -150,7 +144,7 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const StubEntry* name##_entry() { return name##_entry_; }             \
+  static const StubEntry* name##_entry() { return entries_[k##name##Index]; }  \
   static intptr_t name##Size() { return name##_entry()->Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
@@ -161,6 +155,12 @@ class StubCode : public AllStatic {
 
   static const intptr_t kNoInstantiator = 0;
 
+  static StubEntry* EntryAt(intptr_t index) { return entries_[index]; }
+  static void EntryAtPut(intptr_t index, StubEntry* entry) {
+    entries_[index] = entry;
+  }
+  static intptr_t NumEntries() { return kNumStubEntries; }
+
  private:
   friend class MegamorphicCacheTable;
 
@@ -168,12 +168,17 @@ class StubCode : public AllStatic {
 
 #define STUB_CODE_GENERATE(name)                                               \
   static void Generate##name##Stub(Assembler* assembler);
-  VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
+  VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-#define STUB_CODE_ENTRY(name) static StubEntry* name##_entry_;
-  VM_STUB_CODE_LIST(STUB_CODE_ENTRY);
+  enum {
+#define STUB_CODE_ENTRY(name) k##name##Index,
+    VM_STUB_CODE_LIST(STUB_CODE_ENTRY)
 #undef STUB_CODE_ENTRY
+        kNumStubEntries
+  };
+
+  static StubEntry* entries_[kNumStubEntries];
 
   // Generate the stub and finalize the generated code into the stub
   // code executable area.

@@ -380,10 +380,21 @@ Future testGoogleHttps(SecurityContext context, String outcome) async {
 }
 
 Future testProcess() async {
-  Process p = await Process.start(Platform.executable, ["--version"]);
+  String exe = Platform.resolvedExecutable;
+  print("Running $exe --version");
+  Process p = await Process.start(exe, ["--version"]);
   p.stderr.transform(UTF8.decoder).listen(print);
   int code = await p.exitCode;
-  print("dart --version exited with code $code");
+  print("$exe --version exited with code $code");
+}
+
+void testProcessRunSync() {
+  String exe = Platform.resolvedExecutable;
+  print("Running $exe --version");
+  var result = Process.runSync(exe, ["--version"]);
+  print("$exe --version exited with code ${result.exitCode}");
+  print("$exe --version had stdout = '${result.stdout}'");
+  print("$exe --version had stderr = '${result.stderr}'");
 }
 
 Future testLs(String path) async {
@@ -391,6 +402,33 @@ Future testLs(String path) async {
   await for (FileSystemEntity fse in stream) {
     print(fse.path);
   }
+}
+
+void testPlatformEnvironment() {
+  Map<String, String> env = Platform.environment;
+  for (String k in env.keys) {
+    String v = env[k];
+    print("$k = '$v'");
+  }
+}
+
+Future testCopy() async {
+  final String sourceName = "foo";
+  final String destName = "bar";
+  Directory tmp = await Directory.systemTemp.createTemp("testCopy");
+  File sourceFile = new File("${tmp.path}/$sourceName");
+  File destFile = new File("${tmp.path}/$destName");
+  List<int> data = new List<int>.generate(10 * 1024, (int i) => i & 0xff);
+  await sourceFile.writeAsBytes(data);
+  await sourceFile.copy(destFile.path);
+  List<int> resultData = await destFile.readAsBytes();
+  assert(data.length == resultData.length);
+  for (int i = 0; i < data.length; i++) {
+    assert(data[i] == resultData[i]);
+  }
+  await sourceFile.delete();
+  await destFile.delete();
+  await tmp.delete();
 }
 
 main() async {
@@ -428,9 +466,21 @@ main() async {
   await testLs("/");
   print("lsTest done");
 
+  print("testPlatformEnvironment");
+  testPlatformEnvironment();
+  print("testPlatformEnvironment done");
+
   print("testProcess");
   await testProcess();
   print("testProcess done");
+
+  print("testProcessRunSync");
+  testProcessRunSync();
+  print("testProcessRunSync done");
+
+  print("testCopy");
+  await testCopy();
+  print("testCopy done");
 
   print("Goodbyte, Fuchsia!");
 }

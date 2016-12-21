@@ -14,6 +14,7 @@ import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/elements.dart'
     show Element, MemberElement, TypeDeclarationElement, ClassElement;
+import 'package:compiler/src/world.dart' show ClosedWorld;
 
 GenericType instantiate(
     TypeDeclarationElement element, List<DartType> arguments) {
@@ -138,5 +139,9 @@ class TypeEnvironment {
     }
     return new FunctionType.synthesized(returnType, parameters,
         optionalParameters, namedParameterNames, namedParameterTypes);
+  }
+
+  ClosedWorld get closedWorld {
+    return compiler.resolverWorld.closedWorldForTesting;
   }
 }

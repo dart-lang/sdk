@@ -1506,7 +1506,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
-  friend class Precompiler;
+  friend class ProgramVisitor;
 };
 
 
@@ -1974,7 +1974,8 @@ class ICData : public Object {
   // Adds one more class test to ICData. Length of 'classes' must be equal to
   // the number of arguments tested. Use only for num_args_tested > 1.
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
-                const Function& target) const;
+                const Function& target,
+                intptr_t count = 1) const;
   // Adds sorted so that Smi is the first class-id. Use only for
   // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
@@ -3546,6 +3547,9 @@ class Script : public Object {
   void TokenRangeAtLine(intptr_t line_number,
                         TokenPosition* first_token_index,
                         TokenPosition* last_token_index) const;
+
+  int32_t SourceFingerprint() const;
+  int32_t SourceFingerprint(TokenPosition start, TokenPosition end) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
@@ -6901,6 +6905,8 @@ class String : public Instance {
                                 Heap::Space space = Heap::kNew);
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
+
+  static RawString* RemovePrivateKey(const String& name);
 
   static RawString* ScrubName(const String& name);
   static RawString* ScrubNameRetainPrivate(const String& name);

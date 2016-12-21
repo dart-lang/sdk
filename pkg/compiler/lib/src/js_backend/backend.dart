@@ -45,6 +45,7 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
+import '../tracer.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -88,7 +89,7 @@ const VERBOSE_OPTIMIZER_HINTS = false;
 
 abstract class FunctionCompiler {
   /// Generates JavaScript code for `work.element`.
-  jsAst.Fun compile(CodegenWorkItem work);
+  jsAst.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld);
 
   Iterable get tasks;
 }
@@ -305,7 +306,7 @@ enum SyntheticConstantKind {
 class JavaScriptBackend extends Backend {
   String get patchVersion => emitter.patchVersion;
 
-  bool get supportsReflection => emitter.emitter.supportsReflection;
+  bool get supportsReflection => emitter.supportsReflection;
 
   final Annotations annotations;
 
@@ -343,7 +344,13 @@ class JavaScriptBackend extends Backend {
   bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
 
-  final Namer namer;
+  Namer _namer;
+
+  Namer get namer {
+    assert(invariant(NO_LOCATION_SPANNABLE, _namer != null,
+        message: "Namer has not been created yet."));
+    return _namer;
+  }
 
   /**
    * A collection of selectors that must have a one shot interceptor
@@ -553,13 +560,14 @@ class JavaScriptBackend extends Backend {
 
   final JSFrontendAccess frontend;
 
+  Tracer tracer;
+
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : namer = determineNamer(compiler),
-        oneShotInterceptors = new Map<jsAst.Name, Selector>(),
+      : oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
         rti = new _RuntimeTypes(compiler),
         rtiEncoder = new _RuntimeTypesEncoder(compiler),
@@ -574,8 +582,8 @@ class JavaScriptBackend extends Backend {
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
         super(compiler) {
-    emitter = new CodeEmitterTask(
-        compiler, namer, generateSourceMap, useStartupEmitter);
+    emitter =
+        new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
@@ -640,12 +648,12 @@ class JavaScriptBackend extends Backend {
         library == helpers.jsHelperLibrary;
   }
 
-  static Namer determineNamer(Compiler compiler) {
+  Namer determineNamer(ClosedWorld closedWorld) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(compiler)
-            : new MinifyNamer(compiler)
-        : new Namer(compiler);
+            ? new FrequencyBasedNamer(this, closedWorld)
+            : new MinifyNamer(this, closedWorld)
+        : new Namer(this, closedWorld);
   }
 
   /// The backend must *always* call this method when enqueuing an
@@ -893,8 +901,7 @@ class JavaScriptBackend extends Backend {
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
-          (mask == null ||
-              mask.canHit(element, selector, compiler.closedWorld));
+          (mask == null || mask.canHit(element, selector, _closedWorld));
     });
   }
 
@@ -950,11 +957,10 @@ class JavaScriptBackend extends Backend {
   }
 
   Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    Iterable<MixinApplicationElement> uses = closedWorld.mixinUsesOf(mixin);
+    Iterable<MixinApplicationElement> uses = _closedWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
+      _closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
         if (isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
           result.add(subclass);
@@ -1494,7 +1500,7 @@ class JavaScriptBackend extends Backend {
       }
     }
 
-    jsAst.Fun function = functionCompiler.compile(work);
+    jsAst.Fun function = functionCompiler.compile(work, _closedWorld);
     if (function.sourceInformation == null) {
       function = function.withSourceInformation(
           sourceInformationStrategy.buildSourceMappedMarker());
@@ -1534,8 +1540,8 @@ class JavaScriptBackend extends Backend {
     return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
-  int assembleProgram() {
-    int programSize = emitter.assembleProgram();
+  int assembleProgram(ClosedWorld closedWorld) {
+    int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic();
     int totalMethodCount = generatedCode.length;
     if (totalMethodCount != preMirrorsMethodCount) {
@@ -1747,7 +1753,7 @@ class JavaScriptBackend extends Backend {
     if (!type.isRaw) return false;
     ClassElement classElement = type.element;
     if (isInterceptorClass(classElement)) return false;
-    return compiler.closedWorld.hasOnlySubclasses(classElement);
+    return _closedWorld.hasOnlySubclasses(classElement);
   }
 
   WorldImpact registerUsedElement(Element element, {bool forResolution}) {
@@ -2357,12 +2363,34 @@ class JavaScriptBackend extends Backend {
     jsInteropAnalysis.onQueueClosed();
   }
 
-  WorldImpact onCodegenStart() {
+  // TODO(johnniwinther): Create a CodegenPhase object for the backend to hold
+  // data only available during code generation.
+  ClosedWorld _closedWorldCache;
+  ClosedWorld get _closedWorld {
+    assert(invariant(NO_LOCATION_SPANNABLE, _closedWorldCache != null,
+        message: "ClosedWorld has not be set yet."));
+    return _closedWorldCache;
+  }
+
+  void set _closedWorld(ClosedWorld value) {
+    _closedWorldCache = value;
+  }
+
+  WorldImpact onCodegenStart(ClosedWorld closedWorld) {
+    _closedWorld = closedWorld;
+    _namer = determineNamer(_closedWorld);
+    tracer = new Tracer(_closedWorld, namer, compiler.outputProvider);
+    emitter.createEmitter(_namer, _closedWorld);
     lookupMapAnalysis.onCodegenStart();
     if (hasIsolateSupport) {
       return enableIsolateSupport(forResolution: false);
     }
     return const WorldImpact();
+  }
+
+  void onCodegenEnd() {
+    sourceInformationStrategy.onComplete();
+    tracer.close();
   }
 
   /// Process backend specific annotations.
@@ -3206,6 +3234,7 @@ class JavaScriptBackendClasses implements BackendClasses {
       helpers.jsMutableIndexableClass;
   ClassElement get indexingBehaviorImplementation =>
       helpers.jsIndexingBehaviorInterface;
+  ClassElement get interceptorImplementation => helpers.jsInterceptorClass;
 
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');

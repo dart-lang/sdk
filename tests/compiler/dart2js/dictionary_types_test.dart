@@ -105,19 +105,18 @@ var SOURCES = const {
 
 void main() {
   asyncTest(() async {
-    await compileAndTest("AddAll.dart", (types, getType, compiler) {
+    await compileAndTest("AddAll.dart", (types, getType, closedWorld) {
       Expect.equals(getType('int'), types.uint31Type);
       Expect.equals(getType('anotherInt'), types.uint31Type);
       Expect.equals(getType('dynamic'), types.dynamicType);
       Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
     });
-    await compileAndTest("Union.dart", (types, getType, compiler) {
+    await compileAndTest("Union.dart", (types, getType, closedWorld) {
       Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
-      Expect
-          .isTrue(getType('aString').containsOnlyString(compiler.closedWorld));
+      Expect.isTrue(getType('aString').containsOnlyString(closedWorld));
       Expect.equals(getType('doubleOrNull'), types.doubleType.nullable());
     });
-    await compileAndTest("ValueType.dart", (types, getType, compiler) {
+    await compileAndTest("ValueType.dart", (types, getType, closedWorld) {
       Expect.equals(getType('knownDouble'), types.doubleType);
       Expect.equals(getType('intOrNull'), types.uint31Type.nullable());
       Expect.equals(getType('justNull'), types.nullType);
@@ -125,7 +124,7 @@ void main() {
     await compileAndTest("Propagation.dart", (code) {
       Expect.isFalse(code.contains("J.\$add\$ns"));
     }, createCode: true);
-    await compileAndTest("Bailout.dart", (types, getType, compiler) {
+    await compileAndTest("Bailout.dart", (types, getType, closedWorld) {
       Expect.equals(getType('notInt'), types.dynamicType);
       Expect.equals(getType('alsoNotInt'), types.dynamicType);
       Expect.isFalse(getType('dict').isDictionary);
@@ -141,15 +140,16 @@ compileAndTest(source, checker, {createCode: false}) async {
         compiler.stopAfterTypeInference = !createCode;
       });
   var compiler = result.compiler;
-  var commonMasks = compiler.closedWorld.commonMasks;
   var typesInferrer = compiler.globalInference.typesInferrerInternal;
+  var closedWorld = typesInferrer.closedWorld;
+  var commonMasks = closedWorld.commonMasks;
   getType(String name) {
     var element = findElement(compiler, name);
     return typesInferrer.getTypeOfElement(element);
   }
 
   if (!createCode) {
-    checker(commonMasks, getType, compiler);
+    checker(commonMasks, getType, closedWorld);
   } else {
     var element = compiler.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);

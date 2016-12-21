@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/epoll.h>
 #include <unistd.h>
 
 #include "bin/dartutils.h"
@@ -29,6 +30,7 @@
 #include "bin/lockers.h"
 #include "bin/log.h"
 #include "platform/signal_blocker.h"
+#include "platform/utils.h"
 
 // #define PROCESS_LOGGING 1
 #if defined(PROCESS_LOGGING)
@@ -425,19 +427,164 @@ intptr_t Process::CurrentProcessId() {
 }
 
 
+static bool ProcessWaitCleanup(intptr_t out,
+                               intptr_t err,
+                               intptr_t exit_event,
+                               intptr_t epoll_fd) {
+  int e = errno;
+  VOID_NO_RETRY_EXPECTED(close(out));
+  VOID_NO_RETRY_EXPECTED(close(err));
+  VOID_NO_RETRY_EXPECTED(close(exit_event));
+  VOID_NO_RETRY_EXPECTED(close(epoll_fd));
+  errno = e;
+  return false;
+}
+
+
+class BufferList : public BufferListBase {
+ public:
+  BufferList() {}
+
+  bool Read(int fd, intptr_t available) {
+    // Read all available bytes.
+    while (available > 0) {
+      if (free_size_ == 0) {
+        Allocate();
+      }
+      ASSERT(free_size_ > 0);
+      ASSERT(free_size_ <= kBufferSize);
+      intptr_t block_size = dart::Utils::Minimum(free_size_, available);
+      intptr_t bytes = NO_RETRY_EXPECTED(
+          read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
+      if (bytes < 0) {
+        return false;
+      }
+      data_size_ += bytes;
+      free_size_ -= bytes;
+      available -= bytes;
+    }
+    return true;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BufferList);
+};
+
+
 bool Process::Wait(intptr_t pid,
                    intptr_t in,
                    intptr_t out,
                    intptr_t err,
                    intptr_t exit_event,
                    ProcessResult* result) {
-  UNIMPLEMENTED();
-  return false;
+  VOID_NO_RETRY_EXPECTED(close(in));
+
+  // There is no return from this function using Dart_PropagateError
+  // as memory used by the buffer lists is freed through their
+  // destructors.
+  BufferList out_data;
+  BufferList err_data;
+  union {
+    uint8_t bytes[8];
+    int32_t ints[2];
+  } exit_code_data;
+
+  // The initial size passed to epoll_create is ignore on newer (>=
+  // 2.6.8) Linux versions
+  static const int kEpollInitialSize = 64;
+  int epoll_fd = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
+  if (epoll_fd == -1) {
+    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  }
+  if (!FDUtils::SetCloseOnExec(epoll_fd)) {
+    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  }
+
+  struct epoll_event event;
+  event.events = EPOLLRDHUP | EPOLLIN;
+  event.data.fd = out;
+  int status = NO_RETRY_EXPECTED(
+      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, out, &event));
+  if (status == -1) {
+    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  }
+  event.data.fd = err;
+  status = NO_RETRY_EXPECTED(
+      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, err, &event));
+  if (status == -1) {
+    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  }
+  event.data.fd = exit_event;
+  status = NO_RETRY_EXPECTED(
+      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, exit_event, &event));
+  if (status == -1) {
+    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  }
+  intptr_t active = 3;
+
+  static const intptr_t kMaxEvents = 16;
+  struct epoll_event events[kMaxEvents];
+  while (active > 0) {
+    // TODO(US-109): When the epoll implementation is properly edge-triggered,
+    // remove this sleep, which prevents the message queue from being
+    // overwhelmed and leading to memory exhaustion.
+    usleep(5000);
+    intptr_t result = NO_RETRY_EXPECTED(
+        epoll_wait(epoll_fd, events, kMaxEvents, -1));
+    if ((result < 0) && (errno != EWOULDBLOCK)) {
+      return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+    }
+    for (intptr_t i = 0; i < result; i++) {
+      if ((events[i].events & EPOLLIN) != 0) {
+        const intptr_t avail = FDUtils::AvailableBytes(events[i].data.fd);
+        if (events[i].data.fd == out) {
+          if (!out_data.Read(out, avail)) {
+            return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+          }
+        } else if (events[i].data.fd == err) {
+          if (!err_data.Read(err, avail)) {
+            return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+          }
+        } else if (events[i].data.fd == exit_event) {
+          if (avail == 8) {
+            intptr_t b =
+                NO_RETRY_EXPECTED(read(exit_event, exit_code_data.bytes, 8));
+            if (b != 8) {
+              return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+            }
+          }
+        } else {
+          UNREACHABLE();
+        }
+      }
+      if ((events[i].events & (EPOLLHUP | EPOLLRDHUP)) != 0) {
+        NO_RETRY_EXPECTED(close(events[i].data.fd));
+        active--;
+        VOID_NO_RETRY_EXPECTED(
+            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, NULL));
+      }
+    }
+  }
+  VOID_NO_RETRY_EXPECTED(close(epoll_fd));
+
+  // All handles closed and all data read.
+  result->set_stdout_data(out_data.GetData());
+  result->set_stderr_data(err_data.GetData());
+
+  // Calculate the exit code.
+  intptr_t exit_code = exit_code_data.ints[0];
+  intptr_t negative = exit_code_data.ints[1];
+  if (negative != 0) {
+    exit_code = -exit_code;
+  }
+  result->set_exit_code(exit_code);
+
+  return true;
 }
 
 
 bool Process::Kill(intptr_t id, int signal) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 

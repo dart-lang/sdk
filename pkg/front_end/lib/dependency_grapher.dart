@@ -12,6 +12,7 @@ import 'package:front_end/file_system.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
 import 'package:front_end/src/base/uri_resolver.dart';
 import 'package:front_end/src/scanner/scanner.dart';
+import 'package:package_config/packages_file.dart' as package_config;
 
 import 'compiler_options.dart';
 
@@ -22,11 +23,23 @@ import 'compiler_options.dart';
 /// in the program.
 Future<Graph> graphForProgram(
     List<Uri> sources, CompilerOptions options) async {
-  var packages = <String, Uri>{}; // TODO(paulberry): support packages
+  Map<String, Uri> packages;
+  if (options.packagesFilePath == null) {
+    throw new UnimplementedError(); // TODO(paulberry): search for .packages
+  } else if (options.packagesFilePath.isEmpty) {
+    packages = {};
+  } else {
+    var contents = await options.fileSystem
+        .entityForPath(options.packagesFilePath)
+        .readAsBytes();
+    var baseLocation =
+        options.fileSystem.context.toUri(options.packagesFilePath);
+    packages = package_config.parse(contents, baseLocation);
+  }
   var sdkLibraries = <String, Uri>{}; // TODO(paulberry): support SDK libraries
   var uriResolver =
       new UriResolver(packages, sdkLibraries, options.fileSystem.context);
-  var walker = new _Walker(options.fileSystem, uriResolver);
+  var walker = new _Walker(options.fileSystem, uriResolver, options.compileSdk);
   var startingPoint = new _StartingPoint(walker, sources);
   await walker.walk(startingPoint);
   return walker.graph;
@@ -97,8 +110,9 @@ class _Walker extends AsyncDependencyWalker<_WalkerNode> {
   final UriResolver uriResolver;
   final _nodesByUri = <Uri, _WalkerNode>{};
   final graph = new Graph._();
+  final bool compileSdk;
 
-  _Walker(this.fileSystem, this.uriResolver);
+  _Walker(this.fileSystem, this.uriResolver, this.compileSdk);
 
   @override
   Future<Null> evaluate(_WalkerNode v) {
@@ -124,6 +138,7 @@ class _Walker extends AsyncDependencyWalker<_WalkerNode> {
 }
 
 class _WalkerNode extends Node<_WalkerNode> {
+  static final dartCoreUri = Uri.parse('dart:core');
   final _Walker walker;
   final Uri uri;
   final LibraryNode library;
@@ -136,14 +151,30 @@ class _WalkerNode extends Node<_WalkerNode> {
   Future<List<_WalkerNode>> computeDependencies() async {
     var dependencies = <_WalkerNode>[];
     // TODO(paulberry): add error recovery if the file can't be read.
-    var contents = await walker.fileSystem
-        .entityForPath(walker.uriResolver.resolve(uri))
-        .readAsString();
+    var path = walker.uriResolver.resolve(uri);
+    if (path == null) {
+      // TODO(paulberry): If an error reporter was provided, report the error
+      // in the proper way and continue.
+      throw new StateError('Invalid URI: $uri');
+    }
+    var contents = await walker.fileSystem.entityForPath(path).readAsString();
     var scanner = new _Scanner(contents);
     var token = scanner.tokenize();
     // TODO(paulberry): report errors.
     var parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
     var unit = parser.parseDirectives(token);
+    bool coreUriFound = false;
+    void handleDependency(Uri referencedUri) {
+      _WalkerNode dependencyNode = walker.nodeForUri(referencedUri);
+      library.dependencies.add(dependencyNode.library);
+      if (referencedUri.scheme != 'dart' || walker.compileSdk) {
+        dependencies.add(dependencyNode);
+      }
+      if (referencedUri == dartCoreUri) {
+        coreUriFound = true;
+      }
+    }
+
     for (var directive in unit.directives) {
       if (directive is UriBasedDirective) {
         // TODO(paulberry): when we support SDK libraries, we'll need more
@@ -152,11 +183,12 @@ class _WalkerNode extends Node<_WalkerNode> {
         if (directive is PartDirective) {
           library.parts.add(referencedUri);
         } else {
-          _WalkerNode dependencyNode = walker.nodeForUri(referencedUri);
-          dependencies.add(dependencyNode);
-          library.dependencies.add(dependencyNode.library);
+          handleDependency(referencedUri);
         }
       }
+    }
+    if (!coreUriFound) {
+      handleDependency(dartCoreUri);
     }
     return dependencies;
   }

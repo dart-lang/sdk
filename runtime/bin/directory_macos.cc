@@ -351,6 +351,9 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
     if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;
     } else {
+      // An OSError may be constructed based on the return value of this
+      // function, so set errno to something that makes sense.
+      errno = ENOTDIR;
       return DOES_NOT_EXIST;
     }
   } else {

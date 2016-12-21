@@ -1399,47 +1399,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_ExitScope();
     Dart_ShutdownIsolate();
   }
-  free(script_snapshot);
-
-  // Test for Dart_CreateLibrarySnapshot.
-  {
-    // Create an Isolate using the full snapshot, load a script and create
-    // a script snapshot of the script.
-    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
-    // Load the library.
-    Dart_Handle lib = Dart_LoadLibrary(NewString("dart_lib"), Dart_Null(),
-                                       NewString(kScriptChars), 0, 0);
-    EXPECT_VALID(lib);
-
-    // Write out the script snapshot.
-    result = Dart_CreateLibrarySnapshot(lib, &buffer, &size);
-    EXPECT_VALID(result);
-    script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
-    memmove(script_snapshot, buffer, size);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-  }
-
-  {
-    // Now Create an Isolate using the full snapshot and load the
-    // script snapshot created above and execute it.
-    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
-    // Load the test library from the snapshot.
-    EXPECT(script_snapshot != NULL);
-    result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
-    EXPECT_VALID(result);
-
-    // Invoke a function which returns an object.
-    Dart_Handle cls = Dart_GetClass(result, NewString("FieldsTest"));
-    result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
-    EXPECT_VALID(result);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-  }
   free(full_snapshot);
   free(script_snapshot);
 }

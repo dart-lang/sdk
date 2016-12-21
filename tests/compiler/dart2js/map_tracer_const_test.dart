@@ -33,10 +33,11 @@ void main() {
   var compiler = compilerFor(TEST, uri, expectedErrors: 0, expectedWarnings: 0);
   compiler.stopAfterTypeInference = true;
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
         var element = findElement(compiler, 'closure');
         var mask = typesInferrer.getReturnTypeOfElement(element);
-        Expect.equals(commonMasks.numType, simplify(mask, compiler));
+        Expect.equals(commonMasks.numType, simplify(mask, closedWorld));
       }));
 }

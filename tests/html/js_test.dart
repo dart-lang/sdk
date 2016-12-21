@@ -515,8 +515,6 @@ main() {
 
     test('pass Array to JS', () {
       context['a'] = [1, 2, 3];
-      expect(context.callMethod('isPropertyInstanceOf',
-          ['a', context['Array']]), isTrue);
       var a = context['a'];
       expect(a, new isInstanceOf<List>());
       expect(a, isNot(new isInstanceOf<JsArray>()));

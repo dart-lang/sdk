@@ -136,7 +136,7 @@ main(List<String> args) {
       }
       return true;
     }, verbose: arguments.verbose);
-    checkClosedWorlds(compiler.closedWorld, closedWorld,
+    checkClosedWorlds(compiler.resolverWorld.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);
   });
 }

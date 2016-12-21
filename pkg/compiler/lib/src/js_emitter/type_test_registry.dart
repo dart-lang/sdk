@@ -37,8 +37,9 @@ class TypeTestRegistry {
   }
 
   final Compiler compiler;
+  final ClosedWorld closedWorld;
 
-  TypeTestRegistry(this.compiler);
+  TypeTestRegistry(this.compiler, this.closedWorld);
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -105,8 +106,7 @@ class TypeTestRegistry {
         return false;
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
-          return compiler.codegenWorld
-              .hasInvokedGetter(function, compiler.closedWorld);
+          return compiler.codegenWorld.hasInvokedGetter(function, closedWorld);
         }
       }
       return false;
