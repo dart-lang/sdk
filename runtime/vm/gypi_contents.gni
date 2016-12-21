@@ -42,7 +42,6 @@ _core_library_gypis = [
   "../../sdk/lib/math/math_sources.gypi",
   "../../sdk/lib/mirrors/mirrors_sources.gypi",
   "../../sdk/lib/profiler/profiler_sources.gypi",
-  "../../sdk/lib/typed_data/typed_data_sources.gypi",
   "../../sdk/lib/vmservice/vmservice_sources.gypi",
   "../bin/io_sources.gypi",
 ]

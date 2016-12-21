@@ -55,11 +55,11 @@ class Bootstrap : public AllStatic {
   static const char* isolate_patch_paths_[];
   static const char* math_patch_paths_[];
   static const char* mirrors_patch_paths_[];
-  static const char* typed_data_patch_paths_[];
   static const char* _vmservice_patch_paths_[];
 
   // NULL patch paths for libraries that do not have patch files.
   static const char** profiler_patch_paths_;
+  static const char** typed_data_patch_paths_;
 };
 
 }  // namespace dart

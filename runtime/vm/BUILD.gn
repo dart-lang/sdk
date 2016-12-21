@@ -344,12 +344,10 @@ generate_core_libraries("core_libraries") {
     ],
     [
       "typed_data",
-      processed_gypis.typed_data_sdk_sources,
-      "../../sdk/lib/typed_data",
-      "typed_data",
-      true,
       processed_gypis.typed_data_runtime_sources,
       "../lib",
+      "typed_data",
+      false,
     ],
     [
       "_vmservice",
@@ -430,6 +428,7 @@ template("generate_patched_sdk") {
     # Files below are not patches, they will not be in [concatenation_files]
     # but the `patch_sdk.dart` script will copy them into the patched sdk.
     inputs += [
+      "../lib/typed_data.dart",
       "../bin/builtin.dart",
       "../bin/vmservice/vmservice_io.dart",
       "../bin/vmservice/loader.dart",

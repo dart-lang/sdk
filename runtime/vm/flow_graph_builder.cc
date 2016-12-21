@@ -76,11 +76,12 @@ uword FlowGraphBuilder::FindDoubleConstant(double value) {
 }
 
 
-#define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
-  {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
+#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
+  {Symbols::k##test_factory_symbol##Id, cid, fp,                               \
+   #test_factory_symbol ", " #cid},  // NOLINT
 
 static struct {
-  intptr_t symbol_id;
+  intptr_t symbold_id;
   intptr_t cid;
   intptr_t finger_print;
   const char* name;
@@ -97,10 +98,10 @@ intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
          (lib.raw() == Library::TypedDataLibrary()));
   const String& factory_name = String::Handle(factory.name());
   for (intptr_t i = 0;
-       factory_recognizer_list[i].symbol_id != Symbols::kIllegal; i++) {
+       factory_recognizer_list[i].symbold_id != Symbols::kIllegal; i++) {
     if (String::EqualsIgnoringPrivateKey(
             factory_name,
-            Symbols::Symbol(factory_recognizer_list[i].symbol_id))) {
+            Symbols::Symbol(factory_recognizer_list[i].symbold_id))) {
       return factory_recognizer_list[i].cid;
     }
   }

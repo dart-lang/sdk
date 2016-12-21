@@ -44,6 +44,7 @@ enum {
 
 
 const char** Bootstrap::profiler_patch_paths_ = NULL;
+const char** Bootstrap::typed_data_patch_paths_ = NULL;
 
 
 #define MAKE_PROPERTIES(CamelName, name)                                       \

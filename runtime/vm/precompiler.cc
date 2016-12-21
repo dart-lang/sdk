@@ -678,7 +678,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:isolate", "_SendPortImpl", "send"},
     {"dart:typed_data", "ByteData", "ByteData."},
     {"dart:typed_data", "ByteData", "ByteData._view"},
-    {"dart:typed_data", "_ByteBuffer", "_ByteBuffer._New"},
+    {"dart:typed_data", "ByteBuffer", "ByteBuffer._New"},
     {"dart:_vmservice", "::", "_registerIsolate"},
     {"dart:_vmservice", "::", "boot"},
 #if !defined(PRODUCT)

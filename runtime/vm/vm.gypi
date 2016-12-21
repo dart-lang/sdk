@@ -30,7 +30,6 @@
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
-    'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
     'vmservice_cc_file': '<(gen_source_dir)/vmservice_gen.cc',
     'vmservice_patch_cc_file': '<(gen_source_dir)/vmservice_patch_gen.cc',
   },
@@ -234,7 +233,6 @@
         'generate_mirrors_patch_cc_file#host',
         'generate_profiler_cc_file#host',
         'generate_typed_data_cc_file#host',
-        'generate_typed_data_patch_cc_file#host',
         'generate_vmservice_cc_file#host',
         'generate_vmservice_patch_cc_file#host',
       ],
@@ -273,7 +271,6 @@
         '<(mirrors_patch_cc_file)',
         '<(profiler_cc_file)',
         '<(typed_data_cc_file)',
-        '<(typed_data_patch_cc_file)',
         '<(vmservice_cc_file)',
         '<(vmservice_patch_cc_file)',
       ],
@@ -970,12 +967,16 @@
       ]
     },
     {
+      # Unlike the other libraries in the SDK, dart:typed_data is not
+      # implemented as a patch applied to the base SDK implementation.
+      # Instead the VM has a complete replacement library and the
+      # implementation in the SDK is ignored.
       'target_name': 'generate_typed_data_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
-        '../../sdk/lib/typed_data/typed_data_sources.gypi',
+        '../lib/typed_data_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -1006,46 +1007,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(typed_data_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_typed_data_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the patch sources.
-        '../lib/typed_data_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_typed_data_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(typed_data_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(typed_data_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::typed_data_patch_paths_',
-            '--library_name', 'dart:typed_data',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'
         },
       ]
     },
@@ -1294,7 +1255,6 @@
         'generate_math_library_patch',
         'generate_mirrors_library_patch',
         'generate_profiler_library_patch',
-        'generate_typed_data_library_patch',
         'generate_vmservice_library_patch',
       ],
       'actions': [
@@ -1305,6 +1265,11 @@
                   '"dart$", "sdk/lib"])',
             '../../tools/patch_sdk.py',
             '../../tools/patch_sdk.dart',
+            # Unlike the other libraries in the SDK, dart:typed_data is not
+            # implemented as a patch applied to the base SDK implementation.
+            # Instead the VM has a complete replacement library and the
+            # implementation in the SDK is ignored.
+            '../lib/typed_data.dart',
             # Unlike the other libraries in the SDK, dart:_builtin and
             # dart:nativewrappers are only available for the Dart VM.
             '../bin/builtin.dart',
@@ -1322,7 +1287,6 @@
             '<(gen_source_dir)/patches/math_patch.dart',
             '<(gen_source_dir)/patches/mirrors_patch.dart',
             '<(gen_source_dir)/patches/profiler_patch.dart',
-            '<(gen_source_dir)/patches/typed_data_patch.dart',
             '<(gen_source_dir)/patches/vmservice_patch.dart',
           ],
           'outputs': [
@@ -1672,38 +1636,6 @@
       'toolsets': ['host'],
       'includes': [
         '../lib/profiler_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'concatenate_<(library_name)_patches',
-          'inputs': [
-            '../tools/concatenate_patches.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
-          ],
-          'action': [
-            'python',
-            'tools/concatenate_patches.py',
-            '--output',
-            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
-            '<@(_sources)',
-          ],
-          'message': 'Generating <(library_uri) patch.',
-        },
-      ],
-    },
-    {
-      'variables': {
-        'library_name': 'typed_data',
-        'library_uri': 'dart:typed_data',
-      },
-      'target_name': 'generate_<(library_name)_library_patch',
-      'type': 'none',
-      'toolsets': ['host'],
-      'includes': [
-        '../lib/typed_data_sources.gypi',
       ],
       'actions': [
         {

@@ -7,7 +7,8 @@
 {
   'sources': [
     'typed_data.cc',
-    'typed_data_patch.dart',
+    'typed_data.dart',
     'simd128.cc',
   ],
 }
+
