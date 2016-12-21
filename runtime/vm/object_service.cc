@@ -1482,6 +1482,11 @@ void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+void SignatureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
 void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }

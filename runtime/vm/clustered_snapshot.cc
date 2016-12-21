@@ -778,6 +778,84 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
 
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class SignatureDataSerializationCluster : public SerializationCluster {
+ public:
+  SignatureDataSerializationCluster() {}
+  virtual ~SignatureDataSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawSignatureData* data = SignatureData::RawCast(object);
+    objects_.Add(data);
+
+    RawObject** from = data->from();
+    RawObject** to = data->to();
+    for (RawObject** p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kSignatureDataCid);
+    intptr_t count = objects_.length();
+    s->Write<int32_t>(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawSignatureData* data = objects_[i];
+      s->AssignRef(data);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawSignatureData* data = objects_[i];
+      RawObject** from = data->from();
+      RawObject** to = data->to();
+      for (RawObject** p = from; p <= to; p++) {
+        s->WriteRef(*p);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RawSignatureData*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+
+class SignatureDataDeserializationCluster : public DeserializationCluster {
+ public:
+  SignatureDataDeserializationCluster() {}
+  virtual ~SignatureDataDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->Read<int32_t>();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, SignatureData::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawSignatureData* data = reinterpret_cast<RawSignatureData*>(d->Ref(id));
+      Deserializer::InitializeHeader(
+          data, kSignatureDataCid, SignatureData::InstanceSize(), is_vm_object);
+      RawObject** from = data->from();
+      RawObject** to = data->to();
+      for (RawObject** p = from; p <= to; p++) {
+        *p = d->ReadRef();
+      }
+    }
+  }
+};
+
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class RedirectionDataSerializationCluster : public SerializationCluster {
  public:
   RedirectionDataSerializationCluster() {}
@@ -4446,6 +4524,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) FunctionSerializationCluster();
     case kClosureDataCid:
       return new (Z) ClosureDataSerializationCluster();
+    case kSignatureDataCid:
+      return new (Z) SignatureDataSerializationCluster();
     case kRedirectionDataCid:
       return new (Z) RedirectionDataSerializationCluster();
     case kFieldCid:
@@ -4810,6 +4890,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) FunctionDeserializationCluster();
     case kClosureDataCid:
       return new (Z) ClosureDataDeserializationCluster();
+    case kSignatureDataCid:
+      return new (Z) SignatureDataDeserializationCluster();
     case kRedirectionDataCid:
       return new (Z) RedirectionDataDeserializationCluster();
     case kFieldCid:

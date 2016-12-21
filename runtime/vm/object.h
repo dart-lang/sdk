@@ -488,6 +488,7 @@ class Object {
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* closure_data_class() { return closure_data_class_; }
+  static RawClass* signature_data_class() { return signature_data_class_; }
   static RawClass* redirection_data_class() { return redirection_data_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
@@ -745,6 +746,7 @@ class Object {
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
   static RawClass* closure_data_class_;    // Class of ClosureData vm obj.
+  static RawClass* signature_data_class_;  // Class of SignatureData vm obj.
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
   static RawClass* field_class_;             // Class of the Field vm object.
   static RawClass* literal_token_class_;     // Class of LiteralToken vm object.
@@ -3016,6 +3018,30 @@ class ClosureData : public Object {
   static RawClosureData* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
+};
+
+
+class SignatureData : public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSignatureData));
+  }
+
+ private:
+  // Enclosing function of this signature function.
+  RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
+  void set_parent_function(const Function& value) const;
+
+  // Signature type of this signature function.
+  RawType* signature_type() const { return raw_ptr()->signature_type_; }
+  void set_signature_type(const Type& value) const;
+
+  static RawSignatureData* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SignatureData, Object);
   friend class Class;
   friend class Function;
   friend class HeapProfiler;

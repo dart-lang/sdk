@@ -632,6 +632,47 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawSignatureData* SignatureData::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind,
+                                          bool as_reference) {
+  ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kScript);
+
+  // Allocate signature data object.
+  SignatureData& data =
+      SignatureData::ZoneHandle(reader->zone(), SignatureData::New());
+  reader->AddBackRef(object_id, &data, kIsDeserialized);
+
+  // Set all the object fields.
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(),
+                     kAsInlinedObject);
+
+  return data.raw();
+}
+
+
+void RawSignatureData::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               Snapshot::Kind kind,
+                               bool as_reference) {
+  ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kScript);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kSignatureDataCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
                                               intptr_t tags,

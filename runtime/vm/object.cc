@@ -142,6 +142,7 @@ RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::redirection_data_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -631,6 +632,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<ClosureData>();
   closure_data_class_ = cls.raw();
 
+  cls = Class::New<SignatureData>();
+  signature_data_class_ = cls.raw();
+
   cls = Class::New<RedirectionData>();
   redirection_data_class_ = cls.raw();
 
@@ -999,6 +1003,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
   SET_CLASS_NAME(closure_data, ClosureData);
+  SET_CLASS_NAME(signature_data, SignatureData);
   SET_CLASS_NAME(redirection_data, RedirectionData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
@@ -3367,6 +3372,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Function().raw();
     case kClosureDataCid:
       return Symbols::ClosureData().raw();
+    case kSignatureDataCid:
+      return Symbols::SignatureData().raw();
     case kRedirectionDataCid:
       return Symbols::RedirectionData().raw();
     case kFieldCid:
@@ -5437,15 +5444,13 @@ RawField* Function::LookupImplicitGetterSetterField() const {
 
 
 RawFunction* Function::parent_function() const {
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsSignatureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).parent_function();
-  } else if (IsSignatureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    // Parent function may be null or data_ may already be set to function type.
-    if (!obj.IsNull() && obj.IsFunction()) {
-      return Function::Cast(obj).raw();
+    if (IsClosureFunction()) {
+      return ClosureData::Cast(obj).parent_function();
+    } else {
+      return SignatureData::Cast(obj).parent_function();
     }
   }
   return Function::null();
@@ -5453,16 +5458,14 @@ RawFunction* Function::parent_function() const {
 
 
 void Function::set_parent_function(const Function& value) const {
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
   if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_parent_function(value);
-    return;
-  } else if (IsSignatureFunction()) {
-    set_data(value);  // Temporarily set during parsing only.
-    return;
+  } else {
+    ASSERT(IsSignatureFunction());
+    SignatureData::Cast(obj).set_parent_function(value);
   }
-  UNREACHABLE();
 }
 
 
@@ -5502,12 +5505,11 @@ void Function::set_implicit_closure_function(const Function& value) const {
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle();
   const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
-    ASSERT(obj.IsNull() || Type::Cast(obj).IsFunctionType());
-    type = obj.IsNull() ? Type::null() : Type::Cast(obj).raw();
+    type = SignatureData::Cast(obj).signature_type();
   } else {
     ASSERT(IsClosureFunction());
-    ASSERT(!obj.IsNull());
     type = ClosureData::Cast(obj).signature_type();
   }
   if (type.IsNull()) {
@@ -5548,12 +5550,12 @@ RawType* Function::SignatureType() const {
 
 
 void Function::SetSignatureType(const Type& value) const {
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
-    set_data(value);
+    SignatureData::Cast(obj).set_signature_type(value);
   } else {
     ASSERT(IsClosureFunction());
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_signature_type(value);
   }
 }
@@ -5676,7 +5678,7 @@ void Function::SetRedirectionTarget(const Function& target) const {
 
 // This field is heavily overloaded:
 //   eval function:           Script expression source
-//   signature function:      Function type
+//   signature function:      SignatureData
 //   method extractor:        Function extracted closure function
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
@@ -6547,6 +6549,9 @@ RawFunction* Function::New(const String& name,
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
+  } else if (kind == RawFunction::kSignatureFunction) {
+    const SignatureData& data = SignatureData::Handle(SignatureData::New());
+    result.set_data(data);
   }
   return result.raw();
 }
@@ -7235,7 +7240,59 @@ RawClosureData* ClosureData::New() {
 
 
 const char* ClosureData::ToCString() const {
-  return "ClosureData class";
+  if (IsNull()) {
+    return "ClosureData: null";
+  }
+  const Function& parent = Function::Handle(parent_function());
+  const Type& type = Type::Handle(signature_type());
+  return OS::SCreate(Thread::Current()->zone(),
+                     "ClosureData: context_scope: 0x%" Px
+                     " parent_function: %s signature_type: %s"
+                     " implicit_static_closure: 0x%" Px,
+                     reinterpret_cast<uword>(context_scope()),
+                     parent.IsNull() ? "null" : parent.ToCString(),
+                     type.IsNull() ? "null" : type.ToCString(),
+                     reinterpret_cast<uword>(implicit_static_closure()));
+}
+
+
+void SignatureData::set_parent_function(const Function& value) const {
+  StorePointer(&raw_ptr()->parent_function_, value.raw());
+}
+
+
+void SignatureData::set_signature_type(const Type& value) const {
+  StorePointer(&raw_ptr()->signature_type_, value.raw());
+  // If the signature type is resolved, the parent function is not needed
+  // anymore (type parameters may be declared by generic parent functions).
+  // Keeping the parent function can unnecessarily pull more objects into a
+  // snapshot. Also, the parent function is meaningless once the signature type
+  // is canonicalized.
+  if (value.IsResolved()) {
+    set_parent_function(Function::Handle());  // TODO(rmacnak): Removing this
+    // line causes a tree shaking issue in AOT. Please, investigate.
+  }
+}
+
+
+RawSignatureData* SignatureData::New() {
+  ASSERT(Object::signature_data_class() != Class::null());
+  RawObject* raw = Object::Allocate(SignatureData::kClassId,
+                                    SignatureData::InstanceSize(), Heap::kOld);
+  return reinterpret_cast<RawSignatureData*>(raw);
+}
+
+
+const char* SignatureData::ToCString() const {
+  if (IsNull()) {
+    return "SignatureData: null";
+  }
+  const Function& parent = Function::Handle(parent_function());
+  const Type& type = Type::Handle(signature_type());
+  return OS::SCreate(Thread::Current()->zone(),
+                     "SignatureData parent_function: %s signature_type: %s",
+                     parent.IsNull() ? "null" : parent.ToCString(),
+                     type.IsNull() ? "null" : type.ToCString());
 }
 
 
@@ -7264,7 +7321,17 @@ RawRedirectionData* RedirectionData::New() {
 
 
 const char* RedirectionData::ToCString() const {
-  return "RedirectionData class";
+  if (IsNull()) {
+    return "RedirectionData: null";
+  }
+  const Type& redir_type = Type::Handle(type());
+  const String& ident = String::Handle(identifier());
+  const Function& target_fun = Function::Handle(target());
+  return OS::SCreate(Thread::Current()->zone(),
+                     "RedirectionData: type: %s identifier: %s target: %s",
+                     redir_type.IsNull() ? "null" : redir_type.ToCString(),
+                     ident.IsNull() ? "null" : ident.ToCString(),
+                     target_fun.IsNull() ? "null" : target_fun.ToCString());
 }
 
 
@@ -7594,7 +7661,7 @@ void Field::set_guarded_list_length_in_object_offset(
 
 const char* Field::ToCString() const {
   if (IsNull()) {
-    return "Field::null";
+    return "Field: null";
   }
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";

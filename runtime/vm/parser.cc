@@ -2089,7 +2089,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
       ASSERT(innermost_function().raw() == signature_function.raw());
       innermost_function_ = signature_function.parent_function();
-      signature_function.set_data(Object::Handle(Z));
 
       Type& signature_type =
           Type::ZoneHandle(Z, signature_function.SignatureType());

@@ -156,6 +156,7 @@ class ObjectPointerVisitor;
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
+  V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
