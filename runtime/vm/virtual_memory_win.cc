@@ -44,7 +44,9 @@ VirtualMemory::~VirtualMemory() {
 }
 
 
-bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+bool VirtualMemory::FreeSubSegment(int32_t handle,
+                                   void* address,
+                                   intptr_t size) {
   // On Windows only the entire segment returned by VirtualAlloc
   // can be freed. Therefore we will have to waste these unused
   // virtual memory sub-segments.
