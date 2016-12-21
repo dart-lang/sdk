@@ -12,13 +12,15 @@ import '../common/backend_api.dart' show Backend;
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
+import '../core_types.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../universe/class_set.dart' show Instantiation;
+import '../universe/class_set.dart';
+import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, OpenWorld, WorldImpl;
+import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -166,7 +168,7 @@ abstract class WorldBuilder {
   Iterable<DartType> get instantiatedTypes;
 }
 
-abstract class ResolutionWorldBuilder implements WorldBuilder {
+abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// Set of (live) local functions (closures) whose signatures reference type
   /// variables.
   ///
@@ -201,10 +203,6 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
 
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(Element member);
-
-  /// The [OpenWorld] being created by this world builder.
-  // TODO(johnniwinther): Merge this with [ResolutionWorldBuilder].
-  OpenWorld get openWorld;
 
   /// The closed world computed by this world builder.
   ///
@@ -463,30 +461,54 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// and classes.
   bool useInstantiationMap = false;
 
-  WorldImpl _openWorld;
-
   final Backend _backend;
   final Resolution _resolution;
+  bool _closed = false;
+  ClosedWorld _closedWorldCache;
+  FunctionSetBuilder _allFunctions;
+
+  final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
+
+  final Map<ClassElement, Set<MixinApplicationElement>> _mixinUses =
+      new Map<ClassElement, Set<MixinApplicationElement>>();
+
+  // We keep track of subtype and subclass relationships in four
+  // distinct sets to make class hierarchy analysis faster.
+  final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes =
+      <ClassElement, ClassHierarchyNode>{};
+  final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
+
+  final Map<ClassElement, Map<ClassElement, bool>> _subtypeCoveredByCache =
+      <ClassElement, Map<ClassElement, bool>>{};
+
+  final Set<Element> alreadyPopulated;
+
+  final CacheStrategy cacheStrategy;
+
+  bool get isClosed => _closed;
 
   ResolutionWorldBuilderImpl(Backend backend, Resolution resolution,
       CacheStrategy cacheStrategy, this.selectorConstraintsStrategy)
       : this._backend = backend,
-        this._resolution = resolution {
-    _openWorld = new WorldImpl(this, backend, resolution.coreClasses,
-        resolution.coreTypes, cacheStrategy);
+        this._resolution = resolution,
+        this.cacheStrategy = cacheStrategy,
+        alreadyPopulated = cacheStrategy.newSet() {
+    _allFunctions = new FunctionSetBuilder();
   }
 
   Iterable<ClassElement> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
-  OpenWorld get openWorld => _openWorld;
+  CommonElements get commonElements => _resolution.commonElements;
+
+  CoreTypes get coreTypes => _resolution.coreTypes;
 
   ClosedWorld get closedWorldForTesting {
-    if (!_openWorld.isClosed) {
+    if (!_closed) {
       throw new SpannableAssertionFailure(
           NO_LOCATION_SPANNABLE, "The world builder has not yet been closed.");
     }
-    return _openWorld.closedWorldCache;
+    return _closedWorldCache;
   }
 
   /// All directly instantiated classes, that is, classes with a generative
@@ -596,7 +618,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
         SelectorConstraints masks = selectors[selector];
-        if (masks.applies(member, selector, _openWorld)) {
+        if (masks.applies(member, selector, this)) {
           return true;
         }
       }
@@ -669,7 +691,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       case DynamicUseKind.INVOKE:
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           _processInstanceMembers(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
               memberUsed(usage.entity, usage.invoke());
               return true;
             }
@@ -680,14 +702,14 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       case DynamicUseKind.GET:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
           _processInstanceMembers(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
               memberUsed(usage.entity, usage.read());
               return true;
             }
             return false;
           });
           _processInstanceFunctions(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
               memberUsed(usage.entity, usage.read());
               return true;
             }
@@ -698,7 +720,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       case DynamicUseKind.SET:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
           _processInstanceMembers(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, _openWorld)) {
+            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
               memberUsed(usage.entity, usage.write());
               return true;
             }
@@ -906,7 +928,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       useSet.addAll(usage.appliedUse);
       if (member.isField && isNative) {
-        _openWorld.registerUsedElement(member);
+        registerUsedElement(member);
       }
       if (member.isFunction &&
           member.name == Identifiers.call &&
@@ -942,6 +964,169 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       memberUsed(usage.entity, useSet);
       return usage;
     });
+  }
+
+  /// Returns an iterable over all mixin applications that mixin [cls].
+  Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls) {
+    Iterable<MixinApplicationElement> uses = _mixinUses[cls];
+    return uses != null ? uses : const <MixinApplicationElement>[];
+  }
+
+  /// Called to add [cls] to the set of known classes.
+  ///
+  /// This ensures that class hierarchy queries can be performed on [cls] and
+  /// classes that extend or implement it.
+  void registerClass(ClassElement cls) => _registerClass(cls);
+
+  void _registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
+    _ensureClassSet(cls);
+    if (isDirectlyInstantiated) {
+      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
+    }
+  }
+
+  void registerTypedef(TypedefElement typdef) {
+    _allTypedefs.add(typdef);
+  }
+
+  ClassHierarchyNode _ensureClassHierarchyNode(ClassElement cls) {
+    cls = cls.declaration;
+    return _classHierarchyNodes.putIfAbsent(cls, () {
+      ClassHierarchyNode parentNode;
+      if (cls.superclass != null) {
+        parentNode = _ensureClassHierarchyNode(cls.superclass);
+      }
+      return new ClassHierarchyNode(parentNode, cls);
+    });
+  }
+
+  ClassSet _ensureClassSet(ClassElement cls) {
+    cls = cls.declaration;
+    return _classSets.putIfAbsent(cls, () {
+      ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+      ClassSet classSet = new ClassSet(node);
+
+      for (InterfaceType type in cls.allSupertypes) {
+        // TODO(johnniwinther): Optimization: Avoid adding [cls] to
+        // superclasses.
+        ClassSet subtypeSet = _ensureClassSet(type.element);
+        subtypeSet.addSubtype(node);
+      }
+      if (cls.isMixinApplication) {
+        // TODO(johnniwinther): Store this in the [ClassSet].
+        MixinApplicationElement mixinApplication = cls;
+        if (mixinApplication.mixin != null) {
+          // If [mixinApplication] is malformed [mixin] is `null`.
+          registerMixinUse(mixinApplication, mixinApplication.mixin);
+        }
+      }
+
+      return classSet;
+    });
+  }
+
+  void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
+    // Ensure that classes implicitly implementing `Function` are in its
+    // subtype set.
+    ClassElement cls = node.cls;
+    if (cls != commonElements.functionClass &&
+        cls.implementsFunction(commonElements)) {
+      ClassSet subtypeSet = _ensureClassSet(commonElements.functionClass);
+      subtypeSet.addSubtype(node);
+    }
+    if (!node.isInstantiated && node.parentNode != null) {
+      _updateSuperClassHierarchyNodeForClass(node.parentNode);
+    }
+  }
+
+  void _updateClassHierarchyNodeForClass(ClassElement cls,
+      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
+    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+    _updateSuperClassHierarchyNodeForClass(node);
+    if (directlyInstantiated) {
+      node.isDirectlyInstantiated = true;
+    }
+    if (abstractlyInstantiated) {
+      node.isAbstractlyInstantiated = true;
+    }
+  }
+
+  ClosedWorld closeWorld(DiagnosticReporter reporter) {
+    Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses =
+        new Map<ClassElement, Set<ClassElement>>();
+
+    /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
+    /// properties of the [ClassHierarchyNode] for [cls].
+
+    void addSubtypes(ClassElement cls, InstantiationInfo info) {
+      if (!info.hasInstantiation) {
+        return;
+      }
+      if (cacheStrategy.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
+        return;
+      }
+      assert(cls.isDeclaration);
+      if (!cls.isResolved) {
+        reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
+      }
+
+      _updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
+
+      // Walk through the superclasses, and record the types
+      // implemented by that type on the superclasses.
+      ClassElement superclass = cls.superclass;
+      while (superclass != null) {
+        Set<Element> typesImplementedBySubclassesOfCls =
+            typesImplementedBySubclasses.putIfAbsent(
+                superclass, () => new Set<ClassElement>());
+        for (DartType current in cls.allSupertypes) {
+          typesImplementedBySubclassesOfCls.add(current.element);
+        }
+        superclass = superclass.superclass;
+      }
+    }
+
+    // Use the [:seenClasses:] set to include non-instantiated
+    // classes: if the superclass of these classes require RTI, then
+    // they also need RTI, so that a constructor passes the type
+    // variables to the super constructor.
+    forEachInstantiatedClass(addSubtypes);
+
+    _closed = true;
+    return _closedWorldCache = new ClosedWorldImpl(
+        backend: _backend,
+        commonElements: commonElements,
+        coreTypes: coreTypes,
+        resolverWorld: this,
+        functionSetBuilder: _allFunctions,
+        allTypedefs: _allTypedefs,
+        mixinUses: _mixinUses,
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        classHierarchyNodes: _classHierarchyNodes,
+        classSets: _classSets);
+  }
+
+  void registerMixinUse(
+      MixinApplicationElement mixinApplication, ClassElement mixin) {
+    // TODO(johnniwinther): Add map restricted to live classes.
+    // We don't support patch classes as mixin.
+    assert(mixin.isDeclaration);
+    Set<MixinApplicationElement> users =
+        _mixinUses.putIfAbsent(mixin, () => new Set<MixinApplicationElement>());
+    users.add(mixinApplication);
+  }
+
+  void registerUsedElement(Element element) {
+    if (element.isInstanceMember && !element.isAbstract) {
+      _allFunctions.add(element);
+    }
+  }
+
+  ClosedWorld get closedWorldCache {
+    assert(isClosed);
+    return _closedWorldCache;
   }
 }
 

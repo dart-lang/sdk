@@ -737,7 +737,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    ClosedWorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
+    ClosedWorldImpl world = resolverWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete(world, world);
@@ -1955,7 +1955,7 @@ class CompilerResolution implements Resolution {
 
   @override
   void registerClass(ClassElement cls) {
-    enqueuer.universe.openWorld.registerClass(cls);
+    enqueuer.universe.registerClass(cls);
   }
 
   @override

@@ -70,6 +70,7 @@ class EnqueueTask extends CompilerTask {
 }
 
 abstract class Enqueuer {
+  // TODO(johnniwinther): Rename to `worldBuilder`.
   WorldBuilder get universe;
   native.NativeEnqueuer get nativeEnqueuer;
   void forgetEntity(Entity entity, Compiler compiler);
@@ -169,8 +170,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   ResolutionWorldBuilder get universe => _universe;
-
-  OpenWorld get _openWorld => universe.openWorld;
 
   bool get queueIsEmpty => _queue.isEmpty;
 
@@ -300,7 +299,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type.isTypedef) {
-          universe.openWorld.registerTypedef(type.element);
+          universe.registerTypedef(type.element);
         }
         break;
     }
@@ -386,7 +385,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
 
     applyImpact(backend.registerUsedElement(element, forResolution: true));
-    _openWorld.registerUsedElement(element);
+    _universe.registerUsedElement(element);
 
     ResolutionWorkItem workItem = _resolution.createWorkItem(element);
     _queue.add(workItem);

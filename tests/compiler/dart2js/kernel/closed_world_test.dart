@@ -80,7 +80,7 @@ main(List<String> args) {
     worldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.resolverWorld.openWorld.closeWorld(compiler.reporter);
+    compiler.resolverWorld.closeWorld(compiler.reporter);
 
     JavaScriptBackend backend = compiler.backend;
     // Create a new resolution enqueuer and feed it with the [WorldImpact]s
@@ -114,8 +114,7 @@ main(List<String> args) {
           .transformResolutionImpact(enqueuer, resolutionImpact);
       enqueuer.applyImpact(worldImpact, impactSource: element);
     });
-    ClosedWorld closedWorld =
-        enqueuer.universe.openWorld.closeWorld(compiler.reporter);
+    ClosedWorld closedWorld = enqueuer.universe.closeWorld(compiler.reporter);
 
     checkResolutionEnqueuers(compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (DartType a, DartType b) {
