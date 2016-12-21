@@ -7268,10 +7268,16 @@ void SignatureData::set_signature_type(const Type& value) const {
   // Keeping the parent function can unnecessarily pull more objects into a
   // snapshot. Also, the parent function is meaningless once the signature type
   // is canonicalized.
+
+// TODO(rmacnak): Keeping the parent function for unresolved signature types
+// is causing a tree shaking issue in AOT. Please, investigate.
+#if 0
   if (value.IsResolved()) {
-    set_parent_function(Function::Handle());  // TODO(rmacnak): Removing this
-    // line causes a tree shaking issue in AOT. Please, investigate.
+    set_parent_function(Function::Handle());
   }
+#else
+  set_parent_function(Function::Handle());
+#endif
 }
 
 
