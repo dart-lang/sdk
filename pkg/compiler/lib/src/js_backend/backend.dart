@@ -324,9 +324,8 @@ class JavaScriptBackend extends Backend {
   /**
    * The generated code as a js AST for compiled methods.
    */
-  Map<Element, jsAst.Expression> get generatedCode {
-    return codegenEnqueuer.generatedCode;
-  }
+  final Map<Element, jsAst.Expression> generatedCode =
+      <Element, jsAst.Expression>{};
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
 
@@ -2498,6 +2497,12 @@ class JavaScriptBackend extends Backend {
     constants.forgetElement(element);
     constantCompilerTask.dartConstantCompiler.forgetElement(element);
     aliasedSuperMembers.remove(element);
+    generatedCode.remove(element);
+    if (element is MemberElement) {
+      for (Element closure in element.nestedClosures) {
+        generatedCode.remove(closure);
+      }
+    }
   }
 
   @override

@@ -14,11 +14,9 @@ import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dart_types.dart' show DartType, InterfaceType;
-import '../elements/elements.dart'
-    show ClassElement, Element, Entity, MemberElement, TypedElement;
+import '../elements/elements.dart' show Element, Entity, TypedElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
-import '../js/js.dart' as js;
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/types.dart' show TypeMaskStrategy;
@@ -35,7 +33,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
   final EnqueuerStrategy strategy;
 
-  Set<ClassElement> _recentClasses = new Setlet<ClassElement>();
+  Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   final CodegenWorldBuilderImpl _universe;
 
   bool queueIsClosed = false;
@@ -47,9 +45,11 @@ class CodegenEnqueuer extends EnqueuerImpl {
   WorldImpactVisitor _impactVisitor;
 
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
-  final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
 
-  final Set<Element> newlyEnqueuedElements;
+  /// All declaration elements that have been processed by codegen.
+  final Set<Entity> _processedEntities = new Set<Entity>();
+
+  final Set<Entity> newlyEnqueuedElements;
 
   final Set<DynamicUse> newlySeenSelectors;
 
@@ -84,6 +84,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     assert(invariant(element, element.isDeclaration));
     // Don't generate code for foreign elements.
     if (_backend.isForeign(element)) return;
+    if (element.isAbstract) return;
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
@@ -94,7 +95,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
       }
     }
 
-    if (_options.hasIncrementalSupport && !isProcessed(element)) {
+    if (_options.hasIncrementalSupport &&
+        !_processedEntities.contains(element)) {
       newlyEnqueuedElements.add(element);
     }
 
@@ -106,7 +108,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     applyImpact(_backend.registerUsedElement(element, forResolution: false));
   }
 
-  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
+  void applyImpact(WorldImpact worldImpact, {var impactSource}) {
     if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
         impactSource, worldImpact, _impactVisitor, impactUse);
@@ -128,8 +130,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
     return strategy.checkEnqueuerConsistency(this);
   }
 
-  void checkClass(ClassElement cls) {
-    _universe.processClassMembers(cls, (MemberElement member, useSet) {
+  void checkClass(ClassEntity cls) {
+    _universe.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
         _backend.compiler.reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
@@ -177,9 +179,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void processStaticUse(StaticUse staticUse) {
-    Element element = staticUse.element;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
     _universe.registerStaticUse(staticUse, _applyMemberUse);
     switch (staticUse.kind) {
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -241,10 +240,11 @@ class CodegenEnqueuer extends EnqueuerImpl {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!isProcessed(work.element)) {
+        if (!_processedEntities.contains(work.element)) {
           strategy.processWorkItem(f, work);
           // TODO(johnniwinther): Register the processed element here. This
           // is currently a side-effect of calling `work.run`.
+          _processedEntities.add(work.element);
         }
       }
       List recents = _recentClasses.toList(growable: false);
@@ -259,12 +259,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// the [recentClasses] have been processed and may be cleared. If [false] is
   /// returned, [_onQueueEmpty] will be called once the queue is empty again (or
   /// still empty) and [recentClasses] will be a superset of the current value.
-  bool _onQueueEmpty(Iterable<ClassElement> recentClasses) {
+  bool _onQueueEmpty(Iterable<ClassEntity> recentClasses) {
     return _backend.onQueueEmpty(this, recentClasses);
   }
 
   void logSummary(log(message)) {
-    log('Compiled ${generatedCode.length} methods.');
+    log('Compiled ${_processedEntities.length} methods.');
     nativeEnqueuer.logSummary(log);
   }
 
@@ -272,21 +272,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
-  bool isProcessed(Element member) =>
-      member.isAbstract || generatedCode.containsKey(member);
-
-  void forgetEntity(Element element, Compiler compiler) {
-    _universe.forgetElement(element, compiler);
-    generatedCode.remove(element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        generatedCode.remove(closure);
-      }
-    }
+  void forgetEntity(Entity entity, Compiler compiler) {
+    _universe.forgetElement(entity, compiler);
+    _processedEntities.remove(entity);
   }
 
   @override
-  Iterable<Entity> get processedEntities => generatedCode.keys;
+  Iterable<Entity> get processedEntities => _processedEntities;
 
   @override
   Iterable<ClassEntity> get processedClasses => _universe.processedClasses;

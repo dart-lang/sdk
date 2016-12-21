@@ -144,7 +144,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   WorldImpactVisitor _impactVisitor;
 
   /// All declaration elements that have been processed by the resolver.
-  final Set<Entity> _processedElements = new Set<Entity>();
+  final Set<Entity> _processedEntities = new Set<Entity>();
 
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
@@ -329,9 +329,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!_processedElements.contains(work.element)) {
+        if (!_processedEntities.contains(work.element)) {
           strategy.processWorkItem(f, work);
-          _processedElements.add(work.element);
+          _processedEntities.add(work.element);
         }
       }
       List recents = _recentClasses.toList(growable: false);
@@ -343,13 +343,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void logSummary(log(message)) {
-    log('Resolved ${_processedElements.length} elements.');
+    log('Resolved ${_processedEntities.length} elements.');
     nativeEnqueuer.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';
 
-  Iterable<Entity> get processedEntities => _processedElements;
+  Iterable<Entity> get processedEntities => _processedEntities;
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
@@ -360,13 +360,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   bool hasBeenProcessed(Element element) {
     assert(invariant(element, element == element.analyzableElement.declaration,
         message: "Unexpected element $element"));
-    return _processedElements.contains(element);
+    return _processedEntities.contains(element);
   }
 
   /// Registers [element] as processed by the resolution enqueuer. Used only for
   /// testing.
-  void registerProcessedElementInternal(AstElement element) {
-    _processedElements.add(element);
+  void registerProcessedElementInternal(Entity entity) {
+    _processedEntities.add(entity);
   }
 
   /// Adds [element] to the work list if it has not already been processed.
@@ -429,7 +429,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void forgetEntity(Entity entity, Compiler compiler) {
     _universe.forgetEntity(entity, compiler);
-    _processedElements.remove(entity);
+    _processedEntities.remove(entity);
   }
 }
 

@@ -50,9 +50,9 @@ void main() {
         diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
         options: ['--enable-experimental-mirrors']);
     CompilerImpl compiler = result.compiler;
+    JavaScriptBackend backend = compiler.backend;
     print('');
-    List generatedCode =
-        Elements.sortedByPosition(compiler.enqueuer.codegen.processedEntities);
+    List generatedCode = Elements.sortedByPosition(backend.generatedCode.keys);
     for (var element in generatedCode) {
       print(element);
     }
@@ -92,7 +92,6 @@ void main() {
       compiler.commonElements.nullClass,
       compiler.commonElements.listClass
     ];
-    JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
     expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
