@@ -3539,8 +3539,8 @@ DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data) {
     RETURN_TYPE_ERROR(Z, typed_data, 'TypedData');
   }
   Object& result = Object::Handle(Z);
-  result = GetByteBufferConstructor(T, Symbols::ByteBuffer(),
-                                    Symbols::ByteBufferDot_New(), 1);
+  result = GetByteBufferConstructor(T, Symbols::_ByteBuffer(),
+                                    Symbols::_ByteBufferDot_New(), 1);
   ASSERT(!result.IsNull());
   ASSERT(result.IsFunction());
   const Function& factory = Function::Cast(result);

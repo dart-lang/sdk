@@ -2551,33 +2551,33 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.float64x2;
     case 'Int32x4':
       return M.InstanceKind.int32x4;
-    case 'Uint8ClampedList':
+    case '_Uint8ClampedList':
       return M.InstanceKind.uint8ClampedList;
-    case 'Uint8List':
+    case '_Uint8List':
       return M.InstanceKind.uint8List;
-    case 'Uint16List':
+    case '_Uint16List':
       return M.InstanceKind.uint16List;
-    case 'Uint32List':
+    case '_Uint32List':
       return M.InstanceKind.uint32List;
-    case 'Uint64List':
+    case '_Uint64List':
       return M.InstanceKind.uint64List;
-    case 'Int8List':
+    case '_Int8List':
       return M.InstanceKind.int8List;
-    case 'Int16List':
+    case '_Int16List':
       return M.InstanceKind.int16List;
-    case 'Int32List':
+    case '_Int32List':
       return M.InstanceKind.int32List;
-    case 'Int64List':
+    case '_Int64List':
       return M.InstanceKind.int64List;
-    case 'Float32List':
+    case '_Float32List':
       return M.InstanceKind.float32List;
-    case 'Float64List':
+    case '_Float64List':
       return M.InstanceKind.float64List;
-    case 'Int32x4List':
+    case '_Int32x4List':
       return M.InstanceKind.int32x4List;
-    case 'Float32x4List':
+    case '_Float32x4List':
       return M.InstanceKind.float32x4List;
-    case 'Float64x2List':
+    case '_Float64x2List':
       return M.InstanceKind.float64x2List;
     case 'StackTrace':
       return M.InstanceKind.stackTrace;
@@ -2791,46 +2791,46 @@ class Instance extends HeapObject implements M.Instance {
     if (map['bytes'] != null) {
       Uint8List bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
-        case "Uint8ClampedList":
+        case "_Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList();
           break;
-        case "Uint8List":
+        case "_Uint8List":
           typedElements = bytes.buffer.asUint8List();
           break;
-        case "Uint16List":
+        case "_Uint16List":
           typedElements = bytes.buffer.asUint16List();
           break;
-        case "Uint32List":
+        case "_Uint32List":
           typedElements = bytes.buffer.asUint32List();
           break;
-        case "Uint64List":
+        case "_Uint64List":
           typedElements = bytes.buffer.asUint64List();
           break;
-        case "Int8List":
+        case "_Int8List":
           typedElements = bytes.buffer.asInt8List();
           break;
-        case "Int16List":
+        case "_Int16List":
           typedElements = bytes.buffer.asInt16List();
           break;
-        case "Int32List":
+        case "_Int32List":
           typedElements = bytes.buffer.asInt32List();
           break;
-        case "Int64List":
+        case "_Int64List":
           typedElements = bytes.buffer.asInt64List();
           break;
-        case "Float32List":
+        case "_Float32List":
           typedElements = bytes.buffer.asFloat32List();
           break;
-        case "Float64List":
+        case "_Float64List":
           typedElements = bytes.buffer.asFloat64List();
           break;
-        case "Int32x4List":
+        case "_Int32x4List":
           typedElements = bytes.buffer.asInt32x4List();
           break;
-        case "Float32x4List":
+        case "_Float32x4List":
           typedElements = bytes.buffer.asFloat32x4List();
           break;
-        case "Float64x2List":
+        case "_Float64x2List":
           typedElements = bytes.buffer.asFloat64x2List();
           break;
       }
