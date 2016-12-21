@@ -538,7 +538,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   /// Analyze [node] in the context of the known types shown in [context].
   DartType analyzeInPromotedContext(Node context, Node node,
-      {bool mustHaveType: false}) {
+      {bool mustHaveType: true}) {
     Link<TypePromotion> knownForNode = const Link<TypePromotion>();
     for (TypePromotion typePromotion in getShownTypePromotionsFor(context)) {
       typePromotion = typePromotion.copy();
