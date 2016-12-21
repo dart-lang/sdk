@@ -911,11 +911,6 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
       return unaliasedType.accept(this, null);
     }
   }
-
-  visitStatementType(StatementType type, _) {
-    reporter.internalError(
-        NO_LOCATION_SPANNABLE, 'Unexpected type: $type (${type.kind}).');
-  }
 }
 
 class TypeCheckMapping implements TypeChecks {

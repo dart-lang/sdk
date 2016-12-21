@@ -348,9 +348,6 @@ class Kernel {
       case TypeKind.INTERFACE:
         return interfaceTypeToIr(type);
 
-      case TypeKind.STATEMENT:
-        throw "Internal error: statement type: $type.";
-
       case TypeKind.TYPEDEF:
         type.computeUnaliased(compiler.resolution);
         return typeToIr(type.unaliased);

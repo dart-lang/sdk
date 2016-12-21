@@ -87,8 +87,6 @@ class TypeDeserializer {
       case TypeKind.TYPEDEF:
         return new TypedefType(decoder.getElement(Key.ELEMENT),
             decoder.getTypes(Key.TYPE_ARGUMENTS, isOptional: true));
-      case TypeKind.STATEMENT:
-        throw new UnsupportedError("Unexpected type kind '${typeKind}.");
       case TypeKind.MALFORMED_TYPE:
         // TODO(johnniwinther): Do we need the 'userProvidedBadType' or maybe
         // just a toString of it?

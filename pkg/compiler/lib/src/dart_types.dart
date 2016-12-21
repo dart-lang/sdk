@@ -17,7 +17,6 @@ import 'util/util.dart' show equalElements;
 enum TypeKind {
   FUNCTION,
   INTERFACE,
-  STATEMENT,
   TYPEDEF,
   TYPE_VARIABLE,
   MALFORMED_TYPE,
@@ -260,23 +259,6 @@ class MethodTypeVariableType extends TypeVariableType {
 
   @override
   get containsMethodTypeVariableType => true;
-}
-
-/// Internal type representing the result of analyzing a statement.
-class StatementType extends DartType {
-  Element get element => null;
-
-  TypeKind get kind => TypeKind.STATEMENT;
-
-  String get name => 'statement';
-
-  const StatementType();
-
-  DartType subst(List<DartType> arguments, List<DartType> parameters) => this;
-
-  accept(DartTypeVisitor visitor, var argument) {
-    return visitor.visitStatementType(this, argument);
-  }
 }
 
 class VoidType extends DartType {
@@ -952,8 +934,6 @@ abstract class DartTypeVisitor<R, A> {
 
   R visitMalformedType(MalformedType type, A argument) => null;
 
-  R visitStatementType(StatementType type, A argument) => null;
-
   R visitInterfaceType(InterfaceType type, A argument) => null;
 
   R visitTypedefType(TypedefType type, A argument) => null;
@@ -979,10 +959,6 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 
   @override
   R visitMalformedType(MalformedType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitStatementType(StatementType type, A argument) =>
       visitType(type, argument);
 
   R visitGenericType(GenericType type, A argument) => visitType(type, argument);
@@ -1550,17 +1526,6 @@ class Types implements DartTypes {
     } else if (b.isFunctionType) {
       // [b] is a malformed or statement type => a > b.
       return 1;
-    }
-    if (a.kind == TypeKind.STATEMENT) {
-      if (b.kind == TypeKind.STATEMENT) {
-        return 0;
-      } else {
-        // [b] is a malformed type => a > b.
-        return 1;
-      }
-    } else if (b.kind == TypeKind.STATEMENT) {
-      // [a] is a malformed type => a < b.
-      return -1;
     }
     assert(a.isMalformed);
     assert(b.isMalformed);

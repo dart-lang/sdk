@@ -2699,7 +2699,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
         new TypeCheckerVisitor(compiler, mapping, compiler.types);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     collector.clear();
-    checker.analyze(node);
+    checker.analyze(node, mustHaveType: false);
     compareWarningKinds(text, expectedWarnings, collector.warnings);
 
     compiler.diagnosticHandler = null;
@@ -2736,7 +2736,7 @@ analyze(MockCompiler compiler, String text,
       new TypeCheckerVisitor(compiler, elements, compiler.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
-  checker.analyze(node);
+  checker.analyze(node, mustHaveType: false);
   if (flushDeferred) {
     compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   }
@@ -2777,7 +2777,7 @@ analyzeIn(MockCompiler compiler, FunctionElement element, String text,
       new TypeCheckerVisitor(compiler, elements, compiler.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
-  checker.analyze(node);
+  checker.analyze(node, mustHaveType: false);
   generateOutput(compiler, text);
   compareWarningKinds(text, warnings, collector.warnings);
   compareWarningKinds(text, hints, collector.hints);

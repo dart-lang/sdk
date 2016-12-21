@@ -430,7 +430,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   /// If [inInitializer] is true, assignment should be interpreted as write to
   /// a field and not to a setter.
-  DartType analyze(Node node, {bool inInitializer: false}) {
+  DartType analyze(Node node,
+      {bool inInitializer: false, bool mustHaveType: true}) {
     if (node == null) {
       final String error = 'Unexpected node: null';
       if (lastSeenNode != null) {
@@ -445,10 +446,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     analyzingInitializer = inInitializer;
     DartType result = node.accept(this);
     analyzingInitializer = previouslyInitializer;
-    if (result == null) {
+    if (result == null && mustHaveType) {
       reporter.internalError(node, 'Type is null.');
     }
     return result;
+  }
+
+  void analyzeUntyped(Node node, {bool inInitializer: false}) {
+    if (node != null) {
+      analyze(node, inInitializer: inInitializer, mustHaveType: false);
+    }
   }
 
   void checkTypePromotion(Node node, TypePromotion typePromotion,
@@ -530,7 +537,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   /// Analyze [node] in the context of the known types shown in [context].
-  DartType analyzeInPromotedContext(Node context, Node node) {
+  DartType analyzeInPromotedContext(Node context, Node node,
+      {bool mustHaveType: false}) {
     Link<TypePromotion> knownForNode = const Link<TypePromotion>();
     for (TypePromotion typePromotion in getShownTypePromotionsFor(context)) {
       typePromotion = typePromotion.copy();
@@ -539,7 +547,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       registerKnownTypePromotion(typePromotion);
     }
 
-    final DartType type = analyze(node);
+    final DartType type = analyze(node, mustHaveType: mustHaveType);
 
     while (!knownForNode.isEmpty) {
       unregisterKnownTypePromotion(knownForNode.head);
@@ -583,14 +591,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return type;
   }
 
-  DartType visitAssert(Assert node) {
+  visitAssert(Assert node) {
     analyze(node.condition);
     if (node.hasMessage) analyze(node.message);
-    return const StatementType();
   }
 
-  DartType visitBlock(Block node) {
-    return analyze(node.statements);
+  visitBlock(Block node) {
+    analyzeUntyped(node.statements);
   }
 
   DartType visitCascade(Cascade node) {
@@ -604,35 +611,32 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return type;
   }
 
-  DartType visitDoWhile(DoWhile node) {
-    analyze(node.body);
+  visitDoWhile(DoWhile node) {
+    analyzeUntyped(node.body);
     checkCondition(node.condition);
-    return const StatementType();
   }
 
-  DartType visitExpressionStatement(ExpressionStatement node) {
+  visitExpressionStatement(ExpressionStatement node) {
     Expression expression = node.expression;
     analyze(expression);
-    return const StatementType();
   }
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
-  DartType visitFor(For node) {
+  visitFor(For node) {
     if (node.initializer != null) {
-      analyze(node.initializer);
+      analyzeUntyped(node.initializer);
     }
     if (node.condition != null) {
       checkCondition(node.condition);
     }
     if (node.update != null) {
-      analyze(node.update);
+      analyzeUntyped(node.update);
     }
-    return analyze(node.body);
+    analyzeUntyped(node.body);
   }
 
-  DartType visitFunctionDeclaration(FunctionDeclaration node) {
+  visitFunctionDeclaration(FunctionDeclaration node) {
     analyze(node.function);
-    return const StatementType();
   }
 
   DartType visitFunctionExpression(FunctionExpression node) {
@@ -654,7 +658,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       });
       if (node.initializers != null) {
-        analyze(node.initializers, inInitializer: true);
+        analyzeUntyped(node.initializers, inInitializer: true);
       }
     } else {
       FunctionType functionType = element.computeType(resolution);
@@ -668,7 +672,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
     executableContext = element;
     currentAsyncMarker = element.asyncMarker;
-    analyze(node.body);
+    analyzeUntyped(node.body);
 
     executableContext = previousExecutableContext;
     expectedReturnType = previousReturnType;
@@ -692,16 +696,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
   }
 
-  DartType visitIf(If node) {
+  visitIf(If node) {
     Expression condition = node.condition.expression;
     Statement thenPart = node.thenPart;
 
     checkCondition(node.condition);
-    analyzeInPromotedContext(condition, thenPart);
+    analyzeInPromotedContext(condition, thenPart, mustHaveType: false);
     if (node.elsePart != null) {
-      analyze(node.elsePart);
+      analyzeUntyped(node.elsePart);
     }
-    return const StatementType();
   }
 
   void checkPrivateAccess(Node node, Element element, String name) {
@@ -1652,27 +1655,25 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return listType;
   }
 
-  DartType visitNodeList(NodeList node) {
+  visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
-      analyze(link.head, inInitializer: analyzingInitializer);
+      analyzeUntyped(link.head, inInitializer: analyzingInitializer);
     }
-    return const StatementType();
   }
 
-  DartType visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+  visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     // TODO(lrn): Typecheck the body. It must refer to the constructor
     // of a subtype.
-    return const StatementType();
   }
 
-  DartType visitRethrow(Rethrow node) {
-    return const StatementType();
+  visitRethrow(Rethrow node) {
+    // Nothing to do here.
   }
 
   /** Dart Programming Language Specification: 11.10 Return */
-  DartType visitReturn(Return node) {
+  visitReturn(Return node) {
     if (identical(node.beginToken.stringValue, 'native')) {
-      return const StatementType();
+      return;
     }
 
     final Node expression = node.expression;
@@ -1707,7 +1708,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       reportTypeWarning(
           node, MessageKind.RETURN_NOTHING, {'returnType': expectedReturnType});
     }
-    return const StatementType();
   }
 
   DartType visitThrow(Throw node) {
@@ -1744,7 +1744,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
     // The static type of the result must be assignable to the declared type.
     checkAssignable(node, resultType, expectedReturnType);
-    return const StatementType();
   }
 
   DartType visitTypeAnnotation(TypeAnnotation node) {
@@ -1768,7 +1767,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     checkAssignable(spannable, expressionType, declaredType);
   }
 
-  DartType visitVariableDefinitions(VariableDefinitions node) {
+  visitVariableDefinitions(VariableDefinitions node) {
     DartType type = analyzeVariableTypeAnnotation(node);
     for (Link<Node> link = node.definitions.nodes;
         !link.isEmpty;
@@ -1793,13 +1792,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         // }
       }
     }
-    return const StatementType();
   }
 
-  DartType visitWhile(While node) {
+  visitWhile(While node) {
     checkCondition(node.condition);
-    analyze(node.body);
-    return const StatementType();
+    analyzeUntyped(node.body);
   }
 
   DartType visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -1834,15 +1831,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    return const StatementType();
+    // Nothing to do here.
   }
 
   visitBreakStatement(BreakStatement node) {
-    return const StatementType();
+    // Nothing to do here.
   }
 
   visitContinueStatement(ContinueStatement node) {
-    return const StatementType();
+    // Nothing to do here.
   }
 
   DartType computeForInElementType(ForIn node) {
@@ -1887,8 +1884,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       }
     }
-    analyze(node.body);
-    return const StatementType();
+    analyzeUntyped(node.body);
   }
 
   visitSyncForIn(SyncForIn node) {
@@ -1910,12 +1906,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           },
           isHint: true);
     }
-    analyze(node.body);
-    return const StatementType();
+    analyzeUntyped(node.body);
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    return analyze(node.statement);
+    analyzeUntyped(node.statement);
   }
 
   visitLiteralMap(LiteralMap node) {
@@ -1965,7 +1960,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         checkAssignable(caseMatch, expressionType, caseType);
       }
 
-      analyze(switchCase);
+      analyzeUntyped(switchCase);
     }
 
     if (!hasDefaultCase && expressionType.isEnumType) {
@@ -2008,28 +2003,25 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       });
     }
-
-    return const StatementType();
   }
 
   visitSwitchCase(SwitchCase node) {
-    return analyze(node.statements);
+    analyzeUntyped(node.statements);
   }
 
   visitTryStatement(TryStatement node) {
     // TODO(johnniwinther): Use reachability information of try-block,
     // catch-blocks and finally-block to compute the whether the try statement
     // is returning.
-    analyze(node.tryBlock);
+    analyzeUntyped(node.tryBlock);
     for (CatchBlock catchBlock in node.catchBlocks) {
-      analyze(catchBlock);
+      analyzeUntyped(catchBlock);
     }
-    analyzeWithDefault(node.finallyBlock, null);
-    return const StatementType();
+    analyzeUntyped(node.finallyBlock);
   }
 
   visitCatchBlock(CatchBlock node) {
-    return analyze(node.block);
+    analyzeUntyped(node.block);
   }
 
   visitTypedef(Typedef node) {

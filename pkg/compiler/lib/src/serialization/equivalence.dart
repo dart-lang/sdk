@@ -629,11 +629,6 @@ class TypeEquivalence implements DartTypeVisitor<bool, DartType> {
   bool visitMalformedType(MalformedType type, MalformedType other) => true;
 
   @override
-  bool visitStatementType(StatementType type, StatementType other) {
-    throw new UnsupportedError("Unsupported type: $type");
-  }
-
-  @override
   bool visitTypeVariableType(TypeVariableType type, TypeVariableType other) {
     return strategy.testElements(
             type, other, 'element', type.element, other.element) &&
