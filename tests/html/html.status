@@ -45,7 +45,6 @@ custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298
 
 [ $compiler == dart2js && $browser ]
-worker_api_test: RuntimeError # Issue 28155
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
 

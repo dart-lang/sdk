@@ -1209,8 +1209,8 @@ class Blob extends Interceptor {
     return _create_2(blobParts, bag);
   }
 
-  static _create_1(parts) => JS('Blob', 'new window.Blob(#)', parts);
-  static _create_2(parts, bag) => JS('Blob', 'new window.Blob(#, #)', parts, bag);
+  static _create_1(parts) => JS('Blob', 'new self.Blob(#)', parts);
+  static _create_2(parts, bag) => JS('Blob', 'new self.Blob(#, #)', parts, bag);
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
