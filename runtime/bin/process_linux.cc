@@ -768,36 +768,6 @@ int Process::Start(const char* path,
 }
 
 
-class BufferList : public BufferListBase {
- public:
-  BufferList() {}
-
-  bool Read(int fd, intptr_t available) {
-    // Read all available bytes.
-    while (available > 0) {
-      if (free_size_ == 0) {
-        Allocate();
-      }
-      ASSERT(free_size_ > 0);
-      ASSERT(free_size_ <= kBufferSize);
-      intptr_t block_size = dart::Utils::Minimum(free_size_, available);
-      intptr_t bytes = TEMP_FAILURE_RETRY(
-          read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
-      if (bytes < 0) {
-        return false;
-      }
-      data_size_ += bytes;
-      free_size_ -= bytes;
-      available -= bytes;
-    }
-    return true;
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BufferList);
-};
-
-
 static bool CloseProcessBuffers(struct pollfd fds[3]) {
   int e = errno;
   VOID_TEMP_FAILURE_RETRY(close(fds[0].fd));
@@ -881,6 +851,8 @@ bool Process::Wait(intptr_t pid,
   // All handles closed and all data read.
   result->set_stdout_data(out_data.GetData());
   result->set_stderr_data(err_data.GetData());
+  DEBUG_ASSERT(out_data.IsEmpty());
+  DEBUG_ASSERT(err_data.IsEmpty());
 
   // Calculate the exit code.
   intptr_t exit_code = exit_code_data.ints[0];
