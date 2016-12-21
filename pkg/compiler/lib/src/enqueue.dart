@@ -164,7 +164,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         this._resolution = resolution,
         this.nativeEnqueuer = backend.nativeResolutionEnqueuer(),
         _universe = new ResolutionWorldBuilderImpl(
-            backend, resolution, cacheStrategy, const TypeMaskStrategy()) {
+            backend, resolution, cacheStrategy, const OpenWorldStrategy()) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 

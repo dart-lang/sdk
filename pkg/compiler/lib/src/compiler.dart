@@ -78,9 +78,9 @@ import 'universe/world_impact.dart'
         WorldImpactBuilder,
         WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, WorldImpl;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
 
-typedef Backend MakeBackendFuncion(Compiler compiler);
+typedef Backend MakeBackendFunction(Compiler compiler);
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -197,7 +197,7 @@ abstract class Compiler implements LibraryLoaderListener {
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
       this.environment: const _EmptyEnvironment(),
-      MakeBackendFuncion makeBackend,
+      MakeBackendFunction makeBackend,
       MakeReporterFunction makeReporter})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
@@ -737,7 +737,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    WorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
+    ClosedWorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete(world, world);

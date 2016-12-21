@@ -109,6 +109,39 @@ abstract class SelectorConstraintsStrategy {
   UniverseSelectorConstraints createSelectorConstraints(Selector selector);
 }
 
+class OpenWorldStrategy implements SelectorConstraintsStrategy {
+  const OpenWorldStrategy();
+
+  OpenWorldConstraints createSelectorConstraints(Selector selector) {
+    return new OpenWorldConstraints();
+  }
+}
+
+class OpenWorldConstraints extends UniverseSelectorConstraints {
+  bool isAll = false;
+
+  @override
+  bool applies(Element element, Selector selector, World world) => isAll;
+
+  @override
+  bool needsNoSuchMethodHandling(Selector selector, World world) => isAll;
+
+  @override
+  bool addReceiverConstraint(ReceiverConstraint constraint) {
+    if (isAll) return false;
+    isAll = true;
+    return true;
+  }
+
+  String toString() {
+    if (isAll) {
+      return '<all>';
+    } else {
+      return '<none>';
+    }
+  }
+}
+
 /// The [WorldBuilder] is an auxiliary class used in the process of computing
 /// the [ClosedWorld].
 // TODO(johnniwinther): Move common implementation to a [WorldBuilderBase] when
@@ -453,7 +486,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       throw new SpannableAssertionFailure(
           NO_LOCATION_SPANNABLE, "The world builder has not yet been closed.");
     }
-    return _openWorld;
+    return _openWorld.closedWorldCache;
   }
 
   /// All directly instantiated classes, that is, classes with a generative
