@@ -501,8 +501,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   CommonElements get commonElements => _resolution.commonElements;
 
-  CoreTypes get coreTypes => _resolution.coreTypes;
-
   ClosedWorld get closedWorldForTesting {
     if (!_closed) {
       throw new SpannableAssertionFailure(
@@ -1098,7 +1096,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return _closedWorldCache = new ClosedWorldImpl(
         backend: _backend,
         commonElements: commonElements,
-        coreTypes: coreTypes,
         resolverWorld: this,
         functionSetBuilder: _allFunctions,
         allTypedefs: _allTypedefs,

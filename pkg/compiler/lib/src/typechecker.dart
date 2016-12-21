@@ -112,7 +112,7 @@ abstract class ElementAccess {
       }
     }
     return compiler.types.isAssignable(
-        computeType(compiler.resolution), compiler.coreTypes.functionType);
+        computeType(compiler.resolution), compiler.commonElements.functionType);
   }
 }
 
@@ -229,7 +229,8 @@ class TypeLiteralAccess extends ElementAccess {
 
   String get name => type.name;
 
-  DartType computeType(Resolution resolution) => resolution.coreTypes.typeType;
+  DartType computeType(Resolution resolution) =>
+      resolution.commonElements.typeType;
 
   String toString() => 'TypeLiteralAccess($type)';
 }
@@ -297,16 +298,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   /// The immediately enclosing field, method or constructor being analyzed.
   ExecutableElement executableContext;
 
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CommonElements get commonElements => compiler.commonElements;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
 
-  InterfaceType get intType => coreTypes.intType;
-  InterfaceType get doubleType => coreTypes.doubleType;
-  InterfaceType get boolType => coreTypes.boolType;
-  InterfaceType get stringType => coreTypes.stringType;
+  InterfaceType get intType => commonElements.intType;
+  InterfaceType get doubleType => commonElements.doubleType;
+  InterfaceType get boolType => commonElements.boolType;
+  InterfaceType get stringType => commonElements.stringType;
 
   DartType thisType;
   DartType superType;
@@ -748,7 +749,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           // This is an access the implicit 'call' method of a function type.
           return new FunctionCallAccess(receiverElement, unaliasedBound);
         }
-        if (types.isSubtype(interface, coreTypes.functionType)) {
+        if (types.isSubtype(interface, commonElements.functionType)) {
           // This is an access of the special 'call' method implicitly defined
           // on 'Function'. This method can be called with any arguments, which
           // we ensure by giving it the type 'dynamic'.
@@ -1598,7 +1599,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitLiteralSymbol(LiteralSymbol node) {
-    return coreTypes.symbolType;
+    return commonElements.symbolType;
   }
 
   DartType computeConstructorType(
@@ -1685,7 +1686,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         // The resolver already emitted an error for this expression.
       } else {
         if (currentAsyncMarker == AsyncMarker.ASYNC) {
-          expressionType = coreTypes.futureType(types.flatten(expressionType));
+          expressionType =
+              commonElements.futureType(types.flatten(expressionType));
         }
         if (expectedReturnType.isVoid &&
             !types.isAssignable(expressionType, const VoidType())) {
@@ -1727,17 +1729,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType resultType = analyze(node.expression);
     if (!node.hasStar) {
       if (currentAsyncMarker.isAsync) {
-        resultType = coreTypes.streamType(resultType);
+        resultType = commonElements.streamType(resultType);
       } else {
-        resultType = coreTypes.iterableType(resultType);
+        resultType = commonElements.iterableType(resultType);
       }
     } else {
       if (currentAsyncMarker.isAsync) {
         // The static type of expression must be assignable to Stream.
-        checkAssignable(node, resultType, coreTypes.streamType());
+        checkAssignable(node, resultType, commonElements.streamType());
       } else {
         // The static type of expression must be assignable to Iterable.
-        checkAssignable(node, resultType, coreTypes.iterableType());
+        checkAssignable(node, resultType, commonElements.iterableType());
       }
     }
     // The static type of the result must be assignable to the declared type.
@@ -1857,7 +1859,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
     if (resolution.target.supportsAsyncAwait) {
-      DartType streamOfDynamic = coreTypes.streamType();
+      DartType streamOfDynamic = commonElements.streamType();
       if (!types.isAssignable(expressionType, streamOfDynamic)) {
         reportMessage(node.expression, MessageKind.NOT_ASSIGNABLE,
             {'fromType': expressionType, 'toType': streamOfDynamic},

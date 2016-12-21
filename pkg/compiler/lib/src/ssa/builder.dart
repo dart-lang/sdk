@@ -15,7 +15,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
@@ -229,7 +229,7 @@ class SsaBuilder extends ast.Visitor
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => closedWorld.commonElements;
 
   Element get targetElement => target;
 
@@ -453,7 +453,7 @@ class SsaBuilder extends ast.Visitor
 
       // Don't inline operator== methods if the parameter can be null.
       if (element.name == '==') {
-        if (element.enclosingClass != coreClasses.objectClass &&
+        if (element.enclosingClass != commonElements.objectClass &&
             providedArguments[1].canBeNull()) {
           return false;
         }
@@ -1558,7 +1558,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
       return typeBuilder.potentiallyCheckOrTrustType(
-          value, compiler.coreTypes.boolType,
+          value, compiler.commonElements.boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType);
@@ -3048,7 +3048,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement cls = currentNonClosureClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      element = coreClasses.objectClass.lookupMember(Identifiers.noSuchMethod_);
+      element =
+          commonElements.objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
     if (backend.hasInvokeOnSupport && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
@@ -3504,7 +3505,7 @@ class SsaBuilder extends ast.Visitor
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (backend.classNeedsRti(coreClasses.listClass) &&
+    if (backend.classNeedsRti(commonElements.listClass) &&
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
@@ -5155,7 +5156,7 @@ class SsaBuilder extends ast.Visitor
     // case.
     return type.isDynamic ||
         type.isObject ||
-        (type is InterfaceType && type.element == coreClasses.futureClass);
+        (type is InterfaceType && type.element == commonElements.futureClass);
   }
 
   visitReturn(ast.Return node) {
@@ -5207,8 +5208,8 @@ class SsaBuilder extends ast.Visitor
     visit(node.expression);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(
-        awaited, new TypeMask.subclass(coreClasses.objectClass, closedWorld)));
+    push(new HAwait(awaited,
+        new TypeMask.subclass(commonElements.objectClass, closedWorld)));
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
@@ -5372,8 +5373,8 @@ class SsaBuilder extends ast.Visitor
       TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
       pushInvokeDynamic(node, selector, mask, [streamIterator]);
       HInstruction future = pop();
-      push(new HAwait(
-          future, new TypeMask.subclass(coreClasses.objectClass, closedWorld)));
+      push(new HAwait(future,
+          new TypeMask.subclass(commonElements.objectClass, closedWorld)));
       return popBoolified();
     }
 
@@ -5408,8 +5409,8 @@ class SsaBuilder extends ast.Visitor
           node, buildInitializer, buildCondition, buildUpdate, buildBody);
     }, () {
       pushInvokeDynamic(node, Selectors.cancel, null, [streamIterator]);
-      push(new HAwait(
-          pop(), new TypeMask.subclass(coreClasses.objectClass, closedWorld)));
+      push(new HAwait(pop(),
+          new TypeMask.subclass(commonElements.objectClass, closedWorld)));
       pop();
     });
   }

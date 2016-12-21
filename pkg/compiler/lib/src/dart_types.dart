@@ -1008,7 +1008,7 @@ abstract class AbstractTypeRelation
 
   AbstractTypeRelation(this.resolution);
 
-  CoreTypes get coreTypes => resolution.coreTypes;
+  CommonElements get commonElements => resolution.commonElements;
 
   bool visitType(DartType t, DartType s) {
     throw 'internal error: unknown type kind ${t.kind}';
@@ -1057,7 +1057,7 @@ abstract class AbstractTypeRelation
       }
     }
 
-    if (s == coreTypes.functionType && t.element.callType != null) {
+    if (s == commonElements.functionType && t.element.callType != null) {
       return true;
     } else if (s is FunctionType) {
       FunctionType callType = t.callType;
@@ -1068,7 +1068,7 @@ abstract class AbstractTypeRelation
   }
 
   bool visitFunctionType(FunctionType t, DartType s) {
-    if (s == coreTypes.functionType) {
+    if (s == commonElements.functionType) {
       return true;
     }
     if (s is! FunctionType) return false;
@@ -1198,7 +1198,7 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
   MoreSpecificVisitor(Resolution resolution) : super(resolution);
 
   bool isMoreSpecific(DartType t, DartType s) {
-    if (identical(t, s) || s.treatAsDynamic || t == coreTypes.nullType) {
+    if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
       return true;
     }
     if (t.isVoid || s.isVoid) {
@@ -1207,7 +1207,7 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
     if (t.treatAsDynamic) {
       return false;
     }
-    if (s == coreTypes.objectType) {
+    if (s == commonElements.objectType) {
       return true;
     }
     t.computeUnaliased(resolution);
@@ -1286,7 +1286,7 @@ typedef void CheckTypeVariableBound(GenericType type, DartType typeArgument,
 /// Basic interface for the Dart type system.
 abstract class DartTypes {
   /// The types defined in 'dart:core'.
-  CoreTypes get coreTypes;
+  CommonElements get commonElements;
 
   /// Returns `true` if [t] is a subtype of [s].
   bool isSubtype(DartType t, DartType s);
@@ -1302,7 +1302,7 @@ class Types implements DartTypes {
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
-  CoreTypes get coreTypes => resolution.coreTypes;
+  CommonElements get commonElements => resolution.commonElements;
 
   DiagnosticReporter get reporter => resolution.reporter;
 
@@ -1334,11 +1334,11 @@ class Types implements DartTypes {
   /// return.
   DartType flatten(DartType type) {
     if (type is InterfaceType) {
-      if (type.element == coreTypes.futureClass) {
+      if (type.element == commonElements.futureClass) {
         // T = Future<S>
         return flatten(type.typeArguments.first);
       }
-      InterfaceType futureType = type.asInstanceOf(coreTypes.futureClass);
+      InterfaceType futureType = type.asInstanceOf(commonElements.futureClass);
       if (futureType != null) {
         // T << Future<S>
         return futureType.typeArguments.single;
@@ -1641,7 +1641,7 @@ class Types implements DartTypes {
   /// [a] and [b].
   DartType computeLeastUpperBoundFunctionTypes(FunctionType a, FunctionType b) {
     if (a.parameterTypes.length != b.parameterTypes.length) {
-      return coreTypes.functionType;
+      return commonElements.functionType;
     }
     DartType returnType = computeLeastUpperBound(a.returnType, b.returnType);
     List<DartType> parameterTypes =
@@ -1718,10 +1718,10 @@ class Types implements DartTypes {
     }
 
     if (a.isFunctionType) {
-      a = coreTypes.functionType;
+      a = commonElements.functionType;
     }
     if (b.isFunctionType) {
-      b = coreTypes.functionType;
+      b = commonElements.functionType;
     }
 
     if (a.isInterfaceType && b.isInterfaceType) {
@@ -1763,7 +1763,7 @@ class Types implements DartTypes {
       TypeVariableType variable = type;
       type = variable.element.bound;
       if (type == originalType) {
-        type = resolution.coreTypes.objectType;
+        type = resolution.commonElements.objectType;
       }
     }
     if (type.isMalformed) {
@@ -1807,7 +1807,7 @@ class Types implements DartTypes {
       return null;
     }
     if (type.isFunctionType) {
-      type = resolution.coreTypes.functionType;
+      type = resolution.commonElements.functionType;
     }
     assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
         message: "unexpected type kind ${type.kind}."));

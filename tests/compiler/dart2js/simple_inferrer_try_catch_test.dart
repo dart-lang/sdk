@@ -187,7 +187,7 @@ void main() {
         checkReturn(
             'returnInt6',
             new TypeMask.nonNullSubtype(
-                closedWorld.coreClasses.intClass, closedWorld));
+                closedWorld.commonElements.intClass, closedWorld));
 
         var subclassOfInterceptor = commonMasks.interceptorType;
 

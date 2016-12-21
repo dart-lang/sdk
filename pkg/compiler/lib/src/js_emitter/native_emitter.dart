@@ -83,7 +83,7 @@ class NativeEmitter {
     Class jsInterceptorClass = null;
 
     void walk(Class cls) {
-      if (cls.element == compiler.coreClasses.objectClass) {
+      if (cls.element == compiler.commonElements.objectClass) {
         objectClass = cls;
         return;
       }

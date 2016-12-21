@@ -222,7 +222,7 @@ class KernelImpactBuilder extends ir.Visitor {
     DartType elementType = checkType(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
-        compiler.coreTypes.listType(elementType),
+        compiler.commonElements.listType(elementType),
         isConstant: literal.isConst,
         isEmpty: literal.expressions.isEmpty));
   }
@@ -233,7 +233,7 @@ class KernelImpactBuilder extends ir.Visitor {
     DartType keyType = checkType(literal.keyType);
     DartType valueType = checkType(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
-        compiler.coreTypes.mapType(keyType, valueType),
+        compiler.commonElements.mapType(keyType, valueType),
         isConstant: literal.isConst,
         isEmpty: literal.entries.isEmpty));
   }

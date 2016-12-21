@@ -162,7 +162,7 @@ class NsmEmitter extends CodeEmitterHelper {
     }
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
-    ClassElement objectClass = compiler.coreClasses.objectClass;
+    ClassElement objectClass = compiler.commonElements.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.helpers.createInvocationMirror);
     if (useDiffEncoding) {

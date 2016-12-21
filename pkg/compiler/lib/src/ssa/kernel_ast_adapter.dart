@@ -436,7 +436,8 @@ class KernelAstAdapter {
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.createRuntimeType, _globalInferenceResults);
 
-  ir.Class get objectClass => kernel.classes[_compiler.coreClasses.objectClass];
+  ir.Class get objectClass =>
+      kernel.classes[_compiler.commonElements.objectClass];
 
   ir.Procedure get currentIsolate =>
       kernel.functions[_backend.helpers.currentIsolate];
@@ -492,14 +493,14 @@ class KernelAstAdapter {
     ast.Node node = getNodeOrNull(list);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(list);
-    return _compiler.coreTypes.listType(getDartType(list.typeArgument));
+    return _compiler.commonElements.listType(getDartType(list.typeArgument));
   }
 
   DartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
     ast.Node node = getNodeOrNull(literal);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(literal);
-    return _compiler.coreTypes
+    return _compiler.commonElements
         .mapType(getDartType(literal.keyType), getDartType(literal.valueType));
   }
 
@@ -632,7 +633,7 @@ class KernelAstAdapter {
         _typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
         reporter,
-        _compiler.coreTypes);
+        _compiler.commonElements);
   }
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN] function.
@@ -660,7 +661,7 @@ class KernelAstAdapter {
         _typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
         reporter,
-        _compiler.coreTypes);
+        _compiler.commonElements);
   }
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_EMBEDDED_GLOBAL]
@@ -695,7 +696,7 @@ class KernelAstAdapter {
         _typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
         reporter,
-        _compiler.coreTypes);
+        _compiler.commonElements);
   }
 
   /// Returns `true` is [node] has a `@Native(...)` annotation.

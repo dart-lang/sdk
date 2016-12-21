@@ -13,7 +13,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
@@ -475,7 +475,7 @@ class Namer {
 
   DiagnosticReporter get reporter => backend.reporter;
 
-  CoreClasses get coreClasses => closedWorld.coreClasses;
+  CommonElements get commonElements => closedWorld.commonElements;
 
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
@@ -550,11 +550,11 @@ class Namer {
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(helpers.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        return runtimeTypeName(coreClasses.nullClass);
+        return runtimeTypeName(commonElements.nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        return runtimeTypeName(coreClasses.objectClass);
+        return runtimeTypeName(commonElements.objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(coreClasses.functionClass);
+        return runtimeTypeName(commonElements.functionClass);
       default:
         reporter.reportErrorMessage(node, MessageKind.GENERIC,
             {'text': 'Error: Namer has no name for "$name".'});
@@ -1253,7 +1253,7 @@ class Namer {
 
   String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
     String abbreviate(ClassElement cls) {
-      if (cls == coreClasses.objectClass) return "o";
+      if (cls == commonElements.objectClass) return "o";
       if (cls == helpers.jsStringClass) return "s";
       if (cls == helpers.jsArrayClass) return "a";
       if (cls == helpers.jsDoubleClass) return "d";

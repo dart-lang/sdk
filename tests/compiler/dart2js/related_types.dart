@@ -79,9 +79,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   ClosedWorld get world => compiler.resolverWorld.closedWorldForTesting;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
-
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CommonElements get commonElements => compiler.commonElements;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -165,7 +163,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `Iterable`, if any.
   InterfaceType findIterableType(DartType receiver) {
-    return findClassType(receiver, coreClasses.iterableClass);
+    return findClassType(receiver, commonElements.iterableClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements
@@ -177,7 +175,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `Map`, if any.
   InterfaceType findMapType(DartType receiver) {
-    return findClassType(receiver, coreClasses.mapClass);
+    return findClassType(receiver, commonElements.mapClass);
   }
 
   /// Returns the key type of the supertype of [receiver] that implements
@@ -196,7 +194,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `List`, if any.
   InterfaceType findListType(DartType receiver) {
-    return findClassType(receiver, coreClasses.listClass);
+    return findClassType(receiver, commonElements.listClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements
@@ -260,7 +258,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
     DartType leftType = apply(left);
     DartType rightType = apply(right);
     checkRelated(node, leftType, rightType);
-    return coreTypes.boolType;
+    return commonElements.boolType;
   }
 
   @override
@@ -268,7 +266,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
     DartType leftType = apply(left);
     DartType rightType = apply(right);
     checkRelated(node, leftType, rightType);
-    return coreTypes.boolType;
+    return commonElements.boolType;
   }
 
   @override
@@ -284,17 +282,17 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   @override
   DartType visitLiteralInt(LiteralInt node) {
-    return coreTypes.intType;
+    return commonElements.intType;
   }
 
   @override
   DartType visitLiteralString(LiteralString node) {
-    return coreTypes.stringType;
+    return commonElements.stringType;
   }
 
   @override
   DartType visitLiteralBool(LiteralBool node) {
-    return coreTypes.boolType;
+    return commonElements.boolType;
   }
 
   @override

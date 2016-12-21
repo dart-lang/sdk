@@ -84,13 +84,13 @@ void main() {
 
     // We always include the names of some native classes.
     List<Element> nativeClasses = [
-      compiler.coreClasses.intClass,
-      compiler.coreClasses.doubleClass,
-      compiler.coreClasses.numClass,
-      compiler.coreClasses.stringClass,
-      compiler.coreClasses.boolClass,
-      compiler.coreClasses.nullClass,
-      compiler.coreClasses.listClass
+      compiler.commonElements.intClass,
+      compiler.commonElements.doubleClass,
+      compiler.commonElements.numClass,
+      compiler.commonElements.stringClass,
+      compiler.commonElements.boolClass,
+      compiler.commonElements.nullClass,
+      compiler.commonElements.listClass
     ];
     JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);

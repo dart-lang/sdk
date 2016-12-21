@@ -80,7 +80,7 @@ abstract class ConstantExpression {
 
   /// Returns the type of this constant expression, if it is independent of the
   /// environment values.
-  DartType getKnownType(CoreTypes coreTypes) => null;
+  DartType getKnownType(CommonElements commonElements) => null;
 
   /// Returns a text string resembling the Dart code creating this constant.
   String toDartText() {
@@ -236,7 +236,8 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.boolType;
 }
 
 /// Integer literal constant.
@@ -271,7 +272,8 @@ class IntConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.intType;
 }
 
 /// Double literal constant.
@@ -306,7 +308,8 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.doubleType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.doubleType;
 }
 
 /// String literal constant.
@@ -341,7 +344,8 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.stringType;
 }
 
 /// Null literal constant.
@@ -374,7 +378,8 @@ class NullConstantExpression extends PrimitiveConstantExpression {
   bool _equals(NullConstantExpression other) => true;
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.nullType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.nullType;
 }
 
 /// Literal list constant.
@@ -434,7 +439,7 @@ class ListConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => type;
+  DartType getKnownType(CommonElements commonElements) => type;
 
   @override
   bool get isImplicit => false;
@@ -513,7 +518,7 @@ class MapConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => type;
+  DartType getKnownType(CommonElements commonElements) => type;
 
   @override
   bool get isImplicit => false;
@@ -690,7 +695,8 @@ class ConcatenateConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.stringType;
 
   @override
   bool get isPotential {
@@ -730,7 +736,8 @@ class SymbolConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.symbolType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.symbolType;
 }
 
 /// Type literal.
@@ -768,7 +775,8 @@ class TypeConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.typeType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.typeType;
 }
 
 /// Reference to a constant local, top-level, or static variable.
@@ -835,7 +843,8 @@ class FunctionConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.functionType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.functionType;
 }
 
 /// A constant binary expression like `a * b`.
@@ -885,9 +894,9 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
-  DartType getKnownType(CoreTypes coreTypes) {
-    DartType knownLeftType = left.getKnownType(coreTypes);
-    DartType knownRightType = right.getKnownType(coreTypes);
+  DartType getKnownType(CommonElements commonElements) {
+    DartType knownLeftType = left.getKnownType(commonElements);
+    DartType knownRightType = right.getKnownType(commonElements);
     switch (operator.kind) {
       case BinaryOperatorKind.EQ:
       case BinaryOperatorKind.NOT_EQ:
@@ -897,38 +906,38 @@ class BinaryConstantExpression extends ConstantExpression {
       case BinaryOperatorKind.LT:
       case BinaryOperatorKind.GTEQ:
       case BinaryOperatorKind.LTEQ:
-        return coreTypes.boolType;
+        return commonElements.boolType;
       case BinaryOperatorKind.ADD:
-        if (knownLeftType == coreTypes.stringType) {
-          assert(knownRightType == coreTypes.stringType);
-          return coreTypes.stringType;
-        } else if (knownLeftType == coreTypes.intType &&
-            knownRightType == coreTypes.intType) {
-          return coreTypes.intType;
+        if (knownLeftType == commonElements.stringType) {
+          assert(knownRightType == commonElements.stringType);
+          return commonElements.stringType;
+        } else if (knownLeftType == commonElements.intType &&
+            knownRightType == commonElements.intType) {
+          return commonElements.intType;
         }
-        assert(knownLeftType == coreTypes.doubleType ||
-            knownRightType == coreTypes.doubleType);
-        return coreTypes.doubleType;
+        assert(knownLeftType == commonElements.doubleType ||
+            knownRightType == commonElements.doubleType);
+        return commonElements.doubleType;
       case BinaryOperatorKind.SUB:
       case BinaryOperatorKind.MUL:
       case BinaryOperatorKind.MOD:
-        if (knownLeftType == coreTypes.intType &&
-            knownRightType == coreTypes.intType) {
-          return coreTypes.intType;
+        if (knownLeftType == commonElements.intType &&
+            knownRightType == commonElements.intType) {
+          return commonElements.intType;
         }
-        assert(knownLeftType == coreTypes.doubleType ||
-            knownRightType == coreTypes.doubleType);
-        return coreTypes.doubleType;
+        assert(knownLeftType == commonElements.doubleType ||
+            knownRightType == commonElements.doubleType);
+        return commonElements.doubleType;
       case BinaryOperatorKind.DIV:
-        return coreTypes.doubleType;
+        return commonElements.doubleType;
       case BinaryOperatorKind.IDIV:
-        return coreTypes.intType;
+        return commonElements.intType;
       case BinaryOperatorKind.AND:
       case BinaryOperatorKind.OR:
       case BinaryOperatorKind.XOR:
       case BinaryOperatorKind.SHR:
       case BinaryOperatorKind.SHL:
-        return coreTypes.intType;
+        return commonElements.intType;
       case BinaryOperatorKind.IF_NULL:
       case BinaryOperatorKind.INDEX:
         throw new UnsupportedError(
@@ -1027,7 +1036,8 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.boolType;
 
   @override
   bool get isPotential {
@@ -1082,8 +1092,8 @@ class UnaryConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) {
-    return expression.getKnownType(coreTypes);
+  DartType getKnownType(CommonElements commonElements) {
+    return expression.getKnownType(commonElements);
   }
 
   @override
@@ -1145,7 +1155,8 @@ class StringLengthConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.intType;
 
   @override
   bool get isPotential {
@@ -1216,9 +1227,9 @@ class ConditionalConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) {
-    DartType trueType = trueExp.getKnownType(coreTypes);
-    DartType falseType = falseExp.getKnownType(coreTypes);
+  DartType getKnownType(CommonElements commonElements) {
+    DartType trueType = trueExp.getKnownType(commonElements);
+    DartType falseType = falseExp.getKnownType(commonElements);
     if (trueType == falseType) {
       return trueType;
     }
@@ -1397,7 +1408,8 @@ class BoolFromEnvironmentConstantExpression
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.boolType;
 }
 
 /// A `const int.fromEnvironment` constant.
@@ -1462,7 +1474,8 @@ class IntFromEnvironmentConstantExpression
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.intType;
 }
 
 /// A `const String.fromEnvironment` constant.
@@ -1523,7 +1536,8 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
-  DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
+  DartType getKnownType(CommonElements commonElements) =>
+      commonElements.stringType;
 }
 
 /// A constant expression referenced with a deferred prefix.

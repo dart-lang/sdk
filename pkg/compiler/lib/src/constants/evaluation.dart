@@ -10,7 +10,8 @@ import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
 abstract class Environment {
-  // TODO(johnniwinther): Replace this with [CoreTypes] and maybe [Backend].
+  // TODO(johnniwinther): Replace this with [CommonElements] and maybe
+  // [Backend].
   Compiler get compiler;
 
   /// Read environments string passed in using the '-Dname=value' option.

@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Uris;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart'
     show
         AbstractFieldElement,
@@ -16,7 +16,6 @@ import '../elements/elements.dart'
         ConstructorElement,
         Element,
         EnumClassElement,
-        FieldElement,
         FunctionElement,
         LibraryElement,
         MemberElement,
@@ -62,7 +61,7 @@ class BackendHelpers {
 
   Resolution get resolution => backend.resolution;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -393,7 +392,7 @@ class BackendHelpers {
     jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
     jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
 
-    objectEquals = compiler.lookupElementIn(coreClasses.objectClass, '==');
+    objectEquals = compiler.lookupElementIn(commonElements.objectClass, '==');
   }
 
   ConstructorElement _mapLiteralConstructor;
@@ -811,8 +810,8 @@ class BackendHelpers {
 
   MethodElement get objectNoSuchMethod {
     if (_objectNoSuchMethod == null) {
-      _objectNoSuchMethod =
-          coreClasses.objectClass.lookupLocalMember(Identifiers.noSuchMethod_);
+      _objectNoSuchMethod = commonElements.objectClass
+          .lookupLocalMember(Identifiers.noSuchMethod_);
     }
     return _objectNoSuchMethod;
   }

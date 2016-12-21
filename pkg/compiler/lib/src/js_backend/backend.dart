@@ -25,7 +25,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements, CoreClasses, CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
@@ -607,10 +607,6 @@ class JavaScriptBackend extends Backend {
 
   CommonElements get commonElements => compiler.commonElements;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
-
-  CoreTypes get coreTypes => compiler.coreTypes;
-
   Resolution get resolution => compiler.resolution;
 
   /// Returns constant environment for the JavaScript interpretation of the
@@ -682,7 +678,7 @@ class JavaScriptBackend extends Backend {
         compiler.commonElements.isSymbolConstructor(element) ||
         helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
-        element == coreClasses.symbolClass ||
+        element == commonElements.symbolClass ||
         element == helpers.objectNoSuchMethod) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
@@ -697,10 +693,10 @@ class JavaScriptBackend extends Backend {
         element.library == helpers.isolateHelperLibrary) {
       // TODO(johnniwinther): We should be more precise about these.
       return true;
-    } else if (element == coreClasses.listClass ||
+    } else if (element == commonElements.listClass ||
         element == helpers.mapLiteralClass ||
-        element == coreClasses.functionClass ||
-        element == coreClasses.stringClass) {
+        element == commonElements.functionClass ||
+        element == commonElements.stringClass) {
       // TODO(johnniwinther): Avoid these.
       return true;
     } else if (element == helpers.genericNoSuchMethod ||
@@ -978,7 +974,7 @@ class JavaScriptBackend extends Backend {
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
     interceptorClass.ensureResolved(resolution);
-    coreClasses.objectClass.forEachMember((_, Element member) {
+    commonElements.objectClass.forEachMember((_, Element member) {
       if (member.isGenerativeConstructor) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
@@ -1002,7 +998,7 @@ class JavaScriptBackend extends Backend {
         }
         if (member.isSynthesized) return;
         // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == coreClasses.objectClass) return;
+        if (classElement == commonElements.objectClass) return;
         Set<Element> set = interceptedElements.putIfAbsent(
             member.name, () => new Set<Element>());
         set.add(member);
@@ -1025,7 +1021,7 @@ class JavaScriptBackend extends Backend {
         cls.ensureResolved(resolution);
         cls.forEachMember((ClassElement classElement, Element member) {
           // All methods on [Object] are shadowed by [Interceptor].
-          if (classElement == coreClasses.objectClass) return;
+          if (classElement == commonElements.objectClass) return;
           Set<Element> set = interceptedElements.putIfAbsent(
               member.name, () => new Set<Element>());
           set.add(member);
@@ -1075,7 +1071,7 @@ class JavaScriptBackend extends Backend {
 
   void computeImpactForCompileTimeConstantInternal(ConstantValue constant,
       WorldImpactBuilder impactBuilder, bool isForResolution) {
-    DartType type = constant.getType(compiler.coreTypes);
+    DartType type = constant.getType(compiler.commonElements);
     computeImpactForInstantiatedConstantType(type, impactBuilder);
 
     if (constant.isFunction) {
@@ -1104,7 +1100,7 @@ class JavaScriptBackend extends Backend {
   void computeImpactForInstantiatedConstantType(
       DartType type, WorldImpactBuilder impactBuilder) {
     DartType instantiatedType =
-        type.isFunctionType ? coreTypes.functionType : type;
+        type.isFunctionType ? commonElements.functionType : type;
     if (type is InterfaceType) {
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(instantiatedType));
@@ -1144,19 +1140,19 @@ class JavaScriptBackend extends Backend {
 
     // Register any helper that will be needed by the backend.
     if (forResolution) {
-      if (cls == coreClasses.intClass ||
-          cls == coreClasses.doubleClass ||
-          cls == coreClasses.numClass) {
+      if (cls == commonElements.intClass ||
+          cls == commonElements.doubleClass ||
+          cls == commonElements.numClass) {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.numClasses);
-      } else if (cls == coreClasses.listClass ||
-          cls == coreClasses.stringClass) {
+      } else if (cls == commonElements.listClass ||
+          cls == commonElements.stringClass) {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.listOrStringClasses);
-      } else if (cls == coreClasses.functionClass) {
+      } else if (cls == commonElements.functionClass) {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.functionClass);
-      } else if (cls == coreClasses.mapClass) {
+      } else if (cls == commonElements.mapClass) {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.mapClass);
         // For map literals, the dependency between the implementation class
@@ -1177,10 +1173,10 @@ class JavaScriptBackend extends Backend {
       impactTransformer.registerBackendImpact(
           impactBuilder, impacts.closureClass);
     }
-    if (cls == coreClasses.stringClass || cls == helpers.jsStringClass) {
+    if (cls == commonElements.stringClass || cls == helpers.jsStringClass) {
       addInterceptors(helpers.jsStringClass, impactBuilder,
           forResolution: forResolution);
-    } else if (cls == coreClasses.listClass ||
+    } else if (cls == commonElements.listClass ||
         cls == helpers.jsArrayClass ||
         cls == helpers.jsFixedArrayClass ||
         cls == helpers.jsExtendableArrayClass ||
@@ -1199,7 +1195,7 @@ class JavaScriptBackend extends Backend {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.listClasses);
       }
-    } else if (cls == coreClasses.intClass || cls == helpers.jsIntClass) {
+    } else if (cls == commonElements.intClass || cls == helpers.jsIntClass) {
       addInterceptors(helpers.jsIntClass, impactBuilder,
           forResolution: forResolution);
       addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
@@ -1210,18 +1206,19 @@ class JavaScriptBackend extends Backend {
           forResolution: forResolution);
       addInterceptors(helpers.jsNumberClass, impactBuilder,
           forResolution: forResolution);
-    } else if (cls == coreClasses.doubleClass || cls == helpers.jsDoubleClass) {
+    } else if (cls == commonElements.doubleClass ||
+        cls == helpers.jsDoubleClass) {
       addInterceptors(helpers.jsDoubleClass, impactBuilder,
           forResolution: forResolution);
       addInterceptors(helpers.jsNumberClass, impactBuilder,
           forResolution: forResolution);
-    } else if (cls == coreClasses.boolClass || cls == helpers.jsBoolClass) {
+    } else if (cls == commonElements.boolClass || cls == helpers.jsBoolClass) {
       addInterceptors(helpers.jsBoolClass, impactBuilder,
           forResolution: forResolution);
-    } else if (cls == coreClasses.nullClass || cls == helpers.jsNullClass) {
+    } else if (cls == commonElements.nullClass || cls == helpers.jsNullClass) {
       addInterceptors(helpers.jsNullClass, impactBuilder,
           forResolution: forResolution);
-    } else if (cls == coreClasses.numClass || cls == helpers.jsNumberClass) {
+    } else if (cls == commonElements.numClass || cls == helpers.jsNumberClass) {
       addInterceptors(helpers.jsIntClass, impactBuilder,
           forResolution: forResolution);
       addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
@@ -1527,7 +1524,7 @@ class JavaScriptBackend extends Backend {
     // Native classes inherit from Interceptor.
     return isNative(element)
         ? helpers.jsInterceptorClass
-        : coreClasses.objectClass;
+        : commonElements.objectClass;
   }
 
   /**
@@ -1641,23 +1638,23 @@ class JavaScriptBackend extends Backend {
       if (nativeCheckOnly) return null;
       return 'voidTypeCheck';
     } else if (element == helpers.jsStringClass ||
-        element == coreClasses.stringClass) {
+        element == commonElements.stringClass) {
       if (nativeCheckOnly) return null;
       return typeCast ? 'stringTypeCast' : 'stringTypeCheck';
     } else if (element == helpers.jsDoubleClass ||
-        element == coreClasses.doubleClass) {
+        element == commonElements.doubleClass) {
       if (nativeCheckOnly) return null;
       return typeCast ? 'doubleTypeCast' : 'doubleTypeCheck';
     } else if (element == helpers.jsNumberClass ||
-        element == coreClasses.numClass) {
+        element == commonElements.numClass) {
       if (nativeCheckOnly) return null;
       return typeCast ? 'numTypeCast' : 'numTypeCheck';
     } else if (element == helpers.jsBoolClass ||
-        element == coreClasses.boolClass) {
+        element == commonElements.boolClass) {
       if (nativeCheckOnly) return null;
       return typeCast ? 'boolTypeCast' : 'boolTypeCheck';
     } else if (element == helpers.jsIntClass ||
-        element == coreClasses.intClass ||
+        element == commonElements.intClass ||
         element == helpers.jsUInt32Class ||
         element == helpers.jsUInt31Class ||
         element == helpers.jsPositiveIntClass) {
@@ -1681,7 +1678,7 @@ class JavaScriptBackend extends Backend {
       } else {
         return typeCast ? 'stringSuperTypeCast' : 'stringSuperTypeCheck';
       }
-    } else if ((element == coreClasses.listClass ||
+    } else if ((element == commonElements.listClass ||
             element == helpers.jsArrayClass) &&
         type.treatAsRaw) {
       if (nativeCheckOnly) return null;
@@ -1734,11 +1731,11 @@ class JavaScriptBackend extends Backend {
    */
   bool hasDirectCheckFor(DartType type) {
     Element element = type.element;
-    return element == coreClasses.stringClass ||
-        element == coreClasses.boolClass ||
-        element == coreClasses.numClass ||
-        element == coreClasses.intClass ||
-        element == coreClasses.doubleClass ||
+    return element == commonElements.stringClass ||
+        element == commonElements.boolClass ||
+        element == commonElements.numClass ||
+        element == commonElements.intClass ||
+        element == commonElements.doubleClass ||
         element == helpers.jsArrayClass ||
         element == helpers.jsMutableArrayClass ||
         element == helpers.jsExtendableArrayClass ||
@@ -1914,20 +1911,20 @@ class JavaScriptBackend extends Backend {
     helpers.onLibrariesLoaded(loadedLibraries);
 
     implementationClasses = <ClassElement, ClassElement>{};
-    implementationClasses[coreClasses.intClass] = helpers.jsIntClass;
-    implementationClasses[coreClasses.boolClass] = helpers.jsBoolClass;
-    implementationClasses[coreClasses.numClass] = helpers.jsNumberClass;
-    implementationClasses[coreClasses.doubleClass] = helpers.jsDoubleClass;
-    implementationClasses[coreClasses.stringClass] = helpers.jsStringClass;
-    implementationClasses[coreClasses.listClass] = helpers.jsArrayClass;
-    implementationClasses[coreClasses.nullClass] = helpers.jsNullClass;
+    implementationClasses[commonElements.intClass] = helpers.jsIntClass;
+    implementationClasses[commonElements.boolClass] = helpers.jsBoolClass;
+    implementationClasses[commonElements.numClass] = helpers.jsNumberClass;
+    implementationClasses[commonElements.doubleClass] = helpers.jsDoubleClass;
+    implementationClasses[commonElements.stringClass] = helpers.jsStringClass;
+    implementationClasses[commonElements.listClass] = helpers.jsArrayClass;
+    implementationClasses[commonElements.nullClass] = helpers.jsNullClass;
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
         insideLoop: true);
 
     specialOperatorEqClasses
-      ..add(coreClasses.objectClass)
+      ..add(commonElements.objectClass)
       ..add(helpers.jsInterceptorClass)
       ..add(helpers.jsNullClass);
 
@@ -2016,7 +2013,7 @@ class JavaScriptBackend extends Backend {
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
       if (value == null) continue;
-      DartType type = value.getType(compiler.coreTypes);
+      DartType type = value.getType(compiler.commonElements);
       if (metaTargetsUsed.contains(type.element)) return true;
     }
     return false;
@@ -2743,7 +2740,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.FIELD_WITHOUT_INITIALIZER:
         case Feature.LOCAL_WITHOUT_INITIALIZER:
           transformed.registerTypeUse(
-              new TypeUse.instantiation(backend.coreTypes.nullType));
+              new TypeUse.instantiation(backend.commonElements.nullType));
           registerBackendImpact(transformed, impacts.nullLiteral);
           break;
         case Feature.LAZY_FIELD:
@@ -2833,7 +2830,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     if (hasTypeLiteral) {
       transformed.registerTypeUse(
-          new TypeUse.instantiation(backend.compiler.coreTypes.typeType));
+          new TypeUse.instantiation(backend.compiler.commonElements.typeType));
       registerBackendImpact(transformed, impacts.typeLiteral);
     }
 
@@ -3228,7 +3225,8 @@ class JavaScriptBackendClasses implements BackendClasses {
   ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
   ClassElement get asyncFutureImplementation => helpers.futureImplementation;
   ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
-  ClassElement get functionImplementation => helpers.coreClasses.functionClass;
+  ClassElement get functionImplementation =>
+      helpers.commonElements.functionClass;
   ClassElement get indexableImplementation => helpers.jsIndexableClass;
   ClassElement get mutableIndexableImplementation =>
       helpers.jsMutableIndexableClass;
@@ -3239,7 +3237,7 @@ class JavaScriptBackendClasses implements BackendClasses {
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');
     ClassElement classElement = element.enclosingClass;
-    return classElement == helpers.coreClasses.objectClass ||
+    return classElement == helpers.commonElements.objectClass ||
         classElement == helpers.jsInterceptorClass ||
         classElement == helpers.jsNullClass;
   }

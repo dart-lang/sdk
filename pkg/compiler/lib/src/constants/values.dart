@@ -82,7 +82,7 @@ abstract class ConstantValue {
   bool get isNegativeInfinity => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
-  DartType getType(CoreTypes types);
+  DartType getType(CommonElements types);
 
   List<ConstantValue> getDependencies();
 
@@ -131,7 +131,7 @@ class FunctionConstantValue extends ConstantValue {
     return new DartString.literal(element.name);
   }
 
-  DartType getType(CoreTypes types) => element.type;
+  DartType getType(CommonElements types) => element.type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
@@ -189,7 +189,7 @@ class NullConstantValue extends PrimitiveConstantValue {
 
   get primitiveValue => null;
 
-  DartType getType(CoreTypes types) => types.nullType;
+  DartType getType(CommonElements types) => types.nullType;
 
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
@@ -261,7 +261,7 @@ class IntConstantValue extends NumConstantValue {
 
   bool get isOne => primitiveValue == 1;
 
-  DartType getType(CoreTypes types) => types.intType;
+  DartType getType(CommonElements types) => types.intType;
 
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
@@ -322,7 +322,7 @@ class DoubleConstantValue extends NumConstantValue {
 
   bool get isNegativeInfinity => primitiveValue == -double.INFINITY;
 
-  DartType getType(CoreTypes types) => types.doubleType;
+  DartType getType(CommonElements types) => types.doubleType;
 
   bool operator ==(var other) {
     if (other is! DoubleConstantValue) return false;
@@ -359,7 +359,7 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
 
   bool get isBool => true;
 
-  DartType getType(CoreTypes types) => types.boolType;
+  DartType getType(CommonElements types) => types.boolType;
 
   BoolConstantValue negate();
 
@@ -427,7 +427,7 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   bool get isString => true;
 
-  DartType getType(CoreTypes types) => types.stringType;
+  DartType getType(CommonElements types) => types.stringType;
 
   bool operator ==(var other) {
     if (identical(this, other)) return true;
@@ -458,7 +458,7 @@ abstract class ObjectConstantValue extends ConstantValue {
 
   bool get isObject => true;
 
-  DartType getType(CoreTypes types) => type;
+  DartType getType(CommonElements types) => type;
 
   void _unparseTypeArguments(StringBuffer sb) {
     if (!type.treatAsRaw) {
@@ -656,7 +656,7 @@ class InterceptorConstantValue extends ConstantValue {
     return visitor.visitInterceptor(this, arg);
   }
 
-  DartType getType(CoreTypes types) => const DynamicType();
+  DartType getType(CommonElements types) => const DynamicType();
 
   ConstantValueKind get kind => ConstantValueKind.INTERCEPTOR;
 
@@ -689,7 +689,7 @@ class SyntheticConstantValue extends ConstantValue {
     return visitor.visitSynthetic(this, arg);
   }
 
-  DartType getType(CoreTypes types) => const DynamicType();
+  DartType getType(CommonElements types) => const DynamicType();
 
   ConstantValueKind get kind => ConstantValueKind.SYNTHETIC;
 
@@ -793,7 +793,7 @@ class DeferredConstantValue extends ConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDeferred(this, arg);
 
-  DartType getType(CoreTypes types) => referenced.getType(types);
+  DartType getType(CommonElements types) => referenced.getType(types);
 
   ConstantValueKind get kind => ConstantValueKind.DEFERRED;
 
@@ -819,7 +819,7 @@ class NonConstantValue extends ConstantValue {
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
   @override
-  DartType getType(CoreTypes types) => const DynamicType();
+  DartType getType(CommonElements types) => const DynamicType();
 
   ConstantValueKind get kind => ConstantValueKind.NON_CONSTANT;
 

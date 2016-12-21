@@ -263,7 +263,7 @@ class _RuntimeTypes implements RuntimeTypes {
     // TODO(karlklose): make this dependency visible from code.
     if (backend.helpers.jsArrayClass != null) {
       registerRtiDependency(
-          backend.helpers.jsArrayClass, compiler.coreClasses.listClass);
+          backend.helpers.jsArrayClass, compiler.commonElements.listClass);
     }
     // Compute the set of all classes and methods that need runtime type
     // information.

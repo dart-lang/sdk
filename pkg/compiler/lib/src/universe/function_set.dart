@@ -83,7 +83,7 @@ class FunctionSet {
         : new SelectorMask(
             selector,
             new TypeMask.subclass(
-                closedWorld.coreClasses.objectClass, closedWorld));
+                closedWorld.commonElements.objectClass, closedWorld));
   }
 
   /// Returns the set of functions that can be the target of a call to
@@ -288,8 +288,8 @@ class FullFunctionSetQuery implements FunctionSetQuery {
 
   @override
   TypeMask computeMask(ClosedWorld closedWorld) {
-    assert(
-        closedWorld.hasAnyStrictSubclass(closedWorld.coreClasses.objectClass));
+    assert(closedWorld
+        .hasAnyStrictSubclass(closedWorld.commonElements.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(
         functions.expand((element) {

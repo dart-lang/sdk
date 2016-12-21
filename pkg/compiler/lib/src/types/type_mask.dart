@@ -25,7 +25,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   bool needsNoSuchMethodHandling(Selector selector, ClosedWorld world) {
     if (isAll) {
       TypeMask mask =
-          new TypeMask.subclass(world.coreClasses.objectClass, world);
+          new TypeMask.subclass(world.commonElements.objectClass, world);
       return mask.needsNoSuchMethodHandling(selector, world);
     }
     for (TypeMask mask in _masks) {

@@ -8,7 +8,7 @@ import 'closure.dart' show ClosureClassElement, SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
-import 'core_types.dart' show CoreTypes, CoreClasses, CommonElements;
+import 'core_types.dart' show CommonElements;
 import 'dart_types.dart';
 import 'elements/elements.dart'
     show
@@ -42,11 +42,6 @@ abstract class World {}
 abstract class ClosedWorld implements World {
   /// Access to core classes used by the backend.
   BackendClasses get backendClasses;
-
-  /// Access to core classes used in the Dart language.
-  CoreClasses get coreClasses;
-
-  CoreTypes get coreTypes;
 
   CommonElements get commonElements;
 
@@ -395,8 +390,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
   final CommonElements commonElements;
 
-  final CoreTypes coreTypes;
-
   final ResolutionWorldBuilder _resolverWorld;
 
   bool get isClosed => true;
@@ -404,7 +397,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   ClosedWorldImpl(
       {JavaScriptBackend backend,
       this.commonElements,
-      this.coreTypes,
       ResolutionWorldBuilder resolverWorld,
       FunctionSetBuilder functionSetBuilder,
       Iterable<TypedefElement> allTypedefs,
@@ -435,8 +427,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return _commonMasks;
   }
 
-  CoreClasses get coreClasses => commonElements;
-
   ConstantSystem get constantSystem => _backend.constantSystem;
 
   TypeMask getCachedMask(ClassElement base, int flags, TypeMask createMask()) {
@@ -465,10 +455,10 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     assert(checkInvariants(x));
     assert(checkInvariants(y, mustBeInstantiated: false));
 
-    if (y == coreClasses.objectClass) return true;
-    if (x == coreClasses.objectClass) return false;
+    if (y == commonElements.objectClass) return true;
+    if (x == commonElements.objectClass) return false;
     if (x.asInstanceOf(y) != null) return true;
-    if (y != coreClasses.functionClass) return false;
+    if (y != commonElements.functionClass) return false;
     return x.callType != null;
   }
 
@@ -478,8 +468,8 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     assert(checkInvariants(x));
     assert(checkInvariants(y));
 
-    if (y == coreClasses.objectClass) return true;
-    if (x == coreClasses.objectClass) return false;
+    if (y == commonElements.objectClass) return true;
+    if (x == commonElements.objectClass) return false;
     while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
       if (x == y) return true;
       x = x.superclass;
@@ -676,7 +666,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   bool hasOnlySubclasses(ClassElement cls) {
     assert(isClosed);
     // TODO(johnniwinther): move this to ClassSet?
-    if (cls == coreClasses.objectClass) return true;
+    if (cls == commonElements.objectClass) return true;
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       // Vacuously true.
@@ -733,7 +723,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER:
     for (Link<DartType> link = typeSet[depth];
-        link.head.element != coreClasses.objectClass;
+        link.head.element != commonElements.objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
@@ -745,7 +735,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       }
       commonSupertypes.add(cls);
     }
-    commonSupertypes.add(coreClasses.objectClass);
+    commonSupertypes.add(commonElements.objectClass);
     return commonSupertypes;
   }
 
@@ -978,7 +968,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     } else {
       sb.write("Instantiated classes in the closed world:\n");
     }
-    getClassHierarchyNode(coreClasses.objectClass)
+    getClassHierarchyNode(commonElements.objectClass)
         .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }

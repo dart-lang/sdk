@@ -753,9 +753,9 @@ void main() {
     patternImplClass.ensureResolved(compiler.resolution);
 
     impactBuilder.registerTypeUse(
-        new TypeUse.instantiation(compiler.coreTypes.mapType()));
+        new TypeUse.instantiation(compiler.commonElements.mapType()));
     impactBuilder.registerTypeUse(
-        new TypeUse.instantiation(compiler.coreTypes.functionType));
+        new TypeUse.instantiation(compiler.commonElements.functionType));
     impactBuilder
         .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
     compiler.enqueuer.resolution.applyImpact(impactBuilder);
@@ -767,11 +767,11 @@ void main() {
     patternClass = closedWorld.commonElements.coreLibrary.find('Pattern');
 
     nonPrimitive1 = new TypeMask.nonNullSubtype(
-        closedWorld.coreClasses.mapClass, closedWorld);
+        closedWorld.commonElements.mapClass, closedWorld);
     nonPrimitive2 = new TypeMask.nonNullSubtype(
-        closedWorld.coreClasses.functionClass, closedWorld);
+        closedWorld.commonElements.functionClass, closedWorld);
     potentialArray =
-        new TypeMask.subtype(closedWorld.coreClasses.listClass, closedWorld);
+        new TypeMask.subtype(closedWorld.commonElements.listClass, closedWorld);
     potentialString = new TypeMask.subtype(patternClass, closedWorld);
     jsInterceptor =
         new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld);
@@ -812,10 +812,10 @@ void main() {
     jsDoubleOrNull = new TypeMask.exact(helpers.jsDoubleClass, closedWorld);
     nullType = const TypeMask.empty();
     objectType = new TypeMask.nonNullSubclass(
-        closedWorld.coreClasses.objectClass, closedWorld);
+        closedWorld.commonElements.objectClass, closedWorld);
     emptyType = const TypeMask.nonNullEmpty();
-    dynamicType =
-        new TypeMask.subclass(closedWorld.coreClasses.objectClass, closedWorld);
+    dynamicType = new TypeMask.subclass(
+        closedWorld.commonElements.objectClass, closedWorld);
 
     Expect.notEquals(
         emptyType, nonPrimitive1, "nonPrimitive1 expected to be non-empty.");

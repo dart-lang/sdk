@@ -189,7 +189,7 @@ abstract class Backend extends Target {
   void registerConstSymbol(String name) {}
 
   ClassElement defaultSuperclass(ClassElement element) {
-    return compiler.coreClasses.objectClass;
+    return compiler.commonElements.objectClass;
   }
 
   bool isInterceptorClass(ClassElement element) => false;

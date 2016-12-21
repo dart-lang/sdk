@@ -761,7 +761,7 @@ void main() {
         checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
         checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
         TypeMask intType = new TypeMask.nonNullSubtype(
-            compiler.coreClasses.intClass, closedWorld);
+            compiler.commonElements.intClass, closedWorld);
         checkReturn('testIsCheck1', intType);
         checkReturn('testIsCheck2', intType);
         checkReturn('testIsCheck3', intType.nullable());
@@ -796,7 +796,7 @@ void main() {
         checkReturn(
             'returnAsString',
             new TypeMask.subtype(
-                compiler.coreClasses.stringClass, closedWorld));
+                compiler.commonElements.stringClass, closedWorld));
         checkReturn('returnIntAsNum', commonMasks.uint31Type);
         checkReturn('returnAsTypedef', commonMasks.functionType.nullable());
         checkReturn('returnTopLevelGetter', commonMasks.uint31Type);
