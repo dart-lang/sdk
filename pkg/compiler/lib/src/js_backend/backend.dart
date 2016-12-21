@@ -1758,7 +1758,7 @@ class JavaScriptBackend extends Backend {
     return _closedWorld.hasOnlySubclasses(classElement);
   }
 
-  WorldImpact registerUsedElement(Element element, {bool forResolution}) {
+  WorldImpact registerUsedElement(MemberElement element, {bool forResolution}) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
@@ -2136,7 +2136,7 @@ class JavaScriptBackend extends Backend {
     for (LibraryElement lib in compiler.libraryLoader.libraries) {
       if (lib.isInternalLibrary) continue;
       lib.forEachLocalMember((Element member) {
-        if (!member.isClass &&
+        if (!(member.isClass || member.isTypedef) &&
             resolution.hasBeenProcessed(member) &&
             referencedFromMirrorSystem(member)) {
           reflectableMembers.add(member);

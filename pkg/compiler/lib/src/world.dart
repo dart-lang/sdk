@@ -15,6 +15,7 @@ import 'elements/elements.dart'
         ClassElement,
         Element,
         FunctionElement,
+        MemberElement,
         MixinApplicationElement,
         TypedefElement,
         FieldElement;
@@ -334,7 +335,7 @@ abstract class OpenWorld implements World {
   /// classes that extend or implement it.
   void registerClass(ClassElement cls);
 
-  void registerUsedElement(Element element);
+  void registerUsedElement(MemberElement element);
   void registerTypedef(TypedefElement typedef);
 
   ClosedWorld closeWorld(DiagnosticReporter reporter);

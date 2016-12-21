@@ -14,7 +14,7 @@ import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dart_types.dart' show DartType, InterfaceType;
-import '../elements/elements.dart' show Element, Entity, TypedElement;
+import '../elements/elements.dart' show Entity, MemberElement, TypedElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../native/native.dart' as native;
@@ -35,6 +35,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   final CodegenWorldBuilderImpl _universe;
+  final WorkItemBuilder _workItemBuilder;
 
   bool queueIsClosed = false;
   final CompilerTask task;
@@ -57,13 +58,15 @@ class CodegenEnqueuer extends EnqueuerImpl {
       const ImpactUseCase('CodegenEnqueuer');
 
   CodegenEnqueuer(this.task, CacheStrategy cacheStrategy, Backend backend,
-      this._options, this.strategy)
+      CompilerOptions options, this.strategy)
       : _universe =
             new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
+        _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
         newlyEnqueuedElements = cacheStrategy.newSet(),
         newlySeenSelectors = cacheStrategy.newSet(),
         nativeEnqueuer = backend.nativeCodegenEnqueuer(),
         this._backend = backend,
+        this._options = options,
         this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
@@ -75,37 +78,25 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  void _addToWorkList(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    // Don't generate code for foreign elements.
-    if (_backend.isForeign(element)) return;
-    if (element.isAbstract) return;
+  /// Create a [WorkItem] for [entity] and add it to the work list if it has not
+  /// already been processed.
+  void _addToWorkList(MemberEntity entity) {
+    if (_processedEntities.contains(entity)) return;
 
-    // Codegen inlines field initializers. It only needs to generate
-    // code for checked setters.
-    if (element.isField && element.isInstanceMember) {
-      if (!_options.enableTypeAssertions ||
-          element.enclosingElement.isClosure) {
-        return;
-      }
-    }
+    WorkItem workItem = _workItemBuilder.createWorkItem(entity);
+    if (workItem == null) return;
 
-    if (_options.hasIncrementalSupport &&
-        !_processedEntities.contains(element)) {
-      newlyEnqueuedElements.add(element);
+    if (_options.hasIncrementalSupport) {
+      newlyEnqueuedElements.add(entity);
     }
 
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(
-          element, "Codegen work list is closed. Trying to add $element");
+          entity, "Codegen work list is closed. Trying to add $entity");
     }
-    _queue.add(new CodegenWorkItem(_backend, element));
-    applyImpact(_backend.registerUsedElement(element, forResolution: false));
+
+    applyImpact(_backend.registerUsedElement(entity, forResolution: false));
+    _queue.add(workItem);
   }
 
   void applyImpact(WorldImpact worldImpact, {var impactSource}) {
@@ -282,4 +273,31 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   @override
   Iterable<ClassEntity> get processedClasses => _universe.processedClasses;
+}
+
+/// Builder that creates the work item necessary for the code generation of a
+/// [MemberElement].
+class CodegenWorkItemBuilder extends WorkItemBuilder {
+  Backend _backend;
+  CompilerOptions _options;
+
+  CodegenWorkItemBuilder(this._backend, this._options);
+
+  @override
+  WorkItem createWorkItem(MemberElement element) {
+    assert(invariant(element, element.isDeclaration));
+    // Don't generate code for foreign elements.
+    if (_backend.isForeign(element)) return null;
+    if (element.isAbstract) return null;
+
+    // Codegen inlines field initializers. It only needs to generate
+    // code for checked setters.
+    if (element.isField && element.isInstanceMember) {
+      if (!_options.enableTypeAssertions ||
+          element.enclosingElement.isClosure) {
+        return null;
+      }
+    }
+    return new CodegenWorkItem(_backend, element);
+  }
 }

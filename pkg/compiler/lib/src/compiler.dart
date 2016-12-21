@@ -759,6 +759,9 @@ abstract class Compiler implements LibraryLoaderListener {
         cls.ensureResolved(resolution);
         cls.forEachLocalMember(registerStaticUse);
         impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+      } else if (element.isTypedef) {
+        TypedefElement typdef = element;
+        typdef.ensureResolved(resolution);
       } else {
         registerStaticUse(element);
       }

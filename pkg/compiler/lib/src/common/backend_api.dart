@@ -17,7 +17,13 @@ import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
-    show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
+    show
+        ClassElement,
+        Element,
+        FunctionElement,
+        MemberElement,
+        MethodElement,
+        LibraryElement;
 import '../elements/entities.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
@@ -205,7 +211,8 @@ abstract class Backend extends Target {
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerUsedElement(Element element, {bool forResolution}) =>
+  WorldImpact registerUsedElement(MemberElement element,
+          {bool forResolution}) =>
       const WorldImpact();
 
   /// This method is called immediately after the [LibraryElement] [library] has

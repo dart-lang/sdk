@@ -1111,7 +1111,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     users.add(mixinApplication);
   }
 
-  void registerUsedElement(Element element) {
+  void registerUsedElement(MemberElement element) {
     if (element.isInstanceMember && !element.isAbstract) {
       _allFunctions.add(element);
     }
