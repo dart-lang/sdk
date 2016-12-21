@@ -541,6 +541,7 @@ class JavaScriptBackend extends Backend {
   PatchResolverTask patchResolverTask;
 
   bool enabledNoSuchMethod = false;
+  bool _noSuchMethodEnabledForCodegen = false;
 
   SourceInformationStrategy sourceInformationStrategy;
 
@@ -1303,6 +1304,11 @@ class JavaScriptBackend extends Backend {
     noSuchMethodRegistry.onTypeInferenceComplete();
   }
 
+  /// Called to register that an instantiated generic class has a call method.
+  /// Any backend specific [WorldImpact] of this is returned.
+  ///
+  /// Note: The [callMethod] is registered even thought it doesn't reference
+  /// the type variables.
   WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
       {bool forResolution}) {
     if (forResolution || methodNeedsRti(callMethod)) {
@@ -1385,7 +1391,7 @@ class JavaScriptBackend extends Backend {
     return null;
   }
 
-  WorldImpact enableNoSuchMethod() {
+  WorldImpact computeNoSuchMethodImpact() {
     return impactTransformer.createImpactFor(impacts.noSuchMethodSupport);
   }
 
@@ -1784,16 +1790,15 @@ class JavaScriptBackend extends Backend {
     customElementsAnalysis.registerStaticUse(element,
         forResolution: forResolution);
 
-    if (forResolution) {
-      if (element.isFunction && element.isInstanceMember) {
-        MemberElement function = element;
-        ClassElement cls = function.enclosingClass;
-        if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
-          worldImpact.addImpact(registerCallMethodWithFreeTypeVariables(
-              function,
-              forResolution: true));
-        }
+    if (element.isFunction && element.isInstanceMember) {
+      MemberElement function = element;
+      ClassElement cls = function.enclosingClass;
+      if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
+        worldImpact.addImpact(registerCallMethodWithFreeTypeVariables(function,
+            forResolution: forResolution));
       }
+    }
+    if (forResolution) {
       // Enable isolate support if we start using something from the isolate
       // library, or timers for the async library.  We exclude constant fields,
       // which are ending here because their initializing expression is
@@ -1828,6 +1833,10 @@ class JavaScriptBackend extends Backend {
       } else if (compiler.commonElements.isFunctionApplyMethod(element)) {
         hasFunctionApplySupport = true;
       }
+    } else {
+      // TODO(sigmund): add other missing dependencies (internals, selectors
+      // enqueued after allocations).
+      compiler.dumpInfoTask.registerDependency(element);
     }
     return worldImpact;
   }
@@ -2234,21 +2243,30 @@ class JavaScriptBackend extends Backend {
     enqueuer.applyImpact(
         typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
 
-    if (!enqueuer.queueIsEmpty) return false;
-
-    for (ClassElement cls in recentClasses) {
-      Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
-      if (element != null && element.isInstanceMember && element.isFunction) {
-        registerNoSuchMethod(element);
+    if (enqueuer.isResolutionQueue) {
+      for (ClassElement cls in recentClasses) {
+        Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
+        if (element != null && element.isInstanceMember && element.isFunction) {
+          registerNoSuchMethod(element);
+        }
       }
     }
     noSuchMethodRegistry.onQueueEmpty();
-    if (!enabledNoSuchMethod &&
-        (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
-            noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-      enqueuer.applyImpact(enableNoSuchMethod());
-      enabledNoSuchMethod = true;
+    if (enqueuer.isResolutionQueue) {
+      if (!enabledNoSuchMethod &&
+          (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
+              noSuchMethodRegistry.hasComplexNoSuchMethod)) {
+        enqueuer.applyImpact(computeNoSuchMethodImpact());
+        enabledNoSuchMethod = true;
+      }
+    } else {
+      if (enabledNoSuchMethod && !_noSuchMethodEnabledForCodegen) {
+        enqueuer.applyImpact(computeNoSuchMethodImpact());
+        _noSuchMethodEnabledForCodegen = true;
+      }
     }
+
+    if (!enqueuer.queueIsEmpty) return false;
 
     if (compiler.options.useKernel && compiler.mainApp != null) {
       kernelTask.buildKernelIr();

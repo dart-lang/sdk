@@ -591,15 +591,11 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     // TODO(johnniwinther): Use [_instantiationInfo] to compute this information
     // instead.
     if (_implementedClasses.add(cls)) {
-      void onImplemented(ClassElement cls) {
-        _ClassUsage usage = _getClassUsage(cls);
-        classUsed(usage.cls, usage.implement());
-      }
-
-      onImplemented(cls);
+      classUsed(cls, _getClassUsage(cls).implement());
       cls.allSupertypes.forEach((InterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
-          onImplemented(supertype.element);
+          classUsed(
+              supertype.element, _getClassUsage(supertype.element).implement());
         }
       });
     }
@@ -880,7 +876,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     });
   }
 
-  /// Call [updateUsage] on all [MemberUsage]s in the set in [map] for
+  /// Call [updateUsage] on all [_MemberUsage]s in the set in [map] for
   /// [memberName]. If [updateUsage] returns `true` the usage is removed from
   /// the set.
   void _processSet(Map<String, Set<_MemberUsage>> map, String memberName,
@@ -913,7 +909,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     if (!member.isInstanceMember) return;
     String memberName = member.name;
     member.computeType(_resolution);
-    EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
     // The obvious thing to test here would be "member.isNative",
     // however, that only works after metadata has been parsed/analyzed,
     // and that may not have happened yet.
@@ -921,9 +916,10 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     // its metadata parsed and analyzed.
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
-    bool isNative = _backend.isNative(cls);
-    _MemberUsage usage = _instanceMemberUsage.putIfAbsent(member, () {
+    _instanceMemberUsage.putIfAbsent(member, () {
+      bool isNative = _backend.isNative(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
+      EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
       if (member.isField && isNative) {
         registerUsedElement(member);
@@ -1161,6 +1157,8 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 }
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
+  final Backend _backend;
+
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
   /// a super-call.
@@ -1201,11 +1199,39 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
       <String, Map<Selector, SelectorConstraints>>{};
 
+  final Map<ClassElement, _ClassUsage> _processedClasses =
+      <ClassElement, _ClassUsage>{};
+
+  /// Map of registered usage of static members of live classes.
+  final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
+      <Entity, _StaticMemberUsage>{};
+
+  /// Map of registered usage of instance members of live classes.
+  final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
+      <MemberEntity, _MemberUsage>{};
+
+  /// Map containing instance members of live classes that are not yet live
+  /// themselves.
+  final Map<String, Set<_MemberUsage>> _instanceMembersByName =
+      <String, Set<_MemberUsage>>{};
+
+  /// Map containing instance methods of live classes that are not yet
+  /// closurized.
+  final Map<String, Set<_MemberUsage>> _instanceFunctionsByName =
+      <String, Set<_MemberUsage>>{};
+
   final Set<DartType> isChecks = new Set<DartType>();
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  CodegenWorldBuilderImpl(this.selectorConstraintsStrategy);
+  CodegenWorldBuilderImpl(this._backend, this.selectorConstraintsStrategy);
+
+  // TODO(johnniwinther): Remove this hack:
+  ClosedWorld get _world =>
+      _backend.compiler.resolverWorld.closedWorldForTesting;
+
+  Iterable<ClassElement> get processedClasses => _processedClasses.keys
+      .where((cls) => _processedClasses[cls].isInstantiated);
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -1228,12 +1254,12 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
-  void registerTypeInstantiation(InterfaceType type,
-      {bool byMirrors: false,
-      bool isNative: false,
-      void onImplemented(ClassElement cls)}) {
-    _instantiatedTypes.add(type);
+  void registerTypeInstantiation(
+      InterfaceType type, ClassUsedCallback classUsed,
+      {bool byMirrors: false}) {
     ClassElement cls = type.element;
+    bool isNative = _backend.isNative(cls);
+    _instantiatedTypes.add(type);
     if (!cls.isAbstract
         // We can't use the closed-world assumption with native abstract
         // classes; a native abstract class may have non-abstract subclasses
@@ -1247,15 +1273,17 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         ||
         byMirrors) {
       _directlyInstantiatedClasses.add(cls);
+      _processInstantiatedClass(cls, classUsed);
     }
 
     // TODO(johnniwinther): Replace this by separate more specific mappings that
     // include the type arguments.
     if (_implementedClasses.add(cls)) {
-      onImplemented(cls);
+      classUsed(cls, _getClassUsage(cls).implement());
       cls.allSupertypes.forEach((InterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
-          onImplemented(supertype.element);
+          classUsed(
+              supertype.element, _getClassUsage(supertype.element).implement());
         }
       });
     }
@@ -1288,15 +1316,56 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
-  bool registerDynamicUse(DynamicUse dynamicUse) {
+  bool registerDynamicUse(
+      DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
+    Selector selector = dynamicUse.selector;
+    String methodName = selector.name;
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
-        return _registerNewSelector(dynamicUse, _invokedNames);
+        if (_registerNewSelector(dynamicUse, _invokedNames)) {
+          _processInstanceMembers(methodName, (_MemberUsage member) {
+            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
+              memberUsed(member.entity, member.invoke());
+              return true;
+            }
+            return false;
+          });
+          return true;
+        }
+        break;
       case DynamicUseKind.GET:
-        return _registerNewSelector(dynamicUse, _invokedGetters);
+        if (_registerNewSelector(dynamicUse, _invokedGetters)) {
+          _processInstanceMembers(methodName, (_MemberUsage member) {
+            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
+              memberUsed(member.entity, member.read());
+              return true;
+            }
+            return false;
+          });
+          _processInstanceFunctions(methodName, (_MemberUsage member) {
+            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
+              memberUsed(member.entity, member.read());
+              return true;
+            }
+            return false;
+          });
+          return true;
+        }
+        break;
       case DynamicUseKind.SET:
-        return _registerNewSelector(dynamicUse, _invokedSetters);
+        if (_registerNewSelector(dynamicUse, _invokedSetters)) {
+          _processInstanceMembers(methodName, (_MemberUsage member) {
+            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
+              memberUsed(member.entity, member.write());
+              return true;
+            }
+            return false;
+          });
+          return true;
+        }
+        break;
     }
+    return false;
   }
 
   bool _registerNewSelector(DynamicUse dynamicUse,
@@ -1355,7 +1424,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     return type;
   }
 
-  void registerStaticUse(StaticUse staticUse) {
+  void _registerStaticUse(StaticUse staticUse) {
     Element element = staticUse.element;
     if (Elements.isStaticOrTopLevel(element) && element.isField) {
       allReferencedStaticFields.add(element);
@@ -1381,12 +1450,163 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     }
   }
 
+  void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
+    Element element = staticUse.element;
+    assert(invariant(element, element.isDeclaration,
+        message: "Element ${element} is not the declaration."));
+    _registerStaticUse(staticUse);
+    _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
+      if ((element.isStatic || element.isTopLevel) && element.isFunction) {
+        return new _StaticFunctionUsage(element);
+      } else {
+        return new _GeneralStaticMemberUsage(element);
+      }
+    });
+    EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+    switch (staticUse.kind) {
+      case StaticUseKind.STATIC_TEAR_OFF:
+        useSet.addAll(usage.tearOff());
+        break;
+      case StaticUseKind.FIELD_GET:
+      case StaticUseKind.FIELD_SET:
+      case StaticUseKind.CLOSURE:
+        // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
+        // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
+        // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
+        // enqueue.
+        break;
+      case StaticUseKind.SUPER_FIELD_SET:
+      case StaticUseKind.SUPER_TEAR_OFF:
+      case StaticUseKind.GENERAL:
+      case StaticUseKind.DIRECT_USE:
+        useSet.addAll(usage.normalUse());
+        break;
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
+      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.REDIRECTION:
+        useSet.addAll(usage.normalUse());
+        break;
+      case StaticUseKind.DIRECT_INVOKE:
+        _MemberUsage instanceUsage =
+            _getMemberUsage(staticUse.element, memberUsed);
+        memberUsed(instanceUsage.entity, instanceUsage.invoke());
+        _instanceMembersByName[instanceUsage.entity.name]
+            ?.remove(instanceUsage);
+        useSet.addAll(usage.normalUse());
+        break;
+    }
+    memberUsed(usage.entity, useSet);
+  }
+
   void forgetElement(Element element, Compiler compiler) {
+    _processedClasses.remove(element);
     _directlyInstantiatedClasses.remove(element);
     if (element is ClassElement) {
       assert(invariant(element, element.thisType.isRaw,
           message: 'Generic classes not supported (${element.thisType}).'));
       _instantiatedTypes..remove(element.rawType)..remove(element.thisType);
+    }
+    removeFromSet(_instanceMembersByName, element);
+    removeFromSet(_instanceFunctionsByName, element);
+    if (element is MemberElement) {
+      for (Element closure in element.nestedClosures) {
+        removeFromSet(_instanceMembersByName, closure);
+        removeFromSet(_instanceFunctionsByName, closure);
+      }
+    }
+  }
+
+  void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {
+    cls.implementation.forEachMember((_, MemberElement member) {
+      assert(invariant(member, member.isDeclaration));
+      if (!member.isInstanceMember) return;
+      _getMemberUsage(member, memberUsed);
+    });
+  }
+
+  _MemberUsage _getMemberUsage(
+      MemberElement member, MemberUsedCallback memberUsed) {
+    assert(invariant(member, member.isDeclaration));
+    return _instanceMemberUsage.putIfAbsent(member, () {
+      String memberName = member.name;
+      ClassElement cls = member.enclosingClass;
+      bool isNative = _backend.isNative(cls);
+      _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
+      EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+      useSet.addAll(usage.appliedUse);
+      if (hasInvokedGetter(member, _world)) {
+        useSet.addAll(usage.read());
+      }
+      if (hasInvokedSetter(member, _world)) {
+        useSet.addAll(usage.write());
+      }
+      if (hasInvocation(member, _world)) {
+        useSet.addAll(usage.invoke());
+      }
+
+      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+        // Store the member in [instanceFunctionsByName] to catch
+        // getters on the function.
+        _instanceFunctionsByName
+            .putIfAbsent(usage.entity.name, () => new Set<_MemberUsage>())
+            .add(usage);
+      }
+      if (usage.pendingUse.contains(MemberUse.NORMAL)) {
+        // The element is not yet used. Add it to the list of instance
+        // members to still be processed.
+        _instanceMembersByName
+            .putIfAbsent(memberName, () => new Set<_MemberUsage>())
+            .add(usage);
+      }
+      memberUsed(member, useSet);
+      return usage;
+    });
+  }
+
+  void _processSet(Map<String, Set<_MemberUsage>> map, String memberName,
+      bool f(_MemberUsage e)) {
+    Set<_MemberUsage> members = map[memberName];
+    if (members == null) return;
+    // [f] might add elements to [: map[memberName] :] during the loop below
+    // so we create a new list for [: map[memberName] :] and prepend the
+    // [remaining] members after the loop.
+    map[memberName] = new Set<_MemberUsage>();
+    Set<_MemberUsage> remaining = new Set<_MemberUsage>();
+    for (_MemberUsage member in members) {
+      if (!f(member)) remaining.add(member);
+    }
+    map[memberName].addAll(remaining);
+  }
+
+  void _processInstanceMembers(String n, bool f(_MemberUsage e)) {
+    _processSet(_instanceMembersByName, n, f);
+  }
+
+  void _processInstanceFunctions(String n, bool f(_MemberUsage e)) {
+    _processSet(_instanceFunctionsByName, n, f);
+  }
+
+  /// Return the canonical [_ClassUsage] for [cls].
+  _ClassUsage _getClassUsage(ClassElement cls) {
+    return _processedClasses.putIfAbsent(cls, () => new _ClassUsage(cls));
+  }
+
+  void _processInstantiatedClass(
+      ClassElement cls, ClassUsedCallback classUsed) {
+    // Registers [superclass] as instantiated. Returns `true` if it wasn't
+    // already instantiated and we therefore have to process its superclass as
+    // well.
+    bool processClass(ClassElement superclass) {
+      _ClassUsage usage = _getClassUsage(superclass);
+      if (!usage.isInstantiated) {
+        classUsed(usage.cls, usage.instantiate());
+        return true;
+      }
+      return false;
+    }
+
+    while (cls != null && processClass(cls)) {
+      cls = cls.superclass;
     }
   }
 }
@@ -1762,4 +1982,11 @@ class _StaticFunctionUsage extends _StaticMemberUsage {
 
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.ALL_STATIC;
+}
+
+void removeFromSet(Map<String, Set<_MemberUsage>> map, Element element) {
+  Set<_MemberUsage> set = map[element.name];
+  if (set == null) return;
+  set.removeAll(
+      set.where((_MemberUsage usage) => usage.entity == element).toList());
 }
