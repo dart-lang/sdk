@@ -1,7 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--deoptimize_every=10 --optimization-counter-threshold=10  --no-background-compilation
+// VMOptions=--optimization-filter=foo --deoptimize_every=10 --optimization-counter-threshold=10  --no-background-compilation
 
 // Test that lazy deoptimization on stack checks does not damage unoptimized
 // frame.
