@@ -452,9 +452,9 @@ bool isSubtype(var s, var t) {
   if (isDartFunctionType(t)) {
     return isFunctionSubtype(s, t);
   }
-  // Check function types against the Function class.
+  // Check function types against the Function class and the Object class.
   if (isDartFunctionType(s)) {
-    return isDartFunctionTypeRti(t);
+    return isDartFunctionTypeRti(t) || isDartObjectTypeRti(t);
   }
 
   // Get the object describing the class and check for the subtyping flag
