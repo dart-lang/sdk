@@ -425,7 +425,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'async_spawnuri_test': async_unittest,
       'async_test': async_unittest,
       'audiocontext_test': is.chrome('<=54') ? fail : pass, // was sdk#27578, needs triage
-      'blob_constructor_test': 'fail', // was sdk#27578, needs triage
       'canvas_test': ['unittest'],
       'canvasrenderingcontext2d_test': ['unittest'],
       'cross_domain_iframe_test': async_unittest,
