@@ -57,7 +57,6 @@ double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being w
 integer_to_radix_string_test: RuntimeError # issue 22045
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
-iterable_generate_test: RuntimeError # issue 28026 
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
