@@ -8,16 +8,6 @@
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 generic_methods_type_expression_test: RuntimeError # Issue 25869
-null_is_bottom_test/05: RuntimeError # Issue 28025
-null_is_bottom_test/07: RuntimeError # Issue 28025
-null_is_bottom_test/20: RuntimeError # Issue 28025
-null_is_bottom_test/22: RuntimeError # Issue 28025
-null_is_bottom_test/25: RuntimeError # Issue 28025
-null_is_bottom_test/27: RuntimeError # Issue 28025
-null_is_bottom_test/32: RuntimeError # Issue 28025
-null_is_bottom_test/34: RuntimeError # Issue 28025
-null_is_bottom_test/37: RuntimeError # Issue 28025
-null_is_bottom_test/39: RuntimeError # Issue 28025
 
 # This is OK for now, but we may want to change the semantics to match the test.
 async_star_pause_test: Fail, OK
@@ -70,11 +60,6 @@ generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
-null_is_bottom_test/03: RuntimeError # Issue 28025
-null_is_bottom_test/18: RuntimeError # Issue 28025
-null_is_bottom_test/23: RuntimeError # Issue 28025
-null_is_bottom_test/30: RuntimeError # Issue 28025
-null_is_bottom_test/35: RuntimeError # Issue 28025
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled) ]
 

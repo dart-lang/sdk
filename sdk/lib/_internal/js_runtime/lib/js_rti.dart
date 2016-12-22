@@ -448,7 +448,6 @@ bool isSubtype(var s, var t) {
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
   if (s == null || t == null) return true;
-  if (isNullType(s)) return true;
   if (isDartFunctionType(t)) {
     return isFunctionSubtype(s, t);
   }
