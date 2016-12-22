@@ -17,6 +17,7 @@
 #include <unistd.h>        // NOLINT
 
 #include "bin/builtin.h"
+#include "bin/fdutils.h"
 #include "bin/log.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
@@ -227,7 +228,8 @@ File* File::OpenStdio(int fd) {
 bool File::Exists(const char* name) {
   struct stat64 st;
   if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
-    return S_ISREG(st.st_mode);
+    // Everything but a directory and a link is a file to Dart.
+    return !S_ISDIR(st.st_mode) && !S_ISLNK(st.st_mode);
   } else {
     return false;
   }
@@ -240,7 +242,22 @@ bool File::Create(const char* name) {
   if (fd < 0) {
     return false;
   }
-  return (TEMP_FAILURE_RETRY(close(fd)) == 0);
+  // File.create returns a File, so we shouldn't be giving the illusion that the
+  // call has created a file or that a file already exists if there is already
+  // an entity at the same path that is a directory or a link.
+  bool is_file = true;
+  struct stat64 st;
+  if (TEMP_FAILURE_RETRY(fstat64(fd, &st)) == 0) {
+    if (S_ISDIR(st.st_mode)) {
+      errno = EISDIR;
+      is_file = false;
+    } else if (S_ISLNK(st.st_mode)) {
+      errno = ENOENT;
+      is_file = false;
+    }
+  }
+  FDUtils::SaveErrorAndClose(fd);
+  return is_file;
 }
 
 
