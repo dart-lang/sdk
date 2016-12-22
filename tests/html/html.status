@@ -7,6 +7,8 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 
+canvas_pixel_array_type_alias_test/types2_runtimeTypeName: RuntimeError # Issue 28183
+
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
 js_typed_interop_type1_test: Fail, OK # tests dart2js-specific behavior.
