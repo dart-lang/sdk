@@ -83,6 +83,16 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 no_main_test/01: DartkCrash
 not_enough_positional_arguments_test/01: DartkCompileTimeError
+null_is_bottom_test/05: RuntimeError # Issue 28025
+null_is_bottom_test/07: RuntimeError # Issue 28025
+null_is_bottom_test/20: RuntimeError # Issue 28025
+null_is_bottom_test/22: RuntimeError # Issue 28025
+null_is_bottom_test/25: RuntimeError # Issue 28025
+null_is_bottom_test/27: RuntimeError # Issue 28025
+null_is_bottom_test/32: RuntimeError # Issue 28025
+null_is_bottom_test/34: RuntimeError # Issue 28025
+null_is_bottom_test/37: RuntimeError # Issue 28025
+null_is_bottom_test/39: RuntimeError # Issue 28025
 regress_27617_test/1: MissingCompileTimeError
 super_call3_test/01: DartkCrash
 tearoff_basic_test: DartkCompileTimeError

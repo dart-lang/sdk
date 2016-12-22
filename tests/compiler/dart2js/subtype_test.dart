@@ -60,6 +60,7 @@ void testInterfaceSubtype() {
         DartType String_ = env['String'];
         DartType dynamic_ = env['dynamic'];
         DartType void_ = env['void'];
+        DartType Null_ = env['Null'];
 
         expect(true, void_, void_);
         expect(true, void_, dynamic_);
@@ -67,78 +68,105 @@ void testInterfaceSubtype() {
         expect(true, dynamic_, void_, expectMoreSpecific: false);
         expect(false, void_, Object_);
         expect(false, Object_, void_);
+        expect(true, Null_, void_);
 
         expect(true, Object_, Object_);
         expect(true, num_, Object_);
         expect(true, int_, Object_);
         expect(true, String_, Object_);
         expect(true, dynamic_, Object_, expectMoreSpecific: false);
+        expect(true, Null_, Object_);
 
         expect(false, Object_, num_);
         expect(true, num_, num_);
         expect(true, int_, num_);
         expect(false, String_, num_);
         expect(true, dynamic_, num_, expectMoreSpecific: false);
+        expect(true, Null_, num_);
 
         expect(false, Object_, int_);
         expect(false, num_, int_);
         expect(true, int_, int_);
         expect(false, String_, int_);
         expect(true, dynamic_, int_, expectMoreSpecific: false);
+        expect(true, Null_, int_);
 
         expect(false, Object_, String_);
         expect(false, num_, String_);
         expect(false, int_, String_);
         expect(true, String_, String_);
         expect(true, dynamic_, String_, expectMoreSpecific: false);
+        expect(true, Null_, String_);
 
         expect(true, Object_, dynamic_);
         expect(true, num_, dynamic_);
         expect(true, int_, dynamic_);
         expect(true, String_, dynamic_);
         expect(true, dynamic_, dynamic_);
+        expect(true, Null_, dynamic_);
+
+        expect(false, Object_, Null_);
+        expect(false, num_, Null_);
+        expect(false, int_, Null_);
+        expect(false, String_, Null_);
+        expect(true, dynamic_, Null_, expectMoreSpecific: false);
+        expect(true, Null_, Null_);
 
         DartType A_Object = instantiate(A, [Object_]);
         DartType A_num = instantiate(A, [num_]);
         DartType A_int = instantiate(A, [int_]);
         DartType A_String = instantiate(A, [String_]);
         DartType A_dynamic = instantiate(A, [dynamic_]);
+        DartType A_Null = instantiate(A, [Null_]);
 
         expect(true, A_Object, Object_);
         expect(false, A_Object, num_);
         expect(false, A_Object, int_);
         expect(false, A_Object, String_);
         expect(true, A_Object, dynamic_);
+        expect(false, A_Object, Null_);
 
         expect(true, A_Object, A_Object);
         expect(true, A_num, A_Object);
         expect(true, A_int, A_Object);
         expect(true, A_String, A_Object);
         expect(true, A_dynamic, A_Object, expectMoreSpecific: false);
+        expect(true, A_Null, A_Object);
 
         expect(false, A_Object, A_num);
         expect(true, A_num, A_num);
         expect(true, A_int, A_num);
         expect(false, A_String, A_num);
         expect(true, A_dynamic, A_num, expectMoreSpecific: false);
+        expect(true, A_Null, A_num);
 
         expect(false, A_Object, A_int);
         expect(false, A_num, A_int);
         expect(true, A_int, A_int);
         expect(false, A_String, A_int);
         expect(true, A_dynamic, A_int, expectMoreSpecific: false);
+        expect(true, A_Null, A_int);
 
         expect(false, A_Object, A_String);
         expect(false, A_num, A_String);
         expect(false, A_int, A_String);
         expect(true, A_String, A_String);
         expect(true, A_dynamic, A_String, expectMoreSpecific: false);
+        expect(true, A_Null, A_String);
 
         expect(true, A_Object, A_dynamic);
         expect(true, A_num, A_dynamic);
         expect(true, A_int, A_dynamic);
         expect(true, A_String, A_dynamic);
         expect(true, A_dynamic, A_dynamic);
+        expect(true, A_Null, A_dynamic);
+
+        expect(false, A_Object, A_Null);
+        expect(false, A_num, A_Null);
+        expect(false, A_int, A_Null);
+        expect(false, A_String, A_Null);
+        expect(true, A_dynamic, A_Null, expectMoreSpecific: false);
+        expect(true, A_Null, A_Null);
 
         DartType B_Object_Object = instantiate(B, [Object_, Object_]);
         DartType B_num_num = instantiate(B, [num_, num_]);

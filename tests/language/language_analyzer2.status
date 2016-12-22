@@ -45,6 +45,15 @@ multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 
+null_is_bottom_type_test/01: StaticWarning # Issue 28027
+null_is_bottom_type_test/03: StaticWarning # Issue 28027
+null_is_bottom_type_test/06: StaticWarning # Issue 28027
+null_is_bottom_type_test/08: StaticWarning # Issue 28027
+null_is_bottom_type_test/10: StaticWarning # Issue 28027
+null_is_bottom_type_test/11: StaticWarning # Issue 28027
+null_is_bottom_type_test/14: StaticWarning # Issue 28027
+null_is_bottom_type_test/15: StaticWarning # Issue 28027
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
