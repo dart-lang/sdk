@@ -50,6 +50,9 @@ io/socket_many_connections_test: Skip
 io/secure_server_client_certificate_test: Skip
 io/socket_test: Pass, Timeout # Issue 27453
 
+# This test sometimes hangs on Mac.
+io/raw_server_socket_cancel_test: Skip # Issue 28182
+
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to
 # investigate, skipping these tests temporarily to get the bots to be
