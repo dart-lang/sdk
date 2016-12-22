@@ -5026,8 +5026,7 @@ LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Fails 3
 LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Issue 53
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Fails 10 out of 10.
-LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/isContentEditable_A01_t01: Pass, RuntimeError # Issue 28187
 LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Fails 10 out of 10.
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t02: RuntimeError # Please triage this failure
