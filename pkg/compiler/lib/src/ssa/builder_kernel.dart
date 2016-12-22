@@ -223,6 +223,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return result;
   }
 
+  void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
+    var enclosing = astAdapter.getElement(constructor).enclosingElement;
+    if (backend.classNeedsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+        HParameterValue param =
+            addParameter(typeVariable.element, commonMasks.nonNullType);
+        localsHandler.directLocals[
+            localsHandler.getTypeVariableAsLocal(typeVariable)] = param;
+      });
+    }
+  }
+
   /// Builds generative constructors.
   ///
   /// Generative constructors are built in two stages.
@@ -233,6 +245,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// constructor bodies for all constructors in the hierarchy.
   void buildConstructor(ir.Constructor constructor) {
     openFunction();
+    _addClassTypeVariablesIfNeeded(constructor);
 
     // Collect field values for the current class.
     // TODO(het): Does kernel always put field initializers in the constructor
@@ -399,6 +412,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Procedures.
   void buildFunctionNode(ir.FunctionNode functionNode) {
     openFunction();
+    if (functionNode.parent is ir.Procedure &&
+        (functionNode.parent as ir.Procedure).kind ==
+            ir.ProcedureKind.Factory) {
+      _addClassTypeVariablesIfNeeded(functionNode.parent);
+    }
     functionNode.body.accept(this);
     closeFunction();
   }
@@ -1942,49 +1960,82 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   HInstruction buildIsNode(
-      ir.Node node, ir.DartType dart_type, HInstruction expression) {
-    // TODO(sra): Convert the type testing logic here to use ir.DartType.
-    DartType type = astAdapter.getDartType(dart_type);
-
-    type = localsHandler.substInContext(type).unaliased;
-
-    if (type is MethodTypeVariableType) {
-      return graph.addConstantBool(true, closedWorld);
+      ir.Node node, ir.DartType type, HInstruction expression) {
+    // Note: The call to "unalias" this type like in the original SSA builder is
+    // unnecessary in kernel because Kernel has no notion of typedef.
+    // TODO(efortuna): Add test for this.
+    DartType typeValue = localsHandler.substInContext(
+        astAdapter.getDartType(type));
+    if (type is ir.InvalidType) {
+      generateTypeError(node, (typeValue.element as ErroneousElement).message);
+      return new HIs.compound(
+          typeValue, expression, pop(), commonMasks.boolType);
     }
 
-    if (type is MalformedType) {
-      ErroneousElement element = type.element;
-      generateTypeError(node, element.message);
-      return new HIs.compound(type, expression, pop(), commonMasks.boolType);
-    }
-
-    if (type.isFunctionType) {
-      List arguments = <HInstruction>[buildFunctionType(type), expression];
-      _pushDynamicInvocation(node, commonMasks.boolType, arguments,
+    if (type is ir.FunctionType) {
+      List arguments = [buildFunctionType(typeValue), expression];
+      _pushDynamicInvocation(node, null, arguments,
           selector: new Selector.call(
-              new PrivateName('_isTest', astAdapter.jsHelperLibrary),
+              new PrivateName('_isTest', backend.helpers.jsHelperLibrary),
               CallStructure.ONE_ARG));
-      return new HIs.compound(type, expression, pop(), commonMasks.boolType);
+      return new HIs.compound(
+          typeValue, expression, pop(), commonMasks.boolType);
     }
 
-    if (type.isTypeVariable) {
+    if (type is ir.TypeParameterType) {
       HInstruction runtimeType =
-          typeBuilder.addTypeVariableReference(type, sourceElement);
+          typeBuilder.addTypeVariableReference(typeValue, sourceElement);
       _pushStaticInvocation(astAdapter.checkSubtypeOfRuntimeType,
           <HInstruction>[expression, runtimeType], commonMasks.boolType);
-      return new HIs.variable(type, expression, pop(), commonMasks.boolType);
+      return new HIs.variable(
+          typeValue, expression, pop(), commonMasks.boolType);
     }
 
-    // TODO(sra): Type with type parameters.
-
-    if (backend.hasDirectCheckFor(type)) {
-      return new HIs.direct(type, expression, commonMasks.boolType);
+    if (_isInterfaceWithNoDynamicTypes(type)) {
+      HInstruction representations = typeBuilder
+          .buildTypeArgumentRepresentations(typeValue, sourceElement);
+      add(representations);
+      ClassElement element = typeValue.element;
+      js.Name operator = backend.namer.operatorIs(element);
+      HInstruction isFieldName =
+          graph.addConstantStringFromName(operator, closedWorld);
+      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element)
+          ? graph.addConstantStringFromName(
+              backend.namer.substitutionName(element), closedWorld)
+          : graph.addConstantNull(closedWorld);
+      List<HInstruction> inputs = <HInstruction>[
+        expression,
+        isFieldName,
+        representations,
+        asFieldName
+      ];
+      _pushStaticInvocation(
+          astAdapter.checkSubtype, inputs, commonMasks.boolType);
+      return new HIs.compound(
+          typeValue, expression, pop(), commonMasks.boolType);
     }
 
+    if (backend.hasDirectCheckFor(typeValue)) {
+      return new HIs.direct(typeValue, expression, commonMasks.boolType);
+    }
     // The interceptor is not always needed.  It is removed by optimization
     // when the receiver type or tested type permit.
-    HInterceptor interceptor = _interceptorFor(expression);
-    return new HIs.raw(type, expression, interceptor, commonMasks.boolType);
+    return new HIs.raw(typeValue, expression, _interceptorFor(expression),
+        commonMasks.boolType);
+  }
+
+  bool _isInterfaceWithNoDynamicTypes(ir.DartType type) {
+    bool isMethodTypeVariableType(ir.DartType typeArgType) {
+      return (typeArgType is ir.TypeParameterType &&
+          typeArgType.parameter.parent is ir.FunctionNode);
+    }
+
+    return type is ir.InterfaceType &&
+        (type as ir.InterfaceType).typeArguments.any(
+            (ir.DartType typeArgType) =>
+                typeArgType is! ir.DynamicType &&
+                typeArgType is! ir.InvalidType &&
+                !isMethodTypeVariableType(type));
   }
 
   @override
