@@ -208,10 +208,9 @@ File* File::OpenStdio(int fd) {
 
 
 bool File::Exists(const char* name) {
-  struct stat64 st;
-  if (NO_RETRY_EXPECTED(stat64(name, &st)) == 0) {
-    // Everything but a directory and a link is a file to Dart.
-    return !S_ISDIR(st.st_mode) && !S_ISLNK(st.st_mode);
+  struct stat st;
+  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
+    return S_ISREG(st.st_mode);
   } else {
     return false;
   }
@@ -219,27 +218,11 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  int fd =
-      NO_RETRY_EXPECTED(open64(name, O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
+  int fd = NO_RETRY_EXPECTED(open(name, O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
   if (fd < 0) {
     return false;
   }
-  // File.create returns a File, so we shouldn't be giving the illusion that the
-  // call has created a file or that a file already exists if there is already
-  // an entity at the same path that is a directory or a link.
-  bool is_file = true;
-  struct stat64 st;
-  if (NO_RETRY_EXPECTED(fstat64(fd, &st)) == 0) {
-    if (S_ISDIR(st.st_mode)) {
-      errno = EISDIR;
-      is_file = false;
-    } else if (S_ISLNK(st.st_mode)) {
-      errno = ENOENT;
-      is_file = false;
-    }
-  }
-  FDUtils::SaveErrorAndClose(fd);
-  return is_file;
+  return (close(fd) == 0);
 }
 
 
