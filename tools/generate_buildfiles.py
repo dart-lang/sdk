@@ -11,12 +11,12 @@ import utils
 
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-DART_USE_GYP = "DART_USE_GYP"
+DART_USE_GN = "DART_USE_GN"
 DART_DISABLE_BUILDFILES = "DART_DISABLE_BUILDFILES"
 
 
-def use_gyp():
-  return DART_USE_GYP in os.environ
+def use_gn():
+  return DART_USE_GN in os.environ
 
 
 def disable_buildfiles():
@@ -29,26 +29,21 @@ def execute(args):
   return process.returncode
 
 
-def run_gn(options):
+def run_gn():
   gn_command = [
     'python',
     os.path.join(DART_ROOT, 'tools', 'gn.py'),
     '-m', 'all',
     '-a', 'all',
   ]
-  if options.verbose:
-    gn_command.append('-v')
-    print ' '.join(gn_command)
   return execute(gn_command)
 
 
-def run_gyp(options):
+def run_gyp():
   gyp_command = [
     'python',
     os.path.join(DART_ROOT, 'tools', 'gyp_dart.py'),
   ]
-  if options.verbose:
-    print ' '.join(gyp_command)
   return execute(gyp_command)
 
 
@@ -63,17 +58,17 @@ def parse_args(args):
       action="store_true")
   parser.add_argument("--gn",
       help='Use GN',
-      default=not use_gyp(),
+      default=use_gn(),
       action='store_true')
   parser.add_argument("--gyp",
       help='Use gyp',
-      default=use_gyp(),
+      default=not use_gn(),
       action='store_true')
 
   options = parser.parse_args(args)
-  # If gyp is enabled one way or another, then disable gn
-  if options.gyp:
-    options.gn = False
+  # If gn is enabled one way or another, then disable gyp
+  if options.gn:
+    options.gyp = False
   return options
 
 
@@ -83,9 +78,9 @@ def main(argv):
     return 0
   options = parse_args(argv)
   if options.gn:
-    return run_gn(options)
+    return run_gn()
   else:
-    return run_gyp(options)
+    return run_gyp()
 
 
 if __name__ == '__main__':

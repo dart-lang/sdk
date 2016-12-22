@@ -14,7 +14,7 @@ SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..', '..'))
 
 def main(argv):
-  os.environ["DART_USE_GYP"] = "1"
+  os.environ["DART_USE_GN"] = "1"
   generate_buildfiles = os.path.join(
       DART_ROOT, 'tools', 'generate_buildfiles.py')
   gclient_result = subprocess.call(['python', generate_buildfiles])
