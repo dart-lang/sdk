@@ -3070,33 +3070,41 @@ class Sentinel extends ServiceObject implements M.Sentinel {
 class Thread extends ServiceObject implements M.Thread {
   M.ThreadKind get kind => _kind;
   M.ThreadKind _kind;
+  String get kindString => _kindString;
+  String _kindString;
   List<Zone> get zones => _zones;
   final List<Zone> _zones = new List<Zone>();
 
   Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
-    String kindString = map['kind'];
+    String rawKind = map['kind'];
     List<Map> zoneList = map['zones'];
 
-    switch(kindString) {
+    switch(rawKind) {
       case "kUnknownTask":
         _kind = M.ThreadKind.unknownTask;
+        _kindString = 'unknown';
         break;
       case "kMutatorTask":
         _kind = M.ThreadKind.mutatorTask;
+        _kindString = 'mutator';
         break;
       case "kCompilerTask":
         _kind = M.ThreadKind.compilerTask;
+        _kindString = 'compiler';
         break;
       case "kSweeperTask":
         _kind = M.ThreadKind.sweeperTask;
+        _kindString = 'sweeper';
         break;
       case "kMarkerTask":
         _kind = M.ThreadKind.markerTask;
+        _kindString = 'marker';
         break;
       case "kFinalizerTask":
         _kind = M.ThreadKind.finalizerTask;
+        _kindString = 'finalizer';
         break;
       default:
         assert(false);

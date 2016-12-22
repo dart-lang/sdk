@@ -27,6 +27,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
+import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends HtmlElement implements Renderable {
   static const tag =
@@ -133,6 +134,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   void render() {
     final uptime = new DateTime.now().difference(_isolate.startTime);
     final libraries = _isolate.libraries.toList();
+    final List<Thread> threads = _isolate.threads;
     children = [
       navBar([
         new NavTopMenuElement(queue: _r.queue),
@@ -294,6 +296,20 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                               ])
                             .toList()
                     ]
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'threads (${threads.length})',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..children = [
+                      new CurlyBlockElement(queue: _r.queue)
+                        ..content = threads
+                          .map(_populateThreadInfo)
+                    ]
                 ]
             ],
           new HRElement(),
@@ -312,6 +328,67 @@ class IsolateViewElement extends HtmlElement implements Renderable {
           new ViewFooterElement(queue: _r.queue)
         ]
     ];
+  }
+
+  DivElement _populateThreadInfo(Thread t) {
+    int index = 0;
+    return new DivElement()
+      ..classes = ['indent']
+      ..children = [
+        new SpanElement()
+          ..text = '${t.id} ',
+        new CurlyBlockElement(queue: _r.queue)
+          ..content = [
+            new DivElement()
+              ..classes = ['indent']
+              ..text = 'kind ${t.kindString}',
+            new DivElement()
+              ..children = t.zones
+                .map((z) => new DivElement()
+                ..classes = ['indent']
+                ..children = [
+                  new DivElement()
+                    ..children = [
+                      new SpanElement()
+                        ..children = [
+                          new SpanElement()
+                            ..text = 'zone ${index++} ',
+                          new CurlyBlockElement(queue: _r.queue)
+                            ..content = [
+                              new DivElement()
+                                ..classes = ['memberList']
+                                ..children = [
+                                  new DivElement()
+                                    ..classes = ['memberItem']
+                                    ..children = [
+                                      new SpanElement()
+                                        ..classes = ['memberName']
+                                        ..text = 'used ',
+                                      new SpanElement()
+                                        ..classes = ['memberValue']
+                                        ..title = '${z.used}B'
+                                        ..text =
+                                        Utils.formatSize(z.used)
+                                    ],
+                                  new DivElement()
+                                    ..classes = ['memberItem']
+                                    ..children = [
+                                        new SpanElement()
+                                          ..classes = ['memberName']
+                                          ..text = 'capacity',
+                                        new SpanElement()
+                                          ..classes = ['memberValue']
+                                          ..title = '${z.capacity}B'
+                                          ..text =
+                                          Utils.formatSize(z.capacity)
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+          )]
+      ];
   }
 
   Future _loadExtraData() async {
