@@ -2233,15 +2233,13 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       }
       case kTypedDataFloat32x4ArrayCid: {
         type_args = flow_graph->constant_null();
-        ASSERT((array_cid != kTypedDataFloat32x4ArrayCid) ||
-               value_type.IsFloat32x4Type());
+        ASSERT(value_type.IsFloat32x4Type());
         ASSERT(value_type.IsInstantiated());
         break;
       }
       case kTypedDataFloat64x2ArrayCid: {
         type_args = flow_graph->constant_null();
-        ASSERT((array_cid != kTypedDataFloat64x2ArrayCid) ||
-               value_type.IsFloat64x2Type());
+        ASSERT(value_type.IsFloat64x2Type());
         ASSERT(value_type.IsInstantiated());
         break;
       }

@@ -1510,7 +1510,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     ASSERT(lib.raw() == Library::TypedDataLibrary());
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid);                 \
-  RegisterClass(cls, Symbols::clazz##List(), lib);
+  RegisterPrivateClass(cls, Symbols::clazz##List(), lib);
 
     DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
@@ -1531,39 +1531,48 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     cls = Class::New<Instance>(kByteBufferCid);
     cls.set_instance_size(0);
     cls.set_next_field_offset(-kWordSize);
-    RegisterClass(cls, Symbols::ByteBuffer(), lib);
+    RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
     pending_classes.Add(cls);
 
     CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-    // Register Float32x4 and Int32x4 in the object store.
+    // Register Float32x4, Int32x4, and Float64x2 in the object store.
     cls = Class::New<Float32x4>();
+    RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
+    pending_classes.Add(cls);
+    object_store->set_float32x4_class(cls);
+
+    cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Float32x4(), lib);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
-    pending_classes.Add(cls);
-    object_store->set_float32x4_class(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float32x4_type(type);
 
     cls = Class::New<Int32x4>();
+    RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
+    pending_classes.Add(cls);
+    object_store->set_int32x4_class(cls);
+
+    cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Int32x4(), lib);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
-    pending_classes.Add(cls);
-    object_store->set_int32x4_class(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int32x4_type(type);
 
     cls = Class::New<Float64x2>();
+    RegisterPrivateClass(cls, Symbols::_Float64x2(), lib);
+    pending_classes.Add(cls);
+    object_store->set_float64x2_class(cls);
+
+    cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Float64x2(), lib);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
-    pending_classes.Add(cls);
-    object_store->set_float64x2_class(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float64x2_type(type);
 
@@ -11581,19 +11590,16 @@ void Library::CheckFunctionFingerprints() {
 #undef CHECK_FINGERPRINTS2
 
 
-  Class& cls = Class::Handle();
-
-#define CHECK_FACTORY_FINGERPRINTS(factory_symbol, cid, fp)                    \
-  cls = Isolate::Current()->class_table()->At(cid);                            \
-  func = cls.LookupFunctionAllowPrivate(Symbols::factory_symbol());            \
+#define CHECK_FACTORY_FINGERPRINTS(symbol, class_name, factory_name, cid, fp)  \
+  func = GetFunction(all_libs, #class_name, #factory_name);                    \
   if (func.IsNull()) {                                                         \
     has_errors = true;                                                         \
-    OS::Print("Function not found %s.%s\n", cls.ToCString(),                   \
-              Symbols::factory_symbol().ToCString());                          \
+    OS::Print("Function not found %s.%s\n", #class_name, #factory_name);       \
   } else {                                                                     \
-    CHECK_FINGERPRINT2(func, factory_symbol, cid, fp);                         \
+    CHECK_FINGERPRINT2(func, symbol, cid, fp);                                 \
   }
 
+  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS

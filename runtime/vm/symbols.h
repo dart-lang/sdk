@@ -218,20 +218,23 @@ class ObjectPointerVisitor;
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \
   V(Int32x4, "Int32x4")                                                        \
-  V(Int8List, "Int8List")                                                      \
-  V(Uint8List, "Uint8List")                                                    \
-  V(Uint8ClampedList, "Uint8ClampedList")                                      \
-  V(Int16List, "Int16List")                                                    \
-  V(Uint16List, "Uint16List")                                                  \
-  V(Int32List, "Int32List")                                                    \
-  V(Uint32List, "Uint32List")                                                  \
-  V(Int64List, "Int64List")                                                    \
-  V(Uint64List, "Uint64List")                                                  \
-  V(Float32x4List, "Float32x4List")                                            \
-  V(Int32x4List, "Int32x4List")                                                \
-  V(Float64x2List, "Float64x2List")                                            \
-  V(Float32List, "Float32List")                                                \
-  V(Float64List, "Float64List")                                                \
+  V(_Float32x4, "_Float32x4")                                                  \
+  V(_Float64x2, "_Float64x2")                                                  \
+  V(_Int32x4, "_Int32x4")                                                      \
+  V(Int8List, "_Int8List")                                                     \
+  V(Uint8List, "_Uint8List")                                                   \
+  V(Uint8ClampedList, "_Uint8ClampedList")                                     \
+  V(Int16List, "_Int16List")                                                   \
+  V(Uint16List, "_Uint16List")                                                 \
+  V(Int32List, "_Int32List")                                                   \
+  V(Uint32List, "_Uint32List")                                                 \
+  V(Int64List, "_Int64List")                                                   \
+  V(Uint64List, "_Uint64List")                                                 \
+  V(Float32x4List, "_Float32x4List")                                           \
+  V(Int32x4List, "_Int32x4List")                                               \
+  V(Float64x2List, "_Float64x2List")                                           \
+  V(Float32List, "_Float32List")                                               \
+  V(Float64List, "_Float64List")                                               \
   V(_Int8ArrayFactory, "Int8List.")                                            \
   V(_Uint8ArrayFactory, "Uint8List.")                                          \
   V(_Uint8ClampedArrayFactory, "Uint8ClampedList.")                            \
@@ -278,8 +281,8 @@ class ObjectPointerVisitor;
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(ByteBuffer, "ByteBuffer")                                                  \
-  V(ByteBufferDot_New, "ByteBuffer._New")                                      \
+  V(_ByteBuffer, "_ByteBuffer")                                                \
+  V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
   V(FreeListElement, "FreeListElement")                                        \
