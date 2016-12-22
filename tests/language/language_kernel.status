@@ -7,6 +7,8 @@
 large_class_declaration_test: Skip
 large_implicit_getter_test: Skip
 larger_implicit_getter_test: Skip
+null_is_bottom_test/22: RuntimeError # Issue 28025
+null_is_bottom_test/34: RuntimeError # Issue 28025
 
 ###############################################################################
 # Dartk Entries
