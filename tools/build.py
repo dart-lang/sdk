@@ -44,11 +44,11 @@ the Dart repo root,
 
 unless you really intend to use a non-default Makefile.""" % DART_ROOT
 
-DART_USE_GN = "DART_USE_GN"
+DART_USE_GYP = "DART_USE_GYP"
 
 
-def use_gn():
-  return DART_USE_GN in os.environ
+def use_gyp():
+  return DART_USE_GYP in os.environ
 
 
 def BuildOptions():
@@ -84,9 +84,9 @@ def BuildOptions():
       help='Name of the devenv.com/msbuild executable on Windows (varies for '
            'different versions of Visual Studio)',
       default=vs_executable)
-  result.add_option("--gn",
-      help='Build with GN/Ninja',
-      default=use_gn(),
+  result.add_option("--gyp",
+      help='Build with gyp.',
+      default=use_gyp(),
       action='store_true')
   return result
 
@@ -435,7 +435,7 @@ def BuildNinjaCommand(options, target, target_os, mode, arch):
   if options.verbose:
     command += ['-v']
   if UseGoma(out_dir):
-    command += ['-j200']
+    command += ['-j1000']
   command += [target]
   return command
 
@@ -446,7 +446,7 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
   start_time = time.time()
   args = []
   build_config = utils.GetBuildConf(mode, arch, target_os)
-  if options.gn:
+  if not options.gyp:
     args = BuildNinjaCommand(options, target, target_os, mode, arch)
   else:
     os.environ['DART_BUILD_MODE'] = mode
