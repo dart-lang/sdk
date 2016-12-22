@@ -129,11 +129,13 @@ config("dart_config") {
     } else if (dart_target_arch == "ia32") {
       defines += [ "TARGET_ARCH_IA32" ]
     } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
-               dart_target_arch == "simdbc64") {
+               dart_target_arch == "simdbc64" ||
+               dart_target_arch == "armsimdbc" ||
+               dart_target_arch == "armsimdbc64") {
       defines += [ "TARGET_ARCH_DBC" ]
       defines += [ "USING_SIMULATOR" ]
     } else {
-      print("Invalid |dart_target_arch|")
+      print("Invalid $dart_target_arch")
       assert(false)
     }
   }

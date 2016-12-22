@@ -114,7 +114,7 @@ def ProcessOptions(options, args):
   for arch in options.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64', 'armsimdbc']
+             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
