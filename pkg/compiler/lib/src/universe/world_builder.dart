@@ -478,9 +478,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
 
-  final Map<ClassElement, Map<ClassElement, bool>> _subtypeCoveredByCache =
-      <ClassElement, Map<ClassElement, bool>>{};
-
   final Set<Element> alreadyPopulated;
 
   final CacheStrategy cacheStrategy;
@@ -681,45 +678,33 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
+
+    void _process(Map<String, Set<_MemberUsage>> memberMap,
+        EnumSet<MemberUse> action(_MemberUsage usage)) {
+      _processSet(memberMap, methodName, (_MemberUsage usage) {
+        if (dynamicUse.appliesUnnamed(usage.entity, this)) {
+          memberUsed(usage.entity, action(usage));
+          return true;
+        }
+        return false;
+      });
+    }
+
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _processInstanceMembers(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
-              memberUsed(usage.entity, usage.invoke());
-              return true;
-            }
-            return false;
-          });
+          _process(_instanceMembersByName, (m) => m.invoke());
         }
         break;
       case DynamicUseKind.GET:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _processInstanceMembers(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
-              memberUsed(usage.entity, usage.read());
-              return true;
-            }
-            return false;
-          });
-          _processInstanceFunctions(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
-              memberUsed(usage.entity, usage.read());
-              return true;
-            }
-            return false;
-          });
+          _process(_instanceMembersByName, (m) => m.read());
+          _process(_instanceFunctionsByName, (m) => m.read());
         }
         break;
       case DynamicUseKind.SET:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _processInstanceMembers(methodName, (_MemberUsage usage) {
-            if (dynamicUse.appliesUnnamed(usage.entity, this)) {
-              memberUsed(usage.entity, usage.write());
-              return true;
-            }
-            return false;
-          });
+          _process(_instanceMembersByName, (m) => m.write());
         }
         break;
     }
@@ -892,15 +877,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       if (!updateUsage(usage)) remaining.add(usage);
     }
     map[memberName].addAll(remaining);
-  }
-
-  void _processInstanceMembers(String name, bool updateUsage(_MemberUsage e)) {
-    _processSet(_instanceMembersByName, name, updateUsage);
-  }
-
-  void _processInstanceFunctions(
-      String name, bool updateUsage(_MemberUsage e)) {
-    _processSet(_instanceFunctionsByName, name, updateUsage);
   }
 
   void _processInstantiatedClassMember(
@@ -1320,47 +1296,35 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
+
+    void _process(Map<String, Set<_MemberUsage>> memberMap,
+        EnumSet<MemberUse> action(_MemberUsage usage)) {
+      _processSet(memberMap, methodName, (_MemberUsage usage) {
+        if (dynamicUse.appliesUnnamed(usage.entity, _world)) {
+          memberUsed(usage.entity, action(usage));
+          return true;
+        }
+        return false;
+      });
+    }
+
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _processInstanceMembers(methodName, (_MemberUsage member) {
-            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
-              memberUsed(member.entity, member.invoke());
-              return true;
-            }
-            return false;
-          });
+          _process(_instanceMembersByName, (m) => m.invoke());
           return true;
         }
         break;
       case DynamicUseKind.GET:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _processInstanceMembers(methodName, (_MemberUsage member) {
-            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
-              memberUsed(member.entity, member.read());
-              return true;
-            }
-            return false;
-          });
-          _processInstanceFunctions(methodName, (_MemberUsage member) {
-            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
-              memberUsed(member.entity, member.read());
-              return true;
-            }
-            return false;
-          });
+          _process(_instanceMembersByName, (m) => m.read());
+          _process(_instanceFunctionsByName, (m) => m.read());
           return true;
         }
         break;
       case DynamicUseKind.SET:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _processInstanceMembers(methodName, (_MemberUsage member) {
-            if (dynamicUse.appliesUnnamed(member.entity, _world)) {
-              memberUsed(member.entity, member.write());
-              return true;
-            }
-            return false;
-          });
+          _process(_instanceMembersByName, (m) => m.write());
           return true;
         }
         break;
@@ -1576,14 +1540,6 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       if (!f(member)) remaining.add(member);
     }
     map[memberName].addAll(remaining);
-  }
-
-  void _processInstanceMembers(String n, bool f(_MemberUsage e)) {
-    _processSet(_instanceMembersByName, n, f);
-  }
-
-  void _processInstanceFunctions(String n, bool f(_MemberUsage e)) {
-    _processSet(_instanceFunctionsByName, n, f);
   }
 
   /// Return the canonical [_ClassUsage] for [cls].
