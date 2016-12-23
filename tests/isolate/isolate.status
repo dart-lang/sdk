@@ -236,3 +236,4 @@ message3_test/fun: Pass, Fail # Closure identity
 deferred_in_isolate_test: Crash # Requires deferred libraries
 deferred_in_isolate2_test: Crash # Requires deferred libraries
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
+spawn_uri_nested_vm_test: Pass, Crash # Issue 28192

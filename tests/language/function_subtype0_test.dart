@@ -36,6 +36,7 @@ int int__int(int i) => 0;
 int int__int2(int i) => 0;
 int int__Object(Object o) => 0;
 Object Object__int(int i) => null;
+void void__Object(Object o) => null;
 int int__double(double d) => 0;
 int int__int_int(int i1, int i2) => 0;
 void inline_void_(void f()) {}
@@ -82,6 +83,8 @@ main() {
   Expect.isFalse(int__int_int is t_int__int);
   // (()->void) -> void <: ((int)->void) -> void
   Expect.isFalse(inline_void_ is t_inline_void__int);
+  // (Object) -> void <: ((int)->void) -> void
+  Expect.isTrue(void__Object is t_inline_void__int);
   // ((int)->void) -> void <: (()->void) -> void
   Expect.isFalse(inline_void__int is t_inline_void_);
 }

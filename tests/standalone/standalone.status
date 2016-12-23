@@ -50,6 +50,9 @@ io/socket_many_connections_test: Skip
 io/secure_server_client_certificate_test: Skip
 io/socket_test: Pass, Timeout # Issue 27453
 
+# This test sometimes hangs on Mac.
+io/raw_server_socket_cancel_test: Skip # Issue 28182
+
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to
 # investigate, skipping these tests temporarily to get the bots to be
@@ -144,7 +147,7 @@ io/test_runner_test: CompileTimeError # Imports dart:mirrors
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
-[ $arch == simarm && $mode == debug && $checked ]
+[ ($arch == simarm || $arch == simdbc || $arch == simdbc64) && $mode == debug && $checked ]
 io/web_socket_test: Pass, Fail # Issue 26814
 
 [ $arch == mips ]

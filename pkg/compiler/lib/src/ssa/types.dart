@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
@@ -36,17 +36,18 @@ class TypeMaskFactory {
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return commonMasks.dynamicType;
 
-    CoreClasses coreClasses = closedWorld.coreClasses;
+    CommonElements commonElements = closedWorld.commonElements;
 
     // [type] is either an instance of [DartType] or special objects
     // like [native.SpecialType.JsObject].
     TypeMask fromNativeType(dynamic type) {
       if (type == native.SpecialType.JsObject) {
-        return new TypeMask.nonNullExact(coreClasses.objectClass, closedWorld);
+        return new TypeMask.nonNullExact(
+            commonElements.objectClass, closedWorld);
       }
 
       if (type.isVoid) return commonMasks.nullType;
-      if (type.element == coreClasses.nullClass) return commonMasks.nullType;
+      if (type.element == commonElements.nullClass) return commonMasks.nullType;
       if (type.treatAsDynamic) return commonMasks.dynamicType;
       return new TypeMask.nonNullSubtype(type.element, closedWorld);
     }

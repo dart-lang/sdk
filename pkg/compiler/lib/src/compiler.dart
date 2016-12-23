@@ -10,7 +10,6 @@ import '../compiler_new.dart' as api;
 import 'cache_strategy.dart' show CacheStrategy;
 import 'closure.dart' as closureMapping show ClosureTask;
 import 'common/backend_api.dart' show Backend;
-import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/resolution.dart'
@@ -25,7 +24,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CoreClasses, CommonElements, CoreTypes;
+import 'core_types.dart' show CommonElements;
 import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
@@ -78,9 +77,9 @@ import 'universe/world_impact.dart'
         WorldImpactBuilder,
         WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, WorldImpl;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
 
-typedef Backend MakeBackendFuncion(Compiler compiler);
+typedef Backend MakeBackendFunction(Compiler compiler);
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -90,7 +89,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
   final IdGenerator idGenerator = new IdGenerator();
   Types types;
-  _CompilerCoreTypes _coreTypes;
+  _CompilerCommonElements _commonElements;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
   ParsingContext _parsingContext;
@@ -133,9 +132,7 @@ abstract class Compiler implements LibraryLoaderListener {
   FunctionElement mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
-  CommonElements get commonElements => _coreTypes;
-  CoreClasses get coreClasses => _coreTypes;
-  CoreTypes get coreTypes => _coreTypes;
+  CommonElements get commonElements => _commonElements;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -197,7 +194,7 @@ abstract class Compiler implements LibraryLoaderListener {
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
       this.environment: const _EmptyEnvironment(),
-      MakeBackendFuncion makeBackend,
+      MakeBackendFunction makeBackend,
       MakeReporterFunction makeReporter})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
@@ -210,9 +207,7 @@ abstract class Compiler implements LibraryLoaderListener {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     _resolution = createResolution();
-    // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
-    // make its field final.
-    _coreTypes = new _CompilerCoreTypes(_resolution, reporter);
+    _commonElements = new _CompilerCommonElements(_resolution, reporter);
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -346,7 +341,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Note that [library] has not been scanned yet, nor has its imports/exports
   /// been resolved.
   void onLibraryCreated(LibraryElement library) {
-    _coreTypes.onLibraryCreated(library);
+    _commonElements.onLibraryCreated(library);
     backend.onLibraryCreated(library);
   }
 
@@ -737,7 +732,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    WorldImpl world = resolverWorld.openWorld.closeWorld(reporter);
+    ClosedWorldImpl world = resolverWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete(world, world);
@@ -764,6 +759,9 @@ abstract class Compiler implements LibraryLoaderListener {
         cls.ensureResolved(resolution);
         cls.forEachLocalMember(registerStaticUse);
         impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+      } else if (element.isTypedef) {
+        TypedefElement typdef = element;
+        typdef.ensureResolved(resolution);
       } else {
         registerStaticUse(element);
       }
@@ -1127,7 +1125,7 @@ class SuppressionInfo {
   int hints = 0;
 }
 
-class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
+class _CompilerCommonElements implements CommonElements {
   final Resolution resolution;
   final DiagnosticReporter reporter;
 
@@ -1144,7 +1142,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   // specific backend.
   LibraryElement jsHelperLibrary;
 
-  _CompilerCoreTypes(this.resolution, this.reporter);
+  _CompilerCommonElements(this.resolution, this.reporter);
 
   // From dart:core
 
@@ -1914,12 +1912,6 @@ class CompilerResolution implements Resolution {
   ParsingContext get parsingContext => _compiler.parsingContext;
 
   @override
-  CoreClasses get coreClasses => _compiler.coreClasses;
-
-  @override
-  CoreTypes get coreTypes => _compiler.coreTypes;
-
-  @override
   CommonElements get commonElements => _compiler.commonElements;
 
   @override
@@ -1948,14 +1940,14 @@ class CompilerResolution implements Resolution {
       _compiler.mirrorUsageAnalyzerTask;
 
   @override
-  LibraryElement get coreLibrary => _compiler._coreTypes.coreLibrary;
+  LibraryElement get coreLibrary => _compiler._commonElements.coreLibrary;
 
   @override
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
 
   @override
   void registerClass(ClassElement cls) {
-    enqueuer.universe.openWorld.registerClass(cls);
+    enqueuer.universe.registerClass(cls);
   }
 
   @override

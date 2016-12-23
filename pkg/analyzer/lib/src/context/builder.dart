@@ -12,6 +12,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/command_line/arguments.dart'
+    show applyAnalysisOptionFlags;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -21,6 +23,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -349,6 +352,9 @@ class ContextBuilder {
       } catch (_) {
         // Ignore exceptions thrown while trying to load the options file.
       }
+      if (builderOptions.argResults != null) {
+        applyAnalysisOptionFlags(options, builderOptions.argResults);
+      }
     }
     return options;
   }
@@ -480,6 +486,12 @@ class ContextBuilder {
  * Options used by a [ContextBuilder].
  */
 class ContextBuilderOptions {
+  /**
+   * The results of parsing the command line arguments as defined by
+   * [defineAnalysisArguments] or `null` if none.
+   */
+  ArgResults argResults;
+
   /**
    * The file path of the file containing the summary of the SDK that should be
    * used to "analyze" the SDK. This option should only be specified by

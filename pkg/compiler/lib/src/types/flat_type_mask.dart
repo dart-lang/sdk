@@ -113,22 +113,22 @@ class FlatTypeMask implements TypeMask {
     // not track correctly the list of truly instantiated classes.
     BackendClasses backendClasses = closedWorld.backendClasses;
     if (containsOnlyString(closedWorld)) {
-      return cls == closedWorld.coreClasses.stringClass ||
+      return cls == closedWorld.commonElements.stringClass ||
           cls == backendClasses.stringImplementation;
     }
     if (containsOnlyBool(closedWorld)) {
-      return cls == closedWorld.coreClasses.boolClass ||
+      return cls == closedWorld.commonElements.boolClass ||
           cls == backendClasses.boolImplementation;
     }
     if (containsOnlyInt(closedWorld)) {
-      return cls == closedWorld.coreClasses.intClass ||
+      return cls == closedWorld.commonElements.intClass ||
           cls == backendClasses.intImplementation ||
           cls == backendClasses.positiveIntImplementation ||
           cls == backendClasses.uint32Implementation ||
           cls == backendClasses.uint31Implementation;
     }
     if (containsOnlyDouble(closedWorld)) {
-      return cls == closedWorld.coreClasses.doubleClass ||
+      return cls == closedWorld.commonElements.doubleClass ||
           cls == backendClasses.doubleImplementation;
     }
     return false;
@@ -158,7 +158,8 @@ class FlatTypeMask implements TypeMask {
     // TODO(herhut): Add check whether flatOther.base is superclass of
     //               all subclasses of this.base.
     if (flatOther.isSubclass) {
-      if (isSubtype) return (otherBase == closedWorld.coreClasses.objectClass);
+      if (isSubtype)
+        return (otherBase == closedWorld.commonElements.objectClass);
       return closedWorld.isSubclassOf(base, otherBase);
     }
     assert(flatOther.isSubtype);
@@ -172,7 +173,7 @@ class FlatTypeMask implements TypeMask {
 
   bool containsOnlyInt(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
-    return base == closedWorld.coreClasses.intClass ||
+    return base == closedWorld.commonElements.intClass ||
         base == backendClasses.intImplementation ||
         base == backendClasses.positiveIntImplementation ||
         base == backendClasses.uint31Implementation ||
@@ -181,7 +182,7 @@ class FlatTypeMask implements TypeMask {
 
   bool containsOnlyDouble(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
-    return base == closedWorld.coreClasses.doubleClass ||
+    return base == closedWorld.commonElements.doubleClass ||
         base == backendClasses.doubleImplementation;
   }
 
@@ -189,19 +190,19 @@ class FlatTypeMask implements TypeMask {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return containsOnlyInt(closedWorld) ||
         containsOnlyDouble(closedWorld) ||
-        base == closedWorld.coreClasses.numClass ||
+        base == closedWorld.commonElements.numClass ||
         base == backendClasses.numImplementation;
   }
 
   bool containsOnlyBool(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
-    return base == closedWorld.coreClasses.boolClass ||
+    return base == closedWorld.commonElements.boolClass ||
         base == backendClasses.boolImplementation;
   }
 
   bool containsOnlyString(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
-    return base == closedWorld.coreClasses.stringClass ||
+    return base == closedWorld.commonElements.stringClass ||
         base == backendClasses.stringImplementation;
   }
 
@@ -237,7 +238,7 @@ class FlatTypeMask implements TypeMask {
    */
   bool containsAll(ClosedWorld closedWorld) {
     if (isEmptyOrNull || isExact) return false;
-    return identical(base, closedWorld.coreClasses.objectClass);
+    return identical(base, closedWorld.commonElements.objectClass);
   }
 
   TypeMask union(TypeMask other, ClosedWorld closedWorld) {
@@ -292,7 +293,7 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(other, closedWorld));
     int combined;
     if ((isExact && other.isExact) ||
-        base == closedWorld.coreClasses.objectClass) {
+        base == closedWorld.commonElements.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
       // resulting union to be a subclass too. If either one of the
       // masks are nullable the result should be nullable too.

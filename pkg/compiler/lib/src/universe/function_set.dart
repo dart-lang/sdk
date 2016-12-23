@@ -13,13 +13,8 @@ import '../world.dart' show ClosedWorld;
 import 'selector.dart' show Selector;
 import 'world_builder.dart' show ReceiverConstraint;
 
-// TODO(kasperl): This actually holds getters and setters just fine
-// too and stricly they aren't functions. Maybe this needs a better
-// name -- something like ElementSet seems a bit too generic.
-class FunctionSet {
-  final ClosedWorld closedWorld;
+class FunctionSetBuilder {
   final Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
-  FunctionSet(this.closedWorld);
 
   FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 
@@ -40,6 +35,20 @@ class FunctionSet {
       node.remove(element);
     }
   }
+
+  FunctionSet close(ClosedWorld closedWorld) {
+    return new FunctionSet(closedWorld, nodes);
+  }
+}
+
+// TODO(kasperl): This actually holds getters and setters just fine
+// too and stricly they aren't functions. Maybe this needs a better
+// name -- something like ElementSet seems a bit too generic.
+class FunctionSet {
+  final ClosedWorld closedWorld;
+  final Map<String, FunctionSetNode> nodes;
+
+  FunctionSet(this.closedWorld, this.nodes);
 
   bool contains(Element element) {
     assert(element.isInstanceMember);
@@ -74,7 +83,7 @@ class FunctionSet {
         : new SelectorMask(
             selector,
             new TypeMask.subclass(
-                closedWorld.coreClasses.objectClass, closedWorld));
+                closedWorld.commonElements.objectClass, closedWorld));
   }
 
   /// Returns the set of functions that can be the target of a call to
@@ -279,8 +288,8 @@ class FullFunctionSetQuery implements FunctionSetQuery {
 
   @override
   TypeMask computeMask(ClosedWorld closedWorld) {
-    assert(
-        closedWorld.hasAnyStrictSubclass(closedWorld.coreClasses.objectClass));
+    assert(closedWorld
+        .hasAnyStrictSubclass(closedWorld.commonElements.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(
         functions.expand((element) {

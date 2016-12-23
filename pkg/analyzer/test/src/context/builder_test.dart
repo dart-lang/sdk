@@ -6,12 +6,14 @@ library analyzer.test.src.context.context_builder_test;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as path;
@@ -108,6 +110,33 @@ const Map<String, LibraryInfo> libraries = const {
   @failingTest
   void test_buildContext() {
     fail('Incomplete test');
+  }
+
+  void test_cmdline_options_override_options_file() {
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse(['--$enableStrictCallChecksFlag']);
+    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: createContextBuilderOptions(argResults));
+
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.enableSuperMixins = true;
+    expected.enableStrictCallChecks = true;
+
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+    pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+analyzer:
+  language:
+    enableSuperMixins : true
+    enableStrictCallChecks : false
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
   }
 
   void test_convertPackagesToMap_noPackages() {

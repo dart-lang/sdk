@@ -9,7 +9,7 @@ import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
@@ -97,7 +97,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   Resolution get resolution => compiler.resolution;
 
   DiagnosticReporter get reporter => compiler.reporter;
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CommonElements get commonElements => compiler.commonElements;
 
   void onInstantiatedType(InterfaceType type) {
     if (_unusedClasses.remove(type.element)) {
@@ -439,23 +439,23 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     for (var type in behavior.typesInstantiated) {
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
-          registerInstantiation(compiler.coreTypes.objectType);
+          registerInstantiation(compiler.commonElements.objectType);
         }
         continue;
       }
       if (type is InterfaceType) {
-        if (type == coreTypes.intType) {
+        if (type == commonElements.intType) {
           registerInstantiation(type);
-        } else if (type == coreTypes.doubleType) {
+        } else if (type == commonElements.doubleType) {
           registerInstantiation(type);
-        } else if (type == coreTypes.numType) {
-          registerInstantiation(coreTypes.doubleType);
-          registerInstantiation(coreTypes.intType);
-        } else if (type == coreTypes.stringType) {
+        } else if (type == commonElements.numType) {
+          registerInstantiation(commonElements.doubleType);
+          registerInstantiation(commonElements.intType);
+        } else if (type == commonElements.stringType) {
           registerInstantiation(type);
-        } else if (type == coreTypes.nullType) {
+        } else if (type == commonElements.nullType) {
           registerInstantiation(type);
-        } else if (type == coreTypes.boolType) {
+        } else if (type == commonElements.boolType) {
           registerInstantiation(type);
         } else if (compiler.types.isSubtype(
             type, backend.backendClasses.listImplementation.rawType)) {
@@ -564,8 +564,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsCallSend(
-        node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
+    return NativeBehavior.ofJsCallSend(node, reporter, compiler.parsingContext,
+        compiler.commonElements, resolver);
   }
 
   /**
@@ -580,7 +580,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   NativeBehavior resolveJsEmbeddedGlobalCall(
       Send node, ForeignResolver resolver) {
     return NativeBehavior.ofJsEmbeddedGlobalCallSend(
-        node, reporter, compiler.coreTypes, resolver);
+        node, reporter, compiler.commonElements, resolver);
   }
 
   /**
@@ -594,7 +594,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    */
   NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
     return NativeBehavior.ofJsBuiltinCallSend(
-        node, reporter, compiler.coreTypes, resolver);
+        node, reporter, compiler.commonElements, resolver);
   }
 }
 

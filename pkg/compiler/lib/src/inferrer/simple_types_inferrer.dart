@@ -9,7 +9,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/backend_helpers.dart';
@@ -47,9 +47,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   InferrerEngine(
       this.compiler, this.closedWorld, this.closedWorldRefiner, this.types);
 
-  CoreClasses get coreClasses => compiler.coreClasses;
-
-  CoreTypes get coreTypes => compiler.coreTypes;
+  CommonElements get commonElements => closedWorld.commonElements;
 
   /**
    * Records the default type of parameter [parameter].
@@ -234,19 +232,20 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     for (var type in typesReturned) {
       T mappedType;
       if (type == native.SpecialType.JsObject) {
-        mappedType = types.nonNullExact(coreClasses.objectClass);
-      } else if (type == coreTypes.stringType) {
+        mappedType = types.nonNullExact(commonElements.objectClass);
+      } else if (type == commonElements.stringType) {
         mappedType = types.stringType;
-      } else if (type == coreTypes.intType) {
+      } else if (type == commonElements.intType) {
         mappedType = types.intType;
-      } else if (type == coreTypes.numType || type == coreTypes.doubleType) {
+      } else if (type == commonElements.numType ||
+          type == commonElements.doubleType) {
         // Note: the backend double class is specifically for non-integer
         // doubles, and a native behavior returning 'double' does not guarantee
         // a non-integer return type, so we return the number type for those.
         mappedType = types.numType;
-      } else if (type == coreTypes.boolType) {
+      } else if (type == commonElements.boolType) {
         mappedType = types.boolType;
-      } else if (type == coreTypes.nullType) {
+      } else if (type == commonElements.nullType) {
         mappedType = types.nullType;
       } else if (type.isVoid) {
         mappedType = types.nullType;
@@ -1416,7 +1415,7 @@ class SimpleTypeInferrerVisitor<T>
     ClassElement cls = outermostElement.enclosingClass.declaration;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      element = compiler.coreClasses.objectClass
+      element = compiler.commonElements.objectClass
           .lookupMember(Identifiers.noSuchMethod_);
     }
     return handleStaticSend(node, selector, mask, element, arguments);

@@ -273,7 +273,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return nullType;
-    if (annotation.element == closedWorld.coreClasses.objectClass &&
+    if (annotation.element == closedWorld.commonElements.objectClass &&
         isNullable) {
       return type;
     }
@@ -285,7 +285,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return type;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = annotation.element == closedWorld.coreClasses.objectClass
+      otherType = annotation.element == closedWorld.commonElements.objectClass
           ? dynamicType.type.nonNullable()
           : new TypeMask.nonNullSubtype(annotation.element, closedWorld);
     }

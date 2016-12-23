@@ -7,7 +7,7 @@
 library elements.common;
 
 import '../common/names.dart' show Identifiers, Names, Uris;
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
 import '../util/util.dart' show Link;
 import 'elements.dart';
@@ -439,8 +439,9 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   @override
-  bool implementsFunction(CoreClasses coreClasses) {
-    return asInstanceOf(coreClasses.functionClass) != null || callType != null;
+  bool implementsFunction(CommonElements commonElements) {
+    return asInstanceOf(commonElements.functionClass) != null ||
+        callType != null;
   }
 
   @override

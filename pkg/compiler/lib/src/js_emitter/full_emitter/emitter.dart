@@ -15,7 +15,7 @@ import '../../common.dart';
 import '../../common/names.dart' show Names;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../core_types.dart' show CoreClasses;
+import '../../core_types.dart' show CommonElements;
 import '../../dart_types.dart' show DartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
@@ -127,7 +127,7 @@ class Emitter implements js_emitter.Emitter {
   ConstantEmitter constantEmitter;
   NativeEmitter get nativeEmitter => task.nativeEmitter;
   TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -367,7 +367,7 @@ class Emitter implements js_emitter.Emitter {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
         return jsAst.js
-            .expressionTemplateYielding(typeAccess(coreClasses.objectClass));
+            .expressionTemplateYielding(typeAccess(commonElements.objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = namer.operatorIsPrefix.length;
@@ -440,13 +440,13 @@ class Emitter implements js_emitter.Emitter {
   /// In minified mode we want to keep the name for the most common core types.
   bool _isNativeTypeNeedingReflectionName(Element element) {
     if (!element.isClass) return false;
-    return (element == coreClasses.intClass ||
-        element == coreClasses.doubleClass ||
-        element == coreClasses.numClass ||
-        element == coreClasses.stringClass ||
-        element == coreClasses.boolClass ||
-        element == coreClasses.nullClass ||
-        element == coreClasses.listClass);
+    return (element == commonElements.intClass ||
+        element == commonElements.doubleClass ||
+        element == commonElements.numClass ||
+        element == commonElements.stringClass ||
+        element == commonElements.boolClass ||
+        element == commonElements.nullClass ||
+        element == commonElements.listClass);
   }
 
   /// Returns the "reflection name" of an [Element] or [Selector].
@@ -1237,8 +1237,8 @@ class Emitter implements js_emitter.Emitter {
       // We can be pretty sure that the objectClass is initialized, since
       // typedefs are only emitted with reflection, which requires lots of
       // classes.
-      assert(coreClasses.objectClass != null);
-      builder.superName = namer.className(coreClasses.objectClass);
+      assert(commonElements.objectClass != null);
+      builder.superName = namer.className(commonElements.objectClass);
       jsAst.Node declaration = builder.toObjectInitializer();
       jsAst.Name mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);

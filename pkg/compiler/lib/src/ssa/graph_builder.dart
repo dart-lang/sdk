@@ -308,10 +308,6 @@ class ReifiedTypeRepresentationBuilder
     visitDynamicType(const DynamicType(), builder);
   }
 
-  void visitStatementType(StatementType type, GraphBuilder builder) {
-    throw 'not implemented visitStatementType($type)';
-  }
-
   void visitInterfaceType(InterfaceType type, GraphBuilder builder) {
     List<HInstruction> inputs = <HInstruction>[];
     for (DartType typeArgument in type.typeArguments) {

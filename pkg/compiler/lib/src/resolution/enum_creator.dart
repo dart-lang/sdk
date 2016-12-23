@@ -5,7 +5,7 @@
 library dart2js.resolution.enum_creator;
 
 import '../common.dart';
-import '../core_types.dart' show CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
@@ -199,18 +199,18 @@ class AstBuilder {
 // removed.
 class EnumCreator {
   final DiagnosticReporter reporter;
-  final CoreTypes coreTypes;
+  final CommonElements commonElements;
   final EnumClassElementX enumClass;
 
-  EnumCreator(this.reporter, this.coreTypes, this.enumClass);
+  EnumCreator(this.reporter, this.commonElements, this.enumClass);
 
   void createMembers() {
     Enum node = enumClass.node;
     InterfaceType enumType = enumClass.thisType;
     AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
-    InterfaceType intType = coreTypes.intType;
-    InterfaceType stringType = coreTypes.stringType;
+    InterfaceType intType = commonElements.intType;
+    InterfaceType stringType = commonElements.stringType;
 
     EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
       Identifier identifier = builder.identifier(name);
@@ -281,7 +281,7 @@ class EnumCreator {
 
     VariableList valuesVariableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    valuesVariableList.type = coreTypes.listType(enumType);
+    valuesVariableList.type = commonElements.listType(enumType);
 
     Identifier valuesIdentifier = builder.identifier('values');
     // TODO(johnniwinther): Add type argument.

@@ -18,7 +18,7 @@ const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
-const String enableSuperInMixinFlag = 'supermixin';
+const String enableSuperMixinFlag = 'supermixin';
 const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
 const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
@@ -29,11 +29,33 @@ const String sdkSummaryPathOption = 'dart-sdk-summary';
 const String strongModeFlag = 'strong';
 
 /**
+ * Update [options] with the value of each analysis option command line flag.
+ */
+void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
+  if (args.wasParsed(enableStrictCallChecksFlag)) {
+    options.enableStrictCallChecks = args[enableStrictCallChecksFlag];
+  }
+  if (args.wasParsed(enableSuperMixinFlag)) {
+    options.enableSuperMixins = args[enableSuperMixinFlag];
+  }
+  if (args.wasParsed(noImplicitCastsFlag)) {
+    options.implicitCasts = !args[noImplicitCastsFlag];
+  }
+  if (args.wasParsed(noImplicitDynamicFlag)) {
+    options.implicitDynamic = !args[noImplicitDynamicFlag];
+  }
+  if (args.wasParsed(strongModeFlag)) {
+    options.strongMode = args[strongModeFlag];
+  }
+}
+
+/**
  * Use the given [resourceProvider], [contentCache] and command-line [args] to
  * create a context builder.
  */
 ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+  builderOptions.argResults = args;
   //
   // File locations.
   //
@@ -46,11 +68,7 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   // Analysis options.
   //
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-  defaultOptions.enableStrictCallChecks = args[enableStrictCallChecksFlag];
-  defaultOptions.enableSuperMixins = args[enableSuperInMixinFlag];
-  defaultOptions.implicitCasts = !args[noImplicitCastsFlag];
-  defaultOptions.implicitDynamic = !args[noImplicitDynamicFlag];
-  defaultOptions.strongMode = args[strongModeFlag];
+  applyAnalysisOptionFlags(defaultOptions, args);
   builderOptions.defaultOptions = defaultOptions;
   //
   // Declared variables.
@@ -163,7 +181,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide || ddc);
-  parser.addFlag(enableSuperInMixinFlag,
+  parser.addFlag(enableSuperMixinFlag,
       help: 'Relax restrictions on mixins (DEP 34).',
       defaultsTo: false,
       negatable: false,

@@ -538,7 +538,7 @@ class _OptionsProcessor {
       if (feature == AnalyzerOptions.enableAssertInitializer) {
         options.enableAssertInitializer = boolValue;
       } else if (feature == AnalyzerOptions.enableStrictCallChecks) {
-        options.enableStrictCallChecks = true;
+        options.enableStrictCallChecks = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
       }

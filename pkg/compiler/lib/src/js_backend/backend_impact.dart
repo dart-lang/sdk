@@ -579,7 +579,7 @@ class BackendImpacts {
         // The backend will use a literal list to initialize the entries
         // of the map.
         globalClasses: [
-          helpers.coreClasses.listClass,
+          helpers.commonElements.listClass,
           helpers.mapLiteralClass
         ]);
   }
@@ -673,7 +673,7 @@ class BackendImpacts {
 
   BackendImpact get runtimeTypeSupport {
     return _runtimeTypeSupport ??= new BackendImpact(
-        globalClasses: [helpers.coreClasses.listClass],
+        globalClasses: [helpers.commonElements.listClass],
         globalUses: [helpers.setRuntimeTypeInfo, helpers.getRuntimeTypeInfo],
         otherImpacts: [getRuntimeTypeArgument, computeSignature]);
   }
@@ -684,7 +684,7 @@ class BackendImpacts {
     return _deferredLoading ??=
         new BackendImpact(globalUses: [helpers.checkDeferredIsLoaded],
             // Also register the types of the arguments passed to this method.
-            globalClasses: [helpers.coreClasses.stringClass]);
+            globalClasses: [helpers.commonElements.stringClass]);
   }
 
   BackendImpact _noSuchMethodSupport;

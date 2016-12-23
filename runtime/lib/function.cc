@@ -69,17 +69,7 @@ DEFINE_NATIVE_ENTRY(Closure_hashCode, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(receiver.function());
-  // Hash together name, class name and signature.
-  const Class& cls = Class::Handle(func.Owner());
-  intptr_t result = String::Handle(func.name()).Hash();
-  result += String::Handle(func.Signature()).Hash();
-  result += String::Handle(cls.Name()).Hash();
-  // Finalize hash value like for strings so that it fits into a smi.
-  result += result << 3;
-  result ^= result >> 11;
-  result += result << 15;
-  result &= ((static_cast<intptr_t>(1) << String::kHashBits) - 1);
-  return Smi::New(result);
+  return func.GetClosureHashCode();
 }
 
 

@@ -393,6 +393,14 @@ intptr_t RawClosureData::VisitClosureDataPointers(
 }
 
 
+intptr_t RawSignatureData::VisitSignatureDataPointers(
+    RawSignatureData* raw_obj,
+    ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return SignatureData::InstanceSize();
+}
+
+
 intptr_t RawRedirectionData::VisitRedirectionDataPointers(
     RawRedirectionData* raw_obj,
     ObjectPointerVisitor* visitor) {

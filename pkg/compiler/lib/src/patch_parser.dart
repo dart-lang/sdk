@@ -428,7 +428,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
 
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    DartType annotationType = constant.getType(compiler.coreTypes);
+    DartType annotationType = constant.getType(compiler.commonElements);
     if (annotationType.element !=
         compiler.commonElements.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
@@ -461,7 +461,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     JavaScriptBackend backend = compiler.backend;
-    if (constant.getType(compiler.coreTypes).element !=
+    if (constant.getType(compiler.commonElements).element !=
         backend.helpers.jsAnnotationClass) {
       compiler.reporter
           .internalError(annotation, 'Invalid @JS(...) annotation.');
@@ -497,7 +497,7 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
   @override
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    DartType annotationType = constant.getType(compiler.coreTypes);
+    DartType annotationType = constant.getType(compiler.commonElements);
     if (annotationType.element !=
         compiler.commonElements.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;

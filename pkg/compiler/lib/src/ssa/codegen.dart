@@ -2866,7 +2866,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
       registry.registerTypeUse(
-          new TypeUse.isCheck(compiler.coreTypes.functionType));
+          new TypeUse.isCheck(compiler.commonElements.functionType));
     }
     registry.registerTypeUse(new TypeUse.isCheck(type));
 

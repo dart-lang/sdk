@@ -10,7 +10,7 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
-import '../../core_types.dart' show CoreClasses;
+import '../../core_types.dart' show CommonElements;
 import '../../dart_types.dart' show DartType, FunctionType, TypedefType;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
@@ -327,11 +327,11 @@ class ProgramBuilder {
   }
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
-    if (_classes.containsKey(_compiler.coreClasses.objectClass)) {
+    if (_classes.containsKey(_compiler.commonElements.objectClass)) {
       var toStringInvocation = namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
-      _classes[_compiler.coreClasses.objectClass].callStubs.add(
+      _classes[_compiler.commonElements.objectClass].callStubs.add(
           _buildStubMethod(new StringBackedName("toString"),
               js.js('function() { return this.#(this) }', toStringInvocation)));
     }
@@ -396,13 +396,13 @@ class ProgramBuilder {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
                     _compiler.types.isSubtype(
-                        returnType, backend.coreTypes.functionType)) {
+                        returnType, backend.commonElements.functionType)) {
                   if (returnType.isTypedef) {
                     TypedefType typedef = returnType;
                     // TODO(jacobr): can we just use typdef.unaliased instead?
                     functionType = typedef.element.functionSignature.type;
                   } else {
-                    // Other misc function type such as coreTypes.Function.
+                    // Other misc function type such as commonElements.Function.
                     // Allow any number of arguments.
                     isFunctionLike = true;
                   }

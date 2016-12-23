@@ -110,14 +110,7 @@ void main(List<String> argv) {
 
     var libraryOut = path.join(sdkLibIn, library.path);
     var libraryIn;
-    if (mode == 'vm' && library.path.contains('typed_data.dart')) {
-      // dart:typed_data is unlike the other libraries in the SDK. The VM does
-      // not apply a patch to the base SDK implementation of the library.
-      // Instead, the VM provides a replacement implementation and ignores the
-      // sources in the SDK.
-      libraryIn =
-          path.join(dartDir, 'runtime', 'lib', 'typed_data.dart');
-    } else if (mode == 'ddc' && library.path.contains(INTERNAL_PATH)) {
+    if (mode == 'ddc' && library.path.contains(INTERNAL_PATH)) {
       libraryIn =
           path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
     } else {

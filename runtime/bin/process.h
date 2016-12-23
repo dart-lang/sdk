@@ -5,11 +5,16 @@
 #ifndef RUNTIME_BIN_PROCESS_H_
 #define RUNTIME_BIN_PROCESS_H_
 
+#include <errno.h>
+
 #include "bin/builtin.h"
 #include "bin/io_buffer.h"
 #include "bin/lockers.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
+#if !defined(TARGET_OS_WINDOWS)
+#include "platform/signal_blocker.h"
+#endif
 #include "platform/utils.h"
 
 namespace dart {
@@ -203,24 +208,30 @@ class BufferListBase {
    public:
     explicit BufferListNode(intptr_t size) {
       data_ = new uint8_t[size];
-      if (data_ == NULL) FATAL("Allocation failed");
+      // We check for a failed allocation below in Allocate()
       next_ = NULL;
     }
 
     ~BufferListNode() { delete[] data_; }
 
+    bool Valid() const { return data_ != NULL; }
+
+    uint8_t* data() const { return data_; }
+    BufferListNode* next() const { return next_; }
+    void set_next(BufferListNode* n) { next_ = n; }
+
+   private:
     uint8_t* data_;
     BufferListNode* next_;
 
-   private:
     DISALLOW_IMPLICIT_CONSTRUCTORS(BufferListNode);
   };
 
  public:
   BufferListBase() : head_(NULL), tail_(NULL), data_size_(0), free_size_(0) {}
   ~BufferListBase() {
-    ASSERT(head_ == NULL);
-    ASSERT(tail_ == NULL);
+    Free();
+    DEBUG_ASSERT(IsEmpty());
   }
 
   // Returns the collected data as a Uint8List. If an error occours an
@@ -234,9 +245,9 @@ class BufferListBase {
       return result;
     }
     for (BufferListNode* current = head_; current != NULL;
-         current = current->next_) {
+         current = current->next()) {
       intptr_t to_copy = dart::Utils::Minimum(data_size_, kBufferSize);
-      memmove(buffer + buffer_position, current->data_, to_copy);
+      memmove(buffer + buffer_position, current->data(), to_copy);
       buffer_position += to_copy;
       data_size_ -= to_copy;
     }
@@ -245,26 +256,36 @@ class BufferListBase {
     return result;
   }
 
+#if defined(DEBUG)
+  bool IsEmpty() const { return (head_ == NULL) && (tail_ == NULL); }
+#endif
+
  protected:
-  void Allocate() {
+  bool Allocate() {
     ASSERT(free_size_ == 0);
     BufferListNode* node = new BufferListNode(kBufferSize);
+    if ((node == NULL) || !node->Valid()) {
+      // Failed to allocate a buffer for the node.
+      delete node;
+      return false;
+    }
     if (head_ == NULL) {
       head_ = node;
       tail_ = node;
     } else {
-      ASSERT(tail_->next_ == NULL);
-      tail_->next_ = node;
+      ASSERT(tail_->next() == NULL);
+      tail_->set_next(node);
       tail_ = node;
     }
     free_size_ = kBufferSize;
+    return true;
   }
 
   void Free() {
     BufferListNode* current = head_;
     while (current != NULL) {
       BufferListNode* tmp = current;
-      current = current->next_;
+      current = current->next();
       delete tmp;
     }
     head_ = NULL;
@@ -275,9 +296,19 @@ class BufferListBase {
 
   // Returns the address of the first byte in the free space.
   uint8_t* FreeSpaceAddress() {
-    return tail_->data_ + (kBufferSize - free_size_);
+    return tail_->data() + (kBufferSize - free_size_);
   }
 
+  intptr_t data_size() const { return data_size_; }
+  void set_data_size(intptr_t size) { data_size_ = size; }
+
+  intptr_t free_size() const { return free_size_; }
+  void set_free_size(intptr_t size) { free_size_ = size; }
+
+  BufferListNode* head() const { return head_; }
+  BufferListNode* tail() const { return tail_; }
+
+ private:
   // Linked list for data collected.
   BufferListNode* head_;
   BufferListNode* tail_;
@@ -288,9 +319,48 @@ class BufferListBase {
   // Number of free bytes in the last node in the list.
   intptr_t free_size_;
 
- private:
   DISALLOW_COPY_AND_ASSIGN(BufferListBase);
 };
+
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_FUCHSIA) ||                \
+    defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+class BufferList : public BufferListBase {
+ public:
+  BufferList() {}
+
+  bool Read(int fd, intptr_t available) {
+    // Read all available bytes.
+    while (available > 0) {
+      if (free_size() == 0) {
+        if (!Allocate()) {
+          errno = ENOMEM;
+          return false;
+        }
+      }
+      ASSERT(free_size() > 0);
+      ASSERT(free_size() <= kBufferSize);
+      intptr_t block_size = dart::Utils::Minimum(free_size(), available);
+#if defined(TARGET_OS_FUCHSIA)
+      intptr_t bytes = NO_RETRY_EXPECTED(
+          read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
+#else
+      intptr_t bytes = TEMP_FAILURE_RETRY(
+          read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
+#endif  // defined(TARGET_OS_FUCHSIA)
+      if (bytes < 0) {
+        return false;
+      }
+      set_data_size(data_size() + bytes);
+      set_free_size(free_size() - bytes);
+      available -= bytes;
+    }
+    return true;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BufferList);
+};
+#endif  // defined(TARGET_OS_ANDROID) ...
 
 }  // namespace bin
 }  // namespace dart

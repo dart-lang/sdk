@@ -31,9 +31,10 @@ def to_command_line(gn_args):
 
 def host_cpu_for_arch(arch):
   if arch in ['ia32', 'arm', 'armv6', 'armv5te', 'mips',
-              'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc']:
+              'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc',
+              'armsimdbc']:
     return 'x86'
-  if arch in ['x64', 'arm64', 'simarm64', 'simdbc64']:
+  if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
     return 'x64'
 
 
@@ -48,6 +49,10 @@ def target_cpu_for_arch(arch, target_os):
     return 'arm' if target_os == 'android' else 'x86'
   if arch == 'simdbc64':
     return 'arm64' if target_os == 'android' else 'x64'
+  if arch == 'armsimdbc':
+    return 'arm'
+  if arch == 'armsimdbc64':
+    return 'arm64'
   return arch
 
 
@@ -169,7 +174,7 @@ def process_options(args):
   for arch in args.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64', 'armsimdbc']
+             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False

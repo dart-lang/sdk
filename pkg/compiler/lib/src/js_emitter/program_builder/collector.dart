@@ -45,7 +45,7 @@ class Collector {
 
   BackendHelpers get helpers => backend.helpers;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   Collector(this.compiler, this.namer, this.closedWorld, this.rtiNeededClasses,
       this.emitter);
@@ -73,7 +73,7 @@ class Collector {
     Set<ClassElement> unneededClasses = new Set<ClassElement>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
-    unneededClasses.add(coreClasses.boolClass);
+    unneededClasses.add(commonElements.boolClass);
 
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
@@ -89,7 +89,7 @@ class Collector {
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
       if (!needed.contains(interceptor) &&
-          interceptor != coreClasses.objectClass) {
+          interceptor != commonElements.objectClass) {
         unneededClasses.add(interceptor);
       }
     }
@@ -220,22 +220,22 @@ class Collector {
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
     if (neededClasses.contains(helpers.jsIntClass)) {
-      neededClasses.add(coreClasses.intClass);
+      neededClasses.add(commonElements.intClass);
     }
     if (neededClasses.contains(helpers.jsDoubleClass)) {
-      neededClasses.add(coreClasses.doubleClass);
+      neededClasses.add(commonElements.doubleClass);
     }
     if (neededClasses.contains(helpers.jsNumberClass)) {
-      neededClasses.add(coreClasses.numClass);
+      neededClasses.add(commonElements.numClass);
     }
     if (neededClasses.contains(helpers.jsStringClass)) {
-      neededClasses.add(coreClasses.stringClass);
+      neededClasses.add(commonElements.stringClass);
     }
     if (neededClasses.contains(helpers.jsBoolClass)) {
-      neededClasses.add(coreClasses.boolClass);
+      neededClasses.add(commonElements.boolClass);
     }
     if (neededClasses.contains(helpers.jsArrayClass)) {
-      neededClasses.add(coreClasses.listClass);
+      neededClasses.add(commonElements.listClass);
     }
 
     // 4. Finally, sort the classes.

@@ -17,7 +17,13 @@ import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
-    show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
+    show
+        ClassElement,
+        Element,
+        FunctionElement,
+        MemberElement,
+        MethodElement,
+        LibraryElement;
 import '../elements/entities.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
@@ -151,15 +157,6 @@ abstract class Backend extends Target {
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound) {}
 
-  /// Called to register that an instantiated generic class has a call method.
-  /// Any backend specific [WorldImpact] of this is returned.
-  ///
-  /// Note: The [callMethod] is registered even thought it doesn't reference
-  /// the type variables.
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
-          {bool forResolution}) =>
-      const WorldImpact();
-
   /// Called to instruct the backend to register that a closure exists for a
   /// function on an instantiated generic class. Any backend specific
   /// [WorldImpact] of this is returned.
@@ -175,10 +172,6 @@ abstract class Backend extends Target {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction() => const WorldImpact();
 
-  /// Called to enable support for `noSuchMethod`. Any backend specific
-  /// [WorldImpact] of this is returned.
-  WorldImpact enableNoSuchMethod() => const WorldImpact();
-
   /// Returns whether or not `noSuchMethod` support has been enabled.
   bool get enabledNoSuchMethod => false;
 
@@ -189,7 +182,7 @@ abstract class Backend extends Target {
   void registerConstSymbol(String name) {}
 
   ClassElement defaultSuperclass(ClassElement element) {
-    return compiler.coreClasses.objectClass;
+    return compiler.commonElements.objectClass;
   }
 
   bool isInterceptorClass(ClassElement element) => false;
@@ -218,7 +211,8 @@ abstract class Backend extends Target {
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerUsedElement(Element element, {bool forResolution}) =>
+  WorldImpact registerUsedElement(MemberElement element,
+          {bool forResolution}) =>
       const WorldImpact();
 
   /// This method is called immediately after the [LibraryElement] [library] has

@@ -154,6 +154,15 @@ bool isDartFunctionTypeRti(Object type) {
                     JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
 
+/// Returns true if the given [type] is _the_ `Null` type.
+@ForceInline()
+bool isNullType(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+      JsBuiltin.isGivenTypeRti,
+      type,
+      JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
+}
+
 /// Returns whether the given type is _the_ Dart Object type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()

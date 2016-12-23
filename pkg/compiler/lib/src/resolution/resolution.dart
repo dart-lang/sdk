@@ -19,7 +19,7 @@ import '../constants/expressions.dart'
         ConstructedConstantExpression,
         ErroneousConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CoreClasses, CoreTypes, CommonElements;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -72,13 +72,11 @@ class ResolverTask extends CompilerTask {
 
   DiagnosticReporter get reporter => resolution.reporter;
   Target get target => resolution.target;
-  CoreTypes get coreTypes => resolution.coreTypes;
-  CoreClasses get coreClasses => resolution.coreClasses;
   CommonElements get commonElements => resolution.commonElements;
   ParsingContext get parsingContext => resolution.parsingContext;
   CompilerOptions get options => resolution.options;
   ResolutionEnqueuer get enqueuer => resolution.enqueuer;
-  OpenWorld get world => enqueuer.universe.openWorld;
+  OpenWorld get world => enqueuer.universe;
 
   ResolutionImpact resolve(Element element) {
     return measure(() {
@@ -146,7 +144,7 @@ class ResolverTask extends CompilerTask {
   static void processAsyncMarker(Resolution resolution,
       BaseFunctionElementX element, ResolutionRegistry registry) {
     DiagnosticReporter reporter = resolution.reporter;
-    CoreClasses coreClasses = resolution.coreClasses;
+    CommonElements commonElements = resolution.commonElements;
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
@@ -189,15 +187,15 @@ class ResolverTask extends CompilerTask {
         switch (element.asyncMarker) {
           case AsyncMarker.ASYNC:
             registry.registerFeature(Feature.ASYNC);
-            coreClasses.futureClass.ensureResolved(resolution);
+            commonElements.futureClass.ensureResolved(resolution);
             break;
           case AsyncMarker.ASYNC_STAR:
             registry.registerFeature(Feature.ASYNC_STAR);
-            coreClasses.streamClass.ensureResolved(resolution);
+            commonElements.streamClass.ensureResolved(resolution);
             break;
           case AsyncMarker.SYNC_STAR:
             registry.registerFeature(Feature.SYNC_STAR);
-            coreClasses.iterableClass.ensureResolved(resolution);
+            commonElements.iterableClass.ensureResolved(resolution);
             break;
         }
       }
@@ -539,7 +537,8 @@ class ResolverTask extends CompilerTask {
             from, MessageKind.CYCLIC_CLASS_HIERARCHY, {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
         cls.hasIncompleteHierarchy = true;
-        cls.allSupertypesAndSelf = coreClasses.objectClass.allSupertypesAndSelf
+        cls.allSupertypesAndSelf = commonElements
+            .objectClass.allSupertypesAndSelf
             .extendClass(cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,

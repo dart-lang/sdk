@@ -6,7 +6,7 @@ library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -39,9 +39,9 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         scope = Scope.buildEnclosingScope(element),
         super(resolution, registry);
 
-  CoreTypes get coreTypes => resolution.coreTypes;
+  CommonElements get commonElements => resolution.commonElements;
 
-  DartType get objectType => coreTypes.objectType;
+  DartType get objectType => commonElements.objectType;
 
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
@@ -243,7 +243,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
 
     EnumCreator creator =
-        new EnumCreator(reporter, resolution.coreTypes, element);
+        new EnumCreator(reporter, resolution.commonElements, element);
     creator.createMembers();
     return enumType;
   }
@@ -535,10 +535,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     final DartType supertype = cls.supertype;
     if (supertype != null) {
       cls.allSupertypesAndSelf = new OrderedTypeSetBuilder(cls,
-              reporter: reporter, objectType: coreTypes.objectType)
+              reporter: reporter, objectType: commonElements.objectType)
           .createOrderedTypeSet(supertype, cls.interfaces);
     } else {
-      assert(cls == resolution.coreClasses.objectClass);
+      assert(cls == resolution.commonElements.objectClass);
       cls.allSupertypesAndSelf =
           new OrderedTypeSet.singleton(cls.computeType(resolution));
     }
@@ -549,12 +549,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return !identical(lib, resolution.commonElements.coreLibrary) &&
         !resolution.target.isTargetSpecificLibrary(lib) &&
         (type.isDynamic ||
-            type == coreTypes.boolType ||
-            type == coreTypes.numType ||
-            type == coreTypes.intType ||
-            type == coreTypes.doubleType ||
-            type == coreTypes.stringType ||
-            type == coreTypes.nullType);
+            type == commonElements.boolType ||
+            type == commonElements.numType ||
+            type == commonElements.intType ||
+            type == commonElements.doubleType ||
+            type == commonElements.stringType ||
+            type == commonElements.nullType);
   }
 }
 
@@ -567,7 +567,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
         this.classElement = cls,
         super(resolution);
 
-  CoreClasses get coreClasses => resolution.coreClasses;
+  CommonElements get commonElements => resolution.commonElements;
 
   void loadSupertype(ClassElement element, Node from) {
     if (!element.isResolved) {
@@ -586,8 +586,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitClassNode(ClassNode node) {
     if (node.superclass == null) {
-      if (classElement != coreClasses.objectClass) {
-        loadSupertype(coreClasses.objectClass, node);
+      if (classElement != commonElements.objectClass) {
+        loadSupertype(commonElements.objectClass, node);
       }
     } else {
       node.superclass.accept(this);
@@ -596,7 +596,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitEnum(Enum node) {
-    loadSupertype(coreClasses.objectClass, node);
+    loadSupertype(commonElements.objectClass, node);
   }
 
   void visitMixinApplication(MixinApplication node) {

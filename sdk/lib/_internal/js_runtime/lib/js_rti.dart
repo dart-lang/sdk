@@ -448,12 +448,13 @@ bool isSubtype(var s, var t) {
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
   if (s == null || t == null) return true;
+  if (isNullType(s)) return true;
   if (isDartFunctionType(t)) {
     return isFunctionSubtype(s, t);
   }
-  // Check function types against the Function class.
+  // Check function types against the Function class and the Object class.
   if (isDartFunctionType(s)) {
-    return isDartFunctionTypeRti(t);
+    return isDartFunctionTypeRti(t) || isDartObjectTypeRti(t);
   }
 
   // Get the object describing the class and check for the subtyping flag

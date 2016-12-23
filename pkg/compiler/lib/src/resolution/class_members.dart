@@ -310,7 +310,7 @@ abstract class MembersCreator {
   void checkImplementsFunctionWithCall() {
     assert(!cls.isAbstract);
 
-    ClassElement functionClass = resolution.coreClasses.functionClass;
+    ClassElement functionClass = resolution.commonElements.functionClass;
     functionClass.ensureResolved(resolution);
     if (cls.asInstanceOf(functionClass) == null) return;
     if (cls.lookupMember(Identifiers.call) != null) return;

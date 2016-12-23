@@ -69,7 +69,7 @@ void main() {
         }
 
         var intMask =
-            new TypeMask.subtype(compiler.coreClasses.intClass, closedWorld);
+            new TypeMask.subtype(compiler.commonElements.intClass, closedWorld);
 
         checkReturn('foo', intMask);
         checkReturn('faa', intMask);

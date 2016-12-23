@@ -17,6 +17,7 @@ typedef int int_2();
 typedef Object Object_();
 typedef double double_();
 typedef void void__int(int i);
+typedef void void__Object(Object o);
 typedef int int__int(int i);
 typedef int int__int2(int i);
 typedef int int__Object(Object o);
@@ -69,6 +70,8 @@ main() {
   Expect.isFalse(new C<int__int_int>() is C<int__int>);
   // (()->void) -> void <: ((int)->void) -> void
   Expect.isFalse(new C<inline_void_>() is C<inline_void__int>);
+  // (Object) -> void <: ((int)->void) -> void
+  Expect.isTrue(new C<void__Object>() is C<inline_void__int>);
   // ((int)->void) -> void <: (()->void) -> void
   Expect.isFalse(new C<inline_void__int>() is C<inline_void_>);
 }

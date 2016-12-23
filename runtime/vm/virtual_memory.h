@@ -73,7 +73,7 @@ class VirtualMemory {
 
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
-  static bool FreeSubSegment(void* address, intptr_t size);
+  static bool FreeSubSegment(int32_t handle, void* address, intptr_t size);
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.

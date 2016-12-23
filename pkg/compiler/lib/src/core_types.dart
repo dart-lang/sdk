@@ -14,8 +14,8 @@ import 'elements/elements.dart'
         LibraryElement,
         Element;
 
-/// The core classes in Dart.
-abstract class CoreClasses {
+/// The common elements and types in Dart.
+abstract class CommonElements {
   /// The `Object` class defined in 'dart:core'.
   ClassElement get objectClass;
 
@@ -61,15 +61,12 @@ abstract class CoreClasses {
   /// The `Iterable` class defined in 'dart:core';
   ClassElement get iterableClass;
 
-  /// The `Future` class defined in 'async';
+  /// The `Future` class defined in 'async';.
   ClassElement get futureClass;
 
   /// The `Stream` class defined in 'async';
   ClassElement get streamClass;
-}
 
-/// TODO(sigmund): delete CoreClasses and merge it here.
-abstract class CommonElements extends CoreClasses {
   /// The dart:core library.
   LibraryElement get coreLibrary;
 
@@ -136,10 +133,7 @@ abstract class CommonElements extends CoreClasses {
 
   /// The 'filled' constructor of `List`.
   ConstructorElement get filledListConstructor;
-}
 
-/// The core types in Dart.
-abstract class CoreTypes {
   /// The `Object` type defined in 'dart:core'.
   InterfaceType get objectType;
 
@@ -193,9 +187,6 @@ abstract class CoreTypes {
   ///
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType iterableType([DartType elementType]);
-
-  /// The `Future` class declaration.
-  ClassElement get futureClass;
 
   /// Returns an instance of the `Future` type defined in 'dart:async' with
   /// [elementType] as its type argument.

@@ -162,8 +162,10 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
   checkClassHierarchyNodes(
       closedWorld1,
       closedWorld2,
-      closedWorld1.getClassHierarchyNode(closedWorld1.coreClasses.objectClass),
-      closedWorld2.getClassHierarchyNode(closedWorld2.coreClasses.objectClass),
+      closedWorld1
+          .getClassHierarchyNode(closedWorld1.commonElements.objectClass),
+      closedWorld2
+          .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
       verbose: verbose);
 }
 
@@ -334,10 +336,10 @@ void checkClassHierarchyNodes(
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');
-        print(closedWorld1
-            .dump(verbose ? closedWorld1.coreClasses.objectClass : node1.cls));
-        print(closedWorld2
-            .dump(verbose ? closedWorld2.coreClasses.objectClass : node2.cls));
+        print(closedWorld1.dump(
+            verbose ? closedWorld1.commonElements.objectClass : node1.cls));
+        print(closedWorld2.dump(
+            verbose ? closedWorld2.commonElements.objectClass : node2.cls));
       }
       Expect.isFalse(
           child.isInstantiated,

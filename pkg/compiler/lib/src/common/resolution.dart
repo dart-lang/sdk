@@ -9,13 +9,12 @@ import '../compile_time_constants.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CoreClasses, CoreTypes, CommonElements;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart' show DartType, Types;
 import '../elements/elements.dart'
     show
         AstElement,
         ClassElement,
-        ConstructorElement,
         Element,
         ExecutableElement,
         FunctionElement,
@@ -127,8 +126,6 @@ abstract class Target {
 abstract class Resolution implements Frontend {
   ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
-  CoreClasses get coreClasses;
-  CoreTypes get coreTypes;
   CommonElements get commonElements;
   Types get types;
   Target get target;

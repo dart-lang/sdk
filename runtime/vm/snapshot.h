@@ -77,6 +77,7 @@ class RawPcDescriptors;
 class RawReceivePort;
 class RawRedirectionData;
 class RawScript;
+class RawSignatureData;
 class RawSendPort;
 class RawSmi;
 class RawStackMap;
@@ -542,6 +543,7 @@ class SnapshotReader : public BaseReader {
   friend class PatchClass;
   friend class RedirectionData;
   friend class Script;
+  friend class SignatureData;
   friend class SubtypeTestCache;
   friend class TokenStream;
   friend class Type;

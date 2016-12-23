@@ -9,7 +9,7 @@ import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart' show CoreClasses, CommonElements;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
@@ -807,7 +807,7 @@ class Elements {
         closedWorld.backendClasses.isNative(cls) &&
         closedWorld.isSubtypeOf(
             cls, closedWorld.commonElements.typedDataClass) &&
-        closedWorld.isSubtypeOf(cls, closedWorld.coreClasses.listClass) &&
+        closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
         constructor.name == '';
   }
 
@@ -1544,7 +1544,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns `true` if this class implements [Function] either by directly
   /// implementing the interface or by providing a [call] method.
-  bool implementsFunction(CoreClasses coreClasses);
+  bool implementsFunction(CommonElements commonElements);
 
   /// Returns `true` if this class extends [cls] directly or indirectly.
   ///

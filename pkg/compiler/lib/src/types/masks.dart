@@ -69,11 +69,11 @@ class CommonMasks {
   TypeMask _unmodifiableArrayType;
   TypeMask _interceptorType;
 
-  TypeMask get dynamicType => _dynamicType ??=
-      new TypeMask.subclass(closedWorld.coreClasses.objectClass, closedWorld);
+  TypeMask get dynamicType => _dynamicType ??= new TypeMask.subclass(
+      closedWorld.commonElements.objectClass, closedWorld);
 
   TypeMask get nonNullType => _nonNullType ??= new TypeMask.nonNullSubclass(
-      closedWorld.coreClasses.objectClass, closedWorld);
+      closedWorld.commonElements.objectClass, closedWorld);
 
   TypeMask get intType => _intType ??= new TypeMask.nonNullSubclass(
       backendClasses.intImplementation, closedWorld);

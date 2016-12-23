@@ -69,6 +69,7 @@ uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 jsinterop/world_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
+kernel/impact_test: Skip # Times out. Issue 28157
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one

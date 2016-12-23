@@ -8,8 +8,7 @@ import 'dart:collection' show Queue;
 
 import 'cache_strategy.dart';
 import 'common/backend_api.dart' show Backend;
-import 'common/names.dart' show Identifiers;
-import 'common/resolution.dart' show Resolution, ResolutionWorkItem;
+import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -19,7 +18,6 @@ import 'dart_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
     show
         AnalyzableElement,
-        AstElement,
         ClassElement,
         ConstructorElement,
         Element,
@@ -70,6 +68,7 @@ class EnqueueTask extends CompilerTask {
 }
 
 abstract class Enqueuer {
+  // TODO(johnniwinther): Rename to `worldBuilder`.
   WorldBuilder get universe;
   native.NativeEnqueuer get nativeEnqueuer;
   void forgetEntity(Entity entity, Compiler compiler);
@@ -137,13 +136,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final EnqueuerStrategy strategy;
   final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   final ResolutionWorldBuilderImpl _universe;
+  final WorkItemBuilder _workItemBuilder;
 
   bool queueIsClosed = false;
 
   WorldImpactVisitor _impactVisitor;
 
   /// All declaration elements that have been processed by the resolver.
-  final Set<Entity> _processedElements = new Set<Entity>();
+  final Set<Entity> _processedEntities = new Set<Entity>();
 
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
@@ -164,13 +164,12 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         this._resolution = resolution,
         this.nativeEnqueuer = backend.nativeResolutionEnqueuer(),
         _universe = new ResolutionWorldBuilderImpl(
-            backend, resolution, cacheStrategy, const TypeMaskStrategy()) {
+            backend, resolution, cacheStrategy, const OpenWorldStrategy()),
+        _workItemBuilder = new ResolutionWorkItemBuilder(resolution) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
   ResolutionWorldBuilder get universe => _universe;
-
-  OpenWorld get _openWorld => universe.openWorld;
 
   bool get queueIsEmpty => _queue.isEmpty;
 
@@ -300,7 +299,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type.isTypedef) {
-          universe.openWorld.registerTypedef(type.element);
+          universe.registerTypedef(type.element);
         }
         break;
     }
@@ -330,9 +329,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!_processedElements.contains(work.element)) {
+        if (!_processedEntities.contains(work.element)) {
           strategy.processWorkItem(f, work);
-          _processedElements.add(work.element);
+          _processedEntities.add(work.element);
         }
       }
       List recents = _recentClasses.toList(growable: false);
@@ -344,13 +343,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void logSummary(log(message)) {
-    log('Resolved ${_processedElements.length} elements.');
+    log('Resolved ${_processedEntities.length} elements.');
     nativeEnqueuer.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';
 
-  Iterable<Entity> get processedEntities => _processedElements;
+  Iterable<Entity> get processedEntities => _processedEntities;
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
@@ -358,37 +357,32 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   /// Returns `true` if [element] has been processed by the resolution enqueuer.
   // TODO(johnniwinther): Move this to the [OpenWorld]/[ResolutionWorldBuilder].
-  bool hasBeenProcessed(Element element) {
+  bool hasBeenProcessed(MemberElement element) {
     assert(invariant(element, element == element.analyzableElement.declaration,
         message: "Unexpected element $element"));
-    return _processedElements.contains(element);
+    return _processedEntities.contains(element);
   }
 
-  /// Registers [element] as processed by the resolution enqueuer. Used only for
+  /// Registers [entity] as processed by the resolution enqueuer. Used only for
   /// testing.
-  void registerProcessedElementInternal(AstElement element) {
-    _processedElements.add(element);
+  void registerProcessedElementInternal(Entity entity) {
+    _processedEntities.add(entity);
   }
 
-  /// Adds [element] to the work list if it has not already been processed.
-  ///
-  /// Invariant: [element] must be a declaration element.
-  void _addToWorkList(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    if (element.isMalformed) return;
+  /// Create a [WorkItem] for [entity] and add it to the work list if it has not
+  /// already been processed.
+  void _addToWorkList(MemberEntity entity) {
+    if (hasBeenProcessed(entity)) return;
+    WorkItem workItem = _workItemBuilder.createWorkItem(entity);
+    if (workItem == null) return;
 
-    assert(invariant(element, element is AnalyzableElement,
-        message: 'Element $element is not analyzable.'));
-    if (hasBeenProcessed(element)) return;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(
-          element, "Resolution work list is closed. Trying to add $element.");
+          entity, "Resolution work list is closed. Trying to add $entity.");
     }
 
-    applyImpact(backend.registerUsedElement(element, forResolution: true));
-    _openWorld.registerUsedElement(element);
-
-    ResolutionWorkItem workItem = _resolution.createWorkItem(element);
+    applyImpact(backend.registerUsedElement(entity, forResolution: true));
+    _universe.registerUsedElement(entity);
     _queue.add(workItem);
   }
 
@@ -430,7 +424,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void forgetEntity(Entity entity, Compiler compiler) {
     _universe.forgetEntity(entity, compiler);
-    _processedElements.remove(entity);
+    _processedEntities.remove(entity);
   }
 }
 
@@ -530,4 +524,27 @@ class _DeferredAction {
   final _DeferredActionFunction action;
 
   _DeferredAction(this.element, this.action);
+}
+
+/// Interface for creating work items for enqueued member entities.
+abstract class WorkItemBuilder {
+  WorkItem createWorkItem(MemberEntity entity);
+}
+
+/// Builder that creates work item necessary for the resolution of a
+/// [MemberElement].
+class ResolutionWorkItemBuilder extends WorkItemBuilder {
+  final Resolution _resolution;
+
+  ResolutionWorkItemBuilder(this._resolution);
+
+  @override
+  WorkItem createWorkItem(MemberElement element) {
+    assert(invariant(element, element.isDeclaration));
+    if (element.isMalformed) return null;
+
+    assert(invariant(element, element is AnalyzableElement,
+        message: 'Element $element is not analyzable.'));
+    return _resolution.createWorkItem(element);
+  }
 }

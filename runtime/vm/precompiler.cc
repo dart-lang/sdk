@@ -678,7 +678,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:isolate", "_SendPortImpl", "send"},
     {"dart:typed_data", "ByteData", "ByteData."},
     {"dart:typed_data", "ByteData", "ByteData._view"},
-    {"dart:typed_data", "ByteBuffer", "ByteBuffer._New"},
+    {"dart:typed_data", "_ByteBuffer", "_ByteBuffer._New"},
     {"dart:_vmservice", "::", "_registerIsolate"},
     {"dart:_vmservice", "::", "boot"},
 #if !defined(PRODUCT)
@@ -2959,7 +2959,13 @@ void Precompiler::ResetPrecompilerState() {
   ASSERT(pending_functions_.Length() == 0);
   sent_selectors_.Clear();
   enqueued_functions_.Clear();
+
+  classes_to_retain_.Clear();
   consts_to_retain_.Clear();
+  fields_to_retain_.Clear();
+  functions_to_retain_.Clear();
+  typeargs_to_retain_.Clear();
+  types_to_retain_.Clear();
 
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);

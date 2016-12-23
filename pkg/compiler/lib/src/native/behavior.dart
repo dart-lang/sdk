@@ -8,7 +8,7 @@ import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
@@ -498,8 +498,12 @@ class NativeBehavior {
   }
 
   /// Compute the [NativeBehavior] for a [Send] node calling the 'JS' function.
-  static NativeBehavior ofJsCallSend(Send jsCall, DiagnosticReporter reporter,
-      ParsingContext parsing, CoreTypes coreTypes, ForeignResolver resolver) {
+  static NativeBehavior ofJsCallSend(
+      Send jsCall,
+      DiagnosticReporter reporter,
+      ParsingContext parsing,
+      CommonElements commonElements,
+      ForeignResolver resolver) {
     var argNodes = jsCall.arguments;
     if (argNodes.isEmpty || argNodes.tail.isEmpty) {
       reporter.reportErrorMessage(jsCall, MessageKind.WRONG_ARGUMENT_FOR_JS);
@@ -524,7 +528,7 @@ class NativeBehavior {
     String codeString = codeArgument.dartString.slowToString();
 
     return ofJsCall(specString, codeString, _typeLookup(specArgument, resolver),
-        specArgument, reporter, coreTypes);
+        specArgument, reporter, commonElements);
   }
 
   /// Compute the [NativeBehavior] for a call to the 'JS' function with the
@@ -535,7 +539,7 @@ class NativeBehavior {
       TypeLookup lookupType,
       Spannable spannable,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes) {
+      CommonElements commonElements) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
     //
@@ -576,8 +580,8 @@ class NativeBehavior {
         lookupType: lookupType,
         typesReturned: behavior.typesReturned,
         typesInstantiated: behavior.typesInstantiated,
-        objectType: coreTypes.objectType,
-        nullType: coreTypes.nullType);
+        objectType: commonElements.objectType,
+        nullType: commonElements.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
       new SideEffectsVisitor(behavior.sideEffects)
@@ -597,7 +601,7 @@ class NativeBehavior {
       String specString,
       TypeLookup lookupType,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes,
+      CommonElements commonElements,
       {List<String> validTags}) {
     void setSideEffects(SideEffects newEffects) {
       behavior.sideEffects.setTo(newEffects);
@@ -609,14 +613,14 @@ class NativeBehavior {
         setSideEffects: setSideEffects,
         typesReturned: behavior.typesReturned,
         typesInstantiated: behavior.typesInstantiated,
-        objectType: coreTypes.objectType,
-        nullType: coreTypes.nullType);
+        objectType: commonElements.objectType,
+        nullType: commonElements.nullType);
   }
 
   static NativeBehavior ofJsBuiltinCallSend(
       Send jsBuiltinCall,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes,
+      CommonElements commonElements,
       ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setTo(new SideEffects());
@@ -650,7 +654,7 @@ class NativeBehavior {
     String specString = specLiteral.dartString.slowToString();
 
     return ofJsBuiltinCall(specString, _typeLookup(jsBuiltinCall, resolver),
-        jsBuiltinCall, reporter, coreTypes);
+        jsBuiltinCall, reporter, commonElements);
   }
 
   static NativeBehavior ofJsBuiltinCall(
@@ -658,18 +662,18 @@ class NativeBehavior {
       TypeLookup lookupType,
       Spannable spannable,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes) {
+      CommonElements commonElements) {
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setTo(new SideEffects());
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, spannable, specString, lookupType, reporter, coreTypes);
+        behavior, spannable, specString, lookupType, reporter, commonElements);
     return behavior;
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCallSend(
       Send jsEmbeddedGlobalCall,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes,
+      CommonElements commonElements,
       ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
@@ -717,7 +721,7 @@ class NativeBehavior {
         _typeLookup(jsEmbeddedGlobalCall, resolver),
         jsEmbeddedGlobalCall,
         reporter,
-        coreTypes);
+        commonElements);
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCall(
@@ -725,7 +729,7 @@ class NativeBehavior {
       TypeLookup lookupType,
       Spannable spannable,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes) {
+      CommonElements commonElements) {
     NativeBehavior behavior = new NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript
@@ -733,7 +737,7 @@ class NativeBehavior {
     behavior.sideEffects.setTo(new SideEffects.empty());
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, spannable, specString, lookupType, reporter, coreTypes,
+        behavior, spannable, specString, lookupType, reporter, commonElements,
         validTags: ['returns', 'creates']);
     return behavior;
   }
@@ -784,7 +788,7 @@ class NativeBehavior {
             : const DynamicType());
     if (!type.returnType.isVoid) {
       // Declared types are nullable.
-      behavior.typesReturned.add(compiler.coreTypes.nullType);
+      behavior.typesReturned.add(compiler.commonElements.nullType);
     }
     behavior._capture(type, compiler.resolution,
         isInterop: isJsInterop, compiler: compiler);
@@ -839,7 +843,7 @@ class NativeBehavior {
             ? type
             : const DynamicType());
     // Declared types are nullable.
-    behavior.typesReturned.add(resolution.coreTypes.nullType);
+    behavior.typesReturned.add(resolution.commonElements.nullType);
     behavior._capture(type, resolution,
         isInterop: isJsInterop, compiler: compiler);
     behavior._overrideWithAnnotations(

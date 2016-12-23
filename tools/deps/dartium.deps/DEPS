@@ -51,7 +51,7 @@ vars.update({
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@9d707158fedc86fc2b02f62cdfe804902b098d9d",
+  "pub_rev": "@d7649be15213c43669a40c33af516d8eb210e876",
   "pub_semver_tag": "@1.2.0",
   "quiver_tag": "@0.21.4",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",

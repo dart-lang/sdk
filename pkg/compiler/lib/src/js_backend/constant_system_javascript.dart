@@ -8,7 +8,7 @@ import '../compiler.dart' show Compiler;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CoreTypes;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart' show ClassElement, FieldElement;
 import '../tree/dartstring.dart' show DartString, LiteralDartString;
@@ -334,7 +334,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
     // integer type check is Math.floor, which will return true only
     // for real integers, and our double type check is 'typeof number'
     // which will return true for both integers and doubles.
-    if (s == types.coreTypes.intType && t == types.coreTypes.doubleType) {
+    if (s == types.commonElements.intType &&
+        t == types.commonElements.doubleType) {
       return true;
     }
     return types.isSubtype(s, t);
@@ -343,7 +344,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   MapConstantValue createMap(Compiler compiler, InterfaceType sourceType,
       List<ConstantValue> keys, List<ConstantValue> values) {
     JavaScriptBackend backend = compiler.backend;
-    CoreTypes coreTypes = compiler.coreTypes;
+    CommonElements commonElements = compiler.commonElements;
 
     bool onlyStringKeys = true;
     ConstantValue protoValue = null;
@@ -364,9 +365,9 @@ class JavaScriptConstantSystem extends ConstantSystem {
     bool hasProtoKey = (protoValue != null);
     DartType keysType;
     if (sourceType.treatAsRaw) {
-      keysType = coreTypes.listType();
+      keysType = commonElements.listType();
     } else {
-      keysType = coreTypes.listType(sourceType.typeArguments.first);
+      keysType = commonElements.listType(sourceType.typeArguments.first);
     }
     ListConstantValue keysList = new ListConstantValue(keysType, keys);
     String className = onlyStringKeys

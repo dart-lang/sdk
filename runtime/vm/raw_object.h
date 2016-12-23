@@ -22,6 +22,7 @@ namespace dart {
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
+  V(SignatureData)                                                             \
   V(RedirectionData)                                                           \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
@@ -861,7 +862,28 @@ class RawClosureData : public RawObject {
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->closure_); }
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->closure_);
+  }
+  RawObject* hash_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+
+  friend class Function;
+};
+
+
+class RawSignatureData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SignatureData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->parent_function_);
+  }
+  RawFunction* parent_function_;  // Enclosing function of this sig. function.
+  RawType* signature_type_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->signature_type_);
+  }
 
   friend class Function;
 };

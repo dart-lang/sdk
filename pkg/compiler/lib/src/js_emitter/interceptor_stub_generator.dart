@@ -162,7 +162,8 @@ class InterceptorStubGenerator {
       }''',
           [
             interceptorFor(helpers.jsJavaScriptFunctionClass),
-            backend.emitter.constructorAccess(compiler.coreClasses.objectClass),
+            backend.emitter
+                .constructorAccess(compiler.commonElements.objectClass),
             backend.emitter
                 .staticFunctionAccess(helpers.getNativeInterceptorMethod)
           ]));
@@ -171,7 +172,8 @@ class InterceptorStubGenerator {
       if (compiler.codegenWorld.directlyInstantiatedClasses
           .contains(jsUnknown)) {
         statements.add(js.statement('if (!(receiver instanceof #)) return #;', [
-          backend.emitter.constructorAccess(compiler.coreClasses.objectClass),
+          backend.emitter
+              .constructorAccess(compiler.commonElements.objectClass),
           interceptorFor(jsUnknown)
         ]));
       }
