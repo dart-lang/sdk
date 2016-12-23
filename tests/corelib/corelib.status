@@ -40,7 +40,7 @@ symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $unchecked ]
+[ ($compiler == none || $compiler == app_jit) && $unchecked ]
 iterable_generate_test/01: RuntimeError # Issue 28025
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
