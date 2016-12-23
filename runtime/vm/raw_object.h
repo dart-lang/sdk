@@ -862,7 +862,11 @@ class RawClosureData : public RawObject {
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->closure_); }
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->closure_);
+  }
+  RawObject* hash_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
 
   friend class Function;
 };

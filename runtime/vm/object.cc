@@ -6854,6 +6854,28 @@ RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
 }
 
 
+RawSmi* Function::GetClosureHashCode() const {
+  ASSERT(IsClosureFunction());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  if (ClosureData::Cast(obj).hash() != Object::null()) {
+    return Smi::RawCast(ClosureData::Cast(obj).hash());
+  }
+  // Hash not yet computed. Compute and cache it.
+  const Class& cls = Class::Handle(Owner());
+  intptr_t result = String::Handle(name()).Hash();
+  result += String::Handle(Signature()).Hash();
+  result += String::Handle(cls.Name()).Hash();
+  // Finalize hash value like for strings so that it fits into a smi.
+  result += result << 3;
+  result ^= result >> 11;
+  result += result << 15;
+  result &= ((static_cast<intptr_t>(1) << String::kHashBits) - 1);
+  ClosureData::Cast(obj).set_hash(result);
+  return Smi::New(result);
+}
+
+
 RawString* Function::BuildSignature(bool instantiate,
                                     NameVisibility name_visibility,
                                     const TypeArguments& instantiator) const {
@@ -7227,6 +7249,11 @@ void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   ASSERT(!closure.IsNull());
   ASSERT(raw_ptr()->closure_ == Instance::null());
   StorePointer(&raw_ptr()->closure_, closure.raw());
+}
+
+
+void ClosureData::set_hash(intptr_t value) const {
+  StorePointer(&raw_ptr()->hash_, static_cast<RawObject*>(Smi::New(value)));
 }
 
 

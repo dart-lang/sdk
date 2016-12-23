@@ -2347,6 +2347,8 @@ class Function : public Object {
 
   RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
+  RawSmi* GetClosureHashCode() const;
+
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
   RawType* RedirectionType() const;
@@ -3014,6 +3016,9 @@ class ClosureData : public Object {
 
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
+
+  RawObject* hash() const { return raw_ptr()->hash_; }
+  void set_hash(intptr_t value) const;
 
   static RawClosureData* New();
 

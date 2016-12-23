@@ -590,7 +590,8 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(),
+  // Cached hash is null-initialized by ClosureData::New()
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to_snapshot(),
                      kAsInlinedObject);
 
   return data.raw();
