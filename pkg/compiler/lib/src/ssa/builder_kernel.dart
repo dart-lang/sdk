@@ -226,15 +226,15 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
     var enclosing = constructor.enclosingClass;
     if (backend.classNeedsRti(astAdapter.getElement(enclosing))) {
+      ClassElement clsElement =
+          astAdapter.getElement(constructor).enclosingElement;
       enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
         var typeParamElement = astAdapter.getElement(typeParameter);
         HParameterValue param =
             addParameter(typeParamElement, commonMasks.nonNullType);
-        var dart_type = astAdapter.getDartType(typeParameter.bound);
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
-        var typeVariableType = (astAdapter.getElement(constructor))
-            .enclosingElement
+        var typeVariableType = clsElement
             .typeVariables
             .firstWhere((TypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
