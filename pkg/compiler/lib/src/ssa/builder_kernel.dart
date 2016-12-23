@@ -224,13 +224,21 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
-    var enclosing = astAdapter.getElement(constructor).enclosingElement;
-    if (backend.classNeedsRti(enclosing)) {
-      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+    var enclosing = constructor.enclosingClass;
+    if (backend.classNeedsRti(astAdapter.getElement(enclosing))) {
+      enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
+        var typeParamElement = astAdapter.getElement(typeParameter);
         HParameterValue param =
-            addParameter(typeVariable.element, commonMasks.nonNullType);
+            addParameter(typeParamElement, commonMasks.nonNullType);
+        var dart_type = astAdapter.getDartType(typeParameter.bound);
+        // This is a little bit wacky (and n^2) until we make the localsHandler
+        // take Kernel DartTypes instead of just the AST DartTypes.
+        var typeVariableType = (astAdapter.getElement(constructor))
+            .enclosingElement
+            .typeVariables
+            .firstWhere((TypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
-            localsHandler.getTypeVariableAsLocal(typeVariable)] = param;
+            localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
       });
     }
   }
@@ -1964,8 +1972,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Note: The call to "unalias" this type like in the original SSA builder is
     // unnecessary in kernel because Kernel has no notion of typedef.
     // TODO(efortuna): Add test for this.
-    DartType typeValue = localsHandler.substInContext(
-        astAdapter.getDartType(type));
+    DartType typeValue =
+        localsHandler.substInContext(astAdapter.getDartType(type));
     if (type is ir.InvalidType) {
       generateTypeError(node, (typeValue.element as ErroneousElement).message);
       return new HIs.compound(

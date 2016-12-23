@@ -63,6 +63,9 @@ class KernelAstAdapter {
     for (LocalFunctionElement localFunction in kernel.localFunctions.keys) {
       _nodeToElement[kernel.localFunctions[localFunction]] = localFunction;
     }
+    for (TypeVariableElement typeVariable in kernel.typeParameters.keys) {
+      _nodeToElement[kernel.typeParameters[typeVariable]] = typeVariable;
+    }
     _typeConverter = new DartTypeConverter(this);
   }
 
