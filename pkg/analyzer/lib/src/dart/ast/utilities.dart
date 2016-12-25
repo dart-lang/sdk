@@ -2339,8 +2339,10 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.PLUS) {
         // numeric or {@code null}
-        if ((leftOperand is num && rightOperand is num) ||
-            (leftOperand is String && rightOperand is String)) {
+        if (leftOperand is num && rightOperand is num) {
+          return leftOperand + rightOperand;
+        }
+        if (leftOperand is String && rightOperand is String) {
           return leftOperand + rightOperand;
         }
       } else if (node.operator.type == TokenType.STAR) {
