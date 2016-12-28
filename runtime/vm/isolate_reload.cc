@@ -1596,9 +1596,6 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     handle_ = obj;
     if (handle_.IsFunction()) {
       const Function& func = Function::Cast(handle_);
-      if (func.IsSignatureFunction()) {
-        return;
-      }
 
       // Switch to unoptimized code or the lazy compilation stub.
       func.SwitchToLazyCompiledUnoptimizedCode();

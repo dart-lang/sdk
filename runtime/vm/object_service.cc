@@ -243,11 +243,6 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
 static void AddFunctionServiceId(const JSONObject& jsobj,
                                  const Function& f,
                                  const Class& cls) {
-  if (cls.IsNull()) {
-    ASSERT(f.IsSignatureFunction());
-    jsobj.AddServiceId(f);
-    return;
-  }
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
   const char* selector = NULL;
@@ -284,13 +279,10 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
 
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
-  if (!cls.IsNull()) {
-    Error& err = Error::Handle();
-    err ^= cls.EnsureIsFinalized(Thread::Current());
-    ASSERT(err.IsNull());
-  } else {
-    ASSERT(IsSignatureFunction());
-  }
+  ASSERT(!cls.IsNull());
+  Error& err = Error::Handle();
+  err ^= cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(err.IsNull());
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
   AddFunctionServiceId(jsobj, *this, cls);
@@ -300,13 +292,11 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
     jsobj.AddProperty("owner", parent);
-  } else if (!cls.IsNull()) {
-    if (cls.IsTopLevel()) {
-      const Library& library = Library::Handle(cls.library());
-      jsobj.AddProperty("owner", library);
-    } else {
-      jsobj.AddProperty("owner", cls);
-    }
+  } else if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(cls.library());
+    jsobj.AddProperty("owner", library);
+  } else {
+    jsobj.AddProperty("owner", cls);
   }
 
   const char* kind_string = Function::KindToCString(kind());
@@ -1109,7 +1099,6 @@ void AbstractType::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(regis): Function types are not handled properly.
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");

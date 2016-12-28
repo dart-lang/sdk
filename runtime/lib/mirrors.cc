@@ -852,7 +852,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   if (decl.IsClass()) {
     klass ^= decl.raw();
     library = klass.library();
-  } else if (decl.IsFunction() && !Function::Cast(decl).IsSignatureFunction()) {
+  } else if (decl.IsFunction()) {
     klass = Function::Cast(decl).origin();
     library = klass.library();
   } else if (decl.IsField()) {

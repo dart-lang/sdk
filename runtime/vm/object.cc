@@ -5563,7 +5563,6 @@ void Function::SetSignatureType(const Type& value) const {
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     SignatureData::Cast(obj).set_signature_type(value);
-    ASSERT(!value.IsCanonical() || (value.signature() == this->raw()));
   } else {
     ASSERT(IsClosureFunction());
     ClosureData::Cast(obj).set_signature_type(value);
@@ -5723,7 +5722,7 @@ void Function::set_name(const String& value) const {
 
 
 void Function::set_owner(const Object& value) const {
-  ASSERT(!value.IsNull() || IsSignatureFunction());
+  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, value.raw());
 }
 
@@ -6949,10 +6948,6 @@ bool Function::HasInstantiatedSignature() const {
 
 
 RawClass* Function::Owner() const {
-  if (raw_ptr()->owner_ == Object::null()) {
-    ASSERT(IsSignatureFunction());
-    return Class::null();
-  }
   if (raw_ptr()->owner_->IsClass()) {
     return Class::RawCast(raw_ptr()->owner_);
   }
@@ -6963,10 +6958,6 @@ RawClass* Function::Owner() const {
 
 
 RawClass* Function::origin() const {
-  if (raw_ptr()->owner_ == Object::null()) {
-    ASSERT(IsSignatureFunction());
-    return Class::null();
-  }
   if (raw_ptr()->owner_->IsClass()) {
     return Class::RawCast(raw_ptr()->owner_);
   }
@@ -6991,10 +6982,6 @@ RawScript* Function::script() const {
     return Function::Handle(parent_function()).script();
   }
   const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsNull()) {
-    ASSERT(IsSignatureFunction());
-    return Script::null();
-  }
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
   }
@@ -7312,6 +7299,21 @@ void SignatureData::set_parent_function(const Function& value) const {
 
 void SignatureData::set_signature_type(const Type& value) const {
   StorePointer(&raw_ptr()->signature_type_, value.raw());
+// If the signature type is resolved, the parent function is not needed
+// anymore (type parameters may be declared by generic parent functions).
+// Keeping the parent function can unnecessarily pull more objects into a
+// snapshot. Also, the parent function is meaningless once the signature type
+// is canonicalized.
+
+// TODO(rmacnak): Keeping the parent function for unresolved signature types
+// is causing a tree shaking issue in AOT. Please, investigate.
+#if 0
+  if (value.IsResolved()) {
+    set_parent_function(Function::Handle());
+  }
+#else
+  set_parent_function(Function::Handle());
+#endif
 }
 
 
@@ -17127,7 +17129,6 @@ RawAbstractType* Type::CloneUnfinalized() const {
     const Class& owner = Class::Handle(zone, fun.Owner());
     Function& fun_clone = Function::Handle(
         zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
-    // TODO(regis): Handle cloning of a generic function type.
     AbstractType& type = AbstractType::Handle(zone, fun.result_type());
     type = type.CloneUnfinalized();
     fun_clone.set_result_type(type);
@@ -17144,7 +17145,6 @@ RawAbstractType* Type::CloneUnfinalized() const {
     }
     fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     clone.set_signature(fun_clone);
-    fun_clone.SetSignatureType(clone);
   }
   clone.SetIsResolved();
   return clone.raw();
@@ -17341,10 +17341,6 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         }
         sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
         set_signature(sig_fun);
-        // Note that the signature type of the signature function may be
-        // different than the type being canonicalized.
-        // Consider F<int> being canonicalized, with F being a typedef and F<T>
-        // being its signature type.
       }
     }
 
