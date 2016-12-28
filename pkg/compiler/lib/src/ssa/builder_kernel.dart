@@ -234,8 +234,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
             addParameter(typeParamElement, commonMasks.nonNullType);
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
-        var typeVariableType = clsElement
-            .typeVariables
+        var typeVariableType = clsElement.typeVariables
             .firstWhere((TypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
             localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
@@ -780,6 +779,146 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(whileStatement, () {}, buildCondition, () {}, () {
       whileStatement.body.accept(this);
     });
+  }
+
+  @override
+  visitDoStatement(ir.DoStatement doStatement) {
+    // TODO(efortuna): I think this can be rewritten using
+    // LoopHandler.handleLoop with some tricks about when the "update" happens.
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    localsHandler.startLoop(astAdapter.getNode(doStatement));
+    JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement);
+    HLoopInformation loopInfo = current.loopInformation;
+    HBasicBlock loopEntryBlock = current;
+    HBasicBlock bodyEntryBlock = current;
+    JumpTarget target =
+        elements.getTargetDefinition(astAdapter.getNode(doStatement));
+    bool hasContinues = target != null && target.isContinueTarget;
+    if (hasContinues) {
+      // Add extra block to hang labels on.
+      // It doesn't currently work if they are on the same block as the
+      // HLoopInfo. The handling of HLabeledBlockInformation will visit a
+      // SubGraph that starts at the same block again, so the HLoopInfo is
+      // either handled twice, or it's handled after the labeled block info,
+      // both of which generate the wrong code.
+      // Using a separate block is just a simple workaround.
+      bodyEntryBlock = openNewBlock();
+    }
+    localsHandler.enterLoopBody(astAdapter.getNode(doStatement));
+    doStatement.body.accept(this);
+
+    // If there are no continues we could avoid the creation of the condition
+    // block. This could also lead to a block having multiple entries and exits.
+    HBasicBlock bodyExitBlock;
+    bool isAbortingBody = false;
+    if (current != null) {
+      bodyExitBlock = close(new HGoto());
+    } else {
+      isAbortingBody = true;
+      bodyExitBlock = lastOpenedBlock;
+    }
+
+    SubExpression conditionExpression;
+    bool loopIsDegenerate = isAbortingBody && !hasContinues;
+    if (!loopIsDegenerate) {
+      HBasicBlock conditionBlock = addNewBlock();
+
+      List<LocalsHandler> continueHandlers = <LocalsHandler>[];
+      jumpHandler
+          .forEachContinue((HContinue instruction, LocalsHandler locals) {
+        instruction.block.addSuccessor(conditionBlock);
+        continueHandlers.add(locals);
+      });
+
+      if (!isAbortingBody) {
+        bodyExitBlock.addSuccessor(conditionBlock);
+      }
+
+      if (!continueHandlers.isEmpty) {
+        if (!isAbortingBody) continueHandlers.add(localsHandler);
+        localsHandler =
+            savedLocals.mergeMultiple(continueHandlers, conditionBlock);
+        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        List<LabelDefinition> labels = jumpHandler.labels;
+        HSubGraphBlockInformation bodyInfo =
+            new HSubGraphBlockInformation(bodyGraph);
+        HLabeledBlockInformation info;
+        if (!labels.isEmpty) {
+          info =
+              new HLabeledBlockInformation(bodyInfo, labels, isContinue: true);
+        } else {
+          info = new HLabeledBlockInformation.implicit(bodyInfo, target,
+              isContinue: true);
+        }
+        bodyEntryBlock.setBlockFlow(info, conditionBlock);
+      }
+      open(conditionBlock);
+
+      doStatement.condition.accept(this);
+      assert(!isAborted());
+      HInstruction conditionInstruction = popBoolified();
+      HBasicBlock conditionEndBlock = close(
+          new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+
+      HBasicBlock avoidCriticalEdge = addNewBlock();
+      conditionEndBlock.addSuccessor(avoidCriticalEdge);
+      open(avoidCriticalEdge);
+      close(new HGoto());
+      avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
+
+      conditionExpression =
+          new SubExpression(conditionBlock, conditionEndBlock);
+
+      // Avoid a critical edge from the condition to the loop-exit body.
+      HBasicBlock conditionExitBlock = addNewBlock();
+      open(conditionExitBlock);
+      close(new HGoto());
+      conditionEndBlock.addSuccessor(conditionExitBlock);
+
+      loopHandler.endLoop(
+          loopEntryBlock, conditionExitBlock, jumpHandler, localsHandler);
+
+      loopEntryBlock.postProcessLoopHeader();
+      SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
+      HLoopBlockInformation loopBlockInfo = new HLoopBlockInformation(
+          HLoopBlockInformation.DO_WHILE_LOOP,
+          null,
+          wrapExpressionGraph(conditionExpression),
+          wrapStatementGraph(bodyGraph),
+          null,
+          loopEntryBlock.loopInformation.target,
+          loopEntryBlock.loopInformation.labels,
+          sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement)));
+      loopEntryBlock.setBlockFlow(loopBlockInfo, current);
+      loopInfo.loopBlockInformation = loopBlockInfo;
+    } else {
+      // Since the loop has no back edge, we remove the loop information on the
+      // header.
+      loopEntryBlock.loopInformation = null;
+
+      if (jumpHandler.hasAnyBreak()) {
+        // Null branchBlock because the body of the do-while loop always aborts,
+        // so we never get to the condition.
+        loopHandler.endLoop(loopEntryBlock, null, jumpHandler, localsHandler);
+
+        // Since the body of the loop has a break, we attach a synthesized label
+        // to the body.
+        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        JumpTarget target =
+            elements.getTargetDefinition(astAdapter.getNode(doStatement));
+        LabelDefinition label = target.addLabel(null, 'loop');
+        label.setBreakTarget();
+        HLabeledBlockInformation info = new HLabeledBlockInformation(
+            new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
+        loopEntryBlock.setBlockFlow(info, current);
+        jumpHandler.forEachBreak((HBreak breakInstruction, _) {
+          HBasicBlock block = breakInstruction.block;
+          block.addAtExit(new HBreak.toLabel(label));
+          block.remove(breakInstruction);
+        });
+      }
+    }
+    jumpHandler.close();
   }
 
   @override

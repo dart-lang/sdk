@@ -31,6 +31,18 @@ main() {
     return check(code);
   });
 
+  test('do-while loop', () {
+    String code = '''
+main() {
+  var a = 0;
+  do {
+    a *= 2;
+  } while (a < 100);
+  return a;
+}''';
+    return check(code);
+  });
+
   test('for-in loop', () {
     String code = '''
 main() {
