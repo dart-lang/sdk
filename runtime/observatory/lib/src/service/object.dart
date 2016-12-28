@@ -1507,6 +1507,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
+  int get memoryHighWatermark => _memoryHighWatermark;
+  int _memoryHighWatermark;
+
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1635,6 +1638,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     if(map['threads'] != null) {
       threads.addAll(map['threads']);
     }
+
+    _memoryHighWatermark = map['isolateMemoryHighWatermark'];
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -3072,6 +3077,8 @@ class Thread extends ServiceObject implements M.Thread {
   M.ThreadKind _kind;
   String get kindString => _kindString;
   String _kindString;
+  int get memoryHighWatermark => _memoryHighWatermark;
+  int _memoryHighWatermark;
   List<Zone> get zones => _zones;
   final List<Zone> _zones = new List<Zone>();
 
@@ -3109,6 +3116,9 @@ class Thread extends ServiceObject implements M.Thread {
       default:
         assert(false);
     }
+
+    _memoryHighWatermark = map['threadMemoryHighWatermark'];
+
     zones.clear();
     zoneList.forEach((zone) {
       int capacity = zone['capacity'];

@@ -74,6 +74,8 @@ Thread::Thread(Isolate* isolate)
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
+      current_thread_memory_(0),
+      thread_memory_high_watermark_(0),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
       top_resource_(NULL),
@@ -213,6 +215,7 @@ void Thread::PrintJSON(JSONStream* stream) const {
   jsobj.AddPropertyF("id", "threads/%" Pd "",
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
   jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
+  jsobj.AddProperty("threadMemoryHighWatermark", thread_memory_high_watermark_);
   Zone* zone = zone_;
   {
     JSONArray zone_info_array(&jsobj, "zones");

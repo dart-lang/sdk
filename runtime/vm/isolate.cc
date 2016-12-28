@@ -2103,6 +2103,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
+  jsobj.AddProperty("isolateMemoryHighWatermark",
+                    isolate_memory_high_watermark_);
   jsobj.AddProperty("threads", thread_registry_);
 }
 #endif
@@ -2699,6 +2701,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     // Ensure that the thread reports itself as being at a safepoint.
     thread->EnterSafepoint();
   }
+  UpdateIsolateHighWatermark();
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   os_thread->DisableThreadInterrupts();
@@ -2713,9 +2716,19 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
   thread->clear_pending_functions();
+  thread->ClearThreadMemoryUsageStats();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   // Return thread structure.
   thread_registry()->ReturnThreadLocked(is_mutator, thread);
+}
+
+
+void Isolate::UpdateIsolateHighWatermark() {
+  intptr_t thread_watermarks_total =
+      thread_registry()->ThreadHighWatermarksTotalLocked();
+  if (thread_watermarks_total > isolate_memory_high_watermark_) {
+    isolate_memory_high_watermark_ = thread_watermarks_total;
+  }
 }
 
 

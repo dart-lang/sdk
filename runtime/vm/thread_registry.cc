@@ -146,6 +146,7 @@ Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
   return thread;
 }
 
+
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(thread->os_thread_ == NULL);
@@ -155,6 +156,18 @@ void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   // Add thread to the free list.
   thread->next_ = free_list_;
   free_list_ = thread;
+}
+
+
+intptr_t ThreadRegistry::ThreadHighWatermarksTotalLocked() const {
+  ASSERT(threads_lock()->IsOwnedByCurrentThread());
+  intptr_t max_memory_usage_total = 0;
+  Thread* current = active_list_;
+  while (current != NULL) {
+    max_memory_usage_total += current->GetThreadHighWatermark();
+    current = current->next_;
+  }
+  return max_memory_usage_total;
 }
 
 }  // namespace dart
