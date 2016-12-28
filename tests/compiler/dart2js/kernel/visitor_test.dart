@@ -73,7 +73,7 @@ main(List<String> arguments) async {
 }
 
 Future<Compiler> newCompiler() async {
-  Compiler compiler = compilerFor(
+  var compiler = compilerFor(
       options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useKernel]);
   await compiler.setupSdk();
 
