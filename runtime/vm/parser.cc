@@ -2055,7 +2055,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // signature functions (except typedef signature functions), therefore
       // we do not need to keep the correct script via a patch class. Use the
       // actual current class as owner of the signature function.
-      const Function& signature_function =
+      Function& signature_function =
           Function::Handle(Z, Function::NewSignatureFunction(
                                   current_class(), TokenPosition::kNoSource));
       signature_function.set_parent_function(innermost_function());
@@ -2095,7 +2095,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       if (!is_top_level_) {
         signature_type ^= ClassFinalizer::FinalizeType(
             current_class(), signature_type, ClassFinalizer::kCanonicalize);
-        signature_function.SetSignatureType(signature_type);
+        // Do not refer to signature_function anymore, since it may have been
+        // replaced during canonicalization.
+        signature_function = Function::null();
       }
       ASSERT(is_top_level_ || signature_type.IsFinalized());
       // A signature type itself cannot be malformed or malbounded, only its
@@ -11893,6 +11895,8 @@ AstNode* Parser::ParsePostfixExpr() {
 // Not all involved type classes may get resolved yet, but at least type
 // parameters will get resolved, thereby relieving the class
 // finalizer from resolving type parameters out of context.
+// TODO(regis): Refactor this code which is partially duplicated in the class
+// finalizer, paying attention to type parameter resolution and mixin library.
 void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
                          AbstractType* type) {
   ASSERT(finalization >= ClassFinalizer::kResolveTypeParameters);
@@ -11970,6 +11974,12 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
     if (!resolved_type_class.IsNull()) {
       // Replace unresolved class with resolved type class.
       parameterized_type.set_type_class(resolved_type_class);
+      // Promote type to a function type in case its type class is a typedef.
+      if (resolved_type_class.IsTypedefClass()) {
+        ASSERT(!parameterized_type.IsFunctionType());
+        parameterized_type.set_signature(
+            Function::Handle(Z, resolved_type_class.signature_function()));
+      }
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
       ClassFinalizer::FinalizeMalformedType(
           Error::Handle(Z),  // No previous error.
@@ -11977,6 +11987,9 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
           String::Handle(Z, parameterized_type.UserVisibleName()).ToCString());
       return;
     }
+  }
+  if (finalization > ClassFinalizer::kResolveTypeParameters) {
+    type->SetIsResolved();
   }
   // Resolve type arguments, if any.
   if (type->arguments() != TypeArguments::null()) {
@@ -11988,6 +12001,45 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
       type_argument ^= arguments.TypeAt(i);
       ResolveType(finalization, &type_argument);
       arguments.SetTypeAt(i, type_argument);
+    }
+  }
+  if (type->IsFunctionType()) {
+    const Function& signature =
+        Function::Handle(Z, Type::Cast(*type).signature());
+    Type& signature_type = Type::Handle(Z, signature.SignatureType());
+    if (signature_type.raw() != type->raw()) {
+      ResolveType(finalization, &signature_type);
+    } else {
+      AbstractType& type = AbstractType::Handle(signature.result_type());
+      ResolveType(finalization, &type);
+      signature.set_result_type(type);
+      const intptr_t num_parameters = signature.NumParameters();
+      for (intptr_t i = 0; i < num_parameters; i++) {
+        type = signature.ParameterTypeAt(i);
+        ResolveType(finalization, &type);
+        signature.SetParameterTypeAt(i, type);
+      }
+      if (signature.IsSignatureFunction()) {
+        // Drop fields that are not necessary anymore after resolution.
+        // The parent function, owner, and token position of a shared
+        // canonical function type are meaningless, since the canonical
+        // representent is picked arbitrarily.
+        signature.set_parent_function(Function::Handle(Z));
+        // TODO(regis): As long as we support metadata in typedef signatures,
+        // we cannot reset these fields used to reparse a typedef.
+        // Note that the scope class of a typedef function type is always
+        // preserved as the typedef class (not reset to _Closure class), thereby
+        // preventing sharing of canonical function types between typedefs.
+        // Not being shared, these fields are therefore always meaningful for
+        // typedefs.
+        if (type.HasResolvedTypeClass()) {
+          const Class& scope_class = Class::Handle(Z, type.type_class());
+          if (!scope_class.IsTypedefClass()) {
+            signature.set_owner(Object::Handle(Z));
+            signature.set_token_pos(TokenPosition::kNoSource);
+          }
+        }
+      }
     }
   }
 }

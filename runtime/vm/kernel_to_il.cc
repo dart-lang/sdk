@@ -3953,7 +3953,7 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   // So we convert malformed return/parameter types to `dynamic`.
   TypeParameterScope scope(this, &node->type_parameters());
 
-  const Function& signature_function = Function::ZoneHandle(
+  Function& signature_function = Function::ZoneHandle(
       Z, Function::NewSignatureFunction(*active_class_->klass,
                                         TokenPosition::kNoSource));
 
@@ -4008,8 +4008,10 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   if (finalize_) {
     signature_type ^= ClassFinalizer::FinalizeType(
         *active_class_->klass, signature_type, ClassFinalizer::kCanonicalize);
+    // Do not refer to signature_function anymore, since it may have been
+    // replaced during canonicalization.
+    signature_function = Function::null();
   }
-  signature_function.SetSignatureType(signature_type);
 
   result_ = signature_type.raw();
 }

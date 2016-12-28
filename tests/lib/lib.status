@@ -426,6 +426,5 @@ mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
 mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
-mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
