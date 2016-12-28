@@ -2162,12 +2162,20 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.StaticInvocation handleStaticFunctionIncompatibleInvoke(
+  ir.Expression handleStaticFunctionIncompatibleInvoke(
       Send node,
       MethodElement function,
       NodeList arguments,
       CallStructure callStructure,
       _) {
+    if (!kernel.compiler.resolution.hasBeenResolved(function) &&
+        !function.isMalformed) {
+      // TODO(sigmund): consider calling nSM or handle recovery differently
+      // here. This case occurs only when this call was the only call to
+      // function, and knowing that the call was erroneous, our resolver didn't
+      // enqueue function itself.
+      return new ir.InvalidExpression();
+    }
     return buildStaticInvoke(function, arguments, isConst: false);
   }
 
@@ -2241,14 +2249,13 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.MethodInvocation handleStaticSetterInvoke(
+  ir.Expression handleStaticSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildStaticAccessor(null, setter).buildSimpleRead(),
-        callStructure, arguments);
+    return new ir.InvalidExpression();
   }
 
   @override

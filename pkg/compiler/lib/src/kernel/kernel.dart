@@ -152,10 +152,18 @@ class Kernel {
         Queue<ir.Member> members = new Queue<ir.Member>();
         library.implementation.forEachLocalMember((Element e) {
           if (e.isClass) {
-            classes.addFirst(classToIr(e));
+            ClassElement cls = e;
+            if (!cls.isResolved) return;
+            classes.addFirst(classToIr(cls));
           } else if (e.isFunction || e.isAccessor) {
+            if (!compiler.resolution.hasBeenResolved(e) && !e.isMalformed) {
+              return;
+            }
             members.addFirst(functionToIr(e));
           } else if (e.isField) {
+            if (!compiler.resolution.hasBeenResolved(e) && !e.isMalformed) {
+              return;
+            }
             members.addFirst(fieldToIr(e));
           } else if (e.isTypedef) {
             // Ignored, typedefs are unaliased on use.
@@ -188,8 +196,7 @@ class Kernel {
   ir.Class classToIr(ClassElement cls) {
     cls = cls.declaration;
     return classes.putIfAbsent(cls, () {
-      cls.ensureResolved(compiler.resolution);
-      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
+      assert(cls.isResolved);
       String name = computeName(cls);
       ir.Class classNode = new ir.Class(
           name: name,
@@ -213,6 +220,10 @@ class Kernel {
         }
         cls.implementation
             .forEachMember((ClassElement enclosingClass, Element member) {
+          if (!compiler.resolution.hasBeenResolved(member)
+              && !member.isMalformed) {
+            return;
+          }
           if (member.enclosingClass.declaration != cls) {
             // TODO(het): figure out why impact_test triggers this
             //internalError(cls, "`$member` isn't mine.");
@@ -409,8 +420,8 @@ class Kernel {
     }
     function = function.declaration;
     return functions.putIfAbsent(function, () {
-      compiler.resolution.ensureResolved(function);
-      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
+      assert(compiler.resolution.hasBeenResolved(function) ||
+          function.isMalformed);
       function = function.implementation;
       ir.Member member;
       ir.Constructor constructor;
@@ -509,8 +520,13 @@ class Kernel {
     }
     field = field.declaration;
     return fields.putIfAbsent(field, () {
+      // TODO(sigmund): remove `ensureResolved` here.  It appears we hit this
+      // case only in metadata: when a constant has a field that is never read,
+      // but it is initialized in the constant constructor.
       compiler.resolution.ensureResolved(field);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
+      assert(compiler.resolution.hasBeenResolved(field) || field.isMalformed);
+
       field = field.implementation;
       ir.DartType type =
           field.isMalformed ? const ir.InvalidType() : typeToIr(field.type);
@@ -552,7 +568,7 @@ class Kernel {
       addWork(variable, () {
         if (variable.typeDeclaration.isClass) {
           ClassElement cls = variable.typeDeclaration;
-          cls.ensureResolved(compiler.resolution);
+          assert(cls.isResolved);
           parameter.parent = classToIr(cls);
         } else {
           FunctionElement method = variable.typeDeclaration;
@@ -688,12 +704,14 @@ class Kernel {
     LibraryElement library =
         compiler.libraryLoader.lookupLibrary(Uris.dart_core);
     ClassElement cls = library.implementation.localLookup(className);
+    cls.ensureResolved(compiler.resolution);
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, cls != null,
         message: 'dart:core class $className not found.'));
     ConstructorElement constructor = cls.lookupConstructor(constructorName);
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, constructor != null,
         message: "Constructor '$constructorName' not found "
             "in class '$className'."));
+    compiler.resolution.ensureResolved(constructor);
     return functionToIr(constructor);
   }
 
@@ -703,6 +721,7 @@ class Kernel {
     Element function = library.implementation.localLookup(name);
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, function != null,
         message: "dart:core method '$name' not found."));
+    compiler.resolution.ensureResolved(function);
     return functionToIr(function);
   }
 
