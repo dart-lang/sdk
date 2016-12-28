@@ -94,7 +94,8 @@ class ConstantVisitor extends ConstantExpressionVisitor<ir.Node, Kernel> {
 
   @override
   ir.Node visitConcatenate(ConcatenateConstantExpression exp, Kernel kernel) {
-    throw new UnimplementedError('${exp.toStructuredText()} is not supported.');
+    return new ir.StringConcatenation(
+        exp.expressions.map((e) => visit(e, kernel)).toList());
   }
 
   @override
