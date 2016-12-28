@@ -549,11 +549,34 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
   // Resolve signature if function type.
   if (type.IsFunctionType()) {
     const Function& signature = Function::Handle(Type::Cast(type).signature());
-    const Class& scope_class = Class::Handle(type.type_class());
-    if (scope_class.IsTypedefClass()) {
-      ResolveSignature(scope_class, signature);
+    Type& signature_type = Type::Handle(signature.SignatureType());
+    if (signature_type.raw() != type.raw()) {
+      ResolveType(cls, signature_type);
     } else {
-      ResolveSignature(cls, signature);
+      const Class& scope_class = Class::Handle(type.type_class());
+      if (scope_class.IsTypedefClass()) {
+        ResolveSignature(scope_class, signature);
+      } else {
+        ResolveSignature(cls, signature);
+      }
+      if (signature.IsSignatureFunction()) {
+        // Drop fields that are not necessary anymore after resolution.
+        // The parent function, owner, and token position of a shared
+        // canonical function type are meaningless, since the canonical
+        // representent is picked arbitrarily.
+        signature.set_parent_function(Function::Handle());
+        // TODO(regis): As long as we support metadata in typedef signatures,
+        // we cannot reset these fields used to reparse a typedef.
+        // Note that the scope class of a typedef function type is always
+        // preserved as the typedef class (not reset to _Closure class), thereby
+        // preventing sharing of canonical function types between typedefs.
+        // Not being shared, these fields are therefore always meaningful for
+        // typedefs.
+        if (!scope_class.IsTypedefClass()) {
+          signature.set_owner(Object::Handle());
+          signature.set_token_pos(TokenPosition::kNoSource);
+        }
+      }
     }
   }
 }
@@ -2331,8 +2354,9 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     cls.set_mixin(mixin_type);
   }
   if (cls.IsTypedefClass()) {
-    const Function& signature = Function::Handle(cls.signature_function());
+    Function& signature = Function::Handle(cls.signature_function());
     Type& type = Type::Handle(signature.SignatureType());
+    ASSERT(type.signature() == signature.raw());
 
     // Check for illegal self references.
     GrowableArray<intptr_t> visited_aliases;
@@ -2350,7 +2374,12 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 
     // Resolve and finalize the signature type of this typedef.
     type ^= FinalizeType(cls, type, kCanonicalizeWellFormed);
+
+    // If a different canonical signature type is returned, update the signature
+    // function of the typedef.
+    signature = type.signature();
     signature.SetSignatureType(type);
+    cls.set_signature_function(signature);
 
     // Closure instances do not refer to this typedef as their class, so there
     // is no need to add this typedef class to the subclasses of _Closure.

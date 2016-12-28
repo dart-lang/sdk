@@ -2993,6 +2993,7 @@ class Function : public Object {
   // RawFunction::VisitFunctionPointers accesses the private constructor of
   // Function.
   friend class RawFunction;
+  friend class ClassFinalizer;  // To reset parent_function.
 };
 
 
