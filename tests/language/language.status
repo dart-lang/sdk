@@ -5,14 +5,15 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-tearoff_basic_test: CompileTimeError
-tearoff_constructor_basic_test: CompileTimeError
-
 [ $compiler == none || $compiler == app_jit ]
 null_is_bottom_test/22: RuntimeError # Issue 28025
 null_is_bottom_test/34: RuntimeError # Issue 28025
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+# Tests that use the name#field tear off syntax which has been deprecated.
+tearoff_basic_test: CompileTimeError
+tearoff_constructor_basic_test: CompileTimeError
+# Other issues:
 generic_methods_type_expression_test: RuntimeError # Issue 25869
 null_is_bottom_test/05: RuntimeError # Issue 28025
 null_is_bottom_test/07: RuntimeError # Issue 28025
@@ -108,6 +109,10 @@ type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+# Tests that use the name#field tear off syntax which has been deprecated.
+tearoff_basic_test: RunTimeError
+tearoff_constructor_basic_test: RunTimeError
+# Other issues.
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
 vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
