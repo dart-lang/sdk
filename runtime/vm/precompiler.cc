@@ -3497,8 +3497,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
       }
-      // Mark that this isolate now has compiled code.
-      isolate()->set_has_compiled_code(true);
       // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;

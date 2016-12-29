@@ -1161,8 +1161,6 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // }
         }
       }
-      // Mark that this isolate now has compiled code.
-      isolate()->set_has_compiled_code(true);
       // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;

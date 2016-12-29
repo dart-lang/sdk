@@ -792,7 +792,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       debugger_(NULL),
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
-      has_compiled_code_(false),
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
