@@ -1002,6 +1002,8 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
+  // We don't expect to see a reference to a redicting factory.
+  ASSERT(!function.IsRedirectingFactory());
   if (functions_to_retain_.Lookup(&function) != NULL) return;
   functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
 
