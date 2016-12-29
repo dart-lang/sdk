@@ -113,10 +113,14 @@ abstract class TracerVisitor<T extends TypeInformation>
   bool _wouldBeTooManyUsers(Set users) {
     int seenSoFar = analyzedElements.length;
     if (seenSoFar + users.length <= MAX_ANALYSIS_COUNT) return false;
-    int actualWork = users
-        .where((TypeInformation user) => !analyzedElements.contains(user.owner))
-        .length;
-    return seenSoFar + actualWork > MAX_ANALYSIS_COUNT;
+    int actualWork = 0;
+    for (TypeInformation user in users) {
+      if (!analyzedElements.contains(user.owner)) {
+        actualWork++;
+        if (actualWork > MAX_ANALYSIS_COUNT - seenSoFar) return true;
+      }
+    }
+    return false;
   }
 
   void analyze() {
