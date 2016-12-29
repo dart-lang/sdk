@@ -43,13 +43,7 @@ class Zone::Segment {
 
 void Zone::Segment::DeleteSegmentList(Segment* head) {
   Segment* current = head;
-  Thread* current_thread = Thread::Current();
   while (current != NULL) {
-    if (current_thread != NULL) {
-      // TODO(bkonyi) Handle special case of segment deletion within native
-      // isolate.
-      Thread::Current()->DecrementThreadMemoryUsage(current->size());
-    }
     Segment* next = current->next();
 #ifdef DEBUG
     // Zap the entire current segment (including the header).
@@ -74,11 +68,6 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 #endif
   result->next_ = next;
   result->size_ = size;
-  if (Thread::Current() != NULL) {
-    // TODO(bkonyi) Handle special case of segment creation within native
-    // isolate.
-    Thread::Current()->IncrementThreadMemoryUsage(size);
-  }
   return result;
 }
 
