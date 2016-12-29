@@ -308,34 +308,35 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Collects field initializers all the way up the inheritance chain.
   void _buildInitializers(
       ir.Constructor constructor, Map<ir.Field, HInstruction> fieldValues) {
-    var foundSuperCall = false;
+    var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
-      if (initializer is ir.SuperInitializer) {
-        foundSuperCall = true;
-        var superConstructor = initializer.target;
+      if (initializer is ir.SuperInitializer ||
+          initializer is ir.RedirectingInitializer) {
+        foundSuperOrRedirectCall = true;
+        var superOrRedirectConstructor = initializer.target;
         var arguments = _normalizeAndBuildArguments(
-            superConstructor.function, initializer.arguments);
-        _buildInlinedSuperInitializers(
-            superConstructor, arguments, fieldValues);
+            superOrRedirectConstructor.function, initializer.arguments);
+        _buildInlinedInitializers(
+            superOrRedirectConstructor, arguments, fieldValues);
       } else if (initializer is ir.FieldInitializer) {
         initializer.value.accept(this);
         fieldValues[initializer.field] = pop();
       }
     }
 
-    // TODO(het): does kernel always set the super initializer at the end?
-    // If there was no super-call initializer, then call the default constructor
-    // in the superclass.
-    if (!foundSuperCall) {
+    // Kernel always set the super initializer at the end, so if there was no
+    // super-call initializer, then the default constructor is called in the
+    // superclass.
+    if (!foundSuperOrRedirectCall) {
       if (constructor.enclosingClass != astAdapter.objectClass) {
         var superclass = constructor.enclosingClass.superclass;
         var defaultConstructor = superclass.constructors
-            .firstWhere((c) => c.name == '', orElse: () => null);
+            .firstWhere((c) => c.name.name == '', orElse: () => null);
         if (defaultConstructor == null) {
           compiler.reporter.internalError(
               NO_LOCATION_SPANNABLE, 'Could not find default constructor.');
         }
-        _buildInlinedSuperInitializers(
+        _buildInlinedInitializers(
             defaultConstructor, <HInstruction>[], fieldValues);
       }
     }
@@ -387,7 +388,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Inlines the given super [constructor]'s initializers by collecting it's
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
-  void _buildInlinedSuperInitializers(ir.Constructor constructor,
+  void _buildInlinedInitializers(ir.Constructor constructor,
       List<HInstruction> arguments, Map<ir.Field, HInstruction> fieldValues) {
     // TODO(het): Handle RTI if class needs it
     fieldValues.addAll(_collectFieldValues(constructor.enclosingClass));
@@ -1198,7 +1199,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // If runtime type information is needed and the map literal has no type
     // parameters, 'constructor' is a static function that forwards the call to
     // the factory constructor without type parameters.
-    assert(constructor.kind == ir.ProcedureKind.Factory);
+    assert(constructor.kind == ir.ProcedureKind.Method
+        || constructor.kind == ir.ProcedureKind.Factory);
 
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in
