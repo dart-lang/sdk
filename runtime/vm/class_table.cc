@@ -124,9 +124,11 @@ void ClassTable::Register(const Class& cls) {
     // Add the vtable for this predefined class into the static vtable registry
     // if it has not been setup yet.
     cpp_vtable cls_vtable = cls.handle_vtable();
-    AtomicOperations::CompareAndSwapWord(&(Object::builtin_vtables_[index]), 0,
-                                         cls_vtable);
-    ASSERT(Object::builtin_vtables_[index] == cls_vtable);
+    cpp_vtable old_cls_vtable = AtomicOperations::CompareAndSwapWord(
+        &(Object::builtin_vtables_[index]), 0, cls_vtable);
+    if (old_cls_vtable != 0) {
+      ASSERT(old_cls_vtable == cls_vtable);
+    }
   } else {
     if (top_ == capacity_) {
       // Grow the capacity of the class table.
