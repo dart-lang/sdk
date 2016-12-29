@@ -5,13 +5,14 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+tearoff_basic_test: CompileTimeError
+tearoff_constructor_basic_test: CompileTimeError
+
 [ $compiler == none || $compiler == app_jit ]
 null_is_bottom_test/22: RuntimeError # Issue 28025
 null_is_bottom_test/34: RuntimeError # Issue 28025
 
-
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 generic_methods_type_expression_test: RuntimeError # Issue 25869
 null_is_bottom_test/05: RuntimeError # Issue 28025
 null_is_bottom_test/07: RuntimeError # Issue 28025
@@ -214,7 +215,6 @@ deferred_global_test: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
 regress_22443_test: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
@@ -226,7 +226,6 @@ deferred_inheritance_constraints_test/redirecting_constructor: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
 
@@ -314,7 +313,6 @@ deferred_type_dependency_test: Crash # Requires deferred libraries
 issue_1751477_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_22443_test: Crash # Requires deferred libraries
-tearoff_basic_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
 override_field_method1_negative_test: Pass, Crash # Issue 27835

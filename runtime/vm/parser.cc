@@ -44,7 +44,10 @@ namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
-DEFINE_FLAG(bool, warn_new_tearoff_syntax, true, "Warning on new tear off.");
+DEFINE_FLAG(bool,
+            support_deprecated_tearoff_syntax,
+            false,
+            "Support new tear-off syntax.");
 // TODO(floitsch): remove the conditional-directive flag, once we publicly
 // committed to the current version.
 DEFINE_FLAG(bool,
@@ -11704,10 +11707,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
 
 // Closurization e#m of getter, setter, method or operator.
 AstNode* Parser::ParseClosurization(AstNode* primary) {
-  if (FLAG_warn_new_tearoff_syntax) {
-    ReportWarning(
-        "Tear-offs using the x#id syntax is a deprecated feature,"
-        "it will not be supported in the next release");
+  if (!FLAG_support_deprecated_tearoff_syntax) {
+    ReportError("tear-off using the x#id syntax is a deprecated feature");
+    return NULL;
   }
   ExpectToken(Token::kHASH);
   TokenPosition property_pos = TokenPos();
@@ -11749,7 +11751,7 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
       // a prefix, the name mangling does not help in hiding the private
       // name, so we explicitly prevent lookup of private names here.
       if (is_setter_name) {
-        String& setter_name =
+        const String& setter_name =
             String::Handle(Z, Field::SetterName(extractor_name));
         obj = prefix.LookupObject(setter_name);
       }
@@ -11772,11 +11774,13 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
     } else if (obj.IsField()) {
       const Field& field = Field::Cast(obj);
       if (is_setter_name && !field.is_final()) {
-        Instance& setter_closure = Instance::ZoneHandle(field.SetterClosure());
+        const Instance& setter_closure =
+            Instance::ZoneHandle(field.SetterClosure());
         return new (Z) LiteralNode(property_pos, setter_closure);
       }
       if (!is_setter_name) {
-        Instance& getter_closure = Instance::ZoneHandle(field.GetterClosure());
+        const Instance& getter_closure =
+            Instance::ZoneHandle(field.GetterClosure());
         return new (Z) LiteralNode(property_pos, getter_closure);
       }
     }
@@ -13348,10 +13352,9 @@ void Parser::ParseConstructorClosurization(Function* constructor,
   // type that is loaded.
   ASSERT(prefix.IsNull() || prefix.is_loaded());
   ASSERT(!type.IsMalformed() && !type.IsTypeParameter());
-  if (FLAG_warn_new_tearoff_syntax) {
-    ReportWarning(
-        "Tear-offs using the x#id syntax is a deprecated feature,"
-        "it will not be supported in the next release");
+  if (!FLAG_support_deprecated_tearoff_syntax) {
+    ReportError("tear-off using the x#id syntax is a deprecated feature");
+    return;
   }
   ExpectToken(Token::kHASH);
   String* named_constructor = NULL;
@@ -13448,13 +13451,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   String* named_constructor = NULL;
   const bool is_tearoff_expression = (CurrentToken() == Token::kHASH);
   if (is_tearoff_expression) {
+    if (!FLAG_support_deprecated_tearoff_syntax) {
+      ReportError("tear-off using the x#id syntax is a deprecated feature");
+    }
     if (is_const) {
       ReportError("tear-off closure not allowed with const allocation");
-    }
-    if (FLAG_warn_new_tearoff_syntax) {
-      ReportWarning(
-          "Tear-offs using the x#id syntax is a deprecated feature,"
-          "and will not be supported in the next release");
     }
     ConsumeToken();
     if (IsIdentifier()) {
@@ -13893,10 +13894,8 @@ AstNode* Parser::ParsePrimary() {
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z, ParsePrefix());
     if (!prefix.IsNull()) {
       if (CurrentToken() == Token::kHASH) {
-        if (FLAG_warn_new_tearoff_syntax) {
-          ReportWarning(
-              "Tear-offs using the x#id syntax is a deprecated feature,"
-              "it will not be supported in the next release");
+        if (!FLAG_support_deprecated_tearoff_syntax) {
+          ReportError("tear-off using the x#id syntax is a deprecated feature");
         }
         // Closurization of top-level entity in prefix scope.
         return new (Z) LiteralNode(qual_ident_pos, prefix);
