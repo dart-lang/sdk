@@ -2,6 +2,11 @@
 
 ### Language
 
+  * Breaking change: ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
+    are no longer supported, and will cause errors. We updated the language spec
+    and added warnings in 1.21, and are now taking the last step to fully
+    de-support them. They were previously supported in the VM only.
+
   * The `assert()` statement has been expanded to support an optional second
     `message` argument (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
 
