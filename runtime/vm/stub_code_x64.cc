@@ -1006,8 +1006,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // RDX: Address being stored
   Label reload;
   __ Bind(&reload);
-  __ movq(RCX, FieldAddress(RDX, Object::tags_offset()));
-  __ testq(RCX, Immediate(1 << RawObject::kRememberedBit));
+  __ movq(RAX, FieldAddress(RDX, Object::tags_offset()));
+  __ testq(RAX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popq(RCX);
   __ popq(RAX);
