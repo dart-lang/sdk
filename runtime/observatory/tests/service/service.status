@@ -62,7 +62,7 @@ get_source_report_test: RuntimeError # Issue 27806
 set_name_rpc_test: RuntimeError # Issue 27806
 vm_restart_test: CompileTimeError # Issue 27806
 
-debugger_location_second_test: RuntimeError, Crash # Issue 28180
+debugger_location_second_test: Skip # Issue 28180
 
 [ $compiler == dart2analyzer ]
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
