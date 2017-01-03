@@ -567,6 +567,12 @@ class Response {
                 RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
+   * Return a table mapping the names of result fields to their values.  Should
+   * be `null` if there is no result to send.
+   */
+  Map<String, Object> get result => _result;
+
+  /**
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
