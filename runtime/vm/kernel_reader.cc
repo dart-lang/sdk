@@ -293,6 +293,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     const dart::String& name = H.DartFieldName(kernel_field->name());
     const AbstractType& type =
         T.TranslateTypeWithoutFinalization(kernel_field->type());
+    const Object& script_class =
+        ClassForScriptAt(klass, kernel_field->source_uri_index());
     dart::Field& field = dart::Field::Handle(
         Z, dart::Field::New(name, kernel_field->IsStatic(),
                             // In the VM all const fields are implicitly final
@@ -301,7 +303,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                             kernel_field->IsFinal() || kernel_field->IsConst(),
                             kernel_field->IsConst(),
                             false,  // is_reflectable
-                            klass, type, kernel_field->position()));
+                            script_class, type, kernel_field->position()));
     field.set_kernel_field(kernel_field);
     field.set_has_initializer(kernel_field->initializer() != NULL);
     GenerateFieldAccessors(klass, field, kernel_field);

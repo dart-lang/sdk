@@ -7575,7 +7575,7 @@ RawField* Field::New(const String& name,
                      bool is_final,
                      bool is_const,
                      bool is_reflectable,
-                     const Class& owner,
+                     const Object& owner,
                      const AbstractType& type,
                      TokenPosition token_pos) {
   ASSERT(!owner.IsNull());
