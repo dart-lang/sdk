@@ -20,7 +20,8 @@ import 'dart:mirrors';
 import 'crash_library_metadata.dart'; // This would crash dart2js.
 
 // Importing dart:html to make things interesting.
-import 'dart:html';
+// TODO(johnniwinther): Reenable this when #28240 has been fixed.
+// import 'dart:html';
 
 class MirrorPrinter {
   final StringBuffer buffer;

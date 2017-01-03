@@ -121,4 +121,4 @@ constant_javascript_semantics2_test: Pass, Slow # Issue 25940
 consistent_index_error_string_test: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js ]
-mirror_printer_test: Pass, Slow # Issue 25940, 16473
+mirror_printer_test: Fail # Issue 28240, was: Pass, Slow # Issue 25940, 16473
