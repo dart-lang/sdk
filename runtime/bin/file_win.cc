@@ -444,7 +444,12 @@ int64_t File::LengthFromPath(const char* name) {
   Utf8ToWideScope system_name(name);
   int stat_status = _wstat64(system_name.wide(), &st);
   if (stat_status == 0) {
-    return st.st_size;
+    if ((st.st_mode & S_IFMT) == S_IFREG) {
+      return st.st_size;
+    } else {
+      // ERROR_DIRECTORY_NOT_SUPPORTED is not always in the message table.
+      SetLastError(ERROR_NOT_SUPPORTED);
+    }
   }
   return -1;
 }

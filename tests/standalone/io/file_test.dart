@@ -642,6 +642,23 @@ class FileTest {
     openedFile.closeSync();
   }
 
+  static void testLengthSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_length_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      new File(dirPath).lengthSync();
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  }
+
   // Test for file position functionality.
   static void testPosition() {
     asyncTestStarted();
@@ -1428,6 +1445,7 @@ class FileTest {
 
     createTempDirectory(() {
       testLength();
+      testLengthSyncDirectory();
       testReadWrite();
       testReadWriteSync();
       testReadWriteNoArgsSync();

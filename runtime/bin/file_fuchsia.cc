@@ -347,6 +347,12 @@ bool File::Copy(const char* old_path, const char* new_path) {
 int64_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
+    // Signal an error if it's a directory.
+    if (S_ISDIR(st.st_mode)) {
+      errno = EISDIR;
+      return -1;
+    }
+    // Otherwise assume the caller knows what it's doing.
     return st.st_size;
   }
   return -1;
