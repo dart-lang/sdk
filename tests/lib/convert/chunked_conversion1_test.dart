@@ -54,8 +54,8 @@ class BoolAdapterSink extends MyChunkedBoolSink {
   specialB(o) => add(o);
 }
 
-class IntBoolConverter1 extends Converter<List<int>, List<bool>> {
-  List<bool> convert(List<int> input) => input.map((x) => x > 0).toList();
+class IntBoolConverter1 extends Converter<int, bool> {
+  bool convert(int input) => input > 0;
 
   startChunkedConversion(sink) {
     if (sink is! MyChunkedBoolSink) sink = new MyChunkedBoolSink.from(sink);
@@ -63,8 +63,8 @@ class IntBoolConverter1 extends Converter<List<int>, List<bool>> {
   }
 }
 
-class BoolIntConverter1 extends Converter<List<bool>, List<int>> {
-  List<int> convert(List<bool> input) => input.map((x) => x ? 1 : 0).toList();
+class BoolIntConverter1 extends Converter<bool, int> {
+  int convert(bool input) => input ? 1 : 0;
 
   startChunkedConversion(sink) {
     if (sink is! MyChunkedIntSink) sink = new MyChunkedIntSink.from(sink);
@@ -125,7 +125,8 @@ main() {
 
   // Test int->bool converter individually.
   converter1 = new IntBoolConverter1();
-  Expect.listEquals([true, false, true], converter1.convert([2, -2, 2]));
+  Expect.listEquals([true, false, true],
+                    [2, -2, 2].map(converter1.convert).toList());
   hasExecuted = false;
   boolSink = new MyChunkedBoolSink.withCallback((value) {
     hasExecuted = true;
@@ -143,7 +144,8 @@ main() {
 
   // Test bool->int converter individually.
   converter2 = new BoolIntConverter1();
-  Expect.listEquals([1, 0, 1], converter2.convert([true, false, true]));
+  Expect.listEquals([1, 0, 1],
+                    [true, false, true].map(converter2.convert).toList());
   hasExecuted = false;
   intSink = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;
@@ -174,7 +176,7 @@ main() {
 
   // Test fused converters.
   fused = converter1.fuse(converter2);
-  Expect.listEquals([1, 0, 1], fused.convert([2, -2, 2]));
+  Expect.listEquals([1, 0, 1], [2, -2, 2].map(fused.convert).toList());
   hasExecuted = false;
   intSink2 = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;
@@ -234,7 +236,7 @@ main() {
 
   // With identity between the two converters.
   fused = converter1.fuse(converter3).fuse(converter2);
-  Expect.listEquals([1, 0, 1], fused.convert([2, -2, 2]));
+  Expect.listEquals([1, 0, 1], [2, -2, 2].map(fused.convert).toList());
   hasExecuted = false;
   intSink2 = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;

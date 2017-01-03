@@ -610,7 +610,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   }
 
   void addAll(Iterable<E> elements) {
-    if (elements is List/*<E>*/) {
+    if (elements is List<E>) {
       List<E> list = elements;
       int addCount = list.length;
       int length = this.length;

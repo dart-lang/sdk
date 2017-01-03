@@ -31,3 +31,9 @@ recursive_import_test: Skip # Issue 27744
 
 [ $builder_tag == asan ]
 recursive_import_test: Skip # Issue 27441
+
+[ $compiler == dart2analyzer ]
+# Issue #28236
+dart2js_test: StaticWarning
+dummy_compiler_test: StaticWarning
+recursive_import_test: StaticWarning

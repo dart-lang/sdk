@@ -344,3 +344,9 @@ duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
+
+# Issue #28236
+async_await_test: StaticWarning
+async_star_pause_test: StaticWarning
+async_star_test: StaticWarning
+regress_18535_test: StaticWarning

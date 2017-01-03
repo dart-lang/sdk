@@ -9,7 +9,7 @@ const int _LF = 10;
 const int _CR = 13;
 
 /**
- * A [Converter] that splits a [String] into individual lines.
+ * A [StreamTranformer] that splits a [String] into individual lines.
  *
  * A line is terminated by either a CR (U+000D), a LF (U+000A), a
  * CR+LF sequence (DOS line ending),
@@ -17,6 +17,7 @@ const int _CR = 13;
  *
  * The returned lines do not contain the line terminators.
  */
+
 class LineSplitter
     extends Converter<String, List<String>>/*=Object*/
     implements ChunkedConverter<String, List<String>, String, String>
@@ -83,7 +84,7 @@ class LineSplitter
     return new _LineSplitterSink(sink);
   }
 
-  Stream/*<String>*/ bind(Stream/*<String>*/ stream) {
+  Stream/*<String>*/ bind(Stream<String> stream) {
     return new Stream<String>.eventTransformed(
           stream,
           (EventSink<String> sink) => new _LineSplitterEventSink(sink));

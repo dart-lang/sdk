@@ -764,11 +764,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       if (response.redirects.length < maxRedirects) {
         // Redirect and drain response.
         future = response.drain()
-            .then/*<HttpClientResponse>*/((_) => response.redirect());
+            .then<HttpClientResponse>((_) => response.redirect());
       } else {
         // End with exception, too many redirects.
         future = response.drain()
-            .then/*<HttpClientResponse>*/((_) {
+            .then<HttpClientResponse>((_) {
           return new Future<HttpClientResponse>.error(
               new RedirectException("Redirect limit exceeded",
                   response.redirects));
@@ -1391,7 +1391,7 @@ class _HttpClientConnection {
     // data).
     _httpParser.isHead = method == "HEAD";
     _streamFuture = outgoing.done
-        .then/*<Socket>*/((Socket s) {
+        .then<Socket>((Socket s) {
           // Request sent, set up response completer.
           _nextResponseCompleter = new Completer();
 

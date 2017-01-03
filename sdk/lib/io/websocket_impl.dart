@@ -453,7 +453,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       var deflate = _negotiateCompression(request, response, compression);
 
       response.headers.contentLength = 0;
-      return response.detachSocket().then/*<WebSocket>*/((socket) =>
+      return response.detachSocket().then<WebSocket>((socket) =>
           new _WebSocketImpl._fromSocket(
               socket, protocol, compression, true, deflate));
     }
@@ -465,7 +465,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       // the lists with ', ' and then tokenize.
       protocols = _HttpParser._tokenizeFieldValue(protocols.join(', '));
       return new Future<String>(() => _protocolSelector(protocols))
-          .then/*<String>*/((protocol) {
+          .then<String>((protocol) {
         if (protocols.indexOf(protocol) < 0) {
           throw new WebSocketException(
               "Selected protocol is not in the list of available protocols");
@@ -476,7 +476,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
           ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
           ..close();
         throw error;
-      }).then/*<WebSocket>*/(upgrade);
+      }).then<WebSocket>(upgrade);
     } else {
       return upgrade(null);
     }
@@ -1051,7 +1051,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _WebSocketPerMessageDeflate deflate =
           negotiateClientCompression(response, compression);
 
-      return response.detachSocket().then/*<WebSocket>*/((socket) =>
+      return response.detachSocket().then<WebSocket>((socket) =>
           new _WebSocketImpl._fromSocket(
               socket, protocol, compression, false, deflate));
     });

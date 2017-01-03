@@ -10,3 +10,7 @@
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # Issue 25761
+
+[ $compiler == dart2analyzer ]
+# Issue #28236
+benchmark_smoke_test: StaticWarning
