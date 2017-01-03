@@ -59,19 +59,20 @@ type StringReference {
   UInt index; // Index into the StringTable strings.
 }
 
-type LineStarts {
+type Source {
+  String source;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<Uint> lineStarts;
 }
 
-type UriLineStarts {
+type UriSource {
   List<String> uris;
-  LineStarts[uris.length] lineStarts;
+  Source[uris.length] source;
 }
 
 type UriReference {
-  UInt index; // Index into the UriLineStarts uris.
+  UInt index; // Index into the UriSource uris.
 }
 
 type FileOffset {
@@ -93,7 +94,7 @@ type Something<T> extends Option<T> {
 type ProgramFile {
   MagicWord magic = 0x90ABCDEF;
   StringTable strings;
-  UriLineStarts lineStartsMap;
+  UriSource sourceMap;
   List<Library> libraries;
   LibraryProcedureReference mainMethod;
 }

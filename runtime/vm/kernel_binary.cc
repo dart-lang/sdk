@@ -828,33 +828,37 @@ void StringTable::WriteTo(Writer* writer) {
 }
 
 
-void LineStartingTable::ReadFrom(Reader* reader) {
+void SourceTable::ReadFrom(Reader* reader) {
   size_ = reader->helper()->program()->source_uri_table().strings().length();
-  values_ = new intptr_t*[size_];
+  source_code_ = new String*[size_];
+  line_starts_ = new intptr_t*[size_];
+  line_count_ = new intptr_t[size_];
   for (intptr_t i = 0; i < size_; ++i) {
+    source_code_[i] = StringImpl::ReadFrom(reader);
     intptr_t line_count = reader->ReadUInt();
-    intptr_t* line_starts = new intptr_t[line_count + 1];
-    line_starts[0] = line_count;
+    intptr_t* line_starts = new intptr_t[line_count];
+    line_count_[i] = line_count;
     intptr_t previous_line_start = 0;
     for (intptr_t j = 0; j < line_count; ++j) {
       intptr_t line_start = reader->ReadUInt() + previous_line_start;
-      line_starts[j + 1] = line_start;
+      line_starts[j] = line_start;
       previous_line_start = line_start;
     }
-    values_[i] = line_starts;
+    line_starts_[i] = line_starts;
   }
 }
 
 
-void LineStartingTable::WriteTo(Writer* writer) {
+void SourceTable::WriteTo(Writer* writer) {
   for (intptr_t i = 0; i < size_; ++i) {
-    intptr_t* line_starts = values_[i];
-    intptr_t line_count = line_starts[0];
+    StringImpl::WriteTo(writer, source_code_[i]);
+    intptr_t* line_starts = line_starts_[i];
+    intptr_t line_count = line_count_[i];
     writer->WriteUInt(line_count);
 
     intptr_t previous_line_start = 0;
     for (intptr_t j = 0; j < line_count; ++j) {
-      intptr_t line_start = line_starts[j + 1];
+      intptr_t line_start = line_starts[j];
       writer->WriteUInt(line_start - previous_line_start);
       previous_line_start = line_start;
     }
@@ -2828,7 +2832,7 @@ Program* Program::ReadFrom(Reader* reader) {
 
   program->string_table_.ReadFrom(reader);
   program->source_uri_table_.ReadFrom(reader);
-  program->line_starting_table_.ReadFrom(reader);
+  program->source_table_.ReadFrom(reader);
 
   int libraries = reader->ReadUInt();
   program->libraries().EnsureInitialized(libraries);
@@ -2853,7 +2857,7 @@ void Program::WriteTo(Writer* writer) {
   // strings in nodes are present in [string_table_].
   string_table_.WriteTo(writer);
   source_uri_table_.WriteTo(writer);
-  line_starting_table_.WriteTo(writer);
+  source_table_.WriteTo(writer);
 
   libraries_.WriteTo(writer);
   Reference::WriteMemberTo(writer, main_method_);

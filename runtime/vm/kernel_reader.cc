@@ -103,7 +103,7 @@ KernelReader::KernelReader(Program* program)
       type_translator_(&translation_helper_,
                        &active_class_,
                        /*finalize=*/false) {
-  intptr_t source_file_count = program_->line_starting_table().size();
+  intptr_t source_file_count = program_->source_table().size();
   scripts_ = Array::New(source_file_count, Heap::kOld);
 }
 
@@ -158,7 +158,8 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   }
   // Setup toplevel class (which contains library fields/procedures).
 
-  Script& script = ScriptAt(kernel_library->source_uri_index());
+  Script& script = ScriptAt(kernel_library->source_uri_index(),
+                            kernel_library->import_uri());
   dart::Class& toplevel_class = dart::Class::Handle(
       Z, dart::Class::New(library, Symbols::TopLevel(), script,
                           TokenPosition::kNoSource));
@@ -324,7 +325,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                false,  // is_abstract
                                kernel_constructor->IsExternal(),
                                false,  // is_native
-                               klass, TokenPosition::kNoSource));
+                               klass, TokenPosition::kMinSource));
+    function.set_end_token_pos(TokenPosition::kMinSource);
     klass.AddFunction(function);
     function.set_kernel_function(kernel_constructor);
     function.set_result_type(T.ReceiverType(klass));
@@ -401,7 +403,8 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        false,       // is_const
                        is_abstract, is_external,
                        native_name != NULL,  // is_native
-                       script_class, TokenPosition::kNoSource));
+                       script_class, TokenPosition::kMinSource));
+  function.set_end_token_pos(TokenPosition::kMinSource);
   owner.AddFunction(function);
   function.set_kernel_function(kernel_procedure);
   function.set_is_debuggable(false);
@@ -432,21 +435,30 @@ const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
   return klass;
 }
 
-Script& KernelReader::ScriptAt(intptr_t source_uri_index) {
+Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(source_uri_index);
   if (script.IsNull()) {
+    // Create script with correct uri(s).
     String* uri = program_->source_uri_table().strings()[source_uri_index];
-    script = Script::New(H.DartString(uri, Heap::kOld),
-                         dart::String::ZoneHandle(Z), RawScript::kKernelTag);
+    dart::String& uri_string = H.DartString(uri, Heap::kOld);
+    dart::String& import_uri_string =
+        import_uri == NULL ? uri_string : H.DartString(import_uri, Heap::kOld);
+    dart::String& source_code = H.DartString(
+        program_->source_table().SourceFor(source_uri_index), Heap::kOld);
+    script = Script::New(import_uri_string, uri_string, source_code,
+                         RawScript::kKernelTag);
     scripts_.SetAt(source_uri_index, script);
+
+    // Create line_starts array for the script.
     intptr_t* line_starts =
-        program_->line_starting_table().valuesFor(source_uri_index);
-    intptr_t line_count = line_starts[0];
+        program_->source_table().LineStartsFor(source_uri_index);
+    intptr_t line_count =
+        program_->source_table().LineCountFor(source_uri_index);
     Array& array_object = Array::Handle(Z, Array::New(line_count, Heap::kOld));
     Smi& value = Smi::Handle(Z);
     for (intptr_t i = 0; i < line_count; ++i) {
-      value = Smi::New(line_starts[i + 1]);
+      value = Smi::New(line_starts[i]);
       array_object.SetAt(i, value);
     }
     script.set_line_starts(array_object);

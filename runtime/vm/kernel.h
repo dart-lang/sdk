@@ -311,29 +311,37 @@ class StringTable {
 };
 
 
-class LineStartingTable {
+class SourceTable {
  public:
   void ReadFrom(Reader* reader);
   void WriteTo(Writer* writer);
-  ~LineStartingTable() {
+  ~SourceTable() {
     for (intptr_t i = 0; i < size_; ++i) {
-      delete[] values_[i];
+      delete source_code_[i];
+      delete[] line_starts_[i];
     }
-    delete[] values_;
+    delete[] source_code_;
+    delete[] line_starts_;
+    delete[] line_count_;
   }
 
   intptr_t size() { return size_; }
-  intptr_t* valuesFor(int i) { return values_[i]; }
+  String* SourceFor(intptr_t i) { return source_code_[i]; }
+  intptr_t* LineStartsFor(intptr_t i) { return line_starts_[i]; }
+  intptr_t LineCountFor(intptr_t i) { return line_count_[i]; }
 
  private:
-  LineStartingTable() : values_(NULL), size_(0) {}
+  SourceTable()
+      : source_code_(NULL), line_starts_(NULL), line_count_(NULL), size_(0) {}
 
   friend class Program;
 
-  intptr_t** values_;
+  String** source_code_;
+  intptr_t** line_starts_;
+  intptr_t* line_count_;
   intptr_t size_;
 
-  DISALLOW_COPY_AND_ASSIGN(LineStartingTable);
+  DISALLOW_COPY_AND_ASSIGN(SourceTable);
 };
 
 // Forward declare all classes.
@@ -2798,7 +2806,7 @@ class Program : public TreeNode {
 
   StringTable& string_table() { return string_table_; }
   StringTable& source_uri_table() { return source_uri_table_; }
-  LineStartingTable& line_starting_table() { return line_starting_table_; }
+  SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
   Procedure* main_method() { return main_method_; }
 
@@ -2809,7 +2817,7 @@ class Program : public TreeNode {
   Ref<Procedure> main_method_;
   StringTable string_table_;
   StringTable source_uri_table_;
-  LineStartingTable line_starting_table_;
+  SourceTable source_table_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };

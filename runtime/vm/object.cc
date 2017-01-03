@@ -3477,6 +3477,11 @@ TokenPosition Class::ComputeEndTokenPos() const {
   Zone* zone = Thread::Current()->zone();
   const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
+
+  if (scr.kind() == RawScript::kKernelTag) {
+    return TokenPosition::kMinSource;
+  }
+
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
     ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
@@ -8787,6 +8792,11 @@ RawString* Script::Source() const {
 
 
 RawString* Script::GenerateSource() const {
+  if (kind() == RawScript::kKernelTag) {
+    // In kernel it's embedded.
+    return raw_ptr()->source_;
+  }
+
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
     ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
@@ -8808,8 +8818,32 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   const String& source = String::Handle(zone, Source());
   const String& key = Symbols::Empty();
   const Object& line_separator = Object::Handle(zone);
-  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   Smi& value = Smi::Handle(zone);
+
+  if (kind() == RawScript::kKernelTag) {
+    const Array& line_starts_array = Array::Handle(line_starts());
+    if (line_starts_array.IsNull()) {
+      // Scripts in the AOT snapshot do not have a line starts array.
+      // A well-formed line number array has a leading null.
+      info.Add(line_separator);  // New line.
+      return info.raw();
+    }
+    intptr_t line_count = line_starts_array.Length();
+    ASSERT(line_count > 0);
+
+    for (int i = 0; i < line_count; i++) {
+      info.Add(line_separator);  // New line.
+      value = Smi::New(i + 1);
+      info.Add(value);  // Line number.
+      value ^= line_starts_array.At(i);
+      info.Add(value);  // Token position.
+      value = Smi::New(1);
+      info.Add(value);  // Column.
+    }
+    return info.raw();
+  }
+
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   String& tokenValue = String::Handle(zone);
   ASSERT(!tkns.IsNull());
   TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
@@ -8941,6 +8975,10 @@ void Script::set_tokens(const TokenStream& value) const {
 
 
 void Script::Tokenize(const String& private_key, bool use_shared_tokens) const {
+  if (kind() == RawScript::kKernelTag) {
+    return;
+  }
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
@@ -9007,7 +9045,9 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     }
     *line = min + 1;
     smi ^= line_starts_array.At(min);
-    *column = offset - smi.Value() + 1;
+    if (column != NULL) {
+      *column = offset - smi.Value() + 1;
+    }
     if (token_len != NULL) {
       *token_len = 1;
     }
@@ -9066,6 +9106,29 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* last_token_index) const {
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
+
+  if (kind() == RawScript::kKernelTag) {
+    const Array& line_starts_array = Array::Handle(line_starts());
+    if (line_starts_array.IsNull()) {
+      // Scripts in the AOT snapshot do not have a line starts array.
+      *first_token_index = TokenPosition::kNoSource;
+      *last_token_index = TokenPosition::kNoSource;
+      return;
+    }
+    ASSERT(line_starts_array.Length() >= line_number);
+    Smi& value = Smi::Handle();
+    value ^= line_starts_array.At(line_number - 1);
+    *first_token_index = TokenPosition(value.Value());
+    if (line_starts_array.Length() > line_number) {
+      value ^= line_starts_array.At(line_number);
+      *last_token_index = TokenPosition(value.Value() - 1);
+    } else {
+      // Length of source is last possible token in this script.
+      *last_token_index = TokenPosition(String::Handle(Source()).Length());
+    }
+    return;
+  }
+
   Zone* zone = Thread::Current()->zone();
   *first_token_index = TokenPosition::kNoSource;
   *last_token_index = TokenPosition::kNoSource;

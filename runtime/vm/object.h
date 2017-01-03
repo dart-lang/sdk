@@ -3550,8 +3550,6 @@ class Script : public Object {
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
-  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
-
   void set_line_starts(const Array& value) const;
 
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
@@ -3603,6 +3601,7 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
+  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
 
   static RawScript* New();
 
