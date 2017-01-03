@@ -54,6 +54,12 @@ abstract class Isolate extends IsolateRef {
   /// The list of threads associated with this isolate.
   Iterable<Thread> get threads;
 
+  /// The number of zone handles currently held by this isolate.
+  int get numZoneHandles;
+
+  /// The number of scoped handles currently held by this isolate.
+  int get numScopedHandles;
+
   /// The current pause on exception mode for this isolate.
   //ExceptionPauseMode get exceptionPauseMode;
 

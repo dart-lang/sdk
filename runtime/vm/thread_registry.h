@@ -37,6 +37,9 @@ class ThreadRegistry {
   void PrintJSON(JSONStream* stream) const;
 #endif
 
+  intptr_t CountZoneHandles() const;
+  intptr_t CountScopedHandles() const;
+
  private:
   Thread* active_list() const { return active_list_; }
   Monitor* threads_lock() const { return threads_lock_; }

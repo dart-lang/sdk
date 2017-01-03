@@ -1507,6 +1507,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
+  int get numZoneHandles => _numZoneHandles;
+  int _numZoneHandles;
+
+  int get numScopedHandles => _numScopedHandles;
+  int _numScopedHandles;
+
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1632,9 +1638,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     threads.clear();
-    if(map['threads'] != null) {
+    if (map['threads'] != null) {
       threads.addAll(map['threads']);
     }
+
+    _numZoneHandles = map['_numZoneHandles'];
+    _numScopedHandles = map['_numScopedHandles'];
   }
 
   Future<TagProfile> updateTagProfile() {

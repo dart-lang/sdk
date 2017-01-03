@@ -269,6 +269,26 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ..children = [
                   new DivElement()
                     ..classes = ['memberName']
+                    ..text = 'allocated zone handle count',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = '${_isolate.numZoneHandles}'
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'allocated scoped handle count',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = '${_isolate.numScopedHandles}'
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'object store',
                   new DivElement()
                     ..classes = ['memberValue']

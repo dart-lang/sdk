@@ -105,6 +105,30 @@ void ThreadRegistry::PrintJSON(JSONStream* stream) const {
 #endif
 
 
+intptr_t ThreadRegistry::CountZoneHandles() const {
+  MonitorLocker ml(threads_lock());
+  intptr_t count = 0;
+  Thread* current = active_list_;
+  while (current != NULL) {
+    count += current->CountZoneHandles();
+    current = current->next_;
+  }
+  return count;
+}
+
+
+intptr_t ThreadRegistry::CountScopedHandles() const {
+  MonitorLocker ml(threads_lock());
+  intptr_t count = 0;
+  Thread* current = active_list_;
+  while (current != NULL) {
+    count += current->CountScopedHandles();
+    current = current->next_;
+  }
+  return count;
+}
+
+
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
