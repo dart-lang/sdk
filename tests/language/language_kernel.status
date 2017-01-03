@@ -347,6 +347,11 @@ type_variable_function_type_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
 
+# Issue 28238.
+async_await_test : Crash
+async_star_pause_test: Crash
+async_star_test : Crash
+
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 const_evaluation_test/01: RuntimeError

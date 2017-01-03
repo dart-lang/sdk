@@ -314,6 +314,24 @@ Language/Types/Static_Types/deferred_type_t01: RuntimeError
 Language/Variables/final_t01/01: MissingRuntimeError
 Language/Variables/final_t02/01: MissingRuntimeError
 
+# Issue 28238.
+Language/Statements/Yield_and_Yield_Each/Yield_Each/static_type_t02: Crash
+LibTest/async/Future/catchError_A03_t05: Crash
+LibTest/async/Future/then_A05_t01: Crash
+LibTest/async/Stream/asBroadcastStream_A03_t02: Crash
+LibTest/async/Stream/asBroadcastStream_A03_t03: Crash
+LibTest/async/Zone/bindBinaryCallback_A01_t01: Crash
+LibTest/async/Zone/bindCallback_A01_t01: Crash
+LibTest/async/Zone/bindUnaryCallback_A01_t01: Crash
+LibTest/async/Zone/current_A01_t01: Crash
+LibTest/async/Zone/handleUncaughtError_A01_t01: Crash
+LibTest/async/Zone/handleUncaughtError_A01_t04: Crash
+LibTest/async/Zone/inSameErrorZone_A01_t01: Crash
+LibTest/async/Zone/inSameErrorZone_A01_t03: Crash
+LibTest/async/Zone/inSameErrorZone_A01_t04: Crash
+LibTest/async/Zone/inSameErrorZone_A01_t05: Crash
+LibTest/async/Zone/parent_A01_t01: Crash
+
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
