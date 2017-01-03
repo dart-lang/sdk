@@ -662,7 +662,7 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
     node->body()->AcceptStatementVisitor(this);
   }
 
-  // Ensure that :await_jump_var and :await_ctx_var are captured.
+  // Ensure that :await_jump_var, :await_ctx_var and :async_op are captured.
   if (node->async_marker() == FunctionNode::kSyncYielding) {
     {
       LocalVariable* temp = NULL;
@@ -675,6 +675,13 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
       LookupCapturedVariableByName(
           (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
           Symbols::AwaitContextVar());
+    }
+    {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::AsyncOperation(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
     }
   }
 }
