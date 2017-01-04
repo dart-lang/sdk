@@ -20,8 +20,10 @@ class CheckedModeHelper {
 
   StaticUse getStaticUse(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
+    // TODO(johnniwinther): Refactor this to avoid looking up directly in the
+    // js helper library but instead access helpers directly on backend helpers.
     return new StaticUse.staticInvoke(
-        backend.helpers.findHelper(name), callStructure);
+        backend.helpers.jsHelperLibrary.find(name), callStructure);
   }
 
   CallStructure get callStructure => CallStructure.ONE_ARG;

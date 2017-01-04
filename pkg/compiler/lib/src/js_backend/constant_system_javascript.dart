@@ -370,12 +370,11 @@ class JavaScriptConstantSystem extends ConstantSystem {
       keysType = commonElements.listType(sourceType.typeArguments.first);
     }
     ListConstantValue keysList = new ListConstantValue(keysType, keys);
-    String className = onlyStringKeys
+    ClassElement classElement = onlyStringKeys
         ? (hasProtoKey
-            ? JavaScriptMapConstant.DART_PROTO_CLASS
-            : JavaScriptMapConstant.DART_STRING_CLASS)
-        : JavaScriptMapConstant.DART_GENERAL_CLASS;
-    ClassElement classElement = backend.helpers.jsHelperLibrary.find(className);
+            ? backend.helpers.constantProtoMapClass
+            : backend.helpers.constantStringMapClass)
+        : backend.helpers.generalConstantMapClass;
     classElement.ensureResolved(compiler.resolution);
     List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;

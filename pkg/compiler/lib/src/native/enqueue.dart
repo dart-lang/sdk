@@ -283,18 +283,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void findAnnotationClasses() {
     if (_annotationCreatesClass != null) return;
-    ClassElement find(name) {
-      Element e = helpers.findHelper(name);
-      if (e == null || e is! ClassElement) {
-        reporter.internalError(NO_LOCATION_SPANNABLE,
-            "Could not find implementation class '${name}'.");
-      }
-      return e;
-    }
 
-    _annotationCreatesClass = find('Creates');
-    _annotationReturnsClass = find('Returns');
-    _annotationJsNameClass = find('JSName');
+    _annotationCreatesClass = helpers.annotationCreatesClass;
+    _annotationReturnsClass = helpers.annotationReturnsClass;
+    _annotationJsNameClass = helpers.annotationJSNameClass;
   }
 
   /// Returns the JSName annotation string or `null` if no JSName annotation is
@@ -498,17 +490,16 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
-    void staticUse(name) {
-      Element element = helpers.findHelper(name);
+    void staticUse(element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
       backend.registerBackendUse(element);
       compiler.globalDependencies.registerDependency(element);
     }
 
-    staticUse('defineProperty');
-    staticUse('toStringForNativeObject');
-    staticUse('hashCodeForNativeObject');
-    staticUse('convertDartClosureToJS');
+    staticUse(helpers.defineProperty);
+    staticUse(helpers.toStringForNativeObject);
+    staticUse(helpers.hashCodeForNativeObject);
+    staticUse(helpers.closureConverter);
     return _findNativeExceptions();
   }
 

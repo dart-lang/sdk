@@ -269,19 +269,12 @@ class BackendImpacts {
   BackendImpact _constantMapLiteral;
 
   BackendImpact get constantMapLiteral {
-    if (_constantMapLiteral == null) {
-      ClassElement find(String name) {
-        return helpers.find(helpers.jsHelperLibrary, name);
-      }
-
-      _constantMapLiteral = new BackendImpact(instantiatedClasses: [
-        find(JavaScriptMapConstant.DART_CLASS),
-        find(JavaScriptMapConstant.DART_PROTO_CLASS),
-        find(JavaScriptMapConstant.DART_STRING_CLASS),
-        find(JavaScriptMapConstant.DART_GENERAL_CLASS)
-      ]);
-    }
-    return _constantMapLiteral;
+    return _constantMapLiteral ??= new BackendImpact(instantiatedClasses: [
+      helpers.constantMapClass,
+      helpers.constantProtoMapClass,
+      helpers.constantStringMapClass,
+      helpers.generalConstantMapClass,
+    ]);
   }
 
   BackendImpact _symbolConstructor;

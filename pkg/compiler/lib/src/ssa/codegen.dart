@@ -10,9 +10,9 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -2939,14 +2939,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (!optionalParameterTypes.isEmpty) {
         arguments.add(new js.ArrayInitializer(optionalParameterTypes));
       }
-      push(js.js('#(#)', [accessHelper('buildFunctionType'), arguments]));
+      push(js.js('#(#)', [accessHelper(helpers.buildFunctionType), arguments]));
     } else {
       var arguments = [
         returnType,
         new js.ArrayInitializer(parameterTypes),
         new js.ObjectInitializer(namedParameters)
       ];
-      push(js.js('#(#)', [accessHelper('buildNamedFunctionType'), arguments]));
+      push(js.js(
+          '#(#)', [accessHelper(helpers.buildNamedFunctionType), arguments]));
     }
   }
 
@@ -3077,23 +3078,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer(typeArguments));
     }
-    push(js.js('#(#)',
-        [accessHelper('buildInterfaceType', arguments.length), arguments]));
+    push(js.js('#(#)', [
+      accessHelper(helpers.buildInterfaceType, arguments.length),
+      arguments
+    ]));
   }
 
   void visitVoidType(HVoidType node) {
-    push(js.js('#()', accessHelper('getVoidRuntimeType')));
+    push(js.js('#()', accessHelper(helpers.getVoidRuntimeType)));
   }
 
   void visitDynamicType(HDynamicType node) {
-    push(js.js('#()', accessHelper('getDynamicRuntimeType')));
+    push(js.js('#()', accessHelper(helpers.getDynamicRuntimeType)));
   }
 
-  js.PropertyAccess accessHelper(String name, [int argumentCount = 0]) {
-    Element helper = helpers.findHelper(name);
+  js.PropertyAccess accessHelper(FunctionEntity helper,
+      [int argumentCount = 0]) {
     if (helper == null) {
       // For mocked-up tests.
-      return js.js('(void 0).$name');
+      return js.js('(void 0).dummy');
     }
     registry.registerStaticUse(new StaticUse.staticInvoke(
         helper, new CallStructure.unnamed(argumentCount)));
