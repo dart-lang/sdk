@@ -2353,7 +2353,7 @@ class C extends B {
 
 // accessors
 set x(int value) {}
-/*error:IMPLICIT_DYNAMIC_RETURN*/get y0 => 42;
+get /*error:IMPLICIT_DYNAMIC_RETURN*/y0 => 42;
 dynamic get y1 => 42;
 
 // function typed formals

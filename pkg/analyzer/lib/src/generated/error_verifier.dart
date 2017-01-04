@@ -786,7 +786,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
-      _checkForImplicitDynamicReturn(node, node.element);
+      _checkForImplicitDynamicReturn(node.name, node.element);
       return super.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -850,7 +850,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (parameterType is FunctionType &&
             parameterType.returnType.isDynamic) {
           _errorReporter.reportErrorForNode(
-              StrongModeCode.IMPLICIT_DYNAMIC_RETURN, node, [node.identifier]);
+              StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+              node.identifier,
+              [node.identifier]);
         }
       }
       return super.visitFunctionTypedFormalParameter(node);
@@ -994,7 +996,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
       _checkForTypeAnnotationDeferredClass(returnTypeName);
       _checkForIllegalReturnType(returnTypeName);
-      _checkForImplicitDynamicReturn(node, node.element);
+      _checkForImplicitDynamicReturn(node.name, node.element);
       _checkForMustCallSuper(node);
       return super.visitMethodDeclaration(node);
     } finally {
@@ -3972,7 +3974,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _checkForImplicitDynamicReturn(AstNode node, ExecutableElement element) {
+  void _checkForImplicitDynamicReturn(
+      AstNode functionName, ExecutableElement element) {
     if (_options.implicitDynamic) {
       return;
     }
@@ -3982,8 +3985,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (element != null &&
         element.hasImplicitReturnType &&
         element.returnType.isDynamic) {
-      _errorReporter.reportErrorForNode(
-          StrongModeCode.IMPLICIT_DYNAMIC_RETURN, node, [element.displayName]);
+      _errorReporter.reportErrorForNode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+          functionName, [element.displayName]);
     }
   }
 
