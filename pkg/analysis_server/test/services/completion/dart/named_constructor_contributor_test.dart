@@ -61,7 +61,9 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         var m;
         main() {new X.^}''');
     // Assume that imported libraries are resolved
-    await resolveLibraryUnit(libSource);
+    if (!enableNewAnalysisDriver) {
+      await resolveLibraryUnit(libSource);
+    }
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -115,7 +117,9 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         var m;
         main() {new X.^}''');
     // Assume that imported libraries are resolved
-    await resolveLibraryUnit(libSource);
+    if (!enableNewAnalysisDriver) {
+      await resolveLibraryUnit(libSource);
+    }
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -187,18 +191,4 @@ class NamedConstructorContributorTest_Driver
     extends NamedConstructorContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_ConstructorName_importedClass() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_ConstructorName_importedClass();
-  }
-
-  @failingTest
-  @override
-  test_ConstructorName_importedFactory() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_ConstructorName_importedFactory();
-  }
 }
