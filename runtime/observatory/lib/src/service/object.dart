@@ -43,12 +43,12 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kIsolateMustBeRunnable = 105;
   static const kIsolateMustBePaused = 106;
   static const kCannotResume = 107;
-  static const kIsolateIsReloading = 1000;
+  static const kIsolateIsReloading = 108;
+  static const kIsolateReloadBarred = 109;
+
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
   static const kFileDoesNotExist = 1003;
-  static const kIsolateReloadFailed = 1004;
-  static const kIsolateReloadBarred = 1005;
 
   int code;
   Map data;

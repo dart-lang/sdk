@@ -37,6 +37,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [getVersion](#getversion)
 	- [getVM](#getvm)
 	- [pause](#pause)
+  - [reloadSources](#reloadSources)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
 	- [setExceptionPauseMode](#setexceptionpausemode)
@@ -73,6 +74,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [Message](#message)
 	- [Null](#null)
 	- [Object](#object)
+  - [ReloadReport](#reloadreport)
 	- [Response](#response)
 	- [Sentinel](#sentinel)
 	- [SentinelKind](#sentinelkind)
@@ -183,7 +185,9 @@ code | message | meaning
 104 | Stream not subscribed | The client is not subscribed to the specified _streamId_
 105 | Isolate must be runnable | This operation cannot happen until the isolate is runnable
 106 | Isolate must be paused | This operation is only valid when the isolate is paused
-
+107 | Cannot resume execution | The isolate could not be resumed
+108 | Isolate is reloading | The isolate is currently processing another reload request
+109 | Isolate cannot be reloaded | The isolate has an unhandled exception and can no longer be reloaded
 
 
 
@@ -651,6 +655,31 @@ When the isolate is paused an event will be sent on the _Debug_ stream.
 
 See [Success](#success).
 
+### reloadSources
+
+
+```
+ReloadReport reloadSources(string isolateId,
+                           bool force [optional],
+                           bool pause [optional],
+                           string rootLibUri [optional],
+                           string packagesUri [optional])
+```
+
+The _reloadSources_ RPC is used to perform a hot reload of an Isolate's sources.
+
+if the _force_ parameter is provided, it indicates that all of the Isolate's
+sources should be reloaded regardless of modification time.
+
+if the _pause_ parameter is provided, the isolate will pause immediately
+after the reload.
+
+if the _rootLibUri_ parameter is provided, it indicates the new uri to the
+Isolate's root library.
+
+if the _packagesUri_ parameter is provided, it indicates the new uri to the
+Isolate's package map (.packages) file.
+
 ### removeBreakpoint
 
 ```
@@ -684,6 +713,7 @@ step | meaning
 Into | Single step, entering function calls
 Over | Single step, skipping over function calls
 Out | Single step until the current function exits
+Rewind | Immediately exit the top frame(s) without executing any code. Isolate will be paused at the call of the last exited function.
 
 See [Success](#success), [StepOption](#StepOption).
 
@@ -768,8 +798,8 @@ The _streamId_ parameter may have the following published values:
 streamId | event types provided
 -------- | -----------
 VM | VMUpdate
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents
@@ -1244,6 +1274,12 @@ class Event extends Response {
   //   PauseBreakpoint
   //   PauseInterrupted
   bool atAsyncSuspension [optional];
+
+  // The status (success or failure) related to the event.
+  // This is provided for the event kinds:
+  //   IsolateReloaded
+  //   IsolateSpawn
+  string status [optional];
 }
 ```
 
@@ -1275,6 +1311,9 @@ enum EventKind {
   // via setName.
   IsolateUpdate,
 
+  // Notification that an isolate has been reloaded.
+  IsolateReload,
+
   // Notification that an extension RPC was registered on an isolate.
   ServiceExtensionAdded,
 
@@ -1292,6 +1331,9 @@ enum EventKind {
 
   // An isolate has paused due to an exception.
   PauseException,
+
+  // An isolate has paused after a service request.
+  PausePostRequest,
 
   // An isolate has started or resumed execution.
   Resume,
@@ -2129,6 +2171,15 @@ class Object extends Response {
 
 An _Object_ is a  persistent object that is owned by some isolate.
 
+### ReloadReport
+
+```
+class ReloadReport extends Response {
+  // Did the reload succeed or fail?
+  bool status;
+}
+```
+
 ### Response
 
 ```
@@ -2383,7 +2434,8 @@ enum StepOption {
   Into,
   Over,
   OverAsyncSuspension,
-  Out
+  Out,
+  Rewind
 }
 ```
 
@@ -2537,6 +2589,6 @@ version | comments
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
 3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable.
+3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
