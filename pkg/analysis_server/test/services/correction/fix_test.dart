@@ -4268,8 +4268,12 @@ void process(List<int> items) {
     _assertLinkedGroup(
         change.linkedEditGroups[2],
         ['List<int> items) {'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['List<int>', 'Iterable<int>', 'Object']));
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+          'List<int>',
+          'EfficientLengthIterable<int>',
+          'Iterable<int>',
+          'Object'
+        ]));
   }
 
   test_undefinedFunction_create_importType() async {
@@ -4908,7 +4912,7 @@ class A {
         change.linkedEditGroups[index++],
         ['String s'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable<String>']));
+            ['String', 'Object', 'Comparable<String>', 'Pattern']));
     _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -4952,7 +4956,7 @@ class A {
         change.linkedEditGroups[index++],
         ['String ccc'],
         expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable<String>']));
+            ['String', 'Object', 'Comparable<String>', 'Pattern']));
   }
 
   test_undefinedMethod_createUnqualified_returnType() async {

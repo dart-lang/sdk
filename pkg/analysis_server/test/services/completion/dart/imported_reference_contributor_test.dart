@@ -656,7 +656,7 @@ class B extends A {
     assertNotSuggested('G');
     //assertSuggestClass('H', COMPLETION_RELEVANCE_LOW);
     assertSuggestClass('Object');
-    assertSuggestFunction('min', 'num');
+    assertSuggestFunction('min', 'T');
     //assertSuggestFunction(
     //    'max',
     //    'num',

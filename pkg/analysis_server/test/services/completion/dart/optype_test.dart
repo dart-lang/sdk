@@ -85,6 +85,11 @@ class OpTypeTest {
     processRequiredPlugins();
   }
 
+  test_Block_final_final2() {
+    addTestSource('main() {final S^ final S x;}');
+    assertOpType(typeNames: true);
+  }
+
   test_Annotation() {
     // SimpleIdentifier  Annotation  MethodDeclaration  ClassDeclaration
     addTestSource('class C { @A^ }');
@@ -322,11 +327,6 @@ class OpTypeTest {
 
   test_Block_final_final() {
     addTestSource('main() {final ^ final S x;}');
-    assertOpType(typeNames: true);
-  }
-
-  test_Block_final_final2() {
-    addTestSource('main() {final S^ final S x;}');
     assertOpType(typeNames: true);
   }
 
@@ -1565,6 +1565,9 @@ class _TestSource implements Source {
 
   @override
   bool get isInSystemLibrary => false;
+
+  @override
+  Source get librarySource => null;
 
   @override
   String get shortName => fullName;
