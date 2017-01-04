@@ -95,8 +95,6 @@ null_is_bottom_test/37: RuntimeError # Issue 28025
 null_is_bottom_test/39: RuntimeError # Issue 28025
 regress_27617_test/1: MissingCompileTimeError
 super_call3_test/01: DartkCrash
-tearoff_basic_test: DartkCompileTimeError
-tearoff_constructor_basic_test: DartkCompileTimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
 vm/debug_break_enabled_vm_test/none: DartkCompileTimeError

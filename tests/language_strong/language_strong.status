@@ -626,8 +626,6 @@ symbol_literal_test: Skip
 sync_generator1_test: Skip
 sync_generator2_test: Skip
 syntax_test: Skip
-tearoff_basic_test: Skip
-tearoff_constructor_basic_test: Skip
 test_negative_test: Skip
 third_test: Skip
 this_conditional_operator_test: Skip

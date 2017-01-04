@@ -9,8 +9,6 @@ method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-tearoff_basic_test: Skip # Tear-off not supported
-tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823

@@ -16,9 +16,6 @@ deep_nesting2_negative_test: Crash # Issue 25558
 enum_syntax_test/05: Fail # 21649
 enum_syntax_test/06: Fail # 21649
 
-tearoff_basic_test: Skip # Tear-off not supported
-tearoff_constructor_basic_test: Skip # Tear-off not supported
-
 regress_17382_test: Skip # don't care about the static warning.
 regress_23408_test: Skip # don't care about the static warning.
 regress_25246_test: Skip
