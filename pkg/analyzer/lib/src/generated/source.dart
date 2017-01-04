@@ -422,6 +422,9 @@ class NonExistingSource extends Source {
 
   @override
   bool exists() => false;
+
+  @override
+  String toString() => 'NonExistingSource($uri, $fullName)';
 }
 
 /**

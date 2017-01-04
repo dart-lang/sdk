@@ -748,6 +748,23 @@ main() {
     }
   }
 
+  test_getResult_fileContentOverlay_throughAnalysisContext() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+
+    provider.newFile(a, 'import "b.dart";');
+    provider.newFile(b, 'var v = 1;');
+    contentOverlay[b] = 'var v = 2;';
+
+    var result = await driver.getResult(a);
+
+    // The content that was set into the overlay for "b" should be visible
+    // through the AnalysisContext that was used to analyze "a".
+    CompilationUnitElement unitA = result.unit.element;
+    Source sourceB = unitA.library.imports[0].importedLibrary.source;
+    expect(unitA.context.getContents(sourceB).data, 'var v = 2;');
+  }
+
   test_getResult_inferTypes_finalField() async {
     addTestFile(
         r'''
