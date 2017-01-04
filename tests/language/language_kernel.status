@@ -130,14 +130,14 @@ accessor_conflict_import_prefixed2_test: RuntimeError
 accessor_conflict_import_prefixed_test: RuntimeError
 accessor_conflict_import_test: RuntimeError
 assertion_test: RuntimeError
-async_await_test: RuntimeError
+async_await_test: Crash, RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_pause_test: RuntimeError
+async_star_pause_test: Crash, RuntimeError
 async_star_regression_fisk_test: Timeout
 async_star_stream_take_test: Timeout
 async_star_take_reyield_test: Timeout
-async_star_test: Timeout
+async_star_test: Crash, Timeout
 asyncstar_throw_in_catch_test: Timeout
 asyncstar_yield_test: Timeout
 asyncstar_yieldstar_test: Timeout
@@ -267,7 +267,6 @@ generic_field_mixin2_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
 generic_inheritance_test: RuntimeError
-generic_local_functions_test: Crash
 generic_method_types_test: Pass, RuntimeError
 generic_methods_type_expression_test: RuntimeError
 generic_test: RuntimeError
@@ -346,11 +345,6 @@ type_parameter_literal_test: RuntimeError
 type_variable_function_type_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
-
-# Issue 28238.
-async_await_test : Crash
-async_star_pause_test: Crash
-async_star_test : Crash
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]

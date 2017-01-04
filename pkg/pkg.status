@@ -498,6 +498,4 @@ analyzer/test/src/task/yaml_test: Crash # Issue 24485
 *: Skip # `assert` not implemented, about 75% tests crash
 
 [ $compiler == none ]
-kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28231
-kernel/test/baseline_type_propagation_test: RuntimeError # Issue 28231
-kernel/test/closures_test: Fail # Issue 28231
+kernel/test/closures_test: Fail
