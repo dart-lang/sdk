@@ -12,8 +12,6 @@ import 'elements.dart' show Entity;
 /// and/or Dart-in-JS classes.
 abstract class ClassEntity extends Entity {
   bool get isClosure;
-  void forEachInstanceField(f(ClassEntity cls, FieldEntity field),
-      {bool includeSuperAndInjectedMembers: false});
 }
 
 abstract class TypeVariableEntity extends Entity {
@@ -27,6 +25,7 @@ abstract class TypeVariableEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  bool get isConstructor;
   bool get isField;
   bool get isFunction;
   bool get isGetter;

@@ -12,6 +12,7 @@ import '../elements/elements.dart'
         Elements,
         FunctionElement,
         FunctionSignature,
+        MemberElement,
         Name,
         LibraryElement,
         PublicName;
@@ -247,7 +248,7 @@ class Selector {
     return callStructure.signatureApplies(function.functionSignature);
   }
 
-  bool applies(Element element) {
+  bool applies(MemberElement element) {
     if (name != element.name) return false;
     return appliesUnnamed(element);
   }

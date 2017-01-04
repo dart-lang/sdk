@@ -21,6 +21,7 @@ import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
+import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -1107,6 +1108,11 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// possible runtime entities.
   void open(ClosedWorld closedWorld);
 
+  /// Calls [f] with every instance field, together with its declarer, in an
+  /// instance of [cls].
+  void forEachInstanceField(
+      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field));
+
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
@@ -1217,6 +1223,14 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     assert(invariant(NO_LOCATION_SPANNABLE, __world != null,
         message: "CodegenWorldBuilder has not been opened."));
     return __world;
+  }
+
+  /// Calls [f] with every instance field, together with its declarer, in an
+  /// instance of [cls].
+  void forEachInstanceField(
+      ClassElement cls, void f(ClassEntity declarer, FieldEntity field)) {
+    cls.implementation
+        .forEachInstanceField(f, includeSuperAndInjectedMembers: true);
   }
 
   Iterable<ClassElement> get processedClasses => _processedClasses.keys

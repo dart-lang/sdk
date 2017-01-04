@@ -199,4 +199,13 @@ abstract class CommonElements {
   ///
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType streamType([DartType elementType]);
+
+  /// Returns `true` if [element] is a superclass of `String` or `num`.
+  bool isNumberOrStringSupertype(ClassElement element);
+
+  /// Returns `true` if [element] is a superclass of `String`.
+  bool isStringOnlySupertype(ClassElement element);
+
+  /// Returns `true` if [element] is a superclass of `List`.
+  bool isListSupertype(ClassElement element);
 }

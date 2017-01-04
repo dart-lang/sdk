@@ -1474,6 +1474,18 @@ class _CompilerCommonElements implements CommonElements {
   ConstructorElement _filledListConstructor;
   ConstructorElement get filledListConstructor =>
       _filledListConstructor ??= listClass.lookupConstructor("filled");
+
+  // TODO(johnniwinther): Change types to `ClassElement` when these are not
+  // called with unrelated elements.
+  bool isNumberOrStringSupertype(/*Class*/ Element element) {
+    return element == coreLibrary.find('Comparable');
+  }
+
+  bool isStringOnlySupertype(/*Class*/ Element element) {
+    return element == coreLibrary.find('Pattern');
+  }
+
+  bool isListSupertype(/*Class*/ Element element) => element == iterableClass;
 }
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {

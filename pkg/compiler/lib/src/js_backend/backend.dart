@@ -409,8 +409,7 @@ class JavaScriptBackend extends Backend {
   /**
    * A set of members that are called from subclasses via `super`.
    */
-  final Set<FunctionElement> aliasedSuperMembers =
-      new Setlet<FunctionElement>();
+  final Set<MethodElement> aliasedSuperMembers = new Setlet<MethodElement>();
 
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
@@ -757,7 +756,8 @@ class JavaScriptBackend extends Backend {
   /**
    * Record that [method] is called from a subclass via `super`.
    */
-  bool maybeRegisterAliasedSuperMember(Element member, Selector selector) {
+  bool maybeRegisterAliasedSuperMember(
+      MemberElement member, Selector selector) {
     if (!canUseAliasedSuperMember(member, selector)) {
       // Invoking a super getter isn't supported, this would require changes to
       // compact field descriptors in the emitter.
@@ -790,7 +790,7 @@ class JavaScriptBackend extends Backend {
   /// keyword) which is only allowed for internal libraries or via the typed
   /// JavaScriptInterop mechanism which is allowed for user libraries.
   @override
-  bool isNative(Element element) => nativeData.isNative(element);
+  bool isNative(Entity element) => nativeData.isNative(element);
 
   /// Returns the [NativeBehavior] for calling the native [method].
   native.NativeBehavior getNativeMethodBehavior(FunctionElement method) {
@@ -1665,7 +1665,7 @@ class JavaScriptBackend extends Backend {
         element == helpers.jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return typeCast ? 'intTypeCast' : 'intTypeCheck';
-    } else if (Elements.isNumberOrStringSupertype(element, commonElements)) {
+    } else if (commonElements.isNumberOrStringSupertype(element)) {
       if (nativeCheck) {
         return typeCast
             ? 'numberOrStringSuperNativeTypeCast'
@@ -1675,7 +1675,7 @@ class JavaScriptBackend extends Backend {
             ? 'numberOrStringSuperTypeCast'
             : 'numberOrStringSuperTypeCheck';
       }
-    } else if (Elements.isStringOnlySupertype(element, commonElements)) {
+    } else if (commonElements.isStringOnlySupertype(element)) {
       if (nativeCheck) {
         return typeCast
             ? 'stringSuperNativeTypeCast'
@@ -1689,7 +1689,7 @@ class JavaScriptBackend extends Backend {
       if (nativeCheckOnly) return null;
       return typeCast ? 'listTypeCast' : 'listTypeCheck';
     } else {
-      if (Elements.isListSupertype(element, commonElements)) {
+      if (commonElements.isListSupertype(element)) {
         if (nativeCheck) {
           return typeCast
               ? 'listSuperNativeTypeCast'

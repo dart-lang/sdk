@@ -501,7 +501,7 @@ class BackendHelpers {
     return _findHelper('postTraceHelper');
   }
 
-  FunctionElement get closureFromTearOff {
+  MethodElement get closureFromTearOff {
     return _findHelper('closureFromTearOff');
   }
 
@@ -509,11 +509,11 @@ class BackendHelpers {
     return _findHelper('isJsIndexable');
   }
 
-  Element get throwIllegalArgumentException {
+  MethodElement get throwIllegalArgumentException {
     return _findHelper('iae');
   }
 
-  Element get throwIndexOutOfRangeException {
+  MethodElement get throwIndexOutOfRangeException {
     return _findHelper('ioore');
   }
 
@@ -541,7 +541,7 @@ class BackendHelpers {
     return cachedCheckConcurrentModificationError;
   }
 
-  Element get throwConcurrentModificationError {
+  MethodElement get throwConcurrentModificationError {
     return _findHelper('throwConcurrentModificationError');
   }
 
@@ -554,15 +554,15 @@ class BackendHelpers {
   Element get checkString => _checkString ??= _findHelper('checkString');
   Element _checkString;
 
-  Element get stringInterpolationHelper {
+  MethodElement get stringInterpolationHelper {
     return _findHelper('S');
   }
 
-  Element get wrapExceptionHelper {
+  MethodElement get wrapExceptionHelper {
     return _findHelper(r'wrapException');
   }
 
-  Element get throwExpressionHelper {
+  MethodElement get throwExpressionHelper {
     return _findHelper('throwExpression');
   }
 
@@ -582,7 +582,7 @@ class BackendHelpers {
     return _findHelper('getRuntimeTypeInfo');
   }
 
-  Element get getTypeArgumentByIndex {
+  MethodElement get getTypeArgumentByIndex {
     return _findHelper('getTypeArgumentByIndex');
   }
 
@@ -594,7 +594,7 @@ class BackendHelpers {
     return _findHelper('getRuntimeTypeArguments');
   }
 
-  Element get getRuntimeTypeArgument {
+  MethodElement get getRuntimeTypeArgument {
     return _findHelper('getRuntimeTypeArgument');
   }
 
@@ -826,7 +826,7 @@ class BackendHelpers {
     return _findInterceptor('findIndexForNativeSubclassType');
   }
 
-  Element get convertRtiToRuntimeType {
+  MethodElement get convertRtiToRuntimeType {
     return _findHelper('convertRtiToRuntimeType');
   }
 

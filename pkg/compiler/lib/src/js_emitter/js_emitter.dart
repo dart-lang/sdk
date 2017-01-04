@@ -31,6 +31,7 @@ import '../elements/elements.dart'
         ConstructorElement,
         Element,
         ElementKind,
+        Entity,
         FieldElement,
         FunctionElement,
         FunctionSignature,

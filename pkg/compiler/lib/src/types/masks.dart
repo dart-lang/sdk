@@ -197,4 +197,12 @@ class CommonMasks {
                 closedWorld.backendClasses.indexingBehaviorImplementation,
                 closedWorld));
   }
+
+  TypeMask createNonNullExact(ClassElement cls) {
+    return new TypeMask.nonNullExact(cls.declaration, closedWorld);
+  }
+
+  TypeMask createNonNullSubtype(ClassElement cls) {
+    return new TypeMask.nonNullSubtype(cls.declaration, closedWorld);
+  }
 }

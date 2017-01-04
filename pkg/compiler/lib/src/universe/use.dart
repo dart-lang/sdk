@@ -288,7 +288,7 @@ class StaticUse {
   }
 
   /// Read access of an instance field or boxed field [element].
-  factory StaticUse.fieldGet(Element element) {
+  factory StaticUse.fieldGet(FieldElement element) {
     assert(invariant(
         element, element.isInstanceMember || element is BoxFieldElement,
         message: "Field init element $element must be an instance "
@@ -297,7 +297,7 @@ class StaticUse {
   }
 
   /// Write access of an instance field or boxed field [element].
-  factory StaticUse.fieldSet(Element element) {
+  factory StaticUse.fieldSet(FieldElement element) {
     assert(invariant(
         element, element.isInstanceMember || element is BoxFieldElement,
         message: "Field init element $element must be an instance "

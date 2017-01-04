@@ -122,7 +122,7 @@ class CodeEmitterTask extends CompilerTask {
   /// Returns the JS expression representing the type [e].
   ///
   /// The given type [e] might be a Typedef.
-  jsAst.Expression typeAccess(Element e) {
+  jsAst.Expression typeAccess(Entity e) {
     return emitter.typeAccess(e);
   }
 
@@ -214,7 +214,7 @@ abstract class Emitter {
   jsAst.Expression interceptorClassAccess(ClassElement e);
 
   /// Returns the JS expression representing the type [e].
-  jsAst.Expression typeAccess(Element e);
+  jsAst.Expression typeAccess(Entity e);
 
   /// Returns the JS expression representing a function that returns 'null'
   jsAst.Expression generateFunctionThatReturnsNull();

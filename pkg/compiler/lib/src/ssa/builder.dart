@@ -350,7 +350,7 @@ class SsaBuilder extends ast.Visitor
    * [selector]) in a specific order (see [addDynamicSendArgumentsToList]).
    */
   List<HInstruction> completeDynamicSendArgumentsList(Selector selector,
-      FunctionElement function, List<HInstruction> providedArguments) {
+      MethodElement function, List<HInstruction> providedArguments) {
     assert(selector.applies(function));
     FunctionSignature signature = function.functionSignature;
     List<HInstruction> compiledArguments = new List<HInstruction>(
@@ -423,7 +423,7 @@ class SsaBuilder extends ast.Visitor
 
     if (compiler.elementHasCompileTimeError(element)) return false;
 
-    FunctionElement function = element;
+    MethodElement function = element;
     ResolvedAst functionResolvedAst = function.resolvedAst;
     bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 

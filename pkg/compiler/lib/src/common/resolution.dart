@@ -16,6 +16,7 @@ import '../elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
+        Entity,
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
@@ -112,7 +113,7 @@ abstract class Target {
 
   /// Returns `true` if [element] is a native element, that is, that the
   /// corresponding entity already exists in the target language.
-  bool isNative(Element element) => false;
+  bool isNative(Entity element) => false;
 
   /// Returns `true` if [element] is a foreign element, that is, that the
   /// backend has specialized handling for the element.

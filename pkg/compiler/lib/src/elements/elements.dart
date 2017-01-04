@@ -676,23 +676,6 @@ class Elements {
     return null;
   }
 
-  static bool isNumberOrStringSupertype(
-      Element element, CommonElements commonElements) {
-    LibraryElement coreLibrary = commonElements.coreLibrary;
-    return (element == coreLibrary.find('Comparable'));
-  }
-
-  static bool isStringOnlySupertype(
-      Element element, CommonElements commonElements) {
-    LibraryElement coreLibrary = commonElements.coreLibrary;
-    return element == coreLibrary.find('Pattern');
-  }
-
-  static bool isListSupertype(Element element, CommonElements commonElements) {
-    LibraryElement coreLibrary = commonElements.coreLibrary;
-    return element == coreLibrary.find('Iterable');
-  }
-
   /// A `compareTo` function that places [Element]s in a consistent order based
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {

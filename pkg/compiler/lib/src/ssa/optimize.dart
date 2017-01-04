@@ -749,7 +749,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (expression.isInteger(closedWorld)) {
       if (element == commonElements.intClass ||
           element == commonElements.numClass ||
-          Elements.isNumberOrStringSupertype(element, commonElements)) {
+          commonElements.isNumberOrStringSupertype(element)) {
         return graph.addConstantBool(true, closedWorld);
       } else if (element == commonElements.doubleClass) {
         // We let the JS semantics decide for that check. Currently
@@ -761,7 +761,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (expression.isDouble(closedWorld)) {
       if (element == commonElements.doubleClass ||
           element == commonElements.numClass ||
-          Elements.isNumberOrStringSupertype(element, commonElements)) {
+          commonElements.isNumberOrStringSupertype(element)) {
         return graph.addConstantBool(true, closedWorld);
       } else if (element == commonElements.intClass) {
         // We let the JS semantics decide for that check. Currently
@@ -2307,11 +2307,12 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
-      instruction.element.forEachInstanceField((_, FieldElement member) {
+      compiler.codegenWorld.forEachInstanceField(instruction.element,
+          (_, FieldElement member) {
         if (compiler.elementHasCompileTimeError(member)) return;
         memorySet.registerFieldValue(
             member, instruction, instruction.inputs[argumentIndex++]);
-      }, includeSuperAndInjectedMembers: true);
+      });
     }
     // In case this instruction has as input non-escaping objects, we
     // need to mark these objects as escaping.

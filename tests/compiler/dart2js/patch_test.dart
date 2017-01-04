@@ -994,7 +994,7 @@ Future testPatchAndSelector() async {
   Selector selector =
       new Selector.call(const PublicName('method'), CallStructure.NO_ARGS);
   TypeMask typeMask = new TypeMask.exact(cls, world);
-  FunctionElement method = cls.implementation.lookupLocalMember('method');
+  MethodElement method = cls.implementation.lookupLocalMember('method');
   method.computeType(compiler.resolution);
   Expect.isTrue(selector.applies(method));
   Expect.isTrue(typeMask.canHit(method, selector, world));
