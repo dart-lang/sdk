@@ -345,8 +345,18 @@ duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
 
+null_bottom_test/none: StaticWarning, CompileTimeError # Issue 28025
+null_bottom_test/01: Pass, CompileTimeError # Issue 28025
+null_bottom_test/02: Pass, CompileTimeError # Issue 28025
+null_bottom_test/03: Pass, CompileTimeError # Issue 28025
+
 # Issue #28236
 async_await_test: StaticWarning
 async_star_pause_test: StaticWarning
 async_star_test: StaticWarning
 regress_18535_test: StaticWarning
+
+[ $runtime == dart_precompiled || $runtime == vm ]
+null_bottom_test/none: RuntimeError # Issue 28025
+null_bottom_test/01: RuntimeError # Issue 28025
+null_bottom_test/02: RuntimeError # Issue 28025
