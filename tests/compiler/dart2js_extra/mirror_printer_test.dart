@@ -20,8 +20,7 @@ import 'dart:mirrors';
 import 'crash_library_metadata.dart'; // This would crash dart2js.
 
 // Importing dart:html to make things interesting.
-// TODO(johnniwinther): Reenable this when #28240 has been fixed.
-// import 'dart:html';
+import 'dart:html'; /// 01: ok
 
 class MirrorPrinter {
   final StringBuffer buffer;
@@ -186,5 +185,5 @@ main() {
   print(MirrorPrinter.stringify(currentMirrorSystem().libraries));
   // Clear the nodes to avoid confusing the fine test framework (by "fine" I
   // mean something else) -- ahe.
-  document.body.nodes.clear();
+  document.body.nodes.clear(); /// 01: continued
 }

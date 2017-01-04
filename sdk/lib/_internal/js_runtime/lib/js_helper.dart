@@ -679,11 +679,14 @@ class ReflectionInfo {
     if (JS('bool', 'typeof # == "number"', functionType)) {
       return getType(functionType);
     } else if (JS('bool', 'typeof # == "function"', functionType)) {
-      var fakeInstance = JS('', 'new #()', jsConstructor);
-      setRuntimeTypeInfo(
-          fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
-      return JS('=Object|Null', r'#.apply({$receiver:#})',
-                functionType, fakeInstance);
+      if (jsConstructor != null) {
+        var fakeInstance = JS('', 'new #()', jsConstructor);
+        setRuntimeTypeInfo(
+            fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
+        return JS('=Object|Null', r'#.apply({$receiver:#})',
+                  functionType, fakeInstance);
+      }
+      return functionType;
     } else {
       throw new RuntimeError('Unexpected function type');
     }
