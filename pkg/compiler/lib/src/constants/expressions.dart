@@ -12,7 +12,7 @@ import '../elements/elements.dart'
     show
         ConstructorElement,
         FieldElement,
-        FunctionElement,
+        MethodElement,
         PrefixElement,
         VariableElement;
 import '../resolution/operators.dart';
@@ -813,7 +813,7 @@ class VariableConstantExpression extends ConstantExpression {
 
 /// Reference to a top-level or static function.
 class FunctionConstantExpression extends ConstantExpression {
-  final FunctionElement element;
+  final MethodElement element;
 
   FunctionConstantExpression(this.element);
 
@@ -831,7 +831,7 @@ class FunctionConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return new FunctionConstantValue(element);
+    return new FunctionConstantValue(element, element.type);
   }
 
   @override

@@ -544,8 +544,9 @@ class DeferredLoadTask extends CompilerTask {
 
     for (ConstantValue dependency in dependentConstants) {
       if (dependency is DeferredConstantValue) {
-        _mapConstantDependencies(dependency,
-            new _DeclaredDeferredImport(dependency.prefix.deferredImport));
+        PrefixElement prefix = dependency.prefix;
+        _mapConstantDependencies(
+            dependency, new _DeclaredDeferredImport(prefix.deferredImport));
       } else {
         _mapConstantDependencies(dependency, import);
       }

@@ -34,7 +34,7 @@ main() {
     return check(code, lookup: defaultConstructorFor('A'));
   });
 
-test('redirecting constructor with field', () {
+  test('redirecting constructor with field', () {
     String code = '''
 class Foo {
   final int value;

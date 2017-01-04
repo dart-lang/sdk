@@ -220,8 +220,8 @@ class Kernel {
         }
         cls.implementation
             .forEachMember((ClassElement enclosingClass, Element member) {
-          if (!compiler.resolution.hasBeenResolved(member)
-              && !member.isMalformed) {
+          if (!compiler.resolution.hasBeenResolved(member) &&
+              !member.isMalformed) {
             return;
           }
           if (member.enclosingClass.declaration != cls) {

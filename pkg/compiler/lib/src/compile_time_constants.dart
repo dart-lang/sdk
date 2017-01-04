@@ -637,13 +637,13 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (send.isPropertyAccess) {
       AstConstant result;
       if (Elements.isStaticOrTopLevelFunction(element)) {
-        FunctionElement function = element;
+        MethodElement function = element;
         function.computeType(resolution);
         result = new AstConstant(
             context,
             send,
             new FunctionConstantExpression(function),
-            new FunctionConstantValue(function));
+            new FunctionConstantValue(function, function.type));
       } else if (Elements.isStaticOrTopLevelField(element)) {
         ConstantExpression elementExpression;
         if (element.isConst) {

@@ -1199,8 +1199,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // If runtime type information is needed and the map literal has no type
     // parameters, 'constructor' is a static function that forwards the call to
     // the factory constructor without type parameters.
-    assert(constructor.kind == ir.ProcedureKind.Method
-        || constructor.kind == ir.ProcedureKind.Factory);
+    assert(constructor.kind == ir.ProcedureKind.Method ||
+        constructor.kind == ir.ProcedureKind.Factory);
 
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in

@@ -28,7 +28,6 @@ const List<String> SKIP_TESTS = const <String>[
 ];
 
 main(List<String> arguments) async {
-
   Directory directory = new Directory('${TESTCASE_DIR}/input');
   for (FileSystemEntity file in directory.listSync()) {
     if (file is File && file.path.endsWith('.dart')) {

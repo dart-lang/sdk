@@ -2249,12 +2249,8 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.Expression handleStaticSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
+  ir.Expression handleStaticSetterInvoke(Send node, FunctionElement setter,
+      NodeList arguments, CallStructure callStructure, _) {
     return new ir.InvalidExpression();
   }
 

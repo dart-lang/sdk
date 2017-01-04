@@ -21,11 +21,11 @@ import 'elements/elements.dart'
     show
         ClassElement,
         Element,
+        FieldElement,
         ImportElement,
         LibraryElement,
         MetadataAnnotation,
-        ScopeContainerElement,
-        VariableElement;
+        ScopeContainerElement;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' show NamedArgument, NewExpression, Node;
 
@@ -314,12 +314,12 @@ class MirrorUsageAnalyzer {
   /// Convert a [constant] to an instance of [MirrorUsage] using information
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
   MirrorUsage buildUsage(ConstructedConstantValue constant) {
-    Map<Element, ConstantValue> fields = constant.fields;
+    Map<FieldElement, ConstantValue> fields = constant.fields;
     ClassElement cls = compiler.commonElements.mirrorsUsedClass;
-    VariableElement symbolsField = cls.lookupLocalMember('symbols');
-    VariableElement targetsField = cls.lookupLocalMember('targets');
-    VariableElement metaTargetsField = cls.lookupLocalMember('metaTargets');
-    VariableElement overrideField = cls.lookupLocalMember('override');
+    FieldElement symbolsField = cls.lookupLocalMember('symbols');
+    FieldElement targetsField = cls.lookupLocalMember('targets');
+    FieldElement metaTargetsField = cls.lookupLocalMember('metaTargets');
+    FieldElement overrideField = cls.lookupLocalMember('override');
 
     return new MirrorUsage(
         cachedStrings[fields[symbolsField]],

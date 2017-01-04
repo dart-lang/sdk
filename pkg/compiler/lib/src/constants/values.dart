@@ -6,9 +6,9 @@ library dart2js.constants.values;
 
 import '../common.dart';
 import '../core_types.dart';
+import '../elements/elements.dart' show Entity;
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
-import '../elements/elements.dart'
-    show FieldElement, FunctionElement, PrefixElement;
 import '../tree/dartstring.dart';
 import '../util/util.dart' show Hashing;
 
@@ -112,11 +112,11 @@ abstract class ConstantValue {
 }
 
 class FunctionConstantValue extends ConstantValue {
-  FunctionElement element;
+  final FunctionEntity element;
+  // TODO(johnniwinther): Should the type be derived from [element].
+  final FunctionType type;
 
-  FunctionConstantValue(this.element) {
-    assert(element.type != null);
-  }
+  FunctionConstantValue(this.element, this.type);
 
   bool get isFunction => true;
 
@@ -131,7 +131,7 @@ class FunctionConstantValue extends ConstantValue {
     return new DartString.literal(element.name);
   }
 
-  DartType getType(CommonElements types) => element.type;
+  DartType getType(CommonElements types) => type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
@@ -140,7 +140,7 @@ class FunctionConstantValue extends ConstantValue {
   ConstantValueKind get kind => ConstantValueKind.FUNCTION;
 
   String toDartText() {
-    if (element.isStatic) {
+    if (element.enclosingClass != null) {
       return '${element.enclosingClass.name}.${element.name}';
     } else {
       return '${element.name}';
@@ -701,11 +701,11 @@ class SyntheticConstantValue extends ConstantValue {
 class ConstructedConstantValue extends ObjectConstantValue {
   // TODO(johnniwinther): Make [fields] private to avoid misuse of the map
   // ordering and mutability.
-  final Map<FieldElement, ConstantValue> fields;
+  final Map<FieldEntity, ConstantValue> fields;
   final int hashCode;
 
   ConstructedConstantValue(
-      InterfaceType type, Map<FieldElement, ConstantValue> fields)
+      InterfaceType type, Map<FieldEntity, ConstantValue> fields)
       : this.fields = fields,
         hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
         super(type) {
@@ -722,7 +722,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     if (hashCode != other.hashCode) return false;
     if (type != other.type) return false;
     if (fields.length != other.fields.length) return false;
-    for (FieldElement field in fields.keys) {
+    for (FieldEntity field in fields.keys) {
       if (fields[field] != other.fields[field]) return false;
     }
     return true;
@@ -742,7 +742,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     _unparseTypeArguments(sb);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldElement field, ConstantValue value) {
+    fields.forEach((FieldEntity field, ConstantValue value) {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
@@ -759,7 +759,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     sb.write(type);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldElement field, ConstantValue value) {
+    fields.forEach((FieldEntity field, ConstantValue value) {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
@@ -777,7 +777,7 @@ class DeferredConstantValue extends ConstantValue {
   DeferredConstantValue(this.referenced, this.prefix);
 
   final ConstantValue referenced;
-  final PrefixElement prefix;
+  final Entity prefix;
 
   bool get isReference => true;
 

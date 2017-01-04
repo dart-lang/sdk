@@ -874,8 +874,9 @@ class ConstantValueEquivalence
   @override
   bool visitFunction(
       FunctionConstantValue value1, FunctionConstantValue value2) {
-    return strategy.testElements(
-        value1, value2, 'element', value1.element, value2.element);
+    MethodElement method1 = value1.element;
+    MethodElement method2 = value2.element;
+    return strategy.testElements(value1, value2, 'element', method1, method2);
   }
 
   @override

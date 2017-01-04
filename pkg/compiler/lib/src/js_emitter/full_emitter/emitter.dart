@@ -326,7 +326,7 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
-  jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
+  jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
     return jsAst.js('#.#()',
         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
   }

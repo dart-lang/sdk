@@ -11,6 +11,7 @@ import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
@@ -891,7 +892,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ConstantValue constant = receiver.constant;
       if (constant.isConstructedObject) {
         ConstructedConstantValue constructedConstant = constant;
-        Map<Element, ConstantValue> fields = constructedConstant.fields;
+        Map<FieldEntity, ConstantValue> fields = constructedConstant.fields;
         ConstantValue value = fields[node.element];
         if (value != null) {
           return graph.addConstant(value, closedWorld);
