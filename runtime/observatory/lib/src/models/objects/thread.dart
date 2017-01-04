@@ -20,10 +20,6 @@ abstract class Thread {
   /// The task type associated with the thread.
   ThreadKind get kind;
 
-  /// The maximum amount of memory in bytes allocated by a thread at a given
-  /// time throughout the entire life of the thread.
-  int get memoryHighWatermark;
-
   /// A list of all the zones held by the thread.
   Iterable<Zone> get zones;
 }

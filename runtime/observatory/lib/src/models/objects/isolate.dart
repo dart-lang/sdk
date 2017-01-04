@@ -54,11 +54,6 @@ abstract class Isolate extends IsolateRef {
   /// The list of threads associated with this isolate.
   Iterable<Thread> get threads;
 
-  /// The maximum amount of memory in bytes allocated by the isolate in all
-  /// threads at a given time. Calculated using the high watermarks of each
-  /// thread alive when a thread is unscheduled.
-  int get memoryHighWatermark;
-
   /// The number of zone handles currently held by this isolate.
   int get numZoneHandles;
 

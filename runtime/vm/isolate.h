@@ -178,7 +178,7 @@ class Isolate : public BaseIsolate {
 
   ThreadRegistry* thread_registry() const { return thread_registry_; }
   SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
-  uint memory_high_watermark() const { return memory_high_watermark_; }
+
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -691,10 +691,6 @@ class Isolate : public BaseIsolate {
                         bool is_mutator,
                         bool bypass_safepoint = false);
 
-  // Updates the maximum memory usage in bytes of all zones in all threads of
-  // the current isolate.
-  void UpdateMemoryHighWatermark();
-
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
   Zone* current_zone() const {
@@ -715,7 +711,6 @@ class Isolate : public BaseIsolate {
 
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
-  uint memory_high_watermark_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
