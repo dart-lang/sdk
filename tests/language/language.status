@@ -356,7 +356,7 @@ async_star_pause_test: StaticWarning
 async_star_test: StaticWarning
 regress_18535_test: StaticWarning
 
-[ $runtime == dart_precompiled || $runtime == vm ]
+[ $runtime == dart_precompiled || $runtime == vm || $runtime == dartium]
 null_bottom_test/none: RuntimeError # Issue 28025
 null_bottom_test/01: RuntimeError # Issue 28025
 null_bottom_test/02: RuntimeError # Issue 28025
