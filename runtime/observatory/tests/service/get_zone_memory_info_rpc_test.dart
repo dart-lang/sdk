@@ -15,7 +15,7 @@ var tests = [
     // the correct fields needed to examine zone memory usage.
     for (Isolate isolate in vm.isolates) {
       await isolate.reload();
-
+      expect(isolate.memoryHighWatermark, isInt);
       expect(isolate.threads, isNotNull);
       List<Thread> threads = isolate.threads;
 
@@ -23,6 +23,7 @@ var tests = [
         expect(thread.type, equals('_Thread'));
         expect(thread.id, isNotNull);
         expect(thread.kind, isNotNull);
+        expect(thread.memoryHighWatermark, isInt);
         expect(thread.zones, isNotNull);
         List<Zone> zones = thread.zones;
 

@@ -37,6 +37,8 @@ class ThreadRegistry {
   void PrintJSON(JSONStream* stream) const;
 #endif
 
+  // Calculates the sum of the max memory usage in bytes of each thread.
+  uint ThreadHighWatermarksTotalLocked() const;
   intptr_t CountZoneHandles() const;
   intptr_t CountScopedHandles() const;
 

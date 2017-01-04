@@ -1507,6 +1507,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
+  int get memoryHighWatermark => _memoryHighWatermark;
+  int _memoryHighWatermark;
+
   int get numZoneHandles => _numZoneHandles;
   int _numZoneHandles;
 
@@ -1638,6 +1641,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     threads.clear();
+    if(map['_threads'] != null) {
+      threads.addAll(map['_threads']);
+    }
+
+    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
     if (map['threads'] != null) {
       threads.addAll(map['threads']);
     }
@@ -3081,6 +3089,8 @@ class Thread extends ServiceObject implements M.Thread {
   M.ThreadKind _kind;
   String get kindString => _kindString;
   String _kindString;
+  int get memoryHighWatermark => _memoryHighWatermark;
+  int _memoryHighWatermark;
   List<Zone> get zones => _zones;
   final List<Zone> _zones = new List<Zone>();
 
@@ -3118,6 +3128,9 @@ class Thread extends ServiceObject implements M.Thread {
       default:
         assert(false);
     }
+
+    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
+
     zones.clear();
     zoneList.forEach((zone) {
       int capacity = zone['capacity'];

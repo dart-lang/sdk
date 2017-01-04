@@ -264,6 +264,22 @@ class Thread : public BaseThread {
 
   bool ZoneIsOwnedByThread(Zone* zone) const;
 
+  void IncrementMemoryUsage(uint value) {
+    current_thread_memory_ += value;
+    if (current_thread_memory_ > memory_high_watermark_) {
+      memory_high_watermark_ = current_thread_memory_;
+    }
+  }
+
+  void DecrementMemoryUsage(uint value) {
+    ASSERT(current_thread_memory_ >= value);
+    current_thread_memory_ -= value;
+  }
+
+  uint memory_high_watermark() const { return memory_high_watermark_; }
+
+  void ResetHighWatermark() { memory_high_watermark_ = current_thread_memory_; }
+
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
   void set_api_reusable_scope(ApiLocalScope* value) {
@@ -681,6 +697,8 @@ class Thread : public BaseThread {
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
+  uint current_thread_memory_;
+  uint memory_high_watermark_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
   StackResource* top_resource_;
