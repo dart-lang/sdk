@@ -52897,7 +52897,7 @@ js.JsArray$ = dart.generic(E => {
 });
 js.JsArray = JsArray();
 js._isBrowserType = function(o) {
-  return o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || window.IDBKeyRange && o instanceof IDBKeyRange || o instanceof ImageData || o instanceof Node || window.Int8Array && o instanceof Int8Array.__proto__ || o instanceof Window;
+  return o instanceof Object && (o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || window.IDBKeyRange && o instanceof IDBKeyRange || o instanceof ImageData || o instanceof Node || window.Int8Array && o instanceof Int8Array.__proto__ || o instanceof Window);
 };
 dart.fn(js._isBrowserType, dynamicTobool());
 const _dartObj = Symbol('_dartObj');
