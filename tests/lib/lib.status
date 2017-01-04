@@ -385,8 +385,8 @@ mirrors/*deferred*: Pass,RuntimeError # Issue 17458
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $arch == mips ]
-async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) ]
+async/timer_regress22626_test: Pass, RuntimeError # Issue 28254
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
