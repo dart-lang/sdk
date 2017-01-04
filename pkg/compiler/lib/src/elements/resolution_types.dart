@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_types;
+/// Implementation of the Dart types hierarchy in 'types.dart' specifically
+/// tailored to the resolution phase of the compiler.
+
+library resolution_types;
 
 import 'dart:math' show min;
 
@@ -13,6 +16,7 @@ import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
 import 'elements.dart';
 import 'modelx.dart' show TypeDeclarationElementX;
+import 'types.dart' as types;
 
 enum TypeKind {
   FUNCTION,
@@ -24,7 +28,7 @@ enum TypeKind {
   VOID,
 }
 
-abstract class DartType {
+abstract class DartType implements types.DartType {
   String get name;
 
   TypeKind get kind;
@@ -196,7 +200,7 @@ abstract class DartType {
  * [: String :] because we must substitute [: String :] for the
  * the type variable [: T :].
  */
-class TypeVariableType extends DartType {
+class TypeVariableType extends DartType implements types.TypeVariableType {
   final TypeVariableElement element;
 
   TypeVariableType(this.element);
@@ -261,7 +265,7 @@ class MethodTypeVariableType extends TypeVariableType {
   get containsMethodTypeVariableType => true;
 }
 
-class VoidType extends DartType {
+class VoidType extends DartType implements types.VoidType {
   const VoidType();
 
   TypeKind get kind => TypeKind.VOID;
@@ -467,7 +471,7 @@ abstract class GenericType extends DartType {
   }
 }
 
-class InterfaceType extends GenericType {
+class InterfaceType extends GenericType implements types.InterfaceType {
   int _hashCode;
 
   InterfaceType(ClassElement element,
@@ -576,7 +580,7 @@ class BadTypedefType extends TypedefType {
   }
 }
 
-class FunctionType extends DartType {
+class FunctionType extends DartType implements types.FunctionType {
   final FunctionTypedElement element;
   final DartType returnType;
   final List<DartType> parameterTypes;
@@ -859,7 +863,7 @@ class TypedefType extends GenericType {
 /**
  * Special type for the `dynamic` type.
  */
-class DynamicType extends DartType {
+class DynamicType extends DartType implements types.DynamicType {
   const DynamicType();
 
   Element get element => null;

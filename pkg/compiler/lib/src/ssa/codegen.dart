@@ -3003,7 +3003,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case TypeInfoExpressionKind.INSTANCE:
         // We expect only flat types for the INSTANCE representation.
         assert(
-            node.dartType == (node.dartType.element as ClassElement).thisType);
+            node.dartType == (node.dartType as InterfaceType).element.thisType);
         registry.registerInstantiatedClass(commonElements.listClass);
         push(new js.ArrayInitializer(arguments)
             .withSourceInformation(node.sourceInformation));
@@ -3071,8 +3071,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(type);
       typeArguments.add(pop());
     }
-
-    ClassElement cls = node.dartType.element;
+    InterfaceType type = node.dartType;
+    ClassElement cls = type.element;
     var arguments = [backend.emitter.typeAccess(cls)];
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer(typeArguments));

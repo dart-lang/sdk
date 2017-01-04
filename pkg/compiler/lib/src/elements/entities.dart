@@ -16,6 +16,11 @@ abstract class ClassEntity extends Entity {
       {bool includeSuperAndInjectedMembers: false});
 }
 
+abstract class TypeVariableEntity extends Entity {
+  Entity get typeDeclaration;
+  int get index;
+}
+
 /// Stripped down super interface for member like entities, that is,
 /// constructors, methods, fields etc.
 ///

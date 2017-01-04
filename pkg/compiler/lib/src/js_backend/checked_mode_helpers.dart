@@ -89,7 +89,8 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    ErroneousElement element = node.typeExpression.element;
+    MalformedType type = node.typeExpression;
+    ErroneousElement element = type.element;
     arguments.add(js.escapedString(element.message));
   }
 }

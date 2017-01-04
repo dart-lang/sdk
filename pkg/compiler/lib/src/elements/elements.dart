@@ -1680,7 +1680,7 @@ abstract class JumpTarget extends Local {
 
 /// The [Element] for a type variable declaration on a generic class or typedef.
 abstract class TypeVariableElement extends Element
-    implements AstElement, TypedElement {
+    implements AstElement, TypedElement, TypeVariableEntity {
   /// The name of this type variable, taking privacy into account.
   Name get memberName;
 

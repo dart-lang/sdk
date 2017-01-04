@@ -8,13 +8,12 @@ import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show Entity, JumpTarget, LabelDefinition, Local;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../tree/dartstring.dart' as ast;
@@ -1356,8 +1355,9 @@ abstract class HInstruction implements Spannable {
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
-      Entity cls = type.element;
-      TypeMask subtype = new TypeMask.subtype(cls, closedWorld);
+      InterfaceType interfaceType = type;
+      TypeMask subtype =
+          new TypeMask.subtype(interfaceType.element, closedWorld);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }
@@ -2795,7 +2795,7 @@ class HTypeConversion extends HCheck {
       : checkedType = type,
         super(<HInstruction>[input], type) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
-    assert(typeExpression == null || typeExpression.kind != TypeKind.TYPEDEF);
+    assert(typeExpression == null || !typeExpression.isTypedef);
     sourceElement = input.sourceElement;
   }
 
@@ -2804,7 +2804,7 @@ class HTypeConversion extends HCheck {
       : checkedType = type,
         super(<HInstruction>[input, typeRepresentation], type),
         receiverTypeCheckSelector = null {
-    assert(typeExpression.kind != TypeKind.TYPEDEF);
+    assert(!typeExpression.isTypedef);
     sourceElement = input.sourceElement;
   }
 
@@ -3264,7 +3264,7 @@ class HTypeInfoReadVariable extends HInstruction {
   bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
 
   bool dataEquals(HTypeInfoReadVariable other) {
-    return variable.element == other.variable.element;
+    return variable == other.variable;
   }
 
   String toString() => 'HTypeInfoReadVariable($variable)';
@@ -3382,8 +3382,7 @@ class HReadTypeVariable extends HInstruction {
   bool typeEquals(HInstruction other) => other is HReadTypeVariable;
 
   bool dataEquals(HReadTypeVariable other) {
-    return dartType.element == other.dartType.element &&
-        hasReceiver == other.hasReceiver;
+    return dartType == other.dartType && hasReceiver == other.hasReceiver;
   }
 }
 
