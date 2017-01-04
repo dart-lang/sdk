@@ -1172,6 +1172,13 @@ class AnalysisServer {
       _onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
+    // Perform on-idle actions.
+    if (!status.isAnalyzing) {
+      if (generalAnalysisServices
+          .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+        sendAnalysisNotificationAnalyzedFiles(this);
+      }
+    }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
       return;

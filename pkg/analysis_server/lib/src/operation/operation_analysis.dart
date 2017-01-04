@@ -135,13 +135,17 @@ void scheduleNotificationOperations(
 
 void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   _sendNotification(server, () {
-    // TODO(paulberry): if it proves to be too inefficient to recompute the set
-    // of analyzed files each time analysis is complete, consider modifying the
-    // analysis engine to update this set incrementally as analysis is
-    // performed.
-    LibraryDependencyCollector collector =
-        new LibraryDependencyCollector(server.analysisContexts.toList());
-    Set<String> analyzedFiles = collector.collectLibraryDependencies();
+    Set<String> analyzedFiles;
+    if (server.options.enableNewAnalysisDriver) {
+      analyzedFiles = server.driverMap.values
+          .map((driver) => driver.knownFiles)
+          .expand((files) => files)
+          .toSet();
+    } else {
+      LibraryDependencyCollector collector =
+          new LibraryDependencyCollector(server.analysisContexts.toList());
+      analyzedFiles = collector.collectLibraryDependencies();
+    }
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
         prevAnalyzedFiles.length == analyzedFiles.length &&
