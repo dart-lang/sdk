@@ -5,7 +5,7 @@
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';

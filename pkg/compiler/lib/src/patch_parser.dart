@@ -120,7 +120,7 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue;
-import 'dart_types.dart' show DartType;
+import 'elements/resolution_types.dart' show DartType;
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show

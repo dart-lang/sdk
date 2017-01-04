@@ -16,7 +16,7 @@ import '../../common/names.dart' show Names;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../core_types.dart' show CommonElements;
-import '../../dart_types.dart' show DartType;
+import '../../elements/resolution_types.dart' show DartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show

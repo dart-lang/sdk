@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'

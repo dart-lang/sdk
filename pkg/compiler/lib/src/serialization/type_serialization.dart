@@ -4,7 +4,7 @@
 
 library dart2js.serialization.types;
 
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import 'keys.dart';
 import 'serialization.dart';

@@ -10,7 +10,7 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;

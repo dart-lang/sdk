@@ -6,7 +6,7 @@ library dart2js.resolution.send_structure;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart';

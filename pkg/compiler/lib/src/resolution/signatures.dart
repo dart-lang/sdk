@@ -6,7 +6,7 @@ library dart2js.resolution.signatures;
 
 import '../common.dart';
 import '../common/resolution.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show

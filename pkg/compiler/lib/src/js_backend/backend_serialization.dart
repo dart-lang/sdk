@@ -5,7 +5,7 @@
 library js_backend.serialization;
 
 import '../common/backend_api.dart' show BackendSerialization;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';

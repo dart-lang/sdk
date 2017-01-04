@@ -8,9 +8,9 @@ library elements.common;
 
 import '../common/names.dart' show Identifiers, Names, Uris;
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
 import '../util/util.dart' show Link;
 import 'elements.dart';
+import 'resolution_types.dart' show DartType, InterfaceType, FunctionType;
 
 abstract class ElementCommon implements Element {
   @override

@@ -7,7 +7,7 @@ library dart2js.constant_system.dart;
 import 'compiler.dart' show Compiler;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'tree/dartstring.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();

@@ -26,7 +26,7 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';

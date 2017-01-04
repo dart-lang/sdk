@@ -7,7 +7,7 @@
 library dart2js.constants.constant_constructors;
 
 import '../common.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';

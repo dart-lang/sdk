@@ -6,7 +6,7 @@ library type_substitution_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'compiler_helper.dart';
 import 'type_test_helper.dart';
 

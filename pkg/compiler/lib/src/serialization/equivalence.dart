@@ -10,7 +10,7 @@ import '../closure.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'

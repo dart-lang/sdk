@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import "../dart_types.dart" show DartType;
+import "../elements/resolution_types.dart" show DartType;
 import "../elements/elements.dart" show Element, ErroneousElement;
 import "../resolution/operators.dart"
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;

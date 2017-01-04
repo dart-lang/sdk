@@ -6,7 +6,7 @@ library dart2js.semantics_visitor.resolver;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import 'semantic_visitor.dart';

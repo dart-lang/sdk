@@ -6,7 +6,7 @@ library dart2js.serialization.util;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show WrappedMessage;

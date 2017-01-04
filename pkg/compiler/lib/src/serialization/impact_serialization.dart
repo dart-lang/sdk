@@ -6,7 +6,7 @@ library dart2js.serialization.impact;
 
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../universe/selector.dart';
 import '../universe/feature.dart';

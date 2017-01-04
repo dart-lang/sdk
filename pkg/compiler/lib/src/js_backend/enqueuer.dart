@@ -13,7 +13,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart' show Entity, MemberElement, TypedElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';

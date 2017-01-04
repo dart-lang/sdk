@@ -7,7 +7,7 @@ library dart2js.serialization.resolved_ast;
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';

@@ -17,8 +17,8 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../dart_types.dart' show DartType;
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show DartType;
+import '../elements/resolution_types.dart' show InterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
 import '../universe/use.dart' show StaticUse;

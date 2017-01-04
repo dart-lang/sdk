@@ -10,7 +10,7 @@ import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../js/js.dart' as js;

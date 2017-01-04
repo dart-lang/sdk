@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart' show DartType;
+import '../elements/resolution_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;

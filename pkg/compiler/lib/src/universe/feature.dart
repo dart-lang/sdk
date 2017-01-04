@@ -8,7 +8,7 @@
 /// compilation pipeline, for example during resolution.
 library compiler.universe.feature;
 
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show InterfaceType;
 
 /// A language feature that may be seen in the program.
 // TODO(johnniwinther): Should mirror usage be part of this?

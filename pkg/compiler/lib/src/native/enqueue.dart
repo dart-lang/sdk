@@ -10,7 +10,7 @@ import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;

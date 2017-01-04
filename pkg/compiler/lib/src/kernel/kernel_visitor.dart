@@ -31,7 +31,7 @@ import '../constants/expressions.dart'
         IntFromEnvironmentConstantExpression,
         StringFromEnvironmentConstantExpression,
         TypeConstantExpression;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart' show DartType, InterfaceType;
 import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
     show

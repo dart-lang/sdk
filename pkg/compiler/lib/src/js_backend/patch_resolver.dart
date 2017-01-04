@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/resolution.dart' show Resolution;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tree/tree.dart';

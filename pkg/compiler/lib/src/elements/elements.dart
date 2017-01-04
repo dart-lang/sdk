@@ -10,7 +10,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
@@ -22,6 +21,7 @@ import '../util/characters.dart' show $_;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
+import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';

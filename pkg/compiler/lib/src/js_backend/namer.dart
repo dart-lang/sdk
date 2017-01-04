@@ -14,7 +14,7 @@ import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';

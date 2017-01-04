@@ -7,7 +7,7 @@ import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../compiler.dart';
 import '../constants/constant_system.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/js_backend.dart';

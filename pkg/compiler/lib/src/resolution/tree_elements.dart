@@ -6,7 +6,7 @@ library dart2js.resolution.tree_elements;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';

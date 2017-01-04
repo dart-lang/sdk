@@ -5,7 +5,7 @@
 library ordered_typeset;
 
 import 'common.dart';
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'elements/elements.dart' show ClassElement;
 import 'util/util.dart' show Link, LinkBuilder;

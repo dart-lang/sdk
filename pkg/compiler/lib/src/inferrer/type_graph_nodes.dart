@@ -10,7 +10,8 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart' show DartType, FunctionType, TypeKind;
+import '../elements/resolution_types.dart'
+    show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../js_backend/backend.dart';
 import '../tree/dartstring.dart' show DartString;

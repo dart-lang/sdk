@@ -11,7 +11,7 @@ import '../constants/constructors.dart'
         GenerativeConstantConstructor,
         RedirectingGenerativeConstantConstructor;
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show

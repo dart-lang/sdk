@@ -16,7 +16,7 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;

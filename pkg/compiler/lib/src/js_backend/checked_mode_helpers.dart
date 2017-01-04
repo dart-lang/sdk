@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;

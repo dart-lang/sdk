@@ -16,7 +16,7 @@ import 'constants/values.dart'
         ListConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import 'dart_types.dart' show DartType, InterfaceType;
+import 'elements/resolution_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
     show
         ClassElement,

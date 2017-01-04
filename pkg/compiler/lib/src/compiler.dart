@@ -25,7 +25,8 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show CommonElements;
-import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
+import 'elements/resolution_types.dart'
+    show DartType, DynamicType, InterfaceType, Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;

@@ -16,7 +16,7 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';

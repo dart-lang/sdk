@@ -6,7 +6,7 @@ library dart2js.resolution.types;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show
         AmbiguousElement,

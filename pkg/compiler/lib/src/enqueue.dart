@@ -14,7 +14,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compiler.dart' show Compiler, GlobalDependencyRegistry;
 import 'options.dart';
-import 'dart_types.dart' show DartType, InterfaceType;
+import 'elements/resolution_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
     show
         AnalyzableElement,

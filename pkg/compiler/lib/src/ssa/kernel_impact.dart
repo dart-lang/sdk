@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';

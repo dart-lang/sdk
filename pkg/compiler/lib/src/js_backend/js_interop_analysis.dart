@@ -8,7 +8,8 @@ library compiler.src.js_backend.js_interop_analysis;
 import '../common.dart';
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, StringConstantValue;
-import '../dart_types.dart' show DartType, DynamicType, FunctionType;
+import '../elements/resolution_types.dart'
+    show DartType, DynamicType, FunctionType;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../elements/elements.dart'
     show

@@ -9,7 +9,7 @@ import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart' show ClassElement, FieldElement;
 import '../tree/dartstring.dart' show DartString, LiteralDartString;
 import 'js_backend.dart';

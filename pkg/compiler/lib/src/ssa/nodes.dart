@@ -8,7 +8,7 @@ import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show Entity, JumpTarget, LabelDefinition, Local;
 import '../elements/entities.dart';

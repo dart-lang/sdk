@@ -11,7 +11,8 @@ import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../core_types.dart' show CommonElements;
-import '../../dart_types.dart' show DartType, FunctionType, TypedefType;
+import '../../elements/resolution_types.dart'
+    show DartType, FunctionType, TypedefType;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show

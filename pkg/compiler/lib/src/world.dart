@@ -9,7 +9,7 @@ import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'core_types.dart' show CommonElements;
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
         ClassElement,

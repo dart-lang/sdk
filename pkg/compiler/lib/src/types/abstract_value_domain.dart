@@ -5,7 +5,7 @@
 library dart2js.abstract_value_domain;
 
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../universe/selector.dart' show Selector;
 

@@ -7,7 +7,7 @@ library dart2js.serialization;
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../library_loader.dart' show LibraryProvider;
 import '../util/enumset.dart';

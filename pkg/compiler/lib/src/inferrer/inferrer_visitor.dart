@@ -11,7 +11,7 @@ import '../options.dart' show CompilerOptions;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';

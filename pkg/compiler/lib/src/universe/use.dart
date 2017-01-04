@@ -18,7 +18,7 @@ library dart2js.universe.use;
 
 import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;

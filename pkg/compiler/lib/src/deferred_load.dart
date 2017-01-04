@@ -15,7 +15,7 @@ import 'constants/values.dart'
         ConstructedConstantValue,
         DeferredConstantValue,
         StringConstantValue;
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
         AccessorElement,

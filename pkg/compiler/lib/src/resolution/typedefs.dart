@@ -6,7 +6,7 @@ library dart2js.resolution.typedefs;
 
 import '../common.dart';
 import '../common/resolution.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show FunctionSignature, TypedefElement, TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX, TypedefElementX;

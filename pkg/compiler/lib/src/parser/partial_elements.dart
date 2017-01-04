@@ -6,7 +6,7 @@ library dart2js.parser.partial_elements;
 
 import '../common.dart';
 import '../common/resolution.dart' show ParsingContext, Resolution;
-import '../dart_types.dart' show DynamicType;
+import '../elements/resolution_types.dart' show DynamicType;
 import '../elements/elements.dart'
     show
         CompilationUnitElement,

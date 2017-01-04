@@ -7,7 +7,7 @@ library dart2js.js_helpers.impact;
 import '../common/names.dart';
 import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show InterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
 import '../universe/selector.dart';
 import '../util/enumset.dart';

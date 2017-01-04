@@ -11,7 +11,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/class_members.dart' show ClassMemberMixin;
@@ -27,6 +26,7 @@ import '../tree/tree.dart';
 import '../util/util.dart';
 import 'common.dart';
 import 'elements.dart';
+import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 /// Object that identifies a declaration site.

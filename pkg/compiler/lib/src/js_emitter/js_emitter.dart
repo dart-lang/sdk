@@ -16,7 +16,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart'
+import '../elements/resolution_types.dart'
     show
         DartType,
         FunctionType,

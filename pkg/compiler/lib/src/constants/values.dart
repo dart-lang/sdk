@@ -6,7 +6,7 @@ library dart2js.constants.values;
 
 import '../common.dart';
 import '../core_types.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show FieldElement, FunctionElement, PrefixElement;
 import '../tree/dartstring.dart';

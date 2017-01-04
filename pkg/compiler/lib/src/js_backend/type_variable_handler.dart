@@ -6,7 +6,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show Enqueuer;
 import '../js/js.dart' as jsAst;

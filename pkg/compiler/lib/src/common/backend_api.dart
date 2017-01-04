@@ -15,7 +15,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart' show ConstantSystem;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show
         ClassElement,

@@ -10,7 +10,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart' show DartType, Types;
+import '../elements/resolution_types.dart' show DartType, Types;
 import '../elements/elements.dart'
     show
         AstElement,

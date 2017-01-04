@@ -9,7 +9,7 @@ import 'dart:async';
 import '../common.dart';
 import '../common/resolution.dart';
 import '../compiler.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../scanner/scanner.dart';
 import '../script.dart';

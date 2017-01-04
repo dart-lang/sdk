@@ -4,7 +4,7 @@
 
 library dart2js.resolution.scope;
 
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 
 abstract class Scope {

@@ -13,7 +13,7 @@ import '../common/names.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart'
     show ConstantExpression, TypeConstantExpression;
-import '../dart_types.dart'
+import '../elements/resolution_types.dart'
     show DartType, FunctionType, InterfaceType, TypeKind, TypeVariableType;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show Spannable;

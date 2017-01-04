@@ -7,7 +7,7 @@ library dart2js.common.codegen;
 import '../common.dart';
 import '../common/backend_api.dart' show Backend;
 import '../constants/values.dart' show ConstantValue;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show
         AstElement,

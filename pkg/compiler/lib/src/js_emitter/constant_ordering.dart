@@ -5,7 +5,7 @@
 library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart' show Element, Elements, FieldElement;
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import '../tree/dartstring.dart' show DartString;

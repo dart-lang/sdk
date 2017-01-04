@@ -5,7 +5,7 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
         ClassElement,

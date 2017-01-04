@@ -6,7 +6,7 @@ library dart2js.serialization.constants;
 
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart' show FieldElement;
 import '../resolution/operators.dart';
 import '../universe/call_structure.dart' show CallStructure;

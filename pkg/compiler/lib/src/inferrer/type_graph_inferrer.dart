@@ -11,7 +11,7 @@ import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
-import '../dart_types.dart' show DartType;
+import '../elements/resolution_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../resolution/tree_elements.dart' show TreeElementMapping;

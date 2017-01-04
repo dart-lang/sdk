@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
 import 'package:compiler/src/resolution/constructors.dart';
 import 'package:compiler/src/resolution/members.dart';

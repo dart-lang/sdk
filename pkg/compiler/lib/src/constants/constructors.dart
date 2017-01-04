@@ -4,7 +4,7 @@
 
 library dart2js.constants.constructors;
 
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart' show FieldElement;
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';

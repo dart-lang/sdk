@@ -7,7 +7,7 @@ library related_types;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/core_types.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';

@@ -8,7 +8,7 @@
 library dart2js.access_semantics;
 
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 
 /// Enum representing the different kinds of destinations which a property

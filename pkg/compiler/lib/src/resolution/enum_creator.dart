@@ -6,7 +6,7 @@ library dart2js.resolution.enum_creator;
 
 import '../common.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tokens/keyword.dart' show Keyword;

@@ -10,7 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/compiler.dart';

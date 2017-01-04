@@ -9,7 +9,7 @@ import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
 import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';

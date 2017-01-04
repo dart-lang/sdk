@@ -4,7 +4,7 @@
 
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show StaticUse;
