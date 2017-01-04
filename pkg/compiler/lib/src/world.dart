@@ -298,6 +298,9 @@ abstract class ClosedWorld implements World {
 /// Interface for computing side effects and uses of elements. This is used
 /// during type inference to compute the [ClosedWorld] for code generation.
 abstract class ClosedWorldRefiner {
+  /// The closed world being refined.
+  ClosedWorld get closedWorld;
+
   /// Registers the side [effects] of executing [element].
   void registerSideEffects(Element element, SideEffects effects);
 
@@ -415,6 +418,9 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     _commonMasks = new CommonMasks(this);
     _allFunctions = functionSetBuilder.close(this);
   }
+
+  @override
+  ClosedWorld get closedWorld => this;
 
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.

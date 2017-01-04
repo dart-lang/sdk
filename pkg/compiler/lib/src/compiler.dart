@@ -692,9 +692,7 @@ abstract class Compiler implements LibraryLoaderListener {
         assert(mainFunction != null);
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution();
-        // TODO(johnniwinther): Make [ClosedWorld] a property of
-        // [ClosedWorldRefiner].
-        ClosedWorld closedWorld = resolverWorld.closedWorldForTesting;
+        ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
 
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(
@@ -707,6 +705,7 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
+        codegenWorld.open(closedWorld);
         enqueuer.codegen.applyImpact(backend.onCodegenStart(closedWorld));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
