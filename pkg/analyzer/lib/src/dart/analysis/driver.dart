@@ -205,6 +205,11 @@ class AnalysisDriver {
   final _resultController = new StreamController<AnalysisResult>();
 
   /**
+   * Cached results for [_priorityFiles].
+   */
+  final Map<String, AnalysisResult> _priorityResults = {};
+
+  /**
    * The instance of the status helper.
    */
   final StatusSupport _statusSupport = new StatusSupport();
@@ -306,6 +311,10 @@ class AnalysisDriver {
    * between priority files, nor between priority and non-priority files.
    */
   void set priorityFiles(List<String> priorityPaths) {
+    _priorityResults.keys
+        .toSet()
+        .difference(priorityPaths.toSet())
+        .forEach(_priorityResults.remove);
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
     _statusSupport.transitionToAnalyzing();
@@ -405,6 +414,7 @@ class AnalysisDriver {
     if (AnalysisEngine.isDartFileName(path)) {
       _addedFiles.add(path);
       _filesToAnalyze.add(path);
+      _priorityResults.clear();
     }
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
@@ -434,6 +444,7 @@ class AnalysisDriver {
       if (_addedFiles.contains(path)) {
         _filesToAnalyze.add(path);
       }
+      _priorityResults.clear();
     }
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
@@ -515,23 +526,35 @@ class AnalysisDriver {
    *
    * The [path] can be any file - explicitly or implicitly analyzed, or neither.
    *
-   * Causes the analysis state to transition to "analyzing" (if it is not in
-   * that state already), the driver will read the file and produce the analysis
-   * result for it, which is consistent with the current file state (including
-   * the new state of the file), prior to the next time the analysis state
-   * transitions to "idle".
+   * If the driver has the cached analysis result for the file, it is returned.
+   *
+   * Otherwise causes the analysis state to transition to "analyzing" (if it is
+   * not in that state already), the driver will read the file and produce the
+   * analysis result for it, which is consistent with the current file state
+   * (including the new state of the file), prior to the next time the analysis
+   * state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    if (AnalysisEngine.isDartFileName(path)) {
-      var completer = new Completer<AnalysisResult>();
-      _requestedFiles
-          .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
-          .add(completer);
-      _statusSupport.transitionToAnalyzing();
-      _scheduler._notify(this);
-      return completer.future;
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return new Future.value();
     }
-    return new Future.value();
+
+    // Return the cached result.
+    {
+      AnalysisResult result = _priorityResults[path];
+      if (result != null) {
+        return new Future.value(result);
+      }
+    }
+
+    // Schedule analysis.
+    var completer = new Completer<AnalysisResult>();
+    _requestedFiles
+        .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
+        .add(completer);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return completer.future;
   }
 
   /**
@@ -598,6 +621,7 @@ class AnalysisDriver {
     _filesToAnalyze.remove(path);
     _fsState.removeFile(path);
     _filesToAnalyze.addAll(_addedFiles);
+    _priorityResults.clear();
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
@@ -695,10 +719,14 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return _getAnalysisResultFromBytes(file, bytes,
+        AnalysisResult result = _getAnalysisResultFromBytes(file, bytes,
             content: withUnit ? file.content : null,
             withErrors: _addedFiles.contains(path),
             resolvedUnit: withUnit ? resolvedUnit : null);
+        if (withUnit && _priorityFiles.contains(path)) {
+          _priorityResults[path] = result;
+        }
+        return result;
       } finally {
         analysisContext.dispose();
       }
@@ -1275,6 +1303,8 @@ class AnalysisDriverTestView {
   AnalysisDriverTestView(this.driver);
 
   Set<String> get filesToAnalyze => driver._filesToAnalyze;
+
+  Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
 }
 
 /**
