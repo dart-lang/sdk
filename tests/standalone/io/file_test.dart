@@ -1268,6 +1268,23 @@ class FileTest {
     Expect.isTrue(modified.isBefore(new DateTime.now()));
   }
 
+  static void testLastModifiedSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_last_modified_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      new File(dirPath).lastModifiedSync();
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  }
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -1484,6 +1501,7 @@ class FileTest {
       testRename(targetExists: true);
       testRenameSync(targetExists: true);
       testLastModified();
+      testLastModifiedSyncDirectory();
       testDoubleAsyncOperation();
       asyncEnd();
     });

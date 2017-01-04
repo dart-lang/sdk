@@ -419,6 +419,12 @@ void File::Stat(const char* name, int64_t* data) {
 time_t File::LastModified(const char* name) {
   struct stat64 st;
   if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
+    // Signal an error if it's a directory.
+    if (S_ISDIR(st.st_mode)) {
+      errno = EISDIR;
+      return -1;
+    }
+    // Otherwise assume the caller knows what it's doing.
     return st.st_mtime;
   }
   return -1;
