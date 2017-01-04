@@ -68,7 +68,7 @@ class SsaBuilderTask extends CompilerTask {
 
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
-      MemberElement element = work.element.implementation;
+      Element element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
         SsaBuilder builder = new SsaBuilder(
             work.element.implementation,
@@ -83,7 +83,7 @@ class SsaBuilderTask extends CompilerTask {
         // Default arguments are handled elsewhere, but we must ensure
         // that the default values are computed during codegen.
         if (!identical(element.kind, ElementKind.FIELD)) {
-          MethodElement function = element;
+          FunctionElement function = element;
           FunctionSignature signature = function.functionSignature;
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
@@ -127,7 +127,7 @@ class SsaBuilder extends ast.Visitor
         GraphBuilder
     implements SemanticSendVisitor {
   /// The element for which this SSA builder is being used.
-  final MemberElement target;
+  final Element target;
   final ClosedWorld closedWorld;
 
   ResolvedAst resolvedAst;
@@ -177,7 +177,7 @@ class SsaBuilder extends ast.Visitor
    * This stack contains declaration elements of the functions being built
    * or inlined by this builder.
    */
-  final List<MemberElement> sourceElementStack = <MemberElement>[];
+  final List<Element> sourceElementStack = <Element>[];
 
   HInstruction rethrowableException;
 
@@ -255,7 +255,7 @@ class SsaBuilder extends ast.Visitor
   // TODO(johnniwinther): Check that all usages of sourceElement agree on
   // implementation/declaration distinction.
   @override
-  MemberElement get sourceElement => sourceElementStack.last;
+  Element get sourceElement => sourceElementStack.last;
 
   /// Helper to retrieve global inference results for [element] with special
   /// care for `ConstructorBodyElement`s which don't exist at the time the
@@ -437,11 +437,11 @@ class SsaBuilder extends ast.Visitor
       if (compiler.options.disableInlining) return false;
 
       assert(invariant(
-          currentNode != null ? currentNode : function,
+          currentNode != null ? currentNode : element,
           selector != null ||
-              Elements.isStaticOrTopLevel(function) ||
-              function.isGenerativeConstructorBody,
-          message: "Missing selector for inlining of $function."));
+              Elements.isStaticOrTopLevel(element) ||
+              element.isGenerativeConstructorBody,
+          message: "Missing selector for inlining of $element."));
       if (selector != null) {
         if (!selector.applies(function)) return false;
         if (mask != null && !mask.canHit(function, selector, closedWorld)) {
@@ -449,11 +449,11 @@ class SsaBuilder extends ast.Visitor
         }
       }
 
-      if (backend.isJsInterop(function)) return false;
+      if (backend.isJsInterop(element)) return false;
 
       // Don't inline operator== methods if the parameter can be null.
-      if (function.name == '==') {
-        if (function.enclosingClass != commonElements.objectClass &&
+      if (element.name == '==') {
+        if (element.enclosingClass != commonElements.objectClass &&
             providedArguments[1].canBeNull()) {
           return false;
         }
@@ -461,15 +461,15 @@ class SsaBuilder extends ast.Visitor
 
       // Generative constructors of native classes should not be called directly
       // and have an extra argument that causes problems with inlining.
-      if (function.isGenerativeConstructor &&
-          backend.isNativeOrExtendsNative(function.enclosingClass)) {
+      if (element.isGenerativeConstructor &&
+          backend.isNativeOrExtendsNative(element.enclosingClass)) {
         return false;
       }
 
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
-      if (!function.isGenerativeConstructorBody) {
-        if (inferenceResults.resultOf(function).throwsAlways) {
+      if (!element.isGenerativeConstructorBody) {
+        if (inferenceResults.resultOf(element).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -487,7 +487,7 @@ class SsaBuilder extends ast.Visitor
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
-      if (isCalledOnce(function)) {
+      if (isCalledOnce(element)) {
         return InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             enableUserAssertions: compiler.options.enableUserAssertions);
       }
@@ -507,12 +507,12 @@ class SsaBuilder extends ast.Visitor
         return false;
       }
 
-      if (function.isSynthesized) return true;
+      if (element.isSynthesized) return true;
 
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
       bool hasOnlyNonDeferredImportPaths = compiler.deferredLoadTask
-          .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
+          .hasOnlyNonDeferredImportPaths(compiler.currentElement, element);
 
       if (!hasOnlyNonDeferredImportPaths) {
         return doesNotContainCode();
@@ -546,7 +546,7 @@ class SsaBuilder extends ast.Visitor
       // If a method is called only once, and all the methods in the
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
-      if (isCalledOnce(function)) {
+      if (isCalledOnce(element)) {
         useMaxInliningNodes = false;
       }
       bool canInline;
@@ -554,10 +554,9 @@ class SsaBuilder extends ast.Visitor
           functionResolvedAst, maxInliningNodes, useMaxInliningNodes,
           enableUserAssertions: compiler.options.enableUserAssertions);
       if (canInline) {
-        backend.inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+        backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
-        backend.inlineCache
-            .markAsNonInlinable(function, insideLoop: insideLoop);
+        backend.inlineCache.markAsNonInlinable(element, insideLoop: insideLoop);
       }
       return canInline;
     }
@@ -566,8 +565,8 @@ class SsaBuilder extends ast.Visitor
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the
       // NoSuchMethodError message as if we had called it.
-      if (function.isInstanceMember &&
-          !function.isGenerativeConstructorBody &&
+      if (element.isInstanceMember &&
+          !element.isGenerativeConstructorBody &&
           (mask == null || mask.isNullable)) {
         addWithPosition(
             new HFieldGet(null, providedArguments[0], commonMasks.dynamicType,
@@ -590,7 +589,7 @@ class SsaBuilder extends ast.Visitor
 
     if (meetsHardConstraints() && heuristicSayGoodToGo()) {
       doInlining();
-      infoReporter?.reportInlined(function,
+      infoReporter?.reportInlined(element,
           inliningStack.isEmpty ? target : inliningStack.last.function);
       return true;
     }
@@ -602,18 +601,18 @@ class SsaBuilder extends ast.Visitor
     return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
   }
 
-  bool isFunctionCalledOnce(MethodElement element) {
+  bool isFunctionCalledOnce(element) {
     // ConstructorBodyElements are not in the type inference graph.
     if (element is ConstructorBodyElement) return false;
     return inferenceResults.resultOf(element).isCalledOnce;
   }
 
-  bool isCalledOnce(MethodElement element) {
+  bool isCalledOnce(Element element) {
     return allInlinedFunctionsCalledOnce && isFunctionCalledOnce(element);
   }
 
   inlinedFrom(ResolvedAst resolvedAst, f()) {
-    MemberElement element = resolvedAst.element;
+    Element element = resolvedAst.element;
     assert(element is FunctionElement || element is VariableElement);
     return reporter.withCurrentElement(element.implementation, () {
       // The [sourceElementStack] contains declaration elements.
@@ -686,7 +685,7 @@ class SsaBuilder extends ast.Visitor
    *
    * Invariant: [functionElement] must be an implementation element.
    */
-  HGraph buildMethod(MethodElement functionElement) {
+  HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = closedWorld.isCalledInLoop(functionElement);
     ast.FunctionExpression function = resolvedAst.node;
@@ -769,7 +768,7 @@ class SsaBuilder extends ast.Visitor
     return closeFunction();
   }
 
-  HGraph buildLazyInitializer(FieldElement variable) {
+  HGraph buildLazyInitializer(VariableElement variable) {
     assert(invariant(variable, resolvedAst.element == variable,
         message: "Unexpected variable $variable for $resolvedAst."));
     inLazyInitializerExpression = true;
@@ -6413,7 +6412,7 @@ class SsaBuilder extends ast.Visitor
    * This method is invoked before inlining the body of [function] into this
    * [SsaBuilder].
    */
-  void enterInlinedMethod(MethodElement function,
+  void enterInlinedMethod(FunctionElement function,
       ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
     AstInliningState state = new AstInliningState(

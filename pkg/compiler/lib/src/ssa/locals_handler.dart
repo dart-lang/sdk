@@ -640,7 +640,8 @@ class LocalsHandler {
   Map<Element, TypeMask> cachedTypesOfCapturedVariables =
       new Map<Element, TypeMask>();
 
-  TypeMask getTypeOfCapturedVariable(FieldElement element) {
+  TypeMask getTypeOfCapturedVariable(Element element) {
+    assert(element.isField);
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
       return TypeMaskFactory.inferredTypeForElement(
           element, _globalInferenceResults);

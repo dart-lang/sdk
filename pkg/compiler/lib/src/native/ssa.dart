@@ -19,7 +19,7 @@ final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
-  MethodElement element = builder.target;
+  FunctionElement element = builder.target;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
   JavaScriptBackend backend = builder.backend;
   DiagnosticReporter reporter = compiler.reporter;

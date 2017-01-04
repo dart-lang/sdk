@@ -113,9 +113,9 @@ class BackendHelpers {
   MethodElement jsArrayRemoveLast;
   MethodElement jsArrayAdd;
   MethodElement jsStringSplit;
-  MethodElement jsStringToString;
-  MethodElement jsStringOperatorAdd;
-  MethodElement objectEquals;
+  Element jsStringToString;
+  Element jsStringOperatorAdd;
+  Element objectEquals;
 
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;

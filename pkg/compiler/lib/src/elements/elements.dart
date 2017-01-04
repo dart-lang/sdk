@@ -787,7 +787,7 @@ class Elements {
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == closedWorld.commonElements.typedDataLibrary &&
-        closedWorld.backendClasses.isNativeClass(cls) &&
+        closedWorld.backendClasses.isNative(cls) &&
         closedWorld.isSubtypeOf(
             cls, closedWorld.commonElements.typedDataClass) &&
         closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
