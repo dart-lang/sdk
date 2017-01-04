@@ -396,4 +396,3 @@ super_call4_test: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
 constructor_named_arguments_test/01: Crash
 not_enough_positional_arguments_test/05: Crash
-enum_syntax_test/05: Crash
