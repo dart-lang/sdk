@@ -437,7 +437,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   Future<Null> computeLibrariesContaining([int times = 200]) {
     if (enableNewAnalysisDriver) {
-      return new Future.value(null);
+      return driver.getResult(testFile).then((result) => null);
     }
     List<Source> libraries = context.getLibrariesContaining(testSource);
     if (libraries.isNotEmpty) {

@@ -21,8 +21,6 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
-import 'mock_sdk.dart';
-
 /**
  * Finds an [Element] with the given [name].
  */
@@ -88,11 +86,12 @@ class AbstractContextTest {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
+    File file = newFile(path, content);
     if (enableNewAnalysisDriver) {
+      driver.addFile(path);
       _fileContentOverlay[path] = content;
       return null;
     } else {
-      File file = newFile(path, content);
       Source source = file.createSource(uri);
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(source);
