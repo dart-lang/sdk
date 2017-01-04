@@ -584,6 +584,28 @@ class FileTest {
     });
   }
 
+  static void testWriteFromOffset() {
+    Directory tmp;
+    RandomAccessFile raf;
+    try {
+      tmp = tempDirectory.createTempSync('write_from_offset_test_');
+      File f = new File('${tmp.path}/file')..createSync();
+      f.writeAsStringSync('pre-existing content\n', flush: true);
+      raf = f.openSync(mode: FileMode.APPEND);
+      String truth = "Hello world";
+      raf.writeFromSync(UTF8.encode('Hello world'), 2, 5);
+      raf.flushSync();
+      Expect.equals(f.readAsStringSync(), 'pre-existing content\nllo');
+    } finally {
+      if (raf != null) {
+        raf.closeSync();
+      }
+      if (tmp != null) {
+        tmp.deleteSync(recursive: true);
+      }
+    }
+  }
+
   static void testDirectory() {
     asyncTestStarted();
     var tempDir = tempDirectory.path;
@@ -1492,6 +1514,7 @@ class FileTest {
       testOutputStreamWriteAppend();
       testOutputStreamWriteString();
       testWriteVariousLists();
+      testWriteFromOffset();
       testDirectory();
       testDirectorySync();
       testWriteStringUtf8();
