@@ -419,5 +419,6 @@ abstract class BackendClasses {
 
   bool isDefaultEqualityImplementation(Element element);
   bool isInterceptorClass(ClassElement cls);
-  bool isNative(Element element);
+  bool isNativeClass(ClassElement element);
+  bool isNativeMember(MemberElement element);
 }

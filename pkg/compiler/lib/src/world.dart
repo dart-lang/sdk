@@ -252,7 +252,7 @@ abstract class ClosedWorld implements World {
   FunctionSet get allFunctions;
 
   /// Returns `true` if the field [element] is known to be effectively final.
-  bool fieldNeverChanges(Element element);
+  bool fieldNeverChanges(MemberElement element);
 
   /// Extends the receiver type [mask] for calling [selector] to take live
   /// `noSuchMethod` handlers into account.
@@ -263,7 +263,7 @@ abstract class ClosedWorld implements World {
 
   /// Returns the single [Element] that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist, `null` is returned.
-  Element locateSingleElement(Selector selector, TypeMask mask);
+  MemberElement locateSingleElement(Selector selector, TypeMask mask);
 
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
@@ -1013,7 +1013,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return functionsCalledInLoop.contains(element.declaration);
   }
 
-  bool fieldNeverChanges(Element element) {
+  bool fieldNeverChanges(MemberElement element) {
     if (!element.isField) return false;
     if (_backend.isNative(element)) {
       // Some native fields are views of data that may be changed by operations.

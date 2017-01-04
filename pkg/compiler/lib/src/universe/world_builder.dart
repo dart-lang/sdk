@@ -39,7 +39,7 @@ abstract class ReceiverConstraint {
   /// Returns whether [element] is a potential target when being
   /// invoked on a receiver with this constraint. [selector] is used to ensure
   /// library privacy is taken into account.
-  bool canHit(Element element, Selector selector, World world);
+  bool canHit(MemberElement element, Selector selector, World world);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].
