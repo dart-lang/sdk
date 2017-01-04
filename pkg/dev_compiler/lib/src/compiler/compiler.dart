@@ -9,9 +9,15 @@ import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, CompilationUnit, ErrorSeverity;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
+import 'package:analyzer/file_system/physical_file_system.dart'
+    show PhysicalResourceProvider;
+import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
+import 'package:analyzer/src/generated/source.dart'
+    show ContentCache, DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
@@ -23,12 +29,7 @@ import 'package:func/func.dart' show Func1;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
 
-import '../analyzer/context.dart'
-    show
-        AnalyzerOptions,
-        createAnalysisContext,
-        createSdkPathResolver,
-        createSourceFactory;
+import '../analyzer/context.dart' show AnalyzerOptions, createSourceFactory;
 import '../js_ast/js_ast.dart' as JS;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
@@ -59,25 +60,28 @@ class ModuleCompiler {
   final SummaryDataStore summaryData;
   final ExtensionTypeSet _extensionTypes;
 
-  ModuleCompiler.withContext(AnalysisContext context, this.summaryData)
+  ModuleCompiler._(AnalysisContext context, this.summaryData)
       : context = context,
-        _extensionTypes = new ExtensionTypeSet(context) {
-    if (!context.analysisOptions.strongMode) {
-      throw new ArgumentError('AnalysisContext must be strong mode');
-    }
-    if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
-      throw new ArgumentError('AnalysisContext must have strong mode SDK');
-    }
-  }
+        _extensionTypes = new ExtensionTypeSet(context);
 
   factory ModuleCompiler(AnalyzerOptions options,
-      {DartUriResolver sdkResolver,
-      ResourceProvider resourceProvider,
+      {ResourceProvider resourceProvider,
+      String analysisRoot,
       List<UriResolver> fileResolvers}) {
+    // TODO(danrubel): refactor with analyzer CLI into analyzer common code
     AnalysisEngine.instance.processRequiredPlugins();
 
-    sdkResolver ??=
-        createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
+    resourceProvider ??= PhysicalResourceProvider.INSTANCE;
+    analysisRoot ??= path.current;
+
+    var contextBuilder = new ContextBuilder(resourceProvider,
+        new DartSdkManager(options.dartSdkPath, true), new ContentCache(),
+        options: options.contextBuilderOptions);
+
+    var analysisOptions = contextBuilder.getAnalysisOptions(analysisRoot);
+    var sdk = contextBuilder.findSdk(null, analysisOptions);
+
+    var sdkResolver = new DartUriResolver(sdk);
 
     // Read the summaries.
     var summaryData =
@@ -89,7 +93,9 @@ class ModuleCompiler {
         summaryData: summaryData,
         resourceProvider: resourceProvider);
 
-    var context = createAnalysisContext();
+    var context =
+        AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
+    context.analysisOptions = analysisOptions;
     context.sourceFactory = srcFactory;
     context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
     context.resultProvider =
@@ -101,7 +107,14 @@ class ModuleCompiler {
     context.declaredVariables.define('dart.library.html', 'true');
     context.declaredVariables.define('dart.library.io', 'false');
 
-    return new ModuleCompiler.withContext(context, summaryData);
+    if (!context.analysisOptions.strongMode) {
+      throw new ArgumentError('AnalysisContext must be strong mode');
+    }
+    if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
+      throw new ArgumentError('AnalysisContext must have strong mode SDK');
+    }
+
+    return new ModuleCompiler._(context, summaryData);
   }
 
   bool _isFatalError(AnalysisError e, CompilerOptions options) {

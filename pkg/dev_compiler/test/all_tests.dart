@@ -11,9 +11,11 @@ import 'closure/closure_annotation_test.dart' as closure_annotation_test;
 import 'closure/closure_type_test.dart' as closure_type_test;
 import 'codegen_test.dart' as codegen_test;
 import 'js/builder_test.dart' as builder_test;
+import 'options/options_test.dart' as options_test;
 import 'worker/worker_test.dart' as worker_test;
 
 void main() {
+  group('options', options_test.main);
   group('codegen', () => codegen_test.main([]));
   group('closure', () {
     closure_annotation_test.main();

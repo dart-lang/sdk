@@ -32,7 +32,7 @@ int compile(List<String> args, {void printFn(Object obj)}) {
   ArgResults argResults;
   AnalyzerOptions analyzerOptions;
   try {
-    var parser = _argParser();
+    var parser = ddcArgParser();
     if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
       args = filterUnknownArguments(args, parser);
     }
@@ -83,7 +83,7 @@ $stackTrace
   }
 }
 
-ArgParser _argParser({bool hide: true}) {
+ArgParser ddcArgParser({bool hide: true}) {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h',
@@ -225,7 +225,7 @@ String _moduleForLibrary(
 
 String get _usageMessage =>
     'Dart Development Compiler compiles Dart into a JavaScript module.'
-    '\n\n${_argParser(hide: !_verbose).usage}';
+    '\n\n${ddcArgParser(hide: !_verbose).usage}';
 
 void _usageException(String message) {
   throw new UsageException(message, _usageMessage);

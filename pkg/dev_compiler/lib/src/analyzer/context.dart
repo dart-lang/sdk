@@ -11,15 +11,11 @@ import 'package:analyzer/file_system/physical_file_system.dart'
 import 'package:analyzer/source/custom_resolver.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummaryUriResolver, SummaryDataStore;
-import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 
@@ -36,8 +32,7 @@ class AnalyzerOptions {
   /// List of summary file paths.
   final List<String> summaryPaths;
 
-  /// Path to the dart-sdk. Null if `useMockSdk` is true or if the path couldn't
-  /// be determined
+  /// Path to the dart-sdk, or `null` if the path couldn't be determined.
   final String dartSdkPath;
 
   /// Path to the dart-sdk summary.  If this is set, it will be used in favor
@@ -50,10 +45,11 @@ class AnalyzerOptions {
 
   AnalyzerOptions._(
       {this.contextBuilderOptions,
-      this.summaryPaths: const [],
+      List<String> summaryPaths,
       String dartSdkPath,
       this.customUrlMappings: const {}})
-      : dartSdkPath = dartSdkPath ?? getSdkDir().path {
+      : dartSdkPath = dartSdkPath ?? getSdkDir().path,
+        summaryPaths = summaryPaths ?? const [] {
     contextBuilderOptions.declaredVariables ??= const {};
   }
 
@@ -61,8 +57,9 @@ class AnalyzerOptions {
       {String dartSdkPath,
       String dartSdkSummaryPath,
       List<String> summaryPaths}) {
-    var contextBuilderOptions = new ContextBuilderOptions();
-    contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
+    var contextBuilderOptions = new ContextBuilderOptions()
+      ..defaultOptions = (new AnalysisOptionsImpl()..strongMode = true)
+      ..dartSdkSummaryPath = dartSdkSummaryPath;
 
     return new AnalyzerOptions._(
         contextBuilderOptions: contextBuilderOptions,
@@ -72,21 +69,22 @@ class AnalyzerOptions {
 
   factory AnalyzerOptions.fromArguments(ArgResults args,
       {String dartSdkSummaryPath, List<String> summaryPaths}) {
-    var contextBuilderOptions = createContextBuilderOptions(args);
+    var contextBuilderOptions = createContextBuilderOptions(args,
+        strongMode: true, trackCacheDependencies: false);
 
-    if (dartSdkSummaryPath != null)
-      contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
-    contextBuilderOptions.dartSdkSummaryPath ??=
-        path.join(args['dart-sdk'], 'lib', '_internal', 'ddc_sdk.sum');
-    if (contextBuilderOptions.dartSdkSummaryPath == 'build') {
-      // For building the SDK, we explicitly set the path to none.
-      contextBuilderOptions.dartSdkSummaryPath = null;
-    }
+    var dartSdkPath = args['dart-sdk'] ?? getSdkDir().path;
+
+    dartSdkSummaryPath ??= contextBuilderOptions.dartSdkSummaryPath;
+    dartSdkSummaryPath ??=
+        path.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.sum');
+    // For building the SDK, we explicitly set the path to none.
+    if (dartSdkSummaryPath == 'build') dartSdkSummaryPath = null;
+    contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
 
     return new AnalyzerOptions._(
         contextBuilderOptions: contextBuilderOptions,
         summaryPaths: summaryPaths ?? args['summary'] as List<String>,
-        dartSdkPath: args['dart-sdk'],
+        dartSdkPath: dartSdkPath,
         customUrlMappings: _parseUrlMappings(args['url-mapping']));
   }
 
@@ -113,19 +111,7 @@ class AnalyzerOptions {
   }
 }
 
-/// Creates an analysis context that contains our restricted typing rules.
-AnalysisContextImpl createAnalysisContext() {
-  var res = AnalysisEngine.instance.createAnalysisContext();
-  res.analysisOptions = new AnalysisOptionsImpl()
-    ..strongMode = true
-    ..trackCacheDependencies = false;
-  return res;
-}
-
 /// Creates a SourceFactory configured by the [options].
-///
-/// Use [options.useMockSdk] to specify the SDK mode, or use [sdkResolver]
-/// to entirely override the DartUriResolver.
 ///
 /// If supplied, [fileResolvers] will override the default `file:` and
 /// `package:` URI resolvers.
@@ -167,21 +153,4 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
   }
 
   return [new ResourceUriResolver(resourceProvider), packageResolver()];
-}
-
-FolderBasedDartSdk _createFolderBasedDartSdk(String sdkPath) {
-  var resourceProvider = PhysicalResourceProvider.INSTANCE;
-  var sdk = new FolderBasedDartSdk(resourceProvider,
-      resourceProvider.getFolder(sdkPath), /*useDart2jsPaths:*/ true);
-  sdk.useSummary = true;
-  sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
-  return sdk;
-}
-
-/// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
-DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
-  var sdk = (sdkSummaryPath != null)
-      ? new SummaryBasedDartSdk(sdkSummaryPath, true)
-      : _createFolderBasedDartSdk(sdkPath);
-  return new DartUriResolver(sdk);
 }

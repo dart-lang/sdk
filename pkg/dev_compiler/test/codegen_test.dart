@@ -79,8 +79,9 @@ main(List<String> arguments) {
       .where((p) => p.endsWith('.sum'))
       .toList();
 
-  var sharedCompiler = new ModuleCompiler(new AnalyzerOptions.basic(
-      dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
+  var sharedCompiler = new ModuleCompiler(
+      new AnalyzerOptions.basic(
+          dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
 
   var testDirs = [
     'language',

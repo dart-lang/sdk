@@ -53,7 +53,8 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
  * Use the given [resourceProvider], [contentCache] and command-line [args] to
  * create a context builder.
  */
-ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
+ContextBuilderOptions createContextBuilderOptions(ArgResults args,
+    {bool strongMode, bool trackCacheDependencies}) {
   ContextBuilderOptions builderOptions = new ContextBuilderOptions();
   builderOptions.argResults = args;
   //
@@ -69,6 +70,12 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   //
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
   applyAnalysisOptionFlags(defaultOptions, args);
+  if (strongMode != null) {
+    defaultOptions.strongMode = strongMode;
+  }
+  if (trackCacheDependencies != null) {
+    defaultOptions.trackCacheDependencies = trackCacheDependencies;
+  }
   builderOptions.defaultOptions = defaultOptions;
   //
   // Declared variables.
@@ -137,7 +144,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       help: 'The path to the Dart SDK summary file.', hide: hide);
 
   parser.addOption(analysisOptionsFileOption,
-      help: 'Path to an analysis options file.', hide: ddc);
+      help: 'Path to an analysis options file.');
 
   parser.addOption(packageRootOption,
       abbr: 'p',
@@ -151,16 +158,13 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
 
   parser.addFlag(strongModeFlag,
       help: 'Enable strong static checks (https://goo.gl/DqcBsw)',
-      defaultsTo: ddc,
-      hide: ddc);
+      defaultsTo: ddc);
   parser.addFlag(noImplicitCastsFlag,
       negatable: false,
-      help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)',
-      hide: ddc);
+      help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)');
   parser.addFlag(noImplicitDynamicFlag,
       negatable: false,
-      help: 'Disable implicit dynamic (https://goo.gl/m0UgXD)',
-      hide: ddc);
+      help: 'Disable implicit dynamic (https://goo.gl/m0UgXD)');
   //
   // Hidden flags and options.
   //
@@ -173,7 +177,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       help: 'Fix issue 21938.',
       defaultsTo: false,
       negatable: false,
-      hide: hide || ddc);
+      hide: hide);
   parser.addFlag(enableInitializingFormalAccessFlag,
       help:
           'Enable support for allowing access to field formal parameters in a '
@@ -185,7 +189,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       help: 'Relax restrictions on mixins (DEP 34).',
       defaultsTo: false,
       negatable: false,
-      hide: hide || ddc);
+      hide: hide);
 //  parser.addFlag('enable_type_checks',
 //      help: 'Check types in constant evaluation.',
 //      defaultsTo: false,
