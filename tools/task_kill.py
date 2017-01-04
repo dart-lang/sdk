@@ -63,6 +63,12 @@ INFO_COMMAND = {
   'linux': POSIX_INFO,
 }
 
+STACK_INFO_COMMAND = {
+  'win32': None,
+  'macos': '/usr/bin/sample %s 1 4000 -mayDie',
+  'linux': '/usr/bin/eu-stack -p %s',
+}
+
 def GetOptions():
   parser = optparse.OptionParser("usage: %prog [options]")
   parser.add_option("--kill_dart", default=True,
@@ -124,7 +130,26 @@ def GetPids(process_name):
   else:
     return GetPidsPosix(process_name)
 
-def PrintPidInfo(pid):
+def PrintPidStackInfo(pid):
+  command_pattern = STACK_INFO_COMMAND.get(os_name, False)
+  if command_pattern:
+    p = subprocess.Popen(command_pattern % pid,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         shell=True)
+    stdout, stderr = p.communicate()
+    stdout = stdout.splitlines()
+    stderr = stderr.splitlines()
+
+    print "  Stack:"
+    for line in stdout:
+      print "    %s" % line
+    if stderr:
+      print "  Stack (stderr):"
+      for line in stderr:
+        print "    %s" % line
+
+def PrintPidInfo(pid, dump_stacks):
   # We assume that the list command will return lines in the format:
   # EXECUTABLE_PATH ARGS
   # There may be blank strings in the output
@@ -137,13 +162,15 @@ def PrintPidInfo(pid):
 
   # Pop the header
   lines.pop(0)
+
+  print "Hanging process info:"
+  print "  PID: %s" % pid
   for line in lines:
     # wmic will output a bunch of empty strings, we ignore these
-    if len(line) >= 1:
-      print("Hanging process info:")
-      print("  PID: %s" % pid)
-      print("  Command line: %s" % line)
+    if line: print "  Command line: %s" % line
 
+  if dump_stacks:
+    PrintPidStackInfo(pid)
 
 def KillPosix(pid):
   try:
@@ -161,14 +188,14 @@ def KillWindows(pid):
                        shell=True)
   p.communicate()
 
-def Kill(name):
+def Kill(name, dump_stacks=False):
   if name not in EXECUTABLE_NAMES[os_name]:
     return 0
   print("***************** Killing %s *****************" % name)
   platform_name = EXECUTABLE_NAMES[os_name][name]
   pids = GetPids(platform_name)
   for pid in pids:
-    PrintPidInfo(pid)
+    PrintPidInfo(pid, dump_stacks)
     if os_name == "win32":
       KillWindows(pid)
     else:
@@ -194,7 +221,7 @@ def KillVCSystems():
   return status
 
 def KillDart():
-  status = Kill("dart")
+  status = Kill("dart", dump_stacks=True)
   return status
 
 def KillFletch():
