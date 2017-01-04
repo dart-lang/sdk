@@ -471,7 +471,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'isolates_test': async_unittest,
 
       'js_interop_1_test': async_unittest,
-
+      'js_test': firefox_fail,
       // Failing because accessing "zSomeInvalidName" does not throw.
       'js_typed_interop_test': 'fail',
 
