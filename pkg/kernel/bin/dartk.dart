@@ -75,7 +75,9 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addFlag('show-external',
       help: 'When printing a library as text, also print its dependencies\n'
-          'on external libraries.');
+          'on external libraries.')
+  ..addFlag('show-offsets',
+      help: 'When printing a library as text, also print node offsets');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -376,7 +378,9 @@ Future<CompilerOutcome> batchMain(
     switch (format) {
       case 'text':
         writeProgramToText(program,
-            path: outputFile, showExternal: options['show-external']);
+            path: outputFile,
+            showExternal: options['show-external'],
+            showOffsets: options['show-offsets']);
         break;
       case 'bin':
         ioFuture = writeProgramToBinary(program, outputFile);

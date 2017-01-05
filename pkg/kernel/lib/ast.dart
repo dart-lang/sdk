@@ -498,6 +498,11 @@ class _MemberAccessor {
 }
 
 abstract class Member extends TreeNode {
+  /// End offset in the source file it comes from. Valid values are from 0 and
+  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
+  /// (this is the default if none is specifically set).
+  int fileEndOffset = TreeNode.noOffset;
+
   /// List of metadata annotations on the member.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -1104,7 +1109,13 @@ class LocalInitializer extends Initializer {
 /// This may occur in a procedure, constructor, function expression, or local
 /// function declaration.
 class FunctionNode extends TreeNode {
+  /// End offset in the source file it comes from. Valid values are from 0 and
+  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
+  /// (this is the default if none is specifically set).
+  int fileEndOffset = TreeNode.noOffset;
+
   AsyncMarker asyncMarker;
+  bool debuggable = true;
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
