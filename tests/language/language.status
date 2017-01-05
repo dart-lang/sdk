@@ -205,6 +205,7 @@ regress_18535_test: SkipByDesign
 super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
+regress_28255_test: SkipByDesign
 
 [ $noopt ]
 # Deferred loading happens eagerly. Issue #27587
