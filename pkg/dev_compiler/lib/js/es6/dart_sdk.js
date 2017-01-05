@@ -3333,7 +3333,7 @@ _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
       protoChain[dartx.add](current);
       current = _debugger.safeGetProperty(current, '__proto__');
     }
-    for (/* Unimplemented unknown name */current of protoChain) {
+    for (current of protoChain) {
       for (let symbol of _debugger.getOwnPropertySymbols(current)) {
         let dartName = _debugger.symbolName(symbol);
         if (dart.test(_debugger.hasMethod(object, dartName))) {
@@ -3349,7 +3349,7 @@ _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
         properties.add(new _debugger.NameValuePair({name: dartName, value: value}));
       }
     }
-    for (/* Unimplemented unknown name */current of protoChain) {
+    for (current of protoChain) {
       let className = dart.dload(dart.getReifiedType(current), 'name');
       for (let name of _debugger.getOwnPropertyNames(current)) {
         if (dart.test(_debugger.ObjectFormatter._customNames.contains(name)) || dart.equals(name, className)) continue;

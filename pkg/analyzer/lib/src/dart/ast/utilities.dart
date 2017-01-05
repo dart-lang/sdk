@@ -5752,6 +5752,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.forKeyword, toNode.forKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.loopVariable, toNode.loopVariable),
+        _isEqualNodes(node.identifier, toNode.identifier),
         _isEqualTokens(node.inKeyword, toNode.inKeyword),
         _isEqualNodes(node.iterable, toNode.iterable),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
