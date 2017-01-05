@@ -793,7 +793,7 @@ class JavaScriptBackend extends Backend {
   bool isNative(Entity element) => nativeData.isNative(element);
 
   /// Returns the [NativeBehavior] for calling the native [method].
-  native.NativeBehavior getNativeMethodBehavior(FunctionElement method) {
+  native.NativeBehavior getNativeMethodBehavior(MethodElement method) {
     return nativeData.getNativeMethodBehavior(method);
   }
 
@@ -3271,7 +3271,12 @@ class JavaScriptBackendClasses implements BackendClasses {
   }
 
   @override
-  bool isNative(Element element) {
+  bool isNativeClass(ClassElement element) {
+    return helpers.backend.isNative(element);
+  }
+
+  @override
+  bool isNativeMember(MemberElement element) {
     return helpers.backend.isNative(element);
   }
 }

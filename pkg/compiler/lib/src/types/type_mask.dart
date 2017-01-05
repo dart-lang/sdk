@@ -349,7 +349,8 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, ClosedWorld closedWorld);
+  bool canHit(
+      MemberElement element, Selector selector, ClosedWorld closedWorld);
 
   /**
    * Returns the [element] that is known to always be hit at runtime
