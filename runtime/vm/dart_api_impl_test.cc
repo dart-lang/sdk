@@ -1007,6 +1007,7 @@ TEST_CASE(IntegerFitsIntoUint64) {
 
 
 TEST_CASE(ArrayValues) {
+  EXPECT(!Dart_IsList(Dart_Null()));
   const int kArrayLength = 10;
   Dart_Handle str = NewString("test");
   EXPECT(!Dart_IsList(str));
@@ -1473,6 +1474,7 @@ TEST_CASE(ListAccess) {
 
 
 TEST_CASE(MapAccess) {
+  EXPECT(!Dart_IsMap(Dart_Null()));
   const char* kScriptChars =
       "Map testMain() {"
       "  return {"
