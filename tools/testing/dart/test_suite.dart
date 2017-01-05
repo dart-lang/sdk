@@ -208,6 +208,14 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  /// Returns the name of the flutter engine executable.
+  String get flutterEngineBinaryFileName {
+    // Controlled by user with the option "--flutter".
+    String flutterExecutable = configuration['flutter'];
+    TestUtils.ensureExists(flutterExecutable, configuration);
+    return flutterExecutable;
+  }
+
   String get dartVmNooptBinaryFileName {
     // Controlled by user with the option "--dart".
     String dartExecutable = configuration['dart'];
