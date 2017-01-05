@@ -215,12 +215,12 @@ class InvariantBooleans extends LintRule {
   AstVisitor getVisitor() => _visitor;
 }
 
-/// The only purpose of this rule is to report the second node on a cotradictory
+/// The only purpose of this rule is to report the second node on a contradictory
 /// comparison indicating the first node as the cause of the inconsistency.
 class _ContradictionReportRule extends LintRule {
   _ContradictionReportRule(ContradictoryComparisons comparisons)
       : super(
-            name: 'invariant_boolean',
+            name: 'invariant_booleans',
             description: _desc + ' verify: ${comparisons.first}.',
             details: _details,
             group: Group.errors,
