@@ -188,6 +188,7 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
+LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
 
 [ ($runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Issue 27201
