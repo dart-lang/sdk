@@ -373,6 +373,7 @@ stacktrace_rethrow_nonerror_test: RuntimeError
 stack_trace_test: RuntimeError
 string_interpolation7_test: RuntimeError
 super_call4_test: RuntimeError
+regress_28255_test: Crash
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
