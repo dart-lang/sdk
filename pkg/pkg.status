@@ -31,6 +31,7 @@ dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/gen/*: SkipByDesign
+dev_compiler/test/options/*: SkipByDesign
 
 # Issue #28236
 analysis_server/test/analysis/get_errors_test: StaticWarning
