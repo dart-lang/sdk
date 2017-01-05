@@ -832,6 +832,10 @@ abstract class _AstResynthesizeTestMixin
   }
 
   UnlinkedUnit _getUnlinkedUnit(Source source) {
+    if (source == null) {
+      return new UnlinkedUnitBuilder();
+    }
+
     String uriStr = source.uri.toString();
     {
       UnlinkedUnit unlinkedUnitInSdk =
@@ -873,7 +877,7 @@ abstract class _AstResynthesizeTestMixin
     Source resolveRelativeUri(String relativeUri) {
       Source resolvedSource =
           context.sourceFactory.resolveUri(librarySource, relativeUri);
-      if (resolvedSource == null) {
+      if (resolvedSource == null && !allowMissingFiles) {
         throw new StateError('Could not resolve $relativeUri in the context of '
             '$librarySource (${librarySource.runtimeType})');
       }

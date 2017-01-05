@@ -230,9 +230,13 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[unlinkedSummary];
       for (String part in serializedUnits[0].publicNamespace.parts) {
         Source partSource = sourceFactory.resolveUri(librarySource, part);
-        String partAbsUri = partSource.uri.toString();
-        serializedUnits.add(_getUnlinkedSummaryOrNull(partAbsUri) ??
-            new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
+        if (partSource == null) {
+          serializedUnits.add(null);
+        } else {
+          String partAbsUri = partSource.uri.toString();
+          serializedUnits.add(_getUnlinkedSummaryOrNull(partAbsUri) ??
+              new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
+        }
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
@@ -1034,7 +1038,9 @@ class _LibraryResynthesizer {
           unlinkedDefiningUnit.publicNamespace.parts[i - 1],
           unlinkedDefiningUnit.parts[i - 1],
           i);
-      partResynthesizers.add(partResynthesizer);
+      if (partResynthesizer != null) {
+        partResynthesizers.add(partResynthesizer);
+      }
     }
     library.parts = partResynthesizers.map((r) => r.unit).toList();
     // Populate units.
@@ -1055,13 +1061,16 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Create, but do not populate, the [CompilationUnitElement] for a part other
-   * than the defining compilation unit.
+   * Create a [_UnitResynthesizer] that will resynthesize the part with the
+   * given [uri]. Return `null` if the [uri] is invalid.
    */
   _UnitResynthesizer buildPart(_UnitResynthesizer definingUnitResynthesizer,
       String uri, UnlinkedPart partDecl, int unitNum) {
     Source unitSource =
         summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
+    if (unitSource == null) {
+      return null;
+    }
     _UnitResynthesizer partResynthesizer =
         createUnitResynthesizer(unitNum, unitSource, partDecl);
     CompilationUnitElementImpl partUnit = partResynthesizer.unit;
