@@ -41,32 +41,31 @@ abstract class Accessor {
             _makeWrite(value, voidContext), new VariableGet(tmp), type)));
   }
 
-  Expression buildCompoundAssignment(
-      Name binaryOperator, Expression value, int offset,
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return _finish(_makeWrite(
-        builtBinary = makeBinary(
-            _makeRead(), binaryOperator, interfaceTarget, value, offset),
+        builtBinary =
+            makeBinary(_makeRead(), binaryOperator, interfaceTarget, value),
         voidContext));
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator, int offset,
+  Expression buildPrefixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return buildCompoundAssignment(binaryOperator, new IntLiteral(1), offset,
+    return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
         voidContext: voidContext, interfaceTarget: interfaceTarget);
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator, int offset,
+  Expression buildPostfixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator, offset,
+      return buildPrefixIncrement(binaryOperator,
           voidContext: true, interfaceTarget: interfaceTarget);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        builtBinary = makeBinary(valueAccess(), binaryOperator, interfaceTarget,
-            new IntLiteral(1), offset),
+        builtBinary = makeBinary(
+            valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1)),
         true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }
@@ -402,16 +401,15 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
 }
 
 Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
-    Expression right, int offset) {
+    Expression right) {
   return new MethodInvocation(
-      left, operator, new Arguments(<Expression>[right]), interfaceTarget)
-    ..fileOffset = offset;
+      left, operator, new Arguments(<Expression>[right]), interfaceTarget);
 }
 
 final Name _equalOperator = new Name('==');
 
-Expression buildIsNull(Expression value, {int offset: TreeNode.noOffset}) {
-  return makeBinary(value, _equalOperator, null, new NullLiteral(), offset);
+Expression buildIsNull(Expression value) {
+  return makeBinary(value, _equalOperator, null, new NullLiteral());
 }
 
 VariableDeclaration makeOrReuseVariable(Expression value) {

@@ -409,19 +409,17 @@ class ExpressionLifter extends Transformer {
     final R = continuationRewriter;
     var shouldName = seenAwait;
     var result = new VariableGet(asyncResult);
-
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
     if (shouldName) result = name(result);
-    statements.add(R.createContinuationPoint()..fileOffset = expr.fileOffset);
+    statements.add(R.createContinuationPoint());
     Arguments arguments = new Arguments(<Expression>[
       expr.operand,
       new VariableGet(R.thenContinuationVariable),
       new VariableGet(R.catchErrorContinuationVariable)
     ]);
     statements.add(new ExpressionStatement(
-        new StaticInvocation(R.helper.awaitHelper, arguments)
-          ..fileOffset = expr.fileOffset));
+        new StaticInvocation(R.helper.awaitHelper, arguments)));
 
     seenAwait = false;
     var index = nameIndex;

@@ -268,7 +268,7 @@ class DartLoader implements ReferenceLevelLoader {
     _classes[element] = classNode = new ast.Class(
         name: element.name,
         isAbstract: element.isAbstract,
-        fileUri: '${element.source.uri}')..fileOffset = element.nameOffset;
+        fileUri: '${element.source.uri}');
     classNode.level = ast.ClassLevel.Temporary;
     var library = getLibraryReference(element.library);
     library.addClass(classNode);
@@ -318,9 +318,6 @@ class DartLoader implements ReferenceLevelLoader {
           // Use a shared mixin application class for this library.
           var mixinClass = getSharedMixinApplicationClass(
               scope.currentLibrary, supertype.classNode, mixinType.classNode);
-          if (mixinClass.fileOffset < 0) {
-            mixinClass.fileOffset = element.nameOffset;
-          }
           supertype = new ast.Supertype(
               mixinClass,
               supertype.typeArguments.length > mixinType.typeArguments.length
@@ -336,7 +333,7 @@ class DartLoader implements ReferenceLevelLoader {
               typeParameters: freshParameters.freshTypeParameters,
               supertype: freshParameters.substituteSuper(supertype),
               mixedInType: freshParameters.substituteSuper(mixinType),
-              fileUri: classNode.fileUri)..fileOffset = element.nameOffset;
+              fileUri: classNode.fileUri);
           mixinClass.level = ast.ClassLevel.Type;
           supertype = new ast.Supertype(mixinClass,
               classNode.typeParameters.map(makeTypeParameterType).toList());
@@ -449,14 +446,12 @@ class DartLoader implements ReferenceLevelLoader {
               isStatic: true,
               isExternal: constructor.isExternal,
               isConst: constructor.isConst,
-              fileUri: '${element.source.uri}')
-            ..fileOffset = element.nameOffset;
+              fileUri: '${element.source.uri}');
         }
         return new ast.Constructor(scope.buildFunctionInterface(constructor),
             name: _nameOfMember(element),
             isConst: constructor.isConst,
-            isExternal: constructor.isExternal)
-          ..fileOffset = element.nameOffset;
+            isExternal: constructor.isExternal);
 
       case ElementKind.FIELD:
       case ElementKind.TOP_LEVEL_VARIABLE:
@@ -485,7 +480,7 @@ class DartLoader implements ReferenceLevelLoader {
             isAbstract: executable.isAbstract,
             isStatic: executable.isStatic,
             isExternal: executable.isExternal,
-            fileUri: '${element.source.uri}')..fileOffset = element.nameOffset;
+            fileUri: '${element.source.uri}');
 
       default:
         throw 'Unexpected member kind: $element';

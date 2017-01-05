@@ -341,8 +341,7 @@ class CloneVisitor extends TreeVisitor {
         isConst: node.isConst,
         isExternal: node.isExternal,
         initializers: node.initializers.map(clone).toList(),
-        transformerFlags: node.transformerFlags)
-      ..fileEndOffset = node.fileEndOffset;
+        transformerFlags: node.transformerFlags);
   }
 
   visitProcedure(Procedure node) {
@@ -352,7 +351,7 @@ class CloneVisitor extends TreeVisitor {
         isExternal: node.isExternal,
         isConst: node.isConst,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
+        fileUri: node.fileUri);
   }
 
   visitField(Field node) {
@@ -365,7 +364,7 @@ class CloneVisitor extends TreeVisitor {
         hasImplicitGetter: node.hasImplicitGetter,
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
+        fileUri: node.fileUri);
   }
 
   visitTypeParameter(TypeParameter node) {
@@ -387,7 +386,7 @@ class CloneVisitor extends TreeVisitor {
         namedParameters: named,
         requiredParameterCount: node.requiredParameterCount,
         returnType: visitType(node.returnType),
-        asyncMarker: node.asyncMarker)..fileEndOffset = node.fileEndOffset;
+        asyncMarker: node.asyncMarker);
   }
 
   visitArguments(Arguments node) {
