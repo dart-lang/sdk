@@ -1,13 +1,166 @@
 # Covariant Overrides
 
-Owner: rnystrom@.
-Updated by eernst@ to match decisions by the language team.
+Owner: rnystrom@, eernst@.
 
 ## Summary
 
-Allow an overriding method to tighten a parameter type if it has the modifier
-`covariant`, using runtime checks to ensure soundness. This provides a better
-user experience for a programming idiom that appears in many UI frameworks.
+Allow an overriding method to tighten a parameter type if it has the
+modifier `covariant`, using dynamic checks to ensure soundness. This
+provides a better user experience for a programming idiom that appears in
+many UI frameworks.
+
+Note that this feature is relevant in strong mode where parameter types
+cannot otherwise be tightened, but it affects standard mode Dart in the
+sense that the syntax should be accepted and ignored. We specify the
+feature for strong mode first, and then for standard mode.
+
+## Informal specification (strong mode)
+
+We set out by giving the informal specification for this
+feature in strong mode.
+
+### Syntax
+
+The set of built-in identifiers is extended with `covariant`. This means
+that the identifier `covariant` cannot be the name of a type. The grammar
+is updated as follows:
+
+```
+normalFormalParameter: // CHANGED
+  functionFormalParameter |
+  fieldFormalParameter |
+  simpleFormalParameter
+
+functionFormalParameter: // NEW
+  metadata 'covariant'? returnType? identifier formalParameterList
+
+simpleFormalParameter: // CHANGED
+  declaredIdentifier |
+  metadata 'covariant'? identifier
+
+declaredIdentifier: // CHANGED
+  metadata 'covariant'? finalConstVarOrType identifier
+```
+
+### Static checking
+
+The static checks are affected in several ways. In this section we discuss
+a few general issues; several larger subtopics are discussed in the
+following sections.
+
+It is a compile-time error if the `covariant` modifier occurs on a
+parameter of a function which is not an instance method (which includes
+instance setters and instance operators). It is a compile-time error if the
+`covariant` modifier occurs on a variable declaration which is not a
+non-final instance variable.
+
+For a given parameter `p` in an instance method (including setter and
+operator) `m`, `p` is considered to be a **covariant parameter** if there
+is a direct or indirect supertype containing an overridden declaration of
+`m` where the parameter corresponding to `p` has the modifier `covariant`.
+
+<-- Commentary: Shown in italics as in the other informal specs -->
+*In short, the property of being covariant is inherited, for each
+parameter. There is no conflict if only some overridden declarations have
+the `covariant` modifier, and others do not. The parameter is covariant iff
+at least one of them has it.*
+
+Function typing is unaffected by covariant overriding: When the type of a
+function is determined for a property extraction which tears off an
+instance method with one or more covariant parameters, the resulting type
+has no covariant parameters. Other expressions with a function type do not
+admit covariant parameters, and hence function types never include
+covariant parameters.
+
+*In particular, subtyping among function types is unaffected by covariant
+overriding, and so is type checking for invocations of first-class
+functions. Note that it is a non-trivial step to determine the run-time
+type of a torn off method, as described below.*
+
+An invocation of an instance method with one or more covariant parameters
+is checked as if no `covariant` modifiers had been present on any of the
+involved declarations.
+
+*Intuitively, covariant overrides are irrelevant for clients, it is a
+feature which is encapsulated in the receiver class.*
+
+#### Overriding
+
+The static warnings specified for override relationships among instance
+method declarations regarding the number and kind (named, positional) of
+parameters remain unchanged, except that any `covariant` modifiers are
+ignored.
+
+For a covariant parameter, the override rule is that its type must be
+either a supertype or a subtype of the type declared for the same parameter
+in each of the directly or indirectly overridden declarations.
+
+*For a parameter which is not covariant, the override rule is is unchanged:
+its type must be a supertype of the type declared for the corresponding
+parameter in each directly overridden declaration. This includes the
+typical case where the type does not change, because any type is a
+supertype of itself. Override checking for return types is also unchanged.*
+
+#### Closurization
+
+The static type of a property extraction expression `e.m` which gives rise
+to closurization of a method (including an operator or a setter) which has
+one or more covariant parameters is the static type of the function `T.m`,
+where `T` is the static type of `e`, if `T.m` is defined. Otherwise the
+static type of `e.m` is `dynamic`.
+
+The static type of a property extraction expression `super.m` which gives rise
+to closurization of a method (including an operator or a setter) which has
+one or more covariant parameters is the static type of the function `T.m`,
+where `T` is the superclass of the enclosing class.
+
+In both cases, for the static type of the function `T.m`, all occurrences
+of the modifier `covariant` are ignored.
+
+*In short, the static type of a tear-off ignores covariant overrides. Note
+that this is not true for the dynamic type of the tear-off.*
+
+### Dynamic semantics
+
+*The run-time semantics of the language with covariant overrides is the
+same as the run-time semantics of the language without that feature, except
+that some type checks which are not guaranteed to succeed based on static
+checks must be performed at run time. We emphasize this point by specifying
+these checks explicitly.*
+
+A dynamic error occurs if a method with a covariant parameter `p` is
+invoked, and the binding for `p` is a value which is not `null` and whose
+run-time type is not a subtype of the type declared for `p`.
+
+#### The dynamic type of a closurized instance method
+
+The dynamic type of a function *f* which is created by closurization
+during evaluation of a property extraction expression is determined as
+follows:
+
+Let `m` be the name of the method (operator, setter) which is being
+closurized, let `T` be the type of the receiver, and let *D* be declaration
+of `m` in `T` or inherited by `T`.
+
+The return type of *f* the is the static return type of *D*. For each
+parameter `p` declared in *D* which is not covariant, the part in the
+dynamic type of *f* which corresponds to `p` is the static type of `p` in
+*D*. For each covariant parameter `q`, the part in the dynamic type of *f*
+which corresponds to `q` is the least upper bound of all the types declared
+for parameters corresponding to `q` in directly and indirectly overridden
+declarations of `m`.
+
+## Informal specification (standard mode)
+
+In standard mode, the syntactic modifications required to support covariant
+overrides are identical to the ones needed for strong mode.
+
+*However, the feature is irrelevant in standard mode, because covariant
+parameter types are always allowed. We just need to enable the syntax such
+that the same software can be used in both modes.*
+
+The static analysis ignores `covariant` modifiers, and so does the dynamic
+semantics.
 
 ## Motivation
 
@@ -224,37 +377,7 @@ class Widget {
 }
 ```
 
-### Grammar changes
-
-We update the following grammar rules:
-
-```
-normalFormalParameter:
-  "covariant"? functionSignature |
-  fieldFormalParameter |
-  simpleFormalParameter
-  ;
-
-simpleFormalParameter:
-  metadata "covariant"? finalConstVarOrType? identifier
-  ;
-```
-
-<!--
-  Note that it is possible to mark a parameter as covariant and leave out the
-  type, e.g., `covariant var x`. This is probably useless, but benign.
--->
-
-The `covariant` modifier can *only* be applied to a parameter declaration
-on an instance method, instance setter, or instance operator, and it can be
-applied to a mutable field declaration. Anywhere else is a static error.
-
-### Static checking
-
-The static checks are affected in several ways when adding covariant overrides
-to the language.
-
-#### Overriding
+#### Overriding rules
 
 With this feature, type checking of an overriding instance method or operator
 declaration depends on the `covariant` modifiers. For a given parameter
