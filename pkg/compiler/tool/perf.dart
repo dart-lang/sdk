@@ -33,7 +33,7 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/src/util.dart' show checkValidPackageUri;
 
 /// Cumulative total number of chars scanned.
-int scanTotalChars = 0;
+int inputSize = 0;
 
 /// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
@@ -47,32 +47,17 @@ main(List<String> args) async {
     print('usage: perf.dart <bench-id> <entry.dart>');
     exit(1);
   }
-  var totalTimer = new Stopwatch()..start();
-
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
   await setup(entryUri);
 
+  Set<SourceFile> files = await scanReachableFiles(entryUri);
   var handlers = {
-    'scan': () async {
-      Set<SourceFile> files = await scanReachableFiles(entryUri);
-      // TODO(sigmund): replace the warmup with instrumented snapshots.
-      for (int i = 0; i < 10; i++) scanFiles(files);
-    },
-    'parse': () async {
-      Set<SourceFile> files = await scanReachableFiles(entryUri);
-      // TODO(sigmund): replace the warmup with instrumented snapshots.
-      for (int i = 0; i < 10; i++) parseFiles(files);
-    },
+    'scan': () async => scanFiles(files),
+    'parse': () async => parseFiles(files),
     'kernel_gen_e2e': () async {
-      // TODO(sigmund): remove. This is used to compute the input size, we
-      // should extract input size from frontend instead.
-      await scanReachableFiles(entryUri);
-      // TODO(sigmund): replace this warmup. Note that for very large programs,
-      // the GC pressure on the VM seems to make this worse with time (maybe we
-      // are leaking memory?). That's why we run it twice and not 10 times.
-      for (int i = 0; i < 2; i++) await generateKernel(entryUri);
+      await generateKernel(entryUri);
     },
   };
 
@@ -80,12 +65,19 @@ main(List<String> args) async {
   if (handler == null) {
     // TODO(sigmund): implement the remaining benchmarks.
     print('unsupported bench-id: $bench. Please specify one of the following: '
-        '${handler.keys.join(", ")}');
+        '${handlers.keys.join(", ")}');
     exit(1);
   }
-  await handler();
-  totalTimer.stop();
-  report("total", totalTimer.elapsedMicroseconds);
+
+  // TODO(sigmund): replace the warmup with instrumented snapshots.
+  int iterations = bench.contains('kernel_gen') ? 2 : 10;
+  for (int i = 0; i < iterations; i++) {
+    var totalTimer = new Stopwatch()..start();
+    print('== iteration $i');
+    await handler();
+    totalTimer.stop();
+    report('total', totalTimer.elapsedMicroseconds);
+  }
 }
 
 Future setup(Uri entryUri) async {
@@ -100,71 +92,56 @@ Future setup(Uri entryUri) async {
 Future<Set<SourceFile>> scanReachableFiles(Uri entryUri) async {
   var files = new Set<SourceFile>();
   var loadTimer = new Stopwatch()..start();
+  scanTimer = new Stopwatch();
   var entrypoints = [
     entryUri,
-    Uri.parse("dart:async"),
-    Uri.parse("dart:collection"),
-    Uri.parse("dart:convert"),
-    Uri.parse("dart:core"),
-    Uri.parse("dart:developer"),
-    Uri.parse("dart:_internal"),
-    Uri.parse("dart:io"),
-    Uri.parse("dart:isolate"),
-    Uri.parse("dart:math"),
-    Uri.parse("dart:mirrors"),
-    Uri.parse("dart:typed_data"),
+    Uri.parse('dart:async'),
+    Uri.parse('dart:collection'),
+    Uri.parse('dart:convert'),
+    Uri.parse('dart:core'),
+    Uri.parse('dart:developer'),
+    Uri.parse('dart:_internal'),
+    Uri.parse('dart:io'),
+    Uri.parse('dart:isolate'),
+    Uri.parse('dart:math'),
+    Uri.parse('dart:mirrors'),
+    Uri.parse('dart:typed_data'),
   ];
   for (var entry in entrypoints) {
     await collectSources(await loader.loadFile(entry), files);
   }
   loadTimer.stop();
 
-  print('input size: ${scanTotalChars} chars');
+  inputSize = 0;
+  for (var source in files) inputSize += source.length;
+  print('input size: ${inputSize} chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("load", loadTime);
-  report("scan", scanTimer.elapsedMicroseconds);
+  report('load', loadTime);
+  report('scan', scanTimer.elapsedMicroseconds);
   return files;
 }
 
 /// Scans every file in [files] and reports the time spent doing so.
 void scanFiles(Set<SourceFile> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
   scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
   for (var source in files) {
     tokenize(source);
   }
-
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
+  report('scan', scanTimer.elapsedMicroseconds);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
 void parseFiles(Set<SourceFile> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
   scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
   var parseTimer = new Stopwatch()..start();
   for (var source in files) {
     parseFull(source);
   }
   parseTimer.stop();
 
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
-
+  report('scan', scanTimer.elapsedMicroseconds);
   report(
-      "parse", parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds);
+      'parse', parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds);
 }
 
 /// Add to [files] all sources reachable from [start].
@@ -198,18 +175,19 @@ parseFull(SourceFile source) {
 /// Scan [source] and return the first token produced by the scanner.
 Token tokenize(SourceFile source) {
   scanTimer.start();
-  scanTotalChars += source.length;
   var token = new Scanner(source).tokenize();
   scanTimer.stop();
   return token;
 }
 
 /// Report that metric [name] took [time] micro-seconds to process
-/// [scanTotalChars] characters.
+/// [inputSize] characters.
 void report(String name, int time) {
   var sb = new StringBuffer();
-  sb.write('$name: $time us, ${time ~/ 1000} ms');
-  sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
+  var padding = ' ' * (20 - name.length);
+  sb.write('$name:$padding $time us, ${time ~/ 1000} ms');
+  var invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
+  sb.write(', $invSpeed ns/char');
   print('$sb');
 }
 
@@ -246,7 +224,7 @@ class DirectiveListener extends Listener {
 }
 
 Uri _libraryRoot = Platform.script.resolve('../../../sdk/');
-Uri _platformConfigUri = _libraryRoot.resolve("lib/dart_server.platform");
+Uri _platformConfigUri = _libraryRoot.resolve('lib/dart_server.platform');
 
 class FakeReporter extends DiagnosticReporter {
   final hasReportedError = false;
@@ -282,9 +260,15 @@ class FakeReporter extends DiagnosticReporter {
   }
 }
 
-class FakeReporterOptions {
+class FakeReporterOptions implements DiagnosticOptions {
   bool get suppressHints => false;
   bool get hidePackageWarnings => false;
+
+  bool get fatalWarnings => false;
+  bool get terseDiagnostics => false;
+  bool get suppressWarnings => false;
+  bool get showAllPackageWarnings => true;
+  bool showPackageWarningsFor(Uri uri) => true;
 }
 
 class _Loader {
@@ -333,6 +317,10 @@ class _Loader {
 }
 
 generateKernel(Uri entryUri) async {
+  // TODO(sigmund): this is here only to compute the input size,
+  // we should extract the input size from the frontend instead.
+  scanReachableFiles(entryUri);
+
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions(
       entryPoint: entryUri,
@@ -347,7 +335,7 @@ generateKernel(Uri entryUri) async {
   var compiler = new MyCompiler(inputProvider, diagnosticHandler, options);
   await compiler.run(entryUri);
   timer.stop();
-  report("kernel_gen_e2e", timer.elapsedMicroseconds);
+  report('kernel_gen_e2e', timer.elapsedMicroseconds);
 }
 
 // We subclass compiler to skip phases and stop after creating kernel.
@@ -358,7 +346,7 @@ class MyCompiler extends CompilerImpl {
 
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
-      selfTask.measureSubtask("KernelCompiler.compileLoadedLibraries", () {
+      selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
         WorldImpact mainImpact = computeMain();
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
@@ -377,8 +365,8 @@ class MyCompiler extends CompilerImpl {
         });
 
         if (deferredLoadTask.isProgramSplit) {
-          enqueuer.resolution.applyImpact(
-              backend.computeDeferredLoadingImpact());
+          enqueuer.resolution
+              .applyImpact(backend.computeDeferredLoadingImpact());
         }
         enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
@@ -391,7 +379,7 @@ class MyCompiler extends CompilerImpl {
 
         if (compilationFailed) {
           // TODO(sigmund): more diagnostics?
-          print("compilation failed!");
+          print('compilation failed!');
           exit(1);
         }
 
