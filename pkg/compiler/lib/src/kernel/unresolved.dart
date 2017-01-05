@@ -4,7 +4,8 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import "../elements/resolution_types.dart" show DartType, InterfaceType;
+import "../elements/resolution_types.dart"
+    show ResolutionDartType, ResolutionInterfaceType;
 import "../elements/elements.dart"
     show
         AstElement,
@@ -157,7 +158,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       ErroneousElement element,
-      DartType type,
+      ResolutionDartType type,
       NodeList arguments,
       Selector selector,
       _) {
@@ -170,7 +171,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
-      DartType type,
+      ResolutionDartType type,
       NodeList arguments,
       Selector selector,
       _) {
@@ -211,7 +212,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {

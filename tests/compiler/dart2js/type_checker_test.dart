@@ -71,7 +71,7 @@ main() {
 }
 
 testSimpleTypes(MockCompiler compiler) {
-  checkType(DartType type, String code) {
+  checkType(ResolutionDartType type, String code) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
@@ -2649,7 +2649,7 @@ Future setup(test(MockCompiler compiler)) {
   return compiler.init("import 'dart:async';").then((_) => test(compiler));
 }
 
-DartType analyzeType(MockCompiler compiler, String text) {
+ResolutionDartType analyzeType(MockCompiler compiler, String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor = new TypeCheckerVisitor(
       compiler, new TreeElementMapping(null), compiler.types);

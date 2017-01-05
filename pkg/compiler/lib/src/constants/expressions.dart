@@ -80,7 +80,7 @@ abstract class ConstantExpression {
 
   /// Returns the type of this constant expression, if it is independent of the
   /// environment values.
-  DartType getKnownType(CommonElements commonElements) => null;
+  ResolutionDartType getKnownType(CommonElements commonElements) => null;
 
   /// Returns a text string resembling the Dart code creating this constant.
   String toDartText() {
@@ -236,7 +236,7 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 }
 
@@ -272,7 +272,7 @@ class IntConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 }
 
@@ -308,7 +308,7 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.doubleType;
 }
 
@@ -344,7 +344,7 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 }
 
@@ -378,13 +378,13 @@ class NullConstantExpression extends PrimitiveConstantExpression {
   bool _equals(NullConstantExpression other) => true;
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.nullType;
 }
 
 /// Literal list constant.
 class ListConstantExpression extends ConstantExpression {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final List<ConstantExpression> values;
 
   ListConstantExpression(this.type, this.values);
@@ -439,7 +439,7 @@ class ListConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) => type;
+  ResolutionDartType getKnownType(CommonElements commonElements) => type;
 
   @override
   bool get isImplicit => false;
@@ -450,7 +450,7 @@ class ListConstantExpression extends ConstantExpression {
 
 /// Literal map constant.
 class MapConstantExpression extends ConstantExpression {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final List<ConstantExpression> keys;
   final List<ConstantExpression> values;
 
@@ -518,7 +518,7 @@ class MapConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) => type;
+  ResolutionDartType getKnownType(CommonElements commonElements) => type;
 
   @override
   bool get isImplicit => false;
@@ -531,7 +531,7 @@ class MapConstantExpression extends ConstantExpression {
 
 /// Invocation of a const constructor.
 class ConstructedConstantExpression extends ConstantExpression {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final ConstructorElement target;
   final CallStructure callStructure;
   final List<ConstantExpression> arguments;
@@ -568,7 +568,7 @@ class ConstructedConstantExpression extends ConstantExpression {
         .computeInstanceFields(arguments, callStructure);
   }
 
-  InterfaceType computeInstanceType() {
+  ResolutionInterfaceType computeInstanceType() {
     return target.constantConstructor.computeInstanceType(type);
   }
 
@@ -695,7 +695,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 
   @override
@@ -736,17 +736,17 @@ class SymbolConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.symbolType;
 }
 
 /// Type literal.
 class TypeConstantExpression extends ConstantExpression {
-  /// Either [DynamicType] or a raw [GenericType].
-  final DartType type;
+  /// Either [ResolutionDynamicType] or a raw [GenericType].
+  final ResolutionDartType type;
 
   TypeConstantExpression(this.type) {
-    assert(type is GenericType || type is DynamicType);
+    assert(type is GenericType || type is ResolutionDynamicType);
   }
 
   ConstantExpressionKind get kind => ConstantExpressionKind.TYPE;
@@ -775,7 +775,7 @@ class TypeConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.typeType;
 }
 
@@ -843,7 +843,7 @@ class FunctionConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.functionType;
 }
 
@@ -894,9 +894,9 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
-  DartType getKnownType(CommonElements commonElements) {
-    DartType knownLeftType = left.getKnownType(commonElements);
-    DartType knownRightType = right.getKnownType(commonElements);
+  ResolutionDartType getKnownType(CommonElements commonElements) {
+    ResolutionDartType knownLeftType = left.getKnownType(commonElements);
+    ResolutionDartType knownRightType = right.getKnownType(commonElements);
     switch (operator.kind) {
       case BinaryOperatorKind.EQ:
       case BinaryOperatorKind.NOT_EQ:
@@ -1036,7 +1036,7 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 
   @override
@@ -1092,7 +1092,7 @@ class UnaryConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) {
+  ResolutionDartType getKnownType(CommonElements commonElements) {
     return expression.getKnownType(commonElements);
   }
 
@@ -1155,7 +1155,7 @@ class StringLengthConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 
   @override
@@ -1227,9 +1227,9 @@ class ConditionalConstantExpression extends ConstantExpression {
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) {
-    DartType trueType = trueExp.getKnownType(commonElements);
-    DartType falseType = falseExp.getKnownType(commonElements);
+  ResolutionDartType getKnownType(CommonElements commonElements) {
+    ResolutionDartType trueType = trueExp.getKnownType(commonElements);
+    ResolutionDartType falseType = falseExp.getKnownType(commonElements);
     if (trueType == falseType) {
       return trueType;
     }
@@ -1408,7 +1408,7 @@ class BoolFromEnvironmentConstantExpression
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 }
 
@@ -1474,7 +1474,7 @@ class IntFromEnvironmentConstantExpression
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 }
 
@@ -1536,7 +1536,7 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
-  DartType getKnownType(CommonElements commonElements) =>
+  ResolutionDartType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 }
 
@@ -1641,11 +1641,11 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     }
   }
 
-  void writeTypeArguments(InterfaceType type) {
+  void writeTypeArguments(ResolutionInterfaceType type) {
     if (type.treatAsRaw) return;
     sb.write('<');
     bool needsComma = false;
-    for (DartType value in type.typeArguments) {
+    for (ResolutionDartType value in type.typeArguments) {
       if (needsComma) {
         sb.write(', ');
       }

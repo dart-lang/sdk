@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart' show DartType;
+import '../elements/resolution_types.dart' show ResolutionDartType;
 import '../elements/elements.dart';
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
@@ -1735,8 +1735,13 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
-  T errorNonConstantConstructorInvoke(ast.NewExpression node, Element element,
-      DartType type, ast.NodeList arguments, CallStructure callStructure, _) {
+  T errorNonConstantConstructorInvoke(
+      ast.NewExpression node,
+      Element element,
+      ResolutionDartType type,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
     return bulkHandleNew(node, _);
   }
 

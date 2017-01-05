@@ -302,7 +302,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HTypeConversion buildFunctionTypeConversion(
-      HInstruction original, DartType type, int kind) {
+      HInstruction original, ResolutionDartType type, int kind) {
     HInstruction reifiedType = buildFunctionType(type);
     return new HTypeConversion.viaMethodOnType(
         type, kind, original.instructionType, reifiedType, original);
@@ -409,7 +409,7 @@ class SsaBuilder extends ast.Visitor
    */
   bool tryInlineMethod(Element element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
-      {InterfaceType instanceType}) {
+      {ResolutionInterfaceType instanceType}) {
     registry
         .addImpact(backend.registerUsedElement(element, forResolution: false));
 
@@ -654,18 +654,19 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  /// A stack of [DartType]s that have been seen during inlining of factory
-  /// constructors.  These types are preserved in [HInvokeStatic]s and
+  /// A stack of [ResolutionDartType]s that have been seen during inlining of
+  /// factory constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HCreate]s inside the inline code and registered during code generation
   /// for these nodes.
   // TODO(karlklose): consider removing this and keeping the (substituted) types
   // of the type variables in an environment (like the [LocalsHandler]).
-  final List<DartType> currentInlinedInstantiations = <DartType>[];
+  final List<ResolutionDartType> currentInlinedInstantiations =
+      <ResolutionDartType>[];
 
   final List<AstInliningState> inliningStack = <AstInliningState>[];
 
   Local returnLocal;
-  DartType returnType;
+  ResolutionDartType returnType;
 
   bool inTryStatement = false;
 
@@ -856,7 +857,7 @@ class SsaBuilder extends ast.Visitor
    */
   void setupStateForInlining(
       FunctionElement function, List<HInstruction> compiledArguments,
-      {InterfaceType instanceType}) {
+      {ResolutionInterfaceType instanceType}) {
     ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, instanceType, compiler);
@@ -882,7 +883,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement enclosing = function.enclosingClass;
     if ((function.isConstructor || function.isGenerativeConstructorBody) &&
         backend.classNeedsRti(enclosing)) {
-      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+      enclosing.typeVariables
+          .forEach((ResolutionTypeVariableType typeVariable) {
         HInstruction argument = compiledArguments[argumentIndex++];
         localsHandler.updateLocal(
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
@@ -923,13 +925,13 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  addInlinedInstantiation(DartType type) {
+  addInlinedInstantiation(ResolutionDartType type) {
     if (type != null) {
       currentInlinedInstantiations.add(type);
     }
   }
 
-  removeInlinedInstantiation(DartType type) {
+  removeInlinedInstantiation(ResolutionDartType type) {
     if (type != null) {
       currentInlinedInstantiations.removeLast();
     }
@@ -968,16 +970,17 @@ class SsaBuilder extends ast.Visitor
         // [currentClass]. For a redirecting constructor, the type is
         // the current type. [InterfaceType.asInstanceOf] takes care
         // of both.
-        InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
+        ResolutionInterfaceType type =
+            currentClass.thisType.asInstanceOf(enclosingClass);
         type = localsHandler.substInContext(type);
-        List<DartType> arguments = type.typeArguments;
-        List<DartType> typeVariables = enclosingClass.typeVariables;
+        List<ResolutionDartType> arguments = type.typeArguments;
+        List<ResolutionDartType> typeVariables = enclosingClass.typeVariables;
         if (!type.isRaw) {
           assert(arguments.length == typeVariables.length);
-          Iterator<DartType> variables = typeVariables.iterator;
-          type.typeArguments.forEach((DartType argument) {
+          Iterator<ResolutionDartType> variables = typeVariables.iterator;
+          type.typeArguments.forEach((ResolutionDartType argument) {
             variables.moveNext();
-            TypeVariableType typeVariable = variables.current;
+            ResolutionTypeVariableType typeVariable = variables.current;
             localsHandler.updateLocal(
                 localsHandler.getTypeVariableAsLocal(typeVariable),
                 typeBuilder.analyzeTypeArgument(argument, sourceElement));
@@ -985,7 +988,7 @@ class SsaBuilder extends ast.Visitor
         } else {
           // If the supertype is a raw type, we need to set to null the
           // type variables.
-          for (TypeVariableType variable in typeVariables) {
+          for (ResolutionTypeVariableType variable in typeVariables) {
             localsHandler.updateLocal(
                 localsHandler.getTypeVariableAsLocal(variable),
                 graph.addConstantNull(closedWorld));
@@ -1281,19 +1284,20 @@ class SsaBuilder extends ast.Visitor
             member, isNativeUpgradeFactory || compiler.compilationFailed));
       } else {
         fields.add(member);
-        DartType type = localsHandler.substInContext(member.type);
+        ResolutionDartType type = localsHandler.substInContext(member.type);
         constructorArguments
             .add(typeBuilder.potentiallyCheckOrTrustType(value, type));
       }
     }, includeSuperAndInjectedMembers: true);
 
-    InterfaceType type = classElement.thisType;
+    ResolutionInterfaceType type = classElement.thisType;
     TypeMask ssaType =
         new TypeMask.nonNullExact(classElement.declaration, closedWorld);
-    List<DartType> instantiatedTypes;
+    List<ResolutionDartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
-      instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
+      instantiatedTypes =
+          new List<ResolutionDartType>.from(currentInlinedInstantiations);
     }
 
     HInstruction newObject;
@@ -1305,7 +1309,8 @@ class SsaBuilder extends ast.Visitor
         // HTypeInfoExpression to set on the newly create object.
         hasRtiInput = true;
         List<HInstruction> typeArguments = <HInstruction>[];
-        classElement.typeVariables.forEach((TypeVariableType typeVariable) {
+        classElement.typeVariables
+            .forEach((ResolutionTypeVariableType typeVariable) {
           HInstruction argument = localsHandler
               .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
           typeArguments.add(argument);
@@ -1389,7 +1394,8 @@ class SsaBuilder extends ast.Visitor
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
-        currentClass.typeVariables.forEach((TypeVariableType argument) {
+        currentClass.typeVariables
+            .forEach((ResolutionTypeVariableType argument) {
           // TODO(johnniwinther): Substitute [argument] with
           // `localsHandler.substInContext(argument)`.
           bodyCallInputs.add(localsHandler
@@ -1438,7 +1444,8 @@ class SsaBuilder extends ast.Visitor
     var enclosing = element.enclosingElement;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
         backend.classNeedsRti(enclosing)) {
-      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+      enclosing.typeVariables
+          .forEach((ResolutionTypeVariableType typeVariable) {
         HParameterValue param =
             addParameter(typeVariable.element, commonMasks.nonNullType);
         localsHandler.directLocals[
@@ -1520,8 +1527,8 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  void assertIsSubtype(
-      ast.Node node, DartType subtype, DartType supertype, String message) {
+  void assertIsSubtype(ast.Node node, ResolutionDartType subtype,
+      ResolutionDartType supertype, String message) {
     HInstruction subtypeInstruction = typeBuilder.analyzeTypeArgument(
         localsHandler.substInContext(subtype), sourceElement);
     HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
@@ -2393,7 +2400,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   @override
-  void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
+  void visitAs(ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
     if (type.isMalformed) {
       if (type is MalformedType) {
@@ -2414,13 +2421,14 @@ class SsaBuilder extends ast.Visitor
   }
 
   @override
-  void visitIs(ast.Send node, ast.Node expression, DartType type, _) {
+  void visitIs(ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
     push(buildIsNode(node, type, expressionInstruction));
   }
 
   @override
-  void visitIsNot(ast.Send node, ast.Node expression, DartType type, _) {
+  void visitIsNot(
+      ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
     HInstruction instruction = buildIsNode(node, type, expressionInstruction);
     add(instruction);
@@ -2428,7 +2436,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction buildIsNode(
-      ast.Node node, DartType type, HInstruction expression) {
+      ast.Node node, ResolutionDartType type, HInstruction expression) {
     type = localsHandler.substInContext(type).unaliased;
     if (type.isMalformed) {
       String message;
@@ -3279,14 +3287,14 @@ class SsaBuilder extends ast.Visitor
     });
   }
 
-  HInstruction handleListConstructor(
-      InterfaceType type, ast.Node currentNode, HInstruction newObject) {
+  HInstruction handleListConstructor(ResolutionInterfaceType type,
+      ast.Node currentNode, HInstruction newObject) {
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return newObject;
     }
     List<HInstruction> inputs = <HInstruction>[];
     type = localsHandler.substInContext(type);
-    type.typeArguments.forEach((DartType argument) {
+    type.typeArguments.forEach((ResolutionDartType argument) {
       inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     });
     // TODO(15489): Register at codegen.
@@ -3396,8 +3404,8 @@ class SsaBuilder extends ast.Visitor
         target = target.immediateRedirectionTarget;
       }
     }
-    InterfaceType type = elements.getType(node);
-    InterfaceType expectedType =
+    ResolutionInterfaceType type = elements.getType(node);
+    ResolutionInterfaceType expectedType =
         constructorDeclaration.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
@@ -3525,12 +3533,12 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  void potentiallyAddTypeArguments(
-      List<HInstruction> inputs, ClassElement cls, InterfaceType expectedType,
+  void potentiallyAddTypeArguments(List<HInstruction> inputs, ClassElement cls,
+      ResolutionInterfaceType expectedType,
       {SourceInformation sourceInformation}) {
     if (!backend.classNeedsRti(cls)) return;
     assert(cls.typeVariables.length == expectedType.typeArguments.length);
-    expectedType.typeArguments.forEach((DartType argument) {
+    expectedType.typeArguments.forEach((ResolutionDartType argument) {
       inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
           sourceInformation: sourceInformation));
     });
@@ -3538,15 +3546,19 @@ class SsaBuilder extends ast.Visitor
 
   /// In checked mode checks the [type] of [node] to be well-bounded. The method
   /// returns [:true:] if an error can be statically determined.
-  bool checkTypeVariableBounds(ast.NewExpression node, InterfaceType type) {
+  bool checkTypeVariableBounds(
+      ast.NewExpression node, ResolutionInterfaceType type) {
     if (!compiler.options.enableTypeAssertions) return false;
 
-    Map<DartType, Set<DartType>> seenChecksMap =
-        new Map<DartType, Set<DartType>>();
+    Map<ResolutionDartType, Set<ResolutionDartType>> seenChecksMap =
+        new Map<ResolutionDartType, Set<ResolutionDartType>>();
     bool definitelyFails = false;
 
-    void addTypeVariableBoundCheck(GenericType instance, DartType typeArgument,
-        TypeVariableType typeVariable, DartType bound) {
+    void addTypeVariableBoundCheck(
+        GenericType instance,
+        ResolutionDartType typeArgument,
+        ResolutionTypeVariableType typeVariable,
+        ResolutionDartType bound) {
       if (definitelyFails) return;
 
       int subtypeRelation =
@@ -3566,8 +3578,8 @@ class SsaBuilder extends ast.Visitor
         definitelyFails = true;
         return;
       } else if (subtypeRelation == Types.MAYBE_SUBTYPE) {
-        Set<DartType> seenChecks =
-            seenChecksMap.putIfAbsent(typeArgument, () => new Set<DartType>());
+        Set<ResolutionDartType> seenChecks = seenChecksMap.putIfAbsent(
+            typeArgument, () => new Set<ResolutionDartType>());
         if (!seenChecks.contains(bound)) {
           seenChecks.add(bound);
           assertIsSubtype(node, typeArgument, bound, message);
@@ -3579,8 +3591,8 @@ class SsaBuilder extends ast.Visitor
     if (definitelyFails) {
       return true;
     }
-    for (InterfaceType supertype in type.element.allSupertypes) {
-      DartType instance = type.asInstanceOf(supertype.element);
+    for (ResolutionInterfaceType supertype in type.element.allSupertypes) {
+      ResolutionDartType instance = type.asInstanceOf(supertype.element);
       compiler.types
           .checkTypeVariableBounds(instance, addTypeVariableBoundCheck);
       if (definitelyFails) {
@@ -3797,14 +3809,14 @@ class SsaBuilder extends ast.Visitor
 
   /// Generate the literal for [typeVariable] in the current context.
   void generateTypeVariableLiteral(
-      ast.Send node, TypeVariableType typeVariable) {
+      ast.Send node, ResolutionTypeVariableType typeVariable) {
     // GENERIC_METHODS: This provides thin support for method type variables
     // by treating them as malformed when evaluated as a literal. For full
     // support of generic methods this must be revised.
     if (typeVariable is MethodTypeVariableType) {
       generateTypeError(node, "Method type variables are not reified");
     } else {
-      DartType type = localsHandler.substInContext(typeVariable);
+      ResolutionDartType type = localsHandler.substInContext(typeVariable);
       HInstruction value = typeBuilder.analyzeTypeArgument(type, sourceElement,
           sourceInformation: sourceInformationBuilder.buildGet(node));
       pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
@@ -3963,7 +3975,7 @@ class SsaBuilder extends ast.Visitor
   void errorNonConstantConstructorInvoke(
       ast.NewExpression node,
       Element element,
-      DartType type,
+      ResolutionDartType type,
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -4096,7 +4108,7 @@ class SsaBuilder extends ast.Visitor
     var nativeBehavior = new native.NativeBehavior()
       ..sideEffects.setAllSideEffects();
 
-    DartType type = element.isConstructor
+    ResolutionDartType type = element.isConstructor
         ? element.enclosingClass.thisType
         : element.type.returnType;
     // Native behavior effects here are similar to native/behavior.dart.
@@ -4105,7 +4117,7 @@ class SsaBuilder extends ast.Visitor
     nativeBehavior.typesReturned.add(
         compiler.options.trustJSInteropTypeAnnotations
             ? type
-            : const DynamicType());
+            : const ResolutionDynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
@@ -4141,7 +4153,7 @@ class SsaBuilder extends ast.Visitor
   void pushInvokeStatic(
       ast.Node location, MethodElement element, List<HInstruction> arguments,
       {TypeMask typeMask,
-      InterfaceType instanceType,
+      ResolutionInterfaceType instanceType,
       SourceInformation sourceInformation}) {
     assert(element.isDeclaration);
     // TODO(johnniwinther): Use [sourceInformation] instead of [location].
@@ -4167,7 +4179,7 @@ class SsaBuilder extends ast.Visitor
         ..sourceInformation = sourceInformation;
       if (currentInlinedInstantiations.isNotEmpty) {
         instruction.instantiatedTypes =
-            new List<DartType>.from(currentInlinedInstantiations);
+            new List<ResolutionDartType>.from(currentInlinedInstantiations);
       }
       instruction.sideEffects = closedWorld.getSideEffectsOfElement(element);
     }
@@ -5127,10 +5139,10 @@ class SsaBuilder extends ast.Visitor
     ClassElement targetClass = targetConstructor.enclosingClass;
     if (backend.classNeedsRti(targetClass)) {
       ClassElement cls = redirectingConstructor.enclosingClass;
-      InterfaceType targetType =
+      ResolutionInterfaceType targetType =
           redirectingConstructor.computeEffectiveTargetType(cls.thisType);
       targetType = localsHandler.substInContext(targetType);
-      targetType.typeArguments.forEach((DartType argument) {
+      targetType.typeArguments.forEach((ResolutionDartType argument) {
         inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });
     }
@@ -5146,7 +5158,7 @@ class SsaBuilder extends ast.Visitor
   /// either dynamic, Object, or Future.
   ///
   /// We do not accept the internal Future implementation class.
-  bool isValidAsyncReturnType(DartType type) {
+  bool isValidAsyncReturnType(ResolutionDartType type) {
     assert(isBuildingAsyncFunction);
     // TODO(sigurdm): In an internal library a function could be declared:
     //
@@ -5157,7 +5169,8 @@ class SsaBuilder extends ast.Visitor
     // case.
     return type.isDynamic ||
         type.isObject ||
-        (type is InterfaceType && type.element == commonElements.futureClass);
+        (type is ResolutionInterfaceType &&
+            type.element == commonElements.futureClass);
   }
 
   visitReturn(ast.Return node) {
@@ -5237,12 +5250,13 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
-    InterfaceType type = localsHandler.substInContext(elements.getType(node));
+    ResolutionInterfaceType type =
+        localsHandler.substInContext(elements.getType(node));
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
-    for (DartType argument in type.typeArguments) {
+    for (ResolutionDartType argument in type.typeArguments) {
       arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     }
     // TODO(15489): Register at codegen.
@@ -5674,8 +5688,8 @@ class SsaBuilder extends ast.Visitor
     ConstructorElement functionElement = constructor;
     constructor = functionElement.effectiveTarget;
 
-    InterfaceType type = elements.getType(node);
-    InterfaceType expectedType =
+    ResolutionInterfaceType type = elements.getType(node);
+    ResolutionInterfaceType expectedType =
         functionElement.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
@@ -5683,7 +5697,7 @@ class SsaBuilder extends ast.Visitor
 
     if (backend.classNeedsRti(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
-      expectedType.typeArguments.forEach((DartType argument) {
+      expectedType.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
             .add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });
@@ -6244,7 +6258,7 @@ class SsaBuilder extends ast.Visitor
 
       void pushCondition(ast.CatchBlock catchBlock) {
         if (catchBlock.onKeyword != null) {
-          DartType type = elements.getType(catchBlock.type);
+          ResolutionDartType type = elements.getType(catchBlock.type);
           if (type == null) {
             reporter.internalError(catchBlock.type, 'On with no type.');
           }
@@ -6262,7 +6276,7 @@ class SsaBuilder extends ast.Visitor
             // "if" condition above and this "else" branch should be deleted as
             // type of declared variable won't matter for the catch
             // condition.
-            DartType type = elements.getType(declaration.type);
+            ResolutionDartType type = elements.getType(declaration.type);
             if (type == null) {
               reporter.internalError(catchBlock, 'Catch with unresolved type.');
             }
@@ -6415,7 +6429,7 @@ class SsaBuilder extends ast.Visitor
    */
   void enterInlinedMethod(MethodElement function,
       ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
-      {InterfaceType instanceType}) {
+      {ResolutionInterfaceType instanceType}) {
     AstInliningState state = new AstInliningState(
         function,
         returnLocal,
@@ -6742,7 +6756,7 @@ abstract class InliningState {
 
 class AstInliningState extends InliningState {
   final Local oldReturnLocal;
-  final DartType oldReturnType;
+  final ResolutionDartType oldReturnType;
   final ResolvedAst oldResolvedAst;
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;

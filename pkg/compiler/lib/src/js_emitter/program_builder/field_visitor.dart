@@ -165,7 +165,7 @@ class FieldVisitor {
   bool canAvoidGeneratedCheckedSetter(VariableElement member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
-    DartType type = member.type;
+    ResolutionDartType type = member.type;
     return type.treatAsDynamic || type.isObject;
   }
 }

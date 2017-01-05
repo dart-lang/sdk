@@ -30,46 +30,46 @@ void test() {
         V boz;
       }
       """).then((env) {
-        void expect(InterfaceType receiverType, String memberName,
-            DartType expectedType) {
+        void expect(ResolutionInterfaceType receiverType, String memberName,
+            ResolutionDartType expectedType) {
           MemberSignature member =
               receiverType.lookupInterfaceMember(new PublicName(memberName));
           Expect.isNotNull(member);
-          DartType memberType = member.type;
+          ResolutionDartType memberType = member.type;
           Expect.equals(expectedType, memberType,
               'Wrong member type for $receiverType.$memberName.');
         }
 
-        DartType int_ = env['int'];
-        DartType String_ = env['String'];
+        ResolutionDartType int_ = env['int'];
+        ResolutionDartType String_ = env['String'];
 
         ClassElement A = env.getElement('A');
-        DartType T = A.typeVariables.first;
-        DartType A_T = A.thisType;
+        ResolutionDartType T = A.typeVariables.first;
+        ResolutionDartType A_T = A.thisType;
         expect(A_T, 'foo', T);
 
-        DartType A_int = instantiate(A, [int_]);
+        ResolutionDartType A_int = instantiate(A, [int_]);
         expect(A_int, 'foo', int_);
 
         ClassElement B = env.getElement('B');
-        DartType S = B.typeVariables.first;
-        DartType B_S = B.thisType;
+        ResolutionDartType S = B.typeVariables.first;
+        ResolutionDartType B_S = B.thisType;
         expect(B_S, 'foo', instantiate(A, [S]));
         expect(B_S, 'bar', S);
 
-        DartType B_int = instantiate(B, [int_]);
+        ResolutionDartType B_int = instantiate(B, [int_]);
         expect(B_int, 'foo', A_int);
         expect(B_int, 'bar', int_);
 
         ClassElement C = env.getElement('C');
-        DartType U = C.typeVariables.first;
-        DartType C_U = C.thisType;
+        ResolutionDartType U = C.typeVariables.first;
+        ResolutionDartType C_U = C.thisType;
         expect(C_U, 'foo', instantiate(A, [String_]));
         expect(C_U, 'bar', String_);
         expect(C_U, 'baz', U);
         expect(C_U, 'boz', instantiate(B, [U]));
 
-        DartType C_int = instantiate(C, [int_]);
+        ResolutionDartType C_int = instantiate(C, [int_]);
         expect(C_int, 'foo', instantiate(A, [String_]));
         expect(C_int, 'bar', String_);
         expect(C_int, 'baz', int_);

@@ -104,7 +104,7 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     jsAst.Name additionalArgument = codegen.backend.namer.operatorIsType(type);
     arguments.add(js.quoteName(additionalArgument));
   }
@@ -130,7 +130,7 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     Element element = type.element;
     jsAst.Name isField = codegen.backend.namer.operatorIs(element);
     arguments.add(js.quoteName(isField));

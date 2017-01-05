@@ -350,7 +350,7 @@ NewStructure deserializeNewStructure(ObjectDecoder decoder) {
       ConstructorAccessKind constructorAccessKind =
           decoder.getEnum(Key.SUB_KIND, ConstructorAccessKind.values);
       Element element = decoder.getElement(Key.ELEMENT);
-      DartType type = decoder.getType(Key.TYPE);
+      ResolutionDartType type = decoder.getType(Key.TYPE);
       ConstructorAccessSemantics semantics =
           new ConstructorAccessSemantics(constructorAccessKind, element, type);
       Selector selector = deserializeSelector(decoder.getObject(Key.SELECTOR));

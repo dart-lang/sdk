@@ -1829,7 +1829,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     MemberEntity element = node.element;
-    List<DartType> instantiatedTypes = node.instantiatedTypes;
+    List<ResolutionDartType> instantiatedTypes = node.instantiatedTypes;
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
@@ -2564,11 +2564,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
-  void checkType(HInstruction input, HInstruction interceptor, DartType type,
-      SourceInformation sourceInformation,
+  void checkType(HInstruction input, HInstruction interceptor,
+      ResolutionDartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     if (type.isInterfaceType) {
-      InterfaceType interfaceType = type;
+      ResolutionInterfaceType interfaceType = type;
       ClassEntity element = interfaceType.element;
       if (element == helpers.jsArrayClass) {
         checkArray(input, negative ? '!==' : '===');
@@ -2611,8 +2611,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void checkTypeViaProperty(
-      HInstruction input, DartType type, SourceInformation sourceInformation,
+  void checkTypeViaProperty(HInstruction input, ResolutionDartType type,
+      SourceInformation sourceInformation,
       {bool negative: false}) {
     registry.registerTypeUse(new TypeUse.isCheck(type));
 
@@ -2629,8 +2629,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void checkTypeViaInstanceof(
-      HInstruction input, DartType type, SourceInformation sourceInformation,
+  void checkTypeViaInstanceof(HInstruction input, ResolutionDartType type,
+      SourceInformation sourceInformation,
       {bool negative: false}) {
     registry.registerTypeUse(new TypeUse.isCheck(type));
 
@@ -2649,7 +2649,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void handleNumberOrStringSupertypeCheck(
       HInstruction input,
       HInstruction interceptor,
-      DartType type,
+      ResolutionDartType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
     assert(!identical(type.element, commonElements.listClass) &&
@@ -2675,7 +2675,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleStringSupertypeCheck(HInstruction input, HInstruction interceptor,
-      DartType type, SourceInformation sourceInformation,
+      ResolutionDartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     assert(!identical(type.element, commonElements.listClass) &&
         !commonElements.isListSupertype(type.element) &&
@@ -2692,7 +2692,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleListOrSupertypeCheck(HInstruction input, HInstruction interceptor,
-      DartType type, SourceInformation sourceInformation,
+      ResolutionDartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     assert(!identical(type.element, commonElements.stringClass) &&
         !commonElements.isStringOnlySupertype(type.element) &&
@@ -2718,7 +2718,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitIs(HIs node, String relation, SourceInformation sourceInformation) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     registry.registerTypeUse(new TypeUse.isCheck(type));
     HInstruction input = node.expression;
 
@@ -2733,7 +2733,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.isRawCheck);
       HInstruction interceptor = node.interceptor;
-      InterfaceType interfaceType = type;
+      ResolutionInterfaceType interfaceType = type;
       ClassEntity element = interfaceType.element;
       if (element == commonElements.nullClass) {
         if (negative) {
@@ -2875,7 +2875,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     assert(!type.isTypedef);
     if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
@@ -2921,7 +2921,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitFunctionType(HFunctionType node) {
-    FunctionType type = node.dartType;
+    ResolutionFunctionType type = node.dartType;
     int inputCount = 0;
     use(node.inputs[inputCount++]);
     js.Expression returnType = pop();
@@ -3011,15 +3011,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case TypeInfoExpressionKind.COMPLETE:
         int index = 0;
         js.Expression result = backend.rtiEncoder.getTypeRepresentation(
-            node.dartType, (TypeVariableType variable) => arguments[index++]);
+            node.dartType,
+            (ResolutionTypeVariableType variable) => arguments[index++]);
         assert(index == node.inputs.length);
         push(result);
         return;
 
       case TypeInfoExpressionKind.INSTANCE:
         // We expect only flat types for the INSTANCE representation.
-        assert(
-            node.dartType == (node.dartType as InterfaceType).element.thisType);
+        assert(node.dartType ==
+            (node.dartType as ResolutionInterfaceType).element.thisType);
         registry.registerInstantiatedClass(commonElements.listClass);
         push(new js.ArrayInitializer(arguments)
             .withSourceInformation(node.sourceInformation));
@@ -3087,7 +3088,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(type);
       typeArguments.add(pop());
     }
-    InterfaceType type = node.dartType;
+    ResolutionInterfaceType type = node.dartType;
     ClassEntity cls = type.element;
     var arguments = [backend.emitter.typeAccess(cls)];
     if (!typeArguments.isEmpty) {

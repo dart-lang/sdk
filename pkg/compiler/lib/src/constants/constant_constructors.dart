@@ -112,7 +112,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       FunctionExpression node,
       ConstructorElement constructor,
       NodeList parameters,
-      InterfaceType redirectionType,
+      ResolutionInterfaceType redirectionType,
       ConstructorElement redirectionTarget,
       _) {
     List<String> argumentNames = [];
@@ -230,7 +230,7 @@ class ConstantConstructorComputer extends SemanticVisitor
   ConstructedConstantExpression visitSuperConstructorInvoke(
       Send node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -243,7 +243,7 @@ class ConstantConstructorComputer extends SemanticVisitor
   ConstructedConstantExpression visitImplicitSuperConstructorInvoke(
       FunctionExpression node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       _) {
     return new ConstructedConstantExpression(type, superConstructor,
         CallStructure.NO_ARGS, const <ConstantExpression>[]);

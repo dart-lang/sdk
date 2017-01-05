@@ -17,7 +17,7 @@ class TypeTestRegistry {
    * The set of function types that checked, both explicity through tests of
    * typedefs and implicitly through type annotations in checked mode.
    */
-  Set<FunctionType> checkedFunctionTypes;
+  Set<ResolutionFunctionType> checkedFunctionTypes;
 
   /// Initially contains all classes that need RTI. After
   /// [computeNeededClasses]
@@ -29,8 +29,8 @@ class TypeTestRegistry {
   Iterable<ClassElement> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
       cachedClassesUsingTypeVariableTests = compiler.codegenWorld.isChecks
-          .where((DartType t) => t is TypeVariableType)
-          .map((TypeVariableType v) => v.element.enclosingClass)
+          .where((ResolutionDartType t) => t is ResolutionTypeVariableType)
+          .map((ResolutionTypeVariableType v) => v.element.enclosingClass)
           .toList();
     }
     return cachedClassesUsingTypeVariableTests;
@@ -92,7 +92,7 @@ class TypeTestRegistry {
 
     // 3.  Add classes that contain checked generic function types. These are
     //     needed to store the signature encoding.
-    for (FunctionType type in checkedFunctionTypes) {
+    for (ResolutionFunctionType type in checkedFunctionTypes) {
       ClassElement contextClass = Types.getClassContext(type);
       if (contextClass != null) {
         rtiNeededClasses.add(contextClass);
@@ -128,7 +128,7 @@ class TypeTestRegistry {
     backend.generatedCode.keys.where((element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((FunctionElement function) {
-      DartType type = function.type;
+      ResolutionDartType type = function.type;
       for (ClassElement cls in backend.rti.getReferencedClasses(type)) {
         while (cls != null) {
           rtiNeededClasses.add(cls);
@@ -147,11 +147,11 @@ class TypeTestRegistry {
         compiler.codegenWorld, classesUsingTypeVariableTests);
 
     checkedClasses = new Set<ClassElement>();
-    checkedFunctionTypes = new Set<FunctionType>();
-    compiler.codegenWorld.isChecks.forEach((DartType t) {
-      if (t is InterfaceType) {
+    checkedFunctionTypes = new Set<ResolutionFunctionType>();
+    compiler.codegenWorld.isChecks.forEach((ResolutionDartType t) {
+      if (t is ResolutionInterfaceType) {
         checkedClasses.add(t.element);
-      } else if (t is FunctionType) {
+      } else if (t is ResolutionFunctionType) {
         checkedFunctionTypes.add(t);
       }
     });

@@ -28,8 +28,8 @@ bool test(compiler, String name1, String name2, {bool expect}) {
   //
   // Only a single type is used from each signature. That is, it is not the
   // intention to check the whole signatures against eachother.
-  DartType type1;
-  DartType type2;
+  ResolutionDartType type1;
+  ResolutionDartType type2;
   if (signature1.requiredParameterCount == 0) {
     // If parameters is empty, use return type.
     type1 = signature1.type.returnType;

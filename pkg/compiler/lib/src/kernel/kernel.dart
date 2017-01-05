@@ -14,7 +14,12 @@ import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart'
     show ConstantExpression, TypeConstantExpression;
 import '../elements/resolution_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind, TypeVariableType;
+    show
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionInterfaceType,
+        ResolutionTypeKind,
+        ResolutionTypeVariableType;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
@@ -295,7 +300,7 @@ class Kernel {
 
   bool hasHierarchyProblem(ClassElement cls) => cls.hasIncompleteHierarchy;
 
-  ir.InterfaceType interfaceTypeToIr(InterfaceType type) {
+  ir.InterfaceType interfaceTypeToIr(ResolutionInterfaceType type) {
     ir.Class cls = classToIr(type.element);
     if (type.typeArguments.isEmpty) {
       return cls.rawType;
@@ -304,7 +309,7 @@ class Kernel {
     }
   }
 
-  ir.Supertype supertypeToIr(InterfaceType type) {
+  ir.Supertype supertypeToIr(ResolutionInterfaceType type) {
     ir.Class cls = classToIr(type.element);
     if (type.typeArguments.isEmpty) {
       return cls.asRawSupertype;
@@ -313,7 +318,7 @@ class Kernel {
     }
   }
 
-  ir.FunctionType functionTypeToIr(FunctionType type) {
+  ir.FunctionType functionTypeToIr(ResolutionFunctionType type) {
     List<ir.TypeParameter> typeParameters = <ir.TypeParameter>[];
     int requiredParameterCount = type.parameterTypes.length;
     List<ir.DartType> positionalParameters =
@@ -331,11 +336,11 @@ class Kernel {
         requiredParameterCount: requiredParameterCount);
   }
 
-  ir.TypeParameterType typeVariableTypeToIr(TypeVariableType type) {
+  ir.TypeParameterType typeVariableTypeToIr(ResolutionTypeVariableType type) {
     return new ir.TypeParameterType(typeVariableToIr(type.element));
   }
 
-  List<ir.DartType> typesToIr(List<DartType> types) {
+  List<ir.DartType> typesToIr(List<ResolutionDartType> types) {
     List<ir.DartType> result = new List<ir.DartType>(types.length);
     for (int i = 0; i < types.length; i++) {
       result[i] = typeToIr(types[i]);
@@ -343,7 +348,7 @@ class Kernel {
     return result;
   }
 
-  List<ir.Supertype> supertypesToIr(List<DartType> types) {
+  List<ir.Supertype> supertypesToIr(List<ResolutionDartType> types) {
     List<ir.Supertype> result = new List<ir.Supertype>(types.length);
     for (int i = 0; i < types.length; i++) {
       result[i] = supertypeToIr(types[i]);
@@ -351,28 +356,28 @@ class Kernel {
     return result;
   }
 
-  ir.DartType typeToIr(DartType type) {
+  ir.DartType typeToIr(ResolutionDartType type) {
     switch (type.kind) {
-      case TypeKind.FUNCTION:
+      case ResolutionTypeKind.FUNCTION:
         return functionTypeToIr(type);
 
-      case TypeKind.INTERFACE:
+      case ResolutionTypeKind.INTERFACE:
         return interfaceTypeToIr(type);
 
-      case TypeKind.TYPEDEF:
+      case ResolutionTypeKind.TYPEDEF:
         type.computeUnaliased(compiler.resolution);
         return typeToIr(type.unaliased);
 
-      case TypeKind.TYPE_VARIABLE:
+      case ResolutionTypeKind.TYPE_VARIABLE:
         return typeVariableTypeToIr(type);
 
-      case TypeKind.MALFORMED_TYPE:
+      case ResolutionTypeKind.MALFORMED_TYPE:
         return const ir.InvalidType();
 
-      case TypeKind.DYNAMIC:
+      case ResolutionTypeKind.DYNAMIC:
         return const ir.DynamicType();
 
-      case TypeKind.VOID:
+      case ResolutionTypeKind.VOID:
         return const ir.VoidType();
     }
   }
@@ -494,14 +499,14 @@ class Kernel {
     assert(factoryTypeParameters.isEmpty);
     if (!function.isFactoryConstructor) return;
     ClassElement cls = function.enclosingClass;
-    for (DartType type in cls.typeVariables) {
+    for (ResolutionDartType type in cls.typeVariables) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         factoryTypeParameters[variable] =
             new ir.TypeParameter(variable.name, null);
       }
     }
-    for (DartType type in cls.typeVariables) {
+    for (ResolutionDartType type in cls.typeVariables) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         factoryTypeParameters[variable].bound = typeToIr(variable.bound);
@@ -580,11 +585,11 @@ class Kernel {
     });
   }
 
-  List<ir.TypeParameter> typeVariablesToIr(List<DartType> variables) {
+  List<ir.TypeParameter> typeVariablesToIr(List<ResolutionDartType> variables) {
     List<ir.TypeParameter> result =
         new List<ir.TypeParameter>(variables.length);
     for (int i = 0; i < variables.length; i++) {
-      TypeVariableType type = variables[i];
+      ResolutionTypeVariableType type = variables[i];
       result[i] = typeVariableToIr(type.element);
     }
     return result;
@@ -613,7 +618,7 @@ class Kernel {
   }
 
   ConstructorTarget computeEffectiveTarget(
-      ConstructorElement constructor, DartType type) {
+      ConstructorElement constructor, ResolutionDartType type) {
     constructor = constructor.implementation;
     Set<ConstructorElement> seen = new Set<ConstructorElement>();
     functionToIr(constructor);
@@ -780,7 +785,7 @@ class Kernel {
 
 class ConstructorTarget {
   final ConstructorElement element;
-  final DartType type;
+  final ResolutionDartType type;
 
   ConstructorTarget(this.element, this.type);
 

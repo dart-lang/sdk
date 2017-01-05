@@ -310,7 +310,7 @@ class ResolverTask extends CompilerTask {
           // Ensure the signature of the synthesized element is
           // resolved. This is the only place where the resolver is
           // seeing this element.
-          FunctionType type = element.computeType(resolution);
+          ResolutionFunctionType type = element.computeType(resolution);
           if (!target.isMalformed) {
             registry.registerStaticUse(new StaticUse.superConstructorInvoke(
                 // TODO(johnniwinther): Provide the right call structure for
@@ -366,13 +366,13 @@ class ResolverTask extends CompilerTask {
       }
       ResolverVisitor visitor = visitorFor(element);
       ResolutionRegistry registry = visitor.registry;
-      // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
-      // to the backend ast.
+      // TODO(johnniwinther): Maybe remove this when placeholderCollector
+      // migrates to the backend ast.
       registry.defineElement(element.definition, element);
       // TODO(johnniwinther): Share the resolved type between all variables
       // declared in the same declaration.
       if (tree.type != null) {
-        DartType type = visitor.resolveTypeAnnotation(tree.type);
+        ResolutionDartType type = visitor.resolveTypeAnnotation(tree.type);
         assert(invariant(
             element,
             element.variables.type == null ||
@@ -387,7 +387,7 @@ class ResolverTask extends CompilerTask {
         // Only assign the dynamic type if the element has no known type. This
         // happens for enum fields where the type is known but is not in the
         // synthesized AST.
-        element.variables.type = const DynamicType();
+        element.variables.type = const ResolutionDynamicType();
       } else {
         registry.registerCheckedModeCheck(element.variables.type);
       }
@@ -438,29 +438,32 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
-    DartType type = _resolveReturnType(element, annotation);
+  ResolutionDartType resolveTypeAnnotation(
+      Element element, TypeAnnotation annotation) {
+    ResolutionDartType type = _resolveReturnType(element, annotation);
     if (type.isVoid) {
       reporter.reportErrorMessage(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }
 
-  DartType _resolveReturnType(Element element, TypeAnnotation annotation) {
-    if (annotation == null) return const DynamicType();
-    DartType result = visitorFor(element).resolveTypeAnnotation(annotation);
+  ResolutionDartType _resolveReturnType(
+      Element element, TypeAnnotation annotation) {
+    if (annotation == null) return const ResolutionDynamicType();
+    ResolutionDartType result =
+        visitorFor(element).resolveTypeAnnotation(annotation);
     assert(invariant(annotation, result != null,
         message: "No type computed for $annotation."));
     if (result == null) {
       // TODO(karklose): warning.
-      return const DynamicType();
+      return const ResolutionDynamicType();
     }
     return result;
   }
 
   void resolveRedirectionChain(ConstructorElement constructor, Spannable node) {
     ConstructorElement target = constructor;
-    DartType targetType;
+    ResolutionDartType targetType;
     List<ConstructorElement> seen = new List<ConstructorElement>();
     bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
@@ -515,7 +518,8 @@ class ResolverTask extends CompilerTask {
           message: 'No ResolvedAst for $factory.'));
       FunctionExpression functionNode = resolvedAst.node;
       RedirectingFactoryBody redirectionNode = resolvedAst.body;
-      DartType factoryType = resolvedAst.elements.getType(redirectionNode);
+      ResolutionDartType factoryType =
+          resolvedAst.elements.getType(redirectionNode);
       if (!factoryType.isDynamic) {
         targetType = targetType.substByContext(factoryType);
       }
@@ -543,7 +547,7 @@ class ResolverTask extends CompilerTask {
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
             message: 'Missing supertype on cyclic class $cls.'));
-        cls.interfaces = const Link<DartType>();
+        cls.interfaces = const Link<ResolutionDartType>();
         return;
       }
       cls.supertypeLoadState = STATE_STARTED;
@@ -1098,10 +1102,10 @@ class ResolverTask extends CompilerTask {
               annotation.constant = constant;
 
               constantCompiler.evaluate(annotation.constant);
-              // TODO(johnniwinther): Register the relation between the annotation
-              // and the annotated element instead. This will allow the backend to
-              // retrieve the backend constant and only register metadata on the
-              // elements for which it is needed. (Issue 17732).
+              // TODO(johnniwinther): Register the relation between the
+              // annotation and the annotated element instead. This will allow
+              // the backend to retrieve the backend constant and only register
+              // metadata on the elements for which it is needed. (Issue 17732).
               annotation.resolutionState = STATE_DONE;
             }));
   }

@@ -16,8 +16,9 @@ void main() {
       abstract class G<T> implements Future<G<T>> {}
       abstract class H<T> implements Future<H<H<T>>> {}
       """).then((env) {
-        void check(DartType T, DartType expectedFlattenedType) {
-          DartType flattenedType = env.flatten(T);
+        void check(
+            ResolutionDartType T, ResolutionDartType expectedFlattenedType) {
+          ResolutionDartType flattenedType = env.flatten(T);
           Expect.equals(
               expectedFlattenedType,
               flattenedType,
@@ -29,13 +30,13 @@ void main() {
         ClassElement F = env.getElement('F');
         ClassElement G = env.getElement('G');
         ClassElement H = env.getElement('H');
-        DartType int_ = env['int'];
-        DartType dynamic_ = env['dynamic'];
-        DartType Future_int = instantiate(Future_, [int_]);
-        DartType F_int = instantiate(F, [int_]);
-        DartType G_int = instantiate(G, [int_]);
-        DartType H_int = instantiate(H, [int_]);
-        DartType H_H_int = instantiate(H, [H_int]);
+        ResolutionDartType int_ = env['int'];
+        ResolutionDartType dynamic_ = env['dynamic'];
+        ResolutionDartType Future_int = instantiate(Future_, [int_]);
+        ResolutionDartType F_int = instantiate(F, [int_]);
+        ResolutionDartType G_int = instantiate(G, [int_]);
+        ResolutionDartType H_int = instantiate(H, [int_]);
+        ResolutionDartType H_H_int = instantiate(H, [H_int]);
 
         // flatten(int) = int
         check(int_, int_);

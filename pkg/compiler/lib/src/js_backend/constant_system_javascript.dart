@@ -298,12 +298,13 @@ class JavaScriptConstantSystem extends ConstantSystem {
   NullConstantValue createNull() => new NullConstantValue();
 
   @override
-  ListConstantValue createList(InterfaceType type, List<ConstantValue> values) {
+  ListConstantValue createList(
+      ResolutionInterfaceType type, List<ConstantValue> values) {
     return new ListConstantValue(type, values);
   }
 
   @override
-  ConstantValue createType(Compiler compiler, DartType type) {
+  ConstantValue createType(Compiler compiler, ResolutionDartType type) {
     return new TypeConstantValue(
         type,
         compiler.backend.backendClasses.typeImplementation
@@ -329,7 +330,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   bool isBool(ConstantValue constant) => constant.isBool;
   bool isNull(ConstantValue constant) => constant.isNull;
 
-  bool isSubtype(DartTypes types, DartType s, DartType t) {
+  bool isSubtype(DartTypes types, ResolutionDartType s, ResolutionDartType t) {
     // At runtime, an integer is both an integer and a double: the
     // integer type check is Math.floor, which will return true only
     // for real integers, and our double type check is 'typeof number'
@@ -341,8 +342,11 @@ class JavaScriptConstantSystem extends ConstantSystem {
     return types.isSubtype(s, t);
   }
 
-  MapConstantValue createMap(Compiler compiler, InterfaceType sourceType,
-      List<ConstantValue> keys, List<ConstantValue> values) {
+  MapConstantValue createMap(
+      Compiler compiler,
+      ResolutionInterfaceType sourceType,
+      List<ConstantValue> keys,
+      List<ConstantValue> values) {
     JavaScriptBackend backend = compiler.backend;
     CommonElements commonElements = compiler.commonElements;
 
@@ -363,7 +367,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     }
 
     bool hasProtoKey = (protoValue != null);
-    DartType keysType;
+    ResolutionDartType keysType;
     if (sourceType.treatAsRaw) {
       keysType = commonElements.listType();
     } else {
@@ -376,12 +380,12 @@ class JavaScriptConstantSystem extends ConstantSystem {
             : backend.helpers.constantStringMapClass)
         : backend.helpers.generalConstantMapClass;
     classElement.ensureResolved(compiler.resolution);
-    List<DartType> typeArgument = sourceType.typeArguments;
-    InterfaceType type;
+    List<ResolutionDartType> typeArgument = sourceType.typeArguments;
+    ResolutionInterfaceType type;
     if (sourceType.treatAsRaw) {
       type = classElement.rawType;
     } else {
-      type = new InterfaceType(classElement, typeArgument);
+      type = new ResolutionInterfaceType(classElement, typeArgument);
     }
     return new JavaScriptMapConstant(
         type, keysList, values, protoValue, onlyStringKeys);
@@ -392,7 +396,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     // TODO(johnniwinther): Create a backend agnostic value.
     JavaScriptBackend backend = compiler.backend;
     ClassElement symbolClass = backend.helpers.symbolImplementationClass;
-    InterfaceType type = symbolClass.rawType;
+    ResolutionInterfaceType type = symbolClass.rawType;
     ConstantValue argument = createString(new DartString.literal(text));
     Map<FieldElement, ConstantValue> fields = <FieldElement, ConstantValue>{};
     symbolClass.forEachInstanceField(
@@ -427,7 +431,7 @@ class JavaScriptMapConstant extends MapConstantValue {
   final ConstantValue protoValue;
   final bool onlyStringKeys;
 
-  JavaScriptMapConstant(InterfaceType type, ListConstantValue keyList,
+  JavaScriptMapConstant(ResolutionInterfaceType type, ListConstantValue keyList,
       List<ConstantValue> values, this.protoValue, this.onlyStringKeys)
       : this.keyList = keyList,
         super(type, keyList.entries, values);

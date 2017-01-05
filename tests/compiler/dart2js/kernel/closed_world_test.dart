@@ -117,7 +117,7 @@ main(List<String> args) {
     ClosedWorld closedWorld = enqueuer.universe.closeWorld(compiler.reporter);
 
     checkResolutionEnqueuers(compiler.enqueuer.resolution, enqueuer,
-        typeEquivalence: (DartType a, DartType b) {
+        typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: (Element element) {
       if (element is ConstructorElement && element.isRedirectingFactory) {

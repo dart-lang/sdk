@@ -56,8 +56,9 @@ testTypeVariableOccurrence() {
         ClassElement A = env.getElement('A');
 
         expect(bool expectResult, String memberName) {
-          DartType memberType = env.getMemberType(A, memberName);
-          TypeVariableType typeVariable = memberType.typeVariableOccurrence;
+          ResolutionDartType memberType = env.getMemberType(A, memberName);
+          ResolutionTypeVariableType typeVariable =
+              memberType.typeVariableOccurrence;
           if (expectResult) {
             Expect.isNotNull(typeVariable);
             Expect.equals(A, Types.getClassContext(memberType));

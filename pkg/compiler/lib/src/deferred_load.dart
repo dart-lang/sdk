@@ -278,27 +278,27 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     /// Recursively collects all the dependencies of [type].
-    void collectTypeDependencies(DartType type) {
+    void collectTypeDependencies(ResolutionDartType type) {
       // TODO(het): we would like to separate out types that are only needed for
       // rti from types that are needed for their members.
       if (type is GenericType) {
         type.typeArguments.forEach(collectTypeDependencies);
       }
-      if (type is FunctionType) {
-        for (DartType argumentType in type.parameterTypes) {
+      if (type is ResolutionFunctionType) {
+        for (ResolutionDartType argumentType in type.parameterTypes) {
           collectTypeDependencies(argumentType);
         }
-        for (DartType argumentType in type.optionalParameterTypes) {
+        for (ResolutionDartType argumentType in type.optionalParameterTypes) {
           collectTypeDependencies(argumentType);
         }
-        for (DartType argumentType in type.namedParameterTypes) {
+        for (ResolutionDartType argumentType in type.namedParameterTypes) {
           collectTypeDependencies(argumentType);
         }
         collectTypeDependencies(type.returnType);
-      } else if (type is TypedefType) {
+      } else if (type is ResolutionTypedefType) {
         elements.add(type.element);
         collectTypeDependencies(type.unaliased);
-      } else if (type is InterfaceType) {
+      } else if (type is ResolutionInterfaceType) {
         elements.add(type.element);
       }
     }
@@ -338,7 +338,7 @@ class DeferredLoadTask extends CompilerTask {
                 default:
               }
             }, visitTypeUse: (TypeUse typeUse) {
-              DartType type = typeUse.type;
+              ResolutionDartType type = typeUse.type;
               switch (typeUse.kind) {
                 case TypeUseKind.TYPE_LITERAL:
                   if (type.isTypedef || type.isInterfaceType) {

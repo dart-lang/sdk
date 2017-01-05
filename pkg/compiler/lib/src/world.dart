@@ -729,7 +729,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER:
-    for (Link<DartType> link = typeSet[depth];
+    for (Link<ResolutionDartType> link = typeSet[depth];
         link.head.element != commonElements.objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;
@@ -942,7 +942,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node =
         _classHierarchyNodes[cls] = new ClassHierarchyNode(parentNode, cls);
-    for (InterfaceType type in cls.allSupertypes) {
+    for (ResolutionInterfaceType type in cls.allSupertypes) {
       ClassSet subtypeSet = getClassSet(type.element);
       subtypeSet.addSubtype(node);
     }

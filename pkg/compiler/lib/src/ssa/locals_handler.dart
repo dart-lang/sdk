@@ -35,8 +35,8 @@ class LocalsHandler {
       new Map<Local, CapturedVariable>();
   final GraphBuilder builder;
   ClosureClassMap closureData;
-  Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
-      new Map<TypeVariableType, TypeVariableLocal>();
+  Map<ResolutionTypeVariableType, TypeVariableLocal> typeVariableLocals =
+      new Map<ResolutionTypeVariableType, TypeVariableLocal>();
   final ExecutableElement executableContext;
 
   /// The class that defines the current type environment or null if no type
@@ -59,12 +59,12 @@ class LocalsHandler {
   /// [instanceType] is not used if it contains type variables, since these
   /// might not be in scope or from the current instance.
   ///
-  final InterfaceType instanceType;
+  final ResolutionInterfaceType instanceType;
 
   final Compiler _compiler;
 
   LocalsHandler(this.builder, this.executableContext,
-      InterfaceType instanceType, this._compiler)
+      ResolutionInterfaceType instanceType, this._compiler)
       : this.instanceType =
             instanceType == null || instanceType.containsTypeVariables
                 ? null
@@ -79,7 +79,7 @@ class LocalsHandler {
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
-  DartType substInContext(DartType type) {
+  ResolutionDartType substInContext(ResolutionDartType type) {
     if (contextClass != null) {
       ClassElement typeContext = Types.getClassContext(type);
       if (typeContext != null) {
@@ -385,7 +385,7 @@ class LocalsHandler {
     });
   }
 
-  Local getTypeVariableAsLocal(TypeVariableType type) {
+  Local getTypeVariableAsLocal(ResolutionTypeVariableType type) {
     return typeVariableLocals.putIfAbsent(type, () {
       return new TypeVariableLocal(type, executableContext);
     });

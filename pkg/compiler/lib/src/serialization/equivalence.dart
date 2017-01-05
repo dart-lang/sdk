@@ -97,7 +97,7 @@ bool areElementsEquivalent(Element a, Element b) {
 }
 
 /// Returns `true` if types [a] and [b] are equivalent.
-bool areTypesEquivalent(DartType a, DartType b) {
+bool areTypesEquivalent(ResolutionDartType a, ResolutionDartType b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return const TypeEquivalence().visit(a, b);
@@ -123,7 +123,8 @@ bool areElementListsEquivalent(List<Element> a, List<Element> b) {
 }
 
 /// Returns `true` if the lists of types, [a] and [b], are equivalent.
-bool areTypeListsEquivalent(List<DartType> a, List<DartType> b) {
+bool areTypeListsEquivalent(
+    List<ResolutionDartType> a, List<ResolutionDartType> b) {
   return areListsEquivalent(a, b, areTypesEquivalent);
 }
 
@@ -359,7 +360,7 @@ class TestStrategy {
   }
 
   bool testTypes(Object object1, Object object2, String property,
-      DartType type1, DartType type2) {
+      ResolutionDartType type1, ResolutionDartType type2) {
     return areTypesEquivalent(type1, type2);
   }
 
@@ -374,7 +375,7 @@ class TestStrategy {
   }
 
   bool testTypeLists(Object object1, Object object2, String property,
-      List<DartType> list1, List<DartType> list2) {
+      List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
     return areTypeListsEquivalent(list1, list2);
   }
 
@@ -592,22 +593,25 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   }
 }
 
-/// Visitor that checks for equivalence of [DartType]s.
-class TypeEquivalence implements DartTypeVisitor<bool, DartType> {
+/// Visitor that checks for equivalence of [ResolutionDartType]s.
+class TypeEquivalence implements DartTypeVisitor<bool, ResolutionDartType> {
   final TestStrategy strategy;
 
   const TypeEquivalence([this.strategy = const TestStrategy()]);
 
-  bool visit(DartType type1, DartType type2) {
+  bool visit(ResolutionDartType type1, ResolutionDartType type2) {
     return strategy.test(type1, type2, 'kind', type1.kind, type2.kind) &&
         type1.accept(this, type2);
   }
 
   @override
-  bool visitDynamicType(DynamicType type, DynamicType other) => true;
+  bool visitDynamicType(
+          ResolutionDynamicType type, ResolutionDynamicType other) =>
+      true;
 
   @override
-  bool visitFunctionType(FunctionType type, FunctionType other) {
+  bool visitFunctionType(
+      ResolutionFunctionType type, ResolutionFunctionType other) {
     return strategy.testTypeLists(type, other, 'parameterTypes',
             type.parameterTypes, other.parameterTypes) &&
         strategy.testTypeLists(type, other, 'optionalParameterTypes',
@@ -629,7 +633,8 @@ class TypeEquivalence implements DartTypeVisitor<bool, DartType> {
   bool visitMalformedType(MalformedType type, MalformedType other) => true;
 
   @override
-  bool visitTypeVariableType(TypeVariableType type, TypeVariableType other) {
+  bool visitTypeVariableType(
+      ResolutionTypeVariableType type, ResolutionTypeVariableType other) {
     return strategy.testElements(
             type, other, 'element', type.element, other.element) &&
         strategy.test(type, other, 'is MethodTypeVariableType',
@@ -637,15 +642,18 @@ class TypeEquivalence implements DartTypeVisitor<bool, DartType> {
   }
 
   @override
-  bool visitVoidType(VoidType type, VoidType argument) => true;
+  bool visitVoidType(ResolutionVoidType type, ResolutionVoidType argument) =>
+      true;
 
   @override
-  bool visitInterfaceType(InterfaceType type, InterfaceType other) {
+  bool visitInterfaceType(
+      ResolutionInterfaceType type, ResolutionInterfaceType other) {
     return visitGenericType(type, other);
   }
 
   @override
-  bool visitTypedefType(TypedefType type, TypedefType other) {
+  bool visitTypedefType(
+      ResolutionTypedefType type, ResolutionTypedefType other) {
     return visitGenericType(type, other);
   }
 }

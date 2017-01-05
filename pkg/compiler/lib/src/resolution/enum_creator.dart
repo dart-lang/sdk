@@ -206,13 +206,14 @@ class EnumCreator {
 
   void createMembers() {
     Enum node = enumClass.node;
-    InterfaceType enumType = enumClass.thisType;
+    ResolutionInterfaceType enumType = enumClass.thisType;
     AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
-    InterfaceType intType = commonElements.intType;
-    InterfaceType stringType = commonElements.stringType;
+    ResolutionInterfaceType intType = commonElements.intType;
+    ResolutionInterfaceType stringType = commonElements.stringType;
 
-    EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
+    EnumFieldElementX addInstanceMember(
+        String name, ResolutionInterfaceType type) {
       Identifier identifier = builder.identifier(name);
       VariableList variableList =
           new VariableList(builder.modifiers(isFinal: true));
@@ -243,8 +244,8 @@ class EnumCreator {
     FunctionSignatureX constructorSignature = new FunctionSignatureX(
         requiredParameters: [indexFormal],
         requiredParameterCount: 1,
-        type: new FunctionType(
-            constructor, const DynamicType(), <DartType>[intType]));
+        type: new ResolutionFunctionType(constructor,
+            const ResolutionDynamicType(), <ResolutionDartType>[intType]));
     constructor.functionSignature = constructorSignature;
     enumClass.addMember(constructor, reporter);
 
@@ -308,8 +309,8 @@ class EnumCreator {
 
     EnumMethodElementX toString = new EnumMethodElementX(
         'toString', enumClass, Modifiers.EMPTY, toStringNode);
-    FunctionSignatureX toStringSignature =
-        new FunctionSignatureX(type: new FunctionType(toString, stringType));
+    FunctionSignatureX toStringSignature = new FunctionSignatureX(
+        type: new ResolutionFunctionType(toString, stringType));
     toString.functionSignature = toStringSignature;
     enumClass.addMember(toString, reporter);
 

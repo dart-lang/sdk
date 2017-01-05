@@ -179,14 +179,14 @@ class ClosureFieldElement extends ElementX
   bool get isInstanceMember => true;
   bool get isAssignable => false;
 
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 
-  DartType get type {
+  ResolutionDartType get type {
     if (local is LocalElement) {
       LocalElement element = local;
       return element.type;
     }
-    return const DynamicType();
+    return const ResolutionDynamicType();
   }
 
   String toString() => "ClosureFieldElement($name)";
@@ -210,9 +210,9 @@ class ClosureFieldElement extends ElementX
 // TODO(ahe): These classes continuously cause problems.  We need to find
 // a more general solution.
 class ClosureClassElement extends ClassElementX {
-  DartType rawType;
-  DartType thisType;
-  FunctionType callType;
+  ResolutionDartType rawType;
+  ResolutionDartType thisType;
+  ResolutionFunctionType callType;
 
   /// Node that corresponds to this closure, used for source position.
   final FunctionExpression node;
@@ -241,8 +241,8 @@ class ClosureClassElement extends ClassElementX {
         : backend.helpers.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
-    interfaces = const Link<DartType>();
-    thisType = rawType = new InterfaceType(this);
+    interfaces = const Link<ResolutionDartType>();
+    thisType = rawType = new ResolutionInterfaceType(this);
     allSupertypesAndSelf =
         superclass.allSupertypesAndSelf.extendClass(thisType);
     callType = methodElement.type;
@@ -303,9 +303,9 @@ class BoxFieldElement extends ElementX
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 
-  DartType get type => variableElement.type;
+  ResolutionDartType get type => variableElement.type;
 
   @override
   Entity get declaredEntity => variableElement;
@@ -752,7 +752,7 @@ class ClosureTranslator extends Visitor {
     }
   }
 
-  void useTypeVariableAsLocal(TypeVariableType typeVariable) {
+  void useTypeVariableAsLocal(ResolutionTypeVariableType typeVariable) {
     useLocal(new TypeVariableLocal(typeVariable, outermostElement));
   }
 
@@ -800,7 +800,7 @@ class ClosureTranslator extends Visitor {
 
   visitTypeAnnotation(TypeAnnotation node) {
     MemberElement member = executableContext.memberContext;
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     // TODO(karlklose,johnniwinther): if the type is null, the annotation is
     // from a parameter which has been analyzed before the method has been
     // resolved and the result has been thrown away.
@@ -811,7 +811,7 @@ class ClosureTranslator extends Visitor {
         // This is a closure in a factory constructor.  Since there is no
         // [:this:], we have to mark the type arguments as free variables to
         // capture them in the closure.
-        type.forEachTypeVariable((TypeVariableType variable) {
+        type.forEachTypeVariable((ResolutionTypeVariableType variable) {
           useTypeVariableAsLocal(variable);
         });
       }
@@ -858,13 +858,14 @@ class ClosureTranslator extends Visitor {
       registerNeedsThis();
     } else if (node.isTypeTest || node.isTypeCast) {
       TypeAnnotation annotation = node.typeAnnotationFromIsCheckOrCast;
-      DartType type = elements.getType(annotation);
+      ResolutionDartType type = elements.getType(annotation);
       analyzeType(type);
     } else if (node.isTypeTest) {
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+      ResolutionDartType type =
+          elements.getType(node.typeAnnotationFromIsCheckOrCast);
       analyzeType(type);
     } else if (node.isTypeCast) {
-      DartType type = elements.getType(node.arguments.head);
+      ResolutionDartType type = elements.getType(node.arguments.head);
       analyzeType(type);
     }
     node.visitChildren(this);
@@ -883,25 +884,25 @@ class ClosureTranslator extends Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     analyzeType(type);
     node.visitChildren(this);
   }
 
   visitLiteralList(LiteralList node) {
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     analyzeType(type);
     node.visitChildren(this);
   }
 
   visitLiteralMap(LiteralMap node) {
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     analyzeType(type);
     node.visitChildren(this);
   }
 
-  void analyzeTypeVariables(DartType type) {
-    type.forEachTypeVariable((TypeVariableType typeVariable) {
+  void analyzeTypeVariables(ResolutionDartType type) {
+    type.forEachTypeVariable((ResolutionTypeVariableType typeVariable) {
       // Field initializers are inlined and access the type variable as
       // normal parameters.
       if (!outermostElement.isField && !outermostElement.isConstructor) {
@@ -912,7 +913,7 @@ class ClosureTranslator extends Visitor {
     });
   }
 
-  void analyzeType(DartType type) {
+  void analyzeType(ResolutionDartType type) {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
@@ -1118,7 +1119,7 @@ class ClosureTranslator extends Visitor {
     }
 
     inNewScope(node, () {
-      DartType type = element.type;
+      ResolutionDartType type = element.type;
       // If the method needs RTI, or checked mode is set, we need to
       // escape the potential type variables used in that closure.
       if (element is FunctionElement &&
@@ -1196,7 +1197,7 @@ class ClosureTranslator extends Visitor {
 
 /// A type variable as a local variable.
 class TypeVariableLocal implements Local {
-  final TypeVariableType typeVariable;
+  final ResolutionTypeVariableType typeVariable;
   final ExecutableElement executableContext;
 
   TypeVariableLocal(this.typeVariable, this.executableContext);

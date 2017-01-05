@@ -16,9 +16,9 @@ import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
 import 'elements.dart';
 import 'modelx.dart' show TypeDeclarationElementX;
-import 'types.dart' as types;
+import 'types.dart';
 
-enum TypeKind {
+enum ResolutionTypeKind {
   FUNCTION,
   INTERFACE,
   TYPEDEF,
@@ -28,12 +28,12 @@ enum TypeKind {
   VOID,
 }
 
-abstract class DartType implements types.DartType {
+abstract class ResolutionDartType implements DartType {
   String get name;
 
-  TypeKind get kind;
+  ResolutionTypeKind get kind;
 
-  const DartType();
+  const ResolutionDartType();
 
   /**
    * Returns the [Element] which declared this type.
@@ -53,15 +53,16 @@ abstract class DartType implements types.DartType {
    *
    *     (lambda x.e0)e1 -> [e1/x]e0.
    *
-   * See [TypeVariableType] for a motivation for this method.
+   * See [ResolutionTypeVariableType] for a motivation for this method.
    *
    * Invariant: There must be the same number of [arguments] and [parameters].
    */
-  DartType subst(List<DartType> arguments, List<DartType> parameters);
+  ResolutionDartType subst(
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters);
 
   /// Performs the substitution of the type arguments of [type] for their
   /// corresponding type variables in this type.
-  DartType substByContext(GenericType type) {
+  ResolutionDartType substByContext(GenericType type) {
     return subst(type.typeArguments, type.element.typeVariables);
   }
 
@@ -84,20 +85,20 @@ abstract class DartType implements types.DartType {
   /// For example, the unaliased type of `typedef A Func<A,B>(B b)` is the
   /// function type `(B) -> A` and the unaliased type of `Func<int,String>`
   /// is the function type `(String) -> int`.
-  DartType get unaliased => this;
+  ResolutionDartType get unaliased => this;
 
   /**
    * If this type is malformed or a generic type created with the wrong number
    * of type arguments then [userProvidedBadType] holds the bad type provided
    * by the user.
    */
-  DartType get userProvidedBadType => null;
+  ResolutionDartType get userProvidedBadType => null;
 
   /// Is [: true :] if this type has no explict type arguments.
   bool get isRaw => true;
 
   /// Returns the raw version of this type.
-  DartType asRaw() => this;
+  ResolutionDartType asRaw() => this;
 
   /// Is [: true :] if this type has no non-dynamic type arguments.
   bool get treatAsRaw => isRaw;
@@ -106,25 +107,25 @@ abstract class DartType implements types.DartType {
   bool get treatAsDynamic => false;
 
   /// Is [: true :] if this type is the dynamic type.
-  bool get isDynamic => kind == TypeKind.DYNAMIC;
+  bool get isDynamic => kind == ResolutionTypeKind.DYNAMIC;
 
   /// Is [: true :] if this type is the void type.
-  bool get isVoid => kind == TypeKind.VOID;
+  bool get isVoid => kind == ResolutionTypeKind.VOID;
 
   /// Is [: true :] if this is the type of `Object` from dart:core.
   bool get isObject => false;
 
   /// Is [: true :] if this type is an interface type.
-  bool get isInterfaceType => kind == TypeKind.INTERFACE;
+  bool get isInterfaceType => kind == ResolutionTypeKind.INTERFACE;
 
   /// Is [: true :] if this type is a typedef.
-  bool get isTypedef => kind == TypeKind.TYPEDEF;
+  bool get isTypedef => kind == ResolutionTypeKind.TYPEDEF;
 
   /// Is [: true :] if this type is a function type.
-  bool get isFunctionType => kind == TypeKind.FUNCTION;
+  bool get isFunctionType => kind == ResolutionTypeKind.FUNCTION;
 
   /// Is [: true :] if this type is a type variable.
-  bool get isTypeVariable => kind == TypeKind.TYPE_VARIABLE;
+  bool get isTypeVariable => kind == ResolutionTypeKind.TYPE_VARIABLE;
 
   /// Is [: true :] if this type is a malformed type.
   bool get isMalformed => false;
@@ -133,14 +134,16 @@ abstract class DartType implements types.DartType {
   bool get isEnumType => false;
 
   /// Returns an occurrence of a type variable within this type, if any.
-  TypeVariableType get typeVariableOccurrence => null;
+  ResolutionTypeVariableType get typeVariableOccurrence => null;
 
-  /// Applies [f] to each occurence of a [TypeVariableType] within this type.
-  void forEachTypeVariable(f(TypeVariableType variable)) {}
+  /// Applies [f] to each occurence of a [ResolutionTypeVariableType] within
+  /// this type.
+  void forEachTypeVariable(f(ResolutionTypeVariableType variable)) {}
 
-  TypeVariableType _findTypeVariableOccurrence(List<DartType> types) {
-    for (DartType type in types) {
-      TypeVariableType typeVariable = type.typeVariableOccurrence;
+  ResolutionTypeVariableType _findTypeVariableOccurrence(
+      List<ResolutionDartType> types) {
+    for (ResolutionDartType type in types) {
+      ResolutionTypeVariableType typeVariable = type.typeVariableOccurrence;
       if (typeVariable != null) {
         return typeVariable;
       }
@@ -162,16 +165,17 @@ abstract class DartType implements types.DartType {
   void visitChildren(DartTypeVisitor visitor, var argument) {}
 
   static void visitList(
-      List<DartType> types, DartTypeVisitor visitor, var argument) {
-    for (DartType type in types) {
+      List<ResolutionDartType> types, DartTypeVisitor visitor, var argument) {
+    for (ResolutionDartType type in types) {
       type.accept(visitor, argument);
     }
   }
 
-  /// Returns a [DartType] which corresponds to [this] except that each
-  /// contained [MethodTypeVariableType] is replaced by a [DynamicType].
+  /// Returns a [ResolutionDartType] which corresponds to [this] except that
+  /// each contained [MethodTypeVariableType] is replaced by a
+  /// [ResolutionDynamicType].
   /// GENERIC_METHODS: Temporary, only used with '--generic-method-syntax'.
-  DartType get dynamifyMethodTypeVariableType => this;
+  ResolutionDartType get dynamifyMethodTypeVariableType => this;
 
   /// Returns true iff [this] is or contains a [MethodTypeVariableType].
   /// GENERIC_METHODS: Temporary, only used with '--generic-method-syntax'
@@ -200,24 +204,26 @@ abstract class DartType implements types.DartType {
  * [: String :] because we must substitute [: String :] for the
  * the type variable [: T :].
  */
-class TypeVariableType extends DartType implements types.TypeVariableType {
+class ResolutionTypeVariableType extends ResolutionDartType
+    implements TypeVariableType {
   final TypeVariableElement element;
 
-  TypeVariableType(this.element);
+  ResolutionTypeVariableType(this.element);
 
-  TypeKind get kind => TypeKind.TYPE_VARIABLE;
+  ResolutionTypeKind get kind => ResolutionTypeKind.TYPE_VARIABLE;
 
   String get name => element.name;
 
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+  ResolutionDartType subst(
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     assert(arguments.length == parameters.length);
     if (parameters.isEmpty) {
       // Return fast on empty substitutions.
       return this;
     }
     for (int index = 0; index < arguments.length; index++) {
-      TypeVariableType parameter = parameters[index];
-      DartType argument = arguments[index];
+      ResolutionTypeVariableType parameter = parameters[index];
+      ResolutionDartType argument = arguments[index];
       if (parameter == this) {
         return argument;
       }
@@ -226,9 +232,9 @@ class TypeVariableType extends DartType implements types.TypeVariableType {
     return this;
   }
 
-  TypeVariableType get typeVariableOccurrence => this;
+  ResolutionTypeVariableType get typeVariableOccurrence => this;
 
-  void forEachTypeVariable(f(TypeVariableType variable)) {
+  void forEachTypeVariable(f(ResolutionTypeVariableType variable)) {
     f(this);
   }
 
@@ -239,7 +245,7 @@ class TypeVariableType extends DartType implements types.TypeVariableType {
   int get hashCode => 17 * element.hashCode;
 
   bool operator ==(other) {
-    if (other is! TypeVariableType) return false;
+    if (other is! ResolutionTypeVariableType) return false;
     return identical(other.element, element);
   }
 
@@ -249,7 +255,7 @@ class TypeVariableType extends DartType implements types.TypeVariableType {
 /// Provides a thin model of method type variables: They are treated as if
 /// their value were `dynamic` when used in a type annotation, and as a
 /// malformed type when used in an `as` or `is` expression.
-class MethodTypeVariableType extends TypeVariableType {
+class MethodTypeVariableType extends ResolutionTypeVariableType {
   MethodTypeVariableType(TypeVariableElement element) : super(element);
 
   @override
@@ -259,22 +265,24 @@ class MethodTypeVariableType extends TypeVariableType {
   bool get isMalformed => true;
 
   @override
-  DartType get dynamifyMethodTypeVariableType => const DynamicType();
+  ResolutionDartType get dynamifyMethodTypeVariableType =>
+      const ResolutionDynamicType();
 
   @override
   get containsMethodTypeVariableType => true;
 }
 
-class VoidType extends DartType implements types.VoidType {
-  const VoidType();
+class ResolutionVoidType extends ResolutionDartType implements VoidType {
+  const ResolutionVoidType();
 
-  TypeKind get kind => TypeKind.VOID;
+  ResolutionTypeKind get kind => ResolutionTypeKind.VOID;
 
   String get name => 'void';
 
   Element get element => null;
 
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+  ResolutionDartType subst(
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     // Void cannot be substituted.
     return this;
   }
@@ -288,7 +296,7 @@ class VoidType extends DartType implements types.VoidType {
   int get hashCode => 6007;
 }
 
-class MalformedType extends DartType {
+class MalformedType extends ResolutionDartType {
   final ErroneousElement element;
 
   /**
@@ -298,7 +306,7 @@ class MalformedType extends DartType {
    * [declaredType] is [: Map<String> :] whereas for an unresolved type
    * [userProvidedBadType] is [: null :].
    */
-  final DartType userProvidedBadType;
+  final ResolutionDartType userProvidedBadType;
 
   /**
    * Type arguments for the malformed typed, if these cannot fit in the
@@ -309,7 +317,7 @@ class MalformedType extends DartType {
    * [: dynamic :] and [: T :], respectively, or for [: X<int> :] where [: X :]
    * is not resolved or does not imply a type.
    */
-  final List<DartType> typeArguments;
+  final List<ResolutionDartType> typeArguments;
 
   final int hashCode = _nextHash = (_nextHash + 1).toUnsigned(30);
   static int _nextHash = 43765;
@@ -317,11 +325,12 @@ class MalformedType extends DartType {
   MalformedType(this.element, this.userProvidedBadType,
       [this.typeArguments = null]);
 
-  TypeKind get kind => TypeKind.MALFORMED_TYPE;
+  ResolutionTypeKind get kind => ResolutionTypeKind.MALFORMED_TYPE;
 
   String get name => element.name;
 
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+  ResolutionDartType subst(
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     // Malformed types are not substitutable.
     return this;
   }
@@ -356,11 +365,12 @@ class MalformedType extends DartType {
   }
 }
 
-abstract class GenericType extends DartType {
+abstract class GenericType extends ResolutionDartType {
   final TypeDeclarationElement element;
-  final List<DartType> typeArguments;
+  final List<ResolutionDartType> typeArguments;
 
-  GenericType(TypeDeclarationElement element, List<DartType> typeArguments,
+  GenericType(
+      TypeDeclarationElement element, List<ResolutionDartType> typeArguments,
       {bool checkTypeArgumentCount: true})
       : this.element = element,
         this.typeArguments = typeArguments,
@@ -381,9 +391,10 @@ abstract class GenericType extends DartType {
   }
 
   /// Creates a new instance of this type using the provided type arguments.
-  GenericType createInstantiation(List<DartType> newTypeArguments);
+  GenericType createInstantiation(List<ResolutionDartType> newTypeArguments);
 
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+  ResolutionDartType subst(
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     if (typeArguments.isEmpty) {
       // Return fast on non-generic types.
       return this;
@@ -393,7 +404,7 @@ abstract class GenericType extends DartType {
       // Return fast on empty substitutions.
       return this;
     }
-    List<DartType> newTypeArguments =
+    List<ResolutionDartType> newTypeArguments =
         Types.substTypes(typeArguments, arguments, parameters);
     if (!identical(typeArguments, newTypeArguments)) {
       // Create a new type only if necessary.
@@ -402,18 +413,18 @@ abstract class GenericType extends DartType {
     return this;
   }
 
-  TypeVariableType get typeVariableOccurrence {
+  ResolutionTypeVariableType get typeVariableOccurrence {
     return _findTypeVariableOccurrence(typeArguments);
   }
 
-  void forEachTypeVariable(f(TypeVariableType variable)) {
-    for (DartType type in typeArguments) {
+  void forEachTypeVariable(f(ResolutionTypeVariableType variable)) {
+    for (ResolutionDartType type in typeArguments) {
       type.forEachTypeVariable(f);
     }
   }
 
   void visitChildren(DartTypeVisitor visitor, var argument) {
-    DartType.visitList(typeArguments, visitor, argument);
+    ResolutionDartType.visitList(typeArguments, visitor, argument);
   }
 
   String toString() {
@@ -431,17 +442,17 @@ abstract class GenericType extends DartType {
   final bool containsMethodTypeVariableType;
 
   @override
-  DartType get dynamifyMethodTypeVariableType {
+  ResolutionDartType get dynamifyMethodTypeVariableType {
     if (!containsMethodTypeVariableType) return this;
-    List<DartType> newTypeArguments = typeArguments
-        .map((DartType type) => type.dynamifyMethodTypeVariableType)
+    List<ResolutionDartType> newTypeArguments = typeArguments
+        .map((ResolutionDartType type) => type.dynamifyMethodTypeVariableType)
         .toList();
     return createInstantiation(newTypeArguments);
   }
 
   int get hashCode {
     int hash = element.hashCode;
-    for (DartType argument in typeArguments) {
+    for (ResolutionDartType argument in typeArguments) {
       int argumentHash = argument != null ? argument.hashCode : 0;
       hash = 17 * hash + 3 * argumentHash;
     }
@@ -464,29 +475,29 @@ abstract class GenericType extends DartType {
 
   bool get treatAsRaw {
     if (isRaw) return true;
-    for (DartType type in typeArguments) {
+    for (ResolutionDartType type in typeArguments) {
       if (!type.treatAsDynamic) return false;
     }
     return true;
   }
 }
 
-class InterfaceType extends GenericType implements types.InterfaceType {
+class ResolutionInterfaceType extends GenericType implements InterfaceType {
   int _hashCode;
 
-  InterfaceType(ClassElement element,
-      [List<DartType> typeArguments = const <DartType>[]])
+  ResolutionInterfaceType(ClassElement element,
+      [List<ResolutionDartType> typeArguments = const <ResolutionDartType>[]])
       : super(element, typeArguments) {
     assert(invariant(element, element.isDeclaration));
   }
 
-  InterfaceType.forUserProvidedBadType(ClassElement element,
-      [List<DartType> typeArguments = const <DartType>[]])
+  ResolutionInterfaceType.forUserProvidedBadType(ClassElement element,
+      [List<ResolutionDartType> typeArguments = const <ResolutionDartType>[]])
       : super(element, typeArguments, checkTypeArgumentCount: false);
 
   ClassElement get element => super.element;
 
-  TypeKind get kind => TypeKind.INTERFACE;
+  ResolutionTypeKind get kind => ResolutionTypeKind.INTERFACE;
 
   String get name => element.name;
 
@@ -494,22 +505,23 @@ class InterfaceType extends GenericType implements types.InterfaceType {
 
   bool get isEnumType => element.isEnumClass;
 
-  InterfaceType createInstantiation(List<DartType> newTypeArguments) {
-    return new InterfaceType(element, newTypeArguments);
+  ResolutionInterfaceType createInstantiation(
+      List<ResolutionDartType> newTypeArguments) {
+    return new ResolutionInterfaceType(element, newTypeArguments);
   }
 
   /**
    * Returns the type as an instance of class [other], if possible, null
    * otherwise.
    */
-  InterfaceType asInstanceOf(ClassElement other) {
+  ResolutionInterfaceType asInstanceOf(ClassElement other) {
     other = other.declaration;
     if (element == other) return this;
-    InterfaceType supertype = element.asInstanceOf(other);
+    ResolutionInterfaceType supertype = element.asInstanceOf(other);
     if (supertype != null) {
-      List<DartType> arguments = Types.substTypes(
+      List<ResolutionDartType> arguments = Types.substTypes(
           supertype.typeArguments, typeArguments, element.typeVariables);
-      return new InterfaceType(supertype.element, arguments);
+      return new ResolutionInterfaceType(supertype.element, arguments);
     }
     return null;
   }
@@ -532,7 +544,7 @@ class InterfaceType extends GenericType implements types.InterfaceType {
 
   int get hashCode => _hashCode ??= super.hashCode;
 
-  InterfaceType asRaw() => super.asRaw();
+  ResolutionInterfaceType asRaw() => super.asRaw();
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitInterfaceType(this, argument);
@@ -540,22 +552,21 @@ class InterfaceType extends GenericType implements types.InterfaceType {
 
   /// Returns the type of the 'call' method in this interface type, or
   /// `null` if the interface type has no 'call' method.
-  FunctionType get callType {
-    FunctionType type = element.callType;
+  ResolutionFunctionType get callType {
+    ResolutionFunctionType type = element.callType;
     return type != null && isGeneric ? type.substByContext(this) : type;
   }
 }
 
-/**
- * Special subclass of [InterfaceType] used for generic interface types created
- * with the wrong number of type arguments.
- *
- * The type uses [:dynamic:] for all it s type arguments.
- */
-class BadInterfaceType extends InterfaceType {
-  final InterfaceType userProvidedBadType;
+/// Special subclass of [ResolutionInterfaceType] used for generic interface
+/// types created with the wrong number of type arguments.
+///
+/// The type uses `dynamic` for all it s type arguments.
+class BadInterfaceType extends ResolutionInterfaceType {
+  final ResolutionInterfaceType userProvidedBadType;
 
-  BadInterfaceType(ClassElement element, InterfaceType this.userProvidedBadType)
+  BadInterfaceType(
+      ClassElement element, ResolutionInterfaceType this.userProvidedBadType)
       : super(element, element.rawType.typeArguments);
 
   String toString() {
@@ -564,15 +575,16 @@ class BadInterfaceType extends InterfaceType {
 }
 
 /**
- * Special subclass of [TypedefType] used for generic typedef types created
- * with the wrong number of type arguments.
+ * Special subclass of [ResolutionTypedefType] used for generic typedef types
+ * created with the wrong number of type arguments.
  *
  * The type uses [:dynamic:] for all it s type arguments.
  */
-class BadTypedefType extends TypedefType {
-  final TypedefType userProvidedBadType;
+class BadTypedefType extends ResolutionTypedefType {
+  final ResolutionTypedefType userProvidedBadType;
 
-  BadTypedefType(TypedefElement element, TypedefType this.userProvidedBadType)
+  BadTypedefType(
+      TypedefElement element, ResolutionTypedefType this.userProvidedBadType)
       : super(element, element.rawType.typeArguments);
 
   String toString() {
@@ -580,11 +592,12 @@ class BadTypedefType extends TypedefType {
   }
 }
 
-class FunctionType extends DartType implements types.FunctionType {
+class ResolutionFunctionType extends ResolutionDartType
+    implements FunctionType {
   final FunctionTypedElement element;
-  final DartType returnType;
-  final List<DartType> parameterTypes;
-  final List<DartType> optionalParameterTypes;
+  final ResolutionDartType returnType;
+  final List<ResolutionDartType> parameterTypes;
+  final List<ResolutionDartType> optionalParameterTypes;
 
   /**
    * The names of the named parameters ordered lexicographically.
@@ -595,36 +608,47 @@ class FunctionType extends DartType implements types.FunctionType {
    * The types of the named parameters in the order corresponding to the
    * [namedParameters].
    */
-  final List<DartType> namedParameterTypes;
+  final List<ResolutionDartType> namedParameterTypes;
 
-  factory FunctionType(FunctionTypedElement element,
-      [DartType returnType = const DynamicType(),
-      List<DartType> parameterTypes = const <DartType>[],
-      List<DartType> optionalParameterTypes = const <DartType>[],
+  factory ResolutionFunctionType(FunctionTypedElement element,
+      [ResolutionDartType returnType = const ResolutionDynamicType(),
+      List<ResolutionDartType> parameterTypes = const <ResolutionDartType>[],
+      List<ResolutionDartType> optionalParameterTypes =
+          const <ResolutionDartType>[],
       List<String> namedParameters = const <String>[],
-      List<DartType> namedParameterTypes = const <DartType>[]]) {
+      List<ResolutionDartType> namedParameterTypes =
+          const <ResolutionDartType>[]]) {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null));
     assert(invariant(element, element.isDeclaration));
-    return new FunctionType.internal(element, returnType, parameterTypes,
+    return new ResolutionFunctionType.internal(
+        element,
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes);
+  }
+
+  factory ResolutionFunctionType.synthesized(
+      [ResolutionDartType returnType = const ResolutionDynamicType(),
+      List<ResolutionDartType> parameterTypes = const <ResolutionDartType>[],
+      List<ResolutionDartType> optionalParameterTypes =
+          const <ResolutionDartType>[],
+      List<String> namedParameters = const <String>[],
+      List<ResolutionDartType> namedParameterTypes =
+          const <ResolutionDartType>[]]) {
+    return new ResolutionFunctionType.internal(null, returnType, parameterTypes,
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
-  factory FunctionType.synthesized(
-      [DartType returnType = const DynamicType(),
-      List<DartType> parameterTypes = const <DartType>[],
-      List<DartType> optionalParameterTypes = const <DartType>[],
+  ResolutionFunctionType.internal(FunctionTypedElement this.element,
+      [ResolutionDartType returnType = const ResolutionDynamicType(),
+      List<ResolutionDartType> parameterTypes = const <ResolutionDartType>[],
+      List<ResolutionDartType> optionalParameterTypes =
+          const <ResolutionDartType>[],
       List<String> namedParameters = const <String>[],
-      List<DartType> namedParameterTypes = const <DartType>[]]) {
-    return new FunctionType.internal(null, returnType, parameterTypes,
-        optionalParameterTypes, namedParameters, namedParameterTypes);
-  }
-
-  FunctionType.internal(FunctionTypedElement this.element,
-      [DartType returnType = const DynamicType(),
-      List<DartType> parameterTypes = const <DartType>[],
-      List<DartType> optionalParameterTypes = const <DartType>[],
-      List<String> namedParameters = const <String>[],
-      List<DartType> namedParameterTypes = const <DartType>[]])
+      List<ResolutionDartType> namedParameterTypes =
+          const <ResolutionDartType>[]])
       : this.returnType = returnType,
         this.parameterTypes = parameterTypes,
         this.optionalParameterTypes = optionalParameterTypes,
@@ -642,9 +666,9 @@ class FunctionType extends DartType implements types.FunctionType {
     assert(namedParameters.length == namedParameterTypes.length);
   }
 
-  TypeKind get kind => TypeKind.FUNCTION;
+  ResolutionTypeKind get kind => ResolutionTypeKind.FUNCTION;
 
-  DartType getNamedParameterType(String name) {
+  ResolutionDartType getNamedParameterType(String name) {
     for (int i = 0; i < namedParameters.length; i++) {
       if (namedParameters[i] == name) {
         return namedParameterTypes[i];
@@ -653,19 +677,20 @@ class FunctionType extends DartType implements types.FunctionType {
     return null;
   }
 
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+  ResolutionDartType subst(
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     if (parameters.isEmpty) {
       assert(arguments.isEmpty);
       // Return fast on empty substitutions.
       return this;
     }
-    DartType newReturnType = returnType.subst(arguments, parameters);
+    ResolutionDartType newReturnType = returnType.subst(arguments, parameters);
     bool changed = !identical(newReturnType, returnType);
-    List<DartType> newParameterTypes =
+    List<ResolutionDartType> newParameterTypes =
         Types.substTypes(parameterTypes, arguments, parameters);
-    List<DartType> newOptionalParameterTypes =
+    List<ResolutionDartType> newOptionalParameterTypes =
         Types.substTypes(optionalParameterTypes, arguments, parameters);
-    List<DartType> newNamedParameterTypes =
+    List<ResolutionDartType> newNamedParameterTypes =
         Types.substTypes(namedParameterTypes, arguments, parameters);
     if (!changed &&
         (!identical(parameterTypes, newParameterTypes) ||
@@ -675,7 +700,7 @@ class FunctionType extends DartType implements types.FunctionType {
     }
     if (changed) {
       // Create a new type only if necessary.
-      return new FunctionType.internal(
+      return new ResolutionFunctionType.internal(
           element,
           newReturnType,
           newParameterTypes,
@@ -686,8 +711,9 @@ class FunctionType extends DartType implements types.FunctionType {
     return this;
   }
 
-  TypeVariableType get typeVariableOccurrence {
-    TypeVariableType typeVariableType = returnType.typeVariableOccurrence;
+  ResolutionTypeVariableType get typeVariableOccurrence {
+    ResolutionTypeVariableType typeVariableType =
+        returnType.typeVariableOccurrence;
     if (typeVariableType != null) return typeVariableType;
 
     typeVariableType = _findTypeVariableOccurrence(parameterTypes);
@@ -699,15 +725,15 @@ class FunctionType extends DartType implements types.FunctionType {
     return _findTypeVariableOccurrence(namedParameterTypes);
   }
 
-  void forEachTypeVariable(f(TypeVariableType variable)) {
+  void forEachTypeVariable(f(ResolutionTypeVariableType variable)) {
     returnType.forEachTypeVariable(f);
-    parameterTypes.forEach((DartType type) {
+    parameterTypes.forEach((ResolutionDartType type) {
       type.forEachTypeVariable(f);
     });
-    optionalParameterTypes.forEach((DartType type) {
+    optionalParameterTypes.forEach((ResolutionDartType type) {
       type.forEachTypeVariable(f);
     });
-    namedParameterTypes.forEach((DartType type) {
+    namedParameterTypes.forEach((ResolutionDartType type) {
       type.forEachTypeVariable(f);
     });
   }
@@ -718,9 +744,9 @@ class FunctionType extends DartType implements types.FunctionType {
 
   void visitChildren(DartTypeVisitor visitor, var argument) {
     returnType.accept(visitor, argument);
-    DartType.visitList(parameterTypes, visitor, argument);
-    DartType.visitList(optionalParameterTypes, visitor, argument);
-    DartType.visitList(namedParameterTypes, visitor, argument);
+    ResolutionDartType.visitList(parameterTypes, visitor, argument);
+    ResolutionDartType.visitList(optionalParameterTypes, visitor, argument);
+    ResolutionDartType.visitList(namedParameterTypes, visitor, argument);
   }
 
   String toString() {
@@ -763,17 +789,25 @@ class FunctionType extends DartType implements types.FunctionType {
   int computeArity() => parameterTypes.length;
 
   @override
-  DartType get dynamifyMethodTypeVariableType {
+  ResolutionDartType get dynamifyMethodTypeVariableType {
     if (!containsMethodTypeVariableType) return this;
-    DartType eraseIt(DartType type) => type.dynamifyMethodTypeVariableType;
-    DartType newReturnType = returnType.dynamifyMethodTypeVariableType;
-    List<DartType> newParameterTypes = parameterTypes.map(eraseIt).toList();
-    List<DartType> newOptionalParameterTypes =
+    ResolutionDartType eraseIt(ResolutionDartType type) =>
+        type.dynamifyMethodTypeVariableType;
+    ResolutionDartType newReturnType =
+        returnType.dynamifyMethodTypeVariableType;
+    List<ResolutionDartType> newParameterTypes =
+        parameterTypes.map(eraseIt).toList();
+    List<ResolutionDartType> newOptionalParameterTypes =
         optionalParameterTypes.map(eraseIt).toList();
-    List<DartType> newNamedParameterTypes =
+    List<ResolutionDartType> newNamedParameterTypes =
         namedParameterTypes.map(eraseIt).toList();
-    return new FunctionType.internal(element, newReturnType, newParameterTypes,
-        newOptionalParameterTypes, namedParameters, newNamedParameterTypes);
+    return new ResolutionFunctionType.internal(
+        element,
+        newReturnType,
+        newParameterTypes,
+        newOptionalParameterTypes,
+        namedParameters,
+        newNamedParameterTypes);
   }
 
   @override
@@ -781,23 +815,23 @@ class FunctionType extends DartType implements types.FunctionType {
 
   int get hashCode {
     int hash = 3 * returnType.hashCode;
-    for (DartType parameter in parameterTypes) {
+    for (ResolutionDartType parameter in parameterTypes) {
       hash = 17 * hash + 5 * parameter.hashCode;
     }
-    for (DartType parameter in optionalParameterTypes) {
+    for (ResolutionDartType parameter in optionalParameterTypes) {
       hash = 19 * hash + 7 * parameter.hashCode;
     }
     for (String name in namedParameters) {
       hash = 23 * hash + 11 * name.hashCode;
     }
-    for (DartType parameter in namedParameterTypes) {
+    for (ResolutionDartType parameter in namedParameterTypes) {
       hash = 29 * hash + 13 * parameter.hashCode;
     }
     return hash;
   }
 
   bool operator ==(other) {
-    if (other is! FunctionType) return false;
+    if (other is! ResolutionFunctionType) return false;
     return returnType == other.returnType &&
         equalElements(parameterTypes, other.parameterTypes) &&
         equalElements(optionalParameterTypes, other.optionalParameterTypes) &&
@@ -806,35 +840,36 @@ class FunctionType extends DartType implements types.FunctionType {
   }
 }
 
-bool _typeContainsMethodTypeVariableType(DartType type) =>
+bool _typeContainsMethodTypeVariableType(ResolutionDartType type) =>
     type.containsMethodTypeVariableType;
 
-class TypedefType extends GenericType {
-  DartType _unaliased;
+class ResolutionTypedefType extends GenericType {
+  ResolutionDartType _unaliased;
 
-  TypedefType(TypedefElement element,
-      [List<DartType> typeArguments = const <DartType>[]])
+  ResolutionTypedefType(TypedefElement element,
+      [List<ResolutionDartType> typeArguments = const <ResolutionDartType>[]])
       : super(element, typeArguments);
 
-  TypedefType.forUserProvidedBadType(TypedefElement element,
-      [List<DartType> typeArguments = const <DartType>[]])
+  ResolutionTypedefType.forUserProvidedBadType(TypedefElement element,
+      [List<ResolutionDartType> typeArguments = const <ResolutionDartType>[]])
       : super(element, typeArguments, checkTypeArgumentCount: false);
 
   TypedefElement get element => super.element;
 
-  TypeKind get kind => TypeKind.TYPEDEF;
+  ResolutionTypeKind get kind => ResolutionTypeKind.TYPEDEF;
 
   String get name => element.name;
 
-  TypedefType createInstantiation(List<DartType> newTypeArguments) {
-    return new TypedefType(element, newTypeArguments);
+  ResolutionTypedefType createInstantiation(
+      List<ResolutionDartType> newTypeArguments) {
+    return new ResolutionTypedefType(element, newTypeArguments);
   }
 
   void computeUnaliased(Resolution resolution) {
     if (_unaliased == null) {
       element.ensureResolved(resolution);
       if (element.isMalformed) {
-        _unaliased = const DynamicType();
+        _unaliased = const ResolutionDynamicType();
         return;
       }
       element.checkCyclicReference(resolution);
@@ -843,9 +878,9 @@ class TypedefType extends GenericType {
     }
   }
 
-  DartType get unaliased {
+  ResolutionDartType get unaliased {
     if (_unaliased == null) {
-      DartType definition = element.alias.unaliased;
+      ResolutionDartType definition = element.alias.unaliased;
       _unaliased = definition.substByContext(this);
     }
     return _unaliased;
@@ -853,7 +888,7 @@ class TypedefType extends GenericType {
 
   int get hashCode => super.hashCode;
 
-  TypedefType asRaw() => super.asRaw();
+  ResolutionTypedefType asRaw() => super.asRaw();
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitTypedefType(this, argument);
@@ -863,8 +898,8 @@ class TypedefType extends GenericType {
 /**
  * Special type for the `dynamic` type.
  */
-class DynamicType extends DartType implements types.DynamicType {
-  const DynamicType();
+class ResolutionDynamicType extends ResolutionDartType implements DynamicType {
+  const ResolutionDynamicType();
 
   Element get element => null;
 
@@ -872,9 +907,11 @@ class DynamicType extends DartType implements types.DynamicType {
 
   bool get treatAsDynamic => true;
 
-  TypeKind get kind => TypeKind.DYNAMIC;
+  ResolutionTypeKind get kind => ResolutionTypeKind.DYNAMIC;
 
-  DartType subst(List<DartType> arguments, List<DartType> parameters) => this;
+  ResolutionDartType subst(List<ResolutionDartType> arguments,
+          List<ResolutionDartType> parameters) =>
+      this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitDynamicType(this, argument);
@@ -905,16 +942,17 @@ class DynamicType extends DartType implements types.DynamicType {
  * `B<F>` and `B<String>`.
  */
 class InterfaceMember implements MemberSignature {
-  final InterfaceType instance;
+  final ResolutionInterfaceType instance;
   final MemberSignature member;
 
   InterfaceMember(this.instance, this.member);
 
   Name get name => member.name;
 
-  DartType get type => member.type.substByContext(instance);
+  ResolutionDartType get type => member.type.substByContext(instance);
 
-  FunctionType get functionType => member.functionType.substByContext(instance);
+  ResolutionFunctionType get functionType =>
+      member.functionType.substByContext(instance);
 
   bool get isGetter => member.isGetter;
 
@@ -928,37 +966,38 @@ class InterfaceMember implements MemberSignature {
 abstract class DartTypeVisitor<R, A> {
   const DartTypeVisitor();
 
-  R visit(DartType type, A argument) => type.accept(this, argument);
+  R visit(ResolutionDartType type, A argument) => type.accept(this, argument);
 
-  R visitVoidType(VoidType type, A argument) => null;
+  R visitVoidType(ResolutionVoidType type, A argument) => null;
 
-  R visitTypeVariableType(TypeVariableType type, A argument) => null;
+  R visitTypeVariableType(ResolutionTypeVariableType type, A argument) => null;
 
-  R visitFunctionType(FunctionType type, A argument) => null;
+  R visitFunctionType(ResolutionFunctionType type, A argument) => null;
 
   R visitMalformedType(MalformedType type, A argument) => null;
 
-  R visitInterfaceType(InterfaceType type, A argument) => null;
+  R visitInterfaceType(ResolutionInterfaceType type, A argument) => null;
 
-  R visitTypedefType(TypedefType type, A argument) => null;
+  R visitTypedefType(ResolutionTypedefType type, A argument) => null;
 
-  R visitDynamicType(DynamicType type, A argument) => null;
+  R visitDynamicType(ResolutionDynamicType type, A argument) => null;
 }
 
 abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
   const BaseDartTypeVisitor();
 
-  R visitType(DartType type, A argument);
+  R visitType(ResolutionDartType type, A argument);
 
   @override
-  R visitVoidType(VoidType type, A argument) => visitType(type, argument);
-
-  @override
-  R visitTypeVariableType(TypeVariableType type, A argument) =>
+  R visitVoidType(ResolutionVoidType type, A argument) =>
       visitType(type, argument);
 
   @override
-  R visitFunctionType(FunctionType type, A argument) =>
+  R visitTypeVariableType(ResolutionTypeVariableType type, A argument) =>
+      visitType(type, argument);
+
+  @override
+  R visitFunctionType(ResolutionFunctionType type, A argument) =>
       visitType(type, argument);
 
   @override
@@ -968,59 +1007,63 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
   R visitGenericType(GenericType type, A argument) => visitType(type, argument);
 
   @override
-  R visitInterfaceType(InterfaceType type, A argument) =>
+  R visitInterfaceType(ResolutionInterfaceType type, A argument) =>
       visitGenericType(type, argument);
 
   @override
-  R visitTypedefType(TypedefType type, A argument) =>
+  R visitTypedefType(ResolutionTypedefType type, A argument) =>
       visitGenericType(type, argument);
 
   @override
-  R visitDynamicType(DynamicType type, A argument) => visitType(type, argument);
+  R visitDynamicType(ResolutionDynamicType type, A argument) =>
+      visitType(type, argument);
 }
 
 /**
  * Abstract visitor for determining relations between types.
  */
 abstract class AbstractTypeRelation
-    extends BaseDartTypeVisitor<bool, DartType> {
+    extends BaseDartTypeVisitor<bool, ResolutionDartType> {
   final Resolution resolution;
 
   AbstractTypeRelation(this.resolution);
 
   CommonElements get commonElements => resolution.commonElements;
 
-  bool visitType(DartType t, DartType s) {
+  bool visitType(ResolutionDartType t, ResolutionDartType s) {
     throw 'internal error: unknown type kind ${t.kind}';
   }
 
-  bool visitVoidType(VoidType t, DartType s) {
-    assert(s is! VoidType);
+  bool visitVoidType(ResolutionVoidType t, ResolutionDartType s) {
+    assert(s is! ResolutionVoidType);
     return false;
   }
 
-  bool invalidTypeArguments(DartType t, DartType s);
+  bool invalidTypeArguments(ResolutionDartType t, ResolutionDartType s);
 
-  bool invalidFunctionReturnTypes(DartType t, DartType s);
+  bool invalidFunctionReturnTypes(ResolutionDartType t, ResolutionDartType s);
 
-  bool invalidFunctionParameterTypes(DartType t, DartType s);
+  bool invalidFunctionParameterTypes(
+      ResolutionDartType t, ResolutionDartType s);
 
-  bool invalidTypeVariableBounds(DartType bound, DartType s);
+  bool invalidTypeVariableBounds(
+      ResolutionDartType bound, ResolutionDartType s);
 
-  bool invalidCallableType(DartType callType, DartType s);
+  bool invalidCallableType(ResolutionDartType callType, ResolutionDartType s);
 
   /// Handle as dynamic for both subtype and more specific relation to avoid
   /// spurious errors from malformed types.
-  bool visitMalformedType(MalformedType t, DartType s) => true;
+  bool visitMalformedType(MalformedType t, ResolutionDartType s) => true;
 
-  bool visitInterfaceType(InterfaceType t, DartType s) {
+  bool visitInterfaceType(ResolutionInterfaceType t, ResolutionDartType s) {
     // TODO(johnniwinther): Currently needed since literal types like int,
     // double, bool etc. might not have been resolved yet.
     t.element.ensureResolved(resolution);
 
-    bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
-      List<DartType> tTypeArgs = instance.typeArguments;
-      List<DartType> sTypeArgs = other.typeArguments;
+    bool checkTypeArguments(
+        ResolutionInterfaceType instance, ResolutionInterfaceType other) {
+      List<ResolutionDartType> tTypeArgs = instance.typeArguments;
+      List<ResolutionDartType> sTypeArgs = other.typeArguments;
       assert(tTypeArgs.length == sTypeArgs.length);
       for (int i = 0; i < tTypeArgs.length; i++) {
         if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i])) {
@@ -1030,8 +1073,8 @@ abstract class AbstractTypeRelation
       return true;
     }
 
-    if (s is InterfaceType) {
-      InterfaceType instance = t.asInstanceOf(s.element);
+    if (s is ResolutionInterfaceType) {
+      ResolutionInterfaceType instance = t.asInstanceOf(s.element);
       if (instance != null && checkTypeArguments(instance, s)) {
         return true;
       }
@@ -1039,21 +1082,21 @@ abstract class AbstractTypeRelation
 
     if (s == commonElements.functionType && t.element.callType != null) {
       return true;
-    } else if (s is FunctionType) {
-      FunctionType callType = t.callType;
+    } else if (s is ResolutionFunctionType) {
+      ResolutionFunctionType callType = t.callType;
       return callType != null && !invalidCallableType(callType, s);
     }
 
     return false;
   }
 
-  bool visitFunctionType(FunctionType t, DartType s) {
+  bool visitFunctionType(ResolutionFunctionType t, ResolutionDartType s) {
     if (s == commonElements.functionType) {
       return true;
     }
-    if (s is! FunctionType) return false;
-    FunctionType tf = t;
-    FunctionType sf = s;
+    if (s is! ResolutionFunctionType) return false;
+    ResolutionFunctionType tf = t;
+    ResolutionFunctionType sf = s;
     if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
       return false;
     }
@@ -1066,8 +1109,8 @@ abstract class AbstractTypeRelation
     //  x.o     : optionalParameterTypes on [:x:], and
     //  len(xs) : length of list [:xs:].
 
-    Iterator<DartType> tps = tf.parameterTypes.iterator;
-    Iterator<DartType> sps = sf.parameterTypes.iterator;
+    Iterator<ResolutionDartType> tps = tf.parameterTypes.iterator;
+    Iterator<ResolutionDartType> sps = sf.parameterTypes.iterator;
     bool sNotEmpty = sps.moveNext();
     bool tNotEmpty = tps.moveNext();
     tNext() => (tNotEmpty = tps.moveNext());
@@ -1098,9 +1141,9 @@ abstract class AbstractTypeRelation
       // subset relation with a linear search for [:sf.namedParameters:]
       // within [:tf.namedParameters:].
       List<String> tNames = tf.namedParameters;
-      List<DartType> tTypes = tf.namedParameterTypes;
+      List<ResolutionDartType> tTypes = tf.namedParameterTypes;
       List<String> sNames = sf.namedParameters;
-      List<DartType> sTypes = sf.namedParameterTypes;
+      List<ResolutionDartType> sTypes = sf.namedParameterTypes;
       int tIndex = 0;
       int sIndex = 0;
       while (tIndex < tNames.length && sIndex < sNames.length) {
@@ -1145,9 +1188,10 @@ abstract class AbstractTypeRelation
     return true;
   }
 
-  bool visitTypeVariableType(TypeVariableType t, DartType s) {
+  bool visitTypeVariableType(
+      ResolutionTypeVariableType t, ResolutionDartType s) {
     // Identity check is handled in [isSubtype].
-    DartType bound = t.element.bound;
+    ResolutionDartType bound = t.element.bound;
     if (bound.isTypeVariable) {
       // The bound is potentially cyclic so we need to be extra careful.
       Set<TypeVariableElement> seenTypeVariables =
@@ -1177,7 +1221,7 @@ abstract class AbstractTypeRelation
 class MoreSpecificVisitor extends AbstractTypeRelation {
   MoreSpecificVisitor(Resolution resolution) : super(resolution);
 
-  bool isMoreSpecific(DartType t, DartType s) {
+  bool isMoreSpecific(ResolutionDartType t, ResolutionDartType s) {
     if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
       return true;
     }
@@ -1198,24 +1242,26 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
     return t.accept(this, s);
   }
 
-  bool invalidTypeArguments(DartType t, DartType s) {
+  bool invalidTypeArguments(ResolutionDartType t, ResolutionDartType s) {
     return !isMoreSpecific(t, s);
   }
 
-  bool invalidFunctionReturnTypes(DartType t, DartType s) {
+  bool invalidFunctionReturnTypes(ResolutionDartType t, ResolutionDartType s) {
     if (s.treatAsDynamic && t.isVoid) return true;
     return !s.isVoid && !isMoreSpecific(t, s);
   }
 
-  bool invalidFunctionParameterTypes(DartType t, DartType s) {
+  bool invalidFunctionParameterTypes(
+      ResolutionDartType t, ResolutionDartType s) {
     return !isMoreSpecific(t, s);
   }
 
-  bool invalidTypeVariableBounds(DartType bound, DartType s) {
+  bool invalidTypeVariableBounds(
+      ResolutionDartType bound, ResolutionDartType s) {
     return !isMoreSpecific(bound, s);
   }
 
-  bool invalidCallableType(DartType callType, DartType s) {
+  bool invalidCallableType(ResolutionDartType callType, ResolutionDartType s) {
     return !isMoreSpecific(callType, s);
   }
 }
@@ -1226,31 +1272,33 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
 class SubtypeVisitor extends MoreSpecificVisitor {
   SubtypeVisitor(Resolution resolution) : super(resolution);
 
-  bool isSubtype(DartType t, DartType s) {
+  bool isSubtype(ResolutionDartType t, ResolutionDartType s) {
     return t.treatAsDynamic || isMoreSpecific(t, s);
   }
 
-  bool isAssignable(DartType t, DartType s) {
+  bool isAssignable(ResolutionDartType t, ResolutionDartType s) {
     return isSubtype(t, s) || isSubtype(s, t);
   }
 
-  bool invalidTypeArguments(DartType t, DartType s) {
+  bool invalidTypeArguments(ResolutionDartType t, ResolutionDartType s) {
     return !isSubtype(t, s);
   }
 
-  bool invalidFunctionReturnTypes(DartType t, DartType s) {
+  bool invalidFunctionReturnTypes(ResolutionDartType t, ResolutionDartType s) {
     return !s.isVoid && !isAssignable(t, s);
   }
 
-  bool invalidFunctionParameterTypes(DartType t, DartType s) {
+  bool invalidFunctionParameterTypes(
+      ResolutionDartType t, ResolutionDartType s) {
     return !isAssignable(t, s);
   }
 
-  bool invalidTypeVariableBounds(DartType bound, DartType s) {
+  bool invalidTypeVariableBounds(
+      ResolutionDartType bound, ResolutionDartType s) {
     return !isSubtype(bound, s);
   }
 
-  bool invalidCallableType(DartType callType, DartType s) {
+  bool invalidCallableType(ResolutionDartType callType, ResolutionDartType s) {
     return !isSubtype(callType, s);
   }
 }
@@ -1260,8 +1308,11 @@ class SubtypeVisitor extends MoreSpecificVisitor {
  * substitute for the bound of [typeVariable]. [bound] holds the bound against
  * which [typeArgument] should be checked.
  */
-typedef void CheckTypeVariableBound(GenericType type, DartType typeArgument,
-    TypeVariableType typeVariable, DartType bound);
+typedef void CheckTypeVariableBound(
+    GenericType type,
+    ResolutionDartType typeArgument,
+    ResolutionTypeVariableType typeVariable,
+    ResolutionDartType bound);
 
 /// Basic interface for the Dart type system.
 abstract class DartTypes {
@@ -1269,11 +1320,11 @@ abstract class DartTypes {
   CommonElements get commonElements;
 
   /// Returns `true` if [t] is a subtype of [s].
-  bool isSubtype(DartType t, DartType s);
+  bool isSubtype(ResolutionDartType t, ResolutionDartType s);
 
   /// Returns `true` if [t] might be a subtype of [s] for some values of
   /// type variables in [s] and [t].
-  bool isPotentialSubtype(DartType t, DartType s);
+  bool isPotentialSubtype(ResolutionDartType t, ResolutionDartType s);
 }
 
 class Types implements DartTypes {
@@ -1312,13 +1363,14 @@ class Types implements DartTypes {
   ///
   /// This method is used in the static typing of await and type checking of
   /// return.
-  DartType flatten(DartType type) {
-    if (type is InterfaceType) {
+  ResolutionDartType flatten(ResolutionDartType type) {
+    if (type is ResolutionInterfaceType) {
       if (type.element == commonElements.futureClass) {
         // T = Future<S>
         return flatten(type.typeArguments.first);
       }
-      InterfaceType futureType = type.asInstanceOf(commonElements.futureClass);
+      ResolutionInterfaceType futureType =
+          type.asInstanceOf(commonElements.futureClass);
       if (futureType != null) {
         // T << Future<S>
         return futureType.typeArguments.single;
@@ -1328,13 +1380,14 @@ class Types implements DartTypes {
   }
 
   /// Returns true if [t] is more specific than [s].
-  bool isMoreSpecific(DartType t, DartType s) {
+  bool isMoreSpecific(ResolutionDartType t, ResolutionDartType s) {
     return moreSpecificVisitor.isMoreSpecific(t, s);
   }
 
   /// Returns the most specific type of [t] and [s] or `null` if neither is more
   /// specific than the other.
-  DartType getMostSpecific(DartType t, DartType s) {
+  ResolutionDartType getMostSpecific(
+      ResolutionDartType t, ResolutionDartType s) {
     if (isMoreSpecific(t, s)) {
       return t;
     } else if (isMoreSpecific(s, t)) {
@@ -1345,11 +1398,11 @@ class Types implements DartTypes {
   }
 
   /** Returns true if t is a subtype of s */
-  bool isSubtype(DartType t, DartType s) {
+  bool isSubtype(ResolutionDartType t, ResolutionDartType s) {
     return subtypeVisitor.isSubtype(t, s);
   }
 
-  bool isAssignable(DartType r, DartType s) {
+  bool isAssignable(ResolutionDartType r, ResolutionDartType s) {
     return subtypeVisitor.isAssignable(r, s);
   }
 
@@ -1357,13 +1410,13 @@ class Types implements DartTypes {
   static const int MAYBE_SUBTYPE = 0;
   static const int NOT_SUBTYPE = -1;
 
-  int computeSubtypeRelation(DartType t, DartType s) {
+  int computeSubtypeRelation(ResolutionDartType t, ResolutionDartType s) {
     // TODO(johnniwinther): Compute this directly in [isPotentialSubtype].
     if (isSubtype(t, s)) return IS_SUBTYPE;
     return isPotentialSubtype(t, s) ? MAYBE_SUBTYPE : NOT_SUBTYPE;
   }
 
-  bool isPotentialSubtype(DartType t, DartType s) {
+  bool isPotentialSubtype(ResolutionDartType t, ResolutionDartType s) {
     // TODO(johnniwinther): Return a set of variable points in the positive
     // cases.
     return potentialSubtypeVisitor.isSubtype(t, s);
@@ -1377,13 +1430,14 @@ class Types implements DartTypes {
   void checkTypeVariableBounds(
       GenericType type, CheckTypeVariableBound checkTypeVariableBound) {
     TypeDeclarationElement element = type.element;
-    List<DartType> typeArguments = type.typeArguments;
-    List<DartType> typeVariables = element.typeVariables;
+    List<ResolutionDartType> typeArguments = type.typeArguments;
+    List<ResolutionDartType> typeVariables = element.typeVariables;
     assert(typeVariables.length == typeArguments.length);
     for (int index = 0; index < typeArguments.length; index++) {
-      TypeVariableType typeVariable = typeVariables[index];
-      DartType bound = typeVariable.element.bound.substByContext(type);
-      DartType typeArgument = typeArguments[index];
+      ResolutionTypeVariableType typeVariable = typeVariables[index];
+      ResolutionDartType bound =
+          typeVariable.element.bound.substByContext(type);
+      ResolutionDartType typeArgument = typeArguments[index];
       checkTypeVariableBound(type, typeArgument, typeVariable, bound);
     }
   }
@@ -1394,12 +1448,13 @@ class Types implements DartTypes {
    * If no types are changed by the substitution, the [types] is returned
    * instead of a newly created list.
    */
-  static List<DartType> substTypes(List<DartType> types,
-      List<DartType> arguments, List<DartType> parameters) {
+  static List<ResolutionDartType> substTypes(List<ResolutionDartType> types,
+      List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     bool changed = false;
-    List<DartType> result = new List<DartType>.generate(types.length, (index) {
-      DartType type = types[index];
-      DartType argument = type.subst(arguments, parameters);
+    List<ResolutionDartType> result =
+        new List<ResolutionDartType>.generate(types.length, (index) {
+      ResolutionDartType type = types[index];
+      ResolutionDartType argument = type.subst(arguments, parameters);
       if (!changed && !identical(argument, type)) {
         changed = true;
       }
@@ -1413,9 +1468,9 @@ class Types implements DartTypes {
    * Returns the [ClassElement] which declares the type variables occurring in
    * [type], or [:null:] if [type] does not contain type variables.
    */
-  static ClassElement getClassContext(DartType type) {
+  static ClassElement getClassContext(ResolutionDartType type) {
     ClassElement contextClass;
-    type.forEachTypeVariable((TypeVariableType typeVariable) {
+    type.forEachTypeVariable((ResolutionTypeVariableType typeVariable) {
       if (typeVariable.element.typeDeclaration is! ClassElement) return;
       contextClass = typeVariable.element.typeDeclaration;
     });
@@ -1449,7 +1504,7 @@ class Types implements DartTypes {
    * * malformed types
    * * statement types
    */
-  static int compare(DartType a, DartType b) {
+  static int compare(ResolutionDartType a, ResolutionDartType b) {
     if (a == b) return 0;
     if (a.isVoid) {
       // [b] is not void => a < b.
@@ -1465,7 +1520,7 @@ class Types implements DartTypes {
       // [a] is not dynamic => a > b.
       return 1;
     }
-    bool isDefinedByDeclaration(DartType type) {
+    bool isDefinedByDeclaration(ResolutionDartType type) {
       return type.isInterfaceType || type.isTypedef || type.isTypeVariable;
     }
 
@@ -1498,8 +1553,8 @@ class Types implements DartTypes {
     }
     if (a.isFunctionType) {
       if (b.isFunctionType) {
-        FunctionType aFunc = a;
-        FunctionType bFunc = b;
+        ResolutionFunctionType aFunc = a;
+        ResolutionFunctionType bFunc = b;
         int result = compare(aFunc.returnType, bFunc.returnType);
         if (result != 0) return result;
         result = compareList(aFunc.parameterTypes, bFunc.parameterTypes);
@@ -1537,7 +1592,8 @@ class Types implements DartTypes {
     return Elements.compareByPosition(a.element, b.element);
   }
 
-  static int compareList(List<DartType> a, List<DartType> b) {
+  static int compareList(
+      List<ResolutionDartType> a, List<ResolutionDartType> b) {
     for (int index = 0; index < min(a.length, b.length); index++) {
       int result = compare(a[index], b[index]);
       if (result != 0) return result;
@@ -1550,18 +1606,19 @@ class Types implements DartTypes {
     return 0;
   }
 
-  static List<DartType> sorted(Iterable<DartType> types) {
+  static List<ResolutionDartType> sorted(Iterable<ResolutionDartType> types) {
     return types.toList()..sort(compare);
   }
 
   /// Computes the least upper bound of two interface types [a] and [b].
-  InterfaceType computeLeastUpperBoundInterfaces(
-      InterfaceType a, InterfaceType b) {
+  ResolutionInterfaceType computeLeastUpperBoundInterfaces(
+      ResolutionInterfaceType a, ResolutionInterfaceType b) {
     /// Returns the set of supertypes of [type] at depth [depth].
-    Set<DartType> getSupertypesAtDepth(InterfaceType type, int depth) {
+    Set<ResolutionDartType> getSupertypesAtDepth(
+        ResolutionInterfaceType type, int depth) {
       OrderedTypeSet types = type.element.allSupertypesAndSelf;
-      Set<DartType> set = new Set<DartType>();
-      types.forEach(depth, (DartType supertype) {
+      Set<ResolutionDartType> set = new Set<ResolutionDartType>();
+      types.forEach(depth, (ResolutionDartType supertype) {
         set.add(supertype.substByContext(type));
       });
       return set;
@@ -1571,9 +1628,9 @@ class Types implements DartTypes {
     ClassElement bClass = b.element;
     int maxCommonDepth = min(aClass.hierarchyDepth, bClass.hierarchyDepth);
     for (int depth = maxCommonDepth; depth >= 0; depth--) {
-      Set<DartType> aTypeSet = getSupertypesAtDepth(a, depth);
-      Set<DartType> bTypeSet = getSupertypesAtDepth(b, depth);
-      Set<DartType> intersection = aTypeSet..retainAll(bTypeSet);
+      Set<ResolutionDartType> aTypeSet = getSupertypesAtDepth(a, depth);
+      Set<ResolutionDartType> bTypeSet = getSupertypesAtDepth(b, depth);
+      Set<ResolutionDartType> intersection = aTypeSet..retainAll(bTypeSet);
       if (intersection.length == 1) {
         return intersection.first;
       }
@@ -1586,11 +1643,11 @@ class Types implements DartTypes {
 
   /// Computes the least upper bound of the types in the longest prefix of [a]
   /// and [b].
-  List<DartType> computeLeastUpperBoundsTypes(
-      List<DartType> a, List<DartType> b) {
-    if (a.isEmpty || b.isEmpty) return const <DartType>[];
+  List<ResolutionDartType> computeLeastUpperBoundsTypes(
+      List<ResolutionDartType> a, List<ResolutionDartType> b) {
+    if (a.isEmpty || b.isEmpty) return const <ResolutionDartType>[];
     int prefixLength = min(a.length, b.length);
-    List<DartType> types = new List<DartType>(prefixLength);
+    List<ResolutionDartType> types = new List<ResolutionDartType>(prefixLength);
     for (int index = 0; index < prefixLength; index++) {
       types[index] = computeLeastUpperBound(a[index], b[index]);
     }
@@ -1608,21 +1665,24 @@ class Types implements DartTypes {
   /// bound of the longest common prefix of the optional parameters of [a] and
   /// [b], and the named parameters are the least upper bound of those common to
   /// [a] and [b].
-  DartType computeLeastUpperBoundFunctionTypes(FunctionType a, FunctionType b) {
+  ResolutionDartType computeLeastUpperBoundFunctionTypes(
+      ResolutionFunctionType a, ResolutionFunctionType b) {
     if (a.parameterTypes.length != b.parameterTypes.length) {
       return commonElements.functionType;
     }
-    DartType returnType = computeLeastUpperBound(a.returnType, b.returnType);
-    List<DartType> parameterTypes =
+    ResolutionDartType returnType =
+        computeLeastUpperBound(a.returnType, b.returnType);
+    List<ResolutionDartType> parameterTypes =
         computeLeastUpperBoundsTypes(a.parameterTypes, b.parameterTypes);
-    List<DartType> optionalParameterTypes = computeLeastUpperBoundsTypes(
-        a.optionalParameterTypes, b.optionalParameterTypes);
+    List<ResolutionDartType> optionalParameterTypes =
+        computeLeastUpperBoundsTypes(
+            a.optionalParameterTypes, b.optionalParameterTypes);
     List<String> namedParameters = <String>[];
     List<String> aNamedParameters = a.namedParameters;
     List<String> bNamedParameters = b.namedParameters;
-    List<DartType> namedParameterTypes = <DartType>[];
-    List<DartType> aNamedParameterTypes = a.namedParameterTypes;
-    List<DartType> bNamedParameterTypes = b.namedParameterTypes;
+    List<ResolutionDartType> namedParameterTypes = <ResolutionDartType>[];
+    List<ResolutionDartType> aNamedParameterTypes = a.namedParameterTypes;
+    List<ResolutionDartType> bNamedParameterTypes = b.namedParameterTypes;
     int aIndex = 0;
     int bIndex = 0;
     while (
@@ -1642,7 +1702,7 @@ class Types implements DartTypes {
         bIndex++;
       }
     }
-    return new FunctionType.synthesized(returnType, parameterTypes,
+    return new ResolutionFunctionType.synthesized(returnType, parameterTypes,
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
@@ -1650,8 +1710,9 @@ class Types implements DartTypes {
   /// type variable. The least upper bound of a type variable is defined in
   /// terms of its bound, but to ensure reflexivity we need to check for common
   /// bounds transitively.
-  DartType computeLeastUpperBoundTypeVariableTypes(DartType a, DartType b) {
-    Set<DartType> typeVariableBounds = new Set<DartType>();
+  ResolutionDartType computeLeastUpperBoundTypeVariableTypes(
+      ResolutionDartType a, ResolutionDartType b) {
+    Set<ResolutionDartType> typeVariableBounds = new Set<ResolutionDartType>();
     while (a.isTypeVariable) {
       if (a == b) return a;
       typeVariableBounds.add(a);
@@ -1667,7 +1728,8 @@ class Types implements DartTypes {
   }
 
   /// Computes the least upper bound for [a] and [b].
-  DartType computeLeastUpperBound(DartType a, DartType b) {
+  ResolutionDartType computeLeastUpperBound(
+      ResolutionDartType a, ResolutionDartType b) {
     if (a == b) return a;
 
     if (a.isTypeVariable || b.isTypeVariable) {
@@ -1679,8 +1741,9 @@ class Types implements DartTypes {
     b.computeUnaliased(resolution);
     b = b.unaliased;
 
-    if (a.treatAsDynamic || b.treatAsDynamic) return const DynamicType();
-    if (a.isVoid || b.isVoid) return const VoidType();
+    if (a.treatAsDynamic || b.treatAsDynamic)
+      return const ResolutionDynamicType();
+    if (a.isVoid || b.isVoid) return const ResolutionVoidType();
 
     if (a.isFunctionType && b.isFunctionType) {
       return computeLeastUpperBoundFunctionTypes(a, b);
@@ -1696,7 +1759,7 @@ class Types implements DartTypes {
     if (a.isInterfaceType && b.isInterfaceType) {
       return computeLeastUpperBoundInterfaces(a, b);
     }
-    return const DynamicType();
+    return const ResolutionDynamicType();
   }
 
   /// Computes the unaliased type of the first non type variable bound of
@@ -1726,17 +1789,18 @@ class Types implements DartTypes {
   ///     unaliasedBound(U) = unaliasedBound(Baz) = ()->dynamic
   ///     unaliasedBound(X) = unaliasedBound(Y) = `Object`
   ///
-  static DartType computeUnaliasedBound(Resolution resolution, DartType type) {
-    DartType originalType = type;
+  static ResolutionDartType computeUnaliasedBound(
+      Resolution resolution, ResolutionDartType type) {
+    ResolutionDartType originalType = type;
     while (type.isTypeVariable) {
-      TypeVariableType variable = type;
+      ResolutionTypeVariableType variable = type;
       type = variable.element.bound;
       if (type == originalType) {
         type = resolution.commonElements.objectType;
       }
     }
     if (type.isMalformed) {
-      return const DynamicType();
+      return const ResolutionDynamicType();
     }
     type.computeUnaliased(resolution);
     return type.unaliased;
@@ -1769,8 +1833,8 @@ class Types implements DartTypes {
   /// When typechecking `o.foo` the interface type of the static type of `o` is
   /// used to lookup the existence and type of `foo`.
   ///
-  static InterfaceType computeInterfaceType(
-      Resolution resolution, DartType type) {
+  static ResolutionInterfaceType computeInterfaceType(
+      Resolution resolution, ResolutionDartType type) {
     type = computeUnaliasedBound(resolution, type);
     if (type.treatAsDynamic) {
       return null;
@@ -1792,8 +1856,8 @@ class Types implements DartTypes {
 class PotentialSubtypeVisitor extends SubtypeVisitor {
   PotentialSubtypeVisitor(Resolution resolution) : super(resolution);
 
-  bool isSubtype(DartType t, DartType s) {
-    if (t is TypeVariableType || s is TypeVariableType) {
+  bool isSubtype(ResolutionDartType t, ResolutionDartType s) {
+    if (t is ResolutionTypeVariableType || s is ResolutionTypeVariableType) {
       return true;
     }
     return super.isSubtype(t, s);
@@ -1807,9 +1871,10 @@ class PotentialSubtypeVisitor extends SubtypeVisitor {
 /// visited type by structurally matching it with the argument type. If the
 /// constraints are too complex or the two types are too different, `false`
 /// is returned. Otherwise, the [constraintMap] holds the valid constraints.
-class MoreSpecificSubtypeVisitor extends BaseDartTypeVisitor<bool, DartType> {
+class MoreSpecificSubtypeVisitor
+    extends BaseDartTypeVisitor<bool, ResolutionDartType> {
   final Types types;
-  Map<TypeVariableType, DartType> constraintMap;
+  Map<ResolutionTypeVariableType, ResolutionDartType> constraintMap;
 
   MoreSpecificSubtypeVisitor(this.types);
 
@@ -1818,30 +1883,31 @@ class MoreSpecificSubtypeVisitor extends BaseDartTypeVisitor<bool, DartType> {
   ///
   /// Note that this computation is a heuristic. It does not find a suggestion
   /// in all possible cases.
-  InterfaceType computeMoreSpecific(
-      ClassElement element, InterfaceType supertype) {
-    InterfaceType supertypeInstance =
+  ResolutionInterfaceType computeMoreSpecific(
+      ClassElement element, ResolutionInterfaceType supertype) {
+    ResolutionInterfaceType supertypeInstance =
         element.thisType.asInstanceOf(supertype.element);
     if (supertypeInstance == null) return null;
 
-    constraintMap = new Map<TypeVariableType, DartType>();
-    element.typeVariables.forEach((TypeVariableType typeVariable) {
-      constraintMap[typeVariable] = const DynamicType();
+    constraintMap = new Map<ResolutionTypeVariableType, ResolutionDartType>();
+    element.typeVariables.forEach((ResolutionTypeVariableType typeVariable) {
+      constraintMap[typeVariable] = const ResolutionDynamicType();
     });
     if (supertypeInstance.accept(this, supertype)) {
-      List<DartType> variables = element.typeVariables;
-      List<DartType> typeArguments = new List<DartType>.generate(
-          variables.length, (int index) => constraintMap[variables[index]]);
+      List<ResolutionDartType> variables = element.typeVariables;
+      List<ResolutionDartType> typeArguments =
+          new List<ResolutionDartType>.generate(
+              variables.length, (int index) => constraintMap[variables[index]]);
       return element.thisType.createInstantiation(typeArguments);
     }
     return null;
   }
 
-  bool visitType(DartType type, DartType argument) {
+  bool visitType(ResolutionDartType type, ResolutionDartType argument) {
     return types.isMoreSpecific(type, argument);
   }
 
-  bool visitTypes(List<DartType> a, List<DartType> b) {
+  bool visitTypes(List<ResolutionDartType> a, List<ResolutionDartType> b) {
     int prefixLength = min(a.length, b.length);
     for (int index = 0; index < prefixLength; index++) {
       if (!a[index].accept(this, b[index])) return false;
@@ -1849,14 +1915,17 @@ class MoreSpecificSubtypeVisitor extends BaseDartTypeVisitor<bool, DartType> {
     return prefixLength == a.length && a.length == b.length;
   }
 
-  bool visitTypeVariableType(TypeVariableType type, DartType argument) {
-    DartType constraint = types.getMostSpecific(constraintMap[type], argument);
+  bool visitTypeVariableType(
+      ResolutionTypeVariableType type, ResolutionDartType argument) {
+    ResolutionDartType constraint =
+        types.getMostSpecific(constraintMap[type], argument);
     constraintMap[type] = constraint;
     return constraint != null;
   }
 
-  bool visitFunctionType(FunctionType type, DartType argument) {
-    if (argument is FunctionType) {
+  bool visitFunctionType(
+      ResolutionFunctionType type, ResolutionDartType argument) {
+    if (argument is ResolutionFunctionType) {
       if (type.parameterTypes.length != argument.parameterTypes.length) {
         return false;
       }
@@ -1881,7 +1950,7 @@ class MoreSpecificSubtypeVisitor extends BaseDartTypeVisitor<bool, DartType> {
     return false;
   }
 
-  bool visitGenericType(GenericType type, DartType argument) {
+  bool visitGenericType(GenericType type, ResolutionDartType argument) {
     if (argument is GenericType) {
       if (type.element != argument.element) return false;
       return visitTypes(type.typeArguments, argument.typeArguments);
@@ -1899,7 +1968,7 @@ class TypeDeclarationFormatter extends BaseDartTypeVisitor<dynamic, String> {
 
   /// Creates textual representation of [type] as if a member by the [name] were
   /// declared. For instance 'String foo' for `format(String, 'foo')`.
-  String format(DartType type, String name) {
+  String format(ResolutionDartType type, String name) {
     sb = new StringBuffer();
     usedNames = new Set<String>();
     type.accept(this, name);
@@ -1921,13 +1990,13 @@ class TypeDeclarationFormatter extends BaseDartTypeVisitor<dynamic, String> {
     return proposal;
   }
 
-  void visit(DartType type, [_]) {
+  void visit(ResolutionDartType type, [_]) {
     type.accept(this, null);
   }
 
-  void visitTypes(List<DartType> types, String prefix) {
+  void visitTypes(List<ResolutionDartType> types, String prefix) {
     bool needsComma = false;
-    for (DartType type in types) {
+    for (ResolutionDartType type in types) {
       if (needsComma) {
         sb.write(', ');
       }
@@ -1936,7 +2005,7 @@ class TypeDeclarationFormatter extends BaseDartTypeVisitor<dynamic, String> {
     }
   }
 
-  void visitType(DartType type, String name) {
+  void visitType(ResolutionDartType type, String name) {
     if (name == null) {
       sb.write(type);
     } else {
@@ -1957,7 +2026,7 @@ class TypeDeclarationFormatter extends BaseDartTypeVisitor<dynamic, String> {
     }
   }
 
-  void visitFunctionType(FunctionType type, String name) {
+  void visitFunctionType(ResolutionFunctionType type, String name) {
     visit(type.returnType);
     sb.write(' ');
     if (name != null) {
@@ -1983,7 +2052,7 @@ class TypeDeclarationFormatter extends BaseDartTypeVisitor<dynamic, String> {
       }
       sb.write('{');
       List<String> namedParameters = type.namedParameters;
-      List<DartType> namedParameterTypes = type.namedParameterTypes;
+      List<ResolutionDartType> namedParameterTypes = type.namedParameterTypes;
       needsComma = false;
       for (int index = 0; index < namedParameters.length; index++) {
         if (needsComma) {

@@ -66,7 +66,7 @@ class VariableDefinitionScope extends NestedScope {
 /// available, but where locally declared and inherited members are not
 /// available.
 abstract class TypeVariablesScope extends NestedScope {
-  List<DartType> get typeVariables;
+  List<ResolutionDartType> get typeVariables;
 
   TypeVariablesScope(Scope parent) : super(parent) {
     assert(parent != null);
@@ -77,7 +77,7 @@ abstract class TypeVariablesScope extends NestedScope {
   }
 
   Element lookupTypeVariable(String name) {
-    for (TypeVariableType type in typeVariables) {
+    for (ResolutionTypeVariableType type in typeVariables) {
       if (type.name == name) {
         return type.element;
       }
@@ -99,7 +99,7 @@ class TypeDeclarationScope extends TypeVariablesScope {
   final GenericElement element;
 
   @override
-  List<DartType> get typeVariables => element.typeVariables;
+  List<ResolutionDartType> get typeVariables => element.typeVariables;
 
   TypeDeclarationScope(Scope parent, this.element) : super(parent);
 

@@ -29,7 +29,7 @@ import 'behavior.dart';
  */
 class NativeEnqueuer {
   /// Called when a [type] has been instantiated natively.
-  void onInstantiatedType(InterfaceType type) {}
+  void onInstantiatedType(ResolutionInterfaceType type) {}
 
   /// Initial entry point to native enqueuer.
   WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) =>
@@ -99,7 +99,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   DiagnosticReporter get reporter => compiler.reporter;
   CommonElements get commonElements => compiler.commonElements;
 
-  void onInstantiatedType(InterfaceType type) {
+  void onInstantiatedType(ResolutionInterfaceType type) {
     if (_unusedClasses.remove(type.element)) {
       _registeredClasses.add(type.element);
     }
@@ -422,7 +422,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void _processNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior behavior, cause) {
-    void registerInstantiation(InterfaceType type) {
+    void registerInstantiation(ResolutionInterfaceType type) {
       impactBuilder.registerTypeUse(new TypeUse.nativeInstantiation(type));
     }
 
@@ -435,7 +435,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         }
         continue;
       }
-      if (type is InterfaceType) {
+      if (type is ResolutionInterfaceType) {
         if (type == commonElements.intType) {
           registerInstantiation(type);
         } else if (type == commonElements.doubleType) {
@@ -462,14 +462,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         // actual implementation classes such as `JSArray` et al.
         matchingClasses
             .addAll(_findUnusedClassesMatching((ClassElement nativeClass) {
-          InterfaceType nativeType = nativeClass.thisType;
-          InterfaceType specType = type.element.thisType;
+          ResolutionInterfaceType nativeType = nativeClass.thisType;
+          ResolutionInterfaceType specType = type.element.thisType;
           return compiler.types.isSubtype(nativeType, specType);
         }));
       } else if (type.isDynamic) {
         matchingClasses.addAll(_unusedClasses);
       } else {
-        assert(type is VoidType);
+        assert(type is ResolutionVoidType);
       }
     }
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {
@@ -635,7 +635,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     // be instantiated (abstract or simply unused).
     _addSubtypes(cls.superclass, emitter);
 
-    for (DartType type in cls.allSupertypes) {
+    for (ResolutionDartType type in cls.allSupertypes) {
       List<Element> subtypes =
           emitter.subtypes.putIfAbsent(type.element, () => <ClassElement>[]);
       subtypes.add(cls);

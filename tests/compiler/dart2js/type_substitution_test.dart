@@ -10,7 +10,7 @@ import 'package:compiler/src/elements/resolution_types.dart';
 import 'compiler_helper.dart';
 import 'type_test_helper.dart';
 
-DartType getType(compiler, String name) {
+ResolutionDartType getType(compiler, String name) {
   var clazz = findElement(compiler, "Class");
   clazz.ensureResolved(compiler.resolution);
   var element = clazz.buildScope().lookup(name);
@@ -57,25 +57,26 @@ void testAsInstanceOf() {
         ClassElement E = env.getElement("E");
         ClassElement F = env.getElement("F");
 
-        DartType numType = env['num'];
-        DartType intType = env['int'];
-        DartType stringType = env['String'];
+        ResolutionDartType numType = env['num'];
+        ResolutionDartType intType = env['int'];
+        ResolutionDartType stringType = env['String'];
 
-        InterfaceType C_int = instantiate(C, [intType]);
+        ResolutionInterfaceType C_int = instantiate(C, [intType]);
         Expect.equals(instantiate(C, [intType]), C_int);
         Expect.equals(instantiate(A, [intType]), C_int.asInstanceOf(A));
 
-        InterfaceType D_int = instantiate(D, [stringType]);
+        ResolutionInterfaceType D_int = instantiate(D, [stringType]);
         Expect.equals(instantiate(A, [intType]), D_int.asInstanceOf(A));
 
-        InterfaceType E_int = instantiate(E, [intType]);
+        ResolutionInterfaceType E_int = instantiate(E, [intType]);
         Expect.equals(
             instantiate(A, [
               instantiate(A, [intType])
             ]),
             E_int.asInstanceOf(A));
 
-        InterfaceType F_int_string = instantiate(F, [intType, stringType]);
+        ResolutionInterfaceType F_int_string =
+            instantiate(F, [intType, stringType]);
         Expect.equals(
             instantiate(B, [
               instantiate(F, [intType, stringType])
@@ -98,9 +99,9 @@ void testAsInstanceOf() {
  */
 void testSubstitution(
     compiler, arguments, parameters, String name1, String name2) {
-  DartType type1 = getType(compiler, name1);
-  DartType type2 = getType(compiler, name2);
-  DartType subst = type1.subst(arguments, parameters);
+  ResolutionDartType type1 = getType(compiler, name1);
+  ResolutionDartType type2 = getType(compiler, name2);
+  ResolutionDartType subst = type1.subst(arguments, parameters);
   Expect.equals(
       type2, subst, "$type1.subst($arguments,$parameters)=$subst != $type2");
 }
@@ -161,29 +162,33 @@ void testTypeSubstitution() {
       """).then((env) {
         var compiler = env.compiler;
 
-        InterfaceType Class_T_S = env["Class"];
+        ResolutionInterfaceType Class_T_S = env["Class"];
         Expect.isNotNull(Class_T_S);
-        Expect.identical(Class_T_S.kind, TypeKind.INTERFACE);
+        Expect.identical(Class_T_S.kind, ResolutionTypeKind.INTERFACE);
         Expect.equals(2, Class_T_S.typeArguments.length);
 
-        DartType T = Class_T_S.typeArguments[0];
+        ResolutionDartType T = Class_T_S.typeArguments[0];
         Expect.isNotNull(T);
-        Expect.identical(T.kind, TypeKind.TYPE_VARIABLE);
+        Expect.identical(T.kind, ResolutionTypeKind.TYPE_VARIABLE);
 
-        DartType S = Class_T_S.typeArguments[1];
+        ResolutionDartType S = Class_T_S.typeArguments[1];
         Expect.isNotNull(S);
-        Expect.identical(S.kind, TypeKind.TYPE_VARIABLE);
+        Expect.identical(S.kind, ResolutionTypeKind.TYPE_VARIABLE);
 
-        DartType intType = env['int']; //getType(compiler, "int1");
+        ResolutionDartType intType = env['int']; //getType(compiler, "int1");
         Expect.isNotNull(intType);
-        Expect.identical(intType.kind, TypeKind.INTERFACE);
+        Expect.identical(intType.kind, ResolutionTypeKind.INTERFACE);
 
-        DartType StringType = env['String']; //getType(compiler, "String1");
+        ResolutionDartType StringType =
+            env['String']; //getType(compiler, "String1");
         Expect.isNotNull(StringType);
-        Expect.identical(StringType.kind, TypeKind.INTERFACE);
+        Expect.identical(StringType.kind, ResolutionTypeKind.INTERFACE);
 
-        List<DartType> parameters = <DartType>[T, S];
-        List<DartType> arguments = <DartType>[intType, StringType];
+        List<ResolutionDartType> parameters = <ResolutionDartType>[T, S];
+        List<ResolutionDartType> arguments = <ResolutionDartType>[
+          intType,
+          StringType
+        ];
 
         // TODO(johnniwinther): Create types directly from strings to improve test
         // readability.
@@ -231,19 +236,21 @@ void testTypeSubstitution() {
             compiler, arguments, parameters, "Typedef1e", "Typedef2e");
 
         // Substitution in unalias.
-        DartType Typedef2_int_String = getType(compiler, "Typedef2a");
+        ResolutionDartType Typedef2_int_String = getType(compiler, "Typedef2a");
         Expect.isNotNull(Typedef2_int_String);
-        DartType Function_int_String = getType(compiler, "Function2b");
+        ResolutionDartType Function_int_String =
+            getType(compiler, "Function2b");
         Expect.isNotNull(Function_int_String);
-        DartType unalias1 = Typedef2_int_String.unaliased;
+        ResolutionDartType unalias1 = Typedef2_int_String.unaliased;
         Expect.equals(Function_int_String, unalias1,
             '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
 
-        DartType Typedef1 = getType(compiler, "Typedef1c");
+        ResolutionDartType Typedef1 = getType(compiler, "Typedef1c");
         Expect.isNotNull(Typedef1);
-        DartType Function_dynamic_dynamic = getType(compiler, "Function1c");
+        ResolutionDartType Function_dynamic_dynamic =
+            getType(compiler, "Function1c");
         Expect.isNotNull(Function_dynamic_dynamic);
-        DartType unalias2 = Typedef1.unaliased;
+        ResolutionDartType unalias2 = Typedef1.unaliased;
         Expect.equals(Function_dynamic_dynamic, unalias2,
             '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
       }));

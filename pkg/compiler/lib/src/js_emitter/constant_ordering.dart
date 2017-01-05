@@ -51,7 +51,7 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     return Elements.compareByPosition(a, b);
   }
 
-  static int compareDartTypes(DartType a, DartType b) {
+  static int compareDartTypes(ResolutionDartType a, ResolutionDartType b) {
     if (a == b) return 0;
     int r = a.kind.index.compareTo(b.kind.index);
     if (r != 0) return r;

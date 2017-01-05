@@ -169,13 +169,13 @@ class CompilationDeserializerSystem extends ResolutionDeserializerSystem {
       return _resolutionImpactDeserializer.registerResolutionImpact(constructor,
           () {
         List<TypeUse> typeUses = <TypeUse>[];
-        void addCheckedModeCheck(DartType type) {
+        void addCheckedModeCheck(ResolutionDartType type) {
           if (!type.isDynamic) {
             typeUses.add(new TypeUse.checkedModeCheck(type));
           }
         }
 
-        FunctionType type = constructor.type;
+        ResolutionFunctionType type = constructor.type;
         // TODO(johnniwinther): Remove this substitution when synthesized
         // constructors handle type variables correctly.
         type = type.substByContext(constructor.enclosingClass

@@ -86,7 +86,7 @@ class CustomElementsAnalysis {
     joinFor(forResolution: forResolution).instantiatedClasses.add(classElement);
   }
 
-  void registerTypeLiteral(DartType type) {
+  void registerTypeLiteral(ResolutionDartType type) {
     if (type.isInterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
@@ -189,7 +189,7 @@ class CustomElementsAnalysisJoin {
   }
 
   TypeConstantValue makeTypeConstant(ClassElement element) {
-    DartType elementType = element.rawType;
+    ResolutionDartType elementType = element.rawType;
     return backend.constantSystem.createType(compiler, elementType);
   }
 

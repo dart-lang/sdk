@@ -25,7 +25,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   DiagnosticReporter reporter = compiler.reporter;
 
   HInstruction convertDartClosure(
-      ParameterElement parameter, FunctionType type) {
+      ParameterElement parameter, ResolutionFunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     ConstantValue arityConstant =
         builder.constantSystem.createInt(type.computeArity());
@@ -73,9 +73,9 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((ParameterElement parameter) {
-      DartType type = parameter.type.unaliased;
+      ResolutionDartType type = parameter.type.unaliased;
       HInstruction input = builder.localsHandler.readLocal(parameter);
-      if (type is FunctionType) {
+      if (type is ResolutionFunctionType) {
         // The parameter type is a function type either directly or through
         // typedef(s).
         input = convertDartClosure(parameter, type);

@@ -4,9 +4,9 @@
 
 part of masks;
 
-/// An implementation of a [UniverseSelectorConstraints] that is consists if an only
-/// increasing set of [TypeMask]s, that is, once a mask is added it cannot be
-/// removed.
+/// An implementation of a [UniverseSelectorConstraints] that is consists if an
+/// only increasing set of [TypeMask]s, that is, once a mask is added it cannot
+/// be removed.
 class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   bool isAll = false;
   Set<TypeMask> _masks;

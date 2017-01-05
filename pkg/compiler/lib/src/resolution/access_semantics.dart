@@ -477,7 +477,7 @@ class ConstructorAccessSemantics {
   final Element element;
 
   /// The type on which the constructor is invoked.
-  final DartType type;
+  final ResolutionDartType type;
 
   ConstructorAccessSemantics(this.kind, this.element, this.type);
 

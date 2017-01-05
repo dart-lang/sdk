@@ -16,7 +16,8 @@ import 'constants/values.dart'
         ListConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import 'elements/resolution_types.dart' show DartType, InterfaceType;
+import 'elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import 'elements/elements.dart'
     show
         ClassElement,
@@ -414,14 +415,14 @@ class MirrorUsageBuilder {
   }
 
   /// Find the first non-implementation interface of constant.
-  DartType apiTypeOf(ConstantValue constant) {
-    DartType type = constant.getType(compiler.commonElements);
+  ResolutionDartType apiTypeOf(ConstantValue constant) {
+    ResolutionDartType type = constant.getType(compiler.commonElements);
     LibraryElement library = type.element.library;
     if (type.isInterfaceType && library.isInternalLibrary) {
-      InterfaceType interface = type;
+      ResolutionInterfaceType interface = type;
       ClassElement cls = type.element;
       cls.ensureResolved(compiler.resolution);
-      for (DartType supertype in cls.allSupertypes) {
+      for (ResolutionDartType supertype in cls.allSupertypes) {
         if (supertype.isInterfaceType &&
             !supertype.element.library.isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);
@@ -445,8 +446,8 @@ class MirrorUsageBuilder {
     }
     List<Element> result = <Element>[];
     for (var entry in list) {
-      if (entry is DartType) {
-        DartType type = entry;
+      if (entry is ResolutionDartType) {
+        ResolutionDartType type = entry;
         result.add(type.element);
       } else {
         String string = entry;

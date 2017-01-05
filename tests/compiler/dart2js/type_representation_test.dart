@@ -46,7 +46,7 @@ void testTypeRepresentations() {
         TypeRepresentationGenerator typeRepresentation =
             new TypeRepresentationGenerator(env.compiler);
 
-        Expression onVariable(TypeVariableType variable) {
+        Expression onVariable(ResolutionTypeVariableType variable) {
           return new VariableUse(variable.name);
         }
 
@@ -54,7 +54,7 @@ void testTypeRepresentations() {
           return prettyPrint(expression, env.compiler);
         }
 
-        void expect(DartType type, String expectedRepresentation,
+        void expect(ResolutionDartType type, String expectedRepresentation,
             [String expectedTypedefRepresentation]) {
           bool encodeTypedefName = false;
           Expression expression = typeRepresentation.getTypeRepresentation(
@@ -86,25 +86,25 @@ void testTypeRepresentations() {
         String typedefTag = backend.namer.typedefTag;
 
         ClassElement List_ = env.getElement('List');
-        TypeVariableType List_E = List_.typeVariables[0];
+        ResolutionTypeVariableType List_E = List_.typeVariables[0];
         ClassElement Map_ = env.getElement('Map');
-        TypeVariableType Map_K = Map_.typeVariables[0];
-        TypeVariableType Map_V = Map_.typeVariables[1];
+        ResolutionTypeVariableType Map_K = Map_.typeVariables[0];
+        ResolutionTypeVariableType Map_V = Map_.typeVariables[1];
 
-        DartType Object_ = env['Object'];
-        DartType int_ = env['int'];
-        DartType String_ = env['String'];
-        DartType dynamic_ = env['dynamic'];
-        DartType Typedef_ = env['Typedef'];
-        DartType Typedef2_ = env['Typedef2'];
-        DartType Typedef3_ = env['Typedef3'];
-        DartType Typedef4_ = env['Typedef4'];
-        DartType Typedef5_ = env['Typedef5'];
-        DartType Typedef6_ = env['Typedef6'];
-        DartType Typedef7_ = env['Typedef7'];
-        DartType Typedef8_ = env['Typedef8'];
-        DartType Typedef9_ = env['Typedef9'];
-        DartType Typedef10_ = env['Typedef10'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType int_ = env['int'];
+        ResolutionDartType String_ = env['String'];
+        ResolutionDartType dynamic_ = env['dynamic'];
+        ResolutionDartType Typedef_ = env['Typedef'];
+        ResolutionDartType Typedef2_ = env['Typedef2'];
+        ResolutionDartType Typedef3_ = env['Typedef3'];
+        ResolutionDartType Typedef4_ = env['Typedef4'];
+        ResolutionDartType Typedef5_ = env['Typedef5'];
+        ResolutionDartType Typedef6_ = env['Typedef6'];
+        ResolutionDartType Typedef7_ = env['Typedef7'];
+        ResolutionDartType Typedef8_ = env['Typedef8'];
+        ResolutionDartType Typedef9_ = env['Typedef9'];
+        ResolutionDartType Typedef10_ = env['Typedef10'];
 
         String List_rep = getJsName(List_);
         String List_E_rep = stringify(onVariable(List_E));

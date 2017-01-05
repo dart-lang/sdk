@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import "../elements/resolution_types.dart" show DartType;
+import "../elements/resolution_types.dart" show ResolutionDartType;
 import "../elements/elements.dart" show Element, ErroneousElement;
 import "../resolution/operators.dart"
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
@@ -100,7 +100,7 @@ abstract class KernelError {
   ir.Expression errorNonConstantConstructorInvoke(
       NewExpression node,
       Element element,
-      DartType type,
+      ResolutionDartType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {

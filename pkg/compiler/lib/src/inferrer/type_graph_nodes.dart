@@ -11,7 +11,7 @@ import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/resolution_types.dart'
-    show DartType, FunctionType, TypeKind;
+    show ResolutionDartType, ResolutionFunctionType, ResolutionTypeKind;
 import '../elements/elements.dart';
 import '../js_backend/backend.dart';
 import '../tree/dartstring.dart' show DartString;
@@ -483,7 +483,7 @@ class MemberTypeInformation extends ElementTypeInformation
             element.isConstructor);
         TypedElement typedElement = element;
         var elementType = typedElement.type;
-        if (elementType.kind != TypeKind.FUNCTION) {
+        if (elementType.kind != ResolutionTypeKind.FUNCTION) {
           return safeType(inferrer);
         } else {
           return inferrer
@@ -528,7 +528,7 @@ class MemberTypeInformation extends ElementTypeInformation
     assert(
         element.isFunction || element.isGetter || element.isFactoryConstructor);
 
-    FunctionType type = element.type;
+    ResolutionFunctionType type = element.type;
     return _narrowType(inferrer.closedWorld, mask, type.returnType);
   }
 
@@ -1726,7 +1726,7 @@ abstract class TypeInformationVisitor<T> {
 }
 
 TypeMask _narrowType(
-    ClosedWorld closedWorld, TypeMask type, DartType annotation,
+    ClosedWorld closedWorld, TypeMask type, ResolutionDartType annotation,
     {bool isNullable: true}) {
   if (annotation.treatAsDynamic) return type;
   if (annotation.isObject) return type;

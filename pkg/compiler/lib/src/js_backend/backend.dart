@@ -1071,7 +1071,7 @@ class JavaScriptBackend extends Backend {
 
   void computeImpactForCompileTimeConstantInternal(ConstantValue constant,
       WorldImpactBuilder impactBuilder, bool isForResolution) {
-    DartType type = constant.getType(compiler.commonElements);
+    ResolutionDartType type = constant.getType(compiler.commonElements);
     computeImpactForInstantiatedConstantType(type, impactBuilder);
 
     if (constant.isFunction) {
@@ -1098,10 +1098,10 @@ class JavaScriptBackend extends Backend {
   }
 
   void computeImpactForInstantiatedConstantType(
-      DartType type, WorldImpactBuilder impactBuilder) {
-    DartType instantiatedType =
+      ResolutionDartType type, WorldImpactBuilder impactBuilder) {
+    ResolutionDartType instantiatedType =
         type.isFunctionType ? commonElements.functionType : type;
-    if (type is InterfaceType) {
+    if (type is ResolutionInterfaceType) {
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(instantiatedType));
       if (classNeedsRtiField(type.element)) {
@@ -1259,7 +1259,7 @@ class JavaScriptBackend extends Backend {
     return impactBuilder;
   }
 
-  void registerInstantiatedType(InterfaceType type) {
+  void registerInstantiatedType(ResolutionInterfaceType type) {
     lookupMapAnalysis.registerInstantiatedType(type);
   }
 
@@ -1343,7 +1343,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType typeArgument, DartType bound) {
+      ResolutionDartType typeArgument, ResolutionDartType bound) {
     rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
   }
 
@@ -1376,7 +1376,7 @@ class JavaScriptBackend extends Backend {
         ConstantExpression constant = resolver.getConstant(argument);
         if (constant != null && constant.kind == ConstantExpressionKind.TYPE) {
           TypeConstantExpression typeConstant = constant;
-          if (typeConstant.type is InterfaceType) {
+          if (typeConstant.type is ResolutionInterfaceType) {
             resolver.registerInstantiatedType(typeConstant.type);
             // No native behavior for this call.
             return null;
@@ -1592,7 +1592,8 @@ class JavaScriptBackend extends Backend {
    * the resolver with interface types (int, String, ...), and by the SSA
    * backend with implementation types (JSInt, JSString, ...).
    */
-  CheckedModeHelper getCheckedModeHelper(DartType type, {bool typeCast}) {
+  CheckedModeHelper getCheckedModeHelper(ResolutionDartType type,
+      {bool typeCast}) {
     return getCheckedModeHelperInternal(type,
         typeCast: typeCast, nativeCheckOnly: false);
   }
@@ -1602,7 +1603,8 @@ class JavaScriptBackend extends Backend {
    * check/type cast on [type] at runtime. If no native helper exists for
    * [type], [:null:] is returned.
    */
-  CheckedModeHelper getNativeCheckedModeHelper(DartType type, {bool typeCast}) {
+  CheckedModeHelper getNativeCheckedModeHelper(ResolutionDartType type,
+      {bool typeCast}) {
     return getCheckedModeHelperInternal(type,
         typeCast: typeCast, nativeCheckOnly: true);
   }
@@ -1611,7 +1613,7 @@ class JavaScriptBackend extends Backend {
    * Returns the checked mode helper for the type check/type cast for [type]. If
    * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
    */
-  CheckedModeHelper getCheckedModeHelperInternal(DartType type,
+  CheckedModeHelper getCheckedModeHelperInternal(ResolutionDartType type,
       {bool typeCast, bool nativeCheckOnly}) {
     String name = getCheckedModeHelperNameInternal(type,
         typeCast: typeCast, nativeCheckOnly: nativeCheckOnly);
@@ -1621,9 +1623,9 @@ class JavaScriptBackend extends Backend {
     return helper;
   }
 
-  String getCheckedModeHelperNameInternal(DartType type,
+  String getCheckedModeHelperNameInternal(ResolutionDartType type,
       {bool typeCast, bool nativeCheckOnly}) {
-    assert(type.kind != TypeKind.TYPEDEF);
+    assert(type.kind != ResolutionTypeKind.TYPEDEF);
     if (type.isMalformed) {
       // The same error is thrown for type test and type cast of a malformed
       // type so we only need one check method.
@@ -1734,7 +1736,7 @@ class JavaScriptBackend extends Backend {
    * Returns [:true:] if the checking of [type] is performed directly on the
    * object and not on an interceptor.
    */
-  bool hasDirectCheckFor(DartType type) {
+  bool hasDirectCheckFor(ResolutionDartType type) {
     Element element = type.element;
     return element == commonElements.stringClass ||
         element == commonElements.boolClass ||
@@ -1748,7 +1750,7 @@ class JavaScriptBackend extends Backend {
         element == helpers.jsUnmodifiableArrayClass;
   }
 
-  bool mayGenerateInstanceofCheck(DartType type) {
+  bool mayGenerateInstanceofCheck(ResolutionDartType type) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.
 
@@ -2021,7 +2023,7 @@ class JavaScriptBackend extends Backend {
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
       if (value == null) continue;
-      DartType type = value.getType(compiler.commonElements);
+      ResolutionDartType type = value.getType(compiler.commonElements);
       if (metaTargetsUsed.contains(type.element)) return true;
     }
     return false;
@@ -2808,7 +2810,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     bool hasAsCast = false;
     bool hasTypeLiteral = false;
     for (TypeUse typeUse in worldImpact.typeUses) {
-      DartType type = typeUse.type;
+      ResolutionDartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
         case TypeUseKind.MIRROR_INSTANTIATION:
@@ -2975,7 +2977,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       assert(selector != null);
       worldImpact.registerDynamicUse(new DynamicUse(selector, null));
     }
-    for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
+    for (ResolutionInterfaceType instantiatedType
+        in backendImpact.instantiatedTypes) {
       backend.registerBackendUse(instantiatedType.element);
       worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
     }
@@ -3001,7 +3004,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   }
 
   /// Register [type] as required for the runtime type information system.
-  void registerRequiredType(DartType type) {
+  void registerRequiredType(ResolutionDartType type) {
     // If [argument] has type variables or is a type variable, this method
     // registers a RTI dependency between the class where the type variable is
     // defined (that is the enclosing class of the current element being
@@ -3014,7 +3017,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
-  void onIsCheck(DartType type, TransformedWorldImpact transformed) {
+  void onIsCheck(ResolutionDartType type, TransformedWorldImpact transformed) {
     registerRequiredType(type);
     type.computeUnaliased(backend.resolution);
     type = type.unaliased;
@@ -3040,7 +3043,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         }
       }
     }
-    if (type is FunctionType) {
+    if (type is ResolutionFunctionType) {
       registerBackendImpact(transformed, impacts.functionTypeCheck);
     }
     if (type.element != null && backend.isNative(type.element)) {
@@ -3048,7 +3051,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
   }
 
-  void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
+  void onIsCheckForCodegen(
+      ResolutionDartType type, TransformedWorldImpact transformed) {
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 
@@ -3091,7 +3095,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
 
     for (TypeUse typeUse in impact.typeUses) {
-      DartType type = typeUse.type;
+      ResolutionDartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
           backend.lookupMapAnalysis.registerInstantiatedType(type);
@@ -3108,7 +3112,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       backend.addCompileTimeConstantForEmission(constant);
     }
 
-    for (Pair<DartType, DartType> check
+    for (Pair<ResolutionDartType, ResolutionDartType> check
         in impact.typeVariableBoundsSubtypeChecks) {
       backend.registerTypeVariableBoundsSubtypeCheck(check.a, check.b);
     }

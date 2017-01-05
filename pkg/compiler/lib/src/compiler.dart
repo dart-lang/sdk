@@ -26,7 +26,11 @@ import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show CommonElements;
 import 'elements/resolution_types.dart'
-    show DartType, DynamicType, InterfaceType, Types;
+    show
+        ResolutionDartType,
+        ResolutionDynamicType,
+        ResolutionInterfaceType,
+        Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -1309,45 +1313,45 @@ class _CompilerCommonElements implements CommonElements {
       _nativeAnnotationClass ??= _findRequired(jsHelperLibrary, 'Native');
 
   @override
-  InterfaceType get objectType {
+  ResolutionInterfaceType get objectType {
     objectClass.ensureResolved(resolution);
     return objectClass.rawType;
   }
 
   @override
-  InterfaceType get boolType {
+  ResolutionInterfaceType get boolType {
     boolClass.ensureResolved(resolution);
     return boolClass.rawType;
   }
 
   @override
-  InterfaceType get doubleType {
+  ResolutionInterfaceType get doubleType {
     doubleClass.ensureResolved(resolution);
     return doubleClass.rawType;
   }
 
   @override
-  InterfaceType get functionType {
+  ResolutionInterfaceType get functionType {
     functionClass.ensureResolved(resolution);
     return functionClass.rawType;
   }
 
   @override
-  InterfaceType get intType {
+  ResolutionInterfaceType get intType {
     intClass.ensureResolved(resolution);
     return intClass.rawType;
   }
 
   @override
-  InterfaceType get resourceType {
+  ResolutionInterfaceType get resourceType {
     resourceClass.ensureResolved(resolution);
     return resourceClass.rawType;
   }
 
   @override
-  InterfaceType listType([DartType elementType]) {
+  ResolutionInterfaceType listType([ResolutionDartType elementType]) {
     listClass.ensureResolved(resolution);
-    InterfaceType type = listClass.rawType;
+    ResolutionInterfaceType type = listClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1355,59 +1359,60 @@ class _CompilerCommonElements implements CommonElements {
   }
 
   @override
-  InterfaceType mapType([DartType keyType, DartType valueType]) {
+  ResolutionInterfaceType mapType(
+      [ResolutionDartType keyType, ResolutionDartType valueType]) {
     mapClass.ensureResolved(resolution);
-    InterfaceType type = mapClass.rawType;
+    ResolutionInterfaceType type = mapClass.rawType;
     if (keyType == null && valueType == null) {
       return type;
     } else if (keyType == null) {
-      keyType = const DynamicType();
+      keyType = const ResolutionDynamicType();
     } else if (valueType == null) {
-      valueType = const DynamicType();
+      valueType = const ResolutionDynamicType();
     }
     return type.createInstantiation([keyType, valueType]);
   }
 
   @override
-  InterfaceType get nullType {
+  ResolutionInterfaceType get nullType {
     nullClass.ensureResolved(resolution);
     return nullClass.rawType;
   }
 
   @override
-  InterfaceType get numType {
+  ResolutionInterfaceType get numType {
     numClass.ensureResolved(resolution);
     return numClass.rawType;
   }
 
   @override
-  InterfaceType get stringType {
+  ResolutionInterfaceType get stringType {
     stringClass.ensureResolved(resolution);
     return stringClass.rawType;
   }
 
   @override
-  InterfaceType get symbolType {
+  ResolutionInterfaceType get symbolType {
     symbolClass.ensureResolved(resolution);
     return symbolClass.rawType;
   }
 
   @override
-  InterfaceType get typeType {
+  ResolutionInterfaceType get typeType {
     typeClass.ensureResolved(resolution);
     return typeClass.rawType;
   }
 
   @override
-  InterfaceType get stackTraceType {
+  ResolutionInterfaceType get stackTraceType {
     stackTraceClass.ensureResolved(resolution);
     return stackTraceClass.rawType;
   }
 
   @override
-  InterfaceType iterableType([DartType elementType]) {
+  ResolutionInterfaceType iterableType([ResolutionDartType elementType]) {
     iterableClass.ensureResolved(resolution);
-    InterfaceType type = iterableClass.rawType;
+    ResolutionInterfaceType type = iterableClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1415,9 +1420,9 @@ class _CompilerCommonElements implements CommonElements {
   }
 
   @override
-  InterfaceType futureType([DartType elementType]) {
+  ResolutionInterfaceType futureType([ResolutionDartType elementType]) {
     futureClass.ensureResolved(resolution);
-    InterfaceType type = futureClass.rawType;
+    ResolutionInterfaceType type = futureClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1425,9 +1430,9 @@ class _CompilerCommonElements implements CommonElements {
   }
 
   @override
-  InterfaceType streamType([DartType elementType]) {
+  ResolutionInterfaceType streamType([ResolutionDartType elementType]) {
     streamClass.ensureResolved(resolution);
-    InterfaceType type = streamClass.rawType;
+    ResolutionInterfaceType type = streamClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1983,7 +1988,8 @@ class CompilerResolution implements Resolution {
   }
 
   @override
-  DartType resolveTypeAnnotation(Element element, TypeAnnotation node) {
+  ResolutionDartType resolveTypeAnnotation(
+      Element element, TypeAnnotation node) {
     return _compiler.resolver.resolveTypeAnnotation(element, node);
   }
 

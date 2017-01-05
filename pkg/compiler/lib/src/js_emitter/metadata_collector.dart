@@ -130,8 +130,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   /// A map used to canonicalize the entries of types.
-  Map<OutputUnit, Map<DartType, _BoundMetadataEntry>> _typesMap =
-      <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
+  Map<OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>> _typesMap =
+      <OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>>{};
 
   // To support incremental compilation, we have to be able to eagerly emit
   // metadata and add metadata later on. We use the below two counters for
@@ -266,13 +266,15 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _addGlobalMetadata(_emitter.constantReference(constant));
   }
 
-  jsAst.Expression reifyType(DartType type, {ignoreTypeVariables: false}) {
+  jsAst.Expression reifyType(ResolutionDartType type,
+      {ignoreTypeVariables: false}) {
     return reifyTypeForOutputUnit(
         type, _compiler.deferredLoadTask.mainOutputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
   }
 
-  jsAst.Expression reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit,
+  jsAst.Expression reifyTypeForOutputUnit(
+      ResolutionDartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     return addTypeInOutputUnit(type, outputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
@@ -303,13 +305,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  jsAst.Expression _computeTypeRepresentation(DartType type,
+  jsAst.Expression _computeTypeRepresentation(ResolutionDartType type,
       {ignoreTypeVariables: false}) {
     jsAst.Expression representation =
         _backend.rtiEncoder.getTypeRepresentation(type, (variable) {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
       return _typeVariableHandler.reifyTypeVariable(variable.element);
-    }, (TypedefType typedef) {
+    }, (ResolutionTypedefType typedef) {
       return _backend.isAccessibleByReflection(typedef.element);
     });
 
@@ -323,10 +325,12 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return representation;
   }
 
-  jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit,
+  jsAst.Expression addTypeInOutputUnit(
+      ResolutionDartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     if (_typesMap[outputUnit] == null) {
-      _typesMap[outputUnit] = new Map<DartType, _BoundMetadataEntry>();
+      _typesMap[outputUnit] =
+          new Map<ResolutionDartType, _BoundMetadataEntry>();
     }
     return _typesMap[outputUnit].putIfAbsent(type, () {
       _BoundMetadataEntry result = new _BoundMetadataEntry(

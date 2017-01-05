@@ -101,13 +101,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// be null.
   ir.FunctionNode _targetFunction;
 
-  /// A stack of [DartType]s that have been seen during inlining of factory
-  /// constructors.  These types are preserved in [HInvokeStatic]s and
+  /// A stack of [ResolutionDartType]s that have been seen during inlining of
+  /// factory constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HCreate]s inside the inline code and registered during code generation
   /// for these nodes.
   // TODO(karlklose): consider removing this and keeping the (substituted) types
   // of the type variables in an environment (like the [LocalsHandler]).
-  final List<DartType> currentImplicitInstantiations = <DartType>[];
+  final List<ResolutionDartType> currentImplicitInstantiations =
+      <ResolutionDartType>[];
 
   HInstruction rethrowableException;
 
@@ -234,8 +235,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
             addParameter(typeParamElement, commonMasks.nonNullType);
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
-        var typeVariableType = clsElement.typeVariables
-            .firstWhere((TypeVariableType i) => i.name == typeParameter.name);
+        var typeVariableType = clsElement.typeVariables.firstWhere(
+            (ResolutionTypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
             localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
       });
@@ -276,7 +277,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         constructorArguments,
         new TypeMask.nonNullExact(
             astAdapter.getClass(constructor.enclosingClass), closedWorld),
-        instantiatedTypes: <DartType>[
+        instantiatedTypes: <ResolutionDartType>[
           astAdapter.getClass(constructor.enclosingClass).thisType
         ],
         hasRtiInput: false);
@@ -410,7 +411,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   HTypeConversion buildFunctionTypeConversion(
-      HInstruction original, DartType type, int kind) {
+      HInstruction original, ResolutionDartType type, int kind) {
     HInstruction reifiedType = buildFunctionType(type);
     return new HTypeConversion.viaMethodOnType(
         type, kind, original.instructionType, reifiedType, original);
@@ -429,13 +430,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
-  void addImplicitInstantiation(DartType type) {
+  void addImplicitInstantiation(ResolutionDartType type) {
     if (type != null) {
       currentImplicitInstantiations.add(type);
     }
   }
 
-  void removeImplicitInstantiation(DartType type) {
+  void removeImplicitInstantiation(ResolutionDartType type) {
     if (type != null) {
       currentImplicitInstantiations.removeLast();
     }
@@ -934,7 +935,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitAsExpression(ir.AsExpression asExpression) {
     asExpression.operand.accept(this);
     HInstruction expressionInstruction = pop();
-    DartType type = astAdapter.getDartType(asExpression.type);
+    ResolutionDartType type = astAdapter.getDartType(asExpression.type);
     if (type.isMalformed) {
       if (type is MalformedType) {
         ErroneousElement element = type.element;
@@ -1099,13 +1100,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Set the runtime type information if necessary.
   HInstruction setListRuntimeTypeInfoIfNeeded(
       HInstruction object, ir.ListLiteral listLiteral) {
-    InterfaceType type = localsHandler
+    ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
-    for (DartType argument in type.typeArguments) {
+    for (ResolutionDartType argument in type.typeArguments) {
       arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     }
     // TODO(15489): Register at codegen.
@@ -1171,14 +1172,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     assert(constructor.kind == ir.ProcedureKind.Factory);
 
-    InterfaceType type = localsHandler
+    ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfMapLiteral(mapLiteral));
 
     ir.Class cls = constructor.enclosingClass;
 
     if (backend.classNeedsRti(astAdapter.getElement(cls))) {
       List<HInstruction> typeInputs = <HInstruction>[];
-      type.typeArguments.forEach((DartType argument) {
+      type.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
             .add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });
@@ -1235,7 +1236,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     if (type is ir.TypeParameterType) {
       // TODO(sra): Convert the type logic here to use ir.DartType.
-      DartType dartType = astAdapter.getDartType(type);
+      ResolutionDartType dartType = astAdapter.getDartType(type);
       dartType = localsHandler.substInContext(dartType);
       HInstruction value = typeBuilder.analyzeTypeArgument(
           dartType, sourceElement,
@@ -1932,7 +1933,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         targetCanThrow: astAdapter.getCanThrow(target, closedWorld));
     if (currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
-          new List<DartType>.from(currentImplicitInstantiations);
+          new List<ResolutionDartType>.from(currentImplicitInstantiations);
     }
     instruction.sideEffects = astAdapter.getSideEffects(target, closedWorld);
 
@@ -2113,7 +2114,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Note: The call to "unalias" this type like in the original SSA builder is
     // unnecessary in kernel because Kernel has no notion of typedef.
     // TODO(efortuna): Add test for this.
-    DartType typeValue =
+    ResolutionDartType typeValue =
         localsHandler.substInContext(astAdapter.getDartType(type));
     if (type is ir.InvalidType) {
       generateTypeError(node, (typeValue.element as ErroneousElement).message);

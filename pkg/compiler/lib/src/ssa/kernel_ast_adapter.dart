@@ -320,7 +320,7 @@ class KernelAstAdapter {
   }
 
   ConstantValue getConstantForType(ir.DartType irType) {
-    DartType type = getDartType(irType);
+    ResolutionDartType type = getDartType(irType);
     return _backend.constantSystem.createType(_compiler, type.asRaw());
   }
 
@@ -484,22 +484,22 @@ class KernelAstAdapter {
     return null;
   }
 
-  DartType getDartType(ir.DartType type) {
+  ResolutionDartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);
   }
 
-  List<DartType> getDartTypes(List<ir.DartType> types) {
+  List<ResolutionDartType> getDartTypes(List<ir.DartType> types) {
     return types.map(getDartType).toList();
   }
 
-  DartType getDartTypeOfListLiteral(ir.ListLiteral list) {
+  ResolutionDartType getDartTypeOfListLiteral(ir.ListLiteral list) {
     ast.Node node = getNodeOrNull(list);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(list);
     return _compiler.commonElements.listType(getDartType(list.typeArgument));
   }
 
-  DartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
+  ResolutionDartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
     ast.Node node = getNodeOrNull(literal);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(literal);
@@ -507,15 +507,15 @@ class KernelAstAdapter {
         .mapType(getDartType(literal.keyType), getDartType(literal.valueType));
   }
 
-  DartType getFunctionReturnType(ir.FunctionNode node) {
+  ResolutionDartType getFunctionReturnType(ir.FunctionNode node) {
     return getDartType(node.returnType);
   }
 
   /// Computes the function type corresponding the signature of [node].
-  FunctionType getFunctionType(ir.FunctionNode node) {
-    DartType returnType = getFunctionReturnType(node);
-    List<DartType> parameterTypes = <DartType>[];
-    List<DartType> optionalParameterTypes = <DartType>[];
+  ResolutionFunctionType getFunctionType(ir.FunctionNode node) {
+    ResolutionDartType returnType = getFunctionReturnType(node);
+    List<ResolutionDartType> parameterTypes = <ResolutionDartType>[];
+    List<ResolutionDartType> optionalParameterTypes = <ResolutionDartType>[];
     for (ir.VariableDeclaration variable in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
         optionalParameterTypes.add(getDartType(variable.type));
@@ -524,14 +524,14 @@ class KernelAstAdapter {
       }
     }
     List<String> namedParameters = <String>[];
-    List<DartType> namedParameterTypes = <DartType>[];
+    List<ResolutionDartType> namedParameterTypes = <ResolutionDartType>[];
     List<ir.VariableDeclaration> sortedNamedParameters =
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getDartType(variable.type));
     }
-    return new FunctionType.synthesized(returnType, parameterTypes,
+    return new ResolutionFunctionType.synthesized(returnType, parameterTypes,
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
@@ -572,12 +572,12 @@ class KernelAstAdapter {
   }
 
   /// Looks up [typeName] for use in the spec-string of a `JS` called.
-  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling the
-  // `ForeignResolver`.
+  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
+  // the `ForeignResolver`.
   // TODO(johnniwinther): Cache the result to avoid redundant lookups?
   native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     return (String typeName) {
-      DartType findIn(Uri uri) {
+      ResolutionDartType findIn(Uri uri) {
         LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
         if (library != null) {
           Element element = library.find(typeName);
@@ -590,7 +590,7 @@ class KernelAstAdapter {
         return null;
       }
 
-      DartType type = findIn(Uris.dart_core);
+      ResolutionDartType type = findIn(Uris.dart_core);
       type ??= findIn(BackendHelpers.DART_JS_HELPER);
       type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
       type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
@@ -639,7 +639,8 @@ class KernelAstAdapter {
         _compiler.commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN] function.
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
       ir.StaticInvocation node) {
@@ -667,8 +668,8 @@ class KernelAstAdapter {
         _compiler.commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_EMBEDDED_GLOBAL]
-  /// function.
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
@@ -720,7 +721,7 @@ class KernelAstAdapter {
   /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
-    DartType type = getDartType(field.type);
+    ResolutionDartType type = getDartType(field.type);
     List<ConstantExpression> metadata = getMetadata(field.annotations);
     return native.NativeBehavior.ofFieldLoad(CURRENT_ELEMENT_SPANNABLE, type,
         metadata, _typeLookup(resolveAsRaw: false), _compiler,
@@ -730,14 +731,14 @@ class KernelAstAdapter {
   /// Computes the native behavior for writing to the native [field].
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
-    DartType type = getDartType(field.type);
+    ResolutionDartType type = getDartType(field.type);
     return native.NativeBehavior.ofFieldStore(type, _compiler.resolution);
   }
 
   /// Computes the native behavior for calling [procedure].
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
-    DartType type = getFunctionType(procedure.function);
+    ResolutionDartType type = getFunctionType(procedure.function);
     List<ConstantExpression> metadata = getMetadata(procedure.annotations);
     return native.NativeBehavior.ofMethod(CURRENT_ELEMENT_SPANNABLE, type,
         metadata, _typeLookup(resolveAsRaw: false), _compiler,
@@ -754,21 +755,21 @@ enum ForeignKind {
   NONE,
 }
 
-/// Visitor that converts kernel dart types into [DartType].
-class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
+/// Visitor that converts kernel dart types into [ResolutionDartType].
+class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   final KernelAstAdapter astAdapter;
 
   DartTypeConverter(this.astAdapter);
 
-  DartType visitType(ir.DartType type) => type.accept(this);
+  ResolutionDartType visitType(ir.DartType type) => type.accept(this);
 
-  List<DartType> visitTypes(List<ir.DartType> types) {
+  List<ResolutionDartType> visitTypes(List<ir.DartType> types) {
     return new List.generate(
         types.length, (int index) => types[index].accept(this));
   }
 
   @override
-  DartType visitTypeParameterType(ir.TypeParameterType node) {
+  ResolutionDartType visitTypeParameterType(ir.TypeParameterType node) {
     if (node.parameter.parent is ir.Class) {
       ir.Class cls = node.parameter.parent;
       int index = cls.typeParameters.indexOf(node.parameter);
@@ -790,8 +791,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitFunctionType(ir.FunctionType node) {
-    return new FunctionType.synthesized(
+  ResolutionDartType visitFunctionType(ir.FunctionType node) {
+    return new ResolutionFunctionType.synthesized(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
             .take(node.requiredParameterCount)
@@ -804,23 +805,23 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitInterfaceType(ir.InterfaceType node) {
+  ResolutionDartType visitInterfaceType(ir.InterfaceType node) {
     ClassElement cls = astAdapter.getElement(node.classNode);
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
+    return new ResolutionInterfaceType(cls, visitTypes(node.typeArguments));
   }
 
   @override
-  DartType visitVoidType(ir.VoidType node) {
-    return const VoidType();
+  ResolutionDartType visitVoidType(ir.VoidType node) {
+    return const ResolutionVoidType();
   }
 
   @override
-  DartType visitDynamicType(ir.DynamicType node) {
-    return const DynamicType();
+  ResolutionDartType visitDynamicType(ir.DynamicType node) {
+    return const ResolutionDynamicType();
   }
 
   @override
-  DartType visitInvalidType(ir.InvalidType node) {
+  ResolutionDartType visitInvalidType(ir.InvalidType node) {
     throw new UnimplementedError("Invalid types not currently supported");
   }
 }
@@ -854,7 +855,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
     ConstructorElement constructor =
         astAdapter.getElement(node.target).declaration;
-    List<DartType> typeArguments = <DartType>[];
+    List<ResolutionDartType> typeArguments = <ResolutionDartType>[];
     for (ir.DartType type in node.arguments.types) {
       typeArguments.add(astAdapter.getDartType(type));
     }

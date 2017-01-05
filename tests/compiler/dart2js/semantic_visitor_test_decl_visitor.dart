@@ -91,7 +91,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       FunctionExpression node,
       ConstructorElement constructor,
       NodeList parameters,
-      InterfaceType redirectionType,
+      ResolutionInterfaceType redirectionType,
       ConstructorElement redirectionTarget,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
@@ -131,7 +131,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   visitSuperConstructorInvoke(
       Send node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -146,7 +146,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   visitImplicitSuperConstructorInvoke(FunctionExpression node,
-      ConstructorElement superConstructor, InterfaceType type, arg) {
+      ConstructorElement superConstructor, ResolutionInterfaceType type, arg) {
     visits.add(new Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
         element: superConstructor, type: type));
     super

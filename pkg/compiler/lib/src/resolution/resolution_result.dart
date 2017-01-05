@@ -32,7 +32,7 @@ abstract class ResolutionResult {
   ResultKind get kind;
   Node get node => null;
   Element get element => null;
-  DartType get type => null;
+  ResolutionDartType get type => null;
   ConstantExpression get constant => null;
   bool get isConstant => false;
 }
@@ -67,9 +67,10 @@ class ElementResult extends ResolutionResult {
   String toString() => 'ElementResult($element)';
 }
 
-/// The result for the resolution of a node that points to an [DartType].
+/// The result for the resolution of a node that points to an
+/// [ResolutionDartType].
 class TypeResult extends ResolutionResult {
-  final DartType type;
+  final ResolutionDartType type;
 
   TypeResult(this.type) {
     assert(type != null);

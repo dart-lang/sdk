@@ -21,7 +21,7 @@ void main() {
   testMixinMembersWithoutImplements();
 }
 
-MemberSignature getMember(InterfaceType cls, String name,
+MemberSignature getMember(ResolutionInterfaceType cls, String name,
     {bool isSetter: false, int checkType: CHECK_INTERFACE}) {
   Name memberName = new Name(name, cls.element.library, isSetter: isSetter);
   MemberSignature member = checkType == CHECK_CLASS
@@ -66,16 +66,16 @@ const int ALSO_CLASS_MEMBER = 3;
  * If [isClassMember] is `true` it is checked that the member is also a class
  * member.
  */
-MemberSignature checkMember(InterfaceType cls, String name,
+MemberSignature checkMember(ResolutionInterfaceType cls, String name,
     {bool isStatic: false,
     bool isSetter: false,
     bool isGetter: false,
-    InterfaceType declarer,
-    DartType type,
-    FunctionType functionType,
-    InterfaceType inheritedFrom,
-    List<InterfaceType> synthesizedFrom,
-    List<InterfaceType> erroneousFrom,
+    ResolutionInterfaceType declarer,
+    ResolutionDartType type,
+    ResolutionFunctionType functionType,
+    ResolutionInterfaceType inheritedFrom,
+    List<ResolutionInterfaceType> synthesizedFrom,
+    List<ResolutionInterfaceType> erroneousFrom,
     int checkType: ALSO_CLASS_MEMBER}) {
   String memberKind = checkType == CHECK_CLASS ? 'class' : 'interface';
   MemberSignature member =
@@ -113,7 +113,7 @@ MemberSignature checkMember(InterfaceType cls, String name,
       }
       Set<MemberSignature> members = new Set<MemberSignature>();
       List from = synthesizedFrom != null ? synthesizedFrom : erroneousFrom;
-      for (InterfaceType type in from) {
+      for (ResolutionInterfaceType type in from) {
         DeclaredMember inheritedMember =
             type.element.lookupInterfaceMember(memberName);
         Expect.isNotNull(inheritedMember);
@@ -150,7 +150,7 @@ MemberSignature checkMember(InterfaceType cls, String name,
   return member;
 }
 
-void checkMemberCount(InterfaceType cls, int expectedCount,
+void checkMemberCount(ResolutionInterfaceType cls, int expectedCount,
     {bool interfaceMembers: true}) {
   int count = 0;
   if (interfaceMembers) {
@@ -191,16 +191,16 @@ void testClassMembers() {
     """,
               useMockCompiler: false)
           .then((env) {
-        InterfaceType bool_ = env['bool'];
-        InterfaceType String_ = env['String'];
-        InterfaceType num_ = env['num'];
-        InterfaceType int_ = env['int'];
-        DynamicType dynamic_ = env['dynamic'];
-        VoidType void_ = env['void'];
-        InterfaceType Type_ = env['Type'];
-        InterfaceType Invocation_ = env['Invocation'];
+        ResolutionInterfaceType bool_ = env['bool'];
+        ResolutionInterfaceType String_ = env['String'];
+        ResolutionInterfaceType num_ = env['num'];
+        ResolutionInterfaceType int_ = env['int'];
+        ResolutionDynamicType dynamic_ = env['dynamic'];
+        ResolutionVoidType void_ = env['void'];
+        ResolutionInterfaceType Type_ = env['Type'];
+        ResolutionInterfaceType Invocation_ = env['Invocation'];
 
-        InterfaceType Object_ = env['Object'];
+        ResolutionInterfaceType Object_ = env['Object'];
         checkMemberCount(Object_, 5 /*declared*/, interfaceMembers: true);
         checkMemberCount(Object_, 5 /*declared*/, interfaceMembers: false);
 
@@ -219,7 +219,7 @@ void testClassMembers() {
         checkMember(Object_, 'toString',
             functionType: env.functionType(String_, []));
 
-        InterfaceType A = env['A'];
+        ResolutionInterfaceType A = env['A'];
         MembersCreator.computeAllClassMembers(env.resolution, A.element);
 
         checkMemberCount(A, 5 /*inherited*/ + 9 /*non-static declared*/,
@@ -289,8 +289,8 @@ void testClassMembers() {
 
         ClassElement B = env.getElement('B');
         MembersCreator.computeAllClassMembers(env.resolution, B);
-        InterfaceType B_this = B.thisType;
-        TypeVariableType B_T = B_this.typeArguments.first;
+        ResolutionInterfaceType B_this = B.thisType;
+        ResolutionTypeVariableType B_T = B_this.typeArguments.first;
         checkMemberCount(B_this, 4 /*inherited*/ + 4 /*non-static declared*/,
             interfaceMembers: true);
         checkMemberCount(B_this, 4 /*inherited*/ + 5 /*declared*/,
@@ -319,11 +319,11 @@ void testClassMembers() {
 
         ClassElement C = env.getElement('C');
         MembersCreator.computeAllClassMembers(env.resolution, C);
-        InterfaceType C_this = C.thisType;
-        TypeVariableType C_S = C_this.typeArguments.first;
+        ResolutionInterfaceType C_this = C.thisType;
+        ResolutionTypeVariableType C_S = C_this.typeArguments.first;
         checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: true);
         checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: false);
-        InterfaceType B_S = instantiate(B, [C_S]);
+        ResolutionInterfaceType B_S = instantiate(B, [C_S]);
 
         checkMember(C_this, '==', inheritedFrom: Object_);
         checkMember(C_this, 'hashCode', inheritedFrom: Object_);
@@ -347,11 +347,11 @@ void testClassMembers() {
             functionType:
                 env.functionType(dynamic_, [], optionalParameters: [C_S]));
 
-        InterfaceType D = env['D'];
+        ResolutionInterfaceType D = env['D'];
         MembersCreator.computeAllClassMembers(env.resolution, D.element);
         checkMemberCount(D, 8 /*inherited*/, interfaceMembers: true);
         checkMemberCount(D, 8 /*inherited*/, interfaceMembers: false);
-        InterfaceType B_int = instantiate(B, [int_]);
+        ResolutionInterfaceType B_int = instantiate(B, [int_]);
 
         checkMember(D, '==', inheritedFrom: Object_);
         checkMember(D, 'hashCode', inheritedFrom: Object_);
@@ -375,7 +375,7 @@ void testClassMembers() {
             functionType:
                 env.functionType(dynamic_, [], optionalParameters: [int_]));
 
-        InterfaceType E = env['E'];
+        ResolutionInterfaceType E = env['E'];
         MembersCreator.computeAllClassMembers(env.resolution, E.element);
         checkMemberCount(E, 8 /*inherited*/, interfaceMembers: true);
         checkMemberCount(E, 8 /*inherited*/, interfaceMembers: false);
@@ -450,15 +450,15 @@ void testInterfaceMembers() {
     }
     abstract class D implements A, B, C {}
     """).then((env) {
-        DynamicType dynamic_ = env['dynamic'];
-        VoidType void_ = env['void'];
-        InterfaceType num_ = env['num'];
-        InterfaceType int_ = env['int'];
+        ResolutionDynamicType dynamic_ = env['dynamic'];
+        ResolutionVoidType void_ = env['void'];
+        ResolutionInterfaceType num_ = env['num'];
+        ResolutionInterfaceType int_ = env['int'];
 
-        InterfaceType A = env['A'];
-        InterfaceType B = env['B'];
-        InterfaceType C = env['C'];
-        InterfaceType D = env['D'];
+        ResolutionInterfaceType A = env['A'];
+        ResolutionInterfaceType B = env['B'];
+        ResolutionInterfaceType C = env['C'];
+        ResolutionInterfaceType D = env['D'];
 
         // Ensure that members have been computed on all classes.
         MembersCreator.computeAllClassMembers(env.resolution, D.element);
@@ -620,14 +620,14 @@ void testClassVsInterfaceMembers() {
     }
     abstract class C extends A implements B {}
     """).then((env) {
-        DynamicType dynamic_ = env['dynamic'];
-        VoidType void_ = env['void'];
-        InterfaceType num_ = env['num'];
-        InterfaceType int_ = env['int'];
+        ResolutionDynamicType dynamic_ = env['dynamic'];
+        ResolutionVoidType void_ = env['void'];
+        ResolutionInterfaceType num_ = env['num'];
+        ResolutionInterfaceType int_ = env['int'];
 
-        InterfaceType A = env['A'];
-        InterfaceType B = env['B'];
-        InterfaceType C = env['C'];
+        ResolutionInterfaceType A = env['A'];
+        ResolutionInterfaceType B = env['B'];
+        ResolutionInterfaceType C = env['C'];
 
         // Ensure that members have been computed on all classes.
         MembersCreator.computeAllClassMembers(env.resolution, C.element);
@@ -674,19 +674,19 @@ void testMixinMembers() {
     }
     abstract class C<U, V> extends Object with A<U> implements B<V> {}
     """).then((env) {
-        DynamicType dynamic_ = env['dynamic'];
-        VoidType void_ = env['void'];
-        InterfaceType num_ = env['num'];
-        InterfaceType int_ = env['int'];
+        ResolutionDynamicType dynamic_ = env['dynamic'];
+        ResolutionVoidType void_ = env['void'];
+        ResolutionInterfaceType num_ = env['num'];
+        ResolutionInterfaceType int_ = env['int'];
 
         ClassElement A = env.getElement('A');
         ClassElement B = env.getElement('B');
         ClassElement C = env.getElement('C');
-        InterfaceType C_this = C.thisType;
-        TypeVariableType C_U = C_this.typeArguments[0];
-        TypeVariableType C_V = C_this.typeArguments[1];
-        InterfaceType A_U = instantiate(A, [C_U]);
-        InterfaceType B_V = instantiate(B, [C_V]);
+        ResolutionInterfaceType C_this = C.thisType;
+        ResolutionTypeVariableType C_U = C_this.typeArguments[0];
+        ResolutionTypeVariableType C_V = C_this.typeArguments[1];
+        ResolutionInterfaceType A_U = instantiate(A, [C_U]);
+        ResolutionInterfaceType B_V = instantiate(B, [C_V]);
 
         // Ensure that members have been computed on all classes.
         MembersCreator.computeAllClassMembers(env.resolution, C);
@@ -746,14 +746,14 @@ void testMixinMembersWithoutImplements() {
     }
     abstract class C extends Object with B {}
     """).then((env) {
-        DynamicType dynamic_ = env['dynamic'];
-        VoidType void_ = env['void'];
-        InterfaceType num_ = env['num'];
-        InterfaceType int_ = env['int'];
+        ResolutionDynamicType dynamic_ = env['dynamic'];
+        ResolutionVoidType void_ = env['void'];
+        ResolutionInterfaceType num_ = env['num'];
+        ResolutionInterfaceType int_ = env['int'];
 
-        InterfaceType A = env['A'];
-        InterfaceType B = env['B'];
-        InterfaceType C = env['C'];
+        ResolutionInterfaceType A = env['A'];
+        ResolutionInterfaceType B = env['B'];
+        ResolutionInterfaceType C = env['C'];
 
         // Ensure that members have been computed on all classes.
         MembersCreator.computeAllClassMembers(env.resolution, C.element);

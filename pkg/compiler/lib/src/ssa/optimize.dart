@@ -470,11 +470,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
-        FunctionType type = method.type;
+        ResolutionFunctionType type = method.type;
         int optionalParameterCount =
             type.optionalParameterTypes.length + type.namedParameters.length;
         if (optionalParameterCount == 0 ||
-                type.parameterTypes.length + optionalParameterCount ==
+            type.parameterTypes.length + optionalParameterCount ==
                 node.selector.argumentCount) {
           node.element = method;
         }
@@ -528,7 +528,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //   foo() native 'return something';
     // They should not be used.
 
-    FunctionType type = method.type;
+    ResolutionFunctionType type = method.type;
     if (type.namedParameters.isNotEmpty) return null;
 
     // Return types on native methods don't need to be checked, since the
@@ -547,7 +547,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       canInline = false;
     } else {
       int inputPosition = 1; // Skip receiver.
-      void checkParameterType(DartType type) {
+      void checkParameterType(ResolutionDartType type) {
         if (inputPosition++ < inputs.length && canInline) {
           if (type.unaliased.isFunctionType) {
             canInline = false;
@@ -738,7 +738,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitIs(HIs node) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
 
     if (!node.isRawCheck) {
       return node;
@@ -751,7 +751,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (type.isObject || type.treatAsDynamic) {
       return graph.addConstantBool(true, closedWorld);
     }
-    InterfaceType interfaceType = type;
+    ResolutionInterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
     HInstruction expression = node.expression;
     if (expression.isInteger(closedWorld)) {
@@ -810,7 +810,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     if (type != null) {
       if (type.isMalformed) {
         // Malformed types are treated as dynamic statically, but should
@@ -980,7 +980,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.options.enableTypeAssertions) {
-      DartType type = field.type;
+      ResolutionDartType type = field.type;
       if (!type.treatAsRaw ||
           type.isTypeVariable ||
           type.unaliased.isFunctionType) {
@@ -1196,15 +1196,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    TypeVariableType variable = node.variable;
+    ResolutionTypeVariableType variable = node.variable;
     HInstruction object = node.object;
 
-    HInstruction finishGroundType(InterfaceType groundType) {
-      InterfaceType typeAtVariable =
+    HInstruction finishGroundType(ResolutionInterfaceType groundType) {
+      ResolutionInterfaceType typeAtVariable =
           groundType.asInstanceOf(variable.element.enclosingClass);
       if (typeAtVariable != null) {
         int index = variable.element.index;
-        DartType typeArgument = typeAtVariable.typeArguments[index];
+        ResolutionDartType typeArgument = typeAtVariable.typeArguments[index];
         HInstruction replacement = new HTypeInfoExpression(
             TypeInfoExpressionKind.COMPLETE,
             typeArgument,
@@ -1220,15 +1220,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     /// the allocation for factory constructor call.
     HInstruction finishSubstituted(ClassElement createdClass,
         HInstruction selectTypeArgumentFromObjectCreation(int index)) {
-      HInstruction instructionForTypeVariable(TypeVariableType tv) {
+      HInstruction instructionForTypeVariable(ResolutionTypeVariableType tv) {
         return selectTypeArgumentFromObjectCreation(
             createdClass.thisType.typeArguments.indexOf(tv));
       }
 
-      DartType type = createdClass.thisType
+      ResolutionDartType type = createdClass.thisType
           .asInstanceOf(variable.element.enclosingClass)
           .typeArguments[variable.element.index];
-      if (type is TypeVariableType) {
+      if (type is ResolutionTypeVariableType) {
         return instructionForTypeVariable(type);
       }
       List<HInstruction> arguments = <HInstruction>[];
@@ -2137,13 +2137,13 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   void visitIs(HIs instruction) {
-    DartType type = instruction.typeExpression;
+    ResolutionDartType type = instruction.typeExpression;
     if (!instruction.isRawCheck) {
       return;
     } else if (type.isTypedef) {
       return;
     }
-    InterfaceType interfaceType = type;
+    ResolutionInterfaceType interfaceType = type;
     ClassEntity cls = interfaceType.element;
 
     List<HBasicBlock> trueTargets = <HBasicBlock>[];
