@@ -48,6 +48,7 @@ abstract class ConstantSystem {
   BinaryOperation get multiply;
   UnaryOperation get negate;
   UnaryOperation get not;
+  BinaryOperation get remainder;
   BinaryOperation get shiftLeft;
   BinaryOperation get shiftRight;
   BinaryOperation get subtract;

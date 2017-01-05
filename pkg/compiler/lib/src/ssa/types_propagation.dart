@@ -144,6 +144,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return instruction.instructionType;
   }
 
+  TypeMask visitRemainder(HRemainder instruction) {
+    // Always as initialized.
+    return instruction.instructionType;
+  }
+
   TypeMask visitNegate(HNegate instruction) {
     HInstruction operand = instruction.operand;
     // We have integer subclasses that represent ranges, so widen any int

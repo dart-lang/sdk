@@ -124,6 +124,20 @@ class JavaScriptAddOperation implements BinaryOperation {
   apply(left, right) => _addOperation.apply(left, right);
 }
 
+class JavaScriptRemainderOperation extends ArithmeticNumOperation {
+  String get name => 'remainder';
+
+  const JavaScriptRemainderOperation();
+
+  int foldInts(int left, int right) {
+    if (right == 0) return null;
+    return left.remainder(right);
+  }
+
+  num foldNums(num left, num right) => left.remainder(right);
+  apply(left, right) => left.remainder(right);
+}
+
 class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
   final BinaryOperation dartArithmeticOperation;
 
@@ -233,6 +247,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       const JavaScriptBinaryArithmeticOperation(const MultiplyOperation());
   final negate = const JavaScriptNegateOperation();
   final not = const NotOperation();
+  final remainder = const JavaScriptRemainderOperation();
   final shiftLeft =
       const JavaScriptBinaryBitOperation(const ShiftLeftOperation());
   final shiftRight = const JavaScriptShiftRightOperation();

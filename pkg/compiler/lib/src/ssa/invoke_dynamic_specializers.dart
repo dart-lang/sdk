@@ -74,6 +74,7 @@ class InvokeDynamicSpecializer {
           if (name == 'round') return const RoundSpecializer();
         } else if (argumentCount == 1) {
           if (name == 'codeUnitAt') return const CodeUnitAtSpecializer();
+          if (name == 'remainder') return const RemainderSpecializer();
         }
       }
     }
@@ -307,8 +308,89 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
     // Modulo cannot be mapped to the native operator (different semantics).
-    // TODO(sra): For non-negative values we can use JavaScript's %.
+
+    // We can use HRemainder if both inputs are non-negative and the receiver
+    // cannot be -0.0.  Note that -0.0 is considered to be an int, so until we
+    // track -0.0 precisely, we have to syntatically filter inputs that cannot
+    // generate -0.0.
+    bool canBePositiveZero(HInstruction input) {
+      if (input is HConstant) {
+        ConstantValue value = input.constant;
+        if (value is DoubleConstantValue && value.isZero) return true;
+        if (value is IntConstantValue && value.isZero) return true;
+        return false;
+      }
+      return true;
+    }
+
+    bool inPhi = false;
+    bool canBeNegativeZero(HInstruction input) {
+      if (input is HConstant) {
+        ConstantValue value = input.constant;
+        if (value is DoubleConstantValue && value.isMinusZero) return true;
+        return false;
+      }
+      if (input is HAdd) {
+        // '+' can only generate -0.0 when both inputs are -0.0.
+        return canBeNegativeZero(input.left) && canBeNegativeZero(input.right);
+      }
+      if (input is HSubtract) {
+        return canBeNegativeZero(input.left) && canBePositiveZero(input.right);
+      }
+      if (input is HPhi) {
+        if (inPhi) return true;
+        inPhi = true;
+        bool result = input.inputs.any(canBeNegativeZero);
+        inPhi = false;
+        return result;
+      }
+      return true;
+    }
+
+    if (inputsArePositiveIntegers(instruction, closedWorld) &&
+        !canBeNegativeZero(instruction.getDartReceiver(closedWorld))) {
+      return new HRemainder(
+          instruction.inputs[1],
+          instruction.inputs[2],
+          instruction.selector,
+          computeTypeFromInputTypes(instruction, compiler, closedWorld));
+    }
+    // TODO(sra):
+    //   a % N -->  a & (N-1), N=2^k, where a>=0, does not have -0.0 problem.
+
+    // TODO(sra): We could avoid problems with -0.0 if we generate x % y as (x +
+    // 0) % y, but we would have to fix HAdd optimizations.
+
+    // TODO(sra): We could replace $mod with HRemainder when we don't care about
+    // a -0.0 result (e.g. a % 10 == 0, a[i % 3]). This is tricky, since we
+    // don't want to ruin GVN opportunities.
     return null;
+  }
+}
+
+class RemainderSpecializer extends BinaryArithmeticSpecializer {
+  const RemainderSpecializer();
+
+  TypeMask computeTypeFromInputTypes(
+      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+    if (inputsArePositiveIntegers(instruction, closedWorld)) {
+      return closedWorld.commonMasks.positiveIntType;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+  }
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.remainder;
+  }
+
+  HInstruction newBuiltinVariant(
+      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+    JavaScriptBackend backend = compiler.backend;
+    return new HRemainder(
+        instruction.inputs[1],
+        instruction.inputs[2],
+        instruction.selector,
+        computeTypeFromInputTypes(instruction, compiler, closedWorld));
   }
 }
 

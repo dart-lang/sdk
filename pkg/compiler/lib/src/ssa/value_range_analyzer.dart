@@ -814,8 +814,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = invoke.inputs[2];
     Range divisor = ranges[right];
     if (divisor != null) {
-      // For Integer values we can be precise in the upper bound,
-      // so special case those.
+      // For Integer values we can be precise in the upper bound, so special
+      // case those.
       if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
         if (divisor.isPositive) {
           return info.newNormalizedRange(
@@ -830,6 +830,30 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
         } else if (divisor.isNegative) {
           return info.newNormalizedRange(
               info.intZero, info.newNegateValue(divisor.lower));
+        }
+      }
+    }
+    return info.newUnboundRange();
+  }
+
+  Range visitRemainder(HRemainder instruction) {
+    HInstruction left = instruction.inputs[0];
+    HInstruction right = instruction.inputs[1];
+    Range dividend = ranges[left];
+    // If both operands are >=0, the result is >= 0 and bounded by the divisor.
+    if ((dividend != null && dividend.isPositive) ||
+        left.isPositiveInteger(closedWorld)) {
+      Range divisor = ranges[right];
+      if (divisor != null) {
+        if (divisor.isPositive) {
+          // For Integer values we can be precise in the upper bound.
+          if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
+            return info.newNormalizedRange(
+                info.intZero, divisor.upper - info.intOne);
+          }
+          if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
+            return info.newNormalizedRange(info.intZero, divisor.upper);
+          }
         }
       }
     }

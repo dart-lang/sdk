@@ -1410,6 +1410,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(node.sourceInformation));
   }
 
+  visitRemainder(HRemainder node) {
+    return visitInvokeBinary(node, '%');
+  }
+
   visitNegate(HNegate node) => visitInvokeUnary(node, '-');
 
   visitLess(HLess node) => visitRelational(node, '<');
