@@ -716,37 +716,19 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForDriver(ContextInfo info, Map<String, Object> options,
-      {bool optionsRemoved: false}) {
-    if (options == null && !optionsRemoved) {
+  void processOptionsForDriver(ContextInfo info, Map<String, Object> options) {
+    if (options == null) {
       return;
     }
     AnalysisOptionsImpl analysisOptions = info.analysisDriver.analysisOptions;
 
-    // In case options files are removed, revert to defaults.
-    if (optionsRemoved) {
-      // Start with defaults.
-      analysisOptions.resetToDefaults();
-
-      // Apply inherited options.
-      options = _toStringMap(_getEmbeddedOptions(info));
-      if (options != null) {
-        applyToAnalysisOptions(analysisOptions, options);
-      }
-    } else {
-      // Check for embedded options.
-      Map embeddedOptions = _getEmbeddedOptions(info);
-      if (embeddedOptions != null) {
-        options = _toStringMap(new Merger().merge(embeddedOptions, options));
-      }
+    // Check for embedded options.
+    Map embeddedOptions = _getEmbeddedOptions(info);
+    if (embeddedOptions != null) {
+      options = _toStringMap(new Merger().merge(embeddedOptions, options));
     }
 
     applyToAnalysisOptions(analysisOptions, options);
-
-    // Nothing more to do.
-    if (options == null) {
-      return;
-    }
 
     var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is Map) {
