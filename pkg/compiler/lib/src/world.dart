@@ -908,7 +908,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     ClassSet classSet = getClassSet(base);
     ClassHierarchyNode node = classSet.node;
     if (query == ClassQuery.EXACT) {
-      return node.isDirectlyInstantiated && !hasConcreteMatch(base, selector);
+      return node.isExplicitlyInstantiated && !hasConcreteMatch(base, selector);
     } else if (query == ClassQuery.SUBCLASS) {
       return subclassesNeedNoSuchMethod(node);
     } else {
