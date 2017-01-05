@@ -1482,6 +1482,14 @@ class E {
 class C {}''');
   }
 
+  test_class_documented_tripleSlash() {
+    checkLibrary('''
+/// aaa
+/// bbbb
+/// cc
+class C {}''');
+  }
+
   test_class_documented_with_references() {
     checkLibrary('''
 /**
