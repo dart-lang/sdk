@@ -436,7 +436,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint8List'));
+    expect(result['kind'], equals('Uint8List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -462,7 +462,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint8List'));
+    expect(result['kind'], equals('Uint8List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -489,7 +489,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint8List'));
+    expect(result['kind'], equals('Uint8List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -516,7 +516,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint8List'));
+    expect(result['kind'], equals('Uint8List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -539,7 +539,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint64List'));
+    expect(result['kind'], equals('Uint64List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -565,7 +565,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint64List'));
+    expect(result['kind'], equals('Uint64List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -592,7 +592,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint64List'));
+    expect(result['kind'], equals('Uint64List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -619,7 +619,7 @@ var tests = [
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
-    expect(result['kind'], equals('_Uint64List'));
+    expect(result['kind'], equals('Uint64List'));
     expect(result['_vmType'], equals('TypedData'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);

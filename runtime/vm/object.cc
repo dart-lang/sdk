@@ -1510,7 +1510,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     ASSERT(lib.raw() == Library::TypedDataLibrary());
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid);                 \
-  RegisterPrivateClass(cls, Symbols::clazz##List(), lib);
+  RegisterPrivateClass(cls, Symbols::_##clazz##List(), lib);
 
     DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS

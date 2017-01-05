@@ -731,8 +731,6 @@ class Int8List {
 }
 
 class _Int8List extends _TypedList with _IntListMixin implements Int8List {
-  Type get runtimeType => Int8List;
-
   // Method(s) implementing List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -772,8 +770,6 @@ class Uint8List {
 }
 
 class _Uint8List extends _TypedList with _IntListMixin implements Uint8List {
-  Type get runtimeType => Uint8List;
-
   // Methods implementing List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -815,8 +811,6 @@ class Uint8ClampedList {
 class _Uint8ClampedList extends _TypedList
     with _IntListMixin
     implements Uint8ClampedList {
-  Type get runtimeType => Uint8ClampedList;
-
   // Methods implementing List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -856,8 +850,6 @@ class Int16List {
 }
 
 class _Int16List extends _TypedList with _IntListMixin implements Int16List {
-  Type get runtimeType => Int16List;
-
   // Method(s) implementing List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -916,8 +908,6 @@ class Uint16List {
 }
 
 class _Uint16List extends _TypedList with _IntListMixin implements Uint16List {
-  Type get runtimeType => Uint16List;
-
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -976,8 +966,6 @@ class Int32List {
 }
 
 class _Int32List extends _TypedList with _IntListMixin implements Int32List {
-  Type get runtimeType => Int32List;
-
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -1025,8 +1013,6 @@ class Uint32List {
 }
 
 class _Uint32List extends _TypedList with _IntListMixin implements Uint32List {
-  Type get runtimeType => Uint32List;
-
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -1074,8 +1060,6 @@ class Int64List {
 }
 
 class _Int64List extends _TypedList with _IntListMixin implements Int64List {
-  Type get runtimeType => Int64List;
-
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -1123,8 +1107,6 @@ class Uint64List {
 }
 
 class _Uint64List extends _TypedList with _IntListMixin implements Uint64List {
-  Type get runtimeType => Uint64List;
-
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -1174,8 +1156,6 @@ class Float32List {
 class _Float32List extends _TypedList
     with _DoubleListMixin
     implements Float32List {
-  Type get runtimeType => Float32List;
-
   // Method(s) implementing the List interface.
   double operator [](int index) {
     if (index < 0 || index >= length) {
@@ -1225,8 +1205,6 @@ class Float64List {
 class _Float64List extends _TypedList
     with _DoubleListMixin
     implements Float64List {
-  Type get runtimeType => Float64List;
-
   // Method(s) implementing the List interface.
   double operator [](int index) {
     if (index < 0 || index >= length) {
@@ -1276,8 +1254,6 @@ class Float32x4List {
 class _Float32x4List extends _TypedList
     with _Float32x4ListMixin
     implements Float32x4List {
-  Type get runtimeType => Float32x4List;
-
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -1326,8 +1302,6 @@ class Int32x4List {
 class _Int32x4List extends _TypedList
     with _Int32x4ListMixin
     implements Int32x4List {
-  Type get runtimeType => Int32x4List;
-
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -1376,8 +1350,6 @@ class Float64x2List {
 class _Float64x2List extends _TypedList
     with _Float64x2ListMixin
     implements Float64x2List {
-  Type get runtimeType => Float64x2List;
-
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
