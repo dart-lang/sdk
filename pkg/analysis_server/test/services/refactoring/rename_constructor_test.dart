@@ -23,7 +23,7 @@ main() {
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
   test_checkInitialConditions_inSDK() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   new String.fromCharCodes([]);
 }
@@ -37,8 +37,8 @@ main() {
             "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.");
   }
 
-  test_checkNewName() {
-    indexTestUnit('''
+  test_checkNewName() async {
+    await indexTestUnit('''
 class A {
   A.test() {}
 }
@@ -65,7 +65,7 @@ class A {
   }
 
   test_checkNewName_hasMember_constructor() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   A.test() {}
   A.newName() {} // existing
@@ -82,7 +82,7 @@ class A {
   }
 
   test_checkNewName_hasMember_method() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   A.test() {}
   newName() {} // existing
@@ -98,8 +98,8 @@ class A {
         expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_createChange_add() {
-    indexTestUnit('''
+  test_createChange_add() async {
+    await indexTestUnit('''
 class A {
   A() {} // marker
 }
@@ -132,8 +132,8 @@ main() {
 ''');
   }
 
-  test_createChange_add_toSynthetic() {
-    indexTestUnit('''
+  test_createChange_add_toSynthetic() async {
+    await indexTestUnit('''
 class A {
 }
 class B extends A {
@@ -165,8 +165,8 @@ main() {
 ''');
   }
 
-  test_createChange_change() {
-    indexTestUnit('''
+  test_createChange_change() async {
+    await indexTestUnit('''
 class A {
   A.test() {} // marker
 }
@@ -199,8 +199,8 @@ main() {
 ''');
   }
 
-  test_createChange_remove() {
-    indexTestUnit('''
+  test_createChange_remove() async {
+    await indexTestUnit('''
 class A {
   A.test() {} // marker
 }
@@ -233,7 +233,7 @@ main() {
 ''');
   }
 
-  void test_newInstance_nullElement() {
+  test_newInstance_nullElement() async {
     RenameRefactoring refactoring = new RenameRefactoring(searchEngine, null);
     expect(refactoring, isNull);
   }

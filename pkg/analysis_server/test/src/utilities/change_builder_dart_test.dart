@@ -27,9 +27,9 @@ main() {
 
 @reflectiveTest
 class DartChangeBuilderImplTest extends AbstractContextTest {
-  void test_createFileEditBuilder() {
+  test_createFileEditBuilder() async {
     Source source = addSource('/test.dart', 'library test;');
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
     int timeStamp = 54;
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     DartFileEditBuilderImpl fileEditBuilder =
@@ -55,9 +55,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     return edits[0];
   }
 
-  void test_writeClassDeclaration_interfaces() {
+  test_writeClassDeclaration_interfaces() async {
     Source source = addSource('/test.dart', 'class A {}');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration declaration = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -73,9 +73,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
         edit.replacement, equalsIgnoringWhitespace('class C implements A { }'));
   }
 
-  void test_writeClassDeclaration_isAbstract() {
+  test_writeClassDeclaration_isAbstract() async {
     Source source = addSource('/test.dart', '');
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -88,9 +88,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('abstract class C { }'));
   }
 
-  void test_writeClassDeclaration_memberWriter() {
+  test_writeClassDeclaration_memberWriter() async {
     Source source = addSource('/test.dart', '');
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -105,9 +105,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/ }'));
   }
 
-  void test_writeClassDeclaration_mixins_noSuperclass() {
+  test_writeClassDeclaration_mixins_noSuperclass() async {
     Source source = addSource('/test.dart', 'class A {}');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -123,9 +123,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
         equalsIgnoringWhitespace('class C extends Object with A { }'));
   }
 
-  void test_writeClassDeclaration_mixins_superclass() {
+  test_writeClassDeclaration_mixins_superclass() async {
     Source source = addSource('/test.dart', 'class A {} class B {}');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
     ClassDeclaration classB = unit.declarations[1];
 
@@ -145,9 +145,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
         equalsIgnoringWhitespace('class C extends A with B { }'));
   }
 
-  void test_writeClassDeclaration_nameGroupName() {
+  test_writeClassDeclaration_nameGroupName() async {
     Source source = addSource('/test.dart', '');
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -167,9 +167,9 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(group.positions, hasLength(1));
   }
 
-  void test_writeClassDeclaration_superclass() {
+  test_writeClassDeclaration_superclass() async {
     Source source = addSource('/test.dart', 'class B {}');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration declaration = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -185,10 +185,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('class C extends B { }'));
   }
 
-  void test_writeFieldDeclaration_initializerWriter() {
+  test_writeFieldDeclaration_initializerWriter() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -203,10 +203,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('var f = e;'));
   }
 
-  void test_writeFieldDeclaration_isConst() {
+  test_writeFieldDeclaration_isConst() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -218,10 +218,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
-  void test_writeFieldDeclaration_isConst_isFinal() {
+  test_writeFieldDeclaration_isConst_isFinal() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -234,10 +234,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
-  void test_writeFieldDeclaration_isFinal() {
+  test_writeFieldDeclaration_isFinal() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -249,10 +249,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('final f;'));
   }
 
-  void test_writeFieldDeclaration_isStatic() {
+  test_writeFieldDeclaration_isStatic() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -264,10 +264,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('static var f;'));
   }
 
-  void test_writeFieldDeclaration_nameGroupName() {
+  test_writeFieldDeclaration_nameGroupName() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -289,10 +289,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(position.offset, equals(13));
   }
 
-  void test_writeFieldDeclaration_type_typeGroupName() {
+  test_writeFieldDeclaration_type_typeGroupName() async {
     String content = 'class A {} class B {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration declaration = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -318,10 +318,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(position.offset, equals(20));
   }
 
-  void test_writeGetterDeclaration_bodyWriter() {
+  test_writeGetterDeclaration_bodyWriter() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -336,10 +336,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('get g {}'));
   }
 
-  void test_writeGetterDeclaration_isStatic() {
+  test_writeGetterDeclaration_isStatic() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -352,10 +352,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(edit.replacement, equalsIgnoringWhitespace('static get g => null;'));
   }
 
-  void test_writeGetterDeclaration_nameGroupName() {
+  test_writeGetterDeclaration_nameGroupName() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -377,10 +377,10 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(position.offset, equals(13));
   }
 
-  void test_writeGetterDeclaration_returnType() {
+  test_writeGetterDeclaration_returnType() async {
     String content = 'class A {} class B {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -405,7 +405,7 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     expect(position.offset, equals(20));
   }
 
-  void test_writeOverrideOfInheritedMember() {
+  test_writeOverrideOfInheritedMember() async {
     String content = '''
 class A {
   A add(A a) => null;
@@ -413,7 +413,7 @@ class A {
 class B extends A {
 }''';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration declaration = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -434,10 +434,10 @@ A add(A a) {
 }'''));
   }
 
-  void test_writeParameters_named() {
+  test_writeParameters_named() async {
     String content = 'f(int i, {String s}) {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     FunctionDeclaration f = unit.declarations[0];
     FormalParameterList parameters = f.functionExpression.parameters;
     Iterable<ParameterElement> elements = parameters.parameters
@@ -453,10 +453,10 @@ A add(A a) {
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, {String s})'));
   }
 
-  void test_writeParameters_positional() {
+  test_writeParameters_positional() async {
     String content = 'f(int i, [String s]) {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     FunctionDeclaration f = unit.declarations[0];
     FormalParameterList parameters = f.functionExpression.parameters;
     Iterable<ParameterElement> elements = parameters.parameters
@@ -472,10 +472,10 @@ A add(A a) {
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, [String s])'));
   }
 
-  void test_writeParameters_required() {
+  test_writeParameters_required() async {
     String content = 'f(int i, String s) {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     FunctionDeclaration f = unit.declarations[0];
     FormalParameterList parameters = f.functionExpression.parameters;
     Iterable<ParameterElement> elements = parameters.parameters
@@ -491,13 +491,13 @@ A add(A a) {
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, String s)'));
   }
 
-  void test_writeParametersMatchingArguments_named() {
+  test_writeParametersMatchingArguments_named() async {
     String content = '''
 f(int i, String s) {
   g(s, index: i);
 }''';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     FunctionDeclaration f = unit.declarations[0];
     BlockFunctionBody body = f.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -515,13 +515,13 @@ f(int i, String s) {
         edit.replacement, equalsIgnoringWhitespace('(String s, [int index])'));
   }
 
-  void test_writeParametersMatchingArguments_required() {
+  test_writeParametersMatchingArguments_required() async {
     String content = '''
 f(int i, String s) {
   g(s, i);
 }''';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     FunctionDeclaration f = unit.declarations[0];
     BlockFunctionBody body = f.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -538,10 +538,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('(String s, int i)'));
   }
 
-  void test_writeParameterSource() {
+  test_writeParameterSource() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -555,10 +555,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
-  void test_writeType_dymanic() {
+  test_writeType_dynamic() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -574,10 +574,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  void test_writeType_genericType() {
+  test_writeType_genericType() async {
     String content = 'class A {} class B<E> {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
     ClassDeclaration classB = unit.declarations[1];
 
@@ -596,10 +596,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('B<A>'));
   }
 
-  void test_writeType_groupName() {
+  test_writeType_groupName() async {
     String content = 'class A {} class B extends A {} class C extends B {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classC = unit.declarations[2];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -620,10 +620,10 @@ f(int i, String s) {
     expect(group, isNotNull);
   }
 
-  void test_writeType_groupName_addSupertypeProposals() {
+  test_writeType_groupName_addSupertypeProposals() async {
     String content = 'class A {} class B extends A {} class C extends B {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classC = unit.declarations[2];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -655,10 +655,10 @@ f(int i, String s) {
     expect(values, contains('C'));
   }
 
-  void test_writeType_null() {
+  test_writeType_null() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -670,10 +670,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  void test_writeType_required_dymanic() {
+  test_writeType_required_dynamic() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -691,10 +691,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
   }
 
-  void test_writeType_required_notNull() {
+  test_writeType_required_notNull() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -709,10 +709,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
-  void test_writeType_required_null() {
+  test_writeType_required_null() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -724,10 +724,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
   }
 
-  void test_writeType_simpleType() {
+  test_writeType_simpleType() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
@@ -741,10 +741,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
-  void test_writeTypes_empty() {
+  test_writeTypes_empty() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -756,10 +756,10 @@ f(int i, String s) {
     expect(edit.replacement, isEmpty);
   }
 
-  void test_writeTypes_noPrefix() {
+  test_writeTypes_noPrefix() async {
     String content = 'class A {} class B {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
     ClassDeclaration classB = unit.declarations[1];
 
@@ -776,10 +776,10 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('A, B'));
   }
 
-  void test_writeTypes_null() {
+  test_writeTypes_null() async {
     String content = 'class A {}';
     Source source = addSource('/test.dart', content);
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (FileEditBuilder builder) {
@@ -791,10 +791,10 @@ f(int i, String s) {
     expect(edit.replacement, isEmpty);
   }
 
-  void test_writeTypes_prefix() {
+  test_writeTypes_prefix() async {
     String content = 'class A {} class B {}';
     Source source = addSource('/test.dart', content);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     ClassDeclaration classA = unit.declarations[0];
     ClassDeclaration classB = unit.declarations[1];
 
@@ -814,9 +814,9 @@ f(int i, String s) {
 
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest {
-  void test_createEditBuilder() {
+  test_createEditBuilder() async {
     Source source = addSource('/test.dart', 'library test;');
-    resolveLibraryUnit(source);
+    await resolveLibraryUnit(source);
     int timeStamp = 65;
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, timeStamp, (FileEditBuilder builder) {

@@ -25,8 +25,8 @@ main() {
 class ExtractMethodTest extends RefactoringTest {
   ExtractMethodRefactoringImpl refactoring;
 
-  test_bad_assignmentLeftHandSide() {
-    indexTestUnit('''
+  test_bad_assignmentLeftHandSide() async {
+    await indexTestUnit('''
 main() {
   int aaa;
   aaa = 0;
@@ -37,8 +37,8 @@ main() {
         'Cannot extract the left-hand side of an assignment.');
   }
 
-  test_bad_comment_selectionEndsInside() {
-    indexTestUnit('''
+  test_bad_comment_selectionEndsInside() async {
+    await indexTestUnit('''
 main() {
 // start
   print(0);
@@ -51,8 +51,8 @@ main() {
     return _assertConditionsFatal('Selection ends inside a comment.');
   }
 
-  test_bad_comment_selectionStartsInside() {
-    indexTestUnit('''
+  test_bad_comment_selectionStartsInside() async {
+    await indexTestUnit('''
 main() {
 /*
 // start
@@ -65,8 +65,8 @@ main() {
     return _assertConditionsFatal('Selection begins inside a comment.');
   }
 
-  test_bad_conflict_method_alreadyDeclaresMethod() {
-    indexTestUnit('''
+  test_bad_conflict_method_alreadyDeclaresMethod() async {
+    await indexTestUnit('''
 class A {
   void res() {}
   main() {
@@ -81,8 +81,8 @@ class A {
         "Class 'A' already declares method with name 'res'.");
   }
 
-  test_bad_conflict_method_shadowsSuperDeclaration() {
-    indexTestUnit('''
+  test_bad_conflict_method_shadowsSuperDeclaration() async {
+    await indexTestUnit('''
 class A {
   void res() {} // marker
 }
@@ -99,8 +99,8 @@ class B extends A {
     return _assertConditionsError("Created method will shadow method 'A.res'.");
   }
 
-  test_bad_conflict_topLevel_alreadyDeclaresFunction() {
-    indexTestUnit('''
+  test_bad_conflict_topLevel_alreadyDeclaresFunction() async {
+    await indexTestUnit('''
 library my.lib;
 
 void res() {}
@@ -115,8 +115,8 @@ main() {
         "Library already declares function with name 'res'.");
   }
 
-  test_bad_conflict_topLevel_willHideInheritedMemberUsage() {
-    indexTestUnit('''
+  test_bad_conflict_topLevel_willHideInheritedMemberUsage() async {
+    await indexTestUnit('''
 class A {
   void res() {}
 }
@@ -136,8 +136,8 @@ main() {
         "Created function will shadow method 'A.res'.");
   }
 
-  test_bad_constructor_initializer() {
-    indexTestUnit('''
+  test_bad_constructor_initializer() async {
+    await indexTestUnit('''
 class A {
   int f;
   A() : f = 0 {}
@@ -148,8 +148,8 @@ class A {
         'Cannot extract a constructor initializer. Select expression part of initializer.');
   }
 
-  test_bad_constructor_redirectingConstructor() {
-    indexTestUnit('''
+  test_bad_constructor_redirectingConstructor() async {
+    await indexTestUnit('''
 class A {
   A() : this.named();
   A.named() {}
@@ -160,8 +160,8 @@ class A {
         'Cannot extract a constructor initializer. Select expression part of initializer.');
   }
 
-  test_bad_constructor_superConstructor() {
-    indexTestUnit('''
+  test_bad_constructor_superConstructor() async {
+    await indexTestUnit('''
 class A {}
 class B extends A {
   B() : super();
@@ -172,8 +172,8 @@ class B extends A {
         'Cannot extract a constructor initializer. Select expression part of initializer.');
   }
 
-  test_bad_doWhile_body() {
-    indexTestUnit('''
+  test_bad_doWhile_body() async {
+    await indexTestUnit('''
 main() {
   do
 // start
@@ -188,8 +188,8 @@ main() {
         "Operation not applicable to a 'do' statement's body and expression.");
   }
 
-  test_bad_emptySelection() {
-    indexTestUnit('''
+  test_bad_emptySelection() async {
+    await indexTestUnit('''
 main() {
 // start
 // end
@@ -201,8 +201,8 @@ main() {
         "Can only extract a single expression or a set of statements.");
   }
 
-  test_bad_forLoop_conditionAndUpdaters() {
-    indexTestUnit('''
+  test_bad_forLoop_conditionAndUpdaters() async {
+    await indexTestUnit('''
 main() {
   for (
     int i = 0;
@@ -218,8 +218,8 @@ main() {
         "Operation not applicable to a 'for' statement's condition and updaters.");
   }
 
-  test_bad_forLoop_init() {
-    indexTestUnit('''
+  test_bad_forLoop_init() async {
+    await indexTestUnit('''
 main() {
   for (
 // start
@@ -235,8 +235,8 @@ main() {
         "Cannot extract initialization part of a 'for' statement.");
   }
 
-  test_bad_forLoop_initAndCondition() {
-    indexTestUnit('''
+  test_bad_forLoop_initAndCondition() async {
+    await indexTestUnit('''
 main() {
   for (
 // start
@@ -252,8 +252,8 @@ main() {
         "Operation not applicable to a 'for' statement's initializer and condition.");
   }
 
-  test_bad_forLoop_updaters() {
-    indexTestUnit('''
+  test_bad_forLoop_updaters() async {
+    await indexTestUnit('''
 main() {
   for (
     int i = 0;
@@ -269,8 +269,8 @@ main() {
         "Cannot extract increment part of a 'for' statement.");
   }
 
-  test_bad_forLoop_updatersAndBody() {
-    indexTestUnit('''
+  test_bad_forLoop_updatersAndBody() async {
+    await indexTestUnit('''
 main() {
   for (
     int i = 0;
@@ -286,8 +286,8 @@ main() {
         "Operation not applicable to a 'for' statement's updaters and body.");
   }
 
-  test_bad_methodName_reference() {
-    indexTestUnit('''
+  test_bad_methodName_reference() async {
+    await indexTestUnit('''
 main() {
   main();
 }
@@ -296,8 +296,8 @@ main() {
     return _assertConditionsFatal("Cannot extract a single method name.");
   }
 
-  test_bad_namePartOfDeclaration_function() {
-    indexTestUnit('''
+  test_bad_namePartOfDeclaration_function() async {
+    await indexTestUnit('''
 main() {
 }
 ''');
@@ -306,8 +306,8 @@ main() {
         "Cannot extract the name part of a declaration.");
   }
 
-  test_bad_namePartOfDeclaration_variable() {
-    indexTestUnit('''
+  test_bad_namePartOfDeclaration_variable() async {
+    await indexTestUnit('''
 main() {
   int vvv = 0;
 }
@@ -317,8 +317,8 @@ main() {
         "Cannot extract the name part of a declaration.");
   }
 
-  test_bad_namePartOfQualified() {
-    indexTestUnit('''
+  test_bad_namePartOfQualified() async {
+    await indexTestUnit('''
 class A {
   var fff;
 }
@@ -332,8 +332,8 @@ main() {
         "Can not extract name part of a property access.");
   }
 
-  test_bad_newMethodName_notIdentifier() {
-    indexTestUnit('''
+  test_bad_newMethodName_notIdentifier() async {
+    await indexTestUnit('''
 main() {
 // start
   print(0);
@@ -346,8 +346,8 @@ main() {
     return _assertConditionsFatal("Method name must not contain '-'.");
   }
 
-  test_bad_notSameParent() {
-    indexTestUnit('''
+  test_bad_notSameParent() async {
+    await indexTestUnit('''
 main() {
   while (false)
 // start
@@ -363,7 +363,7 @@ main() {
   }
 
   test_bad_parameterName_duplicate() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -386,7 +386,7 @@ main() {
   }
 
   test_bad_parameterName_inUse_function() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -410,7 +410,7 @@ f(a, b) {}
   }
 
   test_bad_parameterName_inUse_localVariable() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -433,7 +433,7 @@ main() {
   }
 
   test_bad_parameterName_inUse_method() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   main() {
     int v1 = 1;
@@ -458,8 +458,8 @@ class A {
         "'m' is already used as a name in the selected code");
   }
 
-  test_bad_selectionEndsInSomeNode() {
-    indexTestUnit('''
+  test_bad_selectionEndsInSomeNode() async {
+    await indexTestUnit('''
 main() {
 // start
   print(0);
@@ -473,8 +473,8 @@ main() {
         "Extend selection to a valid range.");
   }
 
-  test_bad_statements_exit_notAllExecutionFlows() {
-    indexTestUnit('''
+  test_bad_statements_exit_notAllExecutionFlows() async {
+    await indexTestUnit('''
 main(int p) {
 // start
   if (p == 0) {
@@ -488,8 +488,8 @@ main(int p) {
     return _assertConditionsError(ExtractMethodRefactoringImpl.ERROR_EXITS);
   }
 
-  test_bad_statements_return_andAssignsVariable() {
-    indexTestUnit('''
+  test_bad_statements_return_andAssignsVariable() async {
+    await indexTestUnit('''
 main() {
 // start
   var v = 0;
@@ -504,8 +504,8 @@ main() {
         "local variables and return statement.");
   }
 
-  test_bad_switchCase() {
-    indexTestUnit('''
+  test_bad_switchCase() async {
+    await indexTestUnit('''
 main() {
   switch (1) {
 // start
@@ -520,8 +520,8 @@ main() {
         "or parts of a single case block.");
   }
 
-  test_bad_tokensBetweenLastNodeAndSelectionEnd() {
-    indexTestUnit('''
+  test_bad_tokensBetweenLastNodeAndSelectionEnd() async {
+    await indexTestUnit('''
 main() {
 // start
   print(0);
@@ -534,8 +534,8 @@ main() {
         "The end of the selection contains characters that do not belong to a statement.");
   }
 
-  test_bad_tokensBetweenSelectionStartAndFirstNode() {
-    indexTestUnit('''
+  test_bad_tokensBetweenSelectionStartAndFirstNode() async {
+    await indexTestUnit('''
 main() {
 // start
   print(0); // marker
@@ -548,8 +548,8 @@ main() {
         "The beginning of the selection contains characters that do not belong to a statement.");
   }
 
-  test_bad_try_catchBlock_block() {
-    indexTestUnit('''
+  test_bad_try_catchBlock_block() async {
+    await indexTestUnit('''
 main() {
   try
   {}
@@ -565,8 +565,8 @@ main() {
         "parts of try, catch, or finally block.");
   }
 
-  test_bad_try_catchBlock_complete() {
-    indexTestUnit('''
+  test_bad_try_catchBlock_complete() async {
+    await indexTestUnit('''
 main() {
   try
   {}
@@ -582,8 +582,8 @@ main() {
         "parts of try, catch, or finally block.");
   }
 
-  test_bad_try_catchBlock_exception() {
-    indexTestUnit('''
+  test_bad_try_catchBlock_exception() async {
+    await indexTestUnit('''
 main() {
   try {
   } catch (
@@ -599,8 +599,8 @@ main() {
         'Cannot extract the name part of a declaration.');
   }
 
-  test_bad_try_finallyBlock() {
-    indexTestUnit('''
+  test_bad_try_finallyBlock() async {
+    await indexTestUnit('''
 main() {
   try
   {}
@@ -616,8 +616,8 @@ main() {
         "parts of try, catch, or finally block.");
   }
 
-  test_bad_try_tryBlock() {
-    indexTestUnit('''
+  test_bad_try_tryBlock() async {
+    await indexTestUnit('''
 main() {
   try
 // start
@@ -633,8 +633,8 @@ main() {
         "parts of try, catch, or finally block.");
   }
 
-  test_bad_typeReference() {
-    indexTestUnit('''
+  test_bad_typeReference() async {
+    await indexTestUnit('''
 main() {
   int a = 0;
 }
@@ -643,8 +643,8 @@ main() {
     return _assertConditionsFatal("Cannot extract a single type reference.");
   }
 
-  test_bad_variableDeclarationFragment() {
-    indexTestUnit('''
+  test_bad_variableDeclarationFragment() async {
+    await indexTestUnit('''
 main() {
   int
 // start
@@ -658,8 +658,8 @@ main() {
         "Cannot extract a variable declaration fragment. Select whole declaration statement.");
   }
 
-  test_bad_while_conditionAndBody() {
-    indexTestUnit('''
+  test_bad_while_conditionAndBody() async {
+    await indexTestUnit('''
 main() {
   while
 // start
@@ -675,7 +675,7 @@ main() {
   }
 
   test_canExtractGetter_false_closure() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   useFunction((_) => true);
 }
@@ -689,7 +689,7 @@ useFunction(filter(String p)) {}
   }
 
   test_canExtractGetter_false_fieldAssignment() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   var f;
   main() {
@@ -707,7 +707,7 @@ class A {
   }
 
   test_canExtractGetter_false_hasParameters() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main(int p) {
   int a = p + 1;
 }
@@ -720,7 +720,7 @@ main(int p) {
   }
 
   test_canExtractGetter_false_returnNotUsed_assignment() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 var topVar = 0;
 f(int p) {
   topVar = 5;
@@ -734,7 +734,7 @@ f(int p) {
   }
 
   test_canExtractGetter_false_returnNotUsed_noReturn() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 var topVar = 0;
 main() {
 // start
@@ -752,7 +752,7 @@ main() {
   }
 
   test_canExtractGetter_true() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -764,8 +764,8 @@ main() {
     expect(refactoring.createGetter, true);
   }
 
-  test_checkName() {
-    indexTestUnit('''
+  test_checkName() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -786,8 +786,8 @@ main() {
     assertRefactoringStatusOK(refactoring.checkName());
   }
 
-  test_closure_asFunction_singleExpression() {
-    indexTestUnit('''
+  test_closure_asFunction_singleExpression() async {
+    await indexTestUnit('''
 process(f(x)) {}
 main() {
   process((x) => x * 2);
@@ -805,8 +805,8 @@ res(x) => x * 2;
 ''');
   }
 
-  test_closure_asFunction_statements() {
-    indexTestUnit('''
+  test_closure_asFunction_statements() async {
+    await indexTestUnit('''
 process(f(x)) {}
 main() {
   process((x) {
@@ -830,8 +830,8 @@ res(x) {
 ''');
   }
 
-  test_closure_asMethod_statements() {
-    indexTestUnit('''
+  test_closure_asMethod_statements() async {
+    await indexTestUnit('''
 process(f(x)) {}
 class A {
   int k = 2;
@@ -862,7 +862,7 @@ class A {
   }
 
   test_closure_bad_referencesLocalVariable() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 process(f(x)) {}
 main() {
   int k = 2;
@@ -878,7 +878,7 @@ main() {
   }
 
   test_closure_bad_referencesParameter() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 process(f(x)) {}
 main(int k) {
   process((x) => x * k);
@@ -892,8 +892,8 @@ main(int k) {
             'Cannot extract closure as method, it references 1 external variable(s).');
   }
 
-  test_fromTopLevelVariableInitializerClosure() {
-    indexTestUnit('''
+  test_fromTopLevelVariableInitializerClosure() async {
+    await indexTestUnit('''
 var X = 1;
 
 var Y = () {
@@ -914,7 +914,7 @@ num res() => 1 + X;
   }
 
   test_getExtractGetter_expression_true_binaryExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print(1 + 2);
 }
@@ -926,7 +926,7 @@ main() {
   }
 
   test_getExtractGetter_expression_true_literal() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print(42);
 }
@@ -938,7 +938,7 @@ main() {
   }
 
   test_getExtractGetter_expression_true_prefixedExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print(!true);
 }
@@ -950,7 +950,7 @@ main() {
   }
 
   test_getExtractGetter_expression_true_prefixedIdentifier() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print(myValue.isEven);
 }
@@ -963,7 +963,7 @@ int get myValue => 42;
   }
 
   test_getExtractGetter_expression_true_propertyAccess() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print(1.isEven);
 }
@@ -975,7 +975,7 @@ main() {
   }
 
   test_getExtractGetter_statements() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
 // start
   int v = 0;
@@ -989,8 +989,8 @@ main() {
     expect(refactoring.createGetter, false);
   }
 
-  test_getRefactoringName_function() {
-    indexTestUnit('''
+  test_getRefactoringName_function() async {
+    await indexTestUnit('''
 main() {
   print(1 + 2);
 }
@@ -999,8 +999,8 @@ main() {
     expect(refactoring.refactoringName, 'Extract Function');
   }
 
-  test_getRefactoringName_method() {
-    indexTestUnit('''
+  test_getRefactoringName_method() async {
+    await indexTestUnit('''
 class A {
   main() {
     print(1 + 2);
@@ -1012,7 +1012,7 @@ class A {
   }
 
   test_names_singleExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
 process(my) {}
@@ -1029,7 +1029,7 @@ main() {
   }
 
   test_offsets_lengths() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
   int b = 1 +  2;
@@ -1044,7 +1044,7 @@ main() {
   }
 
   test_returnType_closure() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 process(f(x)) {}
 main() {
   process((x) => x * 2);
@@ -1057,7 +1057,7 @@ main() {
   }
 
   test_returnType_expression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -1069,7 +1069,7 @@ main() {
   }
 
   test_returnType_mixInterfaceFunction() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
 // start
   if (true) {
@@ -1087,7 +1087,7 @@ main() {
   }
 
   test_returnType_statements() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
 // start
   double v = 5.0;
@@ -1102,7 +1102,7 @@ main() {
   }
 
   test_returnType_statements_nullMix() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main(bool p) {
 // start
   if (p) {
@@ -1119,7 +1119,7 @@ main(bool p) {
   }
 
   test_returnType_statements_void() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
 // start
   print(42);
@@ -1133,7 +1133,7 @@ main() {
   }
 
   test_setExtractGetter() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -1153,8 +1153,8 @@ int get res => 1 + 2;
 ''');
   }
 
-  test_singleExpression() {
-    indexTestUnit('''
+  test_singleExpression() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -1170,8 +1170,8 @@ int res() => 1 + 2;
 ''');
   }
 
-  test_singleExpression_cascade() {
-    indexTestUnit('''
+  test_singleExpression_cascade() async {
+    await indexTestUnit('''
 main() {
   String s = '';
   var v = s..length;
@@ -1189,8 +1189,8 @@ String res(String s) => s..length;
 ''');
   }
 
-  test_singleExpression_dynamic() {
-    indexTestUnit('''
+  test_singleExpression_dynamic() async {
+    await indexTestUnit('''
 dynaFunction() {}
 main() {
   var v = dynaFunction(); // marker
@@ -1208,8 +1208,8 @@ res() => dynaFunction();
 ''');
   }
 
-  test_singleExpression_hasAwait() {
-    indexTestUnit('''
+  test_singleExpression_hasAwait() async {
+    await indexTestUnit('''
 import 'dart:async';
 Future<int> getValue() => 42;
 main() async {
@@ -1231,8 +1231,8 @@ Future<int> res() async => await getValue();
 ''');
   }
 
-  test_singleExpression_ignore_assignmentLeftHandSize() {
-    indexTestUnit('''
+  test_singleExpression_ignore_assignmentLeftHandSize() async {
+    await indexTestUnit('''
 main() {
   getButton().text = 'txt';
   print(getButton().text); // marker
@@ -1252,8 +1252,8 @@ getButton() {}
 ''');
   }
 
-  test_singleExpression_occurrences() {
-    indexTestUnit('''
+  test_singleExpression_occurrences() async {
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1289,8 +1289,8 @@ int res(int v1, int v2) => v1 + v2;
 ''');
   }
 
-  test_singleExpression_occurrences_disabled() {
-    indexTestUnit('''
+  test_singleExpression_occurrences_disabled() async {
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1315,8 +1315,8 @@ int res(int v1, int v2) => v1 + v2;
 ''');
   }
 
-  test_singleExpression_occurrences_inClassOnly() {
-    indexTestUnit('''
+  test_singleExpression_occurrences_inClassOnly() async {
+    await indexTestUnit('''
 class A {
   myMethod() {
     int v1 = 1;
@@ -1350,8 +1350,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_occurrences_incompatibleTypes() {
-    indexTestUnit('''
+  test_singleExpression_occurrences_incompatibleTypes() async {
+    await indexTestUnit('''
 main() {
   int x = 1;
   String y = 'foo';
@@ -1373,8 +1373,8 @@ String res(int x) => x.toString();
 ''');
   }
 
-  test_singleExpression_occurrences_inWholeUnit() {
-    indexTestUnit('''
+  test_singleExpression_occurrences_inWholeUnit() async {
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1408,8 +1408,8 @@ class A {
 ''');
   }
 
-  test_singleExpression_parameter_functionTypeAlias() {
-    indexTestUnit('''
+  test_singleExpression_parameter_functionTypeAlias() async {
+    await indexTestUnit('''
 typedef R Foo<S, R>(S s);
 void main(Foo<String, int> foo, String s) {
   int a = foo(s);
@@ -1429,7 +1429,7 @@ int res(Foo<String, int> foo, String s) => foo(s);
 
   test_singleExpression_returnType_importLibrary() async {
     _addLibraryReturningAsync();
-    indexTestUnit('''
+    await indexTestUnit('''
 import 'asyncLib.dart';
 main() {
   var a = newFuture();
@@ -1448,8 +1448,8 @@ Future<int> res() => newFuture();
 ''');
   }
 
-  test_singleExpression_returnTypeGeneric() {
-    indexTestUnit('''
+  test_singleExpression_returnTypeGeneric() async {
+    await indexTestUnit('''
 main() {
   var v = new List<String>();
 }
@@ -1465,8 +1465,8 @@ List<String> res() => new List<String>();
 ''');
   }
 
-  test_singleExpression_returnTypePrefix() {
-    indexTestUnit('''
+  test_singleExpression_returnTypePrefix() async {
+    await indexTestUnit('''
 import 'dart:math' as pref;
 main() {
   var v = new pref.Random();
@@ -1484,8 +1484,8 @@ pref.Random res() => new pref.Random();
 ''');
   }
 
-  test_singleExpression_staticContext_extractFromInitializer() {
-    indexTestUnit('''
+  test_singleExpression_staticContext_extractFromInitializer() async {
+    await indexTestUnit('''
 class A {
   A(int v) {}
 }
@@ -1507,8 +1507,8 @@ class B extends A {
 ''');
   }
 
-  test_singleExpression_staticContext_extractFromInstance() {
-    indexTestUnit('''
+  test_singleExpression_staticContext_extractFromInstance() async {
+    await indexTestUnit('''
 class A {
   instanceMethodA() {
     int v1 = 1;
@@ -1552,8 +1552,8 @@ class A {
 ''');
   }
 
-  test_singleExpression_staticContext_extractFromStatic() {
-    indexTestUnit('''
+  test_singleExpression_staticContext_extractFromStatic() async {
+    await indexTestUnit('''
 class A {
   static staticMethodA() {
     int v1 = 1;
@@ -1597,8 +1597,8 @@ class A {
 ''');
   }
 
-  test_singleExpression_staticContext_hasInInitializer() {
-    indexTestUnit('''
+  test_singleExpression_staticContext_hasInInitializer() async {
+    await indexTestUnit('''
 class A {
   A(int v) {}
 }
@@ -1626,8 +1626,8 @@ class B extends A {
 ''');
   }
 
-  test_singleExpression_usesParameter() {
-    indexTestUnit('''
+  test_singleExpression_usesParameter() async {
+    await indexTestUnit('''
 fooA(int a1) {
   int a2 = 2;
   int a = a1 + a2;
@@ -1653,8 +1653,8 @@ fooB(int b1) {
 ''');
   }
 
-  test_singleExpression_withVariables() {
-    indexTestUnit('''
+  test_singleExpression_withVariables() async {
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1675,7 +1675,7 @@ int res(int v1, int v2) => v1 + v2 + v1;
   }
 
   test_singleExpression_withVariables_doRename() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1712,7 +1712,7 @@ int res(int par1, int param2) => par1 + param2 + par1;
   }
 
   test_singleExpression_withVariables_doReorder() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1748,8 +1748,8 @@ int res(int v2, int v1) => v1 + v2;
 ''');
   }
 
-  test_singleExpression_withVariables_namedExpression() {
-    indexTestUnit('''
+  test_singleExpression_withVariables_namedExpression() async {
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1772,7 +1772,7 @@ process({arg}) {}
   }
 
   test_singleExpression_withVariables_newType() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v1 = 1;
   int v2 = 2;
@@ -1808,8 +1808,8 @@ int res(num v1, v2, v3) => v1 + v2 + v3;
 ''');
   }
 
-  test_singleExpression_withVariables_useBestType() {
-    indexTestUnit('''
+  test_singleExpression_withVariables_useBestType() async {
+    await indexTestUnit('''
 main() {
   var v1 = 1;
   var v2 = 2;
@@ -1829,8 +1829,8 @@ int res(int v1, int v2) => v1 + v2 + v1;
 ''');
   }
 
-  test_statements_assignment() {
-    indexTestUnit('''
+  test_statements_assignment() async {
+    await indexTestUnit('''
 main() {
   int v;
 // start
@@ -1857,8 +1857,8 @@ int res(int v) {
 ''');
   }
 
-  test_statements_changeIndentation() {
-    indexTestUnit('''
+  test_statements_changeIndentation() async {
+    await indexTestUnit('''
 main() {
   {
 // start
@@ -1888,8 +1888,8 @@ void res() {
 ''');
   }
 
-  test_statements_changeIndentation_multilineString() {
-    indexTestUnit('''
+  test_statements_changeIndentation_multilineString() async {
+    await indexTestUnit('''
 main() {
   {
 // start
@@ -1921,8 +1921,8 @@ second line
 ''');
   }
 
-  test_statements_definesVariable_notUsedOutside() {
-    indexTestUnit('''
+  test_statements_definesVariable_notUsedOutside() async {
+    await indexTestUnit('''
 main() {
   int a = 1;
   int b = 1;
@@ -1950,8 +1950,8 @@ void res(int a, int b) {
 ''');
   }
 
-  test_statements_definesVariable_oneUsedOutside_assignment() {
-    indexTestUnit('''
+  test_statements_definesVariable_oneUsedOutside_assignment() async {
+    await indexTestUnit('''
 myFunctionA() {
   int a = 1;
 // start
@@ -1988,8 +1988,8 @@ myFunctionB() {
 ''');
   }
 
-  test_statements_definesVariable_oneUsedOutside_declaration() {
-    indexTestUnit('''
+  test_statements_definesVariable_oneUsedOutside_declaration() async {
+    await indexTestUnit('''
 myFunctionA() {
   int a = 1;
   int b = 2;
@@ -2031,7 +2031,7 @@ myFunctionB() {
   }
 
   test_statements_definesVariable_twoUsedOutside() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
 // start
   int varA = 1;
@@ -2046,8 +2046,8 @@ main() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_statements_duplicate_absolutelySame() {
-    indexTestUnit('''
+  test_statements_duplicate_absolutelySame() async {
+    await indexTestUnit('''
 myFunctionA() {
   print(0);
   print(1);
@@ -2078,8 +2078,8 @@ void res() {
 ''');
   }
 
-  test_statements_duplicate_declaresDifferentlyNamedVariable() {
-    indexTestUnit('''
+  test_statements_duplicate_declaresDifferentlyNamedVariable() async {
+    await indexTestUnit('''
 myFunctionA() {
   int varA = 1;
   print(varA);
@@ -2110,8 +2110,8 @@ void res() {
 ''');
   }
 
-  test_statements_dynamic() {
-    indexTestUnit('''
+  test_statements_dynamic() async {
+    await indexTestUnit('''
 dynaFunction(p) => 0;
 main() {
 // start
@@ -2143,8 +2143,8 @@ res() {
   /**
    * We should always add ";" when invoke method with extracted statements.
    */
-  test_statements_endsWithBlock() {
-    indexTestUnit('''
+  test_statements_endsWithBlock() async {
+    await indexTestUnit('''
 main() {
 // start
   if (true) {
@@ -2171,7 +2171,7 @@ void res() {
   }
 
   test_statements_exit_throws() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main(int p) {
 // start
   if (p == 0) {
@@ -2185,8 +2185,8 @@ main(int p) {
     await assertRefactoringConditionsOK();
   }
 
-  test_statements_hasAwait_dynamicReturnType() {
-    indexTestUnit('''
+  test_statements_hasAwait_dynamicReturnType() async {
+    await indexTestUnit('''
 import 'dart:async';
 Future getValue() => 42;
 main() async {
@@ -2215,8 +2215,8 @@ Future res() async {
 ''');
   }
 
-  test_statements_hasAwait_expression() {
-    indexTestUnit('''
+  test_statements_hasAwait_expression() async {
+    await indexTestUnit('''
 import 'dart:async';
 Future<int> getValue() => 42;
 main() async {
@@ -2247,8 +2247,8 @@ Future<int> res() async {
 ''');
   }
 
-  test_statements_hasAwait_forEach() {
-    indexTestUnit('''
+  test_statements_hasAwait_forEach() async {
+    await indexTestUnit('''
 import 'dart:async';
 Stream<int> getValueStream() => null;
 main() async {
@@ -2283,8 +2283,8 @@ Future<int> res() async {
 ''');
   }
 
-  test_statements_hasAwait_voidReturnType() {
-    indexTestUnit('''
+  test_statements_hasAwait_voidReturnType() async {
+    await indexTestUnit('''
 import 'dart:async';
 Future<int> getValue() => 42;
 main() async {
@@ -2312,8 +2312,8 @@ Future res() async {
 ''');
   }
 
-  test_statements_inSwitchMember() {
-    indexTestUnit('''
+  test_statements_inSwitchMember() async {
+    await indexTestUnit('''
 class A {
   foo(int p) {
     switch (p) {
@@ -2351,8 +2351,8 @@ class A {
 ''');
   }
 
-  test_statements_method() {
-    indexTestUnit('''
+  test_statements_method() async {
+    await indexTestUnit('''
 class A {
   foo() {
 // start
@@ -2378,8 +2378,8 @@ class A {
 ''');
   }
 
-  test_statements_noDuplicates() {
-    indexTestUnit('''
+  test_statements_noDuplicates() async {
+    await indexTestUnit('''
 main() {
   int a = 1;
   int b = 1;
@@ -2406,7 +2406,7 @@ void res(int a) {
   }
 
   test_statements_parameters_ignoreInnerPropagatedType() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main(Object x) {
 // start
   if (x is int) {
@@ -2438,9 +2438,9 @@ void res(Object x) {
 ''');
   }
 
-  test_statements_parameters_importType() {
+  test_statements_parameters_importType() async {
     _addLibraryReturningAsync();
-    indexTestUnit('''
+    await indexTestUnit('''
 import 'asyncLib.dart';
 main() {
   var v = newFuture();
@@ -2467,9 +2467,9 @@ void res(Future<int> v) {
 ''');
   }
 
-  test_statements_parameters_localFunction() {
+  test_statements_parameters_localFunction() async {
     _addLibraryReturningAsync();
-    indexTestUnit('''
+    await indexTestUnit('''
 class C {
   int f(int a) {
     int callback(int x, int y) => x + a;
@@ -2503,7 +2503,7 @@ class C {
   }
 
   test_statements_parameters_noLocalVariableConflict() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 int f(int x) {
   int y = x + 1;
 // start
@@ -2520,8 +2520,8 @@ int f(int x) {
     await assertRefactoringConditionsOK();
   }
 
-  test_statements_return_last() {
-    indexTestUnit('''
+  test_statements_return_last() async {
+    await indexTestUnit('''
 main() {
 // start
   int v = 5;
@@ -2545,8 +2545,8 @@ int res() {
 ''');
   }
 
-  test_statements_return_multiple_ifElse() {
-    indexTestUnit('''
+  test_statements_return_multiple_ifElse() async {
+    await indexTestUnit('''
 num main(bool b) {
 // start
   if (b) {
@@ -2576,8 +2576,8 @@ num res(bool b) {
 ''');
   }
 
-  test_statements_return_multiple_ifThen() {
-    indexTestUnit('''
+  test_statements_return_multiple_ifThen() async {
+    await indexTestUnit('''
 num main(bool b) {
 // start
   if (b) {
@@ -2605,8 +2605,8 @@ num res(bool b) {
 ''');
   }
 
-  test_statements_return_multiple_ignoreInFunction() {
-    indexTestUnit('''
+  test_statements_return_multiple_ignoreInFunction() async {
+    await indexTestUnit('''
 int main() {
 // start
   localFunction() {
@@ -2634,8 +2634,8 @@ int res() {
 ''');
   }
 
-  test_statements_return_multiple_interfaceFunction() {
-    indexTestUnit('''
+  test_statements_return_multiple_interfaceFunction() async {
+    await indexTestUnit('''
 main(bool b) {
 // start
   if (b) {
@@ -2663,8 +2663,8 @@ Object res(bool b) {
 ''');
   }
 
-  test_statements_return_multiple_sameElementDifferentTypeArgs() {
-    indexTestUnit('''
+  test_statements_return_multiple_sameElementDifferentTypeArgs() async {
+    await indexTestUnit('''
 main(bool b) {
 // start
   if (b) {
@@ -2698,8 +2698,8 @@ List res(bool b) {
 ''');
   }
 
-  test_statements_return_single() {
-    indexTestUnit('''
+  test_statements_return_single() async {
+    await indexTestUnit('''
 main() {
 // start
   return 42;
@@ -2725,8 +2725,8 @@ int res() {
    * We have 3 identical statements, but select only 2.
    * This should not cause problems.
    */
-  test_statements_twoOfThree() {
-    indexTestUnit('''
+  test_statements_twoOfThree() async {
+    await indexTestUnit('''
 main() {
 // start
   print(0);

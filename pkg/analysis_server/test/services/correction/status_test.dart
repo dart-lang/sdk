@@ -26,8 +26,8 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
-  void test_createLocation_forElement() {
-    resolveTestUnit('class MyClass {}');
+  test_createLocation_forElement() async {
+    await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     // check
     Location location = newLocation_fromElement(element);
@@ -38,8 +38,8 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     expect(location.startColumn, 7);
   }
 
-  void test_createLocation_forMatch() {
-    resolveTestUnit('class MyClass {}');
+  test_createLocation_forMatch() async {
+    await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange range = rangeElementName(element);
     SearchMatch match = new SearchMatchImpl(
@@ -57,8 +57,8 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     expect(location.length, range.length);
   }
 
-  void test_createLocation_forNode() {
-    resolveTestUnit('''
+  test_createLocation_forNode() async {
+    await resolveTestUnit('''
 main() {
 }
 ''');
@@ -70,8 +70,8 @@ main() {
     expect(location.length, node.length);
   }
 
-  void test_createLocation_forUnit() {
-    resolveTestUnit('');
+  test_createLocation_forUnit() async {
+    await resolveTestUnit('');
     SourceRange range = rangeStartLength(10, 20);
     // check
     Location location = newLocation_fromUnit(testUnit, range);

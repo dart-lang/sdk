@@ -160,14 +160,14 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
         .resolveCompilationUnit(element.source, element.library);
   }
 
-  void indexTestUnit(String code) {
-    resolveTestUnit(code);
+  Future<Null> indexTestUnit(String code) async {
+    await resolveTestUnit(code);
     index.indexUnit(testUnit);
   }
 
-  void indexUnit(String file, String code) {
+  Future<Null> indexUnit(String file, String code) async {
     Source source = addSource(file, code);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     index.indexUnit(unit);
   }
 

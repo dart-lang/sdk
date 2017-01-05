@@ -21,8 +21,8 @@ main() {
 
 @reflectiveTest
 class UtilTest extends AbstractSingleUnitTest {
-  test_addLibraryImports_dart_hasImports_between() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_between() async {
+    await resolveTestUnit('''
 import 'dart:async';
 import 'dart:math';
 ''');
@@ -36,8 +36,8 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_first() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_first() async {
+    await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
 ''');
@@ -51,8 +51,8 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_last() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_last() async {
+    await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
 ''');
@@ -66,8 +66,8 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_multiple() async {
+    await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
 ''');
@@ -83,8 +83,8 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_first() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_multiple_first() async {
+    await resolveTestUnit('''
 import 'dart:html';
 import 'dart:math';
 ''');
@@ -100,8 +100,8 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_last() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_multiple_last() async {
+    await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
 ''');
@@ -117,8 +117,8 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasLibraryDirective() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasLibraryDirective() async {
+    await resolveTestUnit('''
 library test;
 
 class A {}
@@ -137,8 +137,8 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasComment() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_noDirectives_hasComment() async {
+    await resolveTestUnit('''
 /// Comment.
 
 class A {}
@@ -157,8 +157,8 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasShebang() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_noDirectives_hasShebang() async {
+    await resolveTestUnit('''
 #!/bin/dart
 
 class A {}
@@ -177,8 +177,8 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_noShebang() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_noDirectives_noShebang() async {
+    await resolveTestUnit('''
 class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
@@ -193,8 +193,8 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertAfter() {
-    resolveTestUnit('''
+  test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
+    await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -210,8 +210,8 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertBefore() {
-    resolveTestUnit('''
+  test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
+    await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:bbb/bbb.dart';
@@ -227,8 +227,8 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasImports_between() {
-    resolveTestUnit('''
+  test_addLibraryImports_package_hasImports_between() async {
+    await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';
 ''');

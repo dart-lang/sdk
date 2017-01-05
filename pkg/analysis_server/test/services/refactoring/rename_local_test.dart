@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class RenameLocalTest extends RenameRefactoringTest {
   test_checkFinalConditions_hasLocalFunction_after() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int test = 0;
   newName() => 1;
@@ -36,7 +36,7 @@ main() {
   }
 
   test_checkFinalConditions_hasLocalFunction_before() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   newName() => 1;
   int test = 0;
@@ -51,7 +51,7 @@ main() {
   }
 
   test_checkFinalConditions_hasLocalVariable_after() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int test = 0;
   var newName = 1;
@@ -69,7 +69,7 @@ main() {
   }
 
   test_checkFinalConditions_hasLocalVariable_before() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var newName = 1;
   int test = 0;
@@ -84,8 +84,8 @@ main() {
         expectedContextSearch: 'newName = 1;');
   }
 
-  test_checkFinalConditions_hasLocalVariable_otherBlock() {
-    indexTestUnit('''
+  test_checkFinalConditions_hasLocalVariable_otherBlock() async {
+    await indexTestUnit('''
 main() {
   {
     var newName = 1;
@@ -101,8 +101,8 @@ main() {
     return assertRefactoringConditionsOK();
   }
 
-  test_checkFinalConditions_hasLocalVariable_otherForEachLoop() {
-    indexTestUnit('''
+  test_checkFinalConditions_hasLocalVariable_otherForEachLoop() async {
+    await indexTestUnit('''
 main() {
   for (int newName in []) {}
   for (int test in []) {}
@@ -114,8 +114,8 @@ main() {
     return assertRefactoringConditionsOK();
   }
 
-  test_checkFinalConditions_hasLocalVariable_otherForLoop() {
-    indexTestUnit('''
+  test_checkFinalConditions_hasLocalVariable_otherForLoop() async {
+    await indexTestUnit('''
 main() {
   for (int newName = 0; newName < 10; newName++) {}
   for (int test = 0; test < 10; test++) {}
@@ -127,8 +127,8 @@ main() {
     return assertRefactoringConditionsOK();
   }
 
-  test_checkFinalConditions_hasLocalVariable_otherFunction() {
-    indexTestUnit('''
+  test_checkFinalConditions_hasLocalVariable_otherFunction() async {
+    await indexTestUnit('''
 main() {
   int test = 0;
 }
@@ -143,7 +143,7 @@ main2() {
   }
 
   test_checkFinalConditions_shadows_classMember() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   var newName = 1;
   main() {
@@ -163,7 +163,7 @@ class A {
   }
 
   test_checkFinalConditions_shadows_classMember_namedParameter() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   foo({test: 1}) {
   }
@@ -185,8 +185,8 @@ class B extends A {
         expectedContextSearch: 'newName);');
   }
 
-  test_checkFinalConditions_shadows_classMemberOK_qualifiedReference() {
-    indexTestUnit('''
+  test_checkFinalConditions_shadows_classMemberOK_qualifiedReference() async {
+    await indexTestUnit('''
 class A {
   var newName = 1;
   main() {
@@ -201,8 +201,8 @@ class A {
     return assertRefactoringConditionsOK();
   }
 
-  test_checkFinalConditions_shadows_OK_namedParameterReference() {
-    indexTestUnit('''
+  test_checkFinalConditions_shadows_OK_namedParameterReference() async {
+    await indexTestUnit('''
 void f({newName}) {}
 main() {
   var test = 0;
@@ -216,7 +216,7 @@ main() {
   }
 
   test_checkFinalConditions_shadows_topLevelFunction() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 newName() {}
 main() {
   var test = 0;
@@ -231,8 +231,8 @@ main() {
         expectedContextSearch: 'newName(); // ref');
   }
 
-  test_checkNewName_FunctionElement() {
-    indexTestUnit('''
+  test_checkNewName_FunctionElement() async {
+    await indexTestUnit('''
 main() {
   int test() {}
 }
@@ -248,8 +248,8 @@ main() {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_LocalVariableElement() {
-    indexTestUnit('''
+  test_checkNewName_LocalVariableElement() async {
+    await indexTestUnit('''
 main() {
   int test = 0;
 }
@@ -270,8 +270,8 @@ main() {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_ParameterElement() {
-    indexTestUnit('''
+  test_checkNewName_ParameterElement() async {
+    await indexTestUnit('''
 main(test) {
 }
 ''');
@@ -286,8 +286,8 @@ main(test) {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_localFunction() {
-    indexTestUnit('''
+  test_createChange_localFunction() async {
+    await indexTestUnit('''
 main() {
   int test() => 0;
   print(test);
@@ -309,8 +309,8 @@ main() {
 ''');
   }
 
-  test_createChange_localFunction_sameNameDifferenceScopes() {
-    indexTestUnit('''
+  test_createChange_localFunction_sameNameDifferenceScopes() async {
+    await indexTestUnit('''
 main() {
   {
     int test() => 0;
@@ -349,8 +349,8 @@ main() {
 ''');
   }
 
-  test_createChange_localVariable() {
-    indexTestUnit('''
+  test_createChange_localVariable() async {
+    await indexTestUnit('''
 main() {
   int test = 0;
   test = 1;
@@ -374,8 +374,8 @@ main() {
 ''');
   }
 
-  test_createChange_localVariable_sameNameDifferenceScopes() {
-    indexTestUnit('''
+  test_createChange_localVariable_sameNameDifferenceScopes() async {
+    await indexTestUnit('''
 main() {
   {
     int test = 0;
@@ -414,8 +414,8 @@ main() {
 ''');
   }
 
-  test_createChange_parameter() {
-    indexTestUnit('''
+  test_createChange_parameter() async {
+    await indexTestUnit('''
 myFunction({int test}) {
   test = 1;
   test += 2;
@@ -444,12 +444,12 @@ main() {
   }
 
   test_createChange_parameter_named_inOtherFile() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   A({test});
 }
 ''');
-    indexUnit(
+    await indexUnit(
         '/test2.dart',
         '''
 import 'test.dart';
@@ -478,7 +478,7 @@ main() {
   }
 
   test_createChange_parameter_named_updateHierarchy() async {
-    indexUnit(
+    await indexUnit(
         '/test2.dart',
         '''
 library test2;
@@ -493,7 +493,7 @@ class B extends A {
   }
 }
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 import 'test2.dart';
 main() {
   new A().foo(test: 10);
@@ -541,8 +541,8 @@ class B extends A {
 ''');
   }
 
-  test_oldName() {
-    indexTestUnit('''
+  test_oldName() async {
+    await indexTestUnit('''
 main() {
   int test = 0;
 }

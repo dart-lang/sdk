@@ -21,7 +21,7 @@ main() {
 @reflectiveTest
 class RenameClassMemberTest extends RenameRefactoringTest {
   test_checkFinalConditions_classNameConflict_sameClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class NewName {
   void test() {}
 }
@@ -37,7 +37,7 @@ class NewName {
   }
 
   test_checkFinalConditions_classNameConflict_subClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   void test() {} // 1
 }
@@ -56,7 +56,7 @@ class NewName extends A {
   }
 
   test_checkFinalConditions_classNameConflict_superClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class NewName {
   void test() {} // 1
 }
@@ -75,7 +75,7 @@ class B extends NewName {
   }
 
   test_checkFinalConditions_hasMember_MethodElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
   newName() {} // existing
@@ -92,7 +92,7 @@ class A {
   }
 
   test_checkFinalConditions_OK_dropSuffix() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 abstract class A {
   void testOld();
 }
@@ -108,7 +108,7 @@ class B implements A {
   }
 
   test_checkFinalConditions_OK_noShadow() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   int newName;
 }
@@ -129,12 +129,12 @@ class C extends A {
   }
 
   test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
 }
 ''');
-    indexUnit(
+    await indexUnit(
         '/lib.dart',
         '''
 library my.lib;
@@ -153,7 +153,7 @@ main(A a) {
   }
 
   test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
   main() {
@@ -173,7 +173,7 @@ class A {
   }
 
   test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
   main() {
@@ -193,7 +193,7 @@ class A {
   }
 
   test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
 }
@@ -215,7 +215,7 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowed_byLocalVariable_OK_qualifiedReference() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
   main() {
@@ -232,7 +232,7 @@ class A {
   }
 
   test_checkFinalConditions_shadowed_byLocalVariable_OK_renamedNotUsed() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
   main() {
@@ -248,7 +248,7 @@ class A {
   }
 
   test_checkFinalConditions_shadowed_byParameter_inSameClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
   main(newName) {
@@ -267,7 +267,7 @@ class A {
   }
 
   test_checkFinalConditions_shadowedBySub_MethodElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
 }
@@ -289,7 +289,7 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsSuper_FieldElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   int newName; // marker
 }
@@ -312,7 +312,7 @@ class C extends B {
   }
 
   test_checkFinalConditions_shadowsSuper_MethodElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   newName() {} // marker
 }
@@ -335,8 +335,8 @@ class A {
   newName() {} // marker
 }
 ''';
-    indexUnit('/lib.dart', libCode);
-    indexTestUnit('''
+    await indexUnit('/lib.dart', libCode);
+    await indexTestUnit('''
 import 'lib.dart';
 class B extends A {
   test() {}
@@ -353,7 +353,7 @@ class B extends A {
   }
 
   test_checkInitialConditions_inSDK() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   'abc'.toUpperCase();
 }
@@ -368,7 +368,7 @@ main() {
   }
 
   test_checkInitialConditions_operator() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   operator -(other) => this;
 }
@@ -380,8 +380,8 @@ class A {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_checkNewName_FieldElement() {
-    indexTestUnit('''
+  test_checkNewName_FieldElement() async {
+    await indexTestUnit('''
 class A {
   int test;
 }
@@ -397,8 +397,8 @@ class A {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_MethodElement() {
-    indexTestUnit('''
+  test_checkNewName_MethodElement() async {
+    await indexTestUnit('''
 class A {
   test() {}
 }
@@ -425,8 +425,8 @@ class A {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_FieldElement() {
-    indexTestUnit('''
+  test_createChange_FieldElement() async {
+    await indexTestUnit('''
 class A {
   int test; // marker
   main() {
@@ -491,8 +491,8 @@ main() {
 ''');
   }
 
-  test_createChange_FieldElement_constructorFieldInitializer() {
-    indexTestUnit('''
+  test_createChange_FieldElement_constructorFieldInitializer() async {
+    await indexTestUnit('''
 class A {
   final test;
   A() : test = 5;
@@ -512,8 +512,8 @@ class A {
 ''');
   }
 
-  test_createChange_FieldElement_fieldFormalParameter() {
-    indexTestUnit('''
+  test_createChange_FieldElement_fieldFormalParameter() async {
+    await indexTestUnit('''
 class A {
   final test;
   A(this.test);
@@ -533,8 +533,8 @@ class A {
 ''');
   }
 
-  test_createChange_FieldElement_fieldFormalParameter_named() {
-    indexTestUnit('''
+  test_createChange_FieldElement_fieldFormalParameter_named() async {
+    await indexTestUnit('''
 class A {
   final test;
   A({this.test});
@@ -560,8 +560,8 @@ main() {
 ''');
   }
 
-  test_createChange_FieldElement_invocation() {
-    indexTestUnit('''
+  test_createChange_FieldElement_invocation() async {
+    await indexTestUnit('''
 typedef F(a);
 class A {
   F test;
@@ -595,8 +595,8 @@ main() {
 ''');
   }
 
-  test_createChange_MethodElement() {
-    indexTestUnit('''
+  test_createChange_MethodElement() async {
+    await indexTestUnit('''
 class A {
   test() {}
 }
@@ -664,7 +664,7 @@ main() {
   }
 
   test_createChange_MethodElement_potential() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   test() {}
 }
@@ -695,14 +695,14 @@ main(var a) {
 
   test_createChange_MethodElement_potential_inPubCache() async {
     String pkgLib = '/.pub-cache/lib.dart';
-    indexUnit(
+    await indexUnit(
         pkgLib,
         r'''
 processObj(p) {
   p.test();
 }
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 import '$pkgLib';
 class A {
   test() {}
@@ -731,7 +731,7 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_private_otherLibrary() async {
-    indexUnit(
+    await indexUnit(
         '/lib.dart',
         '''
 library lib;
@@ -739,7 +739,7 @@ main(p) {
   p._test();
 }
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   _test() {}
 }
@@ -766,8 +766,8 @@ main(var a) {
     assertNoFileChange('/lib.dart');
   }
 
-  test_createChange_PropertyAccessorElement_getter() {
-    indexTestUnit('''
+  test_createChange_PropertyAccessorElement_getter() async {
+    await indexTestUnit('''
 class A {
   get test {} // marker
   set test(x) {}
@@ -821,8 +821,8 @@ main() {
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_setter() {
-    indexTestUnit('''
+  test_createChange_PropertyAccessorElement_setter() async {
+    await indexTestUnit('''
 class A {
   get test {}
   set test(x) {} // marker
@@ -876,8 +876,8 @@ main() {
 ''');
   }
 
-  test_createChange_TypeParameterElement() {
-    indexTestUnit('''
+  test_createChange_TypeParameterElement() async {
+    await indexTestUnit('''
 class A<Test> {
   Test field;
   List<Test> items;

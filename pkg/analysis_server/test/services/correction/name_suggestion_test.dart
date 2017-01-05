@@ -21,8 +21,8 @@ main() {
 
 @reflectiveTest
 class VariableNameSuggestionTest extends AbstractSingleUnitTest {
-  void test_forExpression_cast() {
-    resolveTestUnit('''
+  test_forExpression_cast() async {
+    await resolveTestUnit('''
 main() {
   var sortedNodes;
   var res = sortedNodes as String;
@@ -34,8 +34,8 @@ main() {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  void test_forExpression_expectedType() {
-    resolveTestUnit('''
+  test_forExpression_expectedType() async {
+    await resolveTestUnit('''
 class TreeNode {}
 main() {
   TreeNode node = null;
@@ -50,8 +50,8 @@ main() {
     expect(suggestions, unorderedEquals(['treeNode', 'node']));
   }
 
-  void test_forExpression_expectedType_double() {
-    resolveTestUnit('''
+  test_forExpression_expectedType_double() async {
+    await resolveTestUnit('''
 main() {
   double res = 0.0;
 }
@@ -70,8 +70,8 @@ main() {
         unorderedEquals(['f']));
   }
 
-  void test_forExpression_expectedType_int() {
-    resolveTestUnit('''
+  test_forExpression_expectedType_int() async {
+    await resolveTestUnit('''
 main() {
   int res = 0;
 }
@@ -90,8 +90,8 @@ main() {
         unorderedEquals(['k']));
   }
 
-  void test_forExpression_expectedType_String() {
-    resolveTestUnit('''
+  test_forExpression_expectedType_String() async {
+    await resolveTestUnit('''
 main() {
   String res = 'abc';
 }
@@ -105,9 +105,9 @@ main() {
         unorderedEquals(['s']));
   }
 
-  void test_forExpression_instanceCreation() {
+  test_forExpression_instanceCreation() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'dart:math' as p;
 main(p) {
   new NoSuchClass();
@@ -134,8 +134,8 @@ main(p) {
 //        unorderedEquals(['noSuchClass', 'suchClass', 'class']));
   }
 
-  void test_forExpression_invocationArgument_named() {
-    resolveTestUnit('''
+  test_forExpression_invocationArgument_named() async {
+    await resolveTestUnit('''
 foo({a, b, c}) {}
 main() {
   foo(a: 111, c: 333, b: 222);
@@ -159,8 +159,8 @@ main() {
     }
   }
 
-  void test_forExpression_invocationArgument_optional() {
-    resolveTestUnit('''
+  test_forExpression_invocationArgument_optional() async {
+    await resolveTestUnit('''
 foo(a, [b = 2, c = 3]) {}
 main() {
   foo(111, 222, 333);
@@ -184,8 +184,8 @@ main() {
     }
   }
 
-  void test_forExpression_invocationArgument_positional() {
-    resolveTestUnit('''
+  test_forExpression_invocationArgument_positional() async {
+    await resolveTestUnit('''
 foo(a, b) {}
 main() {
   foo(111, 222);
@@ -204,8 +204,8 @@ main() {
     }
   }
 
-  void test_forExpression_methodInvocation() {
-    resolveTestUnit('''
+  test_forExpression_methodInvocation() async {
+    await resolveTestUnit('''
 main(p) {
   var res = p.getSortedNodes();
 }
@@ -216,8 +216,8 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  void test_forExpression_methodInvocation_noPrefix() {
-    resolveTestUnit('''
+  test_forExpression_methodInvocation_noPrefix() async {
+    await resolveTestUnit('''
 main(p) {
   var res = p.sortedNodes();
 }
@@ -228,8 +228,8 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  void test_forExpression_name_get() {
-    resolveTestUnit('''
+  test_forExpression_name_get() async {
+    await resolveTestUnit('''
 main(p) {
   var res = p.get();
 }
@@ -240,8 +240,8 @@ main(p) {
         unorderedEquals([]));
   }
 
-  void test_forExpression_prefixedIdentifier() {
-    resolveTestUnit('''
+  test_forExpression_prefixedIdentifier() async {
+    await resolveTestUnit('''
 main(p) {
   var res = p.sortedNodes;
 }
@@ -255,8 +255,8 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  void test_forExpression_privateName() {
-    resolveTestUnit('''
+  test_forExpression_privateName() async {
+    await resolveTestUnit('''
 main(p) {
   p._name;
   p._computeSuffix();
@@ -277,8 +277,8 @@ main(p) {
         unorderedEquals(['computeSuffix', 'suffix']));
   }
 
-  void test_forExpression_propertyAccess() {
-    resolveTestUnit('''
+  test_forExpression_propertyAccess() async {
+    await resolveTestUnit('''
 main(p) {
   var res = p.q.sortedNodes;
 }
@@ -290,8 +290,8 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  void test_forExpression_simpleName() {
-    resolveTestUnit('''
+  test_forExpression_simpleName() async {
+    await resolveTestUnit('''
 main(p) {
   var sortedNodes = null;
   var res = sortedNodes;
@@ -303,8 +303,8 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  void test_forExpression_unqualifiedInvocation() {
-    resolveTestUnit('''
+  test_forExpression_unqualifiedInvocation() async {
+    await resolveTestUnit('''
 getSortedNodes() => [];
 main(p) {
   var res = getSortedNodes();

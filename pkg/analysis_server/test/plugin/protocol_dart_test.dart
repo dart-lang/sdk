@@ -102,14 +102,14 @@ class ElementTest extends AbstractContextTest {
     return findChildElement(unit.element, name, kind);
   }
 
-  void test_fromElement_CLASS() {
+  test_fromElement_CLASS() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     {
       engine.ClassElement engineElement = findElementInUnit(unit, '_A');
       // create notification Element
@@ -143,14 +143,14 @@ class B<K, V> {}''');
     }
   }
 
-  void test_fromElement_CONSTRUCTOR() {
+  test_fromElement_CONSTRUCTOR() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.ConstructorElement engineElement =
         findElementInUnit(unit, 'myConstructor');
     // create notification Element
@@ -183,14 +183,14 @@ class A {
     expect(element.flags, 0);
   }
 
-  void test_fromElement_ENUM() {
+  test_fromElement_ENUM() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     {
       engine.ClassElement engineElement = findElementInUnit(unit, '_E1');
       expect(engineElement.isDeprecated, isTrue);
@@ -224,14 +224,14 @@ enum E2 { three, four }''');
     }
   }
 
-  void test_fromElement_ENUM_CONSTANT() {
+  test_fromElement_ENUM_CONSTANT() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     {
       engine.FieldElement engineElement = findElementInUnit(unit, 'one');
       // create notification Element
@@ -312,14 +312,14 @@ enum E2 { three, four }''');
     }
   }
 
-  void test_fromElement_FIELD() {
+  test_fromElement_FIELD() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 class A {
   static const myField = 42;
 }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.FieldElement engineElement = findElementInUnit(unit, 'myField');
     // create notification Element
     Element element = convertElement(engineElement);
@@ -338,13 +338,13 @@ class A {
     expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
   }
 
-  void test_fromElement_FUNCTION_TYPE_ALIAS() {
+  test_fromElement_FUNCTION_TYPE_ALIAS() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 typedef int F<T>(String x);
 ''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.FunctionTypeAliasElement engineElement =
         findElementInUnit(unit, 'F');
     // create notification Element
@@ -365,14 +365,14 @@ typedef int F<T>(String x);
     expect(element.flags, 0);
   }
 
-  void test_fromElement_GETTER() {
+  test_fromElement_GETTER() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 class A {
   String get myGetter => 42;
 }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.PropertyAccessorElement engineElement =
         findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
     // create notification Element
@@ -392,7 +392,7 @@ class A {
     expect(element.flags, 0);
   }
 
-  void test_fromElement_LABEL() {
+  test_fromElement_LABEL() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
@@ -402,7 +402,7 @@ myLabel:
     break myLabel;
   }
 }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.LabelElement engineElement = findElementInUnit(unit, 'myLabel');
     // create notification Element
     Element element = convertElement(engineElement);
@@ -421,7 +421,7 @@ myLabel:
     expect(element.flags, 0);
   }
 
-  void test_fromElement_METHOD() {
+  test_fromElement_METHOD() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
@@ -430,7 +430,7 @@ class A {
     return null;
   }
 }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.MethodElement engineElement = findElementInUnit(unit, 'myMethod');
     // create notification Element
     Element element = convertElement(engineElement);
@@ -449,14 +449,14 @@ class A {
     expect(element.flags, Element.FLAG_STATIC);
   }
 
-  void test_fromElement_SETTER() {
+  test_fromElement_SETTER() async {
     engine.Source source = addSource(
         '/test.dart',
         '''
 class A {
   set mySetter(String x) {}
 }''');
-    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
     engine.FieldElement engineFieldElement =
         findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
     engine.PropertyAccessorElement engineElement = engineFieldElement.setter;

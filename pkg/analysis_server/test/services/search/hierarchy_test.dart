@@ -32,8 +32,8 @@ class HierarchyTest extends AbstractSingleUnitTest {
     searchEngine = new SearchEngineImpl(index);
   }
 
-  void test_getClassMembers() {
-    _indexTestUnit('''
+  test_getClassMembers() async {
+    await _indexTestUnit('''
 class A {
   A() {}
   var ma1;
@@ -58,8 +58,8 @@ class B extends A {
     }
   }
 
-  Future test_getHierarchyMembers_constructors() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_constructors() async {
+    await _indexTestUnit('''
 class A {
   A() {}
 }
@@ -80,8 +80,8 @@ class B extends A {
     return Future.wait([futureA, futureB]);
   }
 
-  Future test_getHierarchyMembers_fields() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_fields() async {
+    await _indexTestUnit('''
 class A {
   int foo;
 }
@@ -118,8 +118,8 @@ class D {
     return Future.wait([futureA, futureB, futureC, futureD]);
   }
 
-  Future test_getHierarchyMembers_fields_static() async {
-    _indexTestUnit('''
+  test_getHierarchyMembers_fields_static() async {
+    await _indexTestUnit('''
 class A {
   static int foo;
 }
@@ -153,8 +153,8 @@ class C extends B {
     }
   }
 
-  Future test_getHierarchyMembers_methods() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_methods() async {
+    await _indexTestUnit('''
 class A {
   foo() {}
 }
@@ -199,8 +199,8 @@ class E extends D {
     return Future.wait([futureA, futureB, futureC, futureD, futureE]);
   }
 
-  Future test_getHierarchyMembers_methods_static() async {
-    _indexTestUnit('''
+  test_getHierarchyMembers_methods_static() async {
+    await _indexTestUnit('''
 class A {
   static foo() {}
 }
@@ -224,8 +224,8 @@ class B extends A {
     }
   }
 
-  Future test_getHierarchyMembers_withInterfaces() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_withInterfaces() async {
+    await _indexTestUnit('''
 class A {
   foo() {}
 }
@@ -259,8 +259,8 @@ class E {
     return Future.wait([futureA, futureB, futureD]);
   }
 
-  void test_getMembers() {
-    _indexTestUnit('''
+  test_getMembers() async {
+    await _indexTestUnit('''
 class A {
   A() {}
   var ma1;
@@ -307,8 +307,8 @@ class B extends A {
     }
   }
 
-  void test_getSuperClasses() {
-    _indexTestUnit('''
+  test_getSuperClasses() async {
+    await _indexTestUnit('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -361,8 +361,8 @@ class F implements A {}
     }
   }
 
-  void _indexTestUnit(String code) {
-    resolveTestUnit(code);
+  Future<Null> _indexTestUnit(String code) async {
+    await resolveTestUnit(code);
     index.indexUnit(testUnit);
   }
 }

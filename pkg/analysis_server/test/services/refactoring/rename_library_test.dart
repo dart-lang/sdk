@@ -19,8 +19,8 @@ main() {
 
 @reflectiveTest
 class RenameLibraryTest extends RenameRefactoringTest {
-  void test_checkNewName() {
-    indexTestUnit('''
+  test_checkNewName() async {
+    await indexTestUnit('''
 library my.app;
 ''');
     _createRenameRefactoring();
@@ -48,7 +48,7 @@ library my.app;
         '''
 part of my.app;
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 library my.app;
 part 'part.dart';
 ''');
@@ -76,7 +76,7 @@ part of the.new.name;
         '''
 part of my .  app;
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 library my    . app;
 part 'part.dart';
 ''');

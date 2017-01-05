@@ -18,8 +18,8 @@ main() {
 
 @reflectiveTest
 class RenameLabelTest extends RenameRefactoringTest {
-  test_checkNewName_LocalVariableElement() {
-    indexTestUnit('''
+  test_checkNewName_LocalVariableElement() async {
+    await indexTestUnit('''
 main() {
 test:
   while (true) {
@@ -43,8 +43,8 @@ test:
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange() {
-    indexTestUnit('''
+  test_createChange() async {
+    await indexTestUnit('''
 main() {
 test:
   while (true) {
@@ -68,8 +68,8 @@ newName:
 ''');
   }
 
-  test_oldName() {
-    indexTestUnit('''
+  test_oldName() async {
+    await indexTestUnit('''
 main() {
 test:
   while (true) {

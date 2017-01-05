@@ -19,8 +19,8 @@ main() {
 
 @reflectiveTest
 class RenameImportTest extends RenameRefactoringTest {
-  test_checkNewName() {
-    indexTestUnit("import 'dart:async' as test;");
+  test_checkNewName() async {
+    await indexTestUnit("import 'dart:async' as test;");
     _createRefactoring("import 'dart:");
     expect(refactoring.oldName, 'test');
     // null
@@ -42,8 +42,8 @@ class RenameImportTest extends RenameRefactoringTest {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_add() {
-    indexTestUnit('''
+  test_createChange_add() async {
+    await indexTestUnit('''
 import 'dart:async';
 import 'dart:math' show Random, min hide max;
 main() {
@@ -68,8 +68,8 @@ main() {
 ''');
   }
 
-  test_createChange_add_interpolationExpression_hasCurlyBrackets() {
-    indexTestUnit(r'''
+  test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 main() {
   Future f;
@@ -90,8 +90,8 @@ main() {
 ''');
   }
 
-  test_createChange_add_interpolationExpression_noCurlyBrackets() {
-    indexTestUnit(r'''
+  test_createChange_add_interpolationExpression_noCurlyBrackets() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 main() {
   Future f;
@@ -112,8 +112,8 @@ main() {
 ''');
   }
 
-  test_createChange_change_className() {
-    indexTestUnit('''
+  test_createChange_change_className() async {
+    await indexTestUnit('''
 import 'dart:math' as test;
 import 'dart:async' as test;
 main() {
@@ -135,8 +135,8 @@ main() {
 ''');
   }
 
-  test_createChange_change_function() {
-    indexTestUnit('''
+  test_createChange_change_function() async {
+    await indexTestUnit('''
 import 'dart:math' as test;
 import 'dart:async' as test;
 main() {
@@ -160,8 +160,8 @@ main() {
 ''');
   }
 
-  test_createChange_change_onPrefixElement() {
-    indexTestUnit('''
+  test_createChange_change_onPrefixElement() async {
+    await indexTestUnit('''
 import 'dart:async' as test;
 import 'dart:math' as test;
 main() {
@@ -187,8 +187,8 @@ main() {
 ''');
   }
 
-  test_createChange_remove() {
-    indexTestUnit('''
+  test_createChange_remove() async {
+    await indexTestUnit('''
 import 'dart:math' as test;
 import 'dart:async' as test;
 main() {
@@ -210,8 +210,8 @@ main() {
 ''');
   }
 
-  test_oldName_empty() {
-    indexTestUnit('''
+  test_oldName_empty() async {
+    await indexTestUnit('''
 import 'dart:math';
 import 'dart:async';
 main() {

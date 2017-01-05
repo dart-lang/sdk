@@ -4,6 +4,7 @@
 
 library test.services.src.index.abstract_single_file;
 
+import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -98,9 +99,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  void resolveTestUnit(String code) {
+  Future<Null> resolveTestUnit(String code) async {
     addTestSource(code);
-    testUnit = resolveLibraryUnit(testSource);
+    testUnit = await resolveLibraryUnit(testSource);
     if (verifyNoTestUnitErrors) {
       assertNoErrorsInSource(testSource);
     }
