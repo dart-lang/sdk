@@ -776,6 +776,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       single_step_(false),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
+      memory_high_watermark_(0),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -2108,7 +2109,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
-  jsobj.AddProperty("threads", thread_registry_);
+  jsobj.AddPropertyF("_memoryHighWatermark", "%" Pu "", memory_high_watermark_);
+  jsobj.AddProperty("_threads", thread_registry_);
 }
 #endif
 
@@ -2658,6 +2660,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
     ASSERT(thread != NULL);
 
+    thread->ResetHighWatermark();
+
     // Set up other values and set the TLS value.
     thread->isolate_ = this;
     ASSERT(heap() != NULL);
@@ -2704,6 +2708,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     // Ensure that the thread reports itself as being at a safepoint.
     thread->EnterSafepoint();
   }
+  UpdateMemoryHighWatermark();
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   os_thread->DisableThreadInterrupts();
@@ -2721,6 +2726,15 @@ void Isolate::UnscheduleThread(Thread* thread,
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   // Return thread structure.
   thread_registry()->ReturnThreadLocked(is_mutator, thread);
+}
+
+
+void Isolate::UpdateMemoryHighWatermark() {
+  const uintptr_t thread_watermarks_total =
+      thread_registry()->ThreadHighWatermarksTotalLocked();
+  if (thread_watermarks_total > memory_high_watermark_) {
+    memory_high_watermark_ = thread_watermarks_total;
+  }
 }
 
 

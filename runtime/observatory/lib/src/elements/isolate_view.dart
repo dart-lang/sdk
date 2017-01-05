@@ -297,6 +297,19 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                         ..text = 'object store'
                     ]
                 ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'native memory usage high watermark'
+                    ..title = '''The maximum amount of native memory allocated
+                    by the isolate over it\'s life.''',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = Utils.formatSize(_isolate.memoryHighWatermark)
+                    ..title = '${_isolate.memoryHighWatermark}B'
+                ],
               new BRElement(),
               new DivElement()
                 ..classes = ['memberItem']
@@ -362,6 +375,11 @@ class IsolateViewElement extends HtmlElement implements Renderable {
             new DivElement()
               ..classes = ['indent']
               ..text = 'kind ${t.kindString}',
+            new DivElement()
+              ..classes = ['indent']
+              ..title = '${t.memoryHighWatermark}B'
+              ..text =
+              'native memory usage high watermark ${Utils.formatSize(t.memoryHighWatermark)}',
             new DivElement()
               ..children = t.zones
                 .map((z) => new DivElement()
