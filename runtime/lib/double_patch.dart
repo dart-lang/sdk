@@ -101,12 +101,12 @@
     return _nativeParse(str, start, end);
   }
 
-  @patch static double parse(String str,
-                                   [double onError(String str)]) {
-    var result = _parse(str);
+  @patch
+  static double parse(String source, [double onError(String source)]) {
+    var result = _parse(source);
     if (result == null) {
-      if (onError == null) throw new FormatException("Invalid double", str);
-      return onError(str);
+      if (onError == null) throw new FormatException("Invalid double", source);
+      return onError(source);
     }
     return result;
   }

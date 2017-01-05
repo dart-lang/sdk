@@ -166,7 +166,7 @@ void postEvent(String eventKind, Map eventData) {
   _postEvent(eventKind, eventDataAsString);
 }
 
-external _postEvent(String eventKind, String eventData);
+external void _postEvent(String eventKind, String eventData);
 
 // Both of these functions are written inside C++ to avoid updating the data
 // structures in Dart, getting an OOB, and observing stale state. Do not move

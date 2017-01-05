@@ -57,15 +57,15 @@ int _intPow(int base, int exponent) {
 }
 
 @patch double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
-@patch double sin(num value) => _sin(value.toDouble());
-@patch double cos(num value) => _cos(value.toDouble());
-@patch double tan(num value) => _tan(value.toDouble());
-@patch double acos(num value) => _acos(value.toDouble());
-@patch double asin(num value) => _asin(value.toDouble());
-@patch double atan(num value) => _atan(value.toDouble());
-@patch double sqrt(num value) => _sqrt(value.toDouble());
-@patch double exp(num value) => _exp(value.toDouble());
-@patch double log(num value) => _log(value.toDouble());
+@patch double sin(num x) => _sin(x.toDouble());
+@patch double cos(num x) => _cos(x.toDouble());
+@patch double tan(num x) => _tan(x.toDouble());
+@patch double acos(num x) => _acos(x.toDouble());
+@patch double asin(num x) => _asin(x.toDouble());
+@patch double atan(num x) => _atan(x.toDouble());
+@patch double sqrt(num x) => _sqrt(x.toDouble());
+@patch double exp(num x) => _exp(x.toDouble());
+@patch double log(num x) => _log(x.toDouble());
 
 double _atan2(double a, double b) native "Math_atan2";
 double _sin(double x) native "Math_sin";

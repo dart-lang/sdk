@@ -22,7 +22,7 @@
 
 @patch void _reportCompleteEvent(
      int start,
-     int end,
+     int startCpu,
      String category,
      String name,
      String argumentsAsJson) native "Timeline_reportCompleteEvent";

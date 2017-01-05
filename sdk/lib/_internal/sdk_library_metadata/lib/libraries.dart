@@ -36,7 +36,6 @@ Category parseCategory(String name) {
 /// Mapping of "dart:" library name (e.g. "core") to information about that
 /// library.
 const Map<String, LibraryInfo> libraries = const {
-
   "async": const LibraryInfo(
       "async/async.dart",
       categories: "Client,Server",
@@ -182,8 +181,7 @@ const Map<String, LibraryInfo> libraries = const {
       "internal/internal.dart",
       categories: "",
       documented: false,
-      dart2jsPatchPath:
-          "_internal/js_runtime/lib/internal_patch.dart"),
+      dart2jsPatchPath: "_internal/js_runtime/lib/internal_patch.dart"),
 
   "_js_helper": const LibraryInfo(
       "_internal/js_runtime/lib/js_helper.dart",
@@ -250,7 +248,6 @@ const Map<String, LibraryInfo> libraries = const {
  * Information about a "dart:" library.
  */
 class LibraryInfo {
-
   /**
    * Path to the library's *.dart file relative to this file.
    */
@@ -336,8 +333,6 @@ class LibraryInfo {
   }
 }
 
-
-
 /**
  * Abstraction to capture the maturity of a library.
  */
@@ -351,28 +346,28 @@ class Maturity {
   String toString() => "$name: $level\n$description\n";
 
   static const Maturity DEPRECATED = const Maturity(0, "Deprecated",
-    "This library will be remove before next major release.");
+      "This library will be remove before next major release.");
 
   static const Maturity EXPERIMENTAL = const Maturity(1, "Experimental",
-    "This library is experimental and will likely change or be removed\n"
-    "in future versions.");
+      "This library is experimental and will likely change or be removed\n"
+      "in future versions.");
 
   static const Maturity UNSTABLE = const Maturity(2, "Unstable",
-    "This library is in still changing and have not yet endured\n"
-    "sufficient real-world testing.\n"
-    "Backwards-compatibility is NOT guaranteed.");
+      "This library is in still changing and have not yet endured\n"
+      "sufficient real-world testing.\n"
+      "Backwards-compatibility is NOT guaranteed.");
 
   static const Maturity WEB_STABLE = const Maturity(3, "Web Stable",
-    "This library is tracking the DOM evolution as defined by WC3.\n"
-    "Backwards-compatibility is NOT guaranteed.");
+      "This library is tracking the DOM evolution as defined by WC3.\n"
+      "Backwards-compatibility is NOT guaranteed.");
 
   static const Maturity STABLE = const Maturity(4, "Stable",
-    "The library is stable. API backwards-compatibility is guaranteed.\n"
-    "However implementation details might change.");
+      "The library is stable. API backwards-compatibility is guaranteed.\n"
+      "However implementation details might change.");
 
   static const Maturity LOCKED = const Maturity(5, "Locked",
-    "This library will not change except when serious bugs are encountered.");
+      "This library will not change except when serious bugs are encountered.");
 
   static const Maturity UNSPECIFIED = const Maturity(-1, "Unspecified",
-    "The maturity for this library has not been specified.");
+      "The maturity for this library has not been specified.");
 }

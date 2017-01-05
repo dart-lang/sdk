@@ -775,7 +775,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("_List._List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT_STREQ("List.List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -829,7 +829,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("_GrowableList._GrowableList", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT_STREQ("List.List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("bar", walker.CurrentName());
     EXPECT(!walker.Down());

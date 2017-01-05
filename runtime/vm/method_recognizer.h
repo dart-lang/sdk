@@ -226,16 +226,16 @@ namespace dart {
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
-  V(::, sqrt, MathSqrt, Double, 0x0a683033)                                    \
+  V(::, sqrt, MathSqrt, Double, 0x70482cf3)                                    \
   V(_Random, _nextState, Random_nextState, Dynamic, 0x24d91397)                \
 
 #define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, Double, 0x595a044c)                                      \
-  V(::, cos, MathCos, Double, 0x337a20be)                                      \
-  V(::, tan, MathTan, Double, 0x29aba1ea)                                      \
-  V(::, asin, MathAsin, Double, 0x48ec330d)                                    \
-  V(::, acos, MathAcos, Double, 0x22ef2552)                                    \
-  V(::, atan, MathAtan, Double, 0x38473515)                                    \
+  V(::, sin, MathSin, Double, 0x3f3a010c)                                      \
+  V(::, cos, MathCos, Double, 0x195a1d7e)                                      \
+  V(::, tan, MathTan, Double, 0x0f8b9eaa)                                      \
+  V(::, asin, MathAsin, Double, 0x2ecc2fcd)                                    \
+  V(::, acos, MathAcos, Double, 0x08cf2212)                                    \
+  V(::, atan, MathAtan, Double, 0x1e2731d5)                                    \
   V(::, atan2, MathAtan2, Double, 0x39f1fa41)                                  \
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
@@ -407,8 +407,8 @@ namespace dart {
   V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x4dd4eedd)               \
   V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x474b4719)             \
   V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x47207cf7)             \
-  V(::, exp, MathExp, 0x4ccba23a)                                              \
-  V(::, log, MathLog, 0x3908fd3c)                                              \
+  V(::, exp, MathExp, 0x32ab9efa)                                              \
+  V(::, log, MathLog, 0x1ee8f9fc)                                              \
   V(::, max, MathMax, 0x4f51acb6)                                              \
   V(::, min, MathMin, 0x0bee5d52)                                              \
   V(::, pow, MathPow, 0x443379a8)                                              \
@@ -431,14 +431,14 @@ namespace dart {
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \
-  V(::, asin, MathAsin, 0x48ec330d)                                            \
-  V(::, acos, MathAcos, 0x22ef2552)                                            \
-  V(::, atan, MathAtan, 0x38473515)                                            \
+  V(::, asin, MathAsin, 0x2ecc2fcd)                                            \
+  V(::, acos, MathAcos, 0x08cf2212)                                            \
+  V(::, atan, MathAtan, 0x1e2731d5)                                            \
   V(::, atan2, MathAtan2, 0x39f1fa41)                                          \
-  V(::, cos, MathCos, 0x337a20be)                                              \
-  V(::, sin, MathSin, 0x595a044c)                                              \
-  V(::, sqrt, MathSqrt, 0x0a683033)                                            \
-  V(::, tan, MathTan, 0x29aba1ea)                                              \
+  V(::, cos, MathCos, 0x195a1d7e)                                              \
+  V(::, sin, MathSin, 0x3f3a010c)                                              \
+  V(::, sqrt, MathSqrt, 0x70482cf3)                                            \
+  V(::, tan, MathTan, 0x0f8b9eaa)                                              \
   V(_Bigint, _lsh, Bigint_lsh, 0x0619eb8a)                                     \
   V(_Bigint, _rsh, Bigint_rsh, 0x0e1b80df)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 0x1a2b6326)                               \
