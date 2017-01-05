@@ -716,11 +716,11 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForDriver(ContextInfo info, Map<String, Object> options) {
+  void processOptionsForDriver(ContextInfo info,
+      AnalysisOptionsImpl analysisOptions, Map<String, Object> options) {
     if (options == null) {
       return;
     }
-    AnalysisOptionsImpl analysisOptions = info.analysisDriver.analysisOptions;
 
     // Check for embedded options.
     Map embeddedOptions = _getEmbeddedOptions(info);
@@ -1165,30 +1165,12 @@ class ContextManagerImpl implements ContextManager {
 
     info.setDependencies(dependencies);
     if (enableNewAnalysisDriver) {
+      processOptionsForDriver(info, options, optionMap);
       info.analysisDriver = callbacks.addAnalysisDriver(folder, options);
     } else {
       info.context = callbacks.addContext(folder, options);
       _folderMap[folder] = info.context;
       info.context.name = folder.path;
-    }
-
-    // Look for pubspec-specified analysis configuration.
-    File pubspec;
-    if (packagespecFile?.exists == true) {
-      if (packagespecFile.shortName == PUBSPEC_NAME) {
-        pubspec = packagespecFile;
-      }
-    }
-    if (pubspec == null) {
-      Resource child = folder.getChild(PUBSPEC_NAME);
-      if (child.exists && child is File) {
-        pubspec = child;
-      }
-    }
-
-    if (enableNewAnalysisDriver) {
-      processOptionsForDriver(info, optionMap);
-    } else {
       processOptionsForContext(info, optionMap);
     }
 
