@@ -2190,16 +2190,21 @@ class AstComparator implements AstVisitor<bool> {
  * >   expressions that evaluate to an integer value or to <b>null</b>.
  * >   </span>
  * > * <span>
- * >   An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
- * >   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
- * >   e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> &gt; e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;
- * >   e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;= e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
- * >   e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and
- * >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric
- * >   value or to <b>null</b>.
+ * >   An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub>
+ * >   -e<sub>2</sub></i>, <i>e<sub>1</sub> * e<sub>2</sub></i>,
+ * >   <i>e<sub>1</sub> / e<sub>2</sub></i>, <i>e<sub>1</sub> ~/
+ * >   e<sub>2</sub></i>, <i>e<sub>1</sub> &gt; e<sub>2</sub></i>,
+ * >   <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
+ * >   e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or
+ * >   <i>e<sub>1</sub> % e<sub>2</sub></i>, where <i>e</i>,
+ * >   <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions
+ * >   that evaluate to a numeric value or to <b>null</b>.
+ * >   </span>
+ * > * <span>
+ * >   An expression of one the form <i>e<sub>1</sub> + e<sub>2</sub></i>,
+ * >   <i>e<sub>1</sub> -e<sub>2</sub></i> where <i>e<sub>1</sub> and
+ * >   e<sub>2</sub></i> are constant expressions that evaluate to a numeric or
+ * >   string value or to <b>null</b>.
  * >   </span>
  * > * <span>
  * >   An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
@@ -2207,6 +2212,8 @@ class AstComparator implements AstVisitor<bool> {
  * >   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
  * >   evaluates to a boolean value.
  * >   </span>
+ *
+ * However, this comment is now at least a little bit out of sync with the spec.
  *
  * The values returned by instances of this class are therefore `null` and
  * instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
@@ -2333,6 +2340,9 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
       } else if (node.operator.type == TokenType.PLUS) {
         // numeric or {@code null}
         if (leftOperand is num && rightOperand is num) {
+          return leftOperand + rightOperand;
+        }
+        if (leftOperand is String && rightOperand is String) {
           return leftOperand + rightOperand;
         }
       } else if (node.operator.type == TokenType.STAR) {

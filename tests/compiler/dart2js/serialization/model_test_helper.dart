@@ -13,7 +13,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
@@ -107,7 +107,8 @@ Future checkModels(Uri entryPoint,
 
 void checkResolutionEnqueuers(
     ResolutionEnqueuer enqueuer1, ResolutionEnqueuer enqueuer2,
-    {bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
+    {bool typeEquivalence(ResolutionDartType a, ResolutionDartType b):
+        areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
   checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
@@ -424,8 +425,10 @@ void checkOutputUnits(
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }
 
-bool areInstantiationInfosEquivalent(InstantiationInfo info1,
-    InstantiationInfo info2, bool typeEquivalence(DartType a, DartType b)) {
+bool areInstantiationInfosEquivalent(
+    InstantiationInfo info1,
+    InstantiationInfo info2,
+    bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
   checkMaps(
       info1.instantiationMap,
       info2.instantiationMap,
@@ -438,7 +441,7 @@ bool areInstantiationInfosEquivalent(InstantiationInfo info1,
 }
 
 bool areInstancesEquivalent(Instance instance1, Instance instance2,
-    bool typeEquivalence(DartType a, DartType b)) {
+    bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
   return typeEquivalence(instance1.type, instance2.type) &&
       instance1.kind == instance2.kind &&
       instance1.isRedirection == instance2.isRedirection;

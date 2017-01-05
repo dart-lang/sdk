@@ -168,7 +168,7 @@ class SsaInstructionSelection extends HBaseVisitor {
       if (candidate is HFieldGet) {
         if (candidate.element != setter.element) return false;
         if (candidate.receiver != setter.receiver) return false;
-        // Recognize only three instructions in sequence in the same block.  This
+        // Recognize only three instructions in sequence in the same block. This
         // could be broadened to allow non-interfering interleaved instructions.
         if (op.block != block) return false;
         if (candidate.block != block) return false;

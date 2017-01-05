@@ -313,9 +313,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
-  void set_has_compiled_code(bool value) { has_compiled_code_ = value; }
-  bool has_compiled_code() const { return has_compiled_code_; }
-
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
     resume_request_ = true;
@@ -730,7 +727,6 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   bool resume_request_;
   int64_t last_resume_timestamp_;
-  bool has_compiled_code_;  // Can check that no compilation occured.
   Random random_;
   Simulator* simulator_;
   Mutex* mutex_;          // Protects compiler stats.

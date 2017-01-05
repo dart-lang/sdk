@@ -16,7 +16,7 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
@@ -101,13 +101,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// be null.
   ir.FunctionNode _targetFunction;
 
-  /// A stack of [DartType]s that have been seen during inlining of factory
-  /// constructors.  These types are preserved in [HInvokeStatic]s and
+  /// A stack of [ResolutionDartType]s that have been seen during inlining of
+  /// factory constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HCreate]s inside the inline code and registered during code generation
   /// for these nodes.
   // TODO(karlklose): consider removing this and keeping the (substituted) types
   // of the type variables in an environment (like the [LocalsHandler]).
-  final List<DartType> currentImplicitInstantiations = <DartType>[];
+  final List<ResolutionDartType> currentImplicitInstantiations =
+      <ResolutionDartType>[];
 
   HInstruction rethrowableException;
 
@@ -234,9 +235,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
             addParameter(typeParamElement, commonMasks.nonNullType);
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
-        var typeVariableType = clsElement
-            .typeVariables
-            .firstWhere((TypeVariableType i) => i.name == typeParameter.name);
+        var typeVariableType = clsElement.typeVariables.firstWhere(
+            (ResolutionTypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
             localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
       });
@@ -277,7 +277,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         constructorArguments,
         new TypeMask.nonNullExact(
             astAdapter.getClass(constructor.enclosingClass), closedWorld),
-        instantiatedTypes: <DartType>[
+        instantiatedTypes: <ResolutionDartType>[
           astAdapter.getClass(constructor.enclosingClass).thisType
         ],
         hasRtiInput: false);
@@ -309,34 +309,35 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Collects field initializers all the way up the inheritance chain.
   void _buildInitializers(
       ir.Constructor constructor, Map<ir.Field, HInstruction> fieldValues) {
-    var foundSuperCall = false;
+    var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
-      if (initializer is ir.SuperInitializer) {
-        foundSuperCall = true;
-        var superConstructor = initializer.target;
+      if (initializer is ir.SuperInitializer ||
+          initializer is ir.RedirectingInitializer) {
+        foundSuperOrRedirectCall = true;
+        var superOrRedirectConstructor = initializer.target;
         var arguments = _normalizeAndBuildArguments(
-            superConstructor.function, initializer.arguments);
-        _buildInlinedSuperInitializers(
-            superConstructor, arguments, fieldValues);
+            superOrRedirectConstructor.function, initializer.arguments);
+        _buildInlinedInitializers(
+            superOrRedirectConstructor, arguments, fieldValues);
       } else if (initializer is ir.FieldInitializer) {
         initializer.value.accept(this);
         fieldValues[initializer.field] = pop();
       }
     }
 
-    // TODO(het): does kernel always set the super initializer at the end?
-    // If there was no super-call initializer, then call the default constructor
-    // in the superclass.
-    if (!foundSuperCall) {
+    // Kernel always set the super initializer at the end, so if there was no
+    // super-call initializer, then the default constructor is called in the
+    // superclass.
+    if (!foundSuperOrRedirectCall) {
       if (constructor.enclosingClass != astAdapter.objectClass) {
         var superclass = constructor.enclosingClass.superclass;
         var defaultConstructor = superclass.constructors
-            .firstWhere((c) => c.name == '', orElse: () => null);
+            .firstWhere((c) => c.name.name == '', orElse: () => null);
         if (defaultConstructor == null) {
           compiler.reporter.internalError(
               NO_LOCATION_SPANNABLE, 'Could not find default constructor.');
         }
-        _buildInlinedSuperInitializers(
+        _buildInlinedInitializers(
             defaultConstructor, <HInstruction>[], fieldValues);
       }
     }
@@ -388,7 +389,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Inlines the given super [constructor]'s initializers by collecting it's
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
-  void _buildInlinedSuperInitializers(ir.Constructor constructor,
+  void _buildInlinedInitializers(ir.Constructor constructor,
       List<HInstruction> arguments, Map<ir.Field, HInstruction> fieldValues) {
     // TODO(het): Handle RTI if class needs it
     fieldValues.addAll(_collectFieldValues(constructor.enclosingClass));
@@ -410,7 +411,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   HTypeConversion buildFunctionTypeConversion(
-      HInstruction original, DartType type, int kind) {
+      HInstruction original, ResolutionDartType type, int kind) {
     HInstruction reifiedType = buildFunctionType(type);
     return new HTypeConversion.viaMethodOnType(
         type, kind, original.instructionType, reifiedType, original);
@@ -429,13 +430,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
-  void addImplicitInstantiation(DartType type) {
+  void addImplicitInstantiation(ResolutionDartType type) {
     if (type != null) {
       currentImplicitInstantiations.add(type);
     }
   }
 
-  void removeImplicitInstantiation(DartType type) {
+  void removeImplicitInstantiation(ResolutionDartType type) {
     if (type != null) {
       currentImplicitInstantiations.removeLast();
     }
@@ -783,6 +784,146 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  visitDoStatement(ir.DoStatement doStatement) {
+    // TODO(efortuna): I think this can be rewritten using
+    // LoopHandler.handleLoop with some tricks about when the "update" happens.
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    localsHandler.startLoop(astAdapter.getNode(doStatement));
+    JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement);
+    HLoopInformation loopInfo = current.loopInformation;
+    HBasicBlock loopEntryBlock = current;
+    HBasicBlock bodyEntryBlock = current;
+    JumpTarget target =
+        elements.getTargetDefinition(astAdapter.getNode(doStatement));
+    bool hasContinues = target != null && target.isContinueTarget;
+    if (hasContinues) {
+      // Add extra block to hang labels on.
+      // It doesn't currently work if they are on the same block as the
+      // HLoopInfo. The handling of HLabeledBlockInformation will visit a
+      // SubGraph that starts at the same block again, so the HLoopInfo is
+      // either handled twice, or it's handled after the labeled block info,
+      // both of which generate the wrong code.
+      // Using a separate block is just a simple workaround.
+      bodyEntryBlock = openNewBlock();
+    }
+    localsHandler.enterLoopBody(astAdapter.getNode(doStatement));
+    doStatement.body.accept(this);
+
+    // If there are no continues we could avoid the creation of the condition
+    // block. This could also lead to a block having multiple entries and exits.
+    HBasicBlock bodyExitBlock;
+    bool isAbortingBody = false;
+    if (current != null) {
+      bodyExitBlock = close(new HGoto());
+    } else {
+      isAbortingBody = true;
+      bodyExitBlock = lastOpenedBlock;
+    }
+
+    SubExpression conditionExpression;
+    bool loopIsDegenerate = isAbortingBody && !hasContinues;
+    if (!loopIsDegenerate) {
+      HBasicBlock conditionBlock = addNewBlock();
+
+      List<LocalsHandler> continueHandlers = <LocalsHandler>[];
+      jumpHandler
+          .forEachContinue((HContinue instruction, LocalsHandler locals) {
+        instruction.block.addSuccessor(conditionBlock);
+        continueHandlers.add(locals);
+      });
+
+      if (!isAbortingBody) {
+        bodyExitBlock.addSuccessor(conditionBlock);
+      }
+
+      if (!continueHandlers.isEmpty) {
+        if (!isAbortingBody) continueHandlers.add(localsHandler);
+        localsHandler =
+            savedLocals.mergeMultiple(continueHandlers, conditionBlock);
+        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        List<LabelDefinition> labels = jumpHandler.labels;
+        HSubGraphBlockInformation bodyInfo =
+            new HSubGraphBlockInformation(bodyGraph);
+        HLabeledBlockInformation info;
+        if (!labels.isEmpty) {
+          info =
+              new HLabeledBlockInformation(bodyInfo, labels, isContinue: true);
+        } else {
+          info = new HLabeledBlockInformation.implicit(bodyInfo, target,
+              isContinue: true);
+        }
+        bodyEntryBlock.setBlockFlow(info, conditionBlock);
+      }
+      open(conditionBlock);
+
+      doStatement.condition.accept(this);
+      assert(!isAborted());
+      HInstruction conditionInstruction = popBoolified();
+      HBasicBlock conditionEndBlock = close(
+          new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+
+      HBasicBlock avoidCriticalEdge = addNewBlock();
+      conditionEndBlock.addSuccessor(avoidCriticalEdge);
+      open(avoidCriticalEdge);
+      close(new HGoto());
+      avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
+
+      conditionExpression =
+          new SubExpression(conditionBlock, conditionEndBlock);
+
+      // Avoid a critical edge from the condition to the loop-exit body.
+      HBasicBlock conditionExitBlock = addNewBlock();
+      open(conditionExitBlock);
+      close(new HGoto());
+      conditionEndBlock.addSuccessor(conditionExitBlock);
+
+      loopHandler.endLoop(
+          loopEntryBlock, conditionExitBlock, jumpHandler, localsHandler);
+
+      loopEntryBlock.postProcessLoopHeader();
+      SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
+      HLoopBlockInformation loopBlockInfo = new HLoopBlockInformation(
+          HLoopBlockInformation.DO_WHILE_LOOP,
+          null,
+          wrapExpressionGraph(conditionExpression),
+          wrapStatementGraph(bodyGraph),
+          null,
+          loopEntryBlock.loopInformation.target,
+          loopEntryBlock.loopInformation.labels,
+          sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement)));
+      loopEntryBlock.setBlockFlow(loopBlockInfo, current);
+      loopInfo.loopBlockInformation = loopBlockInfo;
+    } else {
+      // Since the loop has no back edge, we remove the loop information on the
+      // header.
+      loopEntryBlock.loopInformation = null;
+
+      if (jumpHandler.hasAnyBreak()) {
+        // Null branchBlock because the body of the do-while loop always aborts,
+        // so we never get to the condition.
+        loopHandler.endLoop(loopEntryBlock, null, jumpHandler, localsHandler);
+
+        // Since the body of the loop has a break, we attach a synthesized label
+        // to the body.
+        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        JumpTarget target =
+            elements.getTargetDefinition(astAdapter.getNode(doStatement));
+        LabelDefinition label = target.addLabel(null, 'loop');
+        label.setBreakTarget();
+        HLabeledBlockInformation info = new HLabeledBlockInformation(
+            new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
+        loopEntryBlock.setBlockFlow(info, current);
+        jumpHandler.forEachBreak((HBreak breakInstruction, _) {
+          HBasicBlock block = breakInstruction.block;
+          block.addAtExit(new HBreak.toLabel(label));
+          block.remove(breakInstruction);
+        });
+      }
+    }
+    jumpHandler.close();
+  }
+
+  @override
   void visitIfStatement(ir.IfStatement ifStatement) {
     handleIf(
         visitCondition: () => ifStatement.condition.accept(this),
@@ -794,7 +935,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitAsExpression(ir.AsExpression asExpression) {
     asExpression.operand.accept(this);
     HInstruction expressionInstruction = pop();
-    DartType type = astAdapter.getDartType(asExpression.type);
+    ResolutionDartType type = astAdapter.getDartType(asExpression.type);
     if (type.isMalformed) {
       if (type is MalformedType) {
         ErroneousElement element = type.element;
@@ -959,13 +1100,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Set the runtime type information if necessary.
   HInstruction setListRuntimeTypeInfoIfNeeded(
       HInstruction object, ir.ListLiteral listLiteral) {
-    InterfaceType type = localsHandler
+    ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
-    for (DartType argument in type.typeArguments) {
+    for (ResolutionDartType argument in type.typeArguments) {
       arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     }
     // TODO(15489): Register at codegen.
@@ -1031,14 +1172,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     assert(constructor.kind == ir.ProcedureKind.Factory);
 
-    InterfaceType type = localsHandler
+    ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfMapLiteral(mapLiteral));
 
     ir.Class cls = constructor.enclosingClass;
 
     if (backend.classNeedsRti(astAdapter.getElement(cls))) {
       List<HInstruction> typeInputs = <HInstruction>[];
-      type.typeArguments.forEach((DartType argument) {
+      type.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
             .add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });
@@ -1059,7 +1200,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // If runtime type information is needed and the map literal has no type
     // parameters, 'constructor' is a static function that forwards the call to
     // the factory constructor without type parameters.
-    assert(constructor.kind == ir.ProcedureKind.Factory);
+    assert(constructor.kind == ir.ProcedureKind.Method ||
+        constructor.kind == ir.ProcedureKind.Factory);
 
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in
@@ -1094,7 +1236,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     if (type is ir.TypeParameterType) {
       // TODO(sra): Convert the type logic here to use ir.DartType.
-      DartType dartType = astAdapter.getDartType(type);
+      ResolutionDartType dartType = astAdapter.getDartType(type);
       dartType = localsHandler.substInContext(dartType);
       HInstruction value = typeBuilder.analyzeTypeArgument(
           dartType, sourceElement,
@@ -1791,7 +1933,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         targetCanThrow: astAdapter.getCanThrow(target, closedWorld));
     if (currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
-          new List<DartType>.from(currentImplicitInstantiations);
+          new List<ResolutionDartType>.from(currentImplicitInstantiations);
     }
     instruction.sideEffects = astAdapter.getSideEffects(target, closedWorld);
 
@@ -1972,7 +2114,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Note: The call to "unalias" this type like in the original SSA builder is
     // unnecessary in kernel because Kernel has no notion of typedef.
     // TODO(efortuna): Add test for this.
-    DartType typeValue =
+    ResolutionDartType typeValue =
         localsHandler.substInContext(astAdapter.getDartType(type));
     if (type is ir.InvalidType) {
       generateTypeError(node, (typeValue.element as ErroneousElement).message);

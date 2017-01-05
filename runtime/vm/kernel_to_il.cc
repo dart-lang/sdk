@@ -662,7 +662,7 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
     node->body()->AcceptStatementVisitor(this);
   }
 
-  // Ensure that :await_jump_var and :await_ctx_var are captured.
+  // Ensure that :await_jump_var, :await_ctx_var and :async_op are captured.
   if (node->async_marker() == FunctionNode::kSyncYielding) {
     {
       LocalVariable* temp = NULL;
@@ -675,6 +675,13 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
       LookupCapturedVariableByName(
           (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
           Symbols::AwaitContextVar());
+    }
+    {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::AsyncOperation(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
     }
   }
 }
@@ -3953,7 +3960,7 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   // So we convert malformed return/parameter types to `dynamic`.
   TypeParameterScope scope(this, &node->type_parameters());
 
-  const Function& signature_function = Function::ZoneHandle(
+  Function& signature_function = Function::ZoneHandle(
       Z, Function::NewSignatureFunction(*active_class_->klass,
                                         TokenPosition::kNoSource));
 
@@ -4008,8 +4015,10 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   if (finalize_) {
     signature_type ^= ClassFinalizer::FinalizeType(
         *active_class_->klass, signature_type, ClassFinalizer::kCanonicalize);
+    // Do not refer to signature_function anymore, since it may have been
+    // replaced during canonicalization.
+    signature_function = Function::null();
   }
-  signature_function.SetSignatureType(signature_type);
 
   result_ = signature_type.raw();
 }

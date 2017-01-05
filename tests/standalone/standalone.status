@@ -86,6 +86,19 @@ io/file_constructor_test: fail
 # This is runtime test.
 io/process_exit_negative_test: Skip
 
+# Issue #28236
+io/addlatexhash_test: StaticWarning
+io/http_auth_digest_test: StaticWarning
+io/http_auth_test: StaticWarning
+io/http_proxy_advanced_test: StaticWarning
+io/http_proxy_test: StaticWarning
+io/skipping_dart2js_compilations_test: StaticWarning
+io/sleep_test: StaticWarning
+io/test_harness_analyzer_test: StaticWarning
+io/test_runner_test: StaticWarning
+io/web_socket_compression_test: StaticWarning
+io/web_socket_test: StaticWarning
+
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_data_test: Skip # dart:typed_data support needed.
@@ -200,6 +213,7 @@ io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
 io/socket_info_ipv6_test: RuntimeError # Issue 27876
+io/http_server_early_client_close2_test: Pass, Crash  # Issue 28197
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.

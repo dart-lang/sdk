@@ -431,7 +431,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 }
 
+// Cross frame objects should not be considered browser types.
+// We include the the instanceof Object test to filter out cross frame objects
+// on FireFox. Surprisingly on FireFox the instanceof Window test succeeds for
+// cross frame windows while the instanceof Object test fails.
 bool _isBrowserType(o) => JS('bool',
+    '# instanceof Object && ('
     '# instanceof Blob || '
     '# instanceof Event || '
     '(window.KeyRange && # instanceof KeyRange) || '
@@ -440,7 +445,7 @@ bool _isBrowserType(o) => JS('bool',
     '# instanceof Node || '
     // Int8Array.__proto__ is TypedArray.
     '(window.Int8Array && # instanceof Int8Array.__proto__) || '
-    '# instanceof Window', o, o, o, o, o, o, o, o);
+    '# instanceof Window)', o, o, o, o, o, o, o, o, o);
 
 class _DartObject {
   final _dartObj;

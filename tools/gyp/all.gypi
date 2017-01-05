@@ -16,6 +16,8 @@
     'asan%': 0,
     # Flag that tells us whether this is a MSAN build.
     'msan%': 0,
+    # Flag that teslls us whether this is a TSAN build.
+    'tsan%': 0,
   },
   'conditions': [
     [ 'OS=="linux"', {

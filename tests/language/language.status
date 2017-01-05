@@ -9,9 +9,8 @@
 null_is_bottom_test/22: RuntimeError # Issue 28025
 null_is_bottom_test/34: RuntimeError # Issue 28025
 
-
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
+# Other issues:
 generic_methods_type_expression_test: RuntimeError # Issue 25869
 null_is_bottom_test/05: RuntimeError # Issue 28025
 null_is_bottom_test/07: RuntimeError # Issue 28025
@@ -107,6 +106,7 @@ type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+# Other issues.
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
 vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
@@ -205,6 +205,7 @@ regress_18535_test: SkipByDesign
 super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
+regress_28255_test: SkipByDesign
 
 [ $noopt ]
 # Deferred loading happens eagerly. Issue #27587
@@ -214,7 +215,6 @@ deferred_global_test: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
 regress_22443_test: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
@@ -226,7 +226,6 @@ deferred_inheritance_constraints_test/redirecting_constructor: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
 
@@ -314,7 +313,6 @@ deferred_type_dependency_test: Crash # Requires deferred libraries
 issue_1751477_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_22443_test: Crash # Requires deferred libraries
-tearoff_basic_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
 override_field_method1_negative_test: Pass, Crash # Issue 27835
@@ -341,3 +339,19 @@ duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
+
+null_bottom_test/none: StaticWarning, CompileTimeError # Issue 28025
+null_bottom_test/01: Pass, CompileTimeError # Issue 28025
+null_bottom_test/02: Pass, CompileTimeError # Issue 28025
+null_bottom_test/03: Pass, CompileTimeError # Issue 28025
+
+# Issue #28236
+async_await_test: StaticWarning
+async_star_pause_test: StaticWarning
+async_star_test: StaticWarning
+regress_18535_test: StaticWarning
+
+[ $runtime == dart_precompiled || $runtime == vm || $runtime == dartium]
+null_bottom_test/none: RuntimeError # Issue 28025
+null_bottom_test/01: RuntimeError # Issue 28025
+null_bottom_test/02: RuntimeError # Issue 28025

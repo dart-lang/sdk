@@ -5,8 +5,9 @@
 library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
-import '../dart_types.dart';
-import '../elements/elements.dart' show Element, Elements, FieldElement;
+import '../elements/elements.dart' show Entity, Elements;
+import '../elements/entities.dart' show FieldEntity;
+import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import '../tree/dartstring.dart' show DartString;
 
@@ -44,13 +45,13 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     return 0;
   }
 
-  static int compareElements(Element a, Element b) {
+  static int compareElements(Entity a, Entity b) {
     int r = a.name.compareTo(b.name);
     if (r != 0) return r;
     return Elements.compareByPosition(a, b);
   }
 
-  static int compareDartTypes(DartType a, DartType b) {
+  static int compareDartTypes(ResolutionDartType a, ResolutionDartType b) {
     if (a == b) return 0;
     int r = a.kind.index.compareTo(b.kind.index);
     if (r != 0) return r;
@@ -119,8 +120,8 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     int r = compareDartTypes(a.type, b.type);
     if (r != 0) return r;
 
-    List<FieldElement> aFields = a.fields.keys.toList()..sort(compareElements);
-    List<FieldElement> bFields = b.fields.keys.toList()..sort(compareElements);
+    List<FieldEntity> aFields = a.fields.keys.toList()..sort(compareElements);
+    List<FieldEntity> bFields = b.fields.keys.toList()..sort(compareElements);
 
     r = compareLists(compareElements, aFields, bFields);
     if (r != 0) return r;

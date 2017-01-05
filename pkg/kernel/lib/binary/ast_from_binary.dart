@@ -177,7 +177,7 @@ class BinaryBuilder {
           'Magic number was: ${magic.toRadixString(16)}');
     }
     readStringTable();
-    Map<String, List<int>> uriToLineStarts = readUriToLineStarts();
+    Map<String, Source> uriToSource = readUriToSource();
     importTable.length = readUInt();
     for (int i = 0; i < importTable.length; ++i) {
       importTable[i] = new Library(null);
@@ -187,15 +187,17 @@ class BinaryBuilder {
       readLibrary();
     }
     var mainMethod = readMemberReference(allowNull: true);
-    return new Program(importTable, uriToLineStarts)..mainMethod = mainMethod;
+    return new Program(importTable, uriToSource)
+      ..mainMethod = mainMethod;
   }
 
-  Map<String, List<int>> readUriToLineStarts() {
+  Map<String, Source> readUriToSource() {
     readSourceUriTable();
     int length = _sourceUriTable.length;
-    Map<String, List<int>> uriToLineStarts = {};
+    Map<String, Source> uriToLineStarts = <String, Source>{};
     for (int i = 0; i < length; ++i) {
       String uri = _sourceUriTable[i];
+      String sourceCode = readStringEntry();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;
@@ -204,7 +206,7 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      uriToLineStarts[uri] = lineStarts;
+      uriToLineStarts[uri] = new Source(lineStarts, sourceCode);
     }
     return uriToLineStarts;
   }

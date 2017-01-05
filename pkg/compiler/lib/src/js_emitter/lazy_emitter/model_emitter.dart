@@ -23,7 +23,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../core_types.dart' show CommonElements;
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
+import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
@@ -103,7 +103,7 @@ class ModelEmitter {
     return deepCompareConstants(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(FunctionElement element) {
+  js.Expression generateStaticClosureAccess(MethodElement element) {
     return js.js('#.#()',
         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
   }

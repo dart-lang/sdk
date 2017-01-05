@@ -33,6 +33,19 @@ main() {
 }''';
     return check(code, lookup: defaultConstructorFor('A'));
   });
+
+  test('redirecting constructor with field', () {
+    String code = '''
+class Foo {
+  final int value;
+  const Foo({int number: 0}) : this.poodle(number * 2);
+  const Foo.poodle(this.value);
+}
+
+main() => new Foo(number: 3);
+''';
+    return check(code, lookup: defaultConstructorFor('Foo'));
+  });
 }
 
 defaultConstructorFor(String className) => (Compiler compiler) {

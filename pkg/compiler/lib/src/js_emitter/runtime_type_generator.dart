@@ -6,7 +6,7 @@ part of dart2js.js_emitter;
 
 // Function signatures used in the generation of runtime type information.
 typedef void FunctionTypeSignatureEmitter(
-    Element method, FunctionType methodType);
+    Element method, ResolutionFunctionType methodType);
 
 typedef void SubstitutionEmitter(Element element, {bool emitNull});
 
@@ -44,7 +44,7 @@ class RuntimeTypeGenerator {
   Iterable<ClassElement> get classesUsingTypeVariableExpression =>
       backend.rti.classesUsingTypeVariableExpression;
 
-  Set<FunctionType> get checkedFunctionTypes =>
+  Set<ResolutionFunctionType> get checkedFunctionTypes =>
       typeTestRegistry.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
@@ -75,7 +75,7 @@ class RuntimeTypeGenerator {
     }
 
     void generateFunctionTypeSignature(
-        FunctionElement method, FunctionType type) {
+        FunctionElement method, ResolutionFunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
@@ -217,7 +217,7 @@ class RuntimeTypeGenerator {
     }
 
     if (supertypesNeedSubstitutions) {
-      for (DartType supertype in cls.allSupertypes) {
+      for (ResolutionDartType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
         if (generated.contains(superclass)) continue;
 
@@ -253,12 +253,13 @@ class RuntimeTypeGenerator {
           _generateInterfacesIsTests(commonElements.functionClass,
               generateIsTest, generateSubstitution, generated);
         }
-        FunctionType callType = callFunction.computeType(compiler.resolution);
+        ResolutionFunctionType callType =
+            callFunction.computeType(compiler.resolution);
         generateFunctionTypeSignature(callFunction, callType);
       }
     }
 
-    for (DartType interfaceType in cls.interfaces) {
+    for (ResolutionDartType interfaceType in cls.interfaces) {
       _generateInterfacesIsTests(interfaceType.element, generateIsTest,
           generateSubstitution, generated);
     }
@@ -282,7 +283,7 @@ class RuntimeTypeGenerator {
 
     tryEmitTest(cls);
 
-    for (DartType interfaceType in cls.interfaces) {
+    for (ResolutionDartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       tryEmitTest(element);
       _generateInterfacesIsTests(
@@ -302,7 +303,7 @@ class RuntimeTypeGenerator {
     List<StubMethod> stubs = <StubMethod>[];
     ClassElement superclass = classElement;
     while (superclass != null) {
-      for (TypeVariableType parameter in superclass.typeVariables) {
+      for (ResolutionTypeVariableType parameter in superclass.typeVariables) {
         if (backend.emitter.readTypeVariables.contains(parameter.element)) {
           stubs.add(
               _generateTypeVariableReader(classElement, parameter.element));

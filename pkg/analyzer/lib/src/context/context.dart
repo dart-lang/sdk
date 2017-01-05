@@ -810,8 +810,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return false;
     }
-    if (_contentCache.getContents(source) != null) {
-      return true;
+    bool overriddenExists = _contentCache.getExists(source);
+    if (overriddenExists != null) {
+      return overriddenExists;
     }
     return source.exists();
   }

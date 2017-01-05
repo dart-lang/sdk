@@ -294,11 +294,11 @@ abstract class Future<T> {
    * The call to `cleanUp` should not throw. If it does, the error will be an
    * uncaught asynchronous error.
    */
-  static Future<List/*<T>*/> wait/*<T>*/(Iterable<Future/*<T>*/> futures,
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
                            {bool eagerError: false,
-                            void cleanUp(/*=T*/ successValue)}) {
-    final _Future<List/*<T>*/> result = new _Future<List/*<T>*/>();
-    List/*<T>*/ values;  // Collects the values. Set to null on error.
+                            void cleanUp(T successValue)}) {
+    final _Future<List<T>> result = new _Future<List<T>>();
+    List<T> values;  // Collects the values. Set to null on error.
     int remaining = 0;  // How many futures are we waiting for.
     var error;   // The first error from a future.
     StackTrace stackTrace;  // The stackTrace that came with the error.
@@ -332,7 +332,7 @@ abstract class Future<T> {
       // position in the list of values.
       for (Future future in futures) {
         int pos = remaining;
-        future.then((Object/*=T*/ value) {
+        future.then((T value) {
           remaining--;
           if (values != null) {
             values[pos] = value;
@@ -357,7 +357,7 @@ abstract class Future<T> {
       if (remaining == 0) {
         return new Future.value(const []);
       }
-      values = new List/*<T>*/(remaining);
+      values = new List<T>(remaining);
     } catch (e, st) {
       // The error must have been thrown while iterating over the futures
       // list, or while installing a callback handler on the future.
@@ -390,9 +390,9 @@ abstract class Future<T> {
    * If [futures] is empty, or if none of its futures complete,
    * the returned future never completes.
    */
-  static Future/*<T>*/ any/*<T>*/(Iterable<Future/*<T>*/> futures) {
-    var completer = new Completer/*<T>*/.sync();
-    var onValue = (/*=T*/ value) {
+  static Future<T> any<T>(Iterable<Future<T>> futures) {
+    var completer = new Completer<T>.sync();
+    var onValue = (T value) {
       if (!completer.isCompleted) completer.complete(value);
     };
     var onError = (error, stack) {
@@ -497,7 +497,7 @@ abstract class Future<T> {
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future/*<S>*/ then/*<S>*/(onValue(T value), { Function onError });
+  Future<S> then<S>(onValue(T value), { Function onError });
 
   /**
    * Handles errors emitted by this [Future].
@@ -560,7 +560,7 @@ abstract class Future<T> {
   // `isCheck` we should also expect functions that take a specific argument.
   // Note: making `catchError` return a `Future<T>` in non-strong mode could be
   // a breaking change.
-  Future/*<T>*/ catchError(Function onError,
+  Future<T> catchError(Function onError,
                            {bool test(Object error)});
 
   /**

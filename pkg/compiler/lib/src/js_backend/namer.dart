@@ -14,7 +14,7 @@ import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -1369,7 +1369,7 @@ class Namer {
   ///         this.super$A$foo(); // super.foo()
   ///     }
   ///
-  jsAst.Name aliasedSuperMemberPropertyName(Element member) {
+  jsAst.Name aliasedSuperMemberPropertyName(MemberElement member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
       String invocationName = operatorNameToIdentifier(member.name);
@@ -1475,18 +1475,18 @@ class Namer {
 
   String get functionTypeNamedParametersTag => r'named';
 
-  Map<FunctionType, jsAst.Name> functionTypeNameMap =
-      new HashMap<FunctionType, jsAst.Name>();
+  Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
+      new HashMap<ResolutionFunctionType, jsAst.Name>();
   final FunctionTypeNamer functionTypeNamer;
 
-  jsAst.Name getFunctionTypeName(FunctionType functionType) {
+  jsAst.Name getFunctionTypeName(ResolutionFunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
       String proposedName = functionTypeNamer.computeName(functionType);
       return getFreshName(instanceScope, proposedName);
     });
   }
 
-  jsAst.Name operatorIsType(DartType type) {
+  jsAst.Name operatorIsType(ResolutionDartType type) {
     if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
       return new CompoundName([
@@ -1792,7 +1792,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     // Generates something like 'Type_String_k8F', using the simple name of the
     // type and a hash to disambiguate the same name in different libraries.
     addRoot('Type');
-    DartType type = constant.representedType;
+    ResolutionDartType type = constant.representedType;
     String name = type.element?.name;
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
@@ -1914,7 +1914,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType;
+    ResolutionDartType type = constant.representedType;
     // This name includes the library name and type parameters.
     String name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
@@ -2028,33 +2028,33 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
 
   FunctionTypeNamer(this.rtiEncoder);
 
-  String computeName(DartType type) {
+  String computeName(ResolutionDartType type) {
     sb = new StringBuffer();
     visit(type);
     return sb.toString();
   }
 
-  visit(DartType type, [_]) {
+  visit(ResolutionDartType type, [_]) {
     type.accept(this, null);
   }
 
-  visitType(DartType type, _) {
+  visitType(ResolutionDartType type, _) {
     sb.write(type.name);
   }
 
-  visitFunctionType(FunctionType type, _) {
+  visitFunctionType(ResolutionFunctionType type, _) {
     if (rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;
     }
     visit(type.returnType);
     sb.write('_');
-    for (DartType parameter in type.parameterTypes) {
+    for (ResolutionDartType parameter in type.parameterTypes) {
       sb.write('_');
       visit(parameter);
     }
     bool first = false;
-    for (DartType parameter in type.optionalParameterTypes) {
+    for (ResolutionDartType parameter in type.optionalParameterTypes) {
       if (!first) {
         sb.write('_');
       }
@@ -2064,7 +2064,7 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
     }
     if (!type.namedParameterTypes.isEmpty) {
       first = false;
-      for (DartType parameter in type.namedParameterTypes) {
+      for (ResolutionDartType parameter in type.namedParameterTypes) {
         if (!first) {
           sb.write('_');
         }

@@ -11,7 +11,7 @@ import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
-import '../dart_types.dart' show DartType;
+import '../elements/resolution_types.dart' show ResolutionDartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../resolution/tree_elements.dart' show TreeElementMapping;
@@ -269,7 +269,8 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return newType;
   }
 
-  TypeInformation narrowType(TypeInformation type, DartType annotation,
+  TypeInformation narrowType(
+      TypeInformation type, ResolutionDartType annotation,
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return nullType;
@@ -858,7 +859,8 @@ class TypeGraphInferrerEngine
               if (value != null) {
                 if (value.isFunction) {
                   FunctionConstantValue functionConstant = value;
-                  type = types.allocateClosure(node, functionConstant.element);
+                  MethodElement function = functionConstant.element;
+                  type = types.allocateClosure(node, function);
                 } else {
                   // Although we might find a better type, we have to keep
                   // the old type around to ensure that we get a complete view

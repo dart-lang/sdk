@@ -5,7 +5,7 @@
 library dart2js.abstract_value_domain;
 
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../universe/selector.dart' show Selector;
 
@@ -139,7 +139,7 @@ abstract class AbstractValueDomain {
 
   bool isMorePreciseOrEqual(AbstractValue t1, AbstractValue t2);
 
-  AbstractBool isSubtypeOf(AbstractValue value, DartType type,
+  AbstractBool isSubtypeOf(AbstractValue value, ResolutionDartType type,
       {bool allowNull});
 
   /// Returns whether [value] is one of the falsy values: false, 0, -0, NaN,
@@ -149,7 +149,7 @@ abstract class AbstractValueDomain {
   AbstractBool strictBoolify(AbstractValue type);
 
   /// Create a type mask containing at least all subtypes of [type].
-  AbstractValue subtypesOf(DartType type);
+  AbstractValue subtypesOf(ResolutionDartType type);
 
   /// Returns a subset of [receiver] containing at least the types
   /// that can respond to [selector] without throwing.

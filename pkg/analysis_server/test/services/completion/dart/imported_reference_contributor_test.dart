@@ -656,7 +656,7 @@ class B extends A {
     assertNotSuggested('G');
     //assertSuggestClass('H', COMPLETION_RELEVANCE_LOW);
     assertSuggestClass('Object');
-    assertSuggestFunction('min', 'num');
+    assertSuggestFunction('min', 'T');
     //assertSuggestFunction(
     //    'max',
     //    'num',
@@ -4528,13 +4528,6 @@ class ImportedReferenceContributorTest_Driver
   @override
   test_enum_deprecated() {
     // TODO(scheglov) remove it?
-  }
-
-  @failingTest
-  @override
-  test_partFile_TypeName() {
-    // Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_TypeName();
   }
 
   @failingTest

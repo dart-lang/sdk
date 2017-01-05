@@ -7,7 +7,7 @@ library related_types;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/core_types.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -69,7 +69,8 @@ void checkMemberElement(Compiler compiler, MemberElement member) {
   }
 }
 
-class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
+class RelatedTypesChecker
+    extends TraversalVisitor<ResolutionDartType, dynamic> {
   final Compiler compiler;
   final ResolvedAst resolvedAst;
 
@@ -83,10 +84,11 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  InterfaceType get thisType => resolvedAst.element.enclosingClass.thisType;
+  ResolutionInterfaceType get thisType =>
+      resolvedAst.element.enclosingClass.thisType;
 
   /// Returns `true` if there exists no common subtype of [left] and [right].
-  bool hasEmptyIntersection(DartType left, DartType right) {
+  bool hasEmptyIntersection(ResolutionDartType left, ResolutionDartType right) {
     if (left == right) return false;
     if (left == null || right == null) return false;
     ClassElement leftClass = const ClassFinder().findClass(left);
@@ -99,7 +101,8 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Checks that there exists a common subtype of [left] and [right] or report
   /// a hint otherwise.
-  void checkRelated(Node node, DartType left, DartType right) {
+  void checkRelated(
+      Node node, ResolutionDartType left, ResolutionDartType right) {
     if (hasEmptyIntersection(left, right)) {
       reporter.reportHintMessage(
           node, MessageKind.NO_COMMON_SUBTYPES, {'left': left, 'right': right});
@@ -108,39 +111,39 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Check weakly typed collection methods, like `Map.containsKey`,
   /// `Map.containsValue` and `Iterable.contains`.
-  void checkDynamicInvoke(Node node, DartType receiverType,
-      List<DartType> argumentTypes, Selector selector) {
+  void checkDynamicInvoke(Node node, ResolutionDartType receiverType,
+      List<ResolutionDartType> argumentTypes, Selector selector) {
     if (selector.name == 'containsKey' &&
         selector.callStructure == CallStructure.ONE_ARG) {
-      InterfaceType mapType = findMapType(receiverType);
+      ResolutionInterfaceType mapType = findMapType(receiverType);
       if (mapType != null) {
-        DartType keyType = findMapKeyType(mapType);
+        ResolutionDartType keyType = findMapKeyType(mapType);
         checkRelated(node, keyType, argumentTypes.first);
       }
     } else if (selector.name == 'containsValue' &&
         selector.callStructure == CallStructure.ONE_ARG) {
-      InterfaceType mapType = findMapType(receiverType);
+      ResolutionInterfaceType mapType = findMapType(receiverType);
       if (mapType != null) {
-        DartType valueType = findMapValueType(mapType);
+        ResolutionDartType valueType = findMapValueType(mapType);
         checkRelated(node, valueType, argumentTypes.first);
       }
     } else if (selector.name == 'contains' &&
         selector.callStructure == CallStructure.ONE_ARG) {
-      InterfaceType iterableType = findIterableType(receiverType);
+      ResolutionInterfaceType iterableType = findIterableType(receiverType);
       if (iterableType != null) {
-        DartType elementType = findIterableElementType(iterableType);
+        ResolutionDartType elementType = findIterableElementType(iterableType);
         checkRelated(node, elementType, argumentTypes.first);
       }
     } else if (selector.name == 'remove' &&
         selector.callStructure == CallStructure.ONE_ARG) {
-      InterfaceType mapType = findMapType(receiverType);
+      ResolutionInterfaceType mapType = findMapType(receiverType);
       if (mapType != null) {
-        DartType keyType = findMapKeyType(mapType);
+        ResolutionDartType keyType = findMapKeyType(mapType);
         checkRelated(node, keyType, argumentTypes.first);
       }
-      InterfaceType listType = findListType(receiverType);
+      ResolutionInterfaceType listType = findListType(receiverType);
       if (listType != null) {
-        DartType valueType = findListElementType(listType);
+        ResolutionDartType valueType = findListElementType(listType);
         checkRelated(node, valueType, argumentTypes.first);
       }
     }
@@ -148,74 +151,76 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Return the interface type implemented by [type] or `null` if no interface
   /// type is implied by [type].
-  InterfaceType findInterfaceType(DartType type) {
+  ResolutionInterfaceType findInterfaceType(ResolutionDartType type) {
     return Types.computeInterfaceType(compiler.resolution, type);
   }
 
   /// Returns the supertype of [receiver] that implements [cls], if any.
-  InterfaceType findClassType(DartType receiver, ClassElement cls) {
-    InterfaceType interfaceType = findInterfaceType(receiver);
+  ResolutionInterfaceType findClassType(
+      ResolutionDartType receiver, ClassElement cls) {
+    ResolutionInterfaceType interfaceType = findInterfaceType(receiver);
     if (interfaceType == null) return null;
-    InterfaceType mapType = interfaceType.asInstanceOf(cls);
+    ResolutionInterfaceType mapType = interfaceType.asInstanceOf(cls);
     if (mapType == null) return null;
     return mapType;
   }
 
   /// Returns the supertype of [receiver] that implements `Iterable`, if any.
-  InterfaceType findIterableType(DartType receiver) {
+  ResolutionInterfaceType findIterableType(ResolutionDartType receiver) {
     return findClassType(receiver, commonElements.iterableClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements
   /// `Iterable`, if any.
-  DartType findIterableElementType(InterfaceType iterableType) {
+  ResolutionDartType findIterableElementType(
+      ResolutionInterfaceType iterableType) {
     if (iterableType == null) return null;
     return iterableType.typeArguments[0];
   }
 
   /// Returns the supertype of [receiver] that implements `Map`, if any.
-  InterfaceType findMapType(DartType receiver) {
+  ResolutionInterfaceType findMapType(ResolutionDartType receiver) {
     return findClassType(receiver, commonElements.mapClass);
   }
 
   /// Returns the key type of the supertype of [receiver] that implements
   /// `Map`, if any.
-  DartType findMapKeyType(InterfaceType mapType) {
+  ResolutionDartType findMapKeyType(ResolutionInterfaceType mapType) {
     if (mapType == null) return null;
     return mapType.typeArguments[0];
   }
 
   /// Returns the value type of the supertype of [receiver] that implements
   /// `Map`, if any.
-  DartType findMapValueType(InterfaceType mapType) {
+  ResolutionDartType findMapValueType(ResolutionInterfaceType mapType) {
     if (mapType == null) return null;
     return mapType.typeArguments[1];
   }
 
   /// Returns the supertype of [receiver] that implements `List`, if any.
-  InterfaceType findListType(DartType receiver) {
+  ResolutionInterfaceType findListType(ResolutionDartType receiver) {
     return findClassType(receiver, commonElements.listClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements
   /// `List`, if any.
-  DartType findListElementType(InterfaceType listType) {
+  ResolutionDartType findListElementType(ResolutionInterfaceType listType) {
     if (listType == null) return null;
     return listType.typeArguments[0];
   }
 
   /// Returns the implied return type of [type] or `dynamic` if no return type
   /// is implied.
-  DartType findReturnType(DartType type) {
-    if (type is FunctionType) {
+  ResolutionDartType findReturnType(ResolutionDartType type) {
+    if (type is ResolutionFunctionType) {
       return type.returnType;
     }
-    return const DynamicType();
+    return const ResolutionDynamicType();
   }
 
   /// Visits [arguments] and returns the list of their corresponding types.
-  List<DartType> findArgumentTypes(NodeList arguments) {
-    List<DartType> argumentTypes = <DartType>[];
+  List<ResolutionDartType> findArgumentTypes(NodeList arguments) {
+    List<ResolutionDartType> argumentTypes = <ResolutionDartType>[];
     for (Node argument in arguments) {
       argumentTypes.add(apply(argument));
     }
@@ -223,179 +228,193 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   }
 
   /// Finds the [MemberSignature] of the [name] property on [type], if any.
-  MemberSignature lookupInterfaceMember(DartType type, Name name) {
-    InterfaceType interfaceType = findInterfaceType(type);
+  MemberSignature lookupInterfaceMember(ResolutionDartType type, Name name) {
+    ResolutionInterfaceType interfaceType = findInterfaceType(type);
     if (interfaceType == null) return null;
     return interfaceType.lookupInterfaceMember(name);
   }
 
   /// Returns the type of an access of the [name] property on [type], or
   /// `dynamic` if no property was found.
-  DartType lookupInterfaceMemberAccessType(DartType type, Name name) {
+  ResolutionDartType lookupInterfaceMemberAccessType(
+      ResolutionDartType type, Name name) {
     MemberSignature member = lookupInterfaceMember(type, name);
-    if (member == null) return const DynamicType();
+    if (member == null) return const ResolutionDynamicType();
     return member.type;
   }
 
   /// Returns the function type of the [name] property on [type], or
   /// `dynamic` if no property was found.
-  FunctionType lookupInterfaceMemberInvocationType(DartType type, Name name) {
+  ResolutionFunctionType lookupInterfaceMemberInvocationType(
+      ResolutionDartType type, Name name) {
     MemberSignature member = lookupInterfaceMember(type, name);
     if (member == null) return null;
     return member.functionType;
   }
 
-  DartType apply(Node node, [_]) {
-    DartType type = node.accept(this);
+  ResolutionDartType apply(Node node, [_]) {
+    ResolutionDartType type = node.accept(this);
     if (type == null) {
-      type = const DynamicType();
+      type = const ResolutionDynamicType();
     }
     return type;
   }
 
   @override
-  DartType visitEquals(Send node, Node left, Node right, _) {
-    DartType leftType = apply(left);
-    DartType rightType = apply(right);
+  ResolutionDartType visitEquals(Send node, Node left, Node right, _) {
+    ResolutionDartType leftType = apply(left);
+    ResolutionDartType rightType = apply(right);
     checkRelated(node, leftType, rightType);
     return commonElements.boolType;
   }
 
   @override
-  DartType visitNotEquals(Send node, Node left, Node right, _) {
-    DartType leftType = apply(left);
-    DartType rightType = apply(right);
+  ResolutionDartType visitNotEquals(Send node, Node left, Node right, _) {
+    ResolutionDartType leftType = apply(left);
+    ResolutionDartType rightType = apply(right);
     checkRelated(node, leftType, rightType);
     return commonElements.boolType;
   }
 
   @override
-  DartType visitIndex(Send node, Node receiver, Node index, _) {
-    DartType receiverType = apply(receiver);
-    DartType indexType = apply(index);
-    InterfaceType mapType = findMapType(receiverType);
-    DartType keyType = findMapKeyType(mapType);
-    DartType valueType = findMapValueType(mapType);
+  ResolutionDartType visitIndex(Send node, Node receiver, Node index, _) {
+    ResolutionDartType receiverType = apply(receiver);
+    ResolutionDartType indexType = apply(index);
+    ResolutionInterfaceType mapType = findMapType(receiverType);
+    ResolutionDartType keyType = findMapKeyType(mapType);
+    ResolutionDartType valueType = findMapValueType(mapType);
     checkRelated(index, keyType, indexType);
     return valueType;
   }
 
   @override
-  DartType visitLiteralInt(LiteralInt node) {
+  ResolutionDartType visitLiteralInt(LiteralInt node) {
     return commonElements.intType;
   }
 
   @override
-  DartType visitLiteralString(LiteralString node) {
+  ResolutionDartType visitLiteralString(LiteralString node) {
     return commonElements.stringType;
   }
 
   @override
-  DartType visitLiteralBool(LiteralBool node) {
+  ResolutionDartType visitLiteralBool(LiteralBool node) {
     return commonElements.boolType;
   }
 
   @override
-  DartType visitLiteralMap(LiteralMap node) {
+  ResolutionDartType visitLiteralMap(LiteralMap node) {
     return elements.getType(node);
   }
 
   @override
-  DartType visitLiteralList(LiteralList node) {
+  ResolutionDartType visitLiteralList(LiteralList node) {
     return elements.getType(node);
   }
 
   @override
-  DartType visitLiteralNull(LiteralNull node) {
+  ResolutionDartType visitLiteralNull(LiteralNull node) {
     return elements.getType(node);
   }
 
   @override
-  DartType visitLocalVariableGet(Send node, LocalVariableElement variable, _) {
+  ResolutionDartType visitLocalVariableGet(
+      Send node, LocalVariableElement variable, _) {
     return variable.type;
   }
 
   @override
-  DartType visitLocalFunctionGet(Send node, LocalFunctionElement function, _) {
+  ResolutionDartType visitLocalFunctionGet(
+      Send node, LocalFunctionElement function, _) {
     return function.type;
   }
 
   @override
-  DartType visitParameterGet(Send node, ParameterElement parameter, _) {
+  ResolutionDartType visitParameterGet(
+      Send node, ParameterElement parameter, _) {
     return parameter.type;
   }
 
   @override
-  DartType visitThisPropertyGet(Send node, Name name, _) {
+  ResolutionDartType visitThisPropertyGet(Send node, Name name, _) {
     return lookupInterfaceMemberAccessType(thisType, name);
   }
 
   @override
-  DartType visitDynamicPropertyGet(Send node, Node receiver, Name name, _) {
-    DartType receiverType = apply(receiver);
-    return lookupInterfaceMemberAccessType(receiverType, name);
-  }
-
-  @override
-  DartType visitIfNotNullDynamicPropertyGet(
+  ResolutionDartType visitDynamicPropertyGet(
       Send node, Node receiver, Name name, _) {
-    DartType receiverType = apply(receiver);
+    ResolutionDartType receiverType = apply(receiver);
     return lookupInterfaceMemberAccessType(receiverType, name);
   }
 
   @override
-  DartType visitStaticFieldGet(Send node, FieldElement field, _) {
+  ResolutionDartType visitIfNotNullDynamicPropertyGet(
+      Send node, Node receiver, Name name, _) {
+    ResolutionDartType receiverType = apply(receiver);
+    return lookupInterfaceMemberAccessType(receiverType, name);
+  }
+
+  @override
+  ResolutionDartType visitStaticFieldGet(Send node, FieldElement field, _) {
     return field.type;
   }
 
   @override
-  DartType visitTopLevelFieldGet(Send node, FieldElement field, _) {
+  ResolutionDartType visitTopLevelFieldGet(Send node, FieldElement field, _) {
     return field.type;
   }
 
   @override
-  DartType visitDynamicPropertyInvoke(
+  ResolutionDartType visitDynamicPropertyInvoke(
       Send node, Node receiver, NodeList arguments, Selector selector, _) {
-    DartType receiverType = apply(receiver);
-    List<DartType> argumentTypes = findArgumentTypes(arguments);
-    FunctionType methodType =
+    ResolutionDartType receiverType = apply(receiver);
+    List<ResolutionDartType> argumentTypes = findArgumentTypes(arguments);
+    ResolutionFunctionType methodType =
         lookupInterfaceMemberInvocationType(receiverType, selector.memberName);
     checkDynamicInvoke(node, receiverType, argumentTypes, selector);
     return findReturnType(methodType);
   }
 
   @override
-  DartType visitThisPropertyInvoke(
+  ResolutionDartType visitThisPropertyInvoke(
       Send node, NodeList arguments, Selector selector, _) {
-    DartType receiverType = thisType;
-    List<DartType> argumentTypes = findArgumentTypes(arguments);
-    FunctionType methodType =
+    ResolutionDartType receiverType = thisType;
+    List<ResolutionDartType> argumentTypes = findArgumentTypes(arguments);
+    ResolutionFunctionType methodType =
         lookupInterfaceMemberInvocationType(receiverType, selector.memberName);
     checkDynamicInvoke(node, receiverType, argumentTypes, selector);
     return findReturnType(methodType);
   }
 
   @override
-  DartType visitIfNotNullDynamicPropertyInvoke(
+  ResolutionDartType visitIfNotNullDynamicPropertyInvoke(
       Send node, Node receiver, NodeList arguments, Selector selector, _) {
-    DartType receiverType = apply(receiver);
-    List<DartType> argumentTypes = findArgumentTypes(arguments);
-    FunctionType methodType =
+    ResolutionDartType receiverType = apply(receiver);
+    List<ResolutionDartType> argumentTypes = findArgumentTypes(arguments);
+    ResolutionFunctionType methodType =
         lookupInterfaceMemberInvocationType(receiverType, selector.memberName);
     checkDynamicInvoke(node, receiverType, argumentTypes, selector);
     return findReturnType(methodType);
   }
 
   @override
-  DartType visitTopLevelFunctionInvoke(Send node, MethodElement function,
-      NodeList arguments, CallStructure callStructure, _) {
+  ResolutionDartType visitTopLevelFunctionInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
     apply(arguments);
     return findReturnType(function.type);
   }
 
   @override
-  DartType visitStaticFunctionInvoke(Send node, MethodElement function,
-      NodeList arguments, CallStructure callStructure, _) {
+  ResolutionDartType visitStaticFunctionInvoke(
+      Send node,
+      MethodElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
     apply(arguments);
     return findReturnType(function.type);
   }
@@ -406,13 +425,13 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 class ClassFinder extends BaseDartTypeVisitor<ClassElement, dynamic> {
   const ClassFinder();
 
-  ClassElement findClass(DartType type) => type.accept(this, null);
+  ClassElement findClass(ResolutionDartType type) => type.accept(this, null);
 
   @override
-  ClassElement visitType(DartType type, _) => null;
+  ClassElement visitType(ResolutionDartType type, _) => null;
 
   @override
-  ClassElement visitInterfaceType(InterfaceType type, _) {
+  ClassElement visitInterfaceType(ResolutionInterfaceType type, _) {
     return type.element;
   }
 }

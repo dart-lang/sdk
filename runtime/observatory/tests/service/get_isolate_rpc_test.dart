@@ -23,6 +23,8 @@ var tests = [
     expect(result['pauseOnExit'], isFalse);
     expect(result['pauseEvent']['type'], equals('Event'));
     expect(result['error'], isNull);
+    expect(result['numZoneHandles'], isPositive);
+    expect(result['numScopedHandles'], isPositive);
     expect(result['rootLib']['type'], equals('@Library'));
     expect(result['libraries'].length, isPositive);
     expect(result['libraries'][0]['type'], equals('@Library'));

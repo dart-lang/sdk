@@ -86,7 +86,7 @@ vars = {
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
   "observe_tag": "@0.13.5",
   "package_config_tag": "@1.0.0",
-  "package_resolver_tag": "@1.0.2",
+  "package_resolver_tag": "@1.0.2+1",
   "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",

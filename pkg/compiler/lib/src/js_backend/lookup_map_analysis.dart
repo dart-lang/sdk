@@ -17,8 +17,8 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../dart_types.dart' show DartType;
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show ResolutionDartType;
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
 import '../universe/use.dart' show StaticUse;
@@ -264,7 +264,7 @@ class LookupMapAnalysis {
   }
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
-  void registerInstantiatedType(InterfaceType type) {
+  void registerInstantiatedType(ResolutionInterfaceType type) {
     if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(type.element);
@@ -274,10 +274,10 @@ class LookupMapAnalysis {
 
   /// Records generic type arguments in [type], in case they are retrieved and
   /// returned using a type-argument expression.
-  void _addGenerics(InterfaceType type) {
+  void _addGenerics(ResolutionInterfaceType type) {
     if (!type.isGeneric) return;
     for (var arg in type.typeArguments) {
-      if (arg is InterfaceType) {
+      if (arg is ResolutionInterfaceType) {
         _addClassUse(arg.element);
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
@@ -431,7 +431,7 @@ class _LookupMapInfo {
   /// Restores [original] to contain all of the entries marked as possibly used.
   void _prepareForEmission() {
     ListConstantValue originalEntries = original.fields[analysis.entriesField];
-    DartType listType = originalEntries.type;
+    ResolutionDartType listType = originalEntries.type;
     List<ConstantValue> keyValuePairs = <ConstantValue>[];
     usedEntries.forEach((key, value) {
       keyValuePairs.add(key);

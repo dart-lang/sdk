@@ -56,14 +56,13 @@ enum JSONRpcErrorCode {
   kIsolateMustBeRunnable = 105,
   kIsolateMustBePaused = 106,
   kCannotResume = 107,
+  kIsolateIsReloading = 108,
+  kIsolateReloadBarred = 109,
 
   // Experimental (used in private rpcs).
-  kIsolateIsReloading = 1000,
   kFileSystemAlreadyExists = 1001,
   kFileSystemDoesNotExist = 1002,
   kFileDoesNotExist = 1003,
-  kIsolateReloadFailed = 1004,
-  kIsolateReloadBarred = 1005,
 };
 
 // Expected that user_data is a JSONStream*.

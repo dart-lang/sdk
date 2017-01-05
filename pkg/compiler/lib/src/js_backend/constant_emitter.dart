@@ -5,7 +5,7 @@
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
@@ -269,7 +269,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType;
+    ResolutionDartType type = constant.representedType;
     jsAst.Name typeName = namer.runtimeTypeName(type.element);
     return new jsAst.Call(getHelperProperty(backend.helpers.createRuntimeType),
         [js.quoteName(typeName)]);
@@ -323,8 +323,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   jsAst.Expression maybeAddTypeArguments(
-      InterfaceType type, jsAst.Expression value) {
-    if (type is InterfaceType &&
+      ResolutionInterfaceType type, jsAst.Expression value) {
+    if (type is ResolutionInterfaceType &&
         !type.treatAsRaw &&
         backend.classNeedsRti(type.element)) {
       return new jsAst.Call(
@@ -334,8 +334,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return value;
   }
 
-  jsAst.Expression _reifiedTypeArguments(InterfaceType type) {
-    jsAst.Expression unexpected(TypeVariableType variable) {
+  jsAst.Expression _reifiedTypeArguments(ResolutionInterfaceType type) {
+    jsAst.Expression unexpected(ResolutionTypeVariableType variable) {
       reporter.internalError(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable.getStringAsDeclared(null)}'"
@@ -345,7 +345,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
-    for (DartType argument in type.typeArguments) {
+    for (ResolutionDartType argument in type.typeArguments) {
       arguments.add(rtiEncoder.getTypeRepresentation(argument, unexpected));
     }
     return new jsAst.ArrayInitializer(arguments);

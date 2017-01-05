@@ -17,7 +17,7 @@ import 'constants/evaluation.dart' as constants;
 import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'dart2js.dart' as dart2js;
-import 'dart_types.dart' as dart_types;
+import 'elements/resolution_types.dart' as dart_types;
 import 'deferred_load.dart' as deferred;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;

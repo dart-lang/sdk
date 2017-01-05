@@ -196,6 +196,11 @@ class ConstantEvaluatorTest extends ParserTestCase {
     expect(value, true);
   }
 
+  void test_binary_plus_string() {
+    Object value = _getConstantValue("'hello ' + 'world'");
+    expect(value, 'hello world');
+  }
+
   void test_binary_plus_double() {
     Object value = _getConstantValue("2.3 + 3.2");
     expect(value, 2.3 + 3.2);
@@ -204,6 +209,26 @@ class ConstantEvaluatorTest extends ParserTestCase {
   void test_binary_plus_integer() {
     Object value = _getConstantValue("2 + 3");
     expect(value, 5);
+  }
+
+  void test_binary_plus_string_int() {
+    Object value = _getConstantValue("5 + 'world'");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+  }
+
+  void test_binary_plus_int_string() {
+    Object value = _getConstantValue("'world' + 5");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+  }
+
+  void test_binary_plus_double_string() {
+    Object value = _getConstantValue("'world' + 5.5");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+  }
+
+  void test_binary_plus_string_double() {
+    Object value = _getConstantValue("5.5 + 'world'");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_remainder_double() {

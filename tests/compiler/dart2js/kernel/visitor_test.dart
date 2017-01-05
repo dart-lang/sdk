@@ -6,6 +6,7 @@
 /// defined by kernel spec-mode test files.
 
 import 'dart:io';
+import 'dart:async';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
@@ -26,9 +27,7 @@ const List<String> SKIP_TESTS = const <String>[
   'external',
 ];
 
-main(List<String> arguments) {
-  Compiler compiler = compilerFor(
-      options: [Flags.analyzeOnly, Flags.analyzeMain, Flags.useKernel]);
+main(List<String> arguments) async {
   Directory directory = new Directory('${TESTCASE_DIR}/input');
   for (FileSystemEntity file in directory.listSync()) {
     if (file is File && file.path.endsWith('.dart')) {
@@ -40,7 +39,10 @@ main(List<String> arguments) {
       }
 
       test(name, () async {
-        LibraryElement library = await compiler.analyzeUri(file.absolute.uri);
+        var compiler = await newCompiler();
+        await compiler.run(file.absolute.uri);
+        LibraryElement library =
+            await compiler.libraryLoader.loadLibrary(file.absolute.uri);
         JavaScriptBackend backend = compiler.backend;
         StringBuffer buffer = new StringBuffer();
         Program program = backend.kernelTask.buildProgram(library);
@@ -67,4 +69,18 @@ main(List<String> arguments) {
       });
     }
   }
+}
+
+Future<Compiler> newCompiler() async {
+  var compiler = compilerFor(
+      options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useKernel]);
+  await compiler.setupSdk();
+
+  // The visitor no longer enqueues elements that are not reachable from the
+  // program. The mixin-full resolution transform run by the test expects to
+  // find dart.core::Iterator.
+  var core = await compiler.libraryLoader.loadLibrary(Uri.parse('dart:core'));
+  var cls = core.implementation.localLookup('Iterator');
+  cls.ensureResolved(compiler.resolution);
+  return compiler;
 }

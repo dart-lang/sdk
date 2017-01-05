@@ -11,7 +11,7 @@ import '../options.dart' show CompilerOptions;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
@@ -79,7 +79,7 @@ abstract class TypeSystem<T> {
    * [isNullable] indicates whether the annotation implies a null
    * type.
    */
-  T narrowType(T type, DartType annotation, {bool isNullable: true});
+  T narrowType(T type, ResolutionDartType annotation, {bool isNullable: true});
 
   /**
    * Returns the non-nullable type [T].
@@ -1009,7 +1009,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   }
 
   void updateIsChecks(List<Node> tests, {bool usePositive}) {
-    void narrow(Element element, DartType type, Node node) {
+    void narrow(Element element, ResolutionDartType type, Node node) {
       if (element is LocalElement) {
         T existing = locals.use(element);
         T newType = types.narrowType(existing, type, isNullable: false);
@@ -1025,7 +1025,8 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
         } else {
           if (!usePositive) continue;
         }
-        DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+        ResolutionDartType type =
+            elements.getType(node.typeAnnotationFromIsCheckOrCast);
         narrow(elements[node.receiver], type, node);
       } else {
         Element receiverElement = elements[node.receiver];
@@ -1042,7 +1043,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
           }
         } else {
           // Narrow the elements to a non-null type.
-          DartType objectType = closedWorld.commonElements.objectType;
+          ResolutionDartType objectType = closedWorld.commonElements.objectType;
           if (Elements.isLocal(receiverElement)) {
             narrow(receiverElement, objectType, node);
           }
@@ -1148,21 +1149,21 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   }
 
   @override
-  T visitIs(Send node, Node expression, DartType type, _) {
+  T visitIs(Send node, Node expression, ResolutionDartType type, _) {
     potentiallyAddIsCheck(node);
     visit(expression);
     return types.boolType;
   }
 
   @override
-  T visitIsNot(Send node, Node expression, DartType type, _) {
+  T visitIsNot(Send node, Node expression, ResolutionDartType type, _) {
     potentiallyAddIsCheck(node);
     visit(expression);
     return types.boolType;
   }
 
   @override
-  T visitAs(Send node, Node expression, DartType type, _) {
+  T visitAs(Send node, Node expression, ResolutionDartType type, _) {
     T receiverType = visit(expression);
     return types.narrowType(receiverType, type);
   }
@@ -1360,7 +1361,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   T visitCatchBlock(CatchBlock node) {
     Node exception = node.exception;
     if (exception != null) {
-      DartType type = elements.getType(node.type);
+      ResolutionDartType type = elements.getType(node.type);
       T mask = type == null || type.treatAsDynamic || type.isTypeVariable
           ? types.dynamicType
           : types.nonNullSubtype(type.element);

@@ -1147,7 +1147,7 @@
             },
           },
         }],
-        ['OS == "linux" and asan == 0 and msan == 0', {
+        ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
           'dependencies': [
             '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
           ],
@@ -1398,7 +1398,7 @@
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
         }],
-        ['OS == "linux" and asan == 0 and msan == 0', {
+        ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
           'dependencies': [
             '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
           ],

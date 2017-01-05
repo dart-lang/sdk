@@ -129,13 +129,13 @@ Future testIPv4toIPv6_IPV6Only() {
   });
 }
 
-void main() {
-  testIPv6toIPv6();                /// 01: ok
-  testIPv4toIPv6();                /// 02: ok
-  testIPv4toIPv4();                /// 03: ok
-  testIPv6Lookup();                /// 04: ok
-  testIPv4Lookup();                /// 05: ok
+main() async {
+  await testIPv6toIPv6();                /// 01: ok
+  await testIPv4toIPv6();                /// 02: ok
+  await testIPv4toIPv4();                /// 03: ok
+  await testIPv6Lookup();                /// 04: ok
+  await testIPv4Lookup();                /// 05: ok
 
-  retry(testIPv6toIPv4);           /// 06: ok
-  retry(testIPv4toIPv6_IPV6Only);  /// 07: ok
+  await retry(testIPv6toIPv4);           /// 06: ok
+  await retry(testIPv4toIPv6_IPV6Only);  /// 07: ok
 }

@@ -4,7 +4,7 @@
 
 library dart2js.constants.constructors;
 
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart' show FieldElement;
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
@@ -23,7 +23,7 @@ abstract class ConstantConstructor {
 
   /// Computes the type of the instance created in a const constructor
   /// invocation with type [newType].
-  InterfaceType computeInstanceType(InterfaceType newType);
+  ResolutionInterfaceType computeInstanceType(ResolutionInterfaceType newType);
 
   /// Computes the constant expressions of the fields of the created instance
   /// in a const constructor invocation with [arguments].
@@ -49,7 +49,7 @@ abstract class ConstantConstructorVisitor<R, A> {
 
 /// A generative constant constructor.
 class GenerativeConstantConstructor implements ConstantConstructor {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final Map<dynamic /*int|String*/, ConstantExpression> defaultValues;
   final Map<FieldElement, ConstantExpression> fieldMap;
   final ConstructedConstantExpression superConstructorInvocation;
@@ -59,7 +59,7 @@ class GenerativeConstantConstructor implements ConstantConstructor {
 
   ConstantConstructorKind get kind => ConstantConstructorKind.GENERATIVE;
 
-  InterfaceType computeInstanceType(InterfaceType newType) {
+  ResolutionInterfaceType computeInstanceType(ResolutionInterfaceType newType) {
     return type.substByContext(newType);
   }
 
@@ -152,7 +152,7 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
     return ConstantConstructorKind.REDIRECTING_GENERATIVE;
   }
 
-  InterfaceType computeInstanceType(InterfaceType newType) {
+  ResolutionInterfaceType computeInstanceType(ResolutionInterfaceType newType) {
     return thisConstructorInvocation
         .computeInstanceType()
         .substByContext(newType);
@@ -207,7 +207,7 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
     return ConstantConstructorKind.REDIRECTING_FACTORY;
   }
 
-  InterfaceType computeInstanceType(InterfaceType newType) {
+  ResolutionInterfaceType computeInstanceType(ResolutionInterfaceType newType) {
     return targetConstructorInvocation
         .computeInstanceType()
         .substByContext(newType);

@@ -163,9 +163,12 @@ class ExitCodeHandler {
     // monitor.
     running_ = false;
 
-    // Fork to wake up waitpid.
+    // Wake up the [ExitCodeHandler] thread which is blocked on `wait()` (see
+    // [ExitCodeHandlerEntry]).
     if (TEMP_FAILURE_RETRY(fork()) == 0) {
-      exit(0);
+      // We avoid running through registered atexit() handlers because that is
+      // unnecessary work.
+      _exit(0);
     }
 
     monitor_->Notify();

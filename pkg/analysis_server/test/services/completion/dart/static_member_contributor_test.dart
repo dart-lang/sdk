@@ -238,7 +238,7 @@ void main() {async.Future..w^()}''');
 import "dart:async" as async;
 void main() {async.Future.^.w()}''');
     await computeSuggestions();
-    assertSuggestMethod('wait', 'Future', 'Future<dynamic>');
+    assertSuggestMethod('wait', 'Future', 'Future<List<T>>');
   }
 
   test_PrefixedIdentifier_class_const() async {

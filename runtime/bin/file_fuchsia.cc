@@ -248,105 +248,126 @@ bool File::CreateLink(const char* name, const char* target) {
 }
 
 
-bool File::Delete(const char* name) {
-  File::Type type = File::GetType(name, true);
-  if (type == kIsFile) {
-    return NO_RETRY_EXPECTED(unlink(name)) == 0;
-  } else if (type == kIsDirectory) {
-    errno = EISDIR;
+File::Type File::GetType(const char* pathname, bool follow_links) {
+  struct stat entry_info;
+  int stat_success;
+  if (follow_links) {
+    stat_success = NO_RETRY_EXPECTED(stat(pathname, &entry_info));
   } else {
-    errno = ENOENT;
+    stat_success = NO_RETRY_EXPECTED(lstat(pathname, &entry_info));
+  }
+  if (stat_success == -1) {
+    return File::kDoesNotExist;
+  }
+  if (S_ISDIR(entry_info.st_mode)) {
+    return File::kIsDirectory;
+  }
+  if (S_ISREG(entry_info.st_mode)) {
+    return File::kIsFile;
+  }
+  if (S_ISLNK(entry_info.st_mode)) {
+    return File::kIsLink;
+  }
+  return File::kDoesNotExist;
+}
+
+
+static bool CheckTypeAndSetErrno(const char* name,
+                                 File::Type expected,
+                                 bool follow_links) {
+  File::Type actual = File::GetType(name, follow_links);
+  if (actual == expected) {
+    return true;
+  }
+  switch (actual) {
+    case File::kIsDirectory:
+      errno = EISDIR;
+      break;
+    case File::kDoesNotExist:
+      errno = ENOENT;
+      break;
+    default:
+      errno = EINVAL;
+      break;
   }
   return false;
+}
+
+
+bool File::Delete(const char* name) {
+  return CheckTypeAndSetErrno(name, kIsFile, true) &&
+         (NO_RETRY_EXPECTED(unlink(name)) == 0);
 }
 
 
 bool File::DeleteLink(const char* name) {
-  File::Type type = File::GetType(name, false);
-  if (type == kIsLink) {
-    return NO_RETRY_EXPECTED(unlink(name)) == 0;
-  }
-  errno = EINVAL;
-  return false;
+  return CheckTypeAndSetErrno(name, kIsLink, false) &&
+         (NO_RETRY_EXPECTED(unlink(name)) == 0);
 }
 
 
 bool File::Rename(const char* old_path, const char* new_path) {
-  File::Type type = File::GetType(old_path, true);
-  if (type == kIsFile) {
-    return NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0;
-  } else if (type == kIsDirectory) {
-    errno = EISDIR;
-  } else {
-    errno = ENOENT;
-  }
-  return false;
+  return CheckTypeAndSetErrno(old_path, kIsFile, true) &&
+         (NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0);
 }
 
 
 bool File::RenameLink(const char* old_path, const char* new_path) {
-  File::Type type = File::GetType(old_path, false);
-  if (type == kIsLink) {
-    return NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0;
-  } else if (type == kIsDirectory) {
-    errno = EISDIR;
-  } else {
-    errno = EINVAL;
-  }
-  return false;
+  return CheckTypeAndSetErrno(old_path, kIsLink, false) &&
+         (NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0);
 }
 
 
 bool File::Copy(const char* old_path, const char* new_path) {
-  File::Type type = File::GetType(old_path, true);
-  if (type == kIsFile) {
-    struct stat64 st;
-    if (NO_RETRY_EXPECTED(stat64(old_path, &st)) != 0) {
-      return false;
-    }
-    int old_fd = NO_RETRY_EXPECTED(open64(old_path, O_RDONLY | O_CLOEXEC));
-    if (old_fd < 0) {
-      return false;
-    }
-    int new_fd = NO_RETRY_EXPECTED(
-        open64(new_path, O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
-    if (new_fd < 0) {
-      VOID_TEMP_FAILURE_RETRY(close(old_fd));
-      return false;
-    }
-    // TODO(MG-429): Use sendfile/copyfile or equivalent when there is one.
-    intptr_t result;
-    const intptr_t kBufferSize = 8 * KB;
-    uint8_t buffer[kBufferSize];
-    while ((result = NO_RETRY_EXPECTED(read(old_fd, buffer, kBufferSize))) >
-           0) {
-      int wrote = NO_RETRY_EXPECTED(write(new_fd, buffer, result));
-      if (wrote != result) {
-        result = -1;
-        break;
-      }
-    }
-    FDUtils::SaveErrorAndClose(old_fd);
-    FDUtils::SaveErrorAndClose(new_fd);
-    if (result < 0) {
-      int e = errno;
-      VOID_NO_RETRY_EXPECTED(unlink(new_path));
-      errno = e;
-      return false;
-    }
-    return true;
-  } else if (type == kIsDirectory) {
-    errno = EISDIR;
-  } else {
-    errno = ENOENT;
+  if (!CheckTypeAndSetErrno(old_path, kIsFile, true)) {
+    return false;
   }
-  return false;
+  struct stat64 st;
+  if (NO_RETRY_EXPECTED(stat64(old_path, &st)) != 0) {
+    return false;
+  }
+  int old_fd = NO_RETRY_EXPECTED(open64(old_path, O_RDONLY | O_CLOEXEC));
+  if (old_fd < 0) {
+    return false;
+  }
+  int new_fd = NO_RETRY_EXPECTED(
+      open64(new_path, O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
+  if (new_fd < 0) {
+    VOID_TEMP_FAILURE_RETRY(close(old_fd));
+    return false;
+  }
+  // TODO(MG-429): Use sendfile/copyfile or equivalent when there is one.
+  intptr_t result;
+  const intptr_t kBufferSize = 8 * KB;
+  uint8_t buffer[kBufferSize];
+  while ((result = NO_RETRY_EXPECTED(read(old_fd, buffer, kBufferSize))) > 0) {
+    int wrote = NO_RETRY_EXPECTED(write(new_fd, buffer, result));
+    if (wrote != result) {
+      result = -1;
+      break;
+    }
+  }
+  FDUtils::SaveErrorAndClose(old_fd);
+  FDUtils::SaveErrorAndClose(new_fd);
+  if (result < 0) {
+    int e = errno;
+    VOID_NO_RETRY_EXPECTED(unlink(new_path));
+    errno = e;
+    return false;
+  }
+  return true;
 }
 
 
 int64_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
+    // Signal an error if it's a directory.
+    if (S_ISDIR(st.st_mode)) {
+      errno = EISDIR;
+      return -1;
+    }
+    // Otherwise assume the caller knows what it's doing.
     return st.st_size;
   }
   return -1;
@@ -379,6 +400,12 @@ void File::Stat(const char* name, int64_t* data) {
 time_t File::LastModified(const char* name) {
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
+    // Signal an error if it's a directory.
+    if (S_ISDIR(st.st_mode)) {
+      errno = EISDIR;
+      return -1;
+    }
+    // Otherwise assume the caller knows what it's doing.
     return st.st_mtime;
   }
   return -1;
@@ -464,30 +491,6 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
     return kFile;
   }
   return kOther;
-}
-
-
-File::Type File::GetType(const char* pathname, bool follow_links) {
-  struct stat entry_info;
-  int stat_success;
-  if (follow_links) {
-    stat_success = NO_RETRY_EXPECTED(stat(pathname, &entry_info));
-  } else {
-    stat_success = NO_RETRY_EXPECTED(lstat(pathname, &entry_info));
-  }
-  if (stat_success == -1) {
-    return File::kDoesNotExist;
-  }
-  if (S_ISDIR(entry_info.st_mode)) {
-    return File::kIsDirectory;
-  }
-  if (S_ISREG(entry_info.st_mode)) {
-    return File::kIsFile;
-  }
-  if (S_ISLNK(entry_info.st_mode)) {
-    return File::kIsLink;
-  }
-  return File::kDoesNotExist;
 }
 
 

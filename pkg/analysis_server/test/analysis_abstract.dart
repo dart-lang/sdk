@@ -197,7 +197,8 @@ class AbstractAnalysisTest {
   }
 
   String modifyTestFile(String content) {
-    addFile(testFile, content);
+    String path = resourceProvider.convertPath(testFile);
+    resourceProvider.updateFile(path, content);
     this.testCode = content;
     return testFile;
   }

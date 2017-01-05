@@ -335,6 +335,93 @@ import 'a.dart';
     expect(allResults[0].path, b);
   }
 
+  test_cachedPriorityResults() async {
+    var a = _p('/test/bin/a.dart');
+    provider.newFile(a, 'var a = 1;');
+
+    driver.priorityFiles = [a];
+
+    AnalysisResult result1 = await driver.getResult(a);
+    expect(driver.test.priorityResults, containsPair(a, result1));
+
+    AnalysisResult result2 = await driver.getResult(a);
+    expect(result2, same(result1));
+  }
+
+  test_cachedPriorityResults_flush_onAnyFileChange() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    provider.newFile(a, 'var a = 1;');
+    provider.newFile(a, 'var b = 2;');
+
+    driver.priorityFiles = [a];
+
+    AnalysisResult result1 = await driver.getResult(a);
+    expect(driver.test.priorityResults, containsPair(a, result1));
+
+    // Change a file.
+    // The cache is flushed.
+    driver.changeFile(a);
+    expect(driver.test.priorityResults, isEmpty);
+    AnalysisResult result2 = await driver.getResult(a);
+    expect(driver.test.priorityResults, containsPair(a, result2));
+
+    // Add a file.
+    // The cache is flushed.
+    driver.addFile(b);
+    expect(driver.test.priorityResults, isEmpty);
+    AnalysisResult result3 = await driver.getResult(a);
+    expect(driver.test.priorityResults, containsPair(a, result3));
+
+    // Remove a file.
+    // The cache is flushed.
+    driver.removeFile(b);
+    expect(driver.test.priorityResults, isEmpty);
+  }
+
+  test_cachedPriorityResults_flush_onPrioritySetChange() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    provider.newFile(a, 'var a = 1;');
+    provider.newFile(a, 'var b = 2;');
+
+    driver.priorityFiles = [a];
+
+    AnalysisResult result1 = await driver.getResult(a);
+    expect(driver.test.priorityResults, hasLength(1));
+    expect(driver.test.priorityResults, containsPair(a, result1));
+
+    // Make "a" and "b" priority.
+    // We still have the result for "a" cached.
+    driver.priorityFiles = [a, b];
+    expect(driver.test.priorityResults, hasLength(1));
+    expect(driver.test.priorityResults, containsPair(a, result1));
+
+    // Get the result for "b".
+    AnalysisResult result2 = await driver.getResult(b);
+    expect(driver.test.priorityResults, hasLength(2));
+    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.test.priorityResults, containsPair(b, result2));
+
+    // Only "b" is priority.
+    // The result for "a" is flushed.
+    driver.priorityFiles = [b];
+    expect(driver.test.priorityResults, hasLength(1));
+    expect(driver.test.priorityResults, containsPair(b, result2));
+  }
+
+  test_cachedPriorityResults_notPriority() async {
+    var a = _p('/test/bin/a.dart');
+    provider.newFile(a, 'var a = 1;');
+
+    AnalysisResult result1 = await driver.getResult(a);
+    expect(driver.test.priorityResults, isEmpty);
+
+    // The file is not priority, so its result is not cached.
+    AnalysisResult result2 = await driver.getResult(a);
+    expect(result2, isNot(same(result1)));
+  }
+
   test_changeFile_implicitlyAnalyzed() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -659,6 +746,23 @@ main() {
       expect(error.message, "The value of the local variable 'vv' isn't used.");
       expect(error.correction, "Try removing the variable, or using it.");
     }
+  }
+
+  test_getResult_fileContentOverlay_throughAnalysisContext() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+
+    provider.newFile(a, 'import "b.dart";');
+    provider.newFile(b, 'var v = 1;');
+    contentOverlay[b] = 'var v = 2;';
+
+    var result = await driver.getResult(a);
+
+    // The content that was set into the overlay for "b" should be visible
+    // through the AnalysisContext that was used to analyze "a".
+    CompilationUnitElement unitA = result.unit.element;
+    Source sourceB = unitA.library.imports[0].importedLibrary.source;
+    expect(unitA.context.getContents(sourceB).data, 'var v = 2;');
   }
 
   test_getResult_inferTypes_finalField() async {
@@ -1023,7 +1127,7 @@ main() {
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Add a new file, it should be analyzed.
-    addTestFile('main() {}', priority: true);
+    addTestFile('main() {}', priority: false);
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Wait for idle, nothing to do.

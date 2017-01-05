@@ -7,7 +7,7 @@ library dart2js.js_helpers.impact;
 import '../common/names.dart';
 import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
 import '../universe/selector.dart';
 import '../util/enumset.dart';
@@ -26,7 +26,7 @@ class BackendImpact {
   final List<Element> staticUses;
   final List<Element> globalUses;
   final List<Selector> dynamicUses;
-  final List<InterfaceType> instantiatedTypes;
+  final List<ResolutionInterfaceType> instantiatedTypes;
   final List<ClassElement> instantiatedClasses;
   final List<ClassElement> globalClasses;
   final List<BackendImpact> otherImpacts;
@@ -36,7 +36,7 @@ class BackendImpact {
       {this.staticUses: const <Element>[],
       this.globalUses: const <Element>[],
       this.dynamicUses: const <Selector>[],
-      this.instantiatedTypes: const <InterfaceType>[],
+      this.instantiatedTypes: const <ResolutionInterfaceType>[],
       this.instantiatedClasses: const <ClassElement>[],
       this.globalClasses: const <ClassElement>[],
       this.otherImpacts: const <BackendImpact>[],
@@ -269,19 +269,12 @@ class BackendImpacts {
   BackendImpact _constantMapLiteral;
 
   BackendImpact get constantMapLiteral {
-    if (_constantMapLiteral == null) {
-      ClassElement find(String name) {
-        return helpers.find(helpers.jsHelperLibrary, name);
-      }
-
-      _constantMapLiteral = new BackendImpact(instantiatedClasses: [
-        find(JavaScriptMapConstant.DART_CLASS),
-        find(JavaScriptMapConstant.DART_PROTO_CLASS),
-        find(JavaScriptMapConstant.DART_STRING_CLASS),
-        find(JavaScriptMapConstant.DART_GENERAL_CLASS)
-      ]);
-    }
-    return _constantMapLiteral;
+    return _constantMapLiteral ??= new BackendImpact(instantiatedClasses: [
+      helpers.constantMapClass,
+      helpers.constantProtoMapClass,
+      helpers.constantStringMapClass,
+      helpers.generalConstantMapClass,
+    ]);
   }
 
   BackendImpact _symbolConstructor;

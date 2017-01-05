@@ -520,6 +520,11 @@ generate_patched_sdk("patched_sdk") {
       "../lib",
     ],
     [
+      "typed_data",
+      processed_gypis.typed_data_runtime_sources,
+      "../lib",
+    ],
+    [
       "vmservice",
       processed_gypis.vmservice_runtime_sources,
       "../lib",

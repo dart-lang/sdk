@@ -6,7 +6,13 @@ library js_backend.native_data;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show ClassElement, Element, FieldElement, FunctionElement, MemberElement;
+    show
+        ClassElement,
+        Element,
+        Entity,
+        FieldElement,
+        FunctionElement,
+        MemberElement;
 import '../native/behavior.dart' show NativeBehavior;
 
 /// Additional element information for native classes and methods and js-interop
@@ -102,7 +108,10 @@ class NativeData {
 
   /// Computes the name for [element] to use in the generated JavaScript. This
   /// is either given through a native annotation or a js interop annotation.
-  String getFixedBackendName(Element element) {
+  String getFixedBackendName(Entity entity) {
+    // TODO(johnniwinther): Remove this assignment from [Entity] to [Element]
+    // when `.declaration` is no longer needed.
+    Element element = entity;
     String name = nativeMemberName[element.declaration];
     if (name == null && isJsInterop(element)) {
       // If an element isJsInterop but _isJsInterop is false that means it is

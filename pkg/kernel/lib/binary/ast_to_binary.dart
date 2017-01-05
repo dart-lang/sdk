@@ -137,20 +137,23 @@ class BinaryPrinter extends Visitor {
     _importTable = new ProgramImportTable(program);
     _stringIndexer.build(program);
     writeStringTable(_stringIndexer);
-    writeUriToLineStarts(program);
+    writeUriToSource(program);
     writeList(program.libraries, writeNode);
     writeMemberReference(program.mainMethod, allowNull: true);
     _flush();
   }
 
-  void writeUriToLineStarts(Program program) {
-    program.uriToLineStarts.keys.forEach((uri) {
+  void writeUriToSource(Program program) {
+    program.uriToSource.keys.forEach((uri) {
       _sourceUriIndexer.put(uri);
     });
     writeStringTable(_sourceUriIndexer);
     for (int i = 0; i < _sourceUriIndexer.entries.length; i++) {
       String uri = _sourceUriIndexer.entries[i].value;
-      List<int> lineStarts = program.uriToLineStarts[uri] ?? [];
+      Source source = program.uriToSource[uri] ?? new Source([], '');
+      String sourceCode = source.source;
+      writeStringTableEntry(sourceCode);
+      List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;
       lineStarts.forEach((lineStart) {

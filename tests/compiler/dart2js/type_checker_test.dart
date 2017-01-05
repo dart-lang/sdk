@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
@@ -71,7 +71,7 @@ main() {
 }
 
 testSimpleTypes(MockCompiler compiler) {
-  checkType(DartType type, String code) {
+  checkType(ResolutionDartType type, String code) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
@@ -2649,7 +2649,7 @@ Future setup(test(MockCompiler compiler)) {
   return compiler.init("import 'dart:async';").then((_) => test(compiler));
 }
 
-DartType analyzeType(MockCompiler compiler, String text) {
+ResolutionDartType analyzeType(MockCompiler compiler, String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor = new TypeCheckerVisitor(
       compiler, new TreeElementMapping(null), compiler.types);

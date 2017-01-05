@@ -5,7 +5,7 @@
 library js_backend.serialization;
 
 import '../common/backend_api.dart' show BackendSerialization;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';
@@ -156,7 +156,7 @@ class NativeBehaviorSerialization {
   static const int SPECIAL_TYPE = 2;
 
   static int getTypeKind(var type) {
-    if (type is DartType) {
+    if (type is ResolutionDartType) {
       // TODO(johnniwinther): Remove this when annotation are no longer resolved
       // to this-types.
       if (type is GenericType &&
@@ -169,8 +169,8 @@ class NativeBehaviorSerialization {
     return SPECIAL_TYPE;
   }
 
-  /// Returns a list of the non-this-type [DartType]s in [types].
-  static List<DartType> filterDartTypes(List types) {
+  /// Returns a list of the non-this-type [ResolutionDartType]s in [types].
+  static List<ResolutionDartType> filterDartTypes(List types) {
     return types.where((type) => getTypeKind(type) == NORMAL_TYPE).toList();
   }
 

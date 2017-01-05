@@ -10,7 +10,8 @@ import 'dart:collection';
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show Uris;
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart' show DartType;
+import 'package:compiler/src/elements/resolution_types.dart'
+    show ResolutionDartType;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -321,7 +322,7 @@ class CollectingTreeElements extends TreeElementMapping {
 
 class MockTypeVariablesScope extends TypeVariablesScope {
   @override
-  List<DartType> get typeVariables => <DartType>[];
+  List<ResolutionDartType> get typeVariables => <ResolutionDartType>[];
   MockTypeVariablesScope(Scope parent) : super(parent);
   String toString() => 'MockTypeVariablesScope($parent)';
 }

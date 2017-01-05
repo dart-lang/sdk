@@ -638,7 +638,9 @@ class Thread : public BaseThread {
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   bool IsValidLocalHandle(Dart_Handle object) const;
-  int CountLocalHandles() const;
+  intptr_t CountLocalHandles() const;
+  intptr_t CountZoneHandles() const;
+  intptr_t CountScopedHandles() const;
   int ZoneSizeInBytes() const;
   void UnwindScopes(uword stack_marker);
 

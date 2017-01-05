@@ -43,12 +43,12 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kIsolateMustBeRunnable = 105;
   static const kIsolateMustBePaused = 106;
   static const kCannotResume = 107;
-  static const kIsolateIsReloading = 1000;
+  static const kIsolateIsReloading = 108;
+  static const kIsolateReloadBarred = 109;
+
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
   static const kFileDoesNotExist = 1003;
-  static const kIsolateReloadFailed = 1004;
-  static const kIsolateReloadBarred = 1005;
 
   int code;
   Map data;
@@ -1507,6 +1507,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
+  int get numZoneHandles => _numZoneHandles;
+  int _numZoneHandles;
+
+  int get numScopedHandles => _numScopedHandles;
+  int _numScopedHandles;
+
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1635,6 +1641,13 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     if(map['threads'] != null) {
       threads.addAll(map['threads']);
     }
+
+    if (map['threads'] != null) {
+      threads.addAll(map['threads']);
+    }
+
+    _numZoneHandles = map['_numZoneHandles'];
+    _numScopedHandles = map['_numScopedHandles'];
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -2551,33 +2564,33 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.float64x2;
     case 'Int32x4':
       return M.InstanceKind.int32x4;
-    case '_Uint8ClampedList':
+    case 'Uint8ClampedList':
       return M.InstanceKind.uint8ClampedList;
-    case '_Uint8List':
+    case 'Uint8List':
       return M.InstanceKind.uint8List;
-    case '_Uint16List':
+    case 'Uint16List':
       return M.InstanceKind.uint16List;
-    case '_Uint32List':
+    case 'Uint32List':
       return M.InstanceKind.uint32List;
-    case '_Uint64List':
+    case 'Uint64List':
       return M.InstanceKind.uint64List;
-    case '_Int8List':
+    case 'Int8List':
       return M.InstanceKind.int8List;
-    case '_Int16List':
+    case 'Int16List':
       return M.InstanceKind.int16List;
-    case '_Int32List':
+    case 'Int32List':
       return M.InstanceKind.int32List;
-    case '_Int64List':
+    case 'Int64List':
       return M.InstanceKind.int64List;
-    case '_Float32List':
+    case 'Float32List':
       return M.InstanceKind.float32List;
-    case '_Float64List':
+    case 'Float64List':
       return M.InstanceKind.float64List;
-    case '_Int32x4List':
+    case 'Int32x4List':
       return M.InstanceKind.int32x4List;
-    case '_Float32x4List':
+    case 'Float32x4List':
       return M.InstanceKind.float32x4List;
-    case '_Float64x2List':
+    case 'Float64x2List':
       return M.InstanceKind.float64x2List;
     case 'StackTrace':
       return M.InstanceKind.stackTrace;
@@ -2791,46 +2804,46 @@ class Instance extends HeapObject implements M.Instance {
     if (map['bytes'] != null) {
       Uint8List bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
-        case "_Uint8ClampedList":
+        case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList();
           break;
-        case "_Uint8List":
+        case "Uint8List":
           typedElements = bytes.buffer.asUint8List();
           break;
-        case "_Uint16List":
+        case "Uint16List":
           typedElements = bytes.buffer.asUint16List();
           break;
-        case "_Uint32List":
+        case "Uint32List":
           typedElements = bytes.buffer.asUint32List();
           break;
-        case "_Uint64List":
+        case "Uint64List":
           typedElements = bytes.buffer.asUint64List();
           break;
-        case "_Int8List":
+        case "Int8List":
           typedElements = bytes.buffer.asInt8List();
           break;
-        case "_Int16List":
+        case "Int16List":
           typedElements = bytes.buffer.asInt16List();
           break;
-        case "_Int32List":
+        case "Int32List":
           typedElements = bytes.buffer.asInt32List();
           break;
-        case "_Int64List":
+        case "Int64List":
           typedElements = bytes.buffer.asInt64List();
           break;
-        case "_Float32List":
+        case "Float32List":
           typedElements = bytes.buffer.asFloat32List();
           break;
-        case "_Float64List":
+        case "Float64List":
           typedElements = bytes.buffer.asFloat64List();
           break;
-        case "_Int32x4List":
+        case "Int32x4List":
           typedElements = bytes.buffer.asInt32x4List();
           break;
-        case "_Float32x4List":
+        case "Float32x4List":
           typedElements = bytes.buffer.asFloat32x4List();
           break;
-        case "_Float64x2List":
+        case "Float64x2List":
           typedElements = bytes.buffer.asFloat64x2List();
           break;
       }

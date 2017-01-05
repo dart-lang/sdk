@@ -2,12 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash
-cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
-cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
-cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
+# Issue 28198
+cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash, Timeout
+cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash, Timeout
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash, Timeout
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash, Timeout
+cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash, Timeout
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash, Timeout
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout

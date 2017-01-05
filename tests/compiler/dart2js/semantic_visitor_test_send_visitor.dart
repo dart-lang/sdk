@@ -8,7 +8,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   SemanticSendTestVisitor(TreeElements elements) : super(elements);
 
   @override
-  visitAs(Send node, Node expression, DartType type, arg) {
+  visitAs(Send node, Node expression, ResolutionDartType type, arg) {
     visits
         .add(new Visit(VisitKind.VISIT_AS, expression: expression, type: type));
     apply(expression, arg);
@@ -256,14 +256,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitIs(Send node, Node expression, DartType type, arg) {
+  visitIs(Send node, Node expression, ResolutionDartType type, arg) {
     visits
         .add(new Visit(VisitKind.VISIT_IS, expression: expression, type: type));
     apply(expression, arg);
   }
 
   @override
-  visitIsNot(Send node, Node expression, DartType type, arg) {
+  visitIsNot(Send node, Node expression, ResolutionDartType type, arg) {
     visits.add(
         new Visit(VisitKind.VISIT_IS_NOT, expression: expression, type: type));
     apply(expression, arg);
@@ -1697,7 +1697,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
 
   @override
   visitUnresolvedClassConstructorInvoke(NewExpression node, Element constructor,
-      DartType type, NodeList arguments, Selector selector, arg) {
+      ResolutionDartType type, NodeList arguments, Selector selector, arg) {
     // TODO(johnniwinther): Test [type] when it is not `dynamic`.
     visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
         arguments: arguments));
@@ -1706,7 +1706,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
 
   @override
   visitUnresolvedConstructorInvoke(NewExpression node, Element constructor,
-      DartType type, NodeList arguments, Selector selector, arg) {
+      ResolutionDartType type, NodeList arguments, Selector selector, arg) {
     // TODO(johnniwinther): Test [type] when it is not `dynamic`.
     visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
         arguments: arguments));
@@ -1749,8 +1749,13 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorNonConstantConstructorInvoke(NewExpression node, Element element,
-      DartType type, NodeList arguments, CallStructure callStructure, arg) {
+  errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      ResolutionDartType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
     visits.add(new Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
         element: element,
         type: type,
@@ -1764,7 +1769,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitConstructorIncompatibleInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -1781,7 +1786,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -1797,7 +1802,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -1813,9 +1818,9 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       ConstructorElement effectiveTarget,
-      InterfaceType effectiveTargetType,
+      ResolutionInterfaceType effectiveTargetType,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -1833,7 +1838,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitRedirectingGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -1850,7 +1855,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {
@@ -1866,7 +1871,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       arg) {

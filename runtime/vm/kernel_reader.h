@@ -84,7 +84,7 @@ class KernelReader {
   // Otherwise return klass.
   const Object& ClassForScriptAt(const dart::Class& klass,
                                  intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index);
+  Script& ScriptAt(intptr_t source_uri_index, String* import_uri = NULL);
 
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,

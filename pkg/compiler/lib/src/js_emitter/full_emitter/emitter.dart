@@ -16,7 +16,7 @@ import '../../common/names.dart' show Names;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../core_types.dart' show CommonElements;
-import '../../dart_types.dart' show DartType;
+import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show
@@ -326,7 +326,7 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
-  jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
+  jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
     return jsAst.js('#.#()',
         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
   }
@@ -1223,7 +1223,7 @@ class Emitter implements js_emitter.Emitter {
     for (TypedefElement typedef in typedefsNeededForReflection) {
       LibraryElement library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
-      DartType type = typedef.alias;
+      ResolutionDartType type = typedef.alias;
       // TODO(zarah): reify type variables once reflection on type arguments of
       // typedefs is supported.
       jsAst.Expression typeIndex =

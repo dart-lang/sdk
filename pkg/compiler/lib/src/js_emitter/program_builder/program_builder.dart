@@ -11,7 +11,8 @@ import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../core_types.dart' show CommonElements;
-import '../../dart_types.dart' show DartType, FunctionType, TypedefType;
+import '../../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show
@@ -383,7 +384,7 @@ class ProgramBuilder {
             // Generating stubs for direct calls and stubs for call-through
             // of getters that happen to be functions.
             bool isFunctionLike = false;
-            FunctionType functionType = null;
+            ResolutionFunctionType functionType = null;
 
             if (member.isFunction) {
               FunctionElement fn = member;
@@ -391,14 +392,14 @@ class ProgramBuilder {
             } else if (member.isGetter) {
               if (_compiler.options.trustTypeAnnotations) {
                 GetterElement getter = member;
-                DartType returnType = getter.type.returnType;
+                ResolutionDartType returnType = getter.type.returnType;
                 if (returnType.isFunctionType) {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
                     _compiler.types.isSubtype(
                         returnType, backend.commonElements.functionType)) {
                   if (returnType.isTypedef) {
-                    TypedefType typedef = returnType;
+                    ResolutionTypedefType typedef = returnType;
                     // TODO(jacobr): can we just use typdef.unaliased instead?
                     functionType = typedef.element.functionSignature.type;
                   } else {
@@ -761,7 +762,7 @@ class ProgramBuilder {
       callName = namer.invocationName(callSelector);
     }
 
-    DartType memberType;
+    ResolutionDartType memberType;
     if (element.isGenerativeConstructorBody) {
       // TODO(herhut): Why does this need to be normalized away? We never need
       //               this information anyway as they cannot be torn off or
@@ -801,7 +802,8 @@ class ProgramBuilder {
         functionType: functionType);
   }
 
-  js.Expression _generateFunctionType(DartType type, OutputUnit outputUnit) {
+  js.Expression _generateFunctionType(
+      ResolutionDartType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return backend.rtiEncoder.getSignatureEncoding(type, thisAccess);
@@ -945,7 +947,7 @@ class ProgramBuilder {
       callName = namer.invocationName(callSelector);
     }
     js.Expression functionType;
-    DartType type = element.type;
+    ResolutionDartType type = element.type;
     if (needsTearOff || canBeReflected) {
       OutputUnit outputUnit =
           _compiler.deferredLoadTask.outputUnitForElement(element);

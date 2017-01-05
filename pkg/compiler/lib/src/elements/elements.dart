@@ -10,7 +10,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
@@ -22,6 +21,7 @@ import '../util/characters.dart' show $_;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
+import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';
@@ -141,7 +141,7 @@ abstract class Entity implements Spannable {
  * are elements corresponding to "dynamic", "null", and unresolved
  * references.
  *
- * Elements are distinct from types ([DartType]). For example, there
+ * Elements are distinct from types ([ResolutionDartType]). For example, there
  * is one declaration of the class List, but several related types,
  * for example, List, List<int>, List<String>, etc.
  *
@@ -676,23 +676,6 @@ class Elements {
     return null;
   }
 
-  static bool isNumberOrStringSupertype(
-      Element element, CommonElements commonElements) {
-    LibraryElement coreLibrary = commonElements.coreLibrary;
-    return (element == coreLibrary.find('Comparable'));
-  }
-
-  static bool isStringOnlySupertype(
-      Element element, CommonElements commonElements) {
-    LibraryElement coreLibrary = commonElements.coreLibrary;
-    return element == coreLibrary.find('Pattern');
-  }
-
-  static bool isListSupertype(Element element, CommonElements commonElements) {
-    LibraryElement coreLibrary = commonElements.coreLibrary;
-    return element == coreLibrary.find('Iterable');
-  }
-
   /// A `compareTo` function that places [Element]s in a consistent order based
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
@@ -804,7 +787,7 @@ class Elements {
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == closedWorld.commonElements.typedDataLibrary &&
-        closedWorld.backendClasses.isNative(cls) &&
+        closedWorld.backendClasses.isNativeClass(cls) &&
         closedWorld.isSubtypeOf(
             cls, closedWorld.commonElements.typedDataClass) &&
         closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
@@ -1015,18 +998,18 @@ abstract class TypedefElement extends Element
   /// arguments.
   ///
   /// For instance `F<T>` for `typedef void F<T>(T t)`.
-  TypedefType get thisType;
+  ResolutionTypedefType get thisType;
 
   /// The type defined by this typedef with `dynamic` as its type arguments.
   ///
   /// For instance `F<dynamic>` for `typedef void F<T>(T t)`.
-  TypedefType get rawType;
+  ResolutionTypedefType get rawType;
 
   /// The type, function type if well-defined, for which this typedef is an
   /// alias.
   ///
   /// For instance `(int)->void` for `typedef void F(int)`.
-  DartType get alias;
+  ResolutionDartType get alias;
 
   void checkCyclicReference(Resolution resolution);
 }
@@ -1182,9 +1165,9 @@ abstract class AbstractFieldElement extends Element {
 }
 
 abstract class FunctionSignature {
-  FunctionType get type;
-  DartType get returnType;
-  List<DartType> get typeVariables;
+  ResolutionFunctionType get type;
+  ResolutionDartType get returnType;
+  List<ResolutionDartType> get typeVariables;
   List<FormalElement> get requiredParameters;
   List<FormalElement> get optionalParameters;
 
@@ -1225,7 +1208,7 @@ abstract class FunctionElement extends Element
   List<ParameterElement> get parameters;
 
   /// The type of this function.
-  FunctionType get type;
+  ResolutionFunctionType get type;
 
   /// The synchronous/asynchronous marker on this function.
   AsyncMarker get asyncMarker;
@@ -1370,7 +1353,8 @@ abstract class ConstructorElement extends MethodElement {
 
   /// Compute the type of the effective target of this constructor for an
   /// instantiation site with type [:newType:].
-  InterfaceType computeEffectiveTargetType(InterfaceType newType);
+  ResolutionInterfaceType computeEffectiveTargetType(
+      ResolutionInterfaceType newType);
 
   /// If this is a synthesized constructor [definingConstructor] points to
   /// the generative constructor from which this constructor was created.
@@ -1426,14 +1410,14 @@ abstract class GenericElement extends Element implements AstElement {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  DartType computeType(Resolution resolution);
+  ResolutionDartType computeType(Resolution resolution);
 
   /**
    * The type variables declared on this declaration. The type variables are not
    * available until the type of the element has been computed through
    * [computeType].
    */
-  List<DartType> get typeVariables;
+  List<ResolutionDartType> get typeVariables;
 }
 
 /// [TypeDeclarationElement] defines the common interface for class/interface
@@ -1474,9 +1458,9 @@ abstract class TypeDeclarationElement extends GenericElement {
    * used to distinguish explicit and implicit uses of the [dynamic]
    * type arguments. For instance should [:List:] be the [rawType] of the
    * [:List:] class element whereas [:List<dynamic>:] should be its own
-   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
-   * this distinction, we can print the raw type with type arguments only when
-   * the input source has used explicit type arguments.
+   * instantiation of [ResolutionInterfaceType] with [:dynamic:] as type
+   * argument. Using this distinction, we can print the raw type with type
+   * arguments only when the input source has used explicit type arguments.
    */
   GenericType get rawType;
 
@@ -1490,24 +1474,24 @@ abstract class ClassElement extends TypeDeclarationElement
   /// The length of the longest inheritance path from [:Object:].
   int get hierarchyDepth;
 
-  InterfaceType get rawType;
-  InterfaceType get thisType;
+  ResolutionInterfaceType get rawType;
+  ResolutionInterfaceType get thisType;
   ClassElement get superclass;
 
   /// The direct supertype of this class.
-  DartType get supertype;
+  ResolutionDartType get supertype;
 
   /// Ordered set of all supertypes of this class including the class itself.
   OrderedTypeSet get allSupertypesAndSelf;
 
   /// A list of all supertypes of this class excluding the class itself.
-  Link<DartType> get allSupertypes;
+  Link<ResolutionDartType> get allSupertypes;
 
   /// Returns the this type of this class as an instance of [cls].
-  InterfaceType asInstanceOf(ClassElement cls);
+  ResolutionInterfaceType asInstanceOf(ClassElement cls);
 
   /// A list of all direct superinterfaces of this class.
-  Link<DartType> get interfaces;
+  Link<ResolutionDartType> get interfaces;
 
   bool get hasConstructor;
   Link<Element> get constructors;
@@ -1618,12 +1602,12 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns the type of the 'call' method in the interface of this class, or
   /// `null` if the interface has no 'call' method.
-  FunctionType get callType;
+  ResolutionFunctionType get callType;
 }
 
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
-  InterfaceType get mixinType;
+  ResolutionInterfaceType get mixinType;
 
   /// If this is an unnamed mixin application [subclass] is the subclass for
   /// which this mixin application is created.
@@ -1680,7 +1664,7 @@ abstract class JumpTarget extends Local {
 
 /// The [Element] for a type variable declaration on a generic class or typedef.
 abstract class TypeVariableElement extends Element
-    implements AstElement, TypedElement {
+    implements AstElement, TypedElement, TypeVariableEntity {
   /// The name of this type variable, taking privacy into account.
   Name get memberName;
 
@@ -1696,11 +1680,11 @@ abstract class TypeVariableElement extends Element
   int get index;
 
   /// The [type] defined by the type variable.
-  TypeVariableType get type;
+  ResolutionTypeVariableType get type;
 
   /// The upper bound on the type variable. If not explicitly declared, this is
   /// `Object`.
-  DartType get bound;
+  ResolutionDartType get bound;
 }
 
 abstract class MetadataAnnotation implements Spannable {
@@ -1724,9 +1708,9 @@ abstract class TypedElement extends Element {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  DartType computeType(Resolution resolution);
+  ResolutionDartType computeType(Resolution resolution);
 
-  DartType get type;
+  ResolutionDartType get type;
 }
 
 /// An [Element] that can define a function type.
@@ -1877,13 +1861,13 @@ abstract class MemberSignature {
   /// The type of the member when accessed. For getters and setters this is the
   /// return type and argument type, respectively. For methods the type is the
   /// [functionType] defined by the return type and parameters.
-  DartType get type;
+  ResolutionDartType get type;
 
   /// The function type of the member. For a getter `Foo get foo` this is
   /// `() -> Foo`, for a setter `void set foo(Foo _)` this is `(Foo) -> void`.
   /// For methods the function type is defined by the return type and
   /// parameters.
-  FunctionType get functionType;
+  ResolutionFunctionType get functionType;
 
   /// Returns `true` if this member is a getter, possibly implictly defined by a
   /// field declaration.
@@ -1925,7 +1909,7 @@ abstract class Member extends MemberSignature {
   ///   class B<S> extends A<S> {}
   /// The declarer of `m` in `A` is `A<T>` whereas the declarer of `m` in `B` is
   /// `A<S>`.
-  InterfaceType get declarer;
+  ResolutionInterfaceType get declarer;
 
   /// Returns `true` if this member is static.
   bool get isStatic;

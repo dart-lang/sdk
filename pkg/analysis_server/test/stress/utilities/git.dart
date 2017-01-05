@@ -5,13 +5,13 @@
 /**
  * Support for interacting with a git repository.
  */
-library analysis_server.test.stress.utilities.git;
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/src/util/glob.dart';
 import 'package:path/path.dart' as path;
+
+import 'logger.dart';
 
 /**
  * A representation of the differences between two blobs.
@@ -395,10 +395,18 @@ class GitRepository {
   final String path;
 
   /**
+   * The logger to which git commands should be written, or `null` if the
+   * commands should not be written.
+   */
+  final Logger logger;
+
+  /**
    * Initialize a newly created repository to represent the git repository at
    * the given [path].
+   *
+   * If a [commandSink] is provided, any calls to git will be written to it.
    */
-  GitRepository(this.path);
+  GitRepository(this.path, {this.logger = null});
 
   /**
    * Checkout the given [commit] from the repository. This is done by running
@@ -454,6 +462,7 @@ class GitRepository {
    * the result of running the process.
    */
   ProcessResult _run(List<String> arguments) {
+    logger?.log('git', 'git', arguments: arguments);
     return Process.runSync('git', arguments,
         stderrEncoding: UTF8, stdoutEncoding: UTF8, workingDirectory: path);
   }

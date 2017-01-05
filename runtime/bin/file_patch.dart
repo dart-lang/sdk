@@ -77,14 +77,14 @@ class _WatcherPath {
   @patch static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     if (Platform.isLinux) {
-      return new _InotifyFileSystemWatcher(path, events, recursive).stream;
+      return new _InotifyFileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isWindows) {
-      return new _Win32FileSystemWatcher(path, events, recursive).stream;
+      return new _Win32FileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isMacOS) {
       return new _FSEventStreamFileSystemWatcher(
-          path, events, recursive).stream;
+          path, events, recursive)._stream;
     }
     throw new FileSystemException(
         "File system watching is not supported on this platform");
@@ -100,7 +100,7 @@ class _WatcherPath {
                                                           onCancel: _cancel);
   }
 
-  Stream get stream => _broadcastController.stream;
+  Stream get _stream => _broadcastController.stream;
 
   void _listen() {
     if (_id == null) {

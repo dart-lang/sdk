@@ -65,7 +65,9 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class X {}''');
 
     // Assume that imported libraries have been resolved
-    context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    if (!enableNewAnalysisDriver) {
+      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    }
 
     await computeSuggestions();
     assertSuggestClass('A',
@@ -117,7 +119,9 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class X {}''');
 
     // Assume that imported libraries have been resolved
-    context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    if (!enableNewAnalysisDriver) {
+      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    }
 
     await computeSuggestions();
     assertSuggestClass('A',
@@ -157,18 +161,4 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 class CombinatorContributorTest_Driver extends CombinatorContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_Combinator_hide() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_Combinator_hide();
-  }
-
-  @failingTest
-  @override
-  test_Combinator_show() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_Combinator_show();
-  }
 }

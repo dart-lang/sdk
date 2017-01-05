@@ -13,7 +13,7 @@ import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../core_types.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../universe/class_set.dart';
@@ -21,6 +21,7 @@ import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
+import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -38,7 +39,7 @@ abstract class ReceiverConstraint {
   /// Returns whether [element] is a potential target when being
   /// invoked on a receiver with this constraint. [selector] is used to ensure
   /// library privacy is taken into account.
-  bool canHit(Element element, Selector selector, World world);
+  bool canHit(MemberElement element, Selector selector, World world);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].
@@ -156,16 +157,16 @@ abstract class WorldBuilder {
   Iterable<ClassElement> get directlyInstantiatedClasses;
 
   /// All types that are checked either through is, as or checked mode checks.
-  Iterable<DartType> get isChecks;
+  Iterable<ResolutionDartType> get isChecks;
 
   /// Registers that [type] is checked in this universe. The unaliased type is
   /// returned.
-  DartType registerIsCheck(DartType type);
+  ResolutionDartType registerIsCheck(ResolutionDartType type);
 
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<DartType> get instantiatedTypes;
+  Iterable<ResolutionDartType> get instantiatedTypes;
 }
 
 abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
@@ -213,7 +214,7 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
 /// The type and kind of an instantiation registered through
 /// `ResolutionWorldBuilder.registerTypeInstantiation`.
 class Instance {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final Instantiation kind;
   final bool isRedirection;
 
@@ -314,8 +315,8 @@ class InstantiationInfo {
   Map<ConstructorElement, Set<Instance>> instantiationMap;
 
   /// Register [type] as the instantiation [kind] using [constructor].
-  void addInstantiation(
-      ConstructorElement constructor, InterfaceType type, Instantiation kind,
+  void addInstantiation(ConstructorElement constructor,
+      ResolutionInterfaceType type, Instantiation kind,
       {bool isRedirection: false}) {
     instantiationMap ??= <ConstructorElement, Set<Instance>>{};
     instantiationMap
@@ -422,7 +423,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   /// Fields set.
   final Set<Element> fieldSetters = new Set<Element>();
-  final Set<DartType> isChecks = new Set<DartType>();
+  final Set<ResolutionDartType> isChecks = new Set<ResolutionDartType>();
 
   /**
    * Set of (live) [:call:] methods whose signatures reference type variables.
@@ -525,8 +526,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<DartType> get instantiatedTypes {
-    Set<InterfaceType> types = new Set<InterfaceType>();
+  Iterable<ResolutionDartType> get instantiatedTypes {
+    Set<ResolutionInterfaceType> types = new Set<ResolutionInterfaceType>();
     getInstantiationMap().forEach((_, InstantiationInfo info) {
       if (info.instantiationMap != null) {
         for (Set<Instance> instances in info.instantiationMap.values) {
@@ -555,7 +556,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed,
+      ResolutionInterfaceType type, ClassUsedCallback classUsed,
       {ConstructorElement constructor,
       bool byMirrors: false,
       bool isRedirection: false}) {
@@ -589,7 +590,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     // instead.
     if (_implementedClasses.add(cls)) {
       classUsed(cls, _getClassUsage(cls).implement());
-      cls.allSupertypes.forEach((InterfaceType supertype) {
+      cls.allSupertypes.forEach((ResolutionInterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
           classUsed(
               supertype.element, _getClassUsage(supertype.element).implement());
@@ -644,7 +645,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
                   .addInstantiation(constructor, instance.type, instance.kind);
             } else {
               ConstructorElement target = constructor.effectiveTarget;
-              InterfaceType targetType =
+              ResolutionInterfaceType targetType =
                   constructor.computeEffectiveTargetType(instance.type);
               Instantiation kind = Instantiation.DIRECTLY_INSTANTIATED;
               if (target.enclosingClass.isAbstract) {
@@ -724,7 +725,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  DartType registerIsCheck(DartType type) {
+  ResolutionDartType registerIsCheck(ResolutionDartType type) {
     type.computeUnaliased(_resolution);
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
@@ -976,7 +977,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
       ClassSet classSet = new ClassSet(node);
 
-      for (InterfaceType type in cls.allSupertypes) {
+      for (ResolutionInterfaceType type in cls.allSupertypes) {
         // TODO(johnniwinther): Optimization: Avoid adding [cls] to
         // superclasses.
         ClassSet subtypeSet = _ensureClassSet(type.element);
@@ -1051,7 +1052,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         Set<Element> typesImplementedBySubclassesOfCls =
             typesImplementedBySubclasses.putIfAbsent(
                 superclass, () => new Set<ClassElement>());
-        for (DartType current in cls.allSupertypes) {
+        for (ResolutionDartType current in cls.allSupertypes) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
         superclass = superclass.superclass;
@@ -1103,6 +1104,15 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 ///
 /// This adds additional access to liveness of selectors and elements.
 abstract class CodegenWorldBuilder implements WorldBuilder {
+  /// Opens this world builder using [closedWorld] as the known superset of
+  /// possible runtime entities.
+  void open(ClosedWorld closedWorld);
+
+  /// Calls [f] with every instance field, together with its declarer, in an
+  /// instance of [cls].
+  void forEachInstanceField(
+      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field));
+
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
@@ -1134,6 +1144,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final Backend _backend;
+  ClosedWorld __world;
 
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -1149,7 +1160,8 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   /// directly instantiated classes.
   ///
   /// See [_directlyInstantiatedClasses].
-  final Set<DartType> _instantiatedTypes = new Set<DartType>();
+  final Set<ResolutionDartType> _instantiatedTypes =
+      new Set<ResolutionDartType>();
 
   /// Classes implemented by directly instantiated classes.
   final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
@@ -1196,15 +1208,31 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final Map<String, Set<_MemberUsage>> _instanceFunctionsByName =
       <String, Set<_MemberUsage>>{};
 
-  final Set<DartType> isChecks = new Set<DartType>();
+  final Set<ResolutionDartType> isChecks = new Set<ResolutionDartType>();
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
   CodegenWorldBuilderImpl(this._backend, this.selectorConstraintsStrategy);
 
-  // TODO(johnniwinther): Remove this hack:
-  ClosedWorld get _world =>
-      _backend.compiler.resolverWorld.closedWorldForTesting;
+  void open(ClosedWorld closedWorld) {
+    assert(invariant(NO_LOCATION_SPANNABLE, __world == null,
+        message: "CodegenWorldBuilder has already been opened."));
+    __world = closedWorld;
+  }
+
+  ClosedWorld get _world {
+    assert(invariant(NO_LOCATION_SPANNABLE, __world != null,
+        message: "CodegenWorldBuilder has not been opened."));
+    return __world;
+  }
+
+  /// Calls [f] with every instance field, together with its declarer, in an
+  /// instance of [cls].
+  void forEachInstanceField(
+      ClassElement cls, void f(ClassEntity declarer, FieldEntity field)) {
+    cls.implementation
+        .forEachInstanceField(f, includeSuperAndInjectedMembers: true);
+  }
 
   Iterable<ClassElement> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
@@ -1222,7 +1250,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
+  Iterable<ResolutionDartType> get instantiatedTypes => _instantiatedTypes;
 
   /// Register [type] as (directly) instantiated.
   ///
@@ -1231,7 +1259,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed,
+      ResolutionInterfaceType type, ClassUsedCallback classUsed,
       {bool byMirrors: false}) {
     ClassElement cls = type.element;
     bool isNative = _backend.isNative(cls);
@@ -1256,7 +1284,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     // include the type arguments.
     if (_implementedClasses.add(cls)) {
       classUsed(cls, _getClassUsage(cls).implement());
-      cls.allSupertypes.forEach((InterfaceType supertype) {
+      cls.allSupertypes.forEach((ResolutionInterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
           classUsed(
               supertype.element, _getClassUsage(supertype.element).implement());
@@ -1379,7 +1407,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  DartType registerIsCheck(DartType type) {
+  ResolutionDartType registerIsCheck(ResolutionDartType type) {
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check

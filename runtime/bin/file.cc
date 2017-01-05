@@ -256,7 +256,8 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   ASSERT(buffer != NULL);
 
   // Write all the data out into the file.
-  bool success = file->WriteFully(buffer, length);
+  char* byte_buffer = reinterpret_cast<char*>(buffer);
+  bool success = file->WriteFully(byte_buffer + start, length);
 
   // Release the direct pointer acquired above.
   result = Dart_TypedDataReleaseData(buffer_obj);

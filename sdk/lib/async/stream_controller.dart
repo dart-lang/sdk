@@ -780,7 +780,7 @@ abstract class _SyncStreamControllerDispatch<T>
 abstract class _AsyncStreamControllerDispatch<T>
     implements _StreamController<T> {
   void _sendData(T data) {
-    _subscription._addPending(new _DelayedData<dynamic /*=T*/>(data));
+    _subscription._addPending(new _DelayedData<T>(data));
   }
 
   void _sendError(Object error, StackTrace stackTrace) {

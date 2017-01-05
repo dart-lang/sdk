@@ -90,14 +90,16 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
   # Use tcmalloc only when targeting Linux and when not using ASAN.
-  gn_args['dart_use_tcmalloc'] = (gn_args['target_os'] == 'linux'
-                                  and not args.asan)
+  gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux')
+                                  and not args.asan
+                                  and not args.msan
+                                  and not args.tsan)
 
   # Force -mfloat-abi=hard and -mfpu=neon on Linux as we're specifying
   # a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
   # TODO(zra): This will likely need some adjustment to build for armv6 etc.
   hard_float = (gn_args['target_cpu'].startswith('arm') and
-                gn_args['target_os'] == 'linux')
+                (gn_args['target_os'] == 'linux'))
   if hard_float:
     gn_args['arm_float_abi'] = 'hard'
     gn_args['arm_use_neon'] = True
@@ -114,17 +116,22 @@ def to_gn_args(args, mode, arch, target_os):
 
   # TODO(zra): Investigate using clang with these configurations.
   # Clang compiles tcmalloc's inline assembly for ia32 on Linux wrong, so we
-  # don't use clang in that configuration.
+  # don't use clang in that configuration. Thus, we use gcc for ia32 *unless*
+  # asan or tsan is specified.
   has_clang = (host_os != 'win'
                and args.os not in ['android']
-               and not (gn_args['target_os'] == 'linux' and
-                        gn_args['host_cpu'] == 'x86' and
-                        not args.asan)  # Use clang for asan builds.
                and not gn_args['target_cpu'].startswith('arm')
-               and not gn_args['target_cpu'].startswith('mips'))
+               and not gn_args['target_cpu'].startswith('mips')
+               and not ((gn_args['target_os'] == 'linux')
+                        and (gn_args['host_cpu'] == 'x86')
+                        and not args.asan
+                        and not args.msan
+                        and not args.tsan))  # Use clang for sanitizer builds.
   gn_args['is_clang'] = args.clang and has_clang
 
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
+  gn_args['is_msan'] = args.msan and gn_args['is_clang']
+  gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
   # Setup the user-defined sysroot.
   if gn_args['target_os'] == 'linux' and args.wheezy:
@@ -214,11 +221,18 @@ def ide_switch(host_os):
 
 # Environment variables for default settings.
 DART_USE_ASAN = "DART_USE_ASAN"
+DART_USE_MSAN = "DART_USE_MSAN"
+DART_USE_TSAN = "DART_USE_TSAN"
 DART_USE_WHEEZY = "DART_USE_WHEEZY"
 
 def use_asan():
   return DART_USE_ASAN in os.environ
 
+def use_msan():
+  return DART_USE_MSAN in os.environ
+
+def use_tsan():
+  return DART_USE_TSAN in os.environ
 
 def use_wheezy():
   return DART_USE_WHEEZY in os.environ
@@ -226,70 +240,91 @@ def use_wheezy():
 
 def parse_args(args):
   args = args[1:]
-  parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
+  parser = argparse.ArgumentParser(
+      description='A script to run `gn gen`.',
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+  common_group = parser.add_argument_group('Common Arguments')
+  other_group = parser.add_argument_group('Other Arguments')
 
-  parser.add_argument("-v", "--verbose",
-      help='Verbose output.',
-      default=False, action="store_true")
-  parser.add_argument('--mode', '-m',
-      type=str,
-      help='Build variants (comma-separated).',
-      metavar='[all,debug,release,product]',
-      default='debug')
-  parser.add_argument('--os',
-      type=str,
-      help='Target OSs (comma-separated).',
-      metavar='[all,host,android]',
-      default='host')
-  parser.add_argument('--arch', '-a',
+  common_group.add_argument('--arch', '-a',
       type=str,
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
               'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
-  parser.add_argument('--asan',
+  common_group.add_argument('--mode', '-m',
+      type=str,
+      help='Build variants (comma-separated).',
+      metavar='[all,debug,release,product]',
+      default='debug')
+  common_group.add_argument('--os',
+      type=str,
+      help='Target OSs (comma-separated).',
+      metavar='[all,host,android]',
+      default='host')
+  common_group.add_argument("-v", "--verbose",
+      help='Verbose output.',
+      default=False, action="store_true")
+
+  other_group.add_argument('--asan',
       help='Build with ASAN',
       default=use_asan(),
       action='store_true')
-  parser.add_argument('--no-asan',
+  other_group.add_argument('--no-asan',
       help='Disable ASAN',
       dest='asan',
       action='store_false')
-  parser.add_argument('--wheezy',
-      help='Use the Debian wheezy sysroot on Linux',
-      default=use_wheezy(),
-      action='store_true')
-  parser.add_argument('--no-wheezy',
-      help='Disable the Debian wheezy sysroot on Linux',
-      dest='wheezy',
-      action='store_false')
-  parser.add_argument('--goma',
-      help='Use goma',
-      default=True,
-      action='store_true')
-  parser.add_argument('--no-goma',
-      help='Disable goma',
-      dest='goma',
-      action='store_false')
-  parser.add_argument('--clang',
+  other_group.add_argument('--clang',
       help='Use Clang',
       default=True,
       action='store_true')
-  parser.add_argument('--no-clang',
+  other_group.add_argument('--no-clang',
       help='Disable Clang',
       dest='clang',
       action='store_false')
-  parser.add_argument('--ide',
+  other_group.add_argument('--goma',
+      help='Use goma',
+      default=True,
+      action='store_true')
+  other_group.add_argument('--no-goma',
+      help='Disable goma',
+      dest='goma',
+      action='store_false')
+  other_group.add_argument('--ide',
       help='Generate an IDE file.',
       default=os_has_ide(HOST_OS),
       action='store_true')
-  parser.add_argument('--target-sysroot', '-s',
+  other_group.add_argument('--msan',
+      help='Build with MSAN',
+      default=use_msan(),
+      action='store_true')
+  other_group.add_argument('--no-msan',
+      help='Disable MSAN',
+      dest='msan',
+      action='store_false')
+  other_group.add_argument('--target-sysroot', '-s',
       type=str,
       help='Path to the toolchain sysroot')
-  parser.add_argument('--toolchain-prefix', '-t',
+  other_group.add_argument('--toolchain-prefix', '-t',
       type=str,
       help='Path to the toolchain prefix')
-  parser.add_argument('--workers', '-w',
+  other_group.add_argument('--tsan',
+      help='Build with TSAN',
+      default=use_tsan(),
+      action='store_true')
+  other_group.add_argument('--no-tsan',
+      help='Disable TSAN',
+      dest='tsan',
+      action='store_false')
+  other_group.add_argument('--wheezy',
+      help='Use the Debian wheezy sysroot on Linux',
+      default=use_wheezy(),
+      action='store_true')
+  other_group.add_argument('--no-wheezy',
+      help='Disable the Debian wheezy sysroot on Linux',
+      dest='wheezy',
+      action='store_false')
+  other_group.add_argument('--workers', '-w',
       type=int,
       help='Number of simultaneous GN invocations',
       dest='workers',

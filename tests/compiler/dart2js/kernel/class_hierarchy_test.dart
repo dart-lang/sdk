@@ -31,12 +31,13 @@ main(List<String> arguments) {
       '''
   }, options: [
     Flags.analyzeOnly,
-    Flags.analyzeMain,
+    Flags.analyzeAll,
     Flags.useKernel
   ]);
   test('mixin', () async {
     Uri mainUri = Uri.parse('memory:main.dart');
-    LibraryElement library = await compiler.analyzeUri(mainUri);
+    await compiler.run(mainUri);
+    LibraryElement library = await compiler.libraryLoader.loadLibrary(mainUri);
     JavaScriptBackend backend = compiler.backend;
     ir.Program program = backend.kernelTask.buildProgram(library);
     ClassHierarchy hierarchy = new ClassHierarchy(program);

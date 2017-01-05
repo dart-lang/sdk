@@ -31,7 +31,8 @@ import '../constants/expressions.dart'
         IntFromEnvironmentConstantExpression,
         StringFromEnvironmentConstantExpression,
         TypeConstantExpression;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
     show
@@ -259,7 +260,7 @@ class KernelVisitor extends Object
 
   // This works around a bug in dart2js.
   // TODO(ahe): Fix the bug in dart2js and remove this function.
-  ir.DartType typeToIrHack(DartType type) {
+  ir.DartType typeToIrHack(ResolutionDartType type) {
     if (currentElement.isSynthesized &&
         currentElement.enclosingClass.isMixinApplication &&
         !kernel.hasHierarchyProblem(currentElement.enclosingClass)) {
@@ -283,7 +284,7 @@ class KernelVisitor extends Object
       // is Super<S> and it should be Sub<T>, but we settle for Super<T> for
       // now). So we need to translate Sub<T> to an instance of Super, which is
       // Super<T> (not Super<S>).
-      InterfaceType supertype =
+      ResolutionInterfaceType supertype =
           currentElement.enclosingClass.asInstanceOf(superclass);
       // Once we have [supertype], we know how to substitute S with T: the type
       // arguments of [supertype] corresponds to T, and the type variables of
@@ -1121,7 +1122,7 @@ class KernelVisitor extends Object
   ir.InvalidExpression visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement element,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -1146,7 +1147,8 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.AsExpression visitAs(Send node, Node expression, DartType type, _) {
+  ir.AsExpression visitAs(
+      Send node, Node expression, ResolutionDartType type, _) {
     return new ir.AsExpression(
         visitForValue(expression), kernel.typeToIr(type));
   }
@@ -1172,7 +1174,7 @@ class KernelVisitor extends Object
             isConst: isConst)
         : buildStaticInvoke(target.element, arguments, isConst: isConst);
     if (target.type.isInterfaceType) {
-      InterfaceType type = target.type;
+      ResolutionInterfaceType type = target.type;
       if (type.isGeneric) {
         invoke.arguments.types.addAll(kernel.typesToIr(type.typeArguments));
       }
@@ -1261,7 +1263,7 @@ class KernelVisitor extends Object
   ir.InvalidExpression visitConstructorIncompatibleInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -1370,7 +1372,7 @@ class KernelVisitor extends Object
   ir.InvocationExpression visitFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -1499,7 +1501,7 @@ class KernelVisitor extends Object
   ir.InvocationExpression visitGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -1571,7 +1573,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Initializer visitImplicitSuperConstructorInvoke(FunctionExpression node,
-      ConstructorElement superConstructor, InterfaceType type, _) {
+      ConstructorElement superConstructor, ResolutionInterfaceType type, _) {
     if (superConstructor == null) {
       // TODO(ahe): Semantic visitor shouldn't call this.
       return new ir.InvalidInitializer();
@@ -1667,18 +1669,19 @@ class KernelVisitor extends Object
     return buildConstructorInvoke(node, isConst: true);
   }
 
-  ir.IsExpression buildIs(Node expression, DartType type) {
+  ir.IsExpression buildIs(Node expression, ResolutionDartType type) {
     return new ir.IsExpression(
         visitForValue(expression), kernel.typeToIr(type));
   }
 
   @override
-  ir.IsExpression visitIs(Send node, Node expression, DartType type, _) {
+  ir.IsExpression visitIs(
+      Send node, Node expression, ResolutionDartType type, _) {
     return buildIs(expression, type);
   }
 
   @override
-  ir.Not visitIsNot(Send node, Node expression, DartType type, _) {
+  ir.Not visitIsNot(Send node, Node expression, ResolutionDartType type, _) {
     return new ir.Not(buildIs(expression, type));
   }
 
@@ -1899,7 +1902,7 @@ class KernelVisitor extends Object
       FunctionExpression node,
       ConstructorElement constructor,
       NodeList parameters,
-      DartType redirectionType, // TODO(ahe): Should be InterfaceType.
+      ResolutionDartType redirectionType, // TODO(ahe): Should be InterfaceType.
       ConstructorElement redirectionTarget,
       _) {
     if (!constructor.isFactoryConstructor) {
@@ -1928,9 +1931,9 @@ class KernelVisitor extends Object
   ir.InvocationExpression visitRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       ConstructorElement effectiveTarget,
-      InterfaceType effectiveTargetType,
+      ResolutionInterfaceType effectiveTargetType,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -1951,7 +1954,7 @@ class KernelVisitor extends Object
   ir.InvocationExpression visitRedirectingGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -2060,10 +2063,10 @@ class KernelVisitor extends Object
         returnType = typeToIrHack(signature.type.returnType);
       }
       if (function.isFactoryConstructor) {
-        InterfaceType type = function.enclosingClass.thisType;
+        ResolutionInterfaceType type = function.enclosingClass.thisType;
         if (type.isGeneric) {
           typeParameters = new List<ir.TypeParameter>();
-          for (DartType parameter in type.typeArguments) {
+          for (ResolutionDartType parameter in type.typeArguments) {
             typeParameters.add(kernel.typeVariableToIr(parameter.element));
           }
         }
@@ -2162,12 +2165,20 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.StaticInvocation handleStaticFunctionIncompatibleInvoke(
+  ir.Expression handleStaticFunctionIncompatibleInvoke(
       Send node,
       MethodElement function,
       NodeList arguments,
       CallStructure callStructure,
       _) {
+    if (!kernel.compiler.resolution.hasBeenResolved(function) &&
+        !function.isMalformed) {
+      // TODO(sigmund): consider calling nSM or handle recovery differently
+      // here. This case occurs only when this call was the only call to
+      // function, and knowing that the call was erroneous, our resolver didn't
+      // enqueue function itself.
+      return new ir.InvalidExpression();
+    }
     return buildStaticInvoke(function, arguments, isConst: false);
   }
 
@@ -2241,14 +2252,9 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.MethodInvocation handleStaticSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    return buildCall(buildStaticAccessor(null, setter).buildSimpleRead(),
-        callStructure, arguments);
+  ir.Expression handleStaticSetterInvoke(Send node, FunctionElement setter,
+      NodeList arguments, CallStructure callStructure, _) {
+    return new ir.InvalidExpression();
   }
 
   @override
@@ -2294,7 +2300,7 @@ class KernelVisitor extends Object
   ir.Initializer visitSuperConstructorInvoke(
       Send node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {

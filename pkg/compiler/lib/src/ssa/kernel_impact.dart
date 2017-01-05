@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
@@ -78,8 +78,8 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
-  DartType checkType(ir.DartType irType) {
-    DartType type = astAdapter.getDartType(irType);
+  ResolutionDartType checkType(ir.DartType irType) {
+    ResolutionDartType type = astAdapter.getDartType(irType);
     if (!type.isDynamic) {
       impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
     }
@@ -219,7 +219,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitListLiteral(ir.ListLiteral literal) {
     visitNodes(literal.expressions);
-    DartType elementType = checkType(literal.typeArgument);
+    ResolutionDartType elementType = checkType(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
         compiler.commonElements.listType(elementType),
@@ -230,8 +230,8 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitMapLiteral(ir.MapLiteral literal) {
     visitNodes(literal.entries);
-    DartType keyType = checkType(literal.keyType);
-    DartType valueType = checkType(literal.valueType);
+    ResolutionDartType keyType = checkType(literal.keyType);
+    ResolutionDartType valueType = checkType(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
         compiler.commonElements.mapType(keyType, valueType),
         isConstant: literal.isConst,
@@ -258,14 +258,15 @@ class KernelImpactBuilder extends ir.Visitor {
     _visitArguments(node.arguments);
     Element element = astAdapter.getElement(target).declaration;
     ClassElement cls = astAdapter.getElement(target.enclosingClass);
-    List<DartType> typeArguments =
+    List<ResolutionDartType> typeArguments =
         astAdapter.getDartTypes(node.arguments.types);
-    InterfaceType type = new InterfaceType(cls, typeArguments);
+    ResolutionInterfaceType type =
+        new ResolutionInterfaceType(cls, typeArguments);
     CallStructure callStructure = astAdapter.getCallStructure(node.arguments);
     impactBuilder.registerStaticUse(isConst
         ? new StaticUse.constConstructorInvoke(element, callStructure, type)
         : new StaticUse.typedConstructorInvoke(element, callStructure, type));
-    if (typeArguments.any((DartType type) => !type.isDynamic)) {
+    if (typeArguments.any((ResolutionDartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
   }

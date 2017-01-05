@@ -1510,7 +1510,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     ASSERT(lib.raw() == Library::TypedDataLibrary());
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid);                 \
-  RegisterPrivateClass(cls, Symbols::clazz##List(), lib);
+  RegisterPrivateClass(cls, Symbols::_##clazz##List(), lib);
 
     DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
@@ -3477,6 +3477,11 @@ TokenPosition Class::ComputeEndTokenPos() const {
   Zone* zone = Thread::Current()->zone();
   const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
+
+  if (scr.kind() == RawScript::kKernelTag) {
+    return TokenPosition::kMinSource;
+  }
+
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
     ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
@@ -5563,6 +5568,7 @@ void Function::SetSignatureType(const Type& value) const {
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     SignatureData::Cast(obj).set_signature_type(value);
+    ASSERT(!value.IsCanonical() || (value.signature() == this->raw()));
   } else {
     ASSERT(IsClosureFunction());
     ClosureData::Cast(obj).set_signature_type(value);
@@ -5722,7 +5728,7 @@ void Function::set_name(const String& value) const {
 
 
 void Function::set_owner(const Object& value) const {
-  ASSERT(!value.IsNull());
+  ASSERT(!value.IsNull() || IsSignatureFunction());
   StorePointer(&raw_ptr()->owner_, value.raw());
 }
 
@@ -6948,6 +6954,10 @@ bool Function::HasInstantiatedSignature() const {
 
 
 RawClass* Function::Owner() const {
+  if (raw_ptr()->owner_ == Object::null()) {
+    ASSERT(IsSignatureFunction());
+    return Class::null();
+  }
   if (raw_ptr()->owner_->IsClass()) {
     return Class::RawCast(raw_ptr()->owner_);
   }
@@ -6958,6 +6968,10 @@ RawClass* Function::Owner() const {
 
 
 RawClass* Function::origin() const {
+  if (raw_ptr()->owner_ == Object::null()) {
+    ASSERT(IsSignatureFunction());
+    return Class::null();
+  }
   if (raw_ptr()->owner_->IsClass()) {
     return Class::RawCast(raw_ptr()->owner_);
   }
@@ -6982,6 +6996,10 @@ RawScript* Function::script() const {
     return Function::Handle(parent_function()).script();
   }
   const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsNull()) {
+    ASSERT(IsSignatureFunction());
+    return Script::null();
+  }
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
   }
@@ -7299,21 +7317,6 @@ void SignatureData::set_parent_function(const Function& value) const {
 
 void SignatureData::set_signature_type(const Type& value) const {
   StorePointer(&raw_ptr()->signature_type_, value.raw());
-  // If the signature type is resolved, the parent function is not needed
-  // anymore (type parameters may be declared by generic parent functions).
-  // Keeping the parent function can unnecessarily pull more objects into a
-  // snapshot. Also, the parent function is meaningless once the signature type
-  // is canonicalized.
-
-// TODO(rmacnak): Keeping the parent function for unresolved signature types
-// is causing a tree shaking issue in AOT. Please, investigate.
-#if 0
-  if (value.IsResolved()) {
-    set_parent_function(Function::Handle());
-  }
-#else
-  set_parent_function(Function::Handle());
-#endif
 }
 
 
@@ -7577,7 +7580,7 @@ RawField* Field::New(const String& name,
                      bool is_final,
                      bool is_const,
                      bool is_reflectable,
-                     const Class& owner,
+                     const Object& owner,
                      const AbstractType& type,
                      TokenPosition token_pos) {
   ASSERT(!owner.IsNull());
@@ -8789,6 +8792,11 @@ RawString* Script::Source() const {
 
 
 RawString* Script::GenerateSource() const {
+  if (kind() == RawScript::kKernelTag) {
+    // In kernel it's embedded.
+    return raw_ptr()->source_;
+  }
+
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
     ASSERT(Dart::snapshot_kind() == Snapshot::kAppAOT);
@@ -8810,8 +8818,32 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   const String& source = String::Handle(zone, Source());
   const String& key = Symbols::Empty();
   const Object& line_separator = Object::Handle(zone);
-  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   Smi& value = Smi::Handle(zone);
+
+  if (kind() == RawScript::kKernelTag) {
+    const Array& line_starts_array = Array::Handle(line_starts());
+    if (line_starts_array.IsNull()) {
+      // Scripts in the AOT snapshot do not have a line starts array.
+      // A well-formed line number array has a leading null.
+      info.Add(line_separator);  // New line.
+      return info.raw();
+    }
+    intptr_t line_count = line_starts_array.Length();
+    ASSERT(line_count > 0);
+
+    for (int i = 0; i < line_count; i++) {
+      info.Add(line_separator);  // New line.
+      value = Smi::New(i + 1);
+      info.Add(value);  // Line number.
+      value ^= line_starts_array.At(i);
+      info.Add(value);  // Token position.
+      value = Smi::New(1);
+      info.Add(value);  // Column.
+    }
+    return info.raw();
+  }
+
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   String& tokenValue = String::Handle(zone);
   ASSERT(!tkns.IsNull());
   TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
@@ -8943,6 +8975,10 @@ void Script::set_tokens(const TokenStream& value) const {
 
 
 void Script::Tokenize(const String& private_key, bool use_shared_tokens) const {
+  if (kind() == RawScript::kKernelTag) {
+    return;
+  }
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
@@ -9009,7 +9045,9 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     }
     *line = min + 1;
     smi ^= line_starts_array.At(min);
-    *column = offset - smi.Value() + 1;
+    if (column != NULL) {
+      *column = offset - smi.Value() + 1;
+    }
     if (token_len != NULL) {
       *token_len = 1;
     }
@@ -9068,6 +9106,29 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* last_token_index) const {
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
+
+  if (kind() == RawScript::kKernelTag) {
+    const Array& line_starts_array = Array::Handle(line_starts());
+    if (line_starts_array.IsNull()) {
+      // Scripts in the AOT snapshot do not have a line starts array.
+      *first_token_index = TokenPosition::kNoSource;
+      *last_token_index = TokenPosition::kNoSource;
+      return;
+    }
+    ASSERT(line_starts_array.Length() >= line_number);
+    Smi& value = Smi::Handle();
+    value ^= line_starts_array.At(line_number - 1);
+    *first_token_index = TokenPosition(value.Value());
+    if (line_starts_array.Length() > line_number) {
+      value ^= line_starts_array.At(line_number);
+      *last_token_index = TokenPosition(value.Value() - 1);
+    } else {
+      // Length of source is last possible token in this script.
+      *last_token_index = TokenPosition(String::Handle(Source()).Length());
+    }
+    return;
+  }
+
   Zone* zone = Thread::Current()->zone();
   *first_token_index = TokenPosition::kNoSource;
   *last_token_index = TokenPosition::kNoSource;
@@ -13824,9 +13885,6 @@ RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
   if (v.IsNull()) {
     ASSERT(!is_optimized());
     const Function& f = Function::Handle(function());
-    if (f.kernel_function() != NULL) {
-      return v.raw();
-    }
     ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
   }
@@ -17129,6 +17187,7 @@ RawAbstractType* Type::CloneUnfinalized() const {
     const Class& owner = Class::Handle(zone, fun.Owner());
     Function& fun_clone = Function::Handle(
         zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
+    // TODO(regis): Handle cloning of a generic function type.
     AbstractType& type = AbstractType::Handle(zone, fun.result_type());
     type = type.CloneUnfinalized();
     fun_clone.set_result_type(type);
@@ -17145,6 +17204,7 @@ RawAbstractType* Type::CloneUnfinalized() const {
     }
     fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     clone.set_signature(fun_clone);
+    fun_clone.SetSignatureType(clone);
   }
   clone.SetIsResolved();
   return clone.raw();
@@ -17341,6 +17401,10 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         }
         sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
         set_signature(sig_fun);
+        // Note that the signature type of the signature function may be
+        // different than the type being canonicalized.
+        // Consider F<int> being canonicalized, with F being a typedef and F<T>
+        // being its signature type.
       }
     }
 

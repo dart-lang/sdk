@@ -6,9 +6,9 @@ library dart2js.constants.values;
 
 import '../common.dart';
 import '../core_types.dart';
-import '../dart_types.dart';
-import '../elements/elements.dart'
-    show FieldElement, FunctionElement, PrefixElement;
+import '../elements/elements.dart' show Entity;
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../tree/dartstring.dart';
 import '../util/util.dart' show Hashing;
 
@@ -82,7 +82,7 @@ abstract class ConstantValue {
   bool get isNegativeInfinity => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
-  DartType getType(CommonElements types);
+  ResolutionDartType getType(CommonElements types);
 
   List<ConstantValue> getDependencies();
 
@@ -112,11 +112,11 @@ abstract class ConstantValue {
 }
 
 class FunctionConstantValue extends ConstantValue {
-  FunctionElement element;
+  final FunctionEntity element;
+  // TODO(johnniwinther): Should the type be derived from [element].
+  final ResolutionFunctionType type;
 
-  FunctionConstantValue(this.element) {
-    assert(element.type != null);
-  }
+  FunctionConstantValue(this.element, this.type);
 
   bool get isFunction => true;
 
@@ -131,7 +131,7 @@ class FunctionConstantValue extends ConstantValue {
     return new DartString.literal(element.name);
   }
 
-  DartType getType(CommonElements types) => element.type;
+  ResolutionDartType getType(CommonElements types) => type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
@@ -140,7 +140,7 @@ class FunctionConstantValue extends ConstantValue {
   ConstantValueKind get kind => ConstantValueKind.FUNCTION;
 
   String toDartText() {
-    if (element.isStatic) {
+    if (element.enclosingClass != null) {
       return '${element.enclosingClass.name}.${element.name}';
     } else {
       return '${element.name}';
@@ -189,7 +189,7 @@ class NullConstantValue extends PrimitiveConstantValue {
 
   get primitiveValue => null;
 
-  DartType getType(CommonElements types) => types.nullType;
+  ResolutionDartType getType(CommonElements types) => types.nullType;
 
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
@@ -261,7 +261,7 @@ class IntConstantValue extends NumConstantValue {
 
   bool get isOne => primitiveValue == 1;
 
-  DartType getType(CommonElements types) => types.intType;
+  ResolutionDartType getType(CommonElements types) => types.intType;
 
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
@@ -322,7 +322,7 @@ class DoubleConstantValue extends NumConstantValue {
 
   bool get isNegativeInfinity => primitiveValue == -double.INFINITY;
 
-  DartType getType(CommonElements types) => types.doubleType;
+  ResolutionDartType getType(CommonElements types) => types.doubleType;
 
   bool operator ==(var other) {
     if (other is! DoubleConstantValue) return false;
@@ -359,7 +359,7 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
 
   bool get isBool => true;
 
-  DartType getType(CommonElements types) => types.boolType;
+  ResolutionDartType getType(CommonElements types) => types.boolType;
 
   BoolConstantValue negate();
 
@@ -427,7 +427,7 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   bool get isString => true;
 
-  DartType getType(CommonElements types) => types.stringType;
+  ResolutionDartType getType(CommonElements types) => types.stringType;
 
   bool operator ==(var other) {
     if (identical(this, other)) return true;
@@ -452,13 +452,13 @@ class StringConstantValue extends PrimitiveConstantValue {
 }
 
 abstract class ObjectConstantValue extends ConstantValue {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
 
   ObjectConstantValue(this.type);
 
   bool get isObject => true;
 
-  DartType getType(CommonElements types) => type;
+  ResolutionDartType getType(CommonElements types) => type;
 
   void _unparseTypeArguments(StringBuffer sb) {
     if (!type.treatAsRaw) {
@@ -471,9 +471,10 @@ abstract class ObjectConstantValue extends ConstantValue {
 
 class TypeConstantValue extends ObjectConstantValue {
   /// The user type that this constant represents.
-  final DartType representedType;
+  final ResolutionDartType representedType;
 
-  TypeConstantValue(this.representedType, InterfaceType type) : super(type);
+  TypeConstantValue(this.representedType, ResolutionInterfaceType type)
+      : super(type);
 
   bool get isType => true;
 
@@ -499,7 +500,7 @@ class ListConstantValue extends ObjectConstantValue {
   final List<ConstantValue> entries;
   final int hashCode;
 
-  ListConstantValue(InterfaceType type, List<ConstantValue> entries)
+  ListConstantValue(ResolutionInterfaceType type, List<ConstantValue> entries)
       : this.entries = entries,
         hashCode = Hashing.listHash(entries, Hashing.objectHash(type)),
         super(type);
@@ -559,8 +560,8 @@ class MapConstantValue extends ObjectConstantValue {
   final int hashCode;
   Map<ConstantValue, ConstantValue> _lookupMap;
 
-  MapConstantValue(
-      InterfaceType type, List<ConstantValue> keys, List<ConstantValue> values)
+  MapConstantValue(ResolutionInterfaceType type, List<ConstantValue> keys,
+      List<ConstantValue> values)
       : this.keys = keys,
         this.values = values,
         this.hashCode = Hashing.listHash(
@@ -637,7 +638,7 @@ class MapConstantValue extends ObjectConstantValue {
 class InterceptorConstantValue extends ConstantValue {
   /// The type for which this interceptor holds the methods.  The constant
   /// is a dispatch table for this type.
-  final DartType dispatchedType;
+  final ResolutionDartType dispatchedType;
 
   InterceptorConstantValue(this.dispatchedType);
 
@@ -656,7 +657,8 @@ class InterceptorConstantValue extends ConstantValue {
     return visitor.visitInterceptor(this, arg);
   }
 
-  DartType getType(CommonElements types) => const DynamicType();
+  ResolutionDartType getType(CommonElements types) =>
+      const ResolutionDynamicType();
 
   ConstantValueKind get kind => ConstantValueKind.INTERCEPTOR;
 
@@ -689,7 +691,8 @@ class SyntheticConstantValue extends ConstantValue {
     return visitor.visitSynthetic(this, arg);
   }
 
-  DartType getType(CommonElements types) => const DynamicType();
+  ResolutionDartType getType(CommonElements types) =>
+      const ResolutionDynamicType();
 
   ConstantValueKind get kind => ConstantValueKind.SYNTHETIC;
 
@@ -701,11 +704,11 @@ class SyntheticConstantValue extends ConstantValue {
 class ConstructedConstantValue extends ObjectConstantValue {
   // TODO(johnniwinther): Make [fields] private to avoid misuse of the map
   // ordering and mutability.
-  final Map<FieldElement, ConstantValue> fields;
+  final Map<FieldEntity, ConstantValue> fields;
   final int hashCode;
 
   ConstructedConstantValue(
-      InterfaceType type, Map<FieldElement, ConstantValue> fields)
+      ResolutionInterfaceType type, Map<FieldEntity, ConstantValue> fields)
       : this.fields = fields,
         hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
         super(type) {
@@ -722,7 +725,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     if (hashCode != other.hashCode) return false;
     if (type != other.type) return false;
     if (fields.length != other.fields.length) return false;
-    for (FieldElement field in fields.keys) {
+    for (FieldEntity field in fields.keys) {
       if (fields[field] != other.fields[field]) return false;
     }
     return true;
@@ -742,7 +745,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     _unparseTypeArguments(sb);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldElement field, ConstantValue value) {
+    fields.forEach((FieldEntity field, ConstantValue value) {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
@@ -759,7 +762,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     sb.write(type);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldElement field, ConstantValue value) {
+    fields.forEach((FieldEntity field, ConstantValue value) {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
@@ -777,7 +780,7 @@ class DeferredConstantValue extends ConstantValue {
   DeferredConstantValue(this.referenced, this.prefix);
 
   final ConstantValue referenced;
-  final PrefixElement prefix;
+  final Entity prefix;
 
   bool get isReference => true;
 
@@ -793,7 +796,7 @@ class DeferredConstantValue extends ConstantValue {
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDeferred(this, arg);
 
-  DartType getType(CommonElements types) => referenced.getType(types);
+  ResolutionDartType getType(CommonElements types) => referenced.getType(types);
 
   ConstantValueKind get kind => ConstantValueKind.DEFERRED;
 
@@ -819,7 +822,8 @@ class NonConstantValue extends ConstantValue {
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
   @override
-  DartType getType(CommonElements types) => const DynamicType();
+  ResolutionDartType getType(CommonElements types) =>
+      const ResolutionDynamicType();
 
   ConstantValueKind get kind => ConstantValueKind.NON_CONSTANT;
 

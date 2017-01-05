@@ -12,7 +12,8 @@ import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/expressions.dart'
     show ConstructedConstantExpression;
-import 'package:compiler/src/dart_types.dart' show InterfaceType;
+import 'package:compiler/src/elements/resolution_types.dart'
+    show ResolutionInterfaceType;
 import 'package:compiler/src/diagnostics/source_span.dart' show SourceSpan;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart' show nativeToUriPath;
@@ -161,7 +162,7 @@ class HelperAnalyzer extends TraversalVisitor {
   void visitGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -173,7 +174,7 @@ class HelperAnalyzer extends TraversalVisitor {
   void visitRedirectingGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -185,7 +186,7 @@ class HelperAnalyzer extends TraversalVisitor {
   void visitFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -197,9 +198,9 @@ class HelperAnalyzer extends TraversalVisitor {
   void visitRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       ConstructorElement effectiveTarget,
-      InterfaceType effectiveTargetType,
+      ResolutionInterfaceType effectiveTargetType,
       NodeList arguments,
       CallStructure callStructure,
       _) {

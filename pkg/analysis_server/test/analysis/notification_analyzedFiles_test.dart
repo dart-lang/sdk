@@ -17,6 +17,7 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest);
+    defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest_Driver);
   });
 }
 
@@ -30,9 +31,9 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     expect(analyzedFiles, contains(filePath));
   }
 
-  Future prepareAnalyzedFiles() {
+  Future<Null> prepareAnalyzedFiles() async {
     addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
-    return waitForTasksFinished();
+    await pumpEventQueue();
   }
 
   void processNotification(Notification notification) {
@@ -71,12 +72,11 @@ class A {}
     // not trigger the notification to be re-sent.
     addTestFile('class A {}');
     await prepareAnalyzedFiles();
-    await waitForTasksFinished();
     expect(analyzedFilesReceived, isTrue);
+
     analyzedFilesReceived = false;
     modifyTestFile('class B {}');
-    await pumpEventQueue();
-    await waitForTasksFinished();
+    await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isFalse);
   }
 
@@ -85,10 +85,11 @@ class A {}
     // re-sent, even if nothing has changed.
     addTestFile('class A {}');
     await prepareAnalyzedFiles();
-    await waitForTasksFinished();
     expect(analyzedFilesReceived, isTrue);
+
     unsubscribeAnalyzedFiles();
     analyzedFilesReceived = false;
+
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
     assertHasFile(testFile);
@@ -98,19 +99,28 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    addFile('/foo.dart', 'library foo');
+    addFile('/foo.dart', 'library foo;');
     await prepareAnalyzedFiles();
-    await waitForTasksFinished();
     expect(analyzedFilesReceived, isTrue);
+
     analyzedFilesReceived = false;
     modifyTestFile('import "/foo.dart";');
-    await pumpEventQueue();
-    await waitForTasksFinished();
-    expect(analyzedFilesReceived, isTrue);
+    await prepareAnalyzedFiles();
     assertHasFile('/foo.dart');
   }
 
   void unsubscribeAnalyzedFiles() {
     removeGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
+  }
+}
+
+@reflectiveTest
+class AnalysisNotificationAnalyzedFilesTest_Driver
+    extends AnalysisNotificationAnalyzedFilesTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
+    super.setUp();
   }
 }

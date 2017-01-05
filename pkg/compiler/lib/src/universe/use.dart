@@ -18,7 +18,7 @@ library dart2js.universe.use;
 
 import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
@@ -89,10 +89,10 @@ class StaticUse {
   final Element element;
   final StaticUseKind kind;
   final int hashCode;
-  final DartType type;
+  final ResolutionDartType type;
 
   StaticUse.internal(Element element, StaticUseKind kind,
-      [DartType type = null])
+      [ResolutionDartType type = null])
       : this.element = element,
         this.kind = kind,
         this.type = type,
@@ -252,8 +252,8 @@ class StaticUse {
 
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
-  factory StaticUse.typedConstructorInvoke(
-      ConstructorElement element, CallStructure callStructure, DartType type) {
+  factory StaticUse.typedConstructorInvoke(ConstructorElement element,
+      CallStructure callStructure, ResolutionDartType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     // TODO(johnniwinther): Use the [callStructure].
@@ -263,8 +263,8 @@ class StaticUse {
 
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
-  factory StaticUse.constConstructorInvoke(
-      ConstructorElement element, CallStructure callStructure, DartType type) {
+  factory StaticUse.constConstructorInvoke(ConstructorElement element,
+      CallStructure callStructure, ResolutionDartType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     // TODO(johnniwinther): Use the [callStructure].
@@ -274,7 +274,7 @@ class StaticUse {
 
   /// Constructor redirection to [element] on [type].
   factory StaticUse.constructorRedirect(
-      ConstructorElement element, InterfaceType type) {
+      ConstructorElement element, ResolutionInterfaceType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     return new StaticUse.internal(element, StaticUseKind.REDIRECTION, type);
@@ -288,7 +288,7 @@ class StaticUse {
   }
 
   /// Read access of an instance field or boxed field [element].
-  factory StaticUse.fieldGet(Element element) {
+  factory StaticUse.fieldGet(FieldElement element) {
     assert(invariant(
         element, element.isInstanceMember || element is BoxFieldElement,
         message: "Field init element $element must be an instance "
@@ -297,7 +297,7 @@ class StaticUse {
   }
 
   /// Write access of an instance field or boxed field [element].
-  factory StaticUse.fieldSet(Element element) {
+  factory StaticUse.fieldSet(FieldElement element) {
     assert(invariant(
         element, element.isInstanceMember || element is BoxFieldElement,
         message: "Field init element $element must be an instance "
@@ -341,54 +341,54 @@ enum TypeUseKind {
   NATIVE_INSTANTIATION,
 }
 
-/// Use of a [DartType].
+/// Use of a [ResolutionDartType].
 class TypeUse {
-  final DartType type;
+  final ResolutionDartType type;
   final TypeUseKind kind;
   final int hashCode;
 
-  TypeUse.internal(DartType type, TypeUseKind kind)
+  TypeUse.internal(ResolutionDartType type, TypeUseKind kind)
       : this.type = type,
         this.kind = kind,
         this.hashCode = Hashing.objectHash(type, Hashing.objectHash(kind));
 
   /// [type] used in an is check, like `e is T` or `e is! T`.
-  factory TypeUse.isCheck(DartType type) {
+  factory TypeUse.isCheck(ResolutionDartType type) {
     return new TypeUse.internal(type, TypeUseKind.IS_CHECK);
   }
 
   /// [type] used in an as cast, like `e as T`.
-  factory TypeUse.asCast(DartType type) {
+  factory TypeUse.asCast(ResolutionDartType type) {
     return new TypeUse.internal(type, TypeUseKind.AS_CAST);
   }
 
   /// [type] used as a type annotation, like `T foo;`.
-  factory TypeUse.checkedModeCheck(DartType type) {
+  factory TypeUse.checkedModeCheck(ResolutionDartType type) {
     return new TypeUse.internal(type, TypeUseKind.CHECKED_MODE_CHECK);
   }
 
   /// [type] used in a on type catch clause, like `try {} on T catch (e) {}`.
-  factory TypeUse.catchType(DartType type) {
+  factory TypeUse.catchType(ResolutionDartType type) {
     return new TypeUse.internal(type, TypeUseKind.CATCH_TYPE);
   }
 
   /// [type] used as a type literal, like `foo() => T;`.
-  factory TypeUse.typeLiteral(DartType type) {
+  factory TypeUse.typeLiteral(ResolutionDartType type) {
     return new TypeUse.internal(type, TypeUseKind.TYPE_LITERAL);
   }
 
   /// [type] used in an instantiation, like `new T();`.
-  factory TypeUse.instantiation(InterfaceType type) {
+  factory TypeUse.instantiation(ResolutionInterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
   }
 
   /// [type] used in an instantiation through mirrors.
-  factory TypeUse.mirrorInstantiation(InterfaceType type) {
+  factory TypeUse.mirrorInstantiation(ResolutionInterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
   }
 
   /// [type] used in a native instantiation.
-  factory TypeUse.nativeInstantiation(InterfaceType type) {
+  factory TypeUse.nativeInstantiation(ResolutionInterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
   }
 

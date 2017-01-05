@@ -332,12 +332,6 @@ class AnalysisServer {
   final Set<String> priorityFiles = new Set<String>();
 
   /**
-   * The cached results for [priorityFiles].
-   * These results must have not `null` units.
-   */
-  final Map<String, nd.AnalysisResult> priorityFileResults = {};
-
-  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -630,10 +624,6 @@ class AnalysisServer {
    * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path) async {
-    nd.AnalysisResult result = priorityFileResults[path];
-    if (result != null) {
-      return result;
-    }
     try {
       nd.AnalysisDriver driver = getAnalysisDriver(path);
       return await driver?.getResult(path);
@@ -1182,6 +1172,13 @@ class AnalysisServer {
       _onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
     }
+    // Perform on-idle actions.
+    if (!status.isAnalyzing) {
+      if (generalAnalysisServices
+          .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+        sendAnalysisNotificationAnalyzedFiles(this);
+      }
+    }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
       return;
@@ -1333,10 +1330,6 @@ class AnalysisServer {
    */
   void setPriorityFiles(String requestId, List<String> files) {
     if (options.enableNewAnalysisDriver) {
-      // Flush results for files that are not priority anymore.
-      priorityFiles
-          .difference(files.toSet())
-          .forEach(priorityFileResults.remove);
       priorityFiles.clear();
       priorityFiles.addAll(files);
       // Set priority files in drivers.
@@ -1466,8 +1459,6 @@ class AnalysisServer {
   void updateContent(String id, Map<String, dynamic> changes) {
     if (options.enableNewAnalysisDriver) {
       changes.forEach((file, change) {
-        priorityFileResults.remove(file);
-
         // Prepare the new contents.
         String oldContents = fileContentOverlay[file];
         String newContents;
@@ -1846,10 +1837,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // TODO(scheglov) send server status
     });
     analysisDriver.results.listen((result) {
-      if (analysisServer.priorityFiles.contains(result.path) &&
-          result.unit != null) {
-        analysisServer.priorityFileResults[result.path] = result;
-      }
       new_sendErrorNotification(analysisServer, result);
       String path = result.path;
       CompilationUnit unit = result.unit;
@@ -1999,11 +1986,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
       nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
       driver.dispose();
-      // Remove cached priority results for the driver.
-      var results = analysisServer.priorityFileResults;
-      results.keys
-          .where((key) => results[key].driver == driver)
-          .forEach(results.remove);
     } else {
       AnalysisContext context = analysisServer.folderMap.remove(folder);
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);

@@ -7,7 +7,7 @@ library dart2js.constant_system.dart;
 import 'compiler.dart' show Compiler;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'tree/dartstring.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
@@ -433,18 +433,19 @@ class DartConstantSystem extends ConstantSystem {
   NullConstantValue createNull() => new NullConstantValue();
 
   @override
-  ListConstantValue createList(InterfaceType type, List<ConstantValue> values) {
+  ListConstantValue createList(
+      ResolutionInterfaceType type, List<ConstantValue> values) {
     return new ListConstantValue(type, values);
   }
 
   @override
-  MapConstantValue createMap(Compiler compiler, InterfaceType type,
+  MapConstantValue createMap(Compiler compiler, ResolutionInterfaceType type,
       List<ConstantValue> keys, List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);
   }
 
   @override
-  ConstantValue createType(Compiler compiler, DartType type) {
+  ConstantValue createType(Compiler compiler, ResolutionDartType type) {
     // TODO(johnniwinther): Change the `Type` type to
     // `compiler.commonElements.typeType` and check the backend specific value
     // in [checkConstMapKeysDontOverrideEquals] in 'members.dart'.
@@ -465,7 +466,7 @@ class DartConstantSystem extends ConstantSystem {
   bool isBool(ConstantValue constant) => constant.isBool;
   bool isNull(ConstantValue constant) => constant.isNull;
 
-  bool isSubtype(DartTypes types, DartType s, DartType t) {
+  bool isSubtype(DartTypes types, ResolutionDartType s, ResolutionDartType t) {
     return types.isSubtype(s, t);
   }
 }

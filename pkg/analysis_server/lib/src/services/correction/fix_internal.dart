@@ -1541,7 +1541,7 @@ class FixProcessor {
         }
         // prepare LibraryElement
         LibraryElement libraryElement =
-            context.getResult(librarySource, LIBRARY_ELEMENT1);
+            context.computeResult(librarySource, LIBRARY_ELEMENT1);
         if (libraryElement == null) {
           continue;
         }
@@ -1659,6 +1659,9 @@ class FixProcessor {
   void _addFix_makeEnclosingClassAbstract() {
     ClassDeclaration enclosingClass =
         node.getAncestor((node) => node is ClassDeclaration);
+    if (enclosingClass == null) {
+      return;
+    }
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);

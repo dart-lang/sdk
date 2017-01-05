@@ -7,7 +7,8 @@ library dart2js.common.codegen;
 import '../common.dart';
 import '../common/backend_api.dart' show Backend;
 import '../constants/values.dart' show ConstantValue;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart'
     show
         AstElement,
@@ -28,8 +29,9 @@ class CodegenImpact extends WorldImpact {
 
   Iterable<ConstantValue> get compileTimeConstants => const <ConstantValue>[];
 
-  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
-    return const <Pair<DartType, DartType>>[];
+  Iterable<Pair<ResolutionDartType, ResolutionDartType>>
+      get typeVariableBoundsSubtypeChecks {
+    return const <Pair<ResolutionDartType, ResolutionDartType>>[];
   }
 
   Iterable<String> get constSymbols => const <String>[];
@@ -47,7 +49,8 @@ class CodegenImpact extends WorldImpact {
 
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Setlet<ConstantValue> _compileTimeConstants;
-  Setlet<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
+  Setlet<Pair<ResolutionDartType, ResolutionDartType>>
+      _typeVariableBoundsSubtypeChecks;
   Setlet<String> _constSymbols;
   List<Set<ClassElement>> _specializedGetInterceptors;
   bool _usesInterceptor = false;
@@ -76,18 +79,20 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType subtype, DartType supertype) {
+      ResolutionDartType subtype, ResolutionDartType supertype) {
     if (_typeVariableBoundsSubtypeChecks == null) {
-      _typeVariableBoundsSubtypeChecks = new Setlet<Pair<DartType, DartType>>();
+      _typeVariableBoundsSubtypeChecks =
+          new Setlet<Pair<ResolutionDartType, ResolutionDartType>>();
     }
-    _typeVariableBoundsSubtypeChecks
-        .add(new Pair<DartType, DartType>(subtype, supertype));
+    _typeVariableBoundsSubtypeChecks.add(
+        new Pair<ResolutionDartType, ResolutionDartType>(subtype, supertype));
   }
 
-  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
+  Iterable<Pair<ResolutionDartType, ResolutionDartType>>
+      get typeVariableBoundsSubtypeChecks {
     return _typeVariableBoundsSubtypeChecks != null
         ? _typeVariableBoundsSubtypeChecks
-        : const <Pair<DartType, DartType>>[];
+        : const <Pair<ResolutionDartType, ResolutionDartType>>[];
   }
 
   void registerConstSymbol(String name) {
@@ -184,7 +189,7 @@ class CodegenRegistry {
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType subtype, DartType supertype) {
+      ResolutionDartType subtype, ResolutionDartType supertype) {
     worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
@@ -208,7 +213,7 @@ class CodegenRegistry {
     worldImpact.registerTypeConstant(element);
   }
 
-  void registerInstantiation(InterfaceType type) {
+  void registerInstantiation(ResolutionInterfaceType type) {
     registerTypeUse(new TypeUse.instantiation(type));
   }
 

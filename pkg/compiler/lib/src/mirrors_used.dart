@@ -16,16 +16,17 @@ import 'constants/values.dart'
         ListConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import 'dart_types.dart' show DartType, InterfaceType;
+import 'elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import 'elements/elements.dart'
     show
         ClassElement,
         Element,
+        FieldElement,
         ImportElement,
         LibraryElement,
         MetadataAnnotation,
-        ScopeContainerElement,
-        VariableElement;
+        ScopeContainerElement;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' show NamedArgument, NewExpression, Node;
 
@@ -314,12 +315,12 @@ class MirrorUsageAnalyzer {
   /// Convert a [constant] to an instance of [MirrorUsage] using information
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
   MirrorUsage buildUsage(ConstructedConstantValue constant) {
-    Map<Element, ConstantValue> fields = constant.fields;
+    Map<FieldElement, ConstantValue> fields = constant.fields;
     ClassElement cls = compiler.commonElements.mirrorsUsedClass;
-    VariableElement symbolsField = cls.lookupLocalMember('symbols');
-    VariableElement targetsField = cls.lookupLocalMember('targets');
-    VariableElement metaTargetsField = cls.lookupLocalMember('metaTargets');
-    VariableElement overrideField = cls.lookupLocalMember('override');
+    FieldElement symbolsField = cls.lookupLocalMember('symbols');
+    FieldElement targetsField = cls.lookupLocalMember('targets');
+    FieldElement metaTargetsField = cls.lookupLocalMember('metaTargets');
+    FieldElement overrideField = cls.lookupLocalMember('override');
 
     return new MirrorUsage(
         cachedStrings[fields[symbolsField]],
@@ -414,14 +415,14 @@ class MirrorUsageBuilder {
   }
 
   /// Find the first non-implementation interface of constant.
-  DartType apiTypeOf(ConstantValue constant) {
-    DartType type = constant.getType(compiler.commonElements);
+  ResolutionDartType apiTypeOf(ConstantValue constant) {
+    ResolutionDartType type = constant.getType(compiler.commonElements);
     LibraryElement library = type.element.library;
     if (type.isInterfaceType && library.isInternalLibrary) {
-      InterfaceType interface = type;
+      ResolutionInterfaceType interface = type;
       ClassElement cls = type.element;
       cls.ensureResolved(compiler.resolution);
-      for (DartType supertype in cls.allSupertypes) {
+      for (ResolutionDartType supertype in cls.allSupertypes) {
         if (supertype.isInterfaceType &&
             !supertype.element.library.isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);
@@ -445,8 +446,8 @@ class MirrorUsageBuilder {
     }
     List<Element> result = <Element>[];
     for (var entry in list) {
-      if (entry is DartType) {
-        DartType type = entry;
+      if (entry is ResolutionDartType) {
+        ResolutionDartType type = entry;
         result.add(type.element);
       } else {
         String string = entry;

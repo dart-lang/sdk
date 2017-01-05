@@ -95,8 +95,6 @@ null_is_bottom_test/37: RuntimeError # Issue 28025
 null_is_bottom_test/39: RuntimeError # Issue 28025
 regress_27617_test/1: MissingCompileTimeError
 super_call3_test/01: DartkCrash
-tearoff_basic_test: DartkCompileTimeError
-tearoff_constructor_basic_test: DartkCompileTimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
 vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
@@ -130,14 +128,14 @@ accessor_conflict_import_prefixed2_test: RuntimeError
 accessor_conflict_import_prefixed_test: RuntimeError
 accessor_conflict_import_test: RuntimeError
 assertion_test: RuntimeError
-async_await_test: RuntimeError
+async_await_test: Crash, RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_pause_test: RuntimeError
+async_star_pause_test: Crash, RuntimeError
 async_star_regression_fisk_test: Timeout
 async_star_stream_take_test: Timeout
 async_star_take_reyield_test: Timeout
-async_star_test: Timeout
+async_star_test: Crash, Timeout
 asyncstar_throw_in_catch_test: Timeout
 asyncstar_yield_test: Timeout
 asyncstar_yieldstar_test: Timeout
@@ -267,7 +265,6 @@ generic_field_mixin2_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
 generic_inheritance_test: RuntimeError
-generic_local_functions_test: Crash
 generic_method_types_test: Pass, RuntimeError
 generic_methods_type_expression_test: RuntimeError
 generic_test: RuntimeError
@@ -391,4 +388,3 @@ super_call4_test: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
 constructor_named_arguments_test/01: Crash
 not_enough_positional_arguments_test/05: Crash
-enum_syntax_test/05: Crash

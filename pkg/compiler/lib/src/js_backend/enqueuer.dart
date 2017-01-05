@@ -13,7 +13,8 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart' show Entity, MemberElement, TypedElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -105,7 +106,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         impactSource, worldImpact, _impactVisitor, impactUse);
   }
 
-  void _registerInstantiatedType(InterfaceType type,
+  void _registerInstantiatedType(ResolutionInterfaceType type,
       {bool mirrorUsage: false, bool nativeUsage: false}) {
     task.measure(() {
       _universe.registerTypeInstantiation(type, _applyClassUse,
@@ -183,7 +184,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void processTypeUse(TypeUse typeUse) {
-    DartType type = typeUse.type;
+    ResolutionDartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type);
@@ -209,7 +210,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
-  void _registerIsCheck(DartType type) {
+  void _registerIsCheck(ResolutionDartType type) {
     type = _universe.registerIsCheck(type);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check

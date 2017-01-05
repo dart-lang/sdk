@@ -29,6 +29,7 @@ import '../../ast.dart'
         Program,
         PropertyGet,
         ReturnStatement,
+        Source,
         Statement,
         StaticInvocation,
         Supertype,
@@ -183,6 +184,6 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
       name: "mock", classes: [contextClass])..fileUri = fileUri;
   program.libraries.add(mock);
   mock.parent = program;
-  program.uriToLineStarts[mock.fileUri] = <int>[0];
+  program.uriToSource[mock.fileUri] = new Source(<int>[0], "");
   return contextClass;
 }

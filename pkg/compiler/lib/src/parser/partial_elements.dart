@@ -6,7 +6,7 @@ library dart2js.parser.partial_elements;
 
 import '../common.dart';
 import '../common/resolution.dart' show ParsingContext, Resolution;
-import '../dart_types.dart' show DynamicType;
+import '../elements/resolution_types.dart' show ResolutionDynamicType;
 import '../elements/elements.dart'
     show
         CompilationUnitElement,
@@ -258,7 +258,7 @@ class PartialFieldList extends VariableList with PartialElement {
         return resolution.resolveTypeAnnotation(element, node.type);
       });
     } else {
-      type = const DynamicType();
+      type = const ResolutionDynamicType();
     }
     assert(type != null);
     return type;

@@ -7,7 +7,7 @@
 library dart2js.constants.constant_constructors;
 
 import '../common.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
@@ -112,7 +112,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       FunctionExpression node,
       ConstructorElement constructor,
       NodeList parameters,
-      InterfaceType redirectionType,
+      ResolutionInterfaceType redirectionType,
       ConstructorElement redirectionTarget,
       _) {
     List<String> argumentNames = [];
@@ -230,7 +230,7 @@ class ConstantConstructorComputer extends SemanticVisitor
   ConstructedConstantExpression visitSuperConstructorInvoke(
       Send node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -243,7 +243,7 @@ class ConstantConstructorComputer extends SemanticVisitor
   ConstructedConstantExpression visitImplicitSuperConstructorInvoke(
       FunctionExpression node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       _) {
     return new ConstructedConstantExpression(type, superConstructor,
         CallStructure.NO_ARGS, const <ConstantExpression>[]);

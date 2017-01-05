@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
+    show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -205,6 +205,11 @@ class AnalysisDriver {
   final _resultController = new StreamController<AnalysisResult>();
 
   /**
+   * Cached results for [_priorityFiles].
+   */
+  final Map<String, AnalysisResult> _priorityResults = {};
+
+  /**
    * The instance of the status helper.
    */
   final StatusSupport _statusSupport = new StatusSupport();
@@ -306,6 +311,10 @@ class AnalysisDriver {
    * between priority files, nor between priority and non-priority files.
    */
   void set priorityFiles(List<String> priorityPaths) {
+    _priorityResults.keys
+        .toSet()
+        .difference(priorityPaths.toSet())
+        .forEach(_priorityResults.remove);
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
     _statusSupport.transitionToAnalyzing();
@@ -405,6 +414,7 @@ class AnalysisDriver {
     if (AnalysisEngine.isDartFileName(path)) {
       _addedFiles.add(path);
       _filesToAnalyze.add(path);
+      _priorityResults.clear();
     }
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
@@ -434,6 +444,7 @@ class AnalysisDriver {
       if (_addedFiles.contains(path)) {
         _filesToAnalyze.add(path);
       }
+      _priorityResults.clear();
     }
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
@@ -515,23 +526,35 @@ class AnalysisDriver {
    *
    * The [path] can be any file - explicitly or implicitly analyzed, or neither.
    *
-   * Causes the analysis state to transition to "analyzing" (if it is not in
-   * that state already), the driver will read the file and produce the analysis
-   * result for it, which is consistent with the current file state (including
-   * the new state of the file), prior to the next time the analysis state
-   * transitions to "idle".
+   * If the driver has the cached analysis result for the file, it is returned.
+   *
+   * Otherwise causes the analysis state to transition to "analyzing" (if it is
+   * not in that state already), the driver will read the file and produce the
+   * analysis result for it, which is consistent with the current file state
+   * (including the new state of the file), prior to the next time the analysis
+   * state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    if (AnalysisEngine.isDartFileName(path)) {
-      var completer = new Completer<AnalysisResult>();
-      _requestedFiles
-          .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
-          .add(completer);
-      _statusSupport.transitionToAnalyzing();
-      _scheduler._notify(this);
-      return completer.future;
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return new Future.value();
     }
-    return new Future.value();
+
+    // Return the cached result.
+    {
+      AnalysisResult result = _priorityResults[path];
+      if (result != null) {
+        return new Future.value(result);
+      }
+    }
+
+    // Schedule analysis.
+    var completer = new Completer<AnalysisResult>();
+    _requestedFiles
+        .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
+        .add(completer);
+    _statusSupport.transitionToAnalyzing();
+    _scheduler._notify(this);
+    return completer.future;
   }
 
   /**
@@ -598,6 +621,7 @@ class AnalysisDriver {
     _filesToAnalyze.remove(path);
     _fsState.removeFile(path);
     _filesToAnalyze.addAll(_addedFiles);
+    _priorityResults.clear();
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
@@ -659,17 +683,6 @@ class AnalysisDriver {
       _LibraryContext libraryContext = _createLibraryContext(libraryFile);
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
-        analysisContext.setContents(file.source, file.content);
-
-        // TODO(scheglov) Remove this.
-        // https://github.com/dart-lang/sdk/issues/28110
-        analysisContext.setContents(libraryFile.source, libraryFile.content);
-        for (FileState part in libraryFile.partedFiles) {
-          if (part.exists) {
-            analysisContext.setContents(part.source, part.content);
-          }
-        }
-
         CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit2(
             file.source, libraryFile.source);
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
@@ -695,10 +708,14 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return _getAnalysisResultFromBytes(file, bytes,
+        AnalysisResult result = _getAnalysisResultFromBytes(file, bytes,
             content: withUnit ? file.content : null,
             withErrors: _addedFiles.contains(path),
             resolvedUnit: withUnit ? resolvedUnit : null);
+        if (withUnit && _priorityFiles.contains(path)) {
+          _priorityResults[path] = result;
+        }
+        return result;
       } finally {
         analysisContext.dispose();
       }
@@ -733,12 +750,10 @@ class AnalysisDriver {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.analysisOptions = _analysisOptions;
-
     analysisContext.sourceFactory = _sourceFactory.clone();
+    analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, libraryContext.store);
-    analysisContext
-        .applyChanges(new ChangeSet()..addedSource(libraryContext.file.source));
     return analysisContext;
   }
 
@@ -1275,6 +1290,8 @@ class AnalysisDriverTestView {
   AnalysisDriverTestView(this.driver);
 
   Set<String> get filesToAnalyze => driver._filesToAnalyze;
+
+  Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
 }
 
 /**
@@ -1497,6 +1514,45 @@ class PerformanceLogSection {
     _logger._level--;
     int ms = _timer.elapsedMilliseconds;
     _logger.writeln('--- $_msg in $ms ms.');
+  }
+}
+
+/**
+ * [ContentCache] wrapper around [FileContentOverlay].
+ */
+class _ContentCacheWrapper implements ContentCache {
+  final FileSystemState fsState;
+
+  _ContentCacheWrapper(this.fsState);
+
+  @override
+  void accept(ContentCacheVisitor visitor) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String getContents(Source source) {
+    return _getFileForSource(source).content;
+  }
+
+  @override
+  bool getExists(Source source) {
+    return _getFileForSource(source).exists;
+  }
+
+  @override
+  int getModificationStamp(Source source) {
+    return _getFileForSource(source).exists ? 0 : -1;
+  }
+
+  @override
+  String setContents(Source source, String contents) {
+    throw new UnimplementedError();
+  }
+
+  FileState _getFileForSource(Source source) {
+    String path = source.fullName;
+    return fsState.getFileForPath(path);
   }
 }
 

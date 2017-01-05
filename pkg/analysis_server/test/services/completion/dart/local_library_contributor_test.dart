@@ -312,18 +312,4 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 class LocalLibraryContributorTest_Driver extends LocalLibraryContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_partFile_Constructor() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_Constructor();
-  }
-
-  @failingTest
-  @override
-  test_partFile_TypeName() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_partFile_TypeName();
-  }
 }

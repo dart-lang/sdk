@@ -28,7 +28,7 @@ import 'package:front_end/kernel_generator.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide Source;
 import 'package:package_config/discovery.dart';
 
 main(List<String> args) async {

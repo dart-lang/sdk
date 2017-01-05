@@ -10,7 +10,7 @@ import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -29,7 +29,7 @@ import 'behavior.dart';
  */
 class NativeEnqueuer {
   /// Called when a [type] has been instantiated natively.
-  void onInstantiatedType(InterfaceType type) {}
+  void onInstantiatedType(ResolutionInterfaceType type) {}
 
   /// Initial entry point to native enqueuer.
   WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) =>
@@ -99,7 +99,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   DiagnosticReporter get reporter => compiler.reporter;
   CommonElements get commonElements => compiler.commonElements;
 
-  void onInstantiatedType(InterfaceType type) {
+  void onInstantiatedType(ResolutionInterfaceType type) {
     if (_unusedClasses.remove(type.element)) {
       _registeredClasses.add(type.element);
     }
@@ -283,18 +283,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void findAnnotationClasses() {
     if (_annotationCreatesClass != null) return;
-    ClassElement find(name) {
-      Element e = helpers.findHelper(name);
-      if (e == null || e is! ClassElement) {
-        reporter.internalError(NO_LOCATION_SPANNABLE,
-            "Could not find implementation class '${name}'.");
-      }
-      return e;
-    }
 
-    _annotationCreatesClass = find('Creates');
-    _annotationReturnsClass = find('Returns');
-    _annotationJsNameClass = find('JSName');
+    _annotationCreatesClass = helpers.annotationCreatesClass;
+    _annotationReturnsClass = helpers.annotationReturnsClass;
+    _annotationJsNameClass = helpers.annotationJSNameClass;
   }
 
   /// Returns the JSName annotation string or `null` if no JSName annotation is
@@ -430,7 +422,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void _processNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior behavior, cause) {
-    void registerInstantiation(InterfaceType type) {
+    void registerInstantiation(ResolutionInterfaceType type) {
       impactBuilder.registerTypeUse(new TypeUse.nativeInstantiation(type));
     }
 
@@ -443,7 +435,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         }
         continue;
       }
-      if (type is InterfaceType) {
+      if (type is ResolutionInterfaceType) {
         if (type == commonElements.intType) {
           registerInstantiation(type);
         } else if (type == commonElements.doubleType) {
@@ -470,14 +462,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         // actual implementation classes such as `JSArray` et al.
         matchingClasses
             .addAll(_findUnusedClassesMatching((ClassElement nativeClass) {
-          InterfaceType nativeType = nativeClass.thisType;
-          InterfaceType specType = type.element.thisType;
+          ResolutionInterfaceType nativeType = nativeClass.thisType;
+          ResolutionInterfaceType specType = type.element.thisType;
           return compiler.types.isSubtype(nativeType, specType);
         }));
       } else if (type.isDynamic) {
         matchingClasses.addAll(_unusedClasses);
       } else {
-        assert(type is VoidType);
+        assert(type is ResolutionVoidType);
       }
     }
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {
@@ -498,17 +490,16 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
-    void staticUse(name) {
-      Element element = helpers.findHelper(name);
+    void staticUse(element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
       backend.registerBackendUse(element);
       compiler.globalDependencies.registerDependency(element);
     }
 
-    staticUse('defineProperty');
-    staticUse('toStringForNativeObject');
-    staticUse('hashCodeForNativeObject');
-    staticUse('convertDartClosureToJS');
+    staticUse(helpers.defineProperty);
+    staticUse(helpers.toStringForNativeObject);
+    staticUse(helpers.hashCodeForNativeObject);
+    staticUse(helpers.closureConverter);
     return _findNativeExceptions();
   }
 
@@ -644,7 +635,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     // be instantiated (abstract or simply unused).
     _addSubtypes(cls.superclass, emitter);
 
-    for (DartType type in cls.allSupertypes) {
+    for (ResolutionDartType type in cls.allSupertypes) {
       List<Element> subtypes =
           emitter.subtypes.putIfAbsent(type.element, () => <ClassElement>[]);
       subtypes.add(cls);

@@ -60,8 +60,8 @@ abstract class Codec<S, T> {
    */
   // TODO(floitsch): use better example with line-splitter once that one is
   // in this library.
-  Codec<S, dynamic/*=R*/> fuse/*<R>*/(Codec<T, dynamic/*=R*/> other) {
-    return new _FusedCodec<S, T, dynamic/*=R*/>(this, other);
+  Codec<S, R> fuse<R>(Codec<T, R> other) {
+    return new _FusedCodec<S, T, R>(this, other);
   }
 
   /**
@@ -82,8 +82,8 @@ class _FusedCodec<S, M, T> extends Codec<S, T> {
   final Codec<S, M> _first;
   final Codec<M, T> _second;
 
-  Converter<S, T> get encoder => _first.encoder.fuse/*<T>*/(_second.encoder);
-  Converter<T, S> get decoder => _second.decoder.fuse/*<S>*/(_first.decoder);
+  Converter<S, T> get encoder => _first.encoder.fuse<T>(_second.encoder);
+  Converter<T, S> get decoder => _second.decoder.fuse<S>(_first.decoder);
 
   _FusedCodec(this._first, this._second);
 }

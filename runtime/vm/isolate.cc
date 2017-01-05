@@ -792,7 +792,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       debugger_(NULL),
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
-      has_compiled_code_(false),
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
@@ -2043,6 +2042,12 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (!lib.IsNull()) {
     jsobj.AddProperty("rootLib", lib);
   }
+
+  intptr_t zone_handle_count = thread_registry_->CountZoneHandles();
+  intptr_t scoped_handle_count = thread_registry_->CountScopedHandles();
+
+  jsobj.AddProperty("_numZoneHandles", zone_handle_count);
+  jsobj.AddProperty("_numScopedHandles", scoped_handle_count);
 
   if (FLAG_profiler) {
     JSONObject tagCounters(&jsobj, "_tagCounters");

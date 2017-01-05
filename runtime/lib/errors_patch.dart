@@ -212,13 +212,17 @@ class _InternalError {
   final int _invocation_type;
 
   @patch
-  NoSuchMethodError(Object this._receiver,
-                    Symbol this._memberName,
-                    List this._arguments,
-                    Map<Symbol, dynamic> this._namedArguments,
+  NoSuchMethodError(Object receiver,
+                    Symbol memberName,
+                    List positionalArguments,
+                    Map<Symbol, dynamic> namedArguments,
                     [List existingArgumentNames = null])
-      : this._existingArgumentNames = existingArgumentNames,
-        this._invocation_type = -1;
+      : _receiver = receiver,
+        _memberName = memberName,
+        _arguments = positionalArguments,
+        _namedArguments = namedArguments,
+        _existingArgumentNames = existingArgumentNames,
+        _invocation_type = -1;
 
   // This constructor seems to be called with either strings or
   // values read from another NoSuchMethodError.

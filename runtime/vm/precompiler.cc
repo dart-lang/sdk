@@ -1002,6 +1002,8 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
+  // We don't expect to see a reference to a redicting factory.
+  ASSERT(!function.IsRedirectingFactory());
   if (functions_to_retain_.Lookup(&function) != NULL) return;
   functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
 
@@ -3497,8 +3499,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
       }
-      // Mark that this isolate now has compiled code.
-      isolate()->set_has_compiled_code(true);
       // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;

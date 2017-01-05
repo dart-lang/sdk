@@ -400,9 +400,10 @@ class TypeScope extends ReferenceScope {
     return _typeBuilder.buildList(node.arguments);
   }
 
-  List<ast.TypeParameter> buildOptionalTypeParameterList(
-      TypeParameterList node) {
+  List<ast.TypeParameter> buildOptionalTypeParameterList(TypeParameterList node,
+      {bool strongModeOnly: false}) {
     if (node == null) return <ast.TypeParameter>[];
+    if (strongModeOnly && !strongMode) return <ast.TypeParameter>[];
     return node.typeParameters.map(buildTypeParameter).toList();
   }
 
@@ -431,10 +432,12 @@ class TypeScope extends ReferenceScope {
     // Initialize type parameters in two passes: put them into scope,
     // and compute the bounds afterwards while they are all in scope.
     var typeParameters = <ast.TypeParameter>[];
-    for (var parameter in element.typeParameters) {
-      var parameterNode = new ast.TypeParameter(parameter.name);
-      typeParameters.add(parameterNode);
-      localTypeParameters[parameter] = parameterNode;
+    if (strongMode || element is ConstructorElement) {
+      for (var parameter in element.typeParameters) {
+        var parameterNode = new ast.TypeParameter(parameter.name);
+        typeParameters.add(parameterNode);
+        localTypeParameters[parameter] = parameterNode;
+      }
     }
     for (int i = 0; i < typeParameters.length; ++i) {
       var parameter = element.typeParameters[i];
@@ -1280,8 +1283,9 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     return new ast.FunctionDeclaration(
         scope.makeVariableDeclaration(element),
         scope.buildFunctionNode(expression.parameters, expression.body,
-            typeParameters:
-                scope.buildOptionalTypeParameterList(expression.typeParameters),
+            typeParameters: scope.buildOptionalTypeParameterList(
+                expression.typeParameters,
+                strongModeOnly: true),
             returnType: declaration.returnType));
   }
 
@@ -1475,8 +1479,9 @@ class ExpressionBuilder
   ast.Expression visitFunctionExpression(FunctionExpression node) {
     return new ast.FunctionExpression(scope.buildFunctionNode(
         node.parameters, node.body,
-        typeParameters:
-            scope.buildOptionalTypeParameterList(node.typeParameters),
+        typeParameters: scope.buildOptionalTypeParameterList(
+            node.typeParameters,
+            strongModeOnly: true),
         inferredReturnType: scope.getInferredReturnType(node)));
   }
 
@@ -1506,10 +1511,14 @@ class ExpressionBuilder
   }
 
   ast.Arguments buildArgumentsForInvocation(InvocationExpression node) {
-    return buildArguments(node.argumentList,
-        explicitTypeArguments: node.typeArguments,
-        inferTypeArguments: () =>
-            scope.getInferredInvocationTypeArguments(node));
+    if (scope.strongMode) {
+      return buildArguments(node.argumentList,
+          explicitTypeArguments: node.typeArguments,
+          inferTypeArguments: () =>
+              scope.getInferredInvocationTypeArguments(node));
+    } else {
+      return buildArguments(node.argumentList);
+    }
   }
 
   static final ast.Name callName = new ast.Name('call');
@@ -2097,6 +2106,12 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     return convertType(type, null);
   }
 
+  /// True if [parameter] should not be reified, because spec mode does not
+  /// currently reify generic method type parameters.
+  bool isUnreifiedTypeParameter(TypeParameterElement parameter) {
+    return !scope.strongMode && parameter.enclosingElement is! ClassElement;
+  }
+
   /// Converts [type] to an [ast.DartType], while replacing unbound type
   /// variables with 'dynamic'.
   ///
@@ -2106,6 +2121,9 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
   ast.DartType convertType(
       DartType type, List<TypeParameterElement> boundVariables) {
     if (type is TypeParameterType) {
+      if (isUnreifiedTypeParameter(type.element)) {
+        return const ast.DynamicType();
+      }
       if (boundVariables == null || boundVariables.contains(type)) {
         var typeParameter = scope.getTypeParameterReference(type.element);
         if (!scope.allowClassTypeParameters &&
@@ -2213,6 +2231,9 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
         if (!scope.allowClassTypeParameters &&
             typeParameter.parent is ast.Class) {
           return const ast.InvalidType();
+        }
+        if (isUnreifiedTypeParameter(element)) {
+          return const ast.DynamicType();
         }
         return new ast.TypeParameterType(typeParameter);
 
@@ -2698,9 +2719,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         returnType: node.returnType,
         inferredReturnType: scope.buildType(
             resolutionMap.elementDeclaredByMethodDeclaration(node).returnType),
-        typeParameters:
-            scope.buildOptionalTypeParameterList(node.typeParameters))
-      ..parent = procedure;
+        typeParameters: scope.buildOptionalTypeParameterList(
+            node.typeParameters,
+            strongModeOnly: true))..parent = procedure;
     handleNativeBody(node.body);
   }
 
@@ -2725,9 +2746,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     procedure.function = scope.buildFunctionNode(
         function.parameters, function.body,
         returnType: node.returnType,
-        typeParameters:
-            scope.buildOptionalTypeParameterList(function.typeParameters))
-      ..parent = procedure;
+        typeParameters: scope.buildOptionalTypeParameterList(
+            function.typeParameters,
+            strongModeOnly: true))..parent = procedure;
     handleNativeBody(function.body);
   }
 

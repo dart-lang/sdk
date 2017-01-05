@@ -3504,17 +3504,17 @@ class Supertype extends Node {
 class Program extends TreeNode {
   final List<Library> libraries;
 
-  /// Map from a source file uri to a line-starts table.
+  /// Map from a source file uri to a line-starts table and source code.
   /// Given a source file uri and a offset in that file one can translate
   /// it to a line:column position in that file.
-  final Map<String, List<int>> uriToLineStarts;
+  final Map<String, Source> uriToSource;
 
   /// Reference to the main method in one of the libraries.
   Procedure mainMethod;
 
-  Program([List<Library> libraries, Map<String, List<int>> uriToLineStarts])
+  Program([List<Library> libraries, Map<String, Source> uriToSource])
       : libraries = libraries ?? <Library>[],
-        uriToLineStarts = uriToLineStarts ?? {} {
+        uriToSource = uriToSource ?? <String, Source>{} {
     setParents(libraries, this);
   }
 
@@ -3533,7 +3533,7 @@ class Program extends TreeNode {
 
   /// Translates an offset to line and column numbers in the given file.
   Location getLocation(String file, int offset) {
-    List<int> lines = uriToLineStarts[file];
+    List<int> lines = uriToSource[file].lineStarts;
     int low = 0, high = lines.length - 1;
     while (low < high) {
       int mid = high - ((high - low) >> 1); // Get middle, rounding up.
@@ -3650,4 +3650,11 @@ class _ChildReplacer extends Transformer {
       return node;
     }
   }
+}
+
+class Source {
+  final List<int> lineStarts;
+  final String source;
+
+  Source(this.lineStarts, this.source);
 }

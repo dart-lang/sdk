@@ -6,6 +6,7 @@
 #define RUNTIME_VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
+#include "vm/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
 
@@ -36,8 +37,8 @@ class AllocStats {
   }
 
   void AddNew(T size) {
-    new_count++;
-    new_size += size;
+    AtomicOperations::IncrementBy(&new_count, 1);
+    AtomicOperations::IncrementBy(&new_size, size);
   }
 
   void ResetOld() {
@@ -46,8 +47,8 @@ class AllocStats {
   }
 
   void AddOld(T size, T count = 1) {
-    old_count += count;
-    old_size += size;
+    AtomicOperations::IncrementBy(&old_count, count);
+    AtomicOperations::IncrementBy(&old_size, size);
   }
 
   void Reset() {

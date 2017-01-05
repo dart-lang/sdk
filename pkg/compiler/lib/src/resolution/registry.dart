@@ -9,7 +9,7 @@ import '../common/backend_api.dart'
     show Backend, ForeignResolver, NativeRegistry;
 import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
@@ -230,16 +230,17 @@ class ResolutionRegistry {
   //  Node-to-Type mapping functionality.
   //////////////////////////////////////////////////////////////////////////////
 
-  DartType useType(Node annotation, DartType type) {
+  ResolutionDartType useType(Node annotation, ResolutionDartType type) {
     if (type != null) {
       mapping.setType(annotation, type);
     }
     return type;
   }
 
-  void setType(Node node, DartType type) => mapping.setType(node, type);
+  void setType(Node node, ResolutionDartType type) =>
+      mapping.setType(node, type);
 
-  DartType getType(Node node) => mapping.getType(node);
+  ResolutionDartType getType(Node node) => mapping.getType(node);
 
   //////////////////////////////////////////////////////////////////////////////
   //  Node-to-Constant mapping functionality.
@@ -334,7 +335,7 @@ class ResolutionRegistry {
   }
 
   /// Register checked mode check of [type] if it isn't `dynamic`.
-  void registerCheckedModeCheck(DartType type) {
+  void registerCheckedModeCheck(ResolutionDartType type) {
     if (!type.isDynamic) {
       impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
     }
@@ -344,19 +345,19 @@ class ResolutionRegistry {
     mapping.addSuperUse(span);
   }
 
-  void registerTypeLiteral(Send node, DartType type) {
+  void registerTypeLiteral(Send node, ResolutionDartType type) {
     mapping.setType(node, type);
     impactBuilder.registerTypeUse(new TypeUse.typeLiteral(type));
   }
 
-  void registerLiteralList(Node node, InterfaceType type,
+  void registerLiteralList(Node node, ResolutionInterfaceType type,
       {bool isConstant, bool isEmpty}) {
     setType(node, type);
     impactBuilder.registerListLiteral(
         new ListLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
   }
 
-  void registerMapLiteral(Node node, InterfaceType type,
+  void registerMapLiteral(Node node, ResolutionInterfaceType type,
       {bool isConstant, bool isEmpty}) {
     setType(node, type);
     impactBuilder.registerMapLiteral(
@@ -394,7 +395,7 @@ class ResolutionRegistry {
     return target.defaultSuperclass(element);
   }
 
-  void registerInstantiation(InterfaceType type) {
+  void registerInstantiation(ResolutionInterfaceType type) {
     impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
   }
 
@@ -429,12 +430,12 @@ class ForeignResolutionResolver implements ForeignResolver {
   }
 
   @override
-  void registerInstantiatedType(InterfaceType type) {
+  void registerInstantiatedType(ResolutionInterfaceType type) {
     registry.registerInstantiation(type);
   }
 
   @override
-  DartType resolveTypeFromString(Node node, String typeName) {
+  ResolutionDartType resolveTypeFromString(Node node, String typeName) {
     return visitor.resolveTypeFromString(node, typeName);
   }
 }

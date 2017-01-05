@@ -11,7 +11,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
@@ -117,7 +117,7 @@ main(List<String> args) {
     ClosedWorld closedWorld = enqueuer.universe.closeWorld(compiler.reporter);
 
     checkResolutionEnqueuers(compiler.enqueuer.resolution, enqueuer,
-        typeEquivalence: (DartType a, DartType b) {
+        typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: (Element element) {
       if (element is ConstructorElement && element.isRedirectingFactory) {

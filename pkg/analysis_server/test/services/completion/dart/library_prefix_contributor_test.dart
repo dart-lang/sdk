@@ -381,11 +381,4 @@ main() {new ^ String x = "hello";}''');
 class LibraryPrefixContributorTest_Driver extends LibraryPrefixContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_InstanceCreationExpression_inPart() {
-    // Bad state: Should not be used with the new analysis driver.
-    return super.test_InstanceCreationExpression_inPart();
-  }
 }

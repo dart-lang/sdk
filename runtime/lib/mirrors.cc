@@ -852,7 +852,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   if (decl.IsClass()) {
     klass ^= decl.raw();
     library = klass.library();
-  } else if (decl.IsFunction()) {
+  } else if (decl.IsFunction() && !Function::Cast(decl).IsSignatureFunction()) {
     klass = Function::Cast(decl).origin();
     library = klass.library();
   } else if (decl.IsField()) {
@@ -1667,8 +1667,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (!redirected_constructor.AreValidArguments(args_descriptor, NULL) ||
-      !redirected_constructor.is_reflectable()) {
+  if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {
     external_constructor_name = redirected_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       external_constructor_name, redirected_constructor,

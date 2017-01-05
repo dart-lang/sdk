@@ -5,7 +5,7 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
         ClassElement,
@@ -135,68 +135,78 @@ abstract class CommonElements {
   ConstructorElement get filledListConstructor;
 
   /// The `Object` type defined in 'dart:core'.
-  InterfaceType get objectType;
+  ResolutionInterfaceType get objectType;
 
   /// The `bool` type defined in 'dart:core'.
-  InterfaceType get boolType;
+  ResolutionInterfaceType get boolType;
 
   /// The `num` type defined in 'dart:core'.
-  InterfaceType get numType;
+  ResolutionInterfaceType get numType;
 
   /// The `int` type defined in 'dart:core'.
-  InterfaceType get intType;
+  ResolutionInterfaceType get intType;
 
   /// The `double` type defined in 'dart:core'.
-  InterfaceType get doubleType;
+  ResolutionInterfaceType get doubleType;
 
   /// The `Resource` type defined in 'dart:core'.
-  InterfaceType get resourceType;
+  ResolutionInterfaceType get resourceType;
 
   /// The `String` type defined in 'dart:core'.
-  InterfaceType get stringType;
+  ResolutionInterfaceType get stringType;
 
   /// The `Symbol` type defined in 'dart:core'.
-  InterfaceType get symbolType;
+  ResolutionInterfaceType get symbolType;
 
   /// The `Function` type defined in 'dart:core'.
-  InterfaceType get functionType;
+  ResolutionInterfaceType get functionType;
 
   /// The `Null` type defined in 'dart:core'.
-  InterfaceType get nullType;
+  ResolutionInterfaceType get nullType;
 
   /// The `Type` type defined in 'dart:core'.
-  InterfaceType get typeType;
+  ResolutionInterfaceType get typeType;
 
   /// The `StackTrace` type defined in 'dart:core';
-  InterfaceType get stackTraceType;
+  ResolutionInterfaceType get stackTraceType;
 
   /// Returns an instance of the `List` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType listType([DartType elementType]);
+  ResolutionInterfaceType listType([ResolutionDartType elementType]);
 
   /// Returns an instance of the `Map` type defined in 'dart:core' with
   /// [keyType] and [valueType] as its type arguments.
   ///
   /// If no type arguments are provided, the canonical raw type is returned.
-  InterfaceType mapType([DartType keyType, DartType valueType]);
+  ResolutionInterfaceType mapType(
+      [ResolutionDartType keyType, ResolutionDartType valueType]);
 
   /// Returns an instance of the `Iterable` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType iterableType([DartType elementType]);
+  ResolutionInterfaceType iterableType([ResolutionDartType elementType]);
 
   /// Returns an instance of the `Future` type defined in 'dart:async' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType futureType([DartType elementType]);
+  ResolutionInterfaceType futureType([ResolutionDartType elementType]);
 
   /// Returns an instance of the `Stream` type defined in 'dart:async' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType streamType([DartType elementType]);
+  ResolutionInterfaceType streamType([ResolutionDartType elementType]);
+
+  /// Returns `true` if [element] is a superclass of `String` or `num`.
+  bool isNumberOrStringSupertype(ClassElement element);
+
+  /// Returns `true` if [element] is a superclass of `String`.
+  bool isStringOnlySupertype(ClassElement element);
+
+  /// Returns `true` if [element] is a superclass of `List`.
+  bool isListSupertype(ClassElement element);
 }

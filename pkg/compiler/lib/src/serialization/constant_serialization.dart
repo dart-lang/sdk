@@ -6,7 +6,7 @@ library dart2js.serialization.constants;
 
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart' show FieldElement;
 import '../resolution/operators.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -17,9 +17,9 @@ import 'serialization.dart';
 /// [ObjectEncoder].
 ///
 /// This class is called from the [Serializer] when a [ConstantExpression] needs
-/// serialization. The [ObjectEncoder] ensures that any [Element], [DartType],
-/// and other [ConstantExpression] that the serialized [ConstantExpression]
-/// depends upon are also serialized.
+/// serialization. The [ObjectEncoder] ensures that any [Element],
+/// [ResolutionDartType], and other [ConstantExpression] that the serialized
+/// [ConstantExpression] depends upon are also serialized.
 class ConstantSerializer
     extends ConstantExpressionVisitor<dynamic, ObjectEncoder> {
   const ConstantSerializer();
@@ -182,7 +182,7 @@ class ConstantDeserializer {
   ///
   /// The class is called from the [Deserializer] when a [ConstantExpression]
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
-  /// [DartType], and other [ConstantExpression] that the deserialized
+  /// [ResolutionDartType], and other [ConstantExpression] that the deserialized
   /// [ConstantExpression] depends upon are available.
   static ConstantExpression deserialize(ObjectDecoder decoder) {
     ConstantExpressionKind kind =
@@ -281,8 +281,8 @@ class ConstantDeserializer {
 ///
 /// This class is called from the [ConstructorSerializer] when the [Serializer]
 /// is serializing constant constructor. The [ObjectEncoder] ensures that any
-/// [Element], [DartType], and [ConstantExpression] that the serialized
-/// [ConstantConstructor] depends upon are also serialized.
+/// [Element], [ResolutionDartType], and [ConstantExpression] that the
+/// serialized [ConstantConstructor] depends upon are also serialized.
 class ConstantConstructorSerializer
     extends ConstantConstructorVisitor<dynamic, ObjectEncoder> {
   const ConstantConstructorSerializer();
@@ -341,13 +341,13 @@ class ConstantConstructorDeserializer {
   ///
   /// The class is called from the [Deserializer] when a constant constructor
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
-  /// [DartType], and [ConstantExpression] that the deserialized
+  /// [ResolutionDartType], and [ConstantExpression] that the deserialized
   /// [ConstantConstructor] depends upon are available.
   static ConstantConstructor deserialize(ObjectDecoder decoder) {
     ConstantConstructorKind kind =
         decoder.getEnum(Key.KIND, ConstantConstructorKind.values);
 
-    DartType readType() {
+    ResolutionDartType readType() {
       return decoder.getType(Key.TYPE);
     }
 

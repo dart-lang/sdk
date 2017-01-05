@@ -1161,8 +1161,6 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // }
         }
       }
-      // Mark that this isolate now has compiled code.
-      isolate()->set_has_compiled_code(true);
       // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;
@@ -1595,8 +1593,12 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // if state changed while compiling in background.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Parser::ParseFunction(parsed_function);
-    parsed_function->AllocateVariables();
+    if (function.kernel_function() == NULL) {
+      Parser::ParseFunction(parsed_function);
+      parsed_function->AllocateVariables();
+    } else {
+      parsed_function->EnsureKernelScopes();
+    }
     const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
         parsed_function->node_sequence()->scope()->GetVarDescriptors(function));
     ASSERT(!var_descs.IsNull());

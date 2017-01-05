@@ -15,7 +15,8 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart' show ConstantSystem;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -150,12 +151,12 @@ abstract class Backend extends Target {
 
   /// Called to instruct to the backend register [type] as instantiated on
   /// [enqueuer].
-  void registerInstantiatedType(InterfaceType type) {}
+  void registerInstantiatedType(ResolutionInterfaceType type) {}
 
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType typeArgument, DartType bound) {}
+      ResolutionDartType typeArgument, ResolutionDartType bound) {}
 
   /// Called to instruct the backend to register that a closure exists for a
   /// function on an instantiated generic class. Any backend specific
@@ -359,10 +360,10 @@ abstract class ForeignResolver {
   ConstantExpression getConstant(Node node);
 
   /// Registers [type] as instantiated.
-  void registerInstantiatedType(InterfaceType type);
+  void registerInstantiatedType(ResolutionInterfaceType type);
 
   /// Resolves [typeName] to a type in the context of [node].
-  DartType resolveTypeFromString(Node node, String typeName);
+  ResolutionDartType resolveTypeFromString(Node node, String typeName);
 }
 
 /// Backend transformation methods for the world impacts.
@@ -419,5 +420,6 @@ abstract class BackendClasses {
 
   bool isDefaultEqualityImplementation(Element element);
   bool isInterceptorClass(ClassElement cls);
-  bool isNative(Element element);
+  bool isNativeClass(ClassElement element);
+  bool isNativeMember(MemberElement element);
 }

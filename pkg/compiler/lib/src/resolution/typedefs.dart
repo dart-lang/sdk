@@ -6,7 +6,7 @@ library dart2js.resolution.typedefs;
 
 import '../common.dart';
 import '../common/resolution.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show FunctionSignature, TypedefElement, TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX, TypedefElementX;
@@ -69,11 +69,11 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
 
   TypedefCyclicVisitor(this.reporter, this.element);
 
-  visitType(DartType type, _) {
+  visitType(ResolutionDartType type, _) {
     // Do nothing.
   }
 
-  visitTypedefType(TypedefType type, _) {
+  visitTypedefType(ResolutionTypedefType type, _) {
     TypedefElementX typedefElement = type.element;
     if (seenTypedefs.contains(typedefElement)) {
       if (!hasCyclicReference && identical(element, typedefElement)) {
@@ -123,15 +123,15 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
     }
   }
 
-  visitFunctionType(FunctionType type, _) {
+  visitFunctionType(ResolutionFunctionType type, _) {
     type.visitChildren(this, null);
   }
 
-  visitInterfaceType(InterfaceType type, _) {
+  visitInterfaceType(ResolutionInterfaceType type, _) {
     type.visitChildren(this, null);
   }
 
-  visitTypeVariableType(TypeVariableType type, _) {
+  visitTypeVariableType(ResolutionTypeVariableType type, _) {
     TypeVariableElement typeVariableElement = type.element;
     if (seenTypeVariables.contains(typeVariableElement)) {
       // Avoid running in cycles on cyclic type variable bounds.

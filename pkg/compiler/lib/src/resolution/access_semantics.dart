@@ -8,7 +8,7 @@
 library dart2js.access_semantics;
 
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 
 /// Enum representing the different kinds of destinations which a property
@@ -477,7 +477,7 @@ class ConstructorAccessSemantics {
   final Element element;
 
   /// The type on which the constructor is invoked.
-  final DartType type;
+  final ResolutionDartType type;
 
   ConstructorAccessSemantics(this.kind, this.element, this.type);
 

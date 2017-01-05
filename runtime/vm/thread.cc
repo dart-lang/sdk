@@ -753,14 +753,38 @@ bool Thread::IsValidLocalHandle(Dart_Handle object) const {
 }
 
 
-int Thread::CountLocalHandles() const {
-  int total = 0;
+intptr_t Thread::CountLocalHandles() const {
+  intptr_t total = 0;
   ApiLocalScope* scope = api_top_scope_;
   while (scope != NULL) {
     total += scope->local_handles()->CountHandles();
     scope = scope->previous();
   }
   return total;
+}
+
+
+intptr_t Thread::CountZoneHandles() const {
+  intptr_t count = 0;
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    count += zone->handles()->CountZoneHandles();
+    zone = zone->previous();
+  }
+  ASSERT(count >= 0);
+  return count;
+}
+
+
+intptr_t Thread::CountScopedHandles() const {
+  intptr_t count = 0;
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    count += zone->handles()->CountScopedHandles();
+    zone = zone->previous();
+  }
+  ASSERT(count >= 0);
+  return count;
 }
 
 

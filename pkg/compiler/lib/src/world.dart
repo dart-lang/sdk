@@ -9,7 +9,7 @@ import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'core_types.dart' show CommonElements;
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
         ClassElement,
@@ -252,7 +252,7 @@ abstract class ClosedWorld implements World {
   FunctionSet get allFunctions;
 
   /// Returns `true` if the field [element] is known to be effectively final.
-  bool fieldNeverChanges(Element element);
+  bool fieldNeverChanges(MemberElement element);
 
   /// Extends the receiver type [mask] for calling [selector] to take live
   /// `noSuchMethod` handlers into account.
@@ -263,7 +263,7 @@ abstract class ClosedWorld implements World {
 
   /// Returns the single [Element] that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist, `null` is returned.
-  Element locateSingleElement(Selector selector, TypeMask mask);
+  MemberElement locateSingleElement(Selector selector, TypeMask mask);
 
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
@@ -298,6 +298,9 @@ abstract class ClosedWorld implements World {
 /// Interface for computing side effects and uses of elements. This is used
 /// during type inference to compute the [ClosedWorld] for code generation.
 abstract class ClosedWorldRefiner {
+  /// The closed world being refined.
+  ClosedWorld get closedWorld;
+
   /// Registers the side [effects] of executing [element].
   void registerSideEffects(Element element, SideEffects effects);
 
@@ -415,6 +418,9 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     _commonMasks = new CommonMasks(this);
     _allFunctions = functionSetBuilder.close(this);
   }
+
+  @override
+  ClosedWorld get closedWorld => this;
 
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.
@@ -723,7 +729,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER:
-    for (Link<DartType> link = typeSet[depth];
+    for (Link<ResolutionDartType> link = typeSet[depth];
         link.head.element != commonElements.objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;
@@ -902,7 +908,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     ClassSet classSet = getClassSet(base);
     ClassHierarchyNode node = classSet.node;
     if (query == ClassQuery.EXACT) {
-      return node.isDirectlyInstantiated && !hasConcreteMatch(base, selector);
+      return node.isExplicitlyInstantiated && !hasConcreteMatch(base, selector);
     } else if (query == ClassQuery.SUBCLASS) {
       return subclassesNeedNoSuchMethod(node);
     } else {
@@ -936,7 +942,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node =
         _classHierarchyNodes[cls] = new ClassHierarchyNode(parentNode, cls);
-    for (InterfaceType type in cls.allSupertypes) {
+    for (ResolutionInterfaceType type in cls.allSupertypes) {
       ClassSet subtypeSet = getClassSet(type.element);
       subtypeSet.addSubtype(node);
     }
@@ -1007,7 +1013,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return functionsCalledInLoop.contains(element.declaration);
   }
 
-  bool fieldNeverChanges(Element element) {
+  bool fieldNeverChanges(MemberElement element) {
     if (!element.isField) return false;
     if (_backend.isNative(element)) {
       // Some native fields are views of data that may be changed by operations.

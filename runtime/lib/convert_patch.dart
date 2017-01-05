@@ -6,7 +6,7 @@ import "dart:_internal" show POWERS_OF_TEN;
 
 // JSON conversion.
 
-@patch _parseJson(String json, reviver(var key, var value)) {
+@patch _parseJson(String source, reviver(key, value)) {
   _BuildJsonListener listener;
   if (reviver == null) {
     listener = new _BuildJsonListener();
@@ -14,8 +14,8 @@ import "dart:_internal" show POWERS_OF_TEN;
     listener = new _ReviverJsonListener(reviver);
   }
   var parser = new _JsonStringParser(listener);
-  parser.chunk = json;
-  parser.chunkEnd = json.length;
+  parser.chunk = source;
+  parser.chunkEnd = source.length;
   parser.parse(0);
   parser.close();
   return listener.result;
@@ -23,8 +23,8 @@ import "dart:_internal" show POWERS_OF_TEN;
 
 @patch class Utf8Decoder {
   @patch
-  Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
-      Converter<String, dynamic/*=T*/> next) {
+  Converter<List<int>, T> fuse<T>(
+      Converter<String, T> next) {
     if (next is JsonDecoder) {
       return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;
