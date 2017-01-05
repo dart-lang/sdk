@@ -317,6 +317,8 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
 [$runtime == vm && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
+
+[$runtime == vm && $compiler == none && $system == windows && $arch == ia32]
 vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 
 [$compiler == dart2analyzer]
