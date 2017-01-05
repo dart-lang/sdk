@@ -699,6 +699,8 @@ class CorrectionUtils {
    */
   ClassElement targetClassElement;
 
+  ExecutableElement targetExecutableElement;
+
   LibraryElement _library;
   String _buffer;
   String _endOfLine;
@@ -1500,13 +1502,15 @@ class CorrectionUtils {
   }
 
   /**
-   * Checks if [type] is visible at [targetOffset].
+   * Checks if [type] is visible in [targetExecutableElement] or
+   * [targetClassElement].
    */
   bool _isTypeVisible(DartType type) {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterClassElement = parameterElement.enclosingElement;
-      return identical(parameterClassElement, targetClassElement);
+      return identical(parameterClassElement, targetExecutableElement) ||
+          identical(parameterClassElement, targetClassElement);
     }
     return true;
   }

@@ -1365,6 +1365,7 @@ class FixProcessor {
 
   void _addFix_createMissingOverrides_single(SourceBuilder sb,
       ClassDeclaration targetClass, ExecutableElement element) {
+    utils.targetExecutableElement = element;
     // prepare environment
     String prefix = utils.getIndent(1);
     String prefix2 = utils.getIndent(2);
@@ -1400,6 +1401,7 @@ class FixProcessor {
     }
     // name
     sb.append(element.displayName);
+    _appendTypeParameters(sb, element.typeParameters);
     // parameters + body
     if (isGetter) {
       sb.append(' => null;');
@@ -1417,6 +1419,7 @@ class FixProcessor {
       sb.append('}');
     }
     sb.append(eol);
+    utils.targetExecutableElement = null;
   }
 
   void _addFix_createNoSuchMethod() {
@@ -2534,7 +2537,7 @@ class FixProcessor {
   }
 
   void _appendType(SourceBuilder sb, DartType type,
-      {String groupId, bool orVar: false}) {
+      {String groupId, bool orVar: false, bool trailingSpace: true}) {
     if (type != null && !type.isDynamic) {
       String typeSource = utils.getTypeSource(type, librariesToImport);
       if (groupId != null) {
@@ -2544,9 +2547,36 @@ class FixProcessor {
       } else {
         sb.append(typeSource);
       }
-      sb.append(' ');
+      if (trailingSpace) {
+        sb.append(' ');
+      }
     } else if (orVar) {
       sb.append('var ');
+    }
+  }
+
+  void _appendTypeParameter(
+      SourceBuilder sb, TypeParameterElement typeParameter) {
+    sb.append(typeParameter.name);
+    if (typeParameter.bound != null) {
+      sb.append(' extends ');
+      _appendType(sb, typeParameter.bound, trailingSpace: false);
+    }
+  }
+
+  void _appendTypeParameters(
+      SourceBuilder sb, List<TypeParameterElement> typeParameters) {
+    if (typeParameters.isNotEmpty) {
+      sb.append('<');
+      bool isFirst = true;
+      for (TypeParameterElement typeParameter in typeParameters) {
+        if (!isFirst) {
+          sb.append(', ');
+        }
+        isFirst = false;
+        _appendTypeParameter(sb, typeParameter);
+      }
+      sb.append('>');
     }
   }
 

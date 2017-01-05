@@ -2619,6 +2619,37 @@ class B extends A {
 ''');
   }
 
+  test_createMissingOverrides_method_generic() async {
+    resolveTestUnit('''
+class C<T> {}
+class V<E> {}
+
+abstract class A {
+  E1 foo<E1, E2 extends C<int>>(V<E2> v);
+}
+
+class B implements A {
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_MISSING_OVERRIDES,
+        '''
+class C<T> {}
+class V<E> {}
+
+abstract class A {
+  E1 foo<E1, E2 extends C<int>>(V<E2> v);
+}
+
+class B implements A {
+  @override
+  E1 foo<E1, E2 extends C<int>>(V<E2> v) {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
   test_createMissingOverrides_operator() async {
     resolveTestUnit('''
 abstract class A {
