@@ -2002,7 +2002,7 @@ void Precompiler::DropClasses() {
   // corpses. Request a full GC and wait for the sweeper tasks to finish before
   // we continue.
   I->heap()->CollectAllGarbage();
-  I->heap()->WaitForSweeperTasks();
+  I->heap()->WaitForSweeperTasks(T);
 #endif
 
   ClassTable* class_table = I->class_table();

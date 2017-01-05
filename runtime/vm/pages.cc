@@ -381,9 +381,6 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
                                      bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-#ifdef DEBUG
-  SpaceUsage usage_before = GetCurrentUsage();
-#endif
   uword result = 0;
   if (size < kAllocatablePageSize) {
     if (is_locked) {
@@ -420,14 +417,6 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       }
     }
   }
-#ifdef DEBUG
-  if (result != 0) {
-    // A successful allocation should increase usage_.
-    ASSERT(usage_before.used_in_words < usage_.used_in_words);
-  }
-// Note we cannot assert that a failed allocation should not change
-// used_in_words as another thread could have changed used_in_words.
-#endif
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
 }
