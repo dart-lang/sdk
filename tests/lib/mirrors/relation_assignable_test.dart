@@ -33,11 +33,13 @@ test(MirrorSystem mirrors) {
   TypeMirror Sub1 = thisLibrary.declarations[#Subclass1];
   TypeMirror Sub2 = thisLibrary.declarations[#Subclass2];
   TypeMirror Obj = coreLibrary.declarations[#Object];
+  TypeMirror Nul = coreLibrary.declarations[#Null];
 
   Expect.isTrue(Obj.isAssignableTo(Obj));
   Expect.isTrue(Super.isAssignableTo(Super));
   Expect.isTrue(Sub1.isAssignableTo(Sub1));
   Expect.isTrue(Sub2.isAssignableTo(Sub2));
+  Expect.isTrue(Nul.isAssignableTo(Nul));
 
   Expect.isTrue(Sub1.isAssignableTo(Super));
   Expect.isTrue(Super.isAssignableTo(Sub1));
@@ -57,6 +59,10 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Super.isAssignableTo(Obj));
   Expect.isTrue(Obj.isAssignableTo(Super));
 
+  Expect.isTrue(Nul.isAssignableTo(Obj));
+  Expect.isTrue(Obj.isAssignableTo(Nul));
+  Expect.isTrue(Nul.isAssignableTo(Super));  // Null type is bottom type.
+  Expect.isTrue(Super.isAssignableTo(Nul));
 
   // Function typedef - argument type.
   TypeMirror Func = coreLibrary.declarations[#Function];
