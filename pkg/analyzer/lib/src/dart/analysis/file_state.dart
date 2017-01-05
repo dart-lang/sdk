@@ -437,7 +437,7 @@ class FileState {
     for (UnlinkedImport import in _unlinked.imports) {
       if (!import.isImplicit) {
         String uri = import.uri;
-        if (!_isDartUri(uri)) {
+        if (_isDartFileUri(uri)) {
           FileState file = _fileForRelativeUri(uri);
           if (file != null) {
             _importedFiles.add(file);
@@ -447,7 +447,7 @@ class FileState {
     }
     for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
       String uri = export.uri;
-      if (!_isDartUri(uri)) {
+      if (_isDartFileUri(uri)) {
         FileState file = _fileForRelativeUri(uri);
         if (file != null) {
           _exportedFiles.add(file);
@@ -457,7 +457,7 @@ class FileState {
       }
     }
     for (String uri in _unlinked.publicNamespace.parts) {
-      if (!_isDartUri(uri)) {
+      if (_isDartFileUri(uri)) {
         FileState file = _fileForRelativeUri(uri);
         if (file != null) {
           _partedFiles.add(file);
@@ -524,8 +524,8 @@ class FileState {
     return true;
   }
 
-  static bool _isDartUri(String uri) {
-    return uri.startsWith('dart:');
+  static bool _isDartFileUri(String uri) {
+    return !uri.startsWith('dart:') && AnalysisEngine.isDartFileName(uri);
   }
 }
 
