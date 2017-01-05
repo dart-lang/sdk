@@ -1498,15 +1498,18 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       }
     }
   }
-  // Collect interfaces, super interfaces, and super classes of this class.
+  // If we check for bad overrides, collect interfaces, super interfaces, and
+  // super classes of this class.
   GrowableArray<const Class*> interfaces(zone, 4);
-  CollectInterfaces(cls, &interfaces);
-  // Include superclasses in list of interfaces and super interfaces.
-  super_class = cls.SuperClass();
-  while (!super_class.IsNull()) {
-    interfaces.Add(&Class::ZoneHandle(zone, super_class.raw()));
-    CollectInterfaces(super_class, &interfaces);
-    super_class = super_class.SuperClass();
+  if (Isolate::Current()->error_on_bad_override()) {
+    CollectInterfaces(cls, &interfaces);
+    // Include superclasses in list of interfaces and super interfaces.
+    super_class = cls.SuperClass();
+    while (!super_class.IsNull()) {
+      interfaces.Add(&Class::ZoneHandle(zone, super_class.raw()));
+      CollectInterfaces(super_class, &interfaces);
+      super_class = super_class.SuperClass();
+    }
   }
   // Resolve function signatures and check for conflicts in super classes and
   // interfaces.
@@ -1524,22 +1527,22 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.length(); i++) {
-        const Class* super_class = interfaces.At(i);
-        // Finalize superclass since overrides check relies on all members
-        // of the superclass to be finalized.
-        FinalizeClass(*super_class);
-        overridden_function = super_class->LookupDynamicFunction(name);
+        const Class* interface = interfaces.At(i);
+        // All interfaces should have been finalized since override checks
+        // rely on all interface members to be finalized.
+        ASSERT(interface->is_finalized());
+        overridden_function = interface->LookupDynamicFunction(name);
         if (!overridden_function.IsNull() &&
             !function.HasCompatibleParametersWith(overridden_function,
                                                   &error)) {
           const String& class_name = String::Handle(zone, cls.Name());
-          const String& super_cls_name =
-              String::Handle(zone, super_class->Name());
+          const String& interface_name =
+              String::Handle(zone, interface->Name());
           ReportErrors(error, cls, function.token_pos(),
-                       "class '%s' overrides method '%s' of super "
-                       "class '%s' with incompatible parameters",
+                       "class '%s' overrides method '%s' of super class or "
+                       "interface '%s' with incompatible parameters",
                        class_name.ToCString(), name.ToCString(),
-                       super_cls_name.ToCString());
+                       interface_name.ToCString());
         }
       }
     }
@@ -2479,16 +2482,24 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     cls.set_is_finalized();
     return;
   }
+  // Ensure super class is finalized.
+  const Class& super = Class::Handle(cls.SuperClass());
+  if (!super.IsNull()) {
+    FinalizeClass(super);
+  }
+  // Ensure interfaces are finalized in case we check for bad overrides.
+  if (Isolate::Current()->error_on_bad_override()) {
+    GrowableArray<const Class*> interfaces(4);
+    CollectInterfaces(cls, &interfaces);
+    for (intptr_t i = 0; i < interfaces.length(); i++) {
+      FinalizeClass(*interfaces.At(i));
+    }
+  }
   if (cls.IsMixinApplication()) {
     // Copy instance methods and fields from the mixin class.
     // This has to happen before the check whether the methods of
     // the class conflict with inherited methods.
     ApplyMixinMembers(cls);
-  }
-  // Ensure super class is finalized.
-  const Class& super = Class::Handle(cls.SuperClass());
-  if (!super.IsNull()) {
-    FinalizeClass(super);
   }
   // Mark as parsed and finalized.
   cls.Finalize();
