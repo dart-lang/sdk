@@ -335,6 +335,7 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
 [$runtime == vm && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
+vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
