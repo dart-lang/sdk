@@ -628,9 +628,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     if (originalDeclaration.typeVariables.isEmpty) {
       throw new ArgumentError.value(originalDeclaration.reflectedType);
     }
-    List<String> typeArguments = mangledName
-        .substring(typeArgIndex + 1, mangledName.length - 1)
-        .split(', ');
+    List<String> typeArguments = splitTypeArguments(
+        mangledName.substring(typeArgIndex + 1, mangledName.length - 1));
     if (originalDeclaration.typeVariables.length != typeArguments.length) {
       throw new ArgumentError.value(typeArguments, 'typeArguments',
           "Number of type arguments does not match.");
@@ -706,6 +705,43 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
 
   JsCache.update(classMirrors, mangledName, mirror);
   return mirror;
+}
+
+/// Splits input `typeArguments` string into a list of strings for each argument.
+/// Takes into account nested generic types.
+/// For example, `Map<int, String>, String` will become a list of two items:
+/// `Map<int, String>` and `String`.
+List<String> splitTypeArguments(String typeArguments) {
+  if (typeArguments.indexOf('<') == -1) {
+    return typeArguments.split(',');
+  }
+  var argumentList = new List<String>();
+  int level = 0;
+  String currentTypeArgument = '';
+
+  for (int i = 0; i < typeArguments.length; i++) {
+    var character = typeArguments[i];
+    if (character == ' ') {
+      continue;
+    } else if (character == '<') {
+      currentTypeArgument += character;
+      level++;
+    } else if (character == '>') {
+      currentTypeArgument += character;
+      level--;
+    } else if (character == ',') {
+      if (level > 0) {
+        currentTypeArgument += character;
+      } else {
+        argumentList.add(currentTypeArgument);
+        currentTypeArgument = '';
+      }
+    } else {
+      currentTypeArgument += character;
+    }
+  }
+  argumentList.add(currentTypeArgument);
+  return argumentList;
 }
 
 Map<Symbol, MethodMirror> filterMethods(List<MethodMirror> methods) {
@@ -1337,35 +1373,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
       }
     }
 
-    if (_typeArguments.indexOf('<') == -1) {
-      _typeArguments.split(',').forEach((t) => addTypeArgument(t));
-    } else {
-      int level = 0;
-      String currentTypeArgument = '';
-
-      for (int i = 0; i < _typeArguments.length; i++) {
-        var character = _typeArguments[i];
-        if (character == ' ') {
-          continue;
-        } else if (character == '<') {
-          currentTypeArgument += character;
-          level++;
-        } else if (character == '>') {
-          currentTypeArgument += character;
-          level--;
-        } else if (character == ',') {
-          if (level > 0) {
-            currentTypeArgument += character;
-          } else {
-            addTypeArgument(currentTypeArgument);
-            currentTypeArgument = '';
-          }
-        } else {
-          currentTypeArgument += character;
-        }
-      }
-      addTypeArgument(currentTypeArgument);
-    }
+    splitTypeArguments(_typeArguments).forEach(addTypeArgument);
     return _cachedTypeArguments = new UnmodifiableListView(result);
   }
 
@@ -2924,7 +2932,7 @@ void parseCompactFieldSpecification(JsDeclarationMirror owner,
   }
   int fieldNumber = 0;
   for (String field in fields) {
-    if (r'$ti' == field) continue;  // Strip type info pseudofield.
+    if (r'$ti' == field) continue; // Strip type info pseudofield.
     var metadata;
     if (fieldsMetadata != null) {
       metadata = fieldsMetadata[fieldNumber++];

@@ -106,8 +106,8 @@ mirrors/regress_26187_test: RuntimeError # Issue 6490
 mirrors/reflected_type_generics_test/01: Fail # Issues in reflecting generic typedefs.
 mirrors/reflected_type_generics_test/02: Fail # Issues in reflecting bounded type variables.
 
-[ $compiler == none && $runtime == vm && $unchecked ]
-mirrors/reflected_type_generics_test/02: SkipByDesign # Type check for a bounded type argument.
+[ $compiler == none && $unchecked ]
+mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
