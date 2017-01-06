@@ -819,6 +819,70 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
+
+  ASSERT(type.HasResolvedTypeClass());
+  const Class& clz = Class::Handle(type.type_class());
+  if (!clz.IsGeneric()) {
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, type);
+    error_args.SetAt(1, String::Handle(String::New("key")));
+    error_args.SetAt(2, String::Handle(
+      String::New("Type must be a generic class or function.")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+    UNREACHABLE();
+  }
+  if (clz.NumTypeParameters() != args.Length()) {
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, args);
+    error_args.SetAt(1, String::Handle(String::New("typeArguments")));
+    error_args.SetAt(2, String::Handle(
+      String::New("Number of type arguments does not match.")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+    UNREACHABLE();
+  }
+
+  intptr_t num_expected_type_arguments = args.Length();
+  TypeArguments& type_args_obj = TypeArguments::Handle();
+  type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+  AbstractType& type_arg = AbstractType::Handle();
+  Instance& instance = Instance::Handle();
+  for (intptr_t i = 0; i < args.Length(); i++) {
+    instance ^= args.At(i);
+    if (!instance.IsType()) {
+      const Array& error_args = Array::Handle(Array::New(3));
+      error_args.SetAt(0, args);
+      error_args.SetAt(1, String::Handle(String::New("typeArguments")));
+      error_args.SetAt(2, String::Handle(
+        String::New("Type arguments must be instances of Type.")));
+      Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+      UNREACHABLE();
+    }
+    type_arg ^= args.At(i);
+    type_args_obj.SetTypeAt(i, type_arg);
+  }
+
+  Type& instantiated_type = Type::Handle(
+    Type::New(clz, type_args_obj, TokenPosition::kNoSource));
+  instantiated_type ^= ClassFinalizer::FinalizeType(
+    clz, instantiated_type, ClassFinalizer::kCanonicalize);
+  if (instantiated_type.IsMalbounded()) {
+    const LanguageError& type_error = LanguageError::Handle(
+      instantiated_type.error());
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, args);
+    error_args.SetAt(1, String::Handle(String::New("typeArguments")));
+    error_args.SetAt(2, String::Handle(type_error.FormatMessage()));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+    UNREACHABLE();
+  }
+
+  return instantiated_type.raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(Mirrors_mangleName, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
