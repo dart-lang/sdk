@@ -14,6 +14,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLibraryTest);
+    defineReflectiveTests(RenameLibraryTest_Driver);
   });
 }
 
@@ -52,7 +53,9 @@ part of my.app;
 library my.app;
 part 'part.dart';
 ''');
-    index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
+    if (!enableNewAnalysisDriver) {
+      index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
+    }
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
@@ -80,7 +83,9 @@ part of my .  app;
 library my    . app;
 part 'part.dart';
 ''');
-    index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
+    if (!enableNewAnalysisDriver) {
+      index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
+    }
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
@@ -101,4 +106,10 @@ part of the.new.name;
   void _createRenameRefactoring() {
     createRenameRefactoringForElement(testUnitElement.library);
   }
+}
+
+@reflectiveTest
+class RenameLibraryTest_Driver extends RenameLibraryTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
