@@ -262,6 +262,7 @@ generic_constructor_mixin3_test: Skip
 generic_constructor_mixin_test: Skip
 generic_field_mixin6_test: Skip
 generic_list_checked_test: Skip
+generic_tearoff_test: Skip
 generic_test: Skip
 generics_test: Skip
 get_set_syntax_test: Skip
