@@ -25,7 +25,5 @@ void main() {
     await runTest("import 'dart:html'; main() {}", "Server", 1);
     await runTest("import 'dart:io'; main() {}", "Client", 1);
     await runTest("import 'dart:io'; main() {}", "Server", 0);
-    await runTest("import 'dart:_internal'; main() {}", "Client", 1);
-    await runTest("import 'dart:_internal'; main() {}", "Server", 1);
   });
 }

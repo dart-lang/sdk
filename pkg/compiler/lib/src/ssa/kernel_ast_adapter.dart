@@ -36,7 +36,6 @@ import 'types.dart';
 class KernelAstAdapter {
   final Kernel kernel;
   final JavaScriptBackend _backend;
-  final ResolvedAst _resolvedAst;
   final Map<ir.Node, ast.Node> _nodeToAst;
   final Map<ir.Node, Element> _nodeToElement;
   final Map<ir.VariableDeclaration, SyntheticLocal> _syntheticLocals =
@@ -44,6 +43,12 @@ class KernelAstAdapter {
   final Map<ir.LabeledStatement, KernelJumpTarget> _jumpTargets =
       <ir.LabeledStatement, KernelJumpTarget>{};
   DartTypeConverter _typeConverter;
+  ResolvedAst _resolvedAst;
+
+  /// Sometimes for resolution the resolved AST element needs to change (for
+  /// example, if we're inlining, or if we're in a constructor, but then also
+  /// constructing the field values). We keep track of this with a stack.
+  final List<ResolvedAst> _resolvedAstStack = <ResolvedAst>[];
 
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
       this._nodeToAst, this._nodeToElement) {
@@ -67,6 +72,19 @@ class KernelAstAdapter {
       _nodeToElement[kernel.typeParameters[typeVariable]] = typeVariable;
     }
     _typeConverter = new DartTypeConverter(this);
+  }
+
+  /// Push the existing resolved AST on the stack and shift the current resolved
+  /// AST to the AST that this kernel node points to.
+  void pushResolvedAst(ir.Node node) {
+    _resolvedAstStack.add(_resolvedAst);
+    _resolvedAst = (getElement(node) as AstElement).resolvedAst;
+  }
+
+  /// Pop the resolved AST stack to reset it to the previous resolved AST node.
+  void popResolvedAstStack() {
+    assert(_resolvedAstStack.isNotEmpty);
+    _resolvedAst = _resolvedAstStack.removeLast();
   }
 
   Compiler get _compiler => _backend.compiler;

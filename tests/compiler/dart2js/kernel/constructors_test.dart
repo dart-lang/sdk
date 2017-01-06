@@ -46,6 +46,27 @@ main() => new Foo(number: 3);
 ''';
     return check(code, lookup: defaultConstructorFor('Foo'));
   });
+
+  // TODO(efortuna): Kernel needs to have some additional constructor
+  // implementaion work before this is legitimately equivalent code to the
+  // original AST.
+/*  test('initialized field and constructor', () {
+    String code = '''
+import 'dart:_foreign_helper' show JS, JS_EMBEDDED_GLOBAL;
+import 'package:expect/expect.dart';
+
+
+class Foo {
+  final value = JS('bool', '#()', JS_EMBEDDED_GLOBAL('', 'foo'));
+  Foo() {
+    print('hello world');
+  }
+}
+
+main() => new Foo();
+''';
+    return check(code, lookup: defaultConstructorFor('Foo'));
+  });*/
 }
 
 defaultConstructorFor(String className) => (Compiler compiler) {

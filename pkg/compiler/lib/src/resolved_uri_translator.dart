@@ -115,6 +115,7 @@ class _ResolvedUriTranslator implements ResolvedUriTranslator {
       bool allowInternalLibraryAccess = importingLibrary != null &&
           (importingLibrary.isPlatformLibrary ||
               importingLibrary.isPatch ||
+              importingLibrary.canonicalUri.scheme == 'memory' ||
               importingLibrary.canonicalUri.path
                   .contains('sdk/tests/compiler/dart2js_native'));
 
