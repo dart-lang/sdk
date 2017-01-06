@@ -10481,7 +10481,7 @@ AstNode* Parser::ThrowNoSuchMethodError(TokenPosition call_pos,
   ArgumentListNode* arguments = new (Z) ArgumentListNode(call_pos);
 
   String& method_name = String::Handle(Z);
-  if (prefix == NULL) {
+  if (prefix == NULL || !prefix->is_deferred_load()) {
     method_name = Library::PrivateCoreLibName(Symbols::ThrowNew()).raw();
   } else {
     arguments->Add(new (Z) LiteralNode(call_pos, *prefix));
@@ -11219,7 +11219,8 @@ ArgumentListNode* Parser::ParseActualParameters(
 
 AstNode* Parser::ParseStaticCall(const Class& cls,
                                  const String& func_name,
-                                 TokenPosition ident_pos) {
+                                 TokenPosition ident_pos,
+                                 const LibraryPrefix* prefix) {
   TRACE_PARSER("ParseStaticCall");
   const TokenPosition call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
@@ -11255,7 +11256,8 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     return ThrowNoSuchMethodError(ident_pos, cls, func_name, arguments,
                                   InvocationMirror::kStatic,
                                   InvocationMirror::kMethod,
-                                  NULL);  // No existing function.
+                                  NULL,  // No existing function.
+                                  prefix);
   } else if (cls.IsTopLevel() && (cls.library() == Library::CoreLibrary()) &&
              (func.name() == Symbols::Identical().raw())) {
     // This is the predefined toplevel function identical(a,b).
@@ -11392,8 +11394,15 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     // for a field (which may be defined in a subclass.)
     const String& name =
         String::Cast(Object::ZoneHandle(primary->primary().raw()));
-    if (current_function().is_static() ||
-        current_function().IsInFactoryScope()) {
+    if (primary->is_deferred_reference()) {
+      StaticGetterNode* getter = new (Z) StaticGetterNode(
+          primary->token_pos(),
+          NULL,  // No receiver.
+          Class::ZoneHandle(Z, library_.toplevel_class()), name);
+      getter->set_is_deferred(primary->is_deferred_reference());
+      return getter;
+    } else if (current_function().is_static() ||
+               current_function().IsInFactoryScope()) {
       StaticGetterNode* getter = new (Z)
           StaticGetterNode(primary->token_pos(),
                            NULL,  // No receiver.
@@ -11506,13 +11515,21 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           // For now, resolve type arguments and ignore.
           ParseTypeArguments(ClassFinalizer::kCanonicalize);
         }
-        if (left->IsPrimaryNode() &&
-            left->AsPrimaryNode()->primary().IsClass()) {
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        if ((primary_node != NULL) && primary_node->primary().IsClass()) {
           // Static method call prefixed with class name.
-          const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
-          selector = ParseStaticCall(cls, *ident, ident_pos);
+          const Class& cls = Class::Cast(primary_node->primary());
+          selector =
+              ParseStaticCall(cls, *ident, ident_pos, primary_node->prefix());
         } else {
-          selector = ParseInstanceCall(left, *ident, ident_pos, is_conditional);
+          if ((primary_node != NULL) && primary_node->is_deferred_reference()) {
+            const Class& cls = Class::Handle(library_.toplevel_class());
+            selector =
+                ParseStaticCall(cls, *ident, ident_pos, primary_node->prefix());
+          } else {
+            selector =
+                ParseInstanceCall(left, *ident, ident_pos, is_conditional);
+          }
         }
       } else {
         // Field access.
@@ -11520,11 +11537,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         bool is_deferred = false;
         if (left->IsPrimaryNode()) {
           PrimaryNode* primary_node = left->AsPrimaryNode();
+          is_deferred = primary_node->is_deferred_reference();
           if (primary_node->primary().IsClass()) {
             // If the primary node referred to a class we are loading a
             // qualified static field.
             cls ^= primary_node->primary().raw();
-            is_deferred = primary_node->is_deferred_reference();
+          } else if (is_deferred) {
+            cls = library_.toplevel_class();
           }
         }
         if (cls.IsNull()) {
@@ -11616,7 +11635,12 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           }
           const String& name =
               String::Cast(Object::ZoneHandle(primary_node->primary().raw()));
-          if (current_function().is_static()) {
+          if (primary_node->is_deferred_reference()) {
+            // The static call will be converted to throwing a NSM error.
+            const Class& cls = Class::Handle(library_.toplevel_class());
+            selector =
+                ParseStaticCall(cls, name, primary_pos, primary_node->prefix());
+          } else if (current_function().is_static()) {
             // The static call will be converted to throwing a NSM error.
             selector = ParseStaticCall(current_class(), name, primary_pos);
           } else {
@@ -12503,7 +12527,9 @@ AstNode* Parser::ResolveIdentInPrefixScope(TokenPosition ident_pos,
     const Class& cls = Class::Cast(obj);
     PrimaryNode* primary =
         new (Z) PrimaryNode(ident_pos, Class::ZoneHandle(Z, cls.raw()));
-    primary->set_is_deferred(is_deferred);
+    if (is_deferred) {
+      primary->set_prefix(&prefix);
+    }
     return primary;
   } else if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
@@ -12532,7 +12558,9 @@ AstNode* Parser::ResolveIdentInPrefixScope(TokenPosition ident_pos,
     } else {
       PrimaryNode* primary =
           new (Z) PrimaryNode(ident_pos, Function::ZoneHandle(Z, func.raw()));
-      primary->set_is_deferred(is_deferred);
+      if (is_deferred) {
+        primary->set_prefix(&prefix);
+      }
       return primary;
     }
   }
@@ -13969,6 +13997,9 @@ AstNode* Parser::ParsePrimary() {
           const String& qualified_name =
               String::ZoneHandle(Z, Symbols::FromConcatAll(T, pieces));
           primary = new (Z) PrimaryNode(qual_ident_pos, qualified_name);
+          if (prefix.is_deferred_load()) {
+            primary->AsPrimaryNode()->set_prefix(&prefix);
+          }
         }
       } else if (FLAG_load_deferred_eagerly && prefix.is_deferred_load()) {
         // primary != NULL.

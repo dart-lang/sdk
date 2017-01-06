@@ -564,14 +564,18 @@ class ClosureNode : public AstNode {
 class PrimaryNode : public AstNode {
  public:
   PrimaryNode(TokenPosition token_pos, const Object& primary)
-      : AstNode(token_pos), primary_(primary), is_deferred_reference_(false) {
+      : AstNode(token_pos), primary_(primary), prefix_(NULL) {
     ASSERT(primary_.IsNotTemporaryScopedHandle());
   }
 
   const Object& primary() const { return primary_; }
 
-  void set_is_deferred(bool value) { is_deferred_reference_ = value; }
-  bool is_deferred_reference() const { return is_deferred_reference_; }
+  void set_prefix(const LibraryPrefix* prefix) {
+    ASSERT(prefix->IsNotTemporaryScopedHandle());
+    prefix_ = prefix;
+  }
+  const LibraryPrefix* prefix() const { return prefix_; }
+  bool is_deferred_reference() const { return prefix_ != NULL; }
 
   bool IsSuper() const {
     return primary().IsString() && (primary().raw() == Symbols::Super().raw());
@@ -583,7 +587,7 @@ class PrimaryNode : public AstNode {
 
  private:
   const Object& primary_;
-  bool is_deferred_reference_;
+  const LibraryPrefix* prefix_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PrimaryNode);
 };
