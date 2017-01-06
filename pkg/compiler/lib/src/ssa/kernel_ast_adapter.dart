@@ -299,6 +299,10 @@ class KernelAstAdapter {
   }
 
   ConstantValue getConstantFor(ir.Node node) {
+    // Some `null`s are not mapped when they correspond to errors, e.g. missing
+    // `const` initializers.
+    if (node is ir.NullLiteral) return new NullConstantValue();
+
     ConstantValue constantValue =
         _backend.constants.getConstantValueForNode(getNode(node), elements);
     assert(invariant(getNode(node), constantValue != null,
