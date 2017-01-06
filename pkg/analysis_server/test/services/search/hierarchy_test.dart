@@ -8,7 +8,9 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,19 +20,13 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HierarchyTest);
+    defineReflectiveTests(HierarchyTest_Driver);
   });
 }
 
 @reflectiveTest
-class HierarchyTest extends AbstractSingleUnitTest {
-  Index index;
-  SearchEngineImpl searchEngine;
-
-  void setUp() {
-    super.setUp();
-    index = createMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
-  }
+abstract class AbstractSingleUnitTest0 extends AbstractSingleUnitTest {
+  SearchEngine get searchEngine;
 
   test_getClassMembers() async {
     await _indexTestUnit('''
@@ -361,8 +357,40 @@ class F implements A {}
     }
   }
 
+  Future<Null> _indexTestUnit(String code);
+}
+
+@reflectiveTest
+class HierarchyTest extends AbstractSingleUnitTest0 {
+  Index index;
+  SearchEngineImpl searchEngine;
+
+  void setUp() {
+    super.setUp();
+    index = createMemoryIndex();
+    searchEngine = new SearchEngineImpl(index);
+  }
+
   Future<Null> _indexTestUnit(String code) async {
     await resolveTestUnit(code);
     index.indexUnit(testUnit);
+  }
+}
+
+@reflectiveTest
+class HierarchyTest_Driver extends AbstractSingleUnitTest0 {
+  SearchEngineImpl2 searchEngine;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  void setUp() {
+    super.setUp();
+    searchEngine = new SearchEngineImpl2([driver]);
+  }
+
+  @override
+  Future<Null> _indexTestUnit(String code) async {
+    await resolveTestUnit(code);
   }
 }
