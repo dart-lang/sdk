@@ -25,7 +25,7 @@ main() {
 }
 
 @reflectiveTest
-abstract class AbstractSingleUnitTest0 extends AbstractSingleUnitTest {
+abstract class AbstractHierarchyTest extends AbstractSingleUnitTest {
   SearchEngine get searchEngine;
 
   test_getClassMembers() async {
@@ -361,7 +361,7 @@ class F implements A {}
 }
 
 @reflectiveTest
-class HierarchyTest extends AbstractSingleUnitTest0 {
+class HierarchyTest extends AbstractHierarchyTest {
   Index index;
   SearchEngineImpl searchEngine;
 
@@ -378,7 +378,7 @@ class HierarchyTest extends AbstractSingleUnitTest0 {
 }
 
 @reflectiveTest
-class HierarchyTest_Driver extends AbstractSingleUnitTest0 {
+class HierarchyTest_Driver extends AbstractHierarchyTest {
   SearchEngineImpl2 searchEngine;
 
   @override

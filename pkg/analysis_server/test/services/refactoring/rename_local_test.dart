@@ -14,6 +14,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLocalTest);
+    defineReflectiveTests(RenameLocalTest_Driver);
   });
 }
 
@@ -165,17 +166,17 @@ class A {
   test_checkFinalConditions_shadows_classMember_namedParameter() async {
     await indexTestUnit('''
 class A {
-  foo({test: 1}) {
+  foo({test: 1}) { // in A
   }
 }
 class B extends A {
   var newName = 1;
-  foo({test: 2}) {
+  foo({test: 1}) {
     print(newName);
   }
 }
 ''');
-    createRenameRefactoringAtString('test: 1}');
+    createRenameRefactoringAtString('test: 1}) { // in A');
     // check status
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
@@ -234,10 +235,10 @@ main() {
   test_checkNewName_FunctionElement() async {
     await indexTestUnit('''
 main() {
-  int test() {}
+  int test() => 0;
 }
 ''');
-    createRenameRefactoringAtString('test() {}');
+    createRenameRefactoringAtString('test() => 0;');
     // null
     refactoring.newName = null;
     assertRefactoringStatus(
@@ -551,5 +552,23 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // old name
     expect(refactoring.oldName, 'test');
+  }
+}
+
+@reflectiveTest
+class RenameLocalTest_Driver extends RenameLocalTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_createChange_parameter_named_inOtherFile() {
+    return test_createChange_parameter_named_inOtherFile();
+  }
+
+  @failingTest
+  @override
+  test_createChange_parameter_named_updateHierarchy() {
+    return test_createChange_parameter_named_updateHierarchy();
   }
 }

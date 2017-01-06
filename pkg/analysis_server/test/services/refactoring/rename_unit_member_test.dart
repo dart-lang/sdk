@@ -14,6 +14,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
+    defineReflectiveTests(RenameUnitMemberTest_Driver);
   });
 }
 
@@ -621,5 +622,17 @@ main() {
   newName += 2;
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class RenameUnitMemberTest_Driver extends RenameUnitMemberTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_createChange_FunctionElement_imported() {
+    return test_createChange_FunctionElement_imported();
   }
 }

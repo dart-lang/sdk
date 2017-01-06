@@ -15,6 +15,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameClassMemberTest);
+    defineReflectiveTests(RenameClassMemberTest_Driver);
   });
 }
 
@@ -898,5 +899,47 @@ class A<NewName> {
   NewName method(NewName p) => null;
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class RenameClassMemberTest_Driver extends RenameClassMemberTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() {
+    return test_checkFinalConditions_shadowed_byLocalFunction_inSameClass();
+  }
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() {
+    return test_checkFinalConditions_shadowed_byLocalVariable_inSameClass();
+  }
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() {
+    return test_checkFinalConditions_shadowed_byLocalVariable_inSubClass();
+  }
+
+  @failingTest
+  @override
+  test_createChange_MethodElement_potential() {
+    return test_createChange_MethodElement_potential();
+  }
+
+  @failingTest
+  @override
+  test_createChange_MethodElement_potential_inPubCache() {
+    return test_createChange_MethodElement_potential_inPubCache();
+  }
+
+  @failingTest
+  @override
+  test_createChange_MethodElement_potential_private_otherLibrary() {
+    return test_createChange_MethodElement_potential_private_otherLibrary();
   }
 }

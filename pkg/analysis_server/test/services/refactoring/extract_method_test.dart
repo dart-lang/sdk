@@ -18,6 +18,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodTest);
+    defineReflectiveTests(ExtractMethodTest_Driver);
   });
 }
 
@@ -1211,7 +1212,7 @@ res() => dynaFunction();
   test_singleExpression_hasAwait() async {
     await indexTestUnit('''
 import 'dart:async';
-Future<int> getValue() => 42;
+Future<int> getValue() async => 42;
 main() async {
   int v = await getValue();
   print(v);
@@ -1221,7 +1222,7 @@ main() async {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
-Future<int> getValue() => 42;
+Future<int> getValue() async => 42;
 main() async {
   int v = await res();
   print(v);
@@ -2188,7 +2189,7 @@ main(int p) {
   test_statements_hasAwait_dynamicReturnType() async {
     await indexTestUnit('''
 import 'dart:async';
-Future getValue() => 42;
+Future getValue() async => 42;
 main() async {
 // start
   var v = await getValue();
@@ -2200,7 +2201,7 @@ main() async {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
-Future getValue() => 42;
+Future getValue() async => 42;
 main() async {
 // start
   var v = await res();
@@ -2218,7 +2219,7 @@ Future res() async {
   test_statements_hasAwait_expression() async {
     await indexTestUnit('''
 import 'dart:async';
-Future<int> getValue() => 42;
+Future<int> getValue() async => 42;
 main() async {
 // start
   int v = await getValue();
@@ -2231,7 +2232,7 @@ main() async {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
-Future<int> getValue() => 42;
+Future<int> getValue() async => 42;
 main() async {
 // start
   int v = await res();
@@ -2286,7 +2287,7 @@ Future<int> res() async {
   test_statements_hasAwait_voidReturnType() async {
     await indexTestUnit('''
 import 'dart:async';
-Future<int> getValue() => 42;
+Future<int> getValue() async => 42;
 main() async {
 // start
   int v = await getValue();
@@ -2298,7 +2299,7 @@ main() async {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'dart:async';
-Future<int> getValue() => 42;
+Future<int> getValue() async => 42;
 main() async {
 // start
   await res();
@@ -2841,4 +2842,10 @@ Future<int> newFuture() => null;
       return new RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
     }).toList();
   }
+}
+
+@reflectiveTest
+class ExtractMethodTest_Driver extends ExtractMethodTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

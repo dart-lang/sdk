@@ -19,6 +19,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
+    defineReflectiveTests(ExtractLocalTest_Driver);
   });
 }
 
@@ -461,7 +462,7 @@ class AAA {
   AAA.name() {}
 }
 main() {
-  int v = new AAA.name();
+  var v = new AAA.name();
 }
 ''');
     _createRefactoring(testCode.indexOf('AA.name();'), 5);
@@ -477,7 +478,7 @@ class A {
   A.name() {}
 }
 main() {
-  int v = new A.name();
+  var v = new A.name();
 }
 ''');
     _createRefactoring(testCode.indexOf('ame();'), 0);
@@ -491,7 +492,7 @@ main() {
     await indexTestUnit('''
 class A {}
 main() {
-  int v = new A();
+  var v = new A();
 }
 ''');
     _createRefactoring(testCode.indexOf('A();'), 0);
@@ -505,7 +506,7 @@ main() {
     await indexTestUnit('''
 class A<T> {}
 main() {
-  int v = new A<String>();
+  var v = new A<String>();
 }
 ''');
     _createRefactoring(testCode.indexOf('ring>'), 0);
@@ -1345,4 +1346,10 @@ main() {
     }
     return subExpressions;
   }
+}
+
+@reflectiveTest
+class ExtractLocalTest_Driver extends ExtractLocalTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

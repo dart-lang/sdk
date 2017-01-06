@@ -16,7 +16,9 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/file_system/file_system.dart';
@@ -44,7 +46,7 @@ int findIdentifierLength(String search) {
  */
 abstract class RefactoringTest extends AbstractSingleUnitTest {
   Index index;
-  SearchEngineImpl searchEngine;
+  SearchEngine searchEngine;
 
   SourceChange refactoringChange;
 
@@ -162,18 +164,26 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   Future<Null> indexTestUnit(String code) async {
     await resolveTestUnit(code);
-    index.indexUnit(testUnit);
+    if (!enableNewAnalysisDriver) {
+      index.indexUnit(testUnit);
+    }
   }
 
   Future<Null> indexUnit(String file, String code) async {
     Source source = addSource(file, code);
-    CompilationUnit unit = await resolveLibraryUnit(source);
-    index.indexUnit(unit);
+    if (!enableNewAnalysisDriver) {
+      CompilationUnit unit = await resolveLibraryUnit(source);
+      index.indexUnit(unit);
+    }
   }
 
   void setUp() {
     super.setUp();
-    index = createMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
+    if (enableNewAnalysisDriver) {
+      searchEngine = new SearchEngineImpl2([driver]);
+    } else {
+      index = createMemoryIndex();
+      searchEngine = new SearchEngineImpl(index);
+    }
   }
 }
