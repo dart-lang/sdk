@@ -200,9 +200,6 @@ class FixProcessor {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
       _addFix_createConstructorSuperImplicit();
     }
-    if (errorCode == CompileTimeErrorCode.PART_OF_NON_PART) {
-      _addFix_addPartOfDirective();
-    }
     if (errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
@@ -210,10 +207,6 @@ class FixProcessor {
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
       _addFix_createImportUri();
       _addFix_createPartUri();
-      _addFix_replaceImportUri();
-    }
-    if (errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) {
-      _addFix_replaceImportUri();
     }
     if (errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE) {
       _addFix_canBeNullAfterNullAware();
@@ -541,26 +534,6 @@ class FixProcessor {
           _insertBuilder(sb, targetElement);
           _addFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, []);
         }
-      }
-    }
-  }
-
-  void _addFix_addPartOfDirective() {
-    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
-    if (node is SimpleStringLiteral && node.parent is PartDirective) {
-      PartDirective directive = node.parent;
-      Source partSource = directive.uriSource;
-      CompilationUnit partUnit;
-      partUnit = context.getResolvedCompilationUnit2(partSource, partSource);
-      if (partUnit != null) {
-        CorrectionUtils partUtils = new CorrectionUtils(partUnit);
-        CorrectionUtils_InsertDesc desc = partUtils.getInsertDescTop();
-        String libraryName = unitLibraryElement.name;
-        _addInsertEdit(
-            desc.offset,
-            '${desc.prefix}part of $libraryName;$eol${desc.suffix}',
-            partUnit.element);
-        _addFix(DartFixKind.ADD_PART_OF, []);
       }
     }
   }
@@ -1812,32 +1785,6 @@ class FixProcessor {
     _addRemoveEdit(utils.getLinesRange(rf.rangeNode(importDirective)));
     // done
     _addFix(DartFixKind.REMOVE_UNUSED_IMPORT, []);
-  }
-
-  void _addFix_replaceImportUri() {
-    if (node is SimpleStringLiteral) {
-      SimpleStringLiteral stringLiteral = node;
-      String uri = stringLiteral.value;
-      String uriName = substringAfterLast(uri, '/');
-      for (Source libSource in context.librarySources) {
-        String libFile = libSource.fullName;
-        if (substringAfterLast(libFile, '/') == uriName) {
-          String fixedUri;
-          // may be "package:" URI
-          String libPackageUri = findNonFileUri(context, libFile);
-          if (libPackageUri != null) {
-            fixedUri = libPackageUri;
-          } else {
-            String relativeFile = relative(libFile, from: unitLibraryFolder);
-            fixedUri = split(relativeFile).join('/');
-          }
-          // add fix
-          SourceRange range = rf.rangeNode(node);
-          _addReplaceEdit(range, "'$fixedUri'");
-          _addFix(DartFixKind.REPLACE_IMPORT_URI, [fixedUri]);
-        }
-      }
-    }
   }
 
   void _addFix_replaceVarWithDynamic() {

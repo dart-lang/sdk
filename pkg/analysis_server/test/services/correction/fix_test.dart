@@ -425,39 +425,6 @@ class A {
 ''');
   }
 
-  test_addPartOfDirective() async {
-    String partCode = r'''
-// Comment first.
-// Comment second.
-
-class A {}
-''';
-    addSource('/part.dart', partCode);
-    await resolveTestUnit('''
-library my.lib;
-part 'part.dart';
-''');
-    performAllAnalysisTasks();
-    AnalysisError error = await _findErrorToFix();
-    fix = await _assertHasFix(DartFixKind.ADD_PART_OF, error);
-    change = fix.change;
-    // apply to "file"
-    List<SourceFileEdit> fileEdits = change.edits;
-    expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/part.dart');
-    expect(
-        SourceEdit.applySequence(partCode, fileEdit.edits),
-        r'''
-// Comment first.
-// Comment second.
-
-part of my.lib;
-
-class A {}
-''');
-  }
-
   test_addSync_asyncFor() async {
     await resolveTestUnit('''
 import 'dart:async';
@@ -4059,33 +4026,6 @@ main() {
 ''');
   }
 
-  test_replaceImportUri_inProject() async {
-    testFile = '/project/bin/test.dart';
-    addSource('/project/foo/bar/lib.dart', '');
-    await resolveTestUnit('''
-import 'no/matter/lib.dart';
-''');
-    performAllAnalysisTasks();
-    await assertHasFix(
-        DartFixKind.REPLACE_IMPORT_URI,
-        '''
-import '../foo/bar/lib.dart';
-''');
-  }
-
-  test_replaceImportUri_package() async {
-    _configureMyPkg({'my_lib.dart': ''});
-    await resolveTestUnit('''
-import 'no/matter/my_lib.dart';
-''');
-    performAllAnalysisTasks();
-    await assertHasFix(
-        DartFixKind.REPLACE_IMPORT_URI,
-        '''
-import 'package:my_pkg/my_lib.dart';
-''');
-  }
-
   test_replaceVarWithDynamic() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;
@@ -5383,26 +5323,8 @@ class FixProcessorTest_Driver extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addPartOfDirective() {
-    return super.test_addPartOfDirective();
-  }
-
-  @failingTest
-  @override
   test_createFile_forPart_inPackageLib() {
     return super.test_createFile_forPart_inPackageLib();
-  }
-
-  @failingTest
-  @override
-  test_replaceImportUri_inProject() {
-    return super.test_replaceImportUri_inProject();
-  }
-
-  @failingTest
-  @override
-  test_replaceImportUri_package() {
-    return super.test_replaceImportUri_package();
   }
 }
 

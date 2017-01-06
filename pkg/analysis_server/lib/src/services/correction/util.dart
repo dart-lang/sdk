@@ -158,25 +158,6 @@ Expression climbPropertyAccess(AstNode node) {
 }
 
 /**
- * Attempts to convert the given absolute path into an absolute URI, such as
- * "dart" or "package" URI.
- *
- * [context] - the [AnalysisContext] to work in.
- * [path] - the absolute path, not `null`.
- *
- * Returns the absolute (non-file) URI or `null`.
- */
-String findNonFileUri(AnalysisContext context, String path) {
-  Source fileSource =
-      new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
-  Uri uri = context.sourceFactory.restoreUri(fileSource);
-  if (uri == null || uri.scheme == 'file') {
-    return null;
-  }
-  return uri.toString();
-}
-
-/**
  * Returns the EOL to use for the given [code].
  */
 String getCodeEndOfLine(String code) {
