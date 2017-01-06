@@ -10,9 +10,9 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/uri_resolver.dart';
 import 'package:front_end/src/scanner/scanner.dart';
-import 'package:package_config/packages_file.dart' as package_config;
 
 import 'compiler_options.dart';
 
@@ -23,23 +23,9 @@ import 'compiler_options.dart';
 /// in the program.
 Future<Graph> graphForProgram(
     List<Uri> sources, CompilerOptions options) async {
-  Map<String, Uri> packages;
-  if (options.packagesFilePath == null) {
-    throw new UnimplementedError(); // TODO(paulberry): search for .packages
-  } else if (options.packagesFilePath.isEmpty) {
-    packages = {};
-  } else {
-    var contents = await options.fileSystem
-        .entityForPath(options.packagesFilePath)
-        .readAsBytes();
-    var baseLocation =
-        options.fileSystem.context.toUri(options.packagesFilePath);
-    packages = package_config.parse(contents, baseLocation);
-  }
-  var sdkLibraries = <String, Uri>{}; // TODO(paulberry): support SDK libraries
-  var uriResolver =
-      new UriResolver(packages, sdkLibraries, options.fileSystem.context);
-  var walker = new _Walker(options.fileSystem, uriResolver, options.compileSdk);
+  var processedOptions = new ProcessedOptions(options);
+  var uriResolver = await processedOptions.getUriResolver();
+  var walker = new _Walker(processedOptions.fileSystem, uriResolver, processedOptions.compileSdk);
   var startingPoint = new _StartingPoint(walker, sources);
   await walker.walk(startingPoint);
   return walker.graph;
