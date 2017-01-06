@@ -629,10 +629,4 @@ main() {
 class RenameUnitMemberTest_Driver extends RenameUnitMemberTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_createChange_FunctionElement_imported() {
-    return test_createChange_FunctionElement_imported();
-  }
 }

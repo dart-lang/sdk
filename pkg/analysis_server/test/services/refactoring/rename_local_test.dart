@@ -559,16 +559,4 @@ main() {
 class RenameLocalTest_Driver extends RenameLocalTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_createChange_parameter_named_inOtherFile() {
-    return test_createChange_parameter_named_inOtherFile();
-  }
-
-  @failingTest
-  @override
-  test_createChange_parameter_named_updateHierarchy() {
-    return test_createChange_parameter_named_updateHierarchy();
-  }
 }

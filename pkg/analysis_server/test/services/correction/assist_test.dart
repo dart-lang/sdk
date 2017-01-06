@@ -4217,13 +4217,13 @@ class AssistProcessorTest_Driver extends AssistProcessorTest {
   @failingTest
   @override
   test_addTypeAnnotation_local_OK_addImport_notLibraryUnit() {
-    return test_addTypeAnnotation_local_OK_addImport_notLibraryUnit();
+    return super.test_addTypeAnnotation_local_OK_addImport_notLibraryUnit();
   }
 
   @failingTest
   @override
   test_invalidSelection() {
-    return test_invalidSelection();
+    return super.test_invalidSelection();
   }
 }
 
