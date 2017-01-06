@@ -1205,7 +1205,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildTypeLiteral(constant), callStructure, arguments);
+    return associateNode(
+        buildCall(buildTypeLiteral(constant), callStructure, arguments), node);
   }
 
   ir.Expression buildTypeLiteralSet(TypeConstantExpression constant, Node rhs) {
@@ -2234,7 +2235,8 @@ class KernelVisitor extends Object
       // TODO(ahe): Support deferred load.
       return new ir.InvalidExpression();
     }
-    return buildCall(buildStaticGet(getter), callStructure, arguments);
+    return associateNode(
+        buildCall(buildStaticGet(getter), callStructure, arguments), node);
   }
 
   @override
@@ -2588,7 +2590,8 @@ class KernelVisitor extends Object
   @override
   ir.MethodInvocation visitThisInvoke(
       Send node, NodeList arguments, CallStructure callStructure, _) {
-    return buildCall(new ir.ThisExpression(), callStructure, arguments);
+    return associateNode(
+        buildCall(new ir.ThisExpression(), callStructure, arguments), node);
   }
 
   Accessor buildThisPropertyAccessor(Name name) {
@@ -2675,7 +2678,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildTypeVariable(element), callStructure, arguments);
+    return associateNode(
+        buildCall(buildTypeVariable(element), callStructure, arguments), node);
   }
 
   @override
@@ -2705,7 +2709,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildTypeLiteral(constant), callStructure, arguments);
+    return associateNode(
+        buildCall(buildTypeLiteral(constant), callStructure, arguments), node);
   }
 
   @override
