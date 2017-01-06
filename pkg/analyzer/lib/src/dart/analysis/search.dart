@@ -88,6 +88,8 @@ class Search {
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block);
+    } else if (kind == ElementKind.LIBRARY) {
+      return _searchReferences_Library(element);
     } else if (kind == ElementKind.PARAMETER) {
       return _searchReferences_Parameter(element);
     } else if (kind == ElementKind.PREFIX) {
@@ -290,6 +292,34 @@ class Search {
           new _ImportElementReferencesVisitor(element, unitElement);
       unitAnalysisResult.unit.accept(visitor);
       results.addAll(visitor.results);
+    }
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Library(
+      LibraryElement element) async {
+    // Search only in drivers to which the library with the prefix was added.
+    String path = element.source.fullName;
+    if (!_driver.addedFiles.contains(path)) {
+      return const <SearchResult>[];
+    }
+
+    List<SearchResult> results = <SearchResult>[];
+    for (CompilationUnitElement unitElement in element.units) {
+      String unitPath = unitElement.source.fullName;
+      AnalysisResult unitAnalysisResult = await _driver.getResult(unitPath);
+      CompilationUnit unit = unitAnalysisResult.unit;
+      for (Directive directive in unit.directives) {
+        if (directive is PartOfDirective && directive.element == element) {
+          results.add(new SearchResult._(
+              unit.element,
+              SearchResultKind.REFERENCE,
+              directive.libraryName.offset,
+              directive.libraryName.length,
+              true,
+              false));
+        }
+      }
     }
     return results;
   }
