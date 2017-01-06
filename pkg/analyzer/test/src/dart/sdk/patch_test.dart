@@ -162,6 +162,63 @@ class C {
     }, throwsArgumentError);
   }
 
+  test_class_constructor_patch_fail_fieldFormalParam_inBase() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named(this.f);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named() : f = 2 {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_fieldFormalParam_inPatch() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named(int f);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(this.f) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_fieldFormalParam_inPatchAndBase() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named(this.f);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(this.f) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
   test_class_constructor_patch_fail_hasInitializers() {
     expect(() {
       _doTopLevelPatching(
@@ -194,6 +251,42 @@ class C {
 class C {
   @patch
   C.named() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_signatureChange() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external C.named(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(double x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_signatureChange_nameOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external C.named(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(int y) {}
 }
 ''');
     }, throwsArgumentError);
@@ -408,6 +501,254 @@ class C {
 }
 ''');
     }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(double x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_extraArgument() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(int x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_extraTypeTokens() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external List f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  List<int> f() => null;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_functionTypedParam_paramType() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(void x(int y));
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(void x(double y)) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_functionTypedParam_returnType() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x());
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(double x()) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_makeReturnTypeExplicit() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  int f() => 0;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_missingArgument() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_missingTypeTokens() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external List<int> f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  List f() => null;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_nameOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(int y) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_returnTypeOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  int f(int x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_success_defaultFormalParameter() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  external void f(int x = 0);
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  void f(int x) {}
+}
+''');
+    ClassDeclaration cls = unit.declarations[0];
+    MethodDeclaration method = cls.members[0];
+    FormalParameter parameter = method.parameters.parameters[0];
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+  }
+
+  test_class_method_patch_success_implicitReturnType() {
+    _doTopLevelPatching(
+        r'''
+class C {
+  external f();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  f() => null;
+}
+''');
+  }
+
+  test_class_method_patch_success_multiTokenReturnType() {
+    _doTopLevelPatching(
+        r'''
+class C {
+  external List<int> f();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  List<int> f() => null;
+}
+''');
+  }
+
+  test_class_method_patch_success_signatureChange_functionTypedParam_matching() {
+    _doTopLevelPatching(
+        r'''
+class C {
+  external void f(void x(int y));
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  void f(void x(int y)) {}
+}
+''');
   }
 
   test_class_setter_append() {
@@ -751,6 +1092,45 @@ external int foo();
 int foo() {int v = 1; return v + 2;}
 ''');
     _assertUnitCode(unit, 'int foo() {int v = 1; return v + 2;}');
+  }
+
+  test_topLevel_patch_function_fail_signatureChange() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+external void f(int x);
+''',
+          r'''
+@patch
+void f(double x) {}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_patch_function_fail_signatureChange_nameOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+external void f(int x);
+''',
+          r'''
+@patch
+void f(int y) {}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_patch_function_fail_signatureChange_returnTypeOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+external void f(int x);
+''',
+          r'''
+@patch
+int f(int x) {}
+''');
+    }, throwsArgumentError);
   }
 
   test_topLevel_patch_getter() {
