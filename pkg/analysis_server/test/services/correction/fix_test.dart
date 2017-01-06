@@ -30,8 +30,9 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
-    defineReflectiveTests(FixProcessorTest_Driver);
     defineReflectiveTests(LintFixTest);
+    defineReflectiveTests(FixProcessorTest_Driver);
+    defineReflectiveTests(LintFixTest_Driver);
   });
 }
 
@@ -144,6 +145,14 @@ bool test() {
     }
   }
 
+  Future<List<AnalysisError>> _computeErrors() async {
+    if (enableNewAnalysisDriver) {
+      return (await driver.getResult(testFile)).errors;
+    } else {
+      return context.computeErrors(testSource);
+    }
+  }
+
   /**
    * Computes fixes for the given [error] in [testUnit].
    */
@@ -176,8 +185,13 @@ bool test() {
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
       'my_pkg': [myPkgFolder]
     });
-    context.sourceFactory = new SourceFactory(
+    SourceFactory sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      context.sourceFactory = sourceFactory;
+    }
     // force 'my_pkg' resolution
     addSource(
         '/tmp/other.dart',
@@ -187,12 +201,7 @@ bool test() {
   }
 
   Future<AnalysisError> _findErrorToFix() async {
-    List<AnalysisError> errors;
-    if (enableNewAnalysisDriver) {
-      errors = (await driver.getResult(testFile)).errors;
-    } else {
-      errors = context.computeErrors(testSource);
-    }
+    List<AnalysisError> errors = await _computeErrors();
     if (errorFilter != null) {
       errors = errors.where(errorFilter).toList();
     }
@@ -207,10 +216,6 @@ bool test() {
       positions.add(new Position(testFile, offset));
     }
     return positions;
-  }
-
-  void _performAnalysis() {
-    while (context.performAnalysisTask().hasMoreWork);
   }
 }
 
@@ -432,7 +437,7 @@ class A {}
 library my.lib;
 part 'part.dart';
 ''');
-    _performAnalysis();
+    performAllAnalysisTasks();
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.ADD_PART_OF, error);
     change = fix.change;
@@ -488,7 +493,7 @@ main() {
   await foo();
 }
 ''');
-    List<AnalysisError> errors = context.computeErrors(testSource);
+    List<AnalysisError> errors = await _computeErrors();
     expect(errors, hasLength(2));
     errors.sort((a, b) => a.message.compareTo(b.message));
     // No fix for ";".
@@ -3826,7 +3831,7 @@ class A {
 main(p) {
   p i s Null;
 }''');
-    List<AnalysisError> errors = context.computeErrors(testSource);
+    List<AnalysisError> errors = await _computeErrors();
     for (var error in errors) {
       await _computeFixes(error);
     }
@@ -5402,123 +5407,8 @@ class FixProcessorTest_Driver extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addSync_blockFunctionBody() {
-    return super.test_addSync_blockFunctionBody();
-  }
-
-  @failingTest
-  @override
   test_createFile_forPart_inPackageLib() {
     return super.test_createFile_forPart_inPackageLib();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryPackage_preferDirectOverExport() {
-    return super.test_importLibraryPackage_preferDirectOverExport();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryPackage_preferDirectOverExport_src() {
-    return super.test_importLibraryPackage_preferDirectOverExport_src();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryPackage_preferPublicOverPrivate() {
-    return super.test_importLibraryPackage_preferPublicOverPrivate();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_annotation() {
-    return super.test_importLibraryProject_withClass_annotation();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_constInstanceCreation() {
-    return super.test_importLibraryProject_withClass_constInstanceCreation();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_hasOtherLibraryWithPrefix() {
-    return super
-        .test_importLibraryProject_withClass_hasOtherLibraryWithPrefix();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inParentFolder() {
-    return super.test_importLibraryProject_withClass_inParentFolder();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inRelativeFolder() {
-    return super.test_importLibraryProject_withClass_inRelativeFolder();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inSameFolder() {
-    return super.test_importLibraryProject_withClass_inSameFolder();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withFunction() {
-    return super.test_importLibraryProject_withFunction();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withFunction_unresolvedMethod() {
-    return super.test_importLibraryProject_withFunction_unresolvedMethod();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withFunctionTypeAlias() {
-    return super.test_importLibraryProject_withFunctionTypeAlias();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryProject_withTopLevelVariable() {
-    return super.test_importLibraryProject_withTopLevelVariable();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList() {
-    return super.test_importLibrarySdk_withClass_itemOfList();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable() {
-    return super.test_importLibrarySdk_withTopLevelVariable();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable_annotation() {
-    return super.test_importLibrarySdk_withTopLevelVariable_annotation();
-  }
-
-  @failingTest
-  @override
-  test_importLibraryShow_project() {
-    return super.test_importLibraryShow_project();
-  }
-
-  @failingTest
-  @override
-  test_noException_1() {
-    return super.test_noException_1();
   }
 
   @failingTest
@@ -5760,6 +5650,12 @@ main() {
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
+}
+
+@reflectiveTest
+class LintFixTest_Driver extends LintFixTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
 
 class _DartFixContextImpl implements DartFixContext {

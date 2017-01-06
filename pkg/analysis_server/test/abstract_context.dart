@@ -113,6 +113,9 @@ class AbstractContextTest {
    * Performs all analysis tasks in [context].
    */
   void performAllAnalysisTasks() {
+    if (enableNewAnalysisDriver) {
+      return;
+    }
     while (true) {
       engine.AnalysisResult result = context.performAnalysisTask();
       if (!result.hasMoreWork) {
