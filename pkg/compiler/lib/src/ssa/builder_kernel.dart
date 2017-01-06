@@ -23,7 +23,6 @@ import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
-import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
 import '../tree/nodes.dart' show Node, BreakStatement;
 import '../types/masks.dart';
@@ -114,9 +113,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   JavaScriptBackend get backend => compiler.backend;
-
-  @override
-  TreeElements get elements => resolvedAst.elements;
 
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
@@ -298,8 +294,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       if (field.initializer == null) {
         fieldValues[field] = graph.addConstantNull(closedWorld);
       } else {
+        // Gotta update the resolvedAst when we're looking at field values
+        // outside the constructor.
+        astAdapter.pushResolvedAst(field);
         field.initializer.accept(this);
         fieldValues[field] = pop();
+        astAdapter.popResolvedAstStack();
       }
     }
 
@@ -386,7 +386,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return builtArguments;
   }
 
-  /// Inlines the given super [constructor]'s initializers by collecting it's
+  /// Inlines the given super [constructor]'s initializers by collecting its
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
   void _buildInlinedInitializers(ir.Constructor constructor,
@@ -793,8 +793,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target =
-        elements.getTargetDefinition(astAdapter.getNode(doStatement));
+    JumpTarget target = astAdapter.elements
+        .getTargetDefinition(astAdapter.getNode(doStatement));
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -906,8 +906,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        JumpTarget target =
-            elements.getTargetDefinition(astAdapter.getNode(doStatement));
+        JumpTarget target = astAdapter.elements
+            .getTargetDefinition(astAdapter.getNode(doStatement));
         LabelDefinition label = target.addLabel(null, 'loop');
         label.setBreakTarget();
         HLabeledBlockInformation info = new HLabeledBlockInformation(

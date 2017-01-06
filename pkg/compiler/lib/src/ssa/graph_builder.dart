@@ -11,7 +11,6 @@ import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/js_backend.dart';
-import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -37,9 +36,6 @@ abstract class GraphBuilder {
 
   /// The JavaScript backend we are targeting in this compilation.
   JavaScriptBackend get backend;
-
-  /// The tree elements for the element being built into an SSA graph.
-  TreeElements get elements;
 
   CodegenRegistry get registry;
 

@@ -115,6 +115,9 @@ class _ResolvedUriTranslator implements ResolvedUriTranslator {
       bool allowInternalLibraryAccess = importingLibrary != null &&
           (importingLibrary.isPlatformLibrary ||
               importingLibrary.isPatch ||
+              // The memory scheme is specifically for unit tests that use the
+              // in-memory compiler.
+              importingLibrary.canonicalUri.scheme == 'memory' ||
               importingLibrary.canonicalUri.path
                   .contains('sdk/tests/compiler/dart2js_native'));
 
