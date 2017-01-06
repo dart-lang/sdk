@@ -60,6 +60,7 @@ redirecting_factory_reflection_test: Fail # mirrors not supported
 regress_13462_0_test: Fail # mirrors not supported
 regress_13462_1_test: Fail # mirrors not supported
 regress_18535_test: Fail # mirrors not supported
+regress_28255_test: Fail # mirrors not supported
 super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
