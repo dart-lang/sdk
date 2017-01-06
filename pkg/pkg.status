@@ -353,9 +353,10 @@ front_end/tool/*: SkipByDesign # Only meant to run on vm
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
+front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
-front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
+front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
 
 [ $compiler == dart2js && $fast_startup ]
 front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
