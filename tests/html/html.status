@@ -78,7 +78,7 @@ native_gc_test: Pass, Slow
 worker_test/functional: Pass, Crash # Issue 9929.
 
 [ $compiler == dart2js && $runtime == chrome ]
-fileapi_test/entry: Fail # TODO(dart2js-team): Please triage this failure.
+fileapi_test/entry: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
 media_stream_test/supported_MediaStreamEvent: RuntimeError # Please triage.
