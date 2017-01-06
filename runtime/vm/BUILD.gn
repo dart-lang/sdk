@@ -5,6 +5,7 @@
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
 import("gypi_contents.gni")
+import("../runtime_args.gni")
 
 config("libdart_vm_config") {
   if (defined(is_fuchsia) && is_fuchsia) {
