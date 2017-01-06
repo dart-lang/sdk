@@ -1659,28 +1659,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     });
 
     if (notInitFinalFields.isNotEmpty) {
-      AnalysisErrorWithProperties analysisError;
       List<String> names = notInitFinalFields.map((item) => item.name).toList();
       names.sort();
       if (names.length == 1) {
-        analysisError = _errorReporter.newErrorWithProperties(
+        _errorReporter.reportErrorForNode(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             constructor.returnType,
             names);
       } else if (names.length == 2) {
-        analysisError = _errorReporter.newErrorWithProperties(
+        _errorReporter.reportErrorForNode(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
             constructor.returnType,
             names);
       } else {
-        analysisError = _errorReporter.newErrorWithProperties(
+        _errorReporter.reportErrorForNode(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
             constructor.returnType,
             [names[0], names[1], names.length - 2]);
       }
-      analysisError.setProperty(
-          ErrorProperty.NOT_INITIALIZED_FIELDS, notInitFinalFields);
-      _errorReporter.reportError(analysisError);
     }
   }
 
@@ -6652,6 +6648,45 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       missingOverrides.add(executableElt);
     }
     return missingOverrides;
+  }
+
+  /**
+   * Return [FieldElement]s that are declared in the [ClassDeclaration] with
+   * the given [constructor], but are not initialized.
+   */
+  static List<FieldElement> computeNotInitializedFields(
+      ConstructorDeclaration constructor) {
+    Set<FieldElement> fields = new Set<FieldElement>();
+    var classDeclaration = constructor.parent as ClassDeclaration;
+    for (ClassMember fieldDeclaration in classDeclaration.members) {
+      if (fieldDeclaration is FieldDeclaration) {
+        for (VariableDeclaration field in fieldDeclaration.fields.variables) {
+          if (field.initializer == null) {
+            fields.add(field.element);
+          }
+        }
+      }
+    }
+
+    List<FormalParameter> parameters = constructor.parameters?.parameters ?? [];
+    for (FormalParameter parameter in parameters) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = (parameter as DefaultFormalParameter).parameter;
+      }
+      if (parameter is FieldFormalParameter) {
+        FieldFormalParameterElement element =
+            parameter.identifier.staticElement as FieldFormalParameterElement;
+        fields.remove(element.field);
+      }
+    }
+
+    for (ConstructorInitializer initializer in constructor.initializers) {
+      if (initializer is ConstructorFieldInitializer) {
+        fields.remove(initializer.fieldName.staticElement);
+      }
+    }
+
+    return fields.toList();
   }
 
   /**

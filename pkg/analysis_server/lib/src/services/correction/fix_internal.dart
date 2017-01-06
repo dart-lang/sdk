@@ -2167,33 +2167,31 @@ class FixProcessor {
     ConstructorDeclaration constructor = node.parent;
     // add these fields
     List<FieldElement> fields =
-        error.getProperty(ErrorProperty.NOT_INITIALIZED_FIELDS);
-    if (fields != null) {
-      // prepare new parameters code
-      fields.sort((a, b) => a.nameOffset - b.nameOffset);
-      String fieldParametersCode =
-          fields.map((field) => 'this.${field.name}').join(', ');
-      // prepare the last required parameter
-      FormalParameter lastRequiredParameter;
-      List<FormalParameter> parameters = constructor.parameters.parameters;
-      for (FormalParameter parameter in parameters) {
-        if (parameter.kind == ParameterKind.REQUIRED) {
-          lastRequiredParameter = parameter;
-        }
+        ErrorVerifier.computeNotInitializedFields(constructor);
+    // prepare new parameters code
+    fields.sort((a, b) => a.nameOffset - b.nameOffset);
+    String fieldParametersCode =
+        fields.map((field) => 'this.${field.name}').join(', ');
+    // prepare the last required parameter
+    FormalParameter lastRequiredParameter;
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+    for (FormalParameter parameter in parameters) {
+      if (parameter.kind == ParameterKind.REQUIRED) {
+        lastRequiredParameter = parameter;
       }
-      // append new field formal initializers
-      if (lastRequiredParameter != null) {
-        _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
-      } else {
-        int offset = constructor.parameters.leftParenthesis.end;
-        if (parameters.isNotEmpty) {
-          fieldParametersCode += ', ';
-        }
-        _addInsertEdit(offset, fieldParametersCode);
-      }
-      // add proposal
-      _addFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
     }
+    // append new field formal initializers
+    if (lastRequiredParameter != null) {
+      _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
+    } else {
+      int offset = constructor.parameters.leftParenthesis.end;
+      if (parameters.isNotEmpty) {
+        fieldParametersCode += ', ';
+      }
+      _addInsertEdit(offset, fieldParametersCode);
+    }
+    // add proposal
+    _addFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
   }
 
   void _addFix_useEffectiveIntegerDivision() {

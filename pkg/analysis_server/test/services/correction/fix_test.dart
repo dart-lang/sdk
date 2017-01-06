@@ -5383,24 +5383,6 @@ class FixProcessorTest_Driver extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addFieldFormalParameters_hasRequiredParameter() {
-    return super.test_addFieldFormalParameters_hasRequiredParameter();
-  }
-
-  @failingTest
-  @override
-  test_addFieldFormalParameters_noParameters() {
-    return super.test_addFieldFormalParameters_noParameters();
-  }
-
-  @failingTest
-  @override
-  test_addFieldFormalParameters_noRequiredParameter() {
-    return super.test_addFieldFormalParameters_noRequiredParameter();
-  }
-
-  @failingTest
-  @override
   test_addPartOfDirective() {
     return super.test_addPartOfDirective();
   }
