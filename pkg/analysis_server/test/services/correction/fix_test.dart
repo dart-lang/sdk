@@ -7,15 +7,18 @@ library test.services.correction.fix;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -27,6 +30,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
+    defineReflectiveTests(FixProcessorTest_Driver);
     defineReflectiveTests(LintFixTest);
   });
 }
@@ -72,7 +76,7 @@ bool test() {
   }
 
   assertHasFix(FixKind kind, String expected) async {
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(kind, error);
     change = fix.change;
     // apply to "file"
@@ -84,7 +88,7 @@ bool test() {
   }
 
   assertNoFix(FixKind kind) async {
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     List<Fix> fixes = await _computeFixes(error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
@@ -144,9 +148,19 @@ bool test() {
    * Computes fixes for the given [error] in [testUnit].
    */
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    FixContextImpl fixContext = new FixContextImpl(provider, context, error);
-    DefaultFixContributor contributor = new DefaultFixContributor();
-    return contributor.computeFixes(fixContext);
+    if (enableNewAnalysisDriver) {
+      DartFixContext fixContext = new _DartFixContextImpl(
+          provider,
+          driver.getTopLevelNameDeclarations,
+          resolutionMap.elementDeclaredByCompilationUnit(testUnit).context,
+          testUnit,
+          error);
+      return await new DefaultFixContributor().internalComputeFixes(fixContext);
+    } else {
+      FixContextImpl fixContext = new FixContextImpl(provider, context, error);
+      DefaultFixContributor contributor = new DefaultFixContributor();
+      return contributor.computeFixes(fixContext);
+    }
   }
 
   /**
@@ -172,8 +186,13 @@ bool test() {
             .join('\n'));
   }
 
-  AnalysisError _findErrorToFix() {
-    List<AnalysisError> errors = context.computeErrors(testSource);
+  Future<AnalysisError> _findErrorToFix() async {
+    List<AnalysisError> errors;
+    if (enableNewAnalysisDriver) {
+      errors = (await driver.getResult(testFile)).errors;
+    } else {
+      errors = context.computeErrors(testSource);
+    }
     if (errorFilter != null) {
       errors = errors.where(errorFilter).toList();
     }
@@ -414,7 +433,7 @@ library my.lib;
 part 'part.dart';
 ''');
     _performAnalysis();
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.ADD_PART_OF, error);
     change = fix.change;
     // apply to "file"
@@ -889,7 +908,7 @@ main() {
   lib.Test t = null;
 }
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_CLASS, error);
     change = fix.change;
     // apply to "lib.dart"
@@ -1772,7 +1791,7 @@ class A {
     await resolveTestUnit('''
 import 'my_file.dart';
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
     change = fix.change;
     // validate change
@@ -1809,7 +1828,7 @@ import 'my_file.txt';
     await resolveTestUnit('''
 import 'a/bb/c_cc/my_lib.dart';
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
     change = fix.change;
     // validate change
@@ -1829,7 +1848,7 @@ import 'a/bb/c_cc/my_lib.dart';
     await resolveTestUnit('''
 import 'a/bb/my_lib.dart';
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
     change = fix.change;
     // validate change
@@ -1849,7 +1868,7 @@ import 'a/bb/my_lib.dart';
 library my.lib;
 part 'my_part.dart';
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
     change = fix.change;
     // validate change
@@ -1883,7 +1902,7 @@ part 'my_part.dart';
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
     // prepare fix
     testUnit = await resolveLibraryUnit(testSource);
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
     change = fix.change;
     // validate change
@@ -5097,7 +5116,7 @@ main(aaa.D d, aaa.E e) {
   d.foo(e);
 }
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_METHOD, error);
     change = fix.change;
     // apply to "test2.dart"
@@ -5132,7 +5151,7 @@ main(test2.D d, test2.E e) {
   d.foo(e);
 }
 ''');
-    AnalysisError error = _findErrorToFix();
+    AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_METHOD, error);
     change = fix.change;
     // apply to "test2.dart"
@@ -5349,6 +5368,168 @@ main() {
   print(pref.PI);
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class FixProcessorTest_Driver extends FixProcessorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_hasRequiredParameter() {
+    return test_addFieldFormalParameters_hasRequiredParameter();
+  }
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_noParameters() {
+    return test_addFieldFormalParameters_noParameters();
+  }
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_noRequiredParameter() {
+    return test_addFieldFormalParameters_noRequiredParameter();
+  }
+
+  @failingTest
+  @override
+  test_addPartOfDirective() {
+    return test_addPartOfDirective();
+  }
+
+  @failingTest
+  @override
+  test_addSync_blockFunctionBody() {
+    return test_addSync_blockFunctionBody();
+  }
+
+  @failingTest
+  @override
+  test_createFile_forPart_inPackageLib() {
+    return test_createFile_forPart_inPackageLib();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryPackage_preferDirectOverExport() {
+    return test_importLibraryPackage_preferDirectOverExport();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryPackage_preferDirectOverExport_src() {
+    return test_importLibraryPackage_preferDirectOverExport_src();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryPackage_preferPublicOverPrivate() {
+    return test_importLibraryPackage_preferPublicOverPrivate();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_annotation() {
+    return test_importLibraryProject_withClass_annotation();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_constInstanceCreation() {
+    return test_importLibraryProject_withClass_constInstanceCreation();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_hasOtherLibraryWithPrefix() {
+    return test_importLibraryProject_withClass_hasOtherLibraryWithPrefix();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_inParentFolder() {
+    return test_importLibraryProject_withClass_inParentFolder();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_inRelativeFolder() {
+    return test_importLibraryProject_withClass_inRelativeFolder();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_inSameFolder() {
+    return test_importLibraryProject_withClass_inSameFolder();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withFunction() {
+    return test_importLibraryProject_withFunction();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withFunction_unresolvedMethod() {
+    return test_importLibraryProject_withFunction_unresolvedMethod();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withFunctionTypeAlias() {
+    return test_importLibraryProject_withFunctionTypeAlias();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryProject_withTopLevelVariable() {
+    return test_importLibraryProject_withTopLevelVariable();
+  }
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_itemOfList() {
+    return test_importLibrarySdk_withClass_itemOfList();
+  }
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withTopLevelVariable() {
+    return test_importLibrarySdk_withTopLevelVariable();
+  }
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withTopLevelVariable_annotation() {
+    return test_importLibrarySdk_withTopLevelVariable_annotation();
+  }
+
+  @failingTest
+  @override
+  test_importLibraryShow_project() {
+    return test_importLibraryShow_project();
+  }
+
+  @failingTest
+  @override
+  test_noException_1() {
+    return test_noException_1();
+  }
+
+  @failingTest
+  @override
+  test_replaceImportUri_inProject() {
+    return test_replaceImportUri_inProject();
+  }
+
+  @failingTest
+  @override
+  test_replaceImportUri_package() {
+    return test_replaceImportUri_package();
   }
 }
 
@@ -5578,4 +5759,24 @@ main() {
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
+}
+
+class _DartFixContextImpl implements DartFixContext {
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final GetTopLevelDeclarations getTopLevelDeclarations;
+
+  @override
+  final AnalysisContext analysisContext;
+
+  @override
+  final CompilationUnit unit;
+
+  @override
+  final AnalysisError error;
+
+  _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
+      this.analysisContext, this.unit, this.error);
 }
