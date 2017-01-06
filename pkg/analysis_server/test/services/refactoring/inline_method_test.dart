@@ -19,6 +19,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineMethodTest);
+    defineReflectiveTests(InlineMethodTest_Driver);
   });
 }
 
@@ -788,8 +789,8 @@ class A {
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
-  Stream<int> foo() async {
-    return await test;
+  Stream<int> foo() async* {
+    yield await test;
   }
 }
 ''');
@@ -798,8 +799,8 @@ class A {
     return _assertSuccessfulRefactoring(r'''
 import 'dart:async';
 class A {
-  Stream<int> foo() async {
-    return await 42;
+  Stream<int> foo() async* {
+    yield await 42;
   }
 }
 ''');
@@ -973,9 +974,10 @@ class A {
     await indexTestUnit(r'''
 import 'dart:async';
 class A {
-  Future<int> test() async => 42;
-  Future foo() {
-    return [test(), test()];
+  Future<int> foo() async => 42;
+  Future<int> test() async => await foo();
+  Future bar() {
+    return new Future.value([test(), test()]);
   }
 }
 ''');
@@ -984,8 +986,9 @@ class A {
     return _assertSuccessfulRefactoring(r'''
 import 'dart:async';
 class A {
-  Future foo() async {
-    return [42, 42];
+  Future<int> foo() async => 42;
+  Future bar() async {
+    return new Future.value([(await foo()), (await foo())]);
   }
 }
 ''');
@@ -1051,7 +1054,6 @@ class A {
 class B extends A {
   static var FB = 2;
   test() {
-    print(FA);
     print(FB);
     print(A.FA);
     print(B.FB);
@@ -1073,7 +1075,6 @@ class B extends A {
 }
 main() {
   B b = new B();
-  print(A.FA);
   print(B.FB);
   print(A.FA);
   print(B.FB);
@@ -1715,4 +1716,10 @@ main(bool p, bool p2, bool p3) {
     refactoring = new InlineMethodRefactoring(
         searchEngine, getResolvedUnitWithElement, testUnit, offset);
   }
+}
+
+@reflectiveTest
+class InlineMethodTest_Driver extends InlineMethodTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
