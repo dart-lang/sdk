@@ -316,6 +316,7 @@ regress_22700_test: RuntimeError
 regress_23408_test: RuntimeError
 regress_27164_test: CompileTimeError
 regress_r24720_test: RuntimeError
+regress_28278_test: RuntimeError
 reify_typevar_test: RuntimeError
 script1_negative_test: Fail
 script2_negative_test: Fail
