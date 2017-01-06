@@ -503,10 +503,14 @@ main() {
     Source appSource = addSource('/app.dart', appCode);
     testSource = addSource('/test.dart', testCode);
     // resolve
-    context.resolveCompilationUnit2(appSource, appSource);
-    testUnit = context.resolveCompilationUnit2(testSource, appSource);
-    testUnitElement = testUnit.element;
-    testLibraryElement = testUnitElement.library;
+    if (enableNewAnalysisDriver) {
+      await resolveTestUnit(testCode);
+    } else {
+      context.resolveCompilationUnit2(appSource, appSource);
+      testUnit = context.resolveCompilationUnit2(testSource, appSource);
+      testUnitElement = testUnit.element;
+      testLibraryElement = testUnitElement.library;
+    }
     // prepare the assist
     offset = findOffset('v = ');
     assist = await _assertHasAssist(DartAssistKind.ADD_TYPE_ANNOTATION);
@@ -2689,8 +2693,9 @@ main(p) {
 
   test_invalidSelection() async {
     await resolveTestUnit('');
-    List<Assist> assists = await computeAssists(plugin, context,
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source, -1, 0);
+    offset = -1;
+    length = 0;
+    List<Assist> assists = await _computeAssists();
     expect(assists, isEmpty);
   }
 
@@ -4213,18 +4218,6 @@ main() {
 class AssistProcessorTest_Driver extends AssistProcessorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_addTypeAnnotation_local_OK_addImport_notLibraryUnit() {
-    return super.test_addTypeAnnotation_local_OK_addImport_notLibraryUnit();
-  }
-
-  @failingTest
-  @override
-  test_invalidSelection() {
-    return super.test_invalidSelection();
-  }
 }
 
 class _DartAssistContextForValues implements DartAssistContext {
