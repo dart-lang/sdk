@@ -43,9 +43,9 @@ ClassMirror reflectClass(Type key) {
 }
 
 @patch
-TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
+TypeMirror reflectType(Type key) {
   if (key == dynamic) {
     return currentMirrorSystem().dynamicType;
   }
-  return js.reflectType(key, typeArguments);
+  return js.reflectType(key);
 }

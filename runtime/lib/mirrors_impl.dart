@@ -1645,8 +1645,6 @@ class _Mirrors {
       native "Mirrors_makeLocalClassMirror";
   static TypeMirror makeLocalTypeMirror(Type key)
       native "Mirrors_makeLocalTypeMirror";
-  static Type instantiateGenericType(Type key, typeArguments)
-      native "Mirrors_instantiateGenericType";
 
   static Expando<ClassMirror> _declarationCache = new Expando("ClassMirror");
   static Expando<TypeMirror> _instantiationCache = new Expando("TypeMirror");
@@ -1663,10 +1661,7 @@ class _Mirrors {
     return classMirror;
   }
 
-  static TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
-    if (typeArguments != null) {
-      key = _instantiateType(key, typeArguments);
-    }
+  static TypeMirror reflectType(Type key) {
     var typeMirror = _instantiationCache[key];
     if (typeMirror == null) {
       typeMirror = makeLocalTypeMirror(key);
@@ -1676,13 +1671,5 @@ class _Mirrors {
       }
     }
     return typeMirror;
-  }
-
-  static Type _instantiateType(Type key, List<Type> typeArguments) {
-    if (typeArguments.isEmpty) {
-      throw new ArgumentError.value(
-        typeArguments, 'typeArguments', 'Type arguments list cannot be empty.');
-    }
-    return instantiateGenericType(key, typeArguments.toList(growable: false));
   }
 }

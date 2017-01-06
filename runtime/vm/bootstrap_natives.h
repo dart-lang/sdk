@@ -366,7 +366,6 @@ namespace dart {
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
-  V(Mirrors_instantiateGenericType, 2)                                         \
   V(Mirrors_mangleName, 2)                                                     \
   V(MirrorReference_equals, 2)                                                 \
   V(MirrorSystem_libraries, 0)                                                 \
