@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -28,11 +29,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   void addTestSource(String code, [Uri uri]) {
     testCode = code;
     testSource = addSource(testFile, code, uri);
-  }
-
-  void assertNoErrorsInSource(Source source) {
-    List<AnalysisError> errors = context.getErrors(source).errors;
-    expect(errors, isEmpty);
   }
 
   Element findElement(String name, [ElementKind kind]) {
@@ -101,9 +97,26 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<Null> resolveTestUnit(String code) async {
     addTestSource(code);
-    testUnit = await resolveLibraryUnit(testSource);
-    if (verifyNoTestUnitErrors) {
-      assertNoErrorsInSource(testSource);
+    if (enableNewAnalysisDriver) {
+      var result = await driver.getResult(testFile);
+      testUnit = (result).unit;
+      if (verifyNoTestUnitErrors) {
+        expect(result.errors.where((AnalysisError error) {
+          return
+            error.errorCode != HintCode.DEAD_CODE &&
+            error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
+              error.errorCode != HintCode.UNUSED_CATCH_STACK &&
+              error.errorCode != HintCode.UNUSED_ELEMENT &&
+              error.errorCode != HintCode.UNUSED_FIELD &&
+              error.errorCode != HintCode.UNUSED_IMPORT &&
+              error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
+        }), isEmpty);
+      }
+    } else {
+      testUnit = await resolveLibraryUnit(testSource);
+      if (verifyNoTestUnitErrors) {
+        expect(context.getErrors(testSource).errors, isEmpty);
+      }
     }
     testUnitElement = testUnit.element;
     testLibraryElement = testUnitElement.library;

@@ -7,10 +7,14 @@ library test.services.correction.assist;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -23,6 +27,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
+    defineReflectiveTests(AssistProcessorTest_Driver);
   });
 }
 
@@ -65,12 +70,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
    * Asserts that there is no [Assist] of the given [kind] at [offset].
    */
   assertNoAssist(AssistKind kind) async {
-    List<Assist> assists = await computeAssists(
-        plugin,
-        context,
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
-        offset,
-        length);
+    List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
@@ -505,7 +505,6 @@ main() {
     // resolve
     context.resolveCompilationUnit2(appSource, appSource);
     testUnit = context.resolveCompilationUnit2(testSource, appSource);
-    assertNoErrorsInSource(testSource);
     testUnitElement = testUnit.element;
     testLibraryElement = testUnitElement.library;
     // prepare the assist
@@ -813,7 +812,7 @@ main() {
 main() {
   f(12345);
 }
-int f(p) {}
+void f(p) {}
 ''');
     await assertNoAssistAt('345', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
@@ -1360,7 +1359,7 @@ class A {
   test_convertToFieldParameter_OK_firstInitializer() async {
     await resolveTestUnit('''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
 }
@@ -1370,7 +1369,7 @@ class A {
         DartAssistKind.CONVERT_TO_FIELD_PARAMETER,
         '''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(this.aaa2, int bbb) : bbb2 = bbb;
 }
@@ -1420,7 +1419,7 @@ class A {
   test_convertToFieldParameter_OK_secondInitializer() async {
     await resolveTestUnit('''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
 }
@@ -1430,7 +1429,7 @@ class A {
         DartAssistKind.CONVERT_TO_FIELD_PARAMETER,
         '''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(int aaa, this.bbb2) : aaa2 = aaa;
 }
@@ -1775,6 +1774,7 @@ main(List<String> items) {
   }
 
   test_convertToGetter_BAD_noInitializer() async {
+    verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 class A {
   final int foo;
@@ -2498,6 +2498,7 @@ main() {
   }
 
   test_importAddShow_BAD_unresolvedUri() async {
+    verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 import '/no/such/lib.dart';
 ''');
@@ -4162,12 +4163,7 @@ main() {
    * Computes assists and verifies that there is an assist of the given kind.
    */
   Future<Assist> _assertHasAssist(AssistKind kind) async {
-    List<Assist> assists = await computeAssists(
-        plugin,
-        context,
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
-        offset,
-        length);
+    List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         return assist;
@@ -4185,6 +4181,19 @@ main() {
     }
   }
 
+  Future<List<Assist>> _computeAssists() async {
+    CompilationUnitElement testUnitElement =
+        resolutionMap.elementDeclaredByCompilationUnit(testUnit);
+    DartAssistContext assistContext = new _DartAssistContextForValues(
+        testUnitElement.source,
+        offset,
+        length,
+        testUnitElement.context,
+        testUnit);
+    AssistProcessor processor = new AssistProcessor(assistContext);
+    return await processor.compute();
+  }
+
   List<Position> _findResultPositions(List<String> searchStrings) {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
@@ -4198,4 +4207,42 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
+}
+
+@reflectiveTest
+class AssistProcessorTest_Driver extends AssistProcessorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_addTypeAnnotation_local_OK_addImport_notLibraryUnit() {
+    return test_addTypeAnnotation_local_OK_addImport_notLibraryUnit();
+  }
+
+  @failingTest
+  @override
+  test_invalidSelection() {
+    return test_invalidSelection();
+  }
+}
+
+class _DartAssistContextForValues implements DartAssistContext {
+  @override
+  final Source source;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final int selectionLength;
+
+  @override
+  final AnalysisContext analysisContext;
+
+  @override
+  final CompilationUnit unit;
+
+  _DartAssistContextForValues(this.source, this.selectionOffset,
+      this.selectionLength, this.analysisContext, this.unit);
 }
