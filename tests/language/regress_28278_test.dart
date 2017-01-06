@@ -18,7 +18,7 @@ class D {
 
 }
 
-main(args) async {
+main() async {
   var d = new D();
   await d.m();
   await d.m();
