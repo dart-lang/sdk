@@ -49,7 +49,7 @@ void compute(int foo) {
 
 **BAD:**
 ```
-void compute(boolean foo) {
+void compute(bool foo) {
   if (foo) {
     return;
   }
