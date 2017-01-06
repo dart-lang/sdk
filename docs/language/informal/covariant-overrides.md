@@ -1,6 +1,6 @@
 # Covariant Overrides
 
-Owner: rnystrom@, eernst@.
+Owner: rnystrom@, eernstg@.
 
 ## Summary
 
@@ -14,10 +14,12 @@ cannot otherwise be tightened, but it affects standard mode Dart in the
 sense that the syntax should be accepted and ignored. We specify the
 feature for strong mode first, and then for standard mode.
 
-## Informal specification (strong mode)
+## Informal specification
 
-We set out by giving the informal specification for this
-feature in strong mode.
+We set out by giving the informal specification for the syntax of this
+feature (which is shared among standard mode and strong mode). Following
+that, we specify the other aspects of the feature in standard mode,
+followed by those other aspects in strong mode.
 
 ### Syntax
 
@@ -42,11 +44,26 @@ declaredIdentifier: // CHANGED
   metadata 'covariant'? finalConstVarOrType identifier
 ```
 
-### Static checking
+### Standard mode
 
-The static checks are affected in several ways. In this section we discuss
-a few general issues; several larger subtopics are discussed in the
-following sections.
+The static analysis in standard mode ignores `covariant` modifiers, and so
+does the dynamic semantics.
+
+*This means that covariant overrides are essentially ignored in standard
+mode. The feature is useless because covariant parameter types are always
+allowed, but we wish to enable source code to be used in both standard and
+strong mode. So standard mode needs to include support for accepting and
+ignoring the syntax.*
+
+### Strong mode
+
+In strong mode, the covariant overrides feature affects the static analysis
+and dynamic semantics in several ways.
+
+#### Static checking
+
+In this section we discuss a few general issues; several larger subtopics
+are discussed in the following subsections.
 
 It is a compile-time error if the `covariant` modifier occurs on a
 parameter of a function which is not an instance method (which includes
@@ -59,7 +76,6 @@ operator) `m`, `p` is considered to be a **covariant parameter** if there
 is a direct or indirect supertype containing an overridden declaration of
 `m` where the parameter corresponding to `p` has the modifier `covariant`.
 
-<-- Commentary: Shown in italics as in the other informal specs -->
 *In short, the property of being covariant is inherited, for each
 parameter. There is no conflict if only some overridden declarations have
 the `covariant` modifier, and others do not. The parameter is covariant iff
@@ -82,9 +98,9 @@ is checked as if no `covariant` modifiers had been present on any of the
 involved declarations.
 
 *Intuitively, covariant overrides are irrelevant for clients, it is a
-feature which is encapsulated in the receiver class.*
+feature which is encapsulated in the invoked method.*
 
-#### Overriding
+##### Overriding
 
 The static warnings specified for override relationships among instance
 method declarations regarding the number and kind (named, positional) of
@@ -92,8 +108,8 @@ parameters remain unchanged, except that any `covariant` modifiers are
 ignored.
 
 For a covariant parameter, the override rule is that its type must be
-either a supertype or a subtype of the type declared for the same parameter
-in each of the directly or indirectly overridden declarations.
+either a supertype or a subtype of the type declared for the corresponding
+parameter in each of the directly or indirectly overridden declarations.
 
 *For a parameter which is not covariant, the override rule is is unchanged:
 its type must be a supertype of the type declared for the corresponding
@@ -101,7 +117,7 @@ parameter in each directly overridden declaration. This includes the
 typical case where the type does not change, because any type is a
 supertype of itself. Override checking for return types is also unchanged.*
 
-#### Closurization
+##### Closurization
 
 The static type of a property extraction expression `e.m` which gives rise
 to closurization of a method (including an operator or a setter) which has
@@ -120,7 +136,7 @@ of the modifier `covariant` are ignored.
 *In short, the static type of a tear-off ignores covariant overrides. Note
 that this is not true for the dynamic type of the tear-off.*
 
-### Dynamic semantics
+#### Dynamic semantics
 
 *The run-time semantics of the language with covariant overrides is the
 same as the run-time semantics of the language without that feature, except
@@ -132,7 +148,7 @@ A dynamic error occurs if a method with a covariant parameter `p` is
 invoked, and the binding for `p` is a value which is not `null` and whose
 run-time type is not a subtype of the type declared for `p`.
 
-#### The dynamic type of a closurized instance method
+##### The dynamic type of a closurized instance method
 
 The dynamic type of a function *f* which is created by closurization
 during evaluation of a property extraction expression is determined as
@@ -149,18 +165,6 @@ dynamic type of *f* which corresponds to `p` is the static type of `p` in
 which corresponds to `q` is the least upper bound of all the types declared
 for parameters corresponding to `q` in directly and indirectly overridden
 declarations of `m`.
-
-## Informal specification (standard mode)
-
-In standard mode, the syntactic modifications required to support covariant
-overrides are identical to the ones needed for strong mode.
-
-*However, the feature is irrelevant in standard mode, because covariant
-parameter types are always allowed. We just need to enable the syntax such
-that the same software can be used in both modes.*
-
-The static analysis ignores `covariant` modifiers, and so does the dynamic
-semantics.
 
 ## Motivation
 
