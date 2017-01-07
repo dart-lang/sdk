@@ -43,13 +43,16 @@ before_install:
   - git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
   - export PATH=`pwd`/depot_tools:"$PATH"
 
-  # Checkout everything if we're building the SDK
+  # Checkout everything to pull in sdk and third_party dart packages
   - cd ..
   - 'gclient config --spec=''solutions = [ { "name": "sdk", "url": "git@github.com:dart-lang/sdk.git", "deps_file": "DEPS", "managed": False } ]'''
-  - gclient sync
+  - gclient sync -n
+  - download_from_google_storage --no_auth --no_resume --bucket dart-dependencies --extract -s sdk/third_party/pkg/unittest.tar.gz.sha1
   - cd sdk
 
-  # If a C++ compiler is set, build the SDK - else use the preinstalled SDK instead.
+  # If a C++ compiler is set, run hooks and build the SDK - else use the preinstalled SDK instead.
+  - export DART_USE_GYP=1
+  - if [ "$CXX" ]; then gclient runhooks ; fi
   - if [ "$CXX" ]; then ./tools/build.py -m release create_sdk ; fi
   - if [ "$CXX" ]; then export PATH=`pwd`/out/ReleaseX64/dart-sdk/bin:"$PATH" ; fi
   - dart --version
