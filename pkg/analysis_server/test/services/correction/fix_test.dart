@@ -1870,10 +1870,16 @@ part 'my_part.dart';
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
       'my': <Folder>[provider.getResource('/my/lib')],
     });
-    context.sourceFactory = new SourceFactory(
+    SourceFactory sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+      testUnit = (await driver.getResult(testFile)).unit;
+    } else {
+      context.sourceFactory = sourceFactory;
+      testUnit = await resolveLibraryUnit(testSource);
+    }
     // prepare fix
-    testUnit = await resolveLibraryUnit(testSource);
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
     change = fix.change;
@@ -5320,12 +5326,6 @@ main() {
 class FixProcessorTest_Driver extends FixProcessorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_createFile_forPart_inPackageLib() {
-    return super.test_createFile_forPart_inPackageLib();
-  }
 }
 
 @reflectiveTest
