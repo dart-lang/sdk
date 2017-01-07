@@ -290,20 +290,22 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
-  /// Maps the fields of a class to their SSA values.
+  /// Maps the instance fields of a class to their SSA values.
   Map<ir.Field, HInstruction> _collectFieldValues(ir.Class clazz) {
     final fieldValues = <ir.Field, HInstruction>{};
 
     for (var field in clazz.fields) {
-      if (field.initializer == null) {
-        fieldValues[field] = graph.addConstantNull(closedWorld);
-      } else {
-        // Gotta update the resolvedAst when we're looking at field values
-        // outside the constructor.
-        astAdapter.pushResolvedAst(field);
-        field.initializer.accept(this);
-        fieldValues[field] = pop();
-        astAdapter.popResolvedAstStack();
+      if (field.isInstanceMember) {
+        if (field.initializer == null) {
+          fieldValues[field] = graph.addConstantNull(closedWorld);
+        } else {
+          // Gotta update the resolvedAst when we're looking at field values
+          // outside the constructor.
+          astAdapter.pushResolvedAst(field);
+          field.initializer.accept(this);
+          fieldValues[field] = pop();
+          astAdapter.popResolvedAstStack();
+        }
       }
     }
 
