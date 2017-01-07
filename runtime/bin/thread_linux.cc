@@ -165,17 +165,6 @@ bool Thread::Compare(ThreadId a, ThreadId b) {
 }
 
 
-void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
-  ASSERT(thread_id == GetCurrentThreadId());
-  ASSERT(cpu_usage != NULL);
-  struct timespec ts;
-  int r = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-  ASSERT(r == 0);
-  *cpu_usage = (ts.tv_sec * kNanosecondsPerSecond + ts.tv_nsec) /
-               kNanosecondsPerMicrosecond;
-}
-
-
 void Thread::InitOnce() {
   // Nothing to be done.
 }

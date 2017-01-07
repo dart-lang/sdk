@@ -82,26 +82,6 @@ const char* kExpectFail[] = {
 
 // Bugs to fix, or things that are not yet implemented.
 const char* kBugs[] = {
-  // Need OS::GetCurrentThreadCPUMicros.
-  "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
-  "Timeline_Dart_TimelineGetTraceWithDartEvents",
-  "Timeline_Dart_GlobalTimelineGetTrace",
-  "TimelineEventDuration",
-  "TimelineEventDurationPrintJSON",
-  "TimelineEventArguments",
-  "TimelineEventArgumentsPrintJSON",
-  "TimelineEventCallbackRecorderBasic",
-  "TimelineAnalysis_ThreadBlockCount",
-  "TimelineRingRecorderJSONOrder",
-  "TimelinePauses_BeginEnd",
-  "Timeline_Dart_TimelineGetTrace",
-  "Timeline_Dart_TimelineGetTraceGlobalOverride",
-  "Timeline_Dart_GlobalTimelineGetTrace_Threaded",
-
-  // Need VirtualMemory reservation with mmap.
-  "ArrayLengthMaxElements",
-  "Int8ListLengthMaxElements",
-
   // Assumes initial thread's stack is the same size as spawned thread stacks.
   "StackOverflowStackTraceInfo",
 };

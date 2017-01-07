@@ -99,8 +99,7 @@ int64_t OS::GetCurrentMonotonicMicros() {
 
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  UNIMPLEMENTED();
-  return 0;
+  return mx_time_get(MX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
 }
 
 
