@@ -54,12 +54,14 @@ part '$testFile';
     addTestSource('part of libB; main() {^}');
 
     // Associate part with library
-    context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
+    if (!enableNewAnalysisDriver) {
+      context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
+    }
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        null,
-        context,
+        enableNewAnalysisDriver ? await driver.getResult(testFile) : null,
+        enableNewAnalysisDriver ? null : context,
         provider,
         searchEngine,
         testSource,
@@ -78,8 +80,10 @@ part '$testFile';
     var directives = request.target.unit.directives;
 
     // Assert that the import does not have an export namespace
-    Element element = resolutionMap.elementDeclaredByDirective(directives[0]);
-    expect(element?.library?.exportNamespace, isNull);
+    if (!enableNewAnalysisDriver) {
+      Element element = resolutionMap.elementDeclaredByDirective(directives[0]);
+      expect(element?.library?.exportNamespace, isNull);
+    }
 
     // Resolve directives
     var importCompleter = new Completer<List<ImportElement>>();
@@ -111,11 +115,4 @@ part '$testFile';
 class CompletionManagerTest_Driver extends CompletionManagerTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_resolveDirectives() {
-//    Bad state: Should not be used with the new analysis driver.
-    return super.test_resolveDirectives();
-  }
 }
