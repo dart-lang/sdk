@@ -4692,12 +4692,13 @@ void FlowGraphBuilder::VisitConditionalExpression(ConditionalExpression* node) {
   then_fragment += TranslateExpression(node->then());
   then_fragment += StoreLocal(parsed_function_->expression_temp_var());
   then_fragment += Drop();
-
   ASSERT(stack_ == top);
+
   Fragment otherwise_fragment(otherwise_entry);
   otherwise_fragment += TranslateExpression(node->otherwise());
   otherwise_fragment += StoreLocal(parsed_function_->expression_temp_var());
   otherwise_fragment += Drop();
+  ASSERT(stack_ == top);
 
   JoinEntryInstr* join = BuildJoinEntry();
   then_fragment += Goto(join);
