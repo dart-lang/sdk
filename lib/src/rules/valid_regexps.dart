@@ -5,6 +5,7 @@
 library linter.src.rules.valid_regexps;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -47,7 +48,9 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ClassElement element = node.staticElement?.enclosingElement;
+    ClassElement element = resolutionMap
+        .staticElementForConstructorReference(node)
+        ?.enclosingElement;
     if (element?.name == 'RegExp' && element?.library?.name == 'dart.core') {
       NodeList<Expression> args = node.argumentList.arguments;
       if (args.isEmpty) {

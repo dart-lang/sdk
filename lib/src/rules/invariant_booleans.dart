@@ -5,6 +5,7 @@
 library linter.src.rules.invariant_booleans;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -262,7 +263,8 @@ class _Visitor extends SimpleAstVisitor {
 
   _reportBinaryExpressionIfConstantValue(BinaryExpression node) {
     // Right part discards reporting a subexpression already reported.
-    if (node.bestType.name != 'bool' || node.parent is! IfStatement) {
+    if (resolutionMap.bestTypeForExpression(node).name != 'bool' ||
+        node.parent is! IfStatement) {
       return;
     }
 

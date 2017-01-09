@@ -5,6 +5,7 @@
 library linter.src.util.leak_detector_visitor;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -38,8 +39,8 @@ _VisitVariableDeclaration _buildVariableReporter(
         LintRule rule,
         Map<DartTypePredicate, String> predicates) =>
     (VariableDeclaration variable) {
-      if (!predicates.keys
-          .any((DartTypePredicate p) => p(variable.element.type))) {
+      if (!predicates.keys.any((DartTypePredicate p) => p(
+          resolutionMap.elementDeclaredByVariableDeclaration(variable).type))) {
         return;
       }
 
@@ -76,7 +77,10 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
       containerNodes.where((n) => n is PrefixedIdentifier);
   return prefixedIdentifiers.where((n) =>
       n.prefix.bestElement == variable.name.bestElement &&
-      _hasMatch(predicates, variable.element.type, n.identifier.token.lexeme));
+      _hasMatch(
+          predicates,
+          resolutionMap.elementDeclaredByVariableDeclaration(variable).type,
+          n.identifier.token.lexeme));
 }
 
 Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
@@ -95,7 +99,12 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
         Map<DartTypePredicate, String> predicates) =>
     classNodes.where((AstNode n) =>
         n is MethodInvocation &&
-        ((_hasMatch(predicates, variable.element.type, n.methodName.name) &&
+        ((_hasMatch(
+                    predicates,
+                    resolutionMap
+                        .elementDeclaredByVariableDeclaration(variable)
+                        .type,
+                    n.methodName.name) &&
                 (_isSimpleIdentifierElementEqualToVariable(
                         n.realTarget, variable) ||
                     (n.getAncestor((a) => a == variable) != null))) ||

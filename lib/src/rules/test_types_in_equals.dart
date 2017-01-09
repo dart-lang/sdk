@@ -6,6 +6,7 @@
 library linter.src.rules.test_types_in_equals;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
@@ -94,8 +95,13 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     SimpleIdentifier identifier = node.expression;
-    String parameterName =
-        declaration.parameters?.parameterElements?.first?.name;
+    var parameters = declaration.parameters;
+    String parameterName = parameters == null
+        ? null
+        : resolutionMap
+            .parameterElementsForFormalParameterList(parameters)
+            ?.first
+            ?.name;
     if (identifier.name == parameterName) {
       rule.reportLint(node);
     }

@@ -5,6 +5,7 @@
 library linter.src.rules.package_prefixed_library_names;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -86,13 +87,13 @@ class Visitor extends SimpleAstVisitor {
     if (project == null) {
       return;
     }
-    Source source = node.element.source;
+    Source source = resolutionMap.elementDeclaredByDirective(node).source;
     var prefix = createLibraryNamePrefix(
         libraryPath: source.fullName,
         projectRoot: project.root.absolute.path,
         packageName: project.name);
 
-    var libraryName = node.element.name;
+    var libraryName = resolutionMap.elementDeclaredByDirective(node).name;
     if (!matchesOrIsPrefixedBy(libraryName, prefix)) {
       rule.reportLint(node.name);
     }

@@ -6,6 +6,7 @@ library linter.src.util.unrelated_types_visitor;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
@@ -77,11 +78,18 @@ abstract class UnrelatedTypesVisitor extends SimpleAstVisitor {
       return;
     }
 
-    DartType type = node.target != null
-        ? node.target.bestType
-        : (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration)
-            ?.element
-            ?.type;
+    DartType type;
+    if (node.target != null) {
+      type = node.target.bestType;
+    } else {
+      var classDeclaration =
+          (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration);
+      type = classDeclaration == null
+          ? null
+          : resolutionMap
+              .elementDeclaredByClassDeclaration(classDeclaration)
+              ?.type;
+    }
     Expression argument = node.argumentList.arguments.first;
     if (type is InterfaceType &&
         DartTypeUtilities.unrelatedTypes(

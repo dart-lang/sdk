@@ -5,6 +5,7 @@
 library linter.src.rules.annotate_overrides;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -75,14 +76,19 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    LibraryElement library = node?.element?.library;
+    LibraryElement library = node == null
+        ? null
+        : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
     manager = library == null ? null : new InheritanceManager(library);
   }
 
   @override
   visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      if (field?.element != null && !field.element.isOverride) {
+      if (field?.element != null &&
+          !resolutionMap
+              .elementDeclaredByVariableDeclaration(field)
+              .isOverride) {
         ExecutableElement member = getOverriddenMember(field.element);
         if (member != null) {
           rule.reportLint(field);
@@ -93,7 +99,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    if (node?.element != null && !node.element.isOverride) {
+    if (node?.element != null &&
+        !resolutionMap.elementDeclaredByMethodDeclaration(node).isOverride) {
       ExecutableElement member = getOverriddenMember(node.element);
       if (member != null) {
         rule.reportLint(node.name);

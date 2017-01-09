@@ -5,6 +5,7 @@
 library linter.src.rules.prefer_final_fields;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -97,7 +98,10 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     fields.variables.forEach((VariableDeclaration variable) {
-      if (variable == null || !variable.element.isPrivate) {
+      if (variable == null ||
+          !resolutionMap
+              .elementDeclaredByVariableDeclaration(variable)
+              .isPrivate) {
         return;
       }
 
