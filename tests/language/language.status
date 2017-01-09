@@ -154,7 +154,7 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $runtime == dart_precompiled ]
 # Stacktraces in precompilation omit inlined frames.
 full_stacktrace1_test: Pass, RuntimeError
 full_stacktrace2_test: Pass, RuntimeError
@@ -165,7 +165,7 @@ stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
 regress_26948_test: Skip # Crashes, regis investigating
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $noopt || $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign
@@ -258,7 +258,7 @@ library_env_test/has_no_io_support: RuntimeError, OK
 # The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $noopt || $runtime == dart_precompiled || $mode == product ]
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
 

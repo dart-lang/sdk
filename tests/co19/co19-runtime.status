@@ -289,7 +289,7 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompile
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
 Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $noopt || $runtime == dart_precompiled || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 

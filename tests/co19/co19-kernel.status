@@ -342,7 +342,6 @@ LibTest/core/StringBuffer/StringBuffer_A01_t02: RuntimeError
 LibTest/core/StringBuffer/write_A01_t02: RuntimeError
 Language/Expressions/Constants/exception_t01: Crash
 Language/Expressions/Constants/exception_t02: Crash
-Language/Expressions/Null/instance_of_class_null_t01: Crash
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
