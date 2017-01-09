@@ -7,6 +7,8 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
+io/raw_socket_test: Pass, RuntimeError # Issue 28288
+
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
