@@ -828,7 +828,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type,
         (DartType t, DartType s, _, __) =>
             (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
-        new TypeSystemImpl().instantiateToBounds);
+        new TypeSystemImpl(null).instantiateToBounds);
   }
 
   @override
@@ -837,7 +837,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         this,
         type,
         (DartType t, DartType s, _, __) => t.isAssignableTo(s),
-        new TypeSystemImpl().instantiateToBounds);
+        new TypeSystemImpl(null).instantiateToBounds);
   }
 
   @override
@@ -1945,7 +1945,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       //
       if (element.library.context.analysisOptions.strongMode) {
         TypeImpl t = newTypeArguments[0];
-        newTypeArguments[0] = t.flattenFutures(new StrongTypeSystemImpl());
+        newTypeArguments[0] = t.flattenFutures(new StrongTypeSystemImpl(null));
       }
     }
 
@@ -2148,8 +2148,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return _leastUpperBound(first, second);
     }
     AnalysisContext context = first.element.context;
-    return context.typeSystem
-        .getLeastUpperBound(context.typeProvider, first, second);
+    return context.typeSystem.getLeastUpperBound(first, second);
   }
 
   /**

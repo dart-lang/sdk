@@ -38,7 +38,7 @@ DartType getDefiniteType(
       type is FunctionType &&
       _hasStrictArrow(expression)) {
     // Remove fuzzy arrow if possible.
-    return typeSystem.functionTypeToConcreteType(typeProvider, type);
+    return typeSystem.functionTypeToConcreteType(type);
   }
   return type;
 }
@@ -705,7 +705,7 @@ class CodeChecker extends RecursiveAstVisitor {
       var rhsType = _getDefiniteType(expr.rightHandSide);
       var lhsType = _getDefiniteType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
-          typeProvider, lhsType, op, rhsType, functionType.returnType);
+          lhsType, op, rhsType, functionType.returnType);
 
       // Check the argument for an implicit cast.
       _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
@@ -901,8 +901,8 @@ class CodeChecker extends RecursiveAstVisitor {
         var functionType = element.type;
         var rhsType = typeProvider.intType;
         var lhsType = _getDefiniteType(operand);
-        var returnType = rules.refineBinaryExpressionType(typeProvider, lhsType,
-            TokenType.PLUS, rhsType, functionType.returnType);
+        var returnType = rules.refineBinaryExpressionType(
+            lhsType, TokenType.PLUS, rhsType, functionType.returnType);
 
         // Skip the argument check - `int` cannot be downcast.
         //

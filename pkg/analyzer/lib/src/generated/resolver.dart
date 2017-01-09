@@ -100,7 +100,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       {TypeSystem typeSystem})
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
-        _typeSystem = typeSystem ?? new TypeSystemImpl() {
+        _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider) {
     inDeprecatedMember = _currentLibrary.isDeprecated;
   }
 
@@ -1898,7 +1898,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    * @param errorReporter the error reporter
    */
   DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new TypeSystemImpl();
+      : this._typeSystem = typeSystem ?? new TypeSystemImpl(null);
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
@@ -4114,7 +4114,7 @@ class InferenceContext {
     }
 
     DartType inferred = _inferredReturn.last;
-    inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
+    inferred = _typeSystem.getLeastUpperBound(type, inferred);
     _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
@@ -6709,7 +6709,6 @@ class ResolverVisitor extends ScopedVisitor {
           originalType.typeFormals.isNotEmpty &&
           ts is StrongTypeSystemImpl) {
         contextType = ts.inferGenericFunctionCall(
-            typeProvider,
             originalType,
             DartType.EMPTY_LIST,
             DartType.EMPTY_LIST,
@@ -6769,7 +6768,7 @@ class ResolverVisitor extends ScopedVisitor {
             staticClosureType,
             (DartType t, DartType s, _, __) =>
                 (t as TypeImpl).isMoreSpecificThan(s),
-            new TypeSystemImpl().instantiateToBounds,
+            new TypeSystemImpl(typeProvider).instantiateToBounds,
             returnRelation: (s, t) => true)) {
       return;
     }
@@ -8822,8 +8821,12 @@ class TypeParameterBoundsResolver {
             } else {
               libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
-              typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
-                  typeProvider, library, source, errorListener);
+              typeNameResolver ??= new TypeNameResolver(
+                  new TypeSystemImpl(typeProvider),
+                  typeProvider,
+                  library,
+                  source,
+                  errorListener);
               typeNameResolver.nameScope = typeParametersScope;
               _resolveTypeName(bound);
               typeParameterElement.bound = bound.type;
@@ -10696,7 +10699,7 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
       this.parameterElements,
       DeclaredVariables declaredVariables,
       {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new TypeSystemImpl(),
+      : _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider),
         super(
             new ConstantEvaluationEngine(typeProvider, declaredVariables,
                 typeSystem: typeSystem),

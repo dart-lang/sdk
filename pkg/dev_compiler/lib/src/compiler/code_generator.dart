@@ -60,7 +60,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   final SummaryDataStore summaryData;
 
   final CompilerOptions options;
-  final rules = new StrongTypeSystemImpl();
+  final StrongTypeSystemImpl rules;
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
@@ -159,6 +159,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   CodeGenerator(
       AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
       : context = c,
+        rules = new StrongTypeSystemImpl(c.typeProvider),
         types = c.typeProvider,
         _asyncStreamIterator =
             _getLibrary(c, 'dart:async').getType('StreamIterator').type,

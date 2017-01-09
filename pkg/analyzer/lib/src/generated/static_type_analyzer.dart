@@ -250,7 +250,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       staticType = _typeSystem.refineBinaryExpressionType(
-          _typeProvider,
           node.leftHandSide.staticType,
           operator,
           node.rightHandSide.staticType,
@@ -261,7 +260,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         DartType propagatedType =
             _computeStaticReturnType(propagatedMethodElement);
         propagatedType = _typeSystem.refineBinaryExpressionType(
-            _typeProvider,
             node.leftHandSide.propagatedType,
             operator,
             node.rightHandSide.propagatedType,
@@ -344,7 +342,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     ExecutableElement staticMethodElement = node.staticElement;
     DartType staticType = _computeStaticReturnType(staticMethodElement);
     staticType = _typeSystem.refineBinaryExpressionType(
-        _typeProvider,
         node.leftOperand.staticType,
         node.operator.type,
         node.rightOperand.staticType,
@@ -355,7 +352,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType propagatedType =
           _computeStaticReturnType(propagatedMethodElement);
       propagatedType = _typeSystem.refineBinaryExpressionType(
-          _typeProvider,
           node.leftOperand.bestType,
           node.operator.type,
           node.rightOperand.bestType,
@@ -641,7 +637,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       var listTypeParam = _typeProvider.listType.typeParameters[0].type;
 
       DartType inferred = ts.inferGenericFunctionCall(
-          _typeProvider,
           _typeProvider.listType,
           new List.filled(elementTypes.length, listTypeParam),
           elementTypes,
@@ -724,7 +719,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       var valueTypeParam = _typeProvider.mapType.typeParameters[1].type;
 
       DartType inferred = ts.inferGenericFunctionCall(
-          _typeProvider,
           _typeProvider.mapType,
           new List.filled(keyTypes.length, keyTypeParam, growable: true)
             ..addAll(new List.filled(valueTypes.length, valueTypeParam)),
@@ -1435,7 +1429,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType2 = _dynamicType;
     }
     DartType staticType =
-        _typeSystem.getLeastUpperBound(_typeProvider, staticType1, staticType2);
+        _typeSystem.getLeastUpperBound(staticType1, staticType2);
     if (staticType == null) {
       staticType = _dynamicType;
     }
@@ -1449,8 +1443,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (propagatedType2 == null) {
         propagatedType2 = staticType2;
       }
-      DartType propagatedType = _typeSystem.getLeastUpperBound(
-          _typeProvider, propagatedType1, propagatedType2);
+      DartType propagatedType =
+          _typeSystem.getLeastUpperBound(propagatedType1, propagatedType2);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
   }
@@ -1918,7 +1912,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (context is FunctionType &&
         type is FunctionType &&
         ts is StrongTypeSystemImpl) {
-      return ts.inferFunctionTypeInstantiation(_typeProvider, context, type);
+      return ts.inferFunctionTypeInstantiation(context, type);
     }
     return type;
   }
@@ -2012,8 +2006,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           }
         }
       }
-      return ts.inferGenericFunctionCall(_typeProvider, fnType, paramTypes,
-          argTypes, fnType.returnType, InferenceContext.getContext(node),
+      return ts.inferGenericFunctionCall(fnType, paramTypes, argTypes,
+          fnType.returnType, InferenceContext.getContext(node),
           errorReporter: _resolver.errorReporter, errorNode: errorNode);
     }
     return null;
@@ -2431,7 +2425,7 @@ class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     if (result == null) {
       result = type;
     } else {
-      result = _typeSystem.getLeastUpperBound(_typeProvider, result, type);
+      result = _typeSystem.getLeastUpperBound(result, type);
     }
     return null;
   }

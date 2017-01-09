@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:test/test.dart';
@@ -191,7 +190,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
    * The type provider used to access the types.
    */
-  TestTypeProvider _typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * The type system used to analyze the test cases.
@@ -1551,7 +1550,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    _typeProvider = new TestTypeProvider(context);
+    _typeProvider = context.typeProvider;
     _visitor = new ResolverVisitor(
         definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(definingLibrary));

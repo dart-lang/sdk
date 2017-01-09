@@ -6166,8 +6166,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType actualStaticType, DartType expectedStaticType) {
     bool concrete = _options.strongMode && checker.isKnownFunction(expression);
     if (concrete && actualStaticType is FunctionType) {
-      actualStaticType = _typeSystem.functionTypeToConcreteType(
-          _typeProvider, actualStaticType);
+      actualStaticType =
+          _typeSystem.functionTypeToConcreteType(actualStaticType);
       // TODO(leafp): Move the Downcast functionality here.
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
@@ -6626,10 +6626,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT =
               inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
-          foundConcreteFT = typeSystem.functionTypeToConcreteType(
-              typeProvider, foundConcreteFT);
-          requiredMemberFT = typeSystem.functionTypeToConcreteType(
-              typeProvider, requiredMemberFT);
+          foundConcreteFT =
+              typeSystem.functionTypeToConcreteType(foundConcreteFT);
+          requiredMemberFT =
+              typeSystem.functionTypeToConcreteType(requiredMemberFT);
 
           // Strong mode does override checking for types in CodeChecker, so
           // we can skip it here. Doing it here leads to unnecessary duplicate

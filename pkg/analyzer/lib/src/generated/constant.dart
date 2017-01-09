@@ -119,7 +119,7 @@ class ConstantEvaluator {
    * types.
    */
   ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new TypeSystemImpl();
+      : _typeSystem = typeSystem ?? new TypeSystemImpl(_typeProvider);
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
