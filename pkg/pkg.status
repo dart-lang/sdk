@@ -29,7 +29,7 @@ kernel/test/closures_test: Skip
 [ $compiler != dart2analyzer ]
 dev_compiler/test/*: Skip
 
-[ $compiler == dart2analyzer ]
+# Don't run the dev_compiler generated tests
 dev_compiler/gen/*: SkipByDesign
 dev_compiler/test/options/*: SkipByDesign
 
