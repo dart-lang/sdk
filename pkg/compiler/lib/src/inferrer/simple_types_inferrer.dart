@@ -2258,14 +2258,15 @@ class SimpleTypeInferrerVisitor extends ast.Visitor<TypeInformation>
       return length.value;
     } else if (element != null &&
         element.isField &&
-        Elements.isStaticOrTopLevelField(element) &&
-        closedWorld.fieldNeverChanges(element)) {
+        Elements.isStaticOrTopLevelField(element)) {
       FieldElement fieldElement = element;
-      ConstantValue value =
-          compiler.backend.constants.getConstantValue(fieldElement.constant);
-      if (value != null && value.isInt) {
-        IntConstantValue intValue = value;
-        return intValue.primitiveValue;
+      if (closedWorld.fieldNeverChanges(fieldElement)) {
+        ConstantValue value =
+            compiler.backend.constants.getConstantValue(fieldElement.constant);
+        if (value != null && value.isInt) {
+          IntConstantValue intValue = value;
+          return intValue.primitiveValue;
+        }
       }
     }
     return null;

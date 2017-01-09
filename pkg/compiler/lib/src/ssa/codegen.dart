@@ -15,7 +15,6 @@ import '../elements/elements.dart'
         Entity,
         JumpTarget,
         LabelDefinition,
-        Local,
         Name,
         AsyncMarker,
         ResolvedAst,

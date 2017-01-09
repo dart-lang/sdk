@@ -521,37 +521,28 @@ class FlatTypeMask implements TypeMask {
           backendClasses.nullImplementation, selector, element);
     }
 
-    // TODO(kasperl): Can't we just avoid creating typed selectors
-    // based of function types?
-    Element self = base;
-    if (self.isTypedef) {
-      // A typedef is a function type that doesn't have any
-      // user-defined members.
-      return false;
-    }
-
-    ClassElement other = element.enclosingClass;
+    ClassEntity other = element.enclosingClass.declaration;
     if (other == backendClasses.nullImplementation) {
       return isNullable;
     } else if (isExact) {
-      return closedWorld.hasElementIn(self, selector, element);
+      return closedWorld.hasElementIn(base, selector, element);
     } else if (isSubclass) {
-      return closedWorld.hasElementIn(self, selector, element) ||
-          other.isSubclassOf(self) ||
-          closedWorld.hasAnySubclassThatMixes(self, other);
+      return closedWorld.hasElementIn(base, selector, element) ||
+          closedWorld.isSubclassOf(other, base) ||
+          closedWorld.hasAnySubclassThatMixes(base, other);
     } else {
       assert(isSubtype);
-      bool result = closedWorld.hasElementIn(self, selector, element) ||
-          other.implementsInterface(self) ||
+      bool result = closedWorld.hasElementIn(base, selector, element) ||
+          closedWorld.isSubtypeOf(other, base) ||
           closedWorld.hasAnySubclassThatImplements(other, base) ||
           closedWorld.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.
-      Iterable<ClassElement> mixinUses = closedWorld.mixinUsesOf(self);
+      Iterable<ClassEntity> mixinUses = closedWorld.mixinUsesOf(base);
       return mixinUses.any((mixinApplication) =>
           closedWorld.hasElementIn(mixinApplication, selector, element) ||
-          other.isSubclassOf(mixinApplication) ||
+          closedWorld.isSubclassOf(other, mixinApplication) ||
           closedWorld.hasAnySubclassThatMixes(mixinApplication, other));
     }
   }

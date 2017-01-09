@@ -4018,7 +4018,7 @@ class SsaBuilder extends ast.Visitor
       return false;
     }
 
-    Element element = closedWorld.locateSingleElement(selector, mask);
+    MemberElement element = closedWorld.locateSingleElement(selector, mask);
     if (element != null &&
         !element.isField &&
         !(element.isGetter && selector.isCall) &&
