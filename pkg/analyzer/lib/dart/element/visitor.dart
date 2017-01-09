@@ -82,7 +82,7 @@ import 'package:analyzer/dart/element/element.dart';
  * do so will cause the visit methods for superclasses of the element to not be
  * invoked and will cause the children of the visited node to not be visited.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @override
@@ -189,7 +189,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
  * children. Failure to do so will cause the children of the visited element to
  * not be visited.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   @override
@@ -313,7 +313,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
  * mechanism (and hence don't need to recursively visit a whole structure) and
  * that only need to visit a small number of element types.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
   @override
@@ -373,4 +373,83 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitTypeParameterElement(TypeParameterElement element) => null;
+}
+
+/**
+ * An AST visitor that will throw an exception if any of the visit methods that
+ * are invoked have not been overridden. It is intended to be a superclass for
+ * classes that implement the visitor pattern and need to (a) override all of
+ * the visit methods or (b) need to override a subset of the visit method and
+ * want to catch when any other visit methods have been invoked.
+ *
+ * Clients may extend this class.
+ */
+class ThrowingElementVisitor<R> implements ElementVisitor<R> {
+  @override
+  R visitClassElement(ClassElement element) => _throw(element);
+
+  @override
+  R visitCompilationUnitElement(CompilationUnitElement element) =>
+      _throw(element);
+
+  @override
+  R visitConstructorElement(ConstructorElement element) => _throw(element);
+
+  @override
+  R visitExportElement(ExportElement element) => _throw(element);
+
+  @override
+  R visitFieldElement(FieldElement element) => _throw(element);
+
+  @override
+  R visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
+      _throw(element);
+
+  @override
+  R visitFunctionElement(FunctionElement element) => _throw(element);
+
+  @override
+  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
+      _throw(element);
+
+  @override
+  R visitImportElement(ImportElement element) => _throw(element);
+
+  @override
+  R visitLabelElement(LabelElement element) => _throw(element);
+
+  @override
+  R visitLibraryElement(LibraryElement element) => _throw(element);
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) => _throw(element);
+
+  @override
+  R visitMethodElement(MethodElement element) => _throw(element);
+
+  @override
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) =>
+      _throw(element);
+
+  @override
+  R visitParameterElement(ParameterElement element) => _throw(element);
+
+  @override
+  R visitPrefixElement(PrefixElement element) => _throw(element);
+
+  @override
+  R visitPropertyAccessorElement(PropertyAccessorElement element) =>
+      _throw(element);
+
+  @override
+  R visitTopLevelVariableElement(TopLevelVariableElement element) =>
+      _throw(element);
+
+  @override
+  R visitTypeParameterElement(TypeParameterElement element) => _throw(element);
+
+  R _throw(Element element) {
+    throw new Exception(
+        'Missing implementation of visit${element.runtimeType}');
+  }
 }

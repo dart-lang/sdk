@@ -1015,7 +1015,14 @@ abstract class ElementLocation {
 /**
  * An object that can be used to visit an element structure.
  *
- * Clients may implement this class.
+ * Clients may not extend, implement or mix-in this class. There are classes
+ * that implement this interface that provide useful default behaviors in
+ * `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful include
+ * * SimpleElementVisitor which implements every visit method by doing nothing,
+ * * RecursiveElementVisitor which will cause every node in a structure to be
+ *   visited, and
+ * * ThrowingElementVisitor which implements every visit method by throwing an
+ *   exception.
  */
 abstract class ElementVisitor<R> {
   R visitClassElement(ClassElement element);
