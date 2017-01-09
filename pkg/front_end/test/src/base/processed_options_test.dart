@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ProcessedOptionsTest {
-  final fileSystem = new MemoryFileSystem(pathos.posix, '/');
+  final fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
 
   test_compileSdk_false() {
     for (var value in [false, true]) {
@@ -37,46 +37,49 @@ class ProcessedOptionsTest {
 
   test_getUriResolver_explicitPackagesFile() async {
     // This .packages file should be ignored.
-    fileSystem.entityForPath('/.packages').writeAsStringSync('foo:bar\n');
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForPath('/explicit.packages')
+        .entityForUri(Uri.parse('file:///explicit.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFilePath = '/explicit.packages';
+      ..packagesFileUri = Uri.parse('file:///explicit.packages');
     var processed = new ProcessedOptions(raw);
     var uriResolver = await processed.getUriResolver();
     expect(uriResolver.packages, {'foo': Uri.parse('file:///baz/')});
-    expect(uriResolver.pathContext, same(fileSystem.context));
   }
 
   test_getUriResolver_explicitPackagesFile_withBaseLocation() async {
     // This .packages file should be ignored.
-    fileSystem.entityForPath('/.packages').writeAsStringSync('foo:bar\n');
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('foo:bar\n');
     // This one should be used.
     fileSystem
-        .entityForPath('/base/location/explicit.packages')
+        .entityForUri(Uri.parse('file:///base/location/explicit.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFilePath = '/base/location/explicit.packages';
+      ..packagesFileUri = Uri.parse('file:///base/location/explicit.packages');
     var processed = new ProcessedOptions(raw);
     var uriResolver = await processed.getUriResolver();
     expect(
         uriResolver.packages, {'foo': Uri.parse('file:///base/location/baz/')});
-    expect(uriResolver.pathContext, same(fileSystem.context));
   }
 
   test_getUriResolver_noPackages() async {
     // .packages file should be ignored.
-    fileSystem.entityForPath('/.packages').writeAsStringSync('foo:bar\n');
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('foo:bar\n');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFilePath = '';
+      ..packagesFileUri = new Uri();
     var processed = new ProcessedOptions(raw);
     var uriResolver = await processed.getUriResolver();
     expect(uriResolver.packages, isEmpty);
-    expect(uriResolver.pathContext, same(fileSystem.context));
   }
 }

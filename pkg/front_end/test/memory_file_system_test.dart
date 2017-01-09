@@ -30,26 +30,23 @@ class FileTest extends _BaseTestNative {
   setUp() {
     super.setUp();
     path = join(tempPath, 'file.txt');
-    file = fileSystem.entityForPath(path);
+    file = entityForPath(path);
   }
 
   test_equals_differentPaths() {
-    expect(
-        file == fileSystem.entityForPath(join(tempPath, 'file2.txt')), isFalse);
+    expect(file == entityForPath(join(tempPath, 'file2.txt')), isFalse);
   }
 
   test_equals_samePath() {
-    expect(
-        file == fileSystem.entityForPath(join(tempPath, 'file.txt')), isTrue);
+    expect(file == entityForPath(join(tempPath, 'file.txt')), isTrue);
   }
 
   test_hashCode_samePath() {
-    expect(file.hashCode,
-        fileSystem.entityForPath(join(tempPath, 'file.txt')).hashCode);
+    expect(file.hashCode, entityForPath(join(tempPath, 'file.txt')).hashCode);
   }
 
   test_path() {
-    expect(file.path, path);
+    expect(file.uri, fileSystem.context.toUri(path));
   }
 
   test_readAsBytes_badUtf8() async {
@@ -128,40 +125,44 @@ abstract class MemoryFileSystemTestMixin extends _BaseTest {
     tempUri = fileSystem.context.toUri(tempPath);
   }
 
-  test_entityForPath() {
-    var path = join(tempPath, 'file.txt');
-    expect(fileSystem.entityForPath(path).path, path);
+  test_currentDirectory_trailingSlash() {
+    // The currentDirectory should already end in a trailing slash.
+    expect(fileSystem.currentDirectory.path, endsWith('/'));
+    // A trailing slash should automatically be appended when creating a
+    // MemoryFileSystem.
+    var path = fileSystem.currentDirectory.path;
+    var currentDirectoryWithoutSlash = fileSystem.currentDirectory
+        .replace(path: path.substring(0, path.length - 1));
+    expect(
+        new MemoryFileSystem(fileSystem.context, currentDirectoryWithoutSlash)
+            .currentDirectory,
+        fileSystem.currentDirectory);
+    // If the currentDirectory supplied to the MemoryFileSystem constructor
+    // already has a trailing slash, no further trailing slash should be added.
+    expect(
+        new MemoryFileSystem(fileSystem.context, fileSystem.currentDirectory)
+            .currentDirectory,
+        fileSystem.currentDirectory);
   }
 
   test_entityForPath_absolutize() {
-    expect(fileSystem.entityForPath('file.txt').path,
-        join(fileSystem.currentDirectory, 'file.txt'));
+    expect(entityForPath('file.txt').uri,
+        fileSystem.currentDirectory.resolve('file.txt'));
   }
 
   test_entityForPath_normalize_dot() {
-    expect(fileSystem.entityForPath(join(tempPath, '.', 'file.txt')).path,
-        join(tempPath, 'file.txt'));
+    expect(entityForPath(join(tempPath, '.', 'file.txt')).uri,
+        Uri.parse('$tempUri/file.txt'));
   }
 
   test_entityForPath_normalize_dotDot() {
-    expect(
-        fileSystem.entityForPath(join(tempPath, 'foo', '..', 'file.txt')).path,
-        join(tempPath, 'file.txt'));
+    expect(entityForPath(join(tempPath, 'foo', '..', 'file.txt')).uri,
+        Uri.parse('$tempUri/file.txt'));
   }
 
   test_entityForUri() {
-    expect(fileSystem.entityForUri(Uri.parse('$tempUri/file.txt')).path,
-        join(tempPath, 'file.txt'));
-  }
-
-  test_entityForUri_bareUri_absolute() {
-    expect(() => fileSystem.entityForUri(Uri.parse('/file.txt')),
-        throwsA(new isInstanceOf<Error>()));
-  }
-
-  test_entityForUri_bareUri_relative() {
-    expect(() => fileSystem.entityForUri(Uri.parse('file.txt')),
-        throwsA(new isInstanceOf<Error>()));
+    expect(fileSystem.entityForUri(Uri.parse('$tempUri/file.txt')).uri,
+        Uri.parse('$tempUri/file.txt'));
   }
 
   test_entityForUri_fileUri_relative() {
@@ -184,18 +185,18 @@ abstract class MemoryFileSystemTestMixin extends _BaseTest {
   }
 
   test_entityForUri_nonFileUri() {
-    expect(() => fileSystem.entityForUri(Uri.parse('package:foo/bar.dart')),
-        throwsA(new isInstanceOf<Error>()));
+    var uri = Uri.parse('package:foo/bar.dart');
+    expect(fileSystem.entityForUri(uri).uri, uri);
   }
 
   test_entityForUri_normalize_dot() {
-    expect(fileSystem.entityForUri(Uri.parse('$tempUri/./file.txt')).path,
-        join(tempPath, 'file.txt'));
+    expect(fileSystem.entityForUri(Uri.parse('$tempUri/./file.txt')).uri,
+        Uri.parse('$tempUri/file.txt'));
   }
 
   test_entityForUri_normalize_dotDot() {
-    expect(fileSystem.entityForUri(Uri.parse('$tempUri/foo/../file.txt')).path,
-        join(tempPath, 'file.txt'));
+    expect(fileSystem.entityForUri(Uri.parse('$tempUri/foo/../file.txt')).uri,
+        Uri.parse('$tempUri/file.txt'));
   }
 }
 
@@ -213,8 +214,14 @@ class MemoryFileSystemTestWindows extends _BaseTestWindows
 
 abstract class _BaseTest {
   MemoryFileSystem get fileSystem;
+
   String get tempPath;
+
+  MemoryFileSystemEntity entityForPath(String path) =>
+      fileSystem.entityForUri(fileSystem.context.toUri(path));
+
   String join(String path1, String path2, [String path3, String path4]);
+
   void setUp();
 }
 
@@ -227,8 +234,8 @@ class _BaseTestNative extends _BaseTest {
 
   setUp() {
     tempPath = pathos.join(io.Directory.systemTemp.path, 'test_file_system');
-    fileSystem =
-        new MemoryFileSystem(pathos.context, io.Directory.current.path);
+    fileSystem = new MemoryFileSystem(
+        pathos.context, pathos.toUri(io.Directory.current.path));
   }
 }
 
@@ -241,7 +248,7 @@ class _BaseTestPosix extends _BaseTest {
 
   void setUp() {
     tempPath = '/test_file_system';
-    fileSystem = new MemoryFileSystem(pathos.posix, '/cwd');
+    fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///cwd'));
   }
 }
 
@@ -254,6 +261,7 @@ class _BaseTestWindows extends _BaseTest {
 
   void setUp() {
     tempPath = r'c:\test_file_system';
-    fileSystem = new MemoryFileSystem(pathos.windows, r'c:\cwd');
+    fileSystem =
+        new MemoryFileSystem(pathos.windows, Uri.parse('file:///c:/cwd'));
   }
 }

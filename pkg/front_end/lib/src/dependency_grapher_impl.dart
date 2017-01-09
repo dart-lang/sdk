@@ -99,13 +99,14 @@ class _WalkerNode extends Node<_WalkerNode> {
   Future<List<_WalkerNode>> computeDependencies() async {
     var dependencies = <_WalkerNode>[];
     // TODO(paulberry): add error recovery if the file can't be read.
-    var path = walker.uriResolver.resolve(uri);
-    if (path == null) {
+    var resolvedUri = walker.uriResolver.resolve(uri);
+    if (resolvedUri == null) {
       // TODO(paulberry): If an error reporter was provided, report the error
       // in the proper way and continue.
       throw new StateError('Invalid URI: $uri');
     }
-    var contents = await walker.fileSystem.entityForPath(path).readAsString();
+    var contents =
+        await walker.fileSystem.entityForUri(resolvedUri).readAsString();
     var scanner = new _Scanner(contents);
     var token = scanner.tokenize();
     // TODO(paulberry): report errors.

@@ -11,17 +11,19 @@ Future dumpToSink(Program program, StreamSink<List<int>> sink) {
 }
 
 Future kernelToSink(Uri entry, StreamSink<List<int>> sink) async {
-  var program = await kernelForProgram(entry,
+  var program = await kernelForProgram(
+      entry,
       new CompilerOptions()
-        ..sdkPath = 'sdk'
-        ..packagesFilePath = '.packages'
+        ..sdkRoot = new Uri.file('sdk')
+        ..packagesFileUri = new Uri.file('.packages')
         ..onError = (e) => print(e.message));
 
   await dumpToSink(program, sink);
 }
 
 main(args) async {
-  kernelToSink(Uri.base.resolve(args[0]),
+  kernelToSink(
+      Uri.base.resolve(args[0]),
       // TODO(sigmund,hausner): define memory type where to dump binary data.
       new StreamController<List<int>>.broadcast().sink);
 }

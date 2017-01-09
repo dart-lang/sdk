@@ -39,11 +39,11 @@ class ProcessedOptions {
   /// Get the [FileSystem] which should be used by the front end to access
   /// files.
   ///
-  /// If the client supplied bazel roots using [CompilerOptions.bazelRoots], the
+  /// If the client supplied roots using [CompilerOptions.multiRoots], the
   /// returned [FileSystem] will automatically perform the appropriate mapping.
   FileSystem get fileSystem {
-    // TODO(paulberry): support bazelRoots.
-    assert(_raw.bazelRoots.isEmpty);
+    // TODO(paulberry): support multiRoots.
+    assert(_raw.multiRoots.isEmpty);
     return _raw.fileSystem;
   }
 
@@ -56,8 +56,7 @@ class ProcessedOptions {
       await _getPackages();
       var sdkLibraries =
           <String, Uri>{}; // TODO(paulberry): support SDK libraries
-      _uriResolver =
-          new UriResolver(_packages, sdkLibraries, fileSystem.context);
+      _uriResolver = new UriResolver(_packages, sdkLibraries);
     }
     return _uriResolver;
   }
@@ -68,15 +67,14 @@ class ProcessedOptions {
   /// required to locate/read the packages file.
   Future<Map<String, Uri>> _getPackages() async {
     if (_packages == null) {
-      if (_raw.packagesFilePath == null) {
+      if (_raw.packagesFileUri == null) {
         throw new UnimplementedError(); // TODO(paulberry): search for .packages
-      } else if (_raw.packagesFilePath.isEmpty) {
+      } else if (_raw.packagesFileUri.path.isEmpty) {
         _packages = {};
       } else {
         var contents =
-            await fileSystem.entityForPath(_raw.packagesFilePath).readAsBytes();
-        var baseLocation = fileSystem.context.toUri(_raw.packagesFilePath);
-        _packages = package_config.parse(contents, baseLocation);
+            await fileSystem.entityForUri(_raw.packagesFileUri).readAsBytes();
+        _packages = package_config.parse(contents, _raw.packagesFileUri);
       }
     }
     return _packages;

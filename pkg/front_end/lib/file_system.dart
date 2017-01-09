@@ -18,22 +18,17 @@ import 'package:path/path.dart' as path;
 /// Not intended to be implemented or extended by clients.
 abstract class FileSystem {
   /// Returns a path context suitable for use with this [FileSystem].
+  ///
+  /// TODO(paulberry): try to eliminate all usages of this.  Since the
+  /// FileSystem API now uses URIs rather than paths, it should not be needed.
   path.Context get context;
-
-  /// Returns a [FileSystemEntity] corresponding to the given [path].
-  ///
-  /// Uses of `..` and `.` in path are normalized before returning (so, for
-  /// example, `entityForPath('./foo')` and `entityForPath('foo')` are
-  /// equivalent).  Relative paths are also converted to absolute paths.
-  ///
-  /// Does not check whether a file or folder exists at the given location.
-  FileSystemEntity entityForPath(String path);
 
   /// Returns a [FileSystemEntity] corresponding to the given [uri].
   ///
   /// Uses of `..` and `.` in the URI are normalized before returning.
   ///
-  /// If [uri] is not an absolute `file:` URI, an [Error] will be thrown.
+  /// If the URI scheme is not supported by this file system, an [Error] will be
+  /// thrown.
   ///
   /// Does not check whether a file or folder exists at the given location.
   FileSystemEntity entityForUri(Uri uri);
@@ -46,14 +41,12 @@ abstract class FileSystem {
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class FileSystemEntity {
-  /// Returns the absolute normalized path represented by this file system
+  /// Returns the absolute normalized URI represented by this file system
   /// entity.
   ///
-  /// Note: if the [FileSystemEntity] was created using
-  /// [FileSystem.entityForPath], this is not necessarily the same as the path
-  /// that was used to create the object, since the path might have been
-  /// normalized.
-  String get path;
+  /// Note: this is not necessarily the same as the URI that was passed to
+  /// [FileSystem.entityForUri], since the URI might have been normalized.
+  Uri get uri;
 
   /// Attempts to access this file system entity as a file and read its contents
   /// as raw bytes.

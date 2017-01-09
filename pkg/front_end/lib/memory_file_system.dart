@@ -20,26 +20,29 @@ class MemoryFileSystem implements FileSystem {
   @override
   final p.Context context;
 
-  final Map<String, Uint8List> _files = {};
+  final Map<Uri, Uint8List> _files = {};
 
   /// The "current directory" in the in-memory virtual file system.
   ///
-  /// This is used to convert relative paths to absolute paths.
-  String currentDirectory;
+  /// This is used to convert relative URIs to absolute URIs.
+  ///
+  /// Always ends in a trailing '/'.
+  Uri currentDirectory;
 
-  MemoryFileSystem(this.context, this.currentDirectory);
-
-  @override
-  MemoryFileSystemEntity entityForPath(String path) =>
-      new MemoryFileSystemEntity._(
-          this, context.normalize(context.join(currentDirectory, path)));
+  MemoryFileSystem(this.context, Uri currentDirectory)
+      : currentDirectory = _addTrailingSlash(currentDirectory);
 
   @override
   MemoryFileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme != 'file') throw new ArgumentError('File URI expected');
-    // Note: we don't have to verify that the URI's path is absolute, because
-    // URIs with non-empty schemes always have absolute paths.
-    return entityForPath(context.fromUri(uri));
+    return new MemoryFileSystemEntity._(
+        this, currentDirectory.resolveUri(uri).normalizePath());
+  }
+
+  static Uri _addTrailingSlash(Uri uri) {
+    if (!uri.path.endsWith('/')) {
+      uri = uri.replace(path: uri.path + '/');
+    }
+    return uri;
   }
 }
 
@@ -49,22 +52,22 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   final MemoryFileSystem _fileSystem;
 
   @override
-  final String path;
+  final Uri uri;
 
-  MemoryFileSystemEntity._(this._fileSystem, this.path);
+  MemoryFileSystemEntity._(this._fileSystem, this.uri);
 
   @override
-  int get hashCode => path.hashCode;
+  int get hashCode => uri.hashCode;
 
   @override
   bool operator ==(Object other) =>
       other is MemoryFileSystemEntity &&
-      other.path == path &&
+      other.uri == uri &&
       identical(other._fileSystem, _fileSystem);
 
   @override
   Future<List<int>> readAsBytes() async {
-    List<int> contents = _fileSystem._files[path];
+    List<int> contents = _fileSystem._files[uri];
     if (contents != null) {
       return contents.toList();
     }
@@ -82,7 +85,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   /// If no file exists, one is created.  If a file exists already, it is
   /// overwritten.
   void writeAsBytesSync(List<int> bytes) {
-    _fileSystem._files[path] = new Uint8List.fromList(bytes);
+    _fileSystem._files[uri] = new Uint8List.fromList(bytes);
   }
 
   /// Writes the given string to this file system entity.
@@ -95,6 +98,6 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     // Note: the return type of UTF8.encode is List<int>, but in practice it
     // always returns Uint8List.  We rely on that for efficiency, so that we
     // don't have to make an extra copy.
-    _fileSystem._files[path] = UTF8.encode(s) as Uint8List;
+    _fileSystem._files[uri] = UTF8.encode(s) as Uint8List;
   }
 }

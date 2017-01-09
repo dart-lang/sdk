@@ -21,7 +21,7 @@ abstract class UriResolverTest {
   p.Context get pathContext;
 
   void test_badScheme() {
-    _expectResolution('foo:bar/baz.dart', null);
+    _expectResolutionUri('foo:bar/baz.dart', Uri.parse('foo:bar/baz.dart'));
   }
 
   void test_dart() {
@@ -54,11 +54,11 @@ abstract class UriResolverTest {
   }
 
   void test_noSchemeAbsolute() {
-    _expectResolution('/foo.dart', null);
+    _expectResolutionUri('/foo.dart', Uri.parse('/foo.dart'));
   }
 
   void test_noSchemeRelative() {
-    _expectResolution('foo.dart', null);
+    _expectResolution('foo.dart', 'foo.dart');
   }
 
   void test_package() {
@@ -102,6 +102,13 @@ abstract class UriResolverTest {
   /// Verifies that the resolution of [uriString] produces the path
   /// [expectedResult].
   void _expectResolution(String uriString, String expectedResult) {
+    _expectResolutionUri(uriString,
+        expectedResult == null ? null : pathContext.toUri(expectedResult));
+  }
+
+  /// Verifies that the resolution of [uriString] produces the URI
+  /// [expectedResult].
+  void _expectResolutionUri(String uriString, Uri expectedResult) {
     var packages = {
       'foo': _u('packages/foo/lib/'),
       'bar': _u('packages/bar/lib/')
@@ -110,7 +117,7 @@ abstract class UriResolverTest {
       'core': _u('sdk/lib/core/core.dart'),
       'async': _u('sdk/lib/async/async.dart')
     };
-    var uriResolver = new UriResolver(packages, sdkLibraries, pathContext);
+    var uriResolver = new UriResolver(packages, sdkLibraries);
     expect(uriResolver.resolve(Uri.parse(uriString)), expectedResult);
   }
 

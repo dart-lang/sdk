@@ -24,36 +24,38 @@ class PhysicalFileSystem implements FileSystem {
   p.Context get context => p.context;
 
   @override
-  FileSystemEntity entityForPath(String path) =>
-      new _PhysicalFileSystemEntity(context.normalize(context.absolute(path)));
-
-  @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme != 'file') throw new ArgumentError('File URI expected');
+    if (uri.scheme != 'file' && uri.scheme != '') {
+      throw new ArgumentError('File URI expected');
+    }
     // Note: we don't have to verify that the URI's path is absolute, because
     // URIs with non-empty schemes always have absolute paths.
-    return entityForPath(context.fromUri(uri));
+    var path = context.fromUri(uri);
+    return new _PhysicalFileSystemEntity(
+        context.normalize(context.absolute(path)));
   }
 }
 
 /// Concrete implementation of [FileSystemEntity] for use by
 /// [PhysicalFileSystem].
 class _PhysicalFileSystemEntity implements FileSystemEntity {
-  @override
-  final String path;
+  final String _path;
 
-  _PhysicalFileSystemEntity(this.path);
+  _PhysicalFileSystemEntity(this._path);
 
   @override
-  int get hashCode => path.hashCode;
+  int get hashCode => _path.hashCode;
+
+  @override
+  Uri get uri => p.toUri(_path);
 
   @override
   bool operator ==(Object other) =>
-      other is _PhysicalFileSystemEntity && other.path == path;
+      other is _PhysicalFileSystemEntity && other._path == _path;
 
   @override
-  Future<List<int>> readAsBytes() => new io.File(path).readAsBytes();
+  Future<List<int>> readAsBytes() => new io.File(_path).readAsBytes();
 
   @override
-  Future<String> readAsString() => new io.File(path).readAsString();
+  Future<String> readAsString() => new io.File(_path).readAsString();
 }
