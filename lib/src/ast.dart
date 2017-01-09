@@ -34,6 +34,7 @@ import 'package:analyzer/dart/ast/ast.dart'
         TypeParameter,
         VariableDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart'
     show Element, ParameterElement, PropertyAccessorElement;
 import 'package:analyzer/dart/element/visitor.dart';
@@ -104,7 +105,8 @@ bool isProtected(Declaration declaration) =>
     declaration.metadata.any((Annotation a) => a.name.name == 'protected');
 
 /// Returns `true` if the given [ClassMember] is a public method.
-bool isPublicMethod(ClassMember m) => isMethod(m) && m.element.isPublic;
+bool isPublicMethod(ClassMember m) =>
+    isMethod(m) && resolutionMap.elementDeclaredByDeclaration(m).isPublic;
 
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///
@@ -204,7 +206,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = assignment.leftHandSide;
   var rightHandSide = assignment.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = leftHandSide.staticElement;
+    var leftElement = resolutionMap.staticElementForIdentifier(leftHandSide);
     if (leftElement is! PropertyAccessorElement || !leftElement.isSynthetic) {
       return false;
     }

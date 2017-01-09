@@ -7,6 +7,7 @@ library linter.src.rules.no_duplicate_case_values;
 import 'dart:collection';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -82,7 +83,12 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    AnalysisContext context = node?.expression?.bestType?.element?.context;
+    AnalysisContext context = node?.expression == null
+        ? null
+        : resolutionMap
+            .bestTypeForExpression(node.expression)
+            ?.element
+            ?.context;
     if (context == null) {
       return;
     }

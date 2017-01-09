@@ -5,6 +5,7 @@
 library linter.src.rules.unrelated_type_equality_checks;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -157,8 +158,10 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    bool isDartCoreBoolean = node.bestType.name == _boolClassName &&
-        node.bestType.element?.library?.name == _dartCoreLibraryName;
+    bool isDartCoreBoolean =
+        resolutionMap.bestTypeForExpression(node).name == _boolClassName &&
+            resolutionMap.bestTypeForExpression(node).element?.library?.name ==
+                _dartCoreLibraryName;
     if (!isDartCoreBoolean ||
         (node.operator.type != TokenType.EQ_EQ &&
             node.operator.type != TokenType.BANG_EQ)) {
