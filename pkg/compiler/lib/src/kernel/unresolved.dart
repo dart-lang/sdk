@@ -30,6 +30,7 @@ abstract class UnresolvedVisitor {
   bool get isVoidContext;
   ir.Arguments buildArguments(NodeList arguments);
   ir.TreeNode visitForValue(Expression node);
+  void associateCompoundComponents(Accessor accessor, Node node);
 
   // TODO(ahe): Delete this method.
   ir.InvalidExpression handleUnresolved(Node node);
@@ -124,6 +125,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression buildThrowUnresolvedSuperGetter(String name) {
+    // TODO(sra): This is incorrect when the superclass defines noSuchMethod.
     return buildThrowNoSuchMethodError(kernel.getUnresolvedSuperGetterBuilder(),
         new ir.ThisExpression(), name, new ir.Arguments.empty());
   }
@@ -269,16 +271,22 @@ abstract class UnresolvedVisitor {
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPostfixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPostfixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedStaticSetterPrefix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPrefixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPrefixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedStaticSetterSetIfNull(
@@ -291,6 +299,7 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedSuperBinary(
       Send node, Element element, BinaryOperator operator, Node argument, _) {
+    // TODO(sra): This is incorrect when the superclass defines noSuchMethod.
     return buildThrowNoSuchMethodError(
         kernel.getUnresolvedSuperMethodBuilder(),
         new ir.ThisExpression(),
@@ -521,25 +530,33 @@ abstract class UnresolvedVisitor {
       _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildCompoundAssignment(
+    var result = accessor.buildCompoundAssignment(
         new ir.Name(operator.selectorName), visitForValue(rhs),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedTopLevelSetterPostfix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPostfixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPostfixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedTopLevelSetterPrefix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPrefixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPrefixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedTopLevelSetterSetIfNull(
