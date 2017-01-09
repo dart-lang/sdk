@@ -21,7 +21,7 @@ import '../elements/elements.dart'
         ResolvedAst,
         FunctionElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -1833,7 +1833,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     MemberEntity element = node.element;
-    List<ResolutionDartType> instantiatedTypes = node.instantiatedTypes;
+    List<DartType> instantiatedTypes = node.instantiatedTypes;
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
@@ -2569,10 +2569,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkType(HInstruction input, HInstruction interceptor,
-      ResolutionDartType type, SourceInformation sourceInformation,
+      DartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     if (type.isInterfaceType) {
-      ResolutionInterfaceType interfaceType = type;
+      InterfaceType interfaceType = type;
       ClassEntity element = interfaceType.element;
       if (element == helpers.jsArrayClass) {
         checkArray(input, negative ? '!==' : '===');
@@ -2615,7 +2615,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void checkTypeViaProperty(HInstruction input, ResolutionDartType type,
+  void checkTypeViaProperty(HInstruction input, DartType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
     registry.registerTypeUse(new TypeUse.isCheck(type));
@@ -2633,7 +2633,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void checkTypeViaInstanceof(HInstruction input, ResolutionDartType type,
+  void checkTypeViaInstanceof(HInstruction input, InterfaceType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
     registry.registerTypeUse(new TypeUse.isCheck(type));
@@ -2653,7 +2653,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void handleNumberOrStringSupertypeCheck(
       HInstruction input,
       HInstruction interceptor,
-      ResolutionDartType type,
+      InterfaceType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
     assert(!identical(type.element, commonElements.listClass) &&
@@ -2679,7 +2679,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleStringSupertypeCheck(HInstruction input, HInstruction interceptor,
-      ResolutionDartType type, SourceInformation sourceInformation,
+      InterfaceType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     assert(!identical(type.element, commonElements.listClass) &&
         !commonElements.isListSupertype(type.element) &&
@@ -2696,7 +2696,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleListOrSupertypeCheck(HInstruction input, HInstruction interceptor,
-      ResolutionDartType type, SourceInformation sourceInformation,
+      InterfaceType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     assert(!identical(type.element, commonElements.stringClass) &&
         !commonElements.isStringOnlySupertype(type.element) &&
@@ -2722,7 +2722,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitIs(HIs node, String relation, SourceInformation sourceInformation) {
-    ResolutionDartType type = node.typeExpression;
+    DartType type = node.typeExpression;
     registry.registerTypeUse(new TypeUse.isCheck(type));
     HInstruction input = node.expression;
 
@@ -2737,7 +2737,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.isRawCheck);
       HInstruction interceptor = node.interceptor;
-      ResolutionInterfaceType interfaceType = type;
+      InterfaceType interfaceType = type;
       ClassEntity element = interfaceType.element;
       if (element == commonElements.nullClass) {
         if (negative) {
@@ -2879,7 +2879,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-    ResolutionDartType type = node.typeExpression;
+    DartType type = node.typeExpression;
     assert(!type.isTypedef);
     if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
@@ -2925,7 +2925,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitFunctionType(HFunctionType node) {
-    ResolutionFunctionType type = node.dartType;
+    FunctionType type = node.dartType;
     int inputCount = 0;
     use(node.inputs[inputCount++]);
     js.Expression returnType = pop();
@@ -3016,15 +3016,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         int index = 0;
         js.Expression result = backend.rtiEncoder.getTypeRepresentation(
             node.dartType,
-            (ResolutionTypeVariableType variable) => arguments[index++]);
+            (TypeVariableType variable) => arguments[index++]);
         assert(index == node.inputs.length);
         push(result);
         return;
 
       case TypeInfoExpressionKind.INSTANCE:
         // We expect only flat types for the INSTANCE representation.
-        assert(node.dartType ==
-            (node.dartType as ResolutionInterfaceType).element.thisType);
+        assert((node.dartType as InterfaceType).typeArguments.length ==
+            arguments.length);
         registry.registerInstantiatedClass(commonElements.listClass);
         push(new js.ArrayInitializer(arguments)
             .withSourceInformation(node.sourceInformation));
@@ -3092,7 +3092,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(type);
       typeArguments.add(pop());
     }
-    ResolutionInterfaceType type = node.dartType;
+    InterfaceType type = node.dartType;
     ClassEntity cls = type.element;
     var arguments = [backend.emitter.typeAccess(cls)];
     if (!typeArguments.isEmpty) {
