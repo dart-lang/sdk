@@ -158,25 +158,6 @@ Expression climbPropertyAccess(AstNode node) {
 }
 
 /**
- * Attempts to convert the given absolute path into an absolute URI, such as
- * "dart" or "package" URI.
- *
- * [context] - the [AnalysisContext] to work in.
- * [path] - the absolute path, not `null`.
- *
- * Returns the absolute (non-file) URI or `null`.
- */
-String findNonFileUri(AnalysisContext context, String path) {
-  Source fileSource =
-      new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
-  Uri uri = context.sourceFactory.restoreUri(fileSource);
-  if (uri == null || uri.scheme == 'file') {
-    return null;
-  }
-  return uri.toString();
-}
-
-/**
  * Returns the EOL to use for the given [code].
  */
 String getCodeEndOfLine(String code) {
@@ -698,6 +679,8 @@ class CorrectionUtils {
    * a type parameter may or may not be used.
    */
   ClassElement targetClassElement;
+
+  ExecutableElement targetExecutableElement;
 
   LibraryElement _library;
   String _buffer;
@@ -1500,13 +1483,15 @@ class CorrectionUtils {
   }
 
   /**
-   * Checks if [type] is visible at [targetOffset].
+   * Checks if [type] is visible in [targetExecutableElement] or
+   * [targetClassElement].
    */
   bool _isTypeVisible(DartType type) {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterClassElement = parameterElement.enclosingElement;
-      return identical(parameterClassElement, targetClassElement);
+      return identical(parameterClassElement, targetExecutableElement) ||
+          identical(parameterClassElement, targetClassElement);
     }
     return true;
   }

@@ -581,6 +581,7 @@ let EventStreamProviderOfDeviceMotionEvent = () => (EventStreamProviderOfDeviceM
 let EventStreamProviderOfDeviceOrientationEvent = () => (EventStreamProviderOfDeviceOrientationEvent = dart.constFn(html.EventStreamProvider$(html.DeviceOrientationEvent)))();
 let EventStreamProviderOfAnimationEvent = () => (EventStreamProviderOfAnimationEvent = dart.constFn(html.EventStreamProvider$(html.AnimationEvent)))();
 let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html.EventStreamProvider$(html.BeforeUnloadEvent)))();
+let _EventStreamOfBeforeUnloadEvent = () => (_EventStreamOfBeforeUnloadEvent = dart.constFn(html._EventStream$(html.BeforeUnloadEvent)))();
 let StreamControllerOfBeforeUnloadEvent = () => (StreamControllerOfBeforeUnloadEvent = dart.constFn(async.StreamController$(html.BeforeUnloadEvent)))();
 let _ElementEventStreamImplOfBeforeUnloadEvent = () => (_ElementEventStreamImplOfBeforeUnloadEvent = dart.constFn(html._ElementEventStreamImpl$(html.BeforeUnloadEvent)))();
 let _ElementListEventStreamImplOfBeforeUnloadEvent = () => (_ElementListEventStreamImplOfBeforeUnloadEvent = dart.constFn(html._ElementListEventStreamImpl$(html.BeforeUnloadEvent)))();
@@ -879,7 +880,6 @@ let HttpClientRequestToFutureOfHttpClientResponse = () => (HttpClientRequestToFu
 let dynamicToMap = () => (dynamicToMap = dart.constFn(dart.definiteFunctionType(core.Map, [dart.dynamic])))();
 let ListToIsolate = () => (ListToIsolate = dart.constFn(dart.definiteFunctionType(isolate.Isolate, [core.List])))();
 let dynamicTo_DartObject = () => (dynamicTo_DartObject = dart.constFn(dart.definiteFunctionType(js._DartObject, [dart.dynamic])))();
-let dynamicToJsObject = () => (dynamicToJsObject = dart.constFn(dart.definiteFunctionType(js.JsObject, [dart.dynamic])))();
 let dynamicAnddynamicAndFnToObject = () => (dynamicAnddynamicAndFnToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic, dart.dynamic, dynamicTodynamic()])))();
 let FToF = () => (FToF = dart.constFn(dart.definiteFunctionType(F => [F, [F]])))();
 let FunctionToFunction = () => (FunctionToFunction = dart.constFn(dart.definiteFunctionType(core.Function, [core.Function])))();
@@ -923,6 +923,7 @@ let RtcSessionDescriptionTovoid = () => (RtcSessionDescriptionTovoid = dart.cons
 let RtcStatsResponseTovoid = () => (RtcStatsResponseTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.RtcStatsResponse])))();
 let OptionElementTobool = () => (OptionElementTobool = dart.constFn(dart.definiteFunctionType(core.bool, [html.OptionElement])))();
 let numTovoid = () => (numTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.num])))();
+let BeforeUnloadEventTovoid = () => (BeforeUnloadEventTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.BeforeUnloadEvent])))();
 let ElementTovoid = () => (ElementTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.Element])))();
 let ElementToCssClassSet = () => (ElementToCssClassSet = dart.constFn(dart.definiteFunctionType(html.CssClassSet, [html.Element])))();
 let CssClassSetImplTovoid = () => (CssClassSetImplTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html_common.CssClassSetImpl])))();
@@ -3333,7 +3334,7 @@ _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
       protoChain[dartx.add](current);
       current = _debugger.safeGetProperty(current, '__proto__');
     }
-    for (/* Unimplemented unknown name */current of protoChain) {
+    for (current of protoChain) {
       for (let symbol of _debugger.getOwnPropertySymbols(current)) {
         let dartName = _debugger.symbolName(symbol);
         if (dart.test(_debugger.hasMethod(object, dartName))) {
@@ -3349,7 +3350,7 @@ _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
         properties.add(new _debugger.NameValuePair({name: dartName, value: value}));
       }
     }
-    for (/* Unimplemented unknown name */current of protoChain) {
+    for (current of protoChain) {
       let className = dart.dload(dart.getReifiedType(current), 'name');
       for (let name of _debugger.getOwnPropertyNames(current)) {
         if (dart.test(_debugger.ObjectFormatter._customNames.contains(name)) || dart.equals(name, className)) continue;
@@ -52591,7 +52592,7 @@ dart.defineLazy(js, {
 });
 dart.defineLazy(js, {
   get context() {
-    return js._wrapToDart(js._global);
+    return js.JsObject._check(js._wrapToDart(js._global));
   }
 });
 const _jsObject = Symbol('_jsObject');
@@ -52604,22 +52605,22 @@ js.JsObject = class JsObject extends core.Object {
     if (arguments$ === void 0) arguments$ = null;
     let ctor = constructor[_jsObject];
     if (arguments$ == null) {
-      return js._wrapToDart(new ctor());
+      return js.JsObject._check(js._wrapToDart(new ctor()));
     }
     let unwrapped = core.List.from(arguments$[dartx.map](dart.dynamic)(js._convertToJS));
-    return js._wrapToDart(new ctor(...unwrapped));
+    return js.JsObject._check(js._wrapToDart(new ctor(...unwrapped)));
   }
   static fromBrowserObject(object) {
     if (typeof object == 'number' || typeof object == 'string' || typeof object == 'boolean' || object == null) {
       dart.throw(new core.ArgumentError("object cannot be a num, string, bool, or null"));
     }
-    return js._wrapToDart(js._convertToJS(object));
+    return js.JsObject._check(js._wrapToDart(js._convertToJS(object)));
   }
   static jsify(object) {
     if (!core.Map.is(object) && !core.Iterable.is(object)) {
       dart.throw(new core.ArgumentError("object must be a Map or Iterable"));
     }
-    return js._wrapToDart(js.JsObject._convertDataTree(object));
+    return js.JsObject._check(js._wrapToDart(js.JsObject._convertDataTree(object)));
   }
   static _convertDataTree(data) {
     let _convertedObjects = collection.HashMap.identity();
@@ -52947,9 +52948,9 @@ js._convertToDart = function(o) {
 };
 dart.fn(js._convertToDart, dynamicToObject());
 js._wrapToDart = function(o) {
-  return js.JsObject._check(js._putIfAbsent(js._dartProxies, o, js._wrapToDartHelper));
+  return js._putIfAbsent(js._dartProxies, o, js._wrapToDartHelper);
 };
-dart.fn(js._wrapToDart, dynamicToJsObject());
+dart.fn(js._wrapToDart, dynamicToObject());
 js._wrapToDartHelper = function(o) {
   if (typeof o == "function") {
     return new js.JsFunction._fromJs(o);
@@ -52959,7 +52960,7 @@ js._wrapToDartHelper = function(o) {
   }
   return new js.JsObject._fromJs(o);
 };
-dart.fn(js._wrapToDartHelper, dynamicToJsObject());
+dart.fn(js._wrapToDartHelper, dynamicToObject());
 dart.defineLazy(js, {
   get _dartProxies() {
     return new WeakMap();
@@ -93232,12 +93233,12 @@ html._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider e
   }
   forTarget(e, opts) {
     let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-    let stream = new (_EventStreamOfEvent())(e, this[_eventType], useCapture);
+    let stream = new (_EventStreamOfBeforeUnloadEvent())(e, this[_eventType], useCapture);
     let controller = StreamControllerOfBeforeUnloadEvent().new({sync: true});
     stream.listen(dart.fn(event => {
       let wrapped = new html._BeforeUnloadEvent(event);
       controller.add(wrapped);
-    }, EventTovoid()));
+    }, BeforeUnloadEventTovoid()));
     return controller.stream;
   }
   getEventType(target) {
@@ -96399,7 +96400,7 @@ html._EventStreamSubscription$ = dart.generic(T => {
       this[_target] = target;
       this[_eventType] = eventType;
       this[_useCapture] = useCapture;
-      this[_onData] = html._wrapZone(html.Event, dart.dynamic)(_wrapZoneCallbackOfEvent$dynamic()._check(onData));
+      this[_onData] = onData == null ? null : html._wrapZone(html.Event, dart.dynamic)(dart.fn(e => dart.dcall(onData, e), EventTodynamic()));
       this[_pauseCount] = 0;
       this[_tryResume]();
     }
@@ -96450,10 +96451,12 @@ html._EventStreamSubscription$ = dart.generic(T => {
         this[_target][dartx.removeEventListener](this[_eventType], this[_onData], this[_useCapture]);
       }
     }
-    asFuture(futureValue) {
-      if (futureValue === void 0) futureValue = null;
-      let completer = async.Completer.new();
-      return completer.future;
+    asFuture(E) {
+      return futureValue => {
+        if (futureValue === void 0) futureValue = null;
+        let completer = async.Completer$(E).new();
+        return completer.future;
+      };
     }
   }
   dart.setSignature(_EventStreamSubscription, {
@@ -96478,7 +96481,7 @@ html._EventStreamSubscription$ = dart.generic(T => {
       resume: dart.definiteFunctionType(dart.void, []),
       [_tryResume]: dart.definiteFunctionType(dart.void, []),
       [_unlisten]: dart.definiteFunctionType(dart.void, []),
-      asFuture: dart.definiteFunctionType(async.Future, [], [dart.dynamic])
+      asFuture: dart.definiteFunctionType(E => [async.Future$(E), [], [E]])
     })
   });
   return _EventStreamSubscription;

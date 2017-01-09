@@ -7,8 +7,6 @@
 large_class_declaration_test: Skip
 large_implicit_getter_test: Skip
 larger_implicit_getter_test: Skip
-null_is_bottom_test/22: RuntimeError # Issue 28025
-null_is_bottom_test/34: RuntimeError # Issue 28025
 
 ###############################################################################
 # Dartk Entries
@@ -85,14 +83,6 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 no_main_test/01: DartkCrash
 not_enough_positional_arguments_test/01: DartkCompileTimeError
-null_is_bottom_test/05: RuntimeError # Issue 28025
-null_is_bottom_test/07: RuntimeError # Issue 28025
-null_is_bottom_test/20: RuntimeError # Issue 28025
-null_is_bottom_test/25: RuntimeError # Issue 28025
-null_is_bottom_test/27: RuntimeError # Issue 28025
-null_is_bottom_test/32: RuntimeError # Issue 28025
-null_is_bottom_test/37: RuntimeError # Issue 28025
-null_is_bottom_test/39: RuntimeError # Issue 28025
 regress_27617_test/1: MissingCompileTimeError
 super_call3_test/01: DartkCrash
 type_variable_conflict2_test/02: MissingCompileTimeError
@@ -326,6 +316,7 @@ regress_22700_test: RuntimeError
 regress_23408_test: RuntimeError
 regress_27164_test: CompileTimeError
 regress_r24720_test: RuntimeError
+regress_28278_test: RuntimeError
 reify_typevar_test: RuntimeError
 script1_negative_test: Fail
 script2_negative_test: Fail
@@ -365,24 +356,9 @@ vm/optimized_guarded_field_isolates_test: Crash  # Class finalization issue
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-const_evaluation_test/01: Crash
-full_stacktrace1_test: RuntimeError
-full_stacktrace2_test: RuntimeError
-full_stacktrace3_test: RuntimeError
 if_null_assignment_static_test/35: Crash
-instance_creation_in_function_annotation_test: Crash
-invocation_mirror_invoke_on2_test: Crash
-issue21079_test: Crash
 large_class_declaration_test: Pass, Timeout
-library_env_test/has_mirror_support: RuntimeError
-redirecting_factory_reflection_test: Crash
-regress_18535_test: Crash
-stacktrace_rethrow_error_test/none: RuntimeError
-stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
-stacktrace_rethrow_nonerror_test: RuntimeError
-stack_trace_test: RuntimeError
 string_interpolation7_test: RuntimeError
-super_call4_test: RuntimeError
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]

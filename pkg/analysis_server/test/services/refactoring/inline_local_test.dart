@@ -16,6 +16,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineLocalTest);
+    defineReflectiveTests(InlineLocalTest_Driver);
   });
 }
 
@@ -24,7 +25,7 @@ class InlineLocalTest extends RefactoringTest {
   InlineLocalRefactoringImpl refactoring;
 
   test_access() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int test = 1 + 2;
   print(test);
@@ -40,7 +41,7 @@ main() {
   }
 
   test_bad_selectionMethod() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main() {
 }
 ''');
@@ -50,7 +51,7 @@ main() {
   }
 
   test_bad_selectionParameter() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main(int test) {
 }
 ''');
@@ -60,7 +61,7 @@ main(int test) {
   }
 
   test_bad_selectionVariable_hasAssignments_1() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main() {
   int test = 0;
   test = 1;
@@ -73,7 +74,7 @@ main() {
   }
 
   test_bad_selectionVariable_hasAssignments_2() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main() {
   int test = 0;
   test += 1;
@@ -86,7 +87,7 @@ main() {
   }
 
   test_bad_selectionVariable_notInBlock() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main() {
   if (true)
     int test = 0;
@@ -98,7 +99,7 @@ main() {
   }
 
   test_bad_selectionVariable_notInitialized() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main() {
   int test;
 }
@@ -108,8 +109,8 @@ main() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_OK_cascade_intoCascade() {
-    indexTestUnit(r'''
+  test_OK_cascade_intoCascade() async {
+    await indexTestUnit(r'''
 class A {
   foo() {}
   bar() {}
@@ -132,8 +133,8 @@ main() {
 ''');
   }
 
-  test_OK_cascade_intoNotCascade() {
-    indexTestUnit(r'''
+  test_OK_cascade_intoNotCascade() async {
+    await indexTestUnit(r'''
 class A {
   foo() {}
   bar() {}
@@ -156,8 +157,8 @@ main() {
 ''');
   }
 
-  test_OK_inSwitchCase() {
-    indexTestUnit('''
+  test_OK_inSwitchCase() async {
+    await indexTestUnit('''
 main(int p) {
   switch (p) {
     case 0:
@@ -180,8 +181,8 @@ main(int p) {
 ''');
   }
 
-  test_OK_intoStringInterpolation_binaryExpression() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_binaryExpression() async {
+    await indexTestUnit(r'''
 main() {
   int test = 1 + 2;
   print('test = $test');
@@ -202,8 +203,8 @@ process(x) {}
 ''');
   }
 
-  test_OK_intoStringInterpolation_simpleIdentifier() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_simpleIdentifier() async {
+    await indexTestUnit(r'''
 main() {
   int foo = 1 + 2;
   int test = foo;
@@ -226,8 +227,8 @@ process(x) {}
 ''');
   }
 
-  test_OK_intoStringInterpolation_string_differentQuotes() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_string_differentQuotes() async {
+    await indexTestUnit(r'''
 main() {
   String a = "aaa";
   String b = '$a bbb';
@@ -242,8 +243,8 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation_string_doubleQuotes() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_string_doubleQuotes() async {
+    await indexTestUnit(r'''
 main() {
   String a = "aaa";
   String b = "$a bbb";
@@ -258,8 +259,8 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() {
-    indexTestUnit(r"""
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() async {
+    await indexTestUnit(r"""
 main() {
   String a = '''\ \
 a
@@ -281,8 +282,8 @@ bbb''';
 """);
   }
 
-  test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() {
-    indexTestUnit(r"""
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() async {
+    await indexTestUnit(r"""
 main() {
   String a = '''
 a
@@ -306,8 +307,8 @@ bbb''';
 """);
   }
 
-  test_OK_intoStringInterpolation_string_multiLineIntoMulti_windowsEOL() {
-    indexTestUnit(r"""
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_windowsEOL() async {
+    await indexTestUnit(r"""
 main() {
   String a = '''
 a
@@ -333,8 +334,8 @@ bbb''';
         .replaceAll('\n', '\r\n'));
   }
 
-  test_OK_intoStringInterpolation_string_multiLineIntoSingle() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_string_multiLineIntoSingle() async {
+    await indexTestUnit(r'''
 main() {
   String a = """aaa""";
   String b = "$a bbb";
@@ -349,8 +350,8 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation_string_raw() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_string_raw() async {
+    await indexTestUnit(r'''
 main() {
   String a = r'an $ignored interpolation';
   String b = '$a bbb';
@@ -365,8 +366,8 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation_string_singleLineIntoMulti_doubleQuotes() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_string_singleLineIntoMulti_doubleQuotes() async {
+    await indexTestUnit(r'''
 main() {
   String a = "aaa";
   String b = """$a bbb""";
@@ -381,8 +382,8 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation_string_singleLineIntoMulti_singleQuotes() {
-    indexTestUnit(r"""
+  test_OK_intoStringInterpolation_string_singleLineIntoMulti_singleQuotes() async {
+    await indexTestUnit(r"""
 main() {
   String a = 'aaa';
   String b = '''$a bbb''';
@@ -397,8 +398,8 @@ main() {
 """);
   }
 
-  test_OK_intoStringInterpolation_string_singleQuotes() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_string_singleQuotes() async {
+    await indexTestUnit(r'''
 main() {
   String a = 'aaa';
   String b = '$a bbb';
@@ -413,8 +414,8 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation_stringInterpolation() {
-    indexTestUnit(r'''
+  test_OK_intoStringInterpolation_stringInterpolation() async {
+    await indexTestUnit(r'''
 main() {
   String a = 'aaa';
   String b = '$a bbb';
@@ -435,8 +436,8 @@ main() {
    * <p>
    * https://code.google.com/p/dart/issues/detail?id=18587
    */
-  test_OK_keepNextCommentedLine() {
-    indexTestUnit('''
+  test_OK_keepNextCommentedLine() async {
+    await indexTestUnit('''
 main() {
   int test = 1 + 2;
   // foo
@@ -455,8 +456,8 @@ main() {
 ''');
   }
 
-  test_OK_noUsages_1() {
-    indexTestUnit('''
+  test_OK_noUsages_1() async {
+    await indexTestUnit('''
 main() {
   int test = 1 + 2;
   print(0);
@@ -471,8 +472,8 @@ main() {
 ''');
   }
 
-  test_OK_noUsages_2() {
-    indexTestUnit('''
+  test_OK_noUsages_2() async {
+    await indexTestUnit('''
 main() {
   int test = 1 + 2;
 }
@@ -485,8 +486,8 @@ main() {
 ''');
   }
 
-  test_OK_oneUsage() {
-    indexTestUnit('''
+  test_OK_oneUsage() async {
+    await indexTestUnit('''
 main() {
   int test = 1 + 2;
   print(test);
@@ -501,8 +502,8 @@ main() {
 ''');
   }
 
-  test_OK_parenthesis_decrement_intoNegate() {
-    indexTestUnit('''
+  test_OK_parenthesis_decrement_intoNegate() async {
+    await indexTestUnit('''
 main() {
   var a = 1;
   var test = --a;
@@ -519,8 +520,8 @@ main() {
 ''');
   }
 
-  test_OK_parenthesis_instanceCreation_intoList() {
-    indexTestUnit('''
+  test_OK_parenthesis_instanceCreation_intoList() async {
+    await indexTestUnit('''
 class A {}
 main() {
   var test = new A();
@@ -537,8 +538,8 @@ main() {
 ''');
   }
 
-  test_OK_parenthesis_intoIndexExpression_index() {
-    indexTestUnit('''
+  test_OK_parenthesis_intoIndexExpression_index() async {
+    await indexTestUnit('''
 main() {
   var items = [];
   var test = 1 + 2;
@@ -555,8 +556,8 @@ main() {
 ''');
   }
 
-  test_OK_parenthesis_intoParenthesizedExpression() {
-    indexTestUnit('''
+  test_OK_parenthesis_intoParenthesizedExpression() async {
+    await indexTestUnit('''
 f(m, x, y) {
   int test = x as int;
   m[test] = y;
@@ -573,8 +574,8 @@ f(m, x, y) {
 ''');
   }
 
-  test_OK_parenthesis_negate_intoNegate() {
-    indexTestUnit('''
+  test_OK_parenthesis_negate_intoNegate() async {
+    await indexTestUnit('''
 main() {
   var a = 1;
   var test = -a;
@@ -591,8 +592,8 @@ main() {
 ''');
   }
 
-  test_OK_parenthesis_plus_intoMultiply() {
-    indexTestUnit('''
+  test_OK_parenthesis_plus_intoMultiply() async {
+    await indexTestUnit('''
 main() {
   var test = 1 + 2;
   print(test * 3);
@@ -607,8 +608,8 @@ main() {
 ''');
   }
 
-  test_OK_twoUsages() {
-    indexTestUnit('''
+  test_OK_twoUsages() async {
+    await indexTestUnit('''
 main() {
   int test = 1 + 2;
   print(test);
@@ -637,4 +638,10 @@ main() {
     int offset = findOffset(search);
     refactoring = new InlineLocalRefactoring(searchEngine, testUnit, offset);
   }
+}
+
+@reflectiveTest
+class InlineLocalTest_Driver extends InlineLocalTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

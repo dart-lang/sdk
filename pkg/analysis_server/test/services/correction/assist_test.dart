@@ -7,10 +7,14 @@ library test.services.correction.assist;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -23,6 +27,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
+    defineReflectiveTests(AssistProcessorTest_Driver);
   });
 }
 
@@ -65,12 +70,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
    * Asserts that there is no [Assist] of the given [kind] at [offset].
    */
   assertNoAssist(AssistKind kind) async {
-    List<Assist> assists = await computeAssists(
-        plugin,
-        context,
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
-        offset,
-        length);
+    List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
@@ -132,7 +132,7 @@ class A {}
 class _B extends A {}
 foo(f(_B p)) {}
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   foo((test) {});
@@ -150,7 +150,7 @@ class A {}
 class _B extends A {}
 List<_B> getValues() => [];
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'my_lib.dart';
 class A<T> {
   main() {
@@ -171,7 +171,7 @@ class A {}
 class _B extends A {}
 List<_B> getValues() => [];
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   var v = getValues();
@@ -189,7 +189,7 @@ class A {}
 class _B extends A {}
 _B getValue() => new _B();
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   var v = getValue();
@@ -199,7 +199,7 @@ main() {
   }
 
   test_addTypeAnnotation_classField_OK_final() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   final f = 0;
 }
@@ -215,7 +215,7 @@ class A {
   }
 
   test_addTypeAnnotation_classField_OK_int() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   var f = 0;
 }
@@ -231,7 +231,7 @@ class A {
   }
 
   test_addTypeAnnotation_declaredIdentifier_BAD_hasTypeAnnotation() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
   }
@@ -241,7 +241,7 @@ main(List<String> items) {
   }
 
   test_addTypeAnnotation_declaredIdentifier_BAD_inForEachBody() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (var item in items) {
     42;
@@ -253,7 +253,7 @@ main(List<String> items) {
 
   test_addTypeAnnotation_declaredIdentifier_BAD_unknownType() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   for (var item in unknownList) {
   }
@@ -263,7 +263,7 @@ main() {
   }
 
   test_addTypeAnnotation_declaredIdentifier_generic_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A<T> {
   main(List<List<T>> items) {
     for (var item in items) {
@@ -285,7 +285,7 @@ class A<T> {
   }
 
   test_addTypeAnnotation_declaredIdentifier_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (var item in items) {
   }
@@ -320,7 +320,7 @@ main(List<String> items) {
 import 'dart:async';
 List<Future<int>> getFutures() => null;
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   for (var future in getFutures()) {
@@ -341,7 +341,7 @@ main() {
   }
 
   test_addTypeAnnotation_declaredIdentifier_OK_final() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (final item in items) {
   }
@@ -359,7 +359,7 @@ main(List<String> items) {
   }
 
   test_addTypeAnnotation_local_BAD_hasTypeAnnotation() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int v = 42;
 }
@@ -368,7 +368,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_BAD_multiple() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var a = 1, b = '';
 }
@@ -378,7 +378,7 @@ main() {
 
   test_addTypeAnnotation_local_BAD_noValue() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
 }
@@ -387,7 +387,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_BAD_null() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = null;
 }
@@ -396,7 +396,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_BAD_onInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var abc = 0;
 }
@@ -406,7 +406,7 @@ main() {
 
   test_addTypeAnnotation_local_BAD_unknown() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = unknownVar;
 }
@@ -415,7 +415,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_generic_OK_literal() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   main(List<int> items) {
     var v = items;
@@ -435,7 +435,7 @@ class A {
   }
 
   test_addTypeAnnotation_local_generic_OK_local() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A<T> {
   main(List<T> items) {
     var v = items;
@@ -461,7 +461,7 @@ class A<T> {
 import 'dart:async';
 Future<int> getFutureInt() => null;
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'my_lib.dart';
 main() {
   var v = getFutureInt();
@@ -503,11 +503,14 @@ main() {
     Source appSource = addSource('/app.dart', appCode);
     testSource = addSource('/test.dart', testCode);
     // resolve
-    context.resolveCompilationUnit2(appSource, appSource);
-    testUnit = context.resolveCompilationUnit2(testSource, appSource);
-    assertNoErrorsInSource(testSource);
-    testUnitElement = testUnit.element;
-    testLibraryElement = testUnitElement.library;
+    if (enableNewAnalysisDriver) {
+      await resolveTestUnit(testCode);
+    } else {
+      context.resolveCompilationUnit2(appSource, appSource);
+      testUnit = context.resolveCompilationUnit2(testSource, appSource);
+      testUnitElement = testUnit.element;
+      testLibraryElement = testUnitElement.library;
+    }
     // prepare the assist
     offset = findOffset('v = ');
     assist = await _assertHasAssist(DartAssistKind.ADD_TYPE_ANNOTATION);
@@ -551,7 +554,7 @@ class MyClass {}
 import '../aa/bbb/lib_a.dart';
 MyClass newMyClass() => null;
 ''');
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'ccc/lib_b.dart';
 main() {
   var v = newMyClass();
@@ -570,7 +573,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_Function() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = () => 1;
 }
@@ -586,7 +589,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_int() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 0;
 }
@@ -602,7 +605,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_List() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = <String>[];
 }
@@ -618,7 +621,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_localType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class C {}
 C f() => null;
 main() {
@@ -638,7 +641,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_onName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var abc = 0;
 }
@@ -654,7 +657,7 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_onVar() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 0;
 }
@@ -670,7 +673,7 @@ main() {
   }
 
   test_addTypeAnnotation_OK_privateType_sameLibrary() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class _A {}
 _A getValue() => new _A();
 main() {
@@ -690,7 +693,7 @@ main() {
   }
 
   test_addTypeAnnotation_parameter_BAD_hasExplicitType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 foo(f(int p)) {}
 main() {
   foo((num test) {});
@@ -700,7 +703,7 @@ main() {
   }
 
   test_addTypeAnnotation_parameter_BAD_noPropagatedType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 foo(f(p)) {}
 main() {
   foo((test) {});
@@ -710,7 +713,7 @@ main() {
   }
 
   test_addTypeAnnotation_parameter_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 foo(f(int p)) {}
 main() {
   foo((test) {});
@@ -728,21 +731,21 @@ main() {
   }
 
   test_addTypeAnnotation_topLevelField_BAD_multiple() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var A = 1, V = '';
 ''');
     await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
   test_addTypeAnnotation_topLevelField_BAD_noValue() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var V;
 ''');
     await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
   test_addTypeAnnotation_topLevelField_OK_int() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var V = 0;
 ''');
     await assertHasAssistAt(
@@ -754,7 +757,7 @@ int V = 0;
   }
 
   test_assignToLocalVariable() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   List<int> bytes;
   readBytes();
@@ -779,7 +782,7 @@ List<int> readBytes() => <int>[];
   }
 
   test_assignToLocalVariable_alreadyAssignment() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var vvv;
   vvv = 42;
@@ -789,7 +792,7 @@ main() {
   }
 
   test_assignToLocalVariable_inClosure() async {
-    resolveTestUnit(r'''
+    await resolveTestUnit(r'''
 main() {
   print(() {
     12345;
@@ -809,17 +812,17 @@ main() {
   }
 
   test_assignToLocalVariable_invocationArgument() async {
-    resolveTestUnit(r'''
+    await resolveTestUnit(r'''
 main() {
   f(12345);
 }
-int f(p) {}
+void f(p) {}
 ''');
     await assertNoAssistAt('345', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
   test_assignToLocalVariable_throw() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   throw 42;
 }
@@ -828,7 +831,7 @@ main() {
   }
 
   test_assignToLocalVariable_void() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   f();
 }
@@ -838,7 +841,7 @@ void f() {}
   }
 
   test_convertDocumentationIntoBlock_BAD_alreadyBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 /**
  * AAAAAAA
  */
@@ -849,7 +852,7 @@ class A {}
   }
 
   test_convertDocumentationIntoBlock_BAD_notDocumentation() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 // AAAA
 class A {}
 ''');
@@ -858,7 +861,7 @@ class A {}
   }
 
   test_convertDocumentationIntoBlock_OK_noSpaceBeforeText() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   /// AAAAA
   ///BBBBB
@@ -884,7 +887,7 @@ class A {
   }
 
   test_convertDocumentationIntoBlock_OK_onReference() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 /// AAAAAAA [int] AAAAAAA
 class A {}
 ''');
@@ -900,7 +903,7 @@ class A {}
   }
 
   test_convertDocumentationIntoBlock_OK_onText() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   /// AAAAAAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB
@@ -924,7 +927,7 @@ class A {
   }
 
   test_convertDocumentationIntoLine_BAD_alreadyLine() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 /// AAAAAAA
 class A {}
 ''');
@@ -933,7 +936,7 @@ class A {}
   }
 
   test_convertDocumentationIntoLine_BAD_notDocumentation() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 /* AAAA */
 class A {}
 ''');
@@ -942,7 +945,7 @@ class A {}
   }
 
   test_convertDocumentationIntoLine_OK_onReference() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 /**
  * AAAAAAA [int] AAAAAAA
  */
@@ -958,7 +961,7 @@ class A {}
   }
 
   test_convertDocumentationIntoLine_OK_onText() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   /**
    * AAAAAAA [int] AAAAAAA
@@ -982,7 +985,7 @@ class A {
   }
 
   test_convertDocumentationIntoLine_OK_onText_hasFirstLine() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   /** AAAAAAA [int] AAAAAAA
    * BBBBBBBB BBBB BBBB
@@ -1005,14 +1008,14 @@ class A {
   }
 
   test_convertToBlockBody_BAD_noEnclosingFunction() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var v = 123;
 ''');
     await assertNoAssistAt('v =', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
   }
 
   test_convertToBlockBody_BAD_notExpressionBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   return 123;
 }
@@ -1021,7 +1024,7 @@ fff() {
   }
 
   test_convertToBlockBody_OK_async() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   mmm() async => 123;
 }
@@ -1039,7 +1042,7 @@ class A {
   }
 
   test_convertToBlockBody_OK_closure() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 setup(x) {}
 main() {
   setup(() => 42);
@@ -1065,7 +1068,7 @@ main() {
   }
 
   test_convertToBlockBody_OK_closure_voidExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 setup(x) {}
 main() {
   setup(() => print('done'));
@@ -1091,7 +1094,7 @@ main() {
   }
 
   test_convertToBlockBody_OK_constructor() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   factory A() => null;
 }
@@ -1109,7 +1112,7 @@ class A {
   }
 
   test_convertToBlockBody_OK_method() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   mmm() => 123;
 }
@@ -1127,7 +1130,7 @@ class A {
   }
 
   test_convertToBlockBody_OK_onName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() => 123;
 ''');
     await assertHasAssistAt(
@@ -1141,7 +1144,7 @@ fff() {
   }
 
   test_convertToBlockBody_OK_onValue() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() => 123;
 ''');
     await assertHasAssistAt(
@@ -1155,7 +1158,7 @@ fff() {
   }
 
   test_convertToExpressionBody_BAD_already() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() => 42;
 ''');
     await assertNoAssistAt(
@@ -1163,7 +1166,7 @@ fff() => 42;
   }
 
   test_convertToExpressionBody_BAD_moreThanOneStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   var v = 42;
   return v;
@@ -1174,14 +1177,14 @@ fff() {
   }
 
   test_convertToExpressionBody_BAD_noEnclosingFunction() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var V = 42;
 ''');
     await assertNoAssistAt('V = ', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   test_convertToExpressionBody_BAD_noReturn() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   var v = 42;
 }
@@ -1191,7 +1194,7 @@ fff() {
   }
 
   test_convertToExpressionBody_BAD_noReturnValue() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   return;
 }
@@ -1201,7 +1204,7 @@ fff() {
   }
 
   test_convertToExpressionBody_OK_async() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   mmm() async {
     return 42;
@@ -1219,7 +1222,7 @@ class A {
   }
 
   test_convertToExpressionBody_OK_closure() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 setup(x) {}
 main() {
   setup(() {
@@ -1239,7 +1242,7 @@ main() {
   }
 
   test_convertToExpressionBody_OK_closure_voidExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 setup(x) {}
 main() {
   setup(() {
@@ -1259,7 +1262,7 @@ main() {
   }
 
   test_convertToExpressionBody_OK_constructor() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   factory A() {
     return null;
@@ -1277,7 +1280,7 @@ class A {
   }
 
   test_convertToExpressionBody_OK_function_onBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   return 42;
 }
@@ -1291,7 +1294,7 @@ fff() => 42;
   }
 
   test_convertToExpressionBody_OK_function_onName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   return 42;
 }
@@ -1305,7 +1308,7 @@ fff() => 42;
   }
 
   test_convertToExpressionBody_OK_method_onBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   m() { // marker
     return 42;
@@ -1323,7 +1326,7 @@ class A {
   }
 
   test_convertToExpressionBody_OK_topFunction_onReturnStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 fff() {
   return 42;
 }
@@ -1337,7 +1340,7 @@ fff() => 42;
   }
 
   test_convertToFieldParameter_BAD_additionalUse() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int aaa2;
   int bbb2;
@@ -1348,7 +1351,7 @@ class A {
   }
 
   test_convertToFieldParameter_BAD_notPureAssignment() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int aaa2;
   A(int aaa) : aaa2 = aaa * 2;
@@ -1358,9 +1361,9 @@ class A {
   }
 
   test_convertToFieldParameter_OK_firstInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
 }
@@ -1370,7 +1373,7 @@ class A {
         DartAssistKind.CONVERT_TO_FIELD_PARAMETER,
         '''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(this.aaa2, int bbb) : bbb2 = bbb;
 }
@@ -1378,7 +1381,7 @@ class A {
   }
 
   test_convertToFieldParameter_OK_onParameterName_inInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int test2;
   A(int test) : test2 = test {
@@ -1398,7 +1401,7 @@ class A {
   }
 
   test_convertToFieldParameter_OK_onParameterName_inParameters() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int test;
   A(int test) : test = test {
@@ -1418,9 +1421,9 @@ class A {
   }
 
   test_convertToFieldParameter_OK_secondInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
 }
@@ -1430,7 +1433,7 @@ class A {
         DartAssistKind.CONVERT_TO_FIELD_PARAMETER,
         '''
 class A {
-  double aaa2;
+  int aaa2;
   int bbb2;
   A(int aaa, this.bbb2) : aaa2 = aaa;
 }
@@ -1438,7 +1441,7 @@ class A {
   }
 
   test_convertToFinalField_BAD_hasSetter_inThisClass() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo => null;
   void set foo(_) {}
@@ -1448,7 +1451,7 @@ class A {
   }
 
   test_convertToFinalField_BAD_notExpressionBody() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo {
     int v = 1 + 2;
@@ -1460,7 +1463,7 @@ class A {
   }
 
   test_convertToFinalField_BAD_notGetter() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int foo() => 42;
 }
@@ -1469,7 +1472,7 @@ class A {
   }
 
   test_convertToFinalField_OK_blockBody_onlyReturnStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo {
     return 1 + 2;
@@ -1487,7 +1490,7 @@ class A {
   }
 
   test_convertToFinalField_OK_hasOverride() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 const myAnnotation = const Object();
 class A {
   @myAnnotation
@@ -1507,7 +1510,7 @@ class A {
   }
 
   test_convertToFinalField_OK_hasSetter_inSuper() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   void set foo(_) {}
 }
@@ -1529,7 +1532,7 @@ class B extends A {
   }
 
   test_convertToFinalField_OK_notNull() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo => 1 + 2;
 }
@@ -1545,7 +1548,7 @@ class A {
   }
 
   test_convertToFinalField_OK_null() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo => null;
 }
@@ -1561,7 +1564,7 @@ class A {
   }
 
   test_convertToFinalField_OK_onName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo => 42;
 }
@@ -1577,7 +1580,7 @@ class A {
   }
 
   test_convertToFinalField_OK_onReturnType_parameterized() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   List<int> get foo => null;
 }
@@ -1593,7 +1596,7 @@ class A {
   }
 
   test_convertToFinalField_OK_onReturnType_simple() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int get foo => 42;
 }
@@ -1609,7 +1612,7 @@ class A {
   }
 
   test_convertToForIndex_BAD_bodyNotBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) print(item);
 }
@@ -1619,7 +1622,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_BAD_doesNotDeclareVariable() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   String item;
   for (item in items) {
@@ -1631,7 +1634,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_BAD_iterableIsNotVariable() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   for (String item in ['a', 'b', 'c']) {
     print(item);
@@ -1643,7 +1646,7 @@ main() {
   }
 
   test_convertToForIndex_BAD_iterableNotList() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(Iterable<String> items) {
   for (String item in items) {
     print(item);
@@ -1655,7 +1658,7 @@ main(Iterable<String> items) {
   }
 
   test_convertToForIndex_BAD_usesIJK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -1668,7 +1671,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_OK_onDeclaredIdentifier_name() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -1689,7 +1692,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_OK_onDeclaredIdentifier_type() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -1710,7 +1713,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_OK_onFor() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -1731,7 +1734,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_OK_usesI() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
     int i = 0;
@@ -1752,7 +1755,7 @@ main(List<String> items) {
   }
 
   test_convertToForIndex_OK_usesIJ() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
     print(item);
@@ -1775,7 +1778,8 @@ main(List<String> items) {
   }
 
   test_convertToGetter_BAD_noInitializer() async {
-    resolveTestUnit('''
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
 class A {
   final int foo;
 }
@@ -1784,7 +1788,7 @@ class A {
   }
 
   test_convertToGetter_BAD_notFinal() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int foo = 1;
 }
@@ -1793,7 +1797,7 @@ class A {
   }
 
   test_convertToGetter_BAD_notSingleField() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   final int foo = 1, bar = 2;
 }
@@ -1802,7 +1806,7 @@ class A {
   }
 
   test_convertToGetter_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 const myAnnotation = const Object();
 class A {
   @myAnnotation
@@ -1822,7 +1826,7 @@ class A {
   }
 
   test_convertToGetter_OK_noType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   final foo = 42;
 }
@@ -1838,7 +1842,7 @@ class A {
   }
 
   test_convertToIsNot_BAD_is_alreadyIsNot() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   p is! String;
 }
@@ -1847,7 +1851,7 @@ main(p) {
   }
 
   test_convertToIsNot_BAD_is_noEnclosingParenthesis() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   p is String;
 }
@@ -1856,7 +1860,7 @@ main(p) {
   }
 
   test_convertToIsNot_BAD_is_noPrefix() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   (p is String);
 }
@@ -1865,7 +1869,7 @@ main(p) {
   }
 
   test_convertToIsNot_BAD_is_notIsExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   123 + 456;
 }
@@ -1875,7 +1879,7 @@ main(p) {
 
   test_convertToIsNot_BAD_is_notTheNotOperator() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   ++(p is String);
 }
@@ -1884,7 +1888,7 @@ main(p) {
   }
 
   test_convertToIsNot_BAD_not_alreadyIsNot() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p is! String);
 }
@@ -1893,7 +1897,7 @@ main(p) {
   }
 
   test_convertToIsNot_BAD_not_noEnclosingParenthesis() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !p;
 }
@@ -1902,7 +1906,7 @@ main(p) {
   }
 
   test_convertToIsNot_BAD_not_notIsExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p == null);
 }
@@ -1912,7 +1916,7 @@ main(p) {
 
   test_convertToIsNot_BAD_not_notTheNotOperator() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   ++(p is String);
 }
@@ -1921,7 +1925,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_childOfIs_left() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -1937,7 +1941,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_childOfIs_right() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -1953,7 +1957,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_is() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -1969,7 +1973,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_is_higherPrecedencePrefix() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !!(p is String);
 }
@@ -1985,7 +1989,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_is_not_higherPrecedencePrefix() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !!(p is String);
 }
@@ -2001,7 +2005,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_not() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -2017,7 +2021,7 @@ main(p) {
   }
 
   test_convertToIsNot_OK_parentheses() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   !(p is String);
 }
@@ -2034,7 +2038,7 @@ main(p) {
 
   test_convertToIsNotEmpty_BAD_noBang() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(String str) {
   ~str.isEmpty;
 }
@@ -2044,7 +2048,7 @@ main(String str) {
   }
 
   test_convertToIsNotEmpty_BAD_noIsNotEmpty() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   bool get isEmpty => false;
 }
@@ -2057,7 +2061,7 @@ main(A a) {
   }
 
   test_convertToIsNotEmpty_BAD_notInPrefixExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(String str) {
   str.isEmpty;
 }
@@ -2067,7 +2071,7 @@ main(String str) {
   }
 
   test_convertToIsNotEmpty_BAD_notIsEmpty() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(int p) {
   !p.isEven;
 }
@@ -2076,7 +2080,7 @@ main(int p) {
   }
 
   test_convertToIsNotEmpty_OK_on_isEmpty() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(String str) {
   !str.isEmpty;
 }
@@ -2092,7 +2096,7 @@ main(String str) {
   }
 
   test_convertToIsNotEmpty_OK_on_str() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(String str) {
   !str.isEmpty;
 }
@@ -2108,7 +2112,7 @@ main(String str) {
   }
 
   test_convertToIsNotEmpty_OK_propertyAccess() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(String str) {
   !'text'.isEmpty;
 }
@@ -2124,7 +2128,7 @@ main(String str) {
   }
 
   test_convertToNormalParameter_OK_dynamic() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   var test;
   A(this.test) {
@@ -2144,7 +2148,7 @@ class A {
   }
 
   test_convertToNormalParameter_OK_firstInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int test;
   A(this.test) {
@@ -2164,7 +2168,7 @@ class A {
   }
 
   test_convertToNormalParameter_OK_secondInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   double aaa;
   int bbb;
@@ -2184,7 +2188,7 @@ class A {
   }
 
   test_encapsulateField_BAD_alreadyPrivate() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int _test = 42;
 }
@@ -2196,7 +2200,7 @@ main(A a) {
   }
 
   test_encapsulateField_BAD_final() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   final int test = 42;
 }
@@ -2205,7 +2209,7 @@ class A {
   }
 
   test_encapsulateField_BAD_multipleFields() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int aaa, bbb, ccc;
 }
@@ -2217,7 +2221,7 @@ main(A a) {
   }
 
   test_encapsulateField_BAD_notOnName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int test = 1 + 2 + 3;
 }
@@ -2227,7 +2231,7 @@ class A {
 
   test_encapsulateField_BAD_parseError() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int; // marker
 }
@@ -2239,7 +2243,7 @@ main(A a) {
   }
 
   test_encapsulateField_BAD_static() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   static int test = 42;
 }
@@ -2248,7 +2252,7 @@ class A {
   }
 
   test_encapsulateField_OK_hasType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int test = 42;
   A(this.test);
@@ -2278,7 +2282,7 @@ main(A a) {
   }
 
   test_encapsulateField_OK_noType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   var test = 42;
 }
@@ -2306,7 +2310,7 @@ main(A a) {
   }
 
   test_exchangeBinaryExpressionArguments_BAD_extraLength() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   111 + 222;
 }
@@ -2316,7 +2320,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_BAD_onOperand() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   111 + 222;
 }
@@ -2326,7 +2330,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_BAD_selectionWithBinary() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2 + 3;
 }
@@ -2341,7 +2345,7 @@ main() {
     for (int i = 0; i <= 0; i++) {
       String initialOperator = initialOperators[i];
       String resultOperator = resultOperators[i];
-      resolveTestUnit('''
+      await resolveTestUnit('''
 bool main(int a, int b) {
   return a $initialOperator b;
 }
@@ -2358,7 +2362,7 @@ bool main(int a, int b) {
   }
 
   test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 * 2 * 3 + 4;
 }
@@ -2374,7 +2378,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_2() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2 - 3 + 4;
 }
@@ -2390,7 +2394,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterFirst() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2 + 3;
 }
@@ -2406,7 +2410,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterSecond() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2 + 3;
 }
@@ -2422,7 +2426,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_simple_afterOperator() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -2438,7 +2442,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_simple_beforeOperator() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -2454,7 +2458,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_simple_fullSelection() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -2471,7 +2475,7 @@ main() {
   }
 
   test_exchangeBinaryExpressionArguments_OK_simple_withLength() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   1 + 2;
 }
@@ -2488,7 +2492,7 @@ main() {
   }
 
   test_importAddShow_BAD_hasShow() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'dart:math' show PI;
 main() {
   PI;
@@ -2498,21 +2502,22 @@ main() {
   }
 
   test_importAddShow_BAD_unresolvedUri() async {
-    resolveTestUnit('''
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
 import '/no/such/lib.dart';
 ''');
     await assertNoAssistAt('import ', DartAssistKind.IMPORT_ADD_SHOW);
   }
 
   test_importAddShow_BAD_unused() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'dart:math';
 ''');
     await assertNoAssistAt('import ', DartAssistKind.IMPORT_ADD_SHOW);
   }
 
   test_importAddShow_OK_hasUnresolvedIdentifier() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'dart:math';
 main(x) {
   PI;
@@ -2532,7 +2537,7 @@ main(x) {
   }
 
   test_importAddShow_OK_onDirective() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'dart:math';
 main() {
   PI;
@@ -2554,7 +2559,7 @@ main() {
   }
 
   test_importAddShow_OK_onUri() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 import 'dart:math';
 main() {
   PI;
@@ -2576,7 +2581,7 @@ main() {
   }
 
   test_introduceLocalTestedType_BAD_notBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   if (p is String)
     print('not a block');
@@ -2586,7 +2591,7 @@ main(p) {
   }
 
   test_introduceLocalTestedType_BAD_notIsExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   if (p == null) {
   }
@@ -2596,7 +2601,7 @@ main(p) {
   }
 
   test_introduceLocalTestedType_BAD_notStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class C {
   bool b;
   C(v) : b = v is int;
@@ -2605,7 +2610,7 @@ class C {
   }
 
   test_introduceLocalTestedType_OK_if_is() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class MyTypeName {}
 main(p) {
   if (p is MyTypeName) {
@@ -2635,7 +2640,7 @@ main(p) {
   }
 
   test_introduceLocalTestedType_OK_if_isNot() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class MyTypeName {}
 main(p) {
   if (p is! MyTypeName) {
@@ -2665,7 +2670,7 @@ main(p) {
   }
 
   test_introduceLocalTestedType_OK_while() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(p) {
   while (p is String) {
   }
@@ -2687,14 +2692,15 @@ main(p) {
   }
 
   test_invalidSelection() async {
-    resolveTestUnit('');
-    List<Assist> assists = await computeAssists(plugin, context,
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source, -1, 0);
+    await resolveTestUnit('');
+    offset = -1;
+    length = 0;
+    List<Assist> assists = await _computeAssists();
     expect(assists, isEmpty);
   }
 
   test_invertIfStatement_blocks() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true) {
     0;
@@ -2718,7 +2724,7 @@ main() {
   }
 
   test_invertIfStatement_statements() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true)
     0;
@@ -2740,7 +2746,7 @@ main() {
   }
 
   test_joinIfStatementInner_BAD_innerNotIf() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     print(0);
@@ -2751,7 +2757,7 @@ main() {
   }
 
   test_joinIfStatementInner_BAD_innerWithElse() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -2766,7 +2772,7 @@ main() {
   }
 
   test_joinIfStatementInner_BAD_statementAfterInner() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -2780,7 +2786,7 @@ main() {
   }
 
   test_joinIfStatementInner_BAD_statementBeforeInner() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     print(1);
@@ -2794,7 +2800,7 @@ main() {
   }
 
   test_joinIfStatementInner_BAD_targetNotIf() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   print(0);
 }
@@ -2803,7 +2809,7 @@ main() {
   }
 
   test_joinIfStatementInner_BAD_targetWithElse() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -2818,7 +2824,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_conditionAndOr() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2 || 3 == 3) {
@@ -2840,7 +2846,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_conditionInvocation() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (isCheck()) {
     if (2 == 2) {
@@ -2864,7 +2870,7 @@ bool isCheck() => false;
   }
 
   test_joinIfStatementInner_OK_conditionOrAnd() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
     if (3 == 3) {
@@ -2886,7 +2892,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_onCondition() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -2908,7 +2914,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_simpleConditions_block_block() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -2930,7 +2936,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_simpleConditions_block_single() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2)
@@ -2951,7 +2957,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_simpleConditions_single_blockMulti() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -2977,7 +2983,7 @@ main() {
   }
 
   test_joinIfStatementInner_OK_simpleConditions_single_blockOne() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1)
     if (2 == 2) {
@@ -2998,7 +3004,7 @@ main() {
   }
 
   test_joinIfStatementOuter_BAD_outerNotIf() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     print(0);
@@ -3009,7 +3015,7 @@ main() {
   }
 
   test_joinIfStatementOuter_BAD_outerWithElse() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -3024,7 +3030,7 @@ main() {
   }
 
   test_joinIfStatementOuter_BAD_statementAfterInner() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -3038,7 +3044,7 @@ main() {
   }
 
   test_joinIfStatementOuter_BAD_statementBeforeInner() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     print(1);
@@ -3052,7 +3058,7 @@ main() {
   }
 
   test_joinIfStatementOuter_BAD_targetNotIf() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   print(0);
 }
@@ -3061,7 +3067,7 @@ main() {
   }
 
   test_joinIfStatementOuter_BAD_targetWithElse() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -3076,7 +3082,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_conditionAndOr() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2 || 3 == 3) {
@@ -3098,7 +3104,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_conditionInvocation() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (isCheck()) {
@@ -3122,7 +3128,7 @@ bool isCheck() => false;
   }
 
   test_joinIfStatementOuter_OK_conditionOrAnd() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
     if (3 == 3) {
@@ -3144,7 +3150,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_onCondition() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -3166,7 +3172,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_simpleConditions_block_block() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -3188,7 +3194,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_simpleConditions_block_single() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2)
@@ -3209,7 +3215,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_simpleConditions_single_blockMulti() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -3235,7 +3241,7 @@ main() {
   }
 
   test_joinIfStatementOuter_OK_simpleConditions_single_blockOne() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1)
     if (2 == 2) {
@@ -3256,7 +3262,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_hasInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 1;
   v = 2;
@@ -3266,7 +3272,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_notAdjacent() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   var bar;
@@ -3277,7 +3283,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_notAssignment() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   v += 1;
@@ -3287,7 +3293,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_notDeclaration() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main(var v) {
   v = 1;
 }
@@ -3296,7 +3302,7 @@ main(var v) {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_notLeftArgument() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   1 + v; // marker
@@ -3307,7 +3313,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_notOneVariable() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v, v2;
   v = 1;
@@ -3318,7 +3324,7 @@ main() {
 
   test_joinVariableDeclaration_onAssignment_BAD_notResolved() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   x = 1;
@@ -3328,7 +3334,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_BAD_notSameBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   {
@@ -3340,7 +3346,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onAssignment_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   v = 1;
@@ -3357,7 +3363,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_BAD_hasInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 1;
   v = 2;
@@ -3367,7 +3373,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_BAD_lastStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true)
     var v;
@@ -3377,7 +3383,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_BAD_nextNotAssignmentExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   42;
@@ -3387,7 +3393,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_BAD_nextNotExpressionStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   if (true) return;
@@ -3397,7 +3403,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_BAD_nextNotPureAssignment() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   v += 1;
@@ -3407,7 +3413,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_BAD_notOneVariable() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v, v2;
   v = 1;
@@ -3417,7 +3423,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_OK_onName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   v = 1;
@@ -3434,7 +3440,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_OK_onType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int v;
   v = 1;
@@ -3451,7 +3457,7 @@ main() {
   }
 
   test_joinVariableDeclaration_onDeclaration_OK_onVar() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   v = 1;
@@ -3468,7 +3474,7 @@ main() {
   }
 
   test_removeTypeAnnotation_classField_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   int v = 1;
 }
@@ -3484,7 +3490,7 @@ class A {
   }
 
   test_removeTypeAnnotation_classField_OK_final() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 class A {
   final int v = 1;
 }
@@ -3500,7 +3506,7 @@ class A {
   }
 
   test_removeTypeAnnotation_localVariable_BAD_onInitializer() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   final int v = 1;
 }
@@ -3509,7 +3515,7 @@ main() {
   }
 
   test_removeTypeAnnotation_localVariable_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int a = 1, b = 2;
 }
@@ -3525,7 +3531,7 @@ main() {
   }
 
   test_removeTypeAnnotation_localVariable_OK_const() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   const int v = 1;
 }
@@ -3541,7 +3547,7 @@ main() {
   }
 
   test_removeTypeAnnotation_localVariable_OK_final() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   final int v = 1;
 }
@@ -3558,14 +3564,14 @@ main() {
 
   test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName() async {
     verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
+    await resolveTestUnit('''
 MyType
 ''');
     await assertNoAssistAt('MyType', DartAssistKind.REMOVE_TYPE_ANNOTATION);
   }
 
   test_removeTypeAnnotation_topLevelVariable_OK() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 int V = 1;
 ''');
     await assertHasAssistAt(
@@ -3577,7 +3583,7 @@ var V = 1;
   }
 
   test_removeTypeAnnotation_topLevelVariable_OK_final() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 final int V = 1;
 ''');
     await assertHasAssistAt(
@@ -3589,7 +3595,7 @@ final V = 1;
   }
 
   test_replaceConditionalWithIfElse_BAD_noEnclosingStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var v = true ? 111 : 222;
 ''');
     await assertNoAssistAt(
@@ -3597,7 +3603,7 @@ var v = true ? 111 : 222;
   }
 
   test_replaceConditionalWithIfElse_BAD_notConditional() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 42;
 }
@@ -3607,7 +3613,7 @@ main() {
   }
 
   test_replaceConditionalWithIfElse_OK_assignment() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v;
   v = true ? 111 : 222;
@@ -3644,7 +3650,7 @@ main() {
   }
 
   test_replaceConditionalWithIfElse_OK_return() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   return true ? 111 : 222;
 }
@@ -3664,7 +3670,7 @@ main() {
   }
 
   test_replaceConditionalWithIfElse_OK_variableDeclaration() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int a = 1, vvv = true ? 111 : 222, b = 2;
 }
@@ -3685,7 +3691,7 @@ main() {
   }
 
   test_replaceIfElseWithConditional_BAD_expressionVsReturn() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true) {
     print(42);
@@ -3699,7 +3705,7 @@ main() {
   }
 
   test_replaceIfElseWithConditional_BAD_notIfStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   print(0);
 }
@@ -3709,7 +3715,7 @@ main() {
   }
 
   test_replaceIfElseWithConditional_BAD_notSingleStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int vvv;
   if (true) {
@@ -3726,7 +3732,7 @@ main() {
   }
 
   test_replaceIfElseWithConditional_OK_assignment() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int vvv;
   if (true) {
@@ -3748,7 +3754,7 @@ main() {
   }
 
   test_replaceIfElseWithConditional_OK_return() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true) {
     return 111;
@@ -3768,7 +3774,7 @@ main() {
   }
 
   test_splitAndCondition_BAD_hasElse() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2) {
     print(1);
@@ -3781,7 +3787,7 @@ main() {
   }
 
   test_splitAndCondition_BAD_notAnd() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1 || 2 == 2) {
     print(0);
@@ -3792,7 +3798,7 @@ main() {
   }
 
   test_splitAndCondition_BAD_notPartOfIf() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   print(1 == 1 && 2 == 2);
 }
@@ -3801,7 +3807,7 @@ main() {
   }
 
   test_splitAndCondition_BAD_notTopLevelAnd() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true || (1 == 1 && 2 == 2)) {
     print(0);
@@ -3816,7 +3822,7 @@ main() {
   }
 
   test_splitAndCondition_OK_innerAndExpression() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2 && 3 == 3) {
     print(0);
@@ -3838,7 +3844,7 @@ main() {
   }
 
   test_splitAndCondition_OK_thenBlock() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true && false) {
     print(0);
@@ -3866,7 +3872,7 @@ main() {
   }
 
   test_splitAndCondition_OK_thenStatement() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (true && false)
     print(0);
@@ -3885,7 +3891,7 @@ main() {
   }
 
   test_splitAndCondition_wrong() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -3903,7 +3909,7 @@ main() {
   }
 
   test_splitVariableDeclaration_BAD_notOneVariable() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 1, v2;
 }
@@ -3912,7 +3918,7 @@ main() {
   }
 
   test_splitVariableDeclaration_OK_onName() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 1;
 }
@@ -3929,7 +3935,7 @@ main() {
   }
 
   test_splitVariableDeclaration_OK_onType() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   int v = 1;
 }
@@ -3946,7 +3952,7 @@ main() {
   }
 
   test_splitVariableDeclaration_OK_onVar() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
   var v = 1;
 }
@@ -3963,7 +3969,7 @@ main() {
   }
 
   test_surroundWith_block() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -3987,7 +3993,7 @@ main() {
   }
 
   test_surroundWith_doWhile() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4011,7 +4017,7 @@ main() {
   }
 
   test_surroundWith_for() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4035,7 +4041,7 @@ main() {
   }
 
   test_surroundWith_forIn() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4059,7 +4065,7 @@ main() {
   }
 
   test_surroundWith_if() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4083,7 +4089,7 @@ main() {
   }
 
   test_surroundWith_tryCatch() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4109,7 +4115,7 @@ main() {
   }
 
   test_surroundWith_tryFinally() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4135,7 +4141,7 @@ main() {
   }
 
   test_surroundWith_while() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 main() {
 // start
   print(0);
@@ -4162,12 +4168,7 @@ main() {
    * Computes assists and verifies that there is an assist of the given kind.
    */
   Future<Assist> _assertHasAssist(AssistKind kind) async {
-    List<Assist> assists = await computeAssists(
-        plugin,
-        context,
-        resolutionMap.elementDeclaredByCompilationUnit(testUnit).source,
-        offset,
-        length);
+    List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
         return assist;
@@ -4185,6 +4186,19 @@ main() {
     }
   }
 
+  Future<List<Assist>> _computeAssists() async {
+    CompilationUnitElement testUnitElement =
+        resolutionMap.elementDeclaredByCompilationUnit(testUnit);
+    DartAssistContext assistContext = new _DartAssistContextForValues(
+        testUnitElement.source,
+        offset,
+        length,
+        testUnitElement.context,
+        testUnit);
+    AssistProcessor processor = new AssistProcessor(assistContext);
+    return await processor.compute();
+  }
+
   List<Position> _findResultPositions(List<String> searchStrings) {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
@@ -4198,4 +4212,30 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
+}
+
+@reflectiveTest
+class AssistProcessorTest_Driver extends AssistProcessorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+}
+
+class _DartAssistContextForValues implements DartAssistContext {
+  @override
+  final Source source;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final int selectionLength;
+
+  @override
+  final AnalysisContext analysisContext;
+
+  @override
+  final CompilationUnit unit;
+
+  _DartAssistContextForValues(this.source, this.selectionOffset,
+      this.selectionLength, this.analysisContext, this.unit);
 }

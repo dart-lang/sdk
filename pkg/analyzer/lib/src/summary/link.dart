@@ -2556,13 +2556,8 @@ class ExprTypeComputer {
           }
         });
         // Perform inference.
-        FunctionType inferred = ts.inferGenericFunctionCall(
-            typeProvider,
-            rawMethodType,
-            paramTypes,
-            argTypes,
-            rawMethodType.returnType,
-            null);
+        FunctionType inferred = ts.inferGenericFunctionCall(rawMethodType,
+            paramTypes, argTypes, rawMethodType.returnType, null);
         return inferred;
       }
     }
@@ -2571,7 +2566,7 @@ class ExprTypeComputer {
   }
 
   DartType _leastUpperBound(DartType s, DartType t) {
-    return linker.typeSystem.getLeastUpperBound(typeProvider, s, t);
+    return linker.typeSystem.getLeastUpperBound(s, t);
   }
 
   List<DartType> _popList(int n) {
@@ -2587,8 +2582,8 @@ class ExprTypeComputer {
           left.lookUpInheritedMethod(operator.lexeme, library: library);
       if (method != null) {
         DartType type = method.returnType;
-        type = linker.typeSystem.refineBinaryExpressionType(
-            typeProvider, left, operator, right, type);
+        type = linker.typeSystem
+            .refineBinaryExpressionType(left, operator, right, type);
         stack.add(type);
         return;
       }
@@ -3654,8 +3649,9 @@ class Linker {
   /**
    * Get an instance of [TypeSystem] for use during linking.
    */
-  TypeSystem get typeSystem => _typeSystem ??=
-      strongMode ? new StrongTypeSystemImpl() : new TypeSystemImpl();
+  TypeSystem get typeSystem => _typeSystem ??= strongMode
+      ? new StrongTypeSystemImpl(typeProvider)
+      : new TypeSystemImpl(typeProvider);
 
   /**
    * Get the element representing `void`.

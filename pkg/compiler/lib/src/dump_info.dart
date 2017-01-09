@@ -262,7 +262,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     // TODO(sigmund): why all these checks?
     if (element.isInstanceMember &&
         !element.isAbstract &&
-        closedWorld.allFunctions.contains(element)) {
+        closedWorld.allFunctions.contains(element as MemberElement)) {
       returnType = '${element.type.returnType}';
     }
     String inferredReturnType = '${_resultOf(element).returnType}';

@@ -87,14 +87,9 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   // memory.
   Thread* thread = Thread::Current();
   if (thread->CanCollectGarbage()) {
-    {
-      MonitorLocker ml(old_space_.tasks_lock());
-      addr = old_space_.TryAllocate(size, type);
-      while ((addr == 0) && (old_space_.tasks() > 0)) {
-        ml.WaitWithSafepointCheck(thread);
-        addr = old_space_.TryAllocate(size, type);
-      }
-    }
+    // Wait for any GC tasks that are in progress.
+    WaitForSweeperTasks(thread);
+    addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
     }
@@ -105,14 +100,8 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
       return addr;
     }
     // Wait for all of the concurrent tasks to finish before giving up.
-    {
-      MonitorLocker ml(old_space_.tasks_lock());
-      addr = old_space_.TryAllocate(size, type);
-      while ((addr == 0) && (old_space_.tasks() > 0)) {
-        ml.WaitWithSafepointCheck(thread);
-        addr = old_space_.TryAllocate(size, type);
-      }
-    }
+    WaitForSweeperTasks(thread);
+    addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
     }
@@ -123,12 +112,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     }
     // Before throwing an out-of-memory error try a synchronous GC.
     CollectAllGarbage();
-    {
-      MonitorLocker ml(old_space_.tasks_lock());
-      while (old_space_.tasks() > 0) {
-        ml.WaitWithSafepointCheck(thread);
-      }
-    }
+    WaitForSweeperTasks(thread);
   }
   addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
@@ -445,17 +429,12 @@ void Heap::CollectAllGarbage() {
 }
 
 
-#if defined(DEBUG)
-void Heap::WaitForSweeperTasks() {
-  Thread* thread = Thread::Current();
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    while (old_space_.tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread);
-    }
+void Heap::WaitForSweeperTasks(Thread* thread) {
+  MonitorLocker ml(old_space_.tasks_lock());
+  while (old_space_.tasks() > 0) {
+    ml.WaitWithSafepointCheck(thread);
   }
 }
-#endif
 
 
 void Heap::UpdateGlobalMaxUsed() {

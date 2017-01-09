@@ -1099,11 +1099,8 @@ class JavaScriptBackend extends Backend {
 
   void computeImpactForInstantiatedConstantType(
       ResolutionDartType type, WorldImpactBuilder impactBuilder) {
-    ResolutionDartType instantiatedType =
-        type.isFunctionType ? commonElements.functionType : type;
     if (type is ResolutionInterfaceType) {
-      impactBuilder
-          .registerTypeUse(new TypeUse.instantiation(instantiatedType));
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
       if (classNeedsRtiField(type.element)) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].

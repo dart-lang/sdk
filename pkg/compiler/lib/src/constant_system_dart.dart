@@ -203,6 +203,14 @@ class ModuloOperation extends ArithmeticNumOperation {
   apply(left, right) => left % right;
 }
 
+class RemainderOperation extends ArithmeticNumOperation {
+  final String name = 'remainder';
+  const RemainderOperation();
+  // Not a defined constant operation.
+  num foldNums(num left, num right) => null;
+  apply(left, right) => left.remainder(right);
+}
+
 class TruncatingDivideOperation extends ArithmeticNumOperation {
   final String name = '~/';
   const TruncatingDivideOperation();
@@ -406,6 +414,7 @@ class DartConstantSystem extends ConstantSystem {
   final multiply = const MultiplyOperation();
   final negate = const NegateOperation();
   final not = const NotOperation();
+  final remainder = const RemainderOperation();
   final shiftLeft = const ShiftLeftOperation();
   final shiftRight = const ShiftRightOperation();
   final subtract = const SubtractOperation();

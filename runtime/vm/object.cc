@@ -3741,18 +3741,16 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     if (other.IsDynamicClass()) {
       return true;
     }
+    // Check for NullType, which, as of Dart 1.5, is a subtype of (and is more
+    // specific than) any type. Note that the null instance is not handled here.
+    if (thsi.IsNullClass()) {
+      return true;
+    }
     // In the case of a subtype test, each occurrence of DynamicType in type S
     // is interpreted as the bottom type, a subtype of all types.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
       return test_kind == Class::kIsSubtypeOf;
-    }
-    // Check for NullType, which is only a subtype of ObjectType, of
-    // DynamicType, or of itself, and which is more specific than any type.
-    if (thsi.IsNullClass()) {
-      // We already checked for other.IsDynamicClass() above.
-      return (test_kind == Class::kIsMoreSpecificThan) ||
-             other.IsObjectClass() || other.IsNullClass();
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType.
@@ -15855,6 +15853,12 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     return false;
   }
   other_class = instantiated_other.type_class();
+  if (IsNull()) {
+    ASSERT(cls.IsNullClass());
+    // As of Dart 1.5, the null instance and Null type are handled differently.
+    // We already checked for other.IsDynamicType().
+    return other_class.IsNullClass() || other_class.IsObjectClass();
+  }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
                          bound_error, NULL, Heap::kOld);
 }
@@ -16554,7 +16558,10 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     return false;
   }
-  if (other.IsObjectType() || other.IsDynamicType()) {
+  // Any type is a subtype of (and is more specific than) Object and dynamic.
+  // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
+  // any type.
+  if (other.IsObjectType() || other.IsDynamicType() || IsNullType()) {
     return true;
   }
   Zone* zone = Thread::Current()->zone();

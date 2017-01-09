@@ -5,7 +5,6 @@
 library test.services.dependencies.import_collector;
 
 import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,9 +19,6 @@ main() {
 
 @reflectiveTest
 class ReachableSourceCollectorTest extends AbstractContextTest {
-  CompilationUnit addLibrary(String path, String contents) =>
-      resolveLibraryUnit(addSource(path, contents));
-
   Map<String, List<String>> importsFor(Source source) =>
       new ReachableSourceCollector(source, context).collectSources();
 

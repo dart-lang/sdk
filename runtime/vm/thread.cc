@@ -38,6 +38,8 @@ Thread::~Thread() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
+  // All zone allocated memory should be free by this point.
+  ASSERT(current_thread_memory_ == 0);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -74,6 +76,8 @@ Thread::Thread(Isolate* isolate)
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
+      current_thread_memory_(0),
+      memory_high_watermark_(0),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
       top_resource_(NULL),
@@ -213,6 +217,7 @@ void Thread::PrintJSON(JSONStream* stream) const {
   jsobj.AddPropertyF("id", "threads/%" Pd "",
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
   jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
+  jsobj.AddPropertyF("_memoryHighWatermark", "%" Pu "", memory_high_watermark_);
   Zone* zone = zone_;
   {
     JSONArray zone_info_array(&jsobj, "zones");

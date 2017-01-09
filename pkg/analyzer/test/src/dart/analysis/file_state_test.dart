@@ -324,6 +324,30 @@ class A1 {}
     expect(fileSystemState.getFilesForPath(a1), [file]);
   }
 
+  test_getFileForPath_onlyDartFiles() {
+    String a = _p('/test/lib/a.dart');
+    String b = _p('/test/lib/b.dart');
+    String c = _p('/test/lib/c.dart');
+    String d = _p('/test/lib/d.dart');
+    provider.newFile(
+        a,
+        r'''
+library lib;
+import 'dart:math';
+import 'b.dart';
+import 'not_dart.txt';
+export 'c.dart';
+export 'not_dart.txt';
+part 'd.dart';
+part 'not_dart.txt';
+''');
+    FileState file = fileSystemState.getFileForPath(a);
+    expect(file.importedFiles.map((f) => f.path), [b]);
+    expect(file.exportedFiles.map((f) => f.path), [c]);
+    expect(file.partedFiles.map((f) => f.path), [d]);
+    expect(fileSystemState.knownFilePaths, unorderedEquals([a, b, c, d]));
+  }
+
   test_getFileForPath_part() {
     String a1 = _p('/aaa/lib/a1.dart');
     String a2 = _p('/aaa/lib/a2.dart');

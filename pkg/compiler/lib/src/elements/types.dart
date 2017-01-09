@@ -63,6 +63,7 @@ abstract class DartType {
 
 abstract class InterfaceType extends DartType {
   ClassEntity get element;
+  List<DartType> get typeArguments;
 }
 
 abstract class TypeVariableType extends DartType {

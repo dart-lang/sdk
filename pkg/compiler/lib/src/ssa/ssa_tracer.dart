@@ -452,6 +452,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return handleInvokeBinary(node, 'TruncatingDivide');
   }
 
+  String visitRemainder(HRemainder node) {
+    return handleInvokeBinary(node, 'Remainder');
+  }
+
   String visitExitTry(HExitTry node) {
     return "ExitTry";
   }

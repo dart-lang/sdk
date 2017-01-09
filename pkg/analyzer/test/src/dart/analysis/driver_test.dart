@@ -1122,6 +1122,11 @@ main() {
         unorderedEquals(['foo', 'main']));
   }
 
+  test_getUnitElement_notDart() async {
+    CompilationUnitElement unit = await driver.getUnitElement('foo.txt');
+    expect(unit, isNull);
+  }
+
   test_hasFilesToAnalyze() async {
     // No files yet, nothing to analyze.
     expect(driver.hasFilesToAnalyze, isFalse);

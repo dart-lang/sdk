@@ -76,6 +76,8 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // For inclusion in Snapshot::kAppJIT.
   function.set_unoptimized_code(code);
 
+  ASSERT(isolate->object_store()->megamorphic_miss_function() ==
+         Function::null());
   isolate->object_store()->SetMegamorphicMissHandler(code, function);
 }
 

@@ -65,8 +65,7 @@ abstract class BoundTestBase {
 
   void _checkGreatestLowerBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    DartType glb =
-        strongTypeSystem.getGreatestLowerBound(typeProvider, type1, type2);
+    DartType glb = strongTypeSystem.getGreatestLowerBound(type1, type2);
     expect(glb, expectedResult);
     // Check that the result is a lower bound.
     expect(typeSystem.isSubtypeOf(glb, type1), true);
@@ -77,7 +76,7 @@ abstract class BoundTestBase {
     // for function types we just check if they are mutual subtypes.
     // https://github.com/dart-lang/sdk/issues/26126
     // TODO(leafp): Fix this.
-    glb = strongTypeSystem.getGreatestLowerBound(typeProvider, type2, type1);
+    glb = strongTypeSystem.getGreatestLowerBound(type2, type1);
     if (glb is FunctionTypeImpl) {
       expect(typeSystem.isSubtypeOf(glb, expectedResult), true);
       expect(typeSystem.isSubtypeOf(expectedResult, glb), true);
@@ -88,7 +87,7 @@ abstract class BoundTestBase {
 
   void _checkLeastUpperBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    DartType lub = typeSystem.getLeastUpperBound(typeProvider, type1, type2);
+    DartType lub = typeSystem.getLeastUpperBound(type1, type2);
     expect(lub, expectedResult);
     // Check that the result is an upper bound.
     expect(typeSystem.isSubtypeOf(type1, lub), true);
@@ -100,7 +99,7 @@ abstract class BoundTestBase {
     // for function types we just check if they are mutual subtypes.
     // https://github.com/dart-lang/sdk/issues/26126
     // TODO(leafp): Fix this.
-    lub = typeSystem.getLeastUpperBound(typeProvider, type2, type1);
+    lub = typeSystem.getLeastUpperBound(type2, type1);
     if (lub is FunctionTypeImpl) {
       expect(typeSystem.isSubtypeOf(lub, expectedResult), true);
       expect(typeSystem.isSubtypeOf(expectedResult, lub), true);
@@ -138,8 +137,8 @@ abstract class BoundTestBase {
 @reflectiveTest
 class LeastUpperBoundTest extends LeastUpperBoundTestBase {
   void setUp() {
-    typeSystem = new TypeSystemImpl();
     super.setUp();
+    typeSystem = new TypeSystemImpl(typeProvider);
   }
 
   void test_functionsLubNamedParams() {
@@ -566,7 +565,7 @@ class StrongAssignabilityTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl();
+    typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
   void test_isAssignableTo_bottom_isBottom() {
@@ -865,7 +864,7 @@ class StrongGenericFunctionInferenceTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl();
+    typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
   void test_boundedByAnotherTypeParameter() {
@@ -1125,7 +1124,6 @@ class StrongGenericFunctionInferenceTest {
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
       [DartType returnType]) {
     FunctionType inferred = typeSystem.inferGenericFunctionCall(
-        typeProvider,
         ft,
         ft.parameters.map((p) => p.type).toList(),
         arguments,
@@ -1141,8 +1139,8 @@ class StrongGenericFunctionInferenceTest {
 @reflectiveTest
 class StrongGreatestLowerBoundTest extends BoundTestBase {
   void setUp() {
-    typeSystem = new StrongTypeSystemImpl();
     super.setUp();
+    typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
   void test_bottom_function() {
@@ -1402,8 +1400,8 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
 @reflectiveTest
 class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
   void setUp() {
-    typeSystem = new StrongTypeSystemImpl();
     super.setUp();
+    typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
   void test_functionsFuzzyArrows() {
@@ -1520,7 +1518,7 @@ class StrongSubtypingTest {
 
   void setUp() {
     typeProvider = new TestTypeProvider();
-    typeSystem = new StrongTypeSystemImpl();
+    typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
   void test_bottom_isBottom() {

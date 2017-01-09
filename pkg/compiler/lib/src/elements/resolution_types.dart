@@ -365,7 +365,7 @@ class MalformedType extends ResolutionDartType {
   }
 }
 
-abstract class GenericType extends ResolutionDartType {
+abstract class GenericType<T extends GenericType> extends ResolutionDartType {
   final TypeDeclarationElement element;
   final List<ResolutionDartType> typeArguments;
 
@@ -391,9 +391,9 @@ abstract class GenericType extends ResolutionDartType {
   }
 
   /// Creates a new instance of this type using the provided type arguments.
-  GenericType createInstantiation(List<ResolutionDartType> newTypeArguments);
+  T createInstantiation(List<ResolutionDartType> newTypeArguments);
 
-  ResolutionDartType subst(
+  T subst(
       List<ResolutionDartType> arguments, List<ResolutionDartType> parameters) {
     if (typeArguments.isEmpty) {
       // Return fast on non-generic types.
@@ -482,7 +482,8 @@ abstract class GenericType extends ResolutionDartType {
   }
 }
 
-class ResolutionInterfaceType extends GenericType implements InterfaceType {
+class ResolutionInterfaceType extends GenericType<ResolutionInterfaceType>
+    implements InterfaceType {
   int _hashCode;
 
   ResolutionInterfaceType(ClassElement element,
@@ -843,7 +844,7 @@ class ResolutionFunctionType extends ResolutionDartType
 bool _typeContainsMethodTypeVariableType(ResolutionDartType type) =>
     type.containsMethodTypeVariableType;
 
-class ResolutionTypedefType extends GenericType {
+class ResolutionTypedefType extends GenericType<ResolutionTypedefType> {
   ResolutionDartType _unaliased;
 
   ResolutionTypedefType(TypedefElement element,

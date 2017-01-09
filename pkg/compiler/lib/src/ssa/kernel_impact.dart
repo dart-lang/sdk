@@ -332,8 +332,8 @@ class KernelImpactBuilder extends ir.Visitor {
         }
         ir.Node argument = node.arguments.positional.first;
         if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
-          impactBuilder.registerTypeUse(
-              new TypeUse.instantiation(astAdapter.getDartType(argument.type)));
+          ResolutionInterfaceType type = astAdapter.getDartType(argument.type);
+          impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
         }
         break;
       case ForeignKind.NONE:

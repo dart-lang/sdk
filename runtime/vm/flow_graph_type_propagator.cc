@@ -604,7 +604,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
   const AbstractType& compile_type = *ToAbstractType();
 
   // The compile-type of a value should never be void. The result of a void
-  // function must always be null, which wass checked to be null at the return
+  // function must always be null, which was checked to be null at the return
   // statement inside the function.
   ASSERT(!compile_type.IsVoidType());
 
@@ -612,13 +612,13 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  // The Null type is only a subtype of Object and of dynamic.
+  // The null instance is an instance of Null, of Object, and of dynamic.
   // Functions that do not explicitly return a value, implicitly return null,
   // except generative constructors, which return the object being constructed.
   // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
     *is_instance = is_nullable || type.IsObjectType() || type.IsDynamicType() ||
-                   type.IsVoidType();
+                   type.IsNullType() || type.IsVoidType();
     return true;
   }
 

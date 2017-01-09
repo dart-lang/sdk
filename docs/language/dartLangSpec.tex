@@ -195,8 +195,10 @@ A {\em namespace} is a mapping of names denoting declarations to actual declarat
 \LMHash{}
 A scope $S_0$ induces a namespace $NS_0$ that maps the simple name of each variable, type or function declaration $d$ declared in $S_0$ to $d$. Labels are not included in the induced namespace of a scope; instead they have their own dedicated namespace.
 
-\commentary{It is therefore impossible, e.g.,  to define a class that declares a method and a field with the same name in Dart. Similarly one cannot declare a top-level function with the same name as a library variable or class.
-  }
+\commentary{
+It is therefore impossible, e.g., to define a class that declares a method and a getter with the same name in Dart.
+Similarly one cannot declare a top-level function with the same name as a library variable or a class.
+}
 
 \LMHash{}
 It is a compile-time error if there is more than one entity with the same name declared in the same scope.
@@ -1058,7 +1060,7 @@ The instance getters of a class $C$ are those instance getters declared by $C$, 
 It is a compile-time error if a class has both a getter and a method with the same name. This restriction holds regardless of whether the getter is defined explicitly or implicitly, or whether the getter or the method are inherited or not.
 
 \commentary{
-This implies that a getter can never override a method, and a method can never override a getter or field.
+This implies that a getter can never override a method, and a method can never override a getter or an instance variable.
 }
 
 \LMHash{}
@@ -1245,7 +1247,9 @@ A {\em generative constructor} consists of a constructor name, a constructor par
 A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.$id$}, where $id$ is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if $id$ is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
 
 \LMHash{}
-If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the field named $id$ in the immediately enclosing class. It is a static warning if the static type of $id$ is not assignable to $T_{id}$.
+If an explicit type is attached to the initializing formal, that is its static type.
+Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the instance variable named $id$ in the immediately enclosing class.
+It is a static warning if the static type of $id$ is not assignable to $T_{id}$.
 
 \LMHash{}
 Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
@@ -1259,8 +1263,9 @@ The type of the constructor is defined in terms of its formal parameters, includ
 }
 
 \LMHash{}
-Initializing formals are executed during the execution of generative constructors detailed below. Executing an initializing formal  \code{\THIS{}.$id$} causes the field $id$ of the immediately surrounding class to be assigned the value of the corresponding actual parameter, unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
-
+Initializing formals are executed during the execution of generative constructors detailed below.
+Executing an initializing formal \code{\THIS{}.$id$} causes the instance variable $id$ of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
+unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
 
 \commentary{
 The above rule allows initializing formals to be used as optional parameters:
@@ -1410,7 +1415,9 @@ which must happen in the order the expressions occur in the program text.
 After the superinitializer has completed, the body of $k$ is executed in a scope where \THIS{} is bound to $i$.
 
 \rationale{
-This process ensures that no uninitialized final field is ever seen by code. Note that \THIS{} is not in scope on the right hand side of an initializer (see \ref{this}) so no instance method can execute during initialization: an instance method cannot be directly invoked, nor can \THIS{} be passed into any other code being invoked in the initializer.
+This process ensures that no uninitialized final instance variable is ever seen by code.
+Note that \THIS{} is not in scope on the right hand side of an initializer (see \ref{this}) so no instance method can execute during initialization:
+an instance method cannot be directly invoked, nor can \THIS{} be passed into any other code being invoked in the initializer.
 }
 
 \LMHash{}
@@ -1419,7 +1426,10 @@ execution of an initializer of the form \code{\THIS{}.$v$ = $e$}
 proceeds as follows:
 
 \LMHash{}
-First, the expression $e$ is evaluated to an object $o$. Then, the instance variable $v$ of $i$ is bound to $o$, unless $v$ is a final variable that has already been initialized, in which case a runtime error occurs. In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the field $v$.
+First, the expression $e$ is evaluated to an object $o$.
+%%STRONG_MODE: The runtime error in the next sentence will be compile-time.
+Then, the instance variable $v$ of $i$ is bound to $o$, unless $v$ is a final variable that has already been initialized, in which case a runtime error occurs.
+In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the instance variable $v$.
 
 \LMHash{}
 An initializer of the form \code{$v$ = $e$} is equivalent to an initializer of the form \code{\THIS{}.$v$ = $e$}.
@@ -1828,11 +1838,13 @@ the superclass chain of $S$ includes a class declared in $L_1$.
 A class may override instance members that would otherwise have been inherited from its superclass.
 
 \LMHash{}
-Let $C = S_0$ be a class declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superclasses of $C$, where $S_i$ is the superclass of $S_{i-1}$ for $i \in 1 .. k$. Let $C$ declare a member $m$, and let  $m^\prime$ be a member of $S_j, j  \in 1 .. k$,  that has the same name as $m$, such that $m^\prime$ is accessible to $L$.  Then $m$ overrides $m^\prime$ if $m^\prime$ is not already overridden by a member of at least one of $S_1 \ldots S_{j-1}$ and neither $m$ nor $m^\prime$ are fields.
+Let $C = S_0$ be a class declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superclasses of $C$, where $S_i$ is the superclass of $S_{i-1}$ for $i \in 1 .. k$.
+Let $C$ declare a member $m$, and let  $m^\prime$ be a member of $S_j, j  \in 1 .. k$,  that has the same name as $m$, such that $m^\prime$ is accessible to $L$.
+Then $m$ overrides $m^\prime$ if $m^\prime$ is not already overridden by a member of at least one of $S_1 \ldots S_{j-1}$ and neither $m$ nor $m^\prime$ are instance variables.
 
 %Let $C$ be a class declared in library $L$, with superclass $S$ and let $C$ declare an instance member $m$, and  assume $S$ declares an instance member $m^\prime$ with the same name as $m$. Then $m$ {\em overrides} $m^\prime$ iff $m^\prime$ is accessible (\ref{privacy}) to $L$, $m$ has the same name as  $m^\prime$  and neither $m$ nor $m^\prime$ are fields.
 
-\commentary{Fields never override each other. The getters and setters induced by fields do.}
+\commentary{Instance variables never override each other. The getters and setters induced by instance variables do.}
 
 \rationale{Again, a local definition of overriding would be preferable, but fails to account for library privacy.
 }
@@ -1859,7 +1871,9 @@ For convenience, here is a summary of the relevant rules. Remember that this is 
 
 \begin{enumerate}
 
-\item There is only one namespace for getters, setters, methods and constructors (\ref{scoping}). A field $f$ introduces a getter $f$ and a non-final field $f$ also introduces a setter $f=$ (\ref{instanceVariables}, \ref{staticVariables}). When we speak of members here, we mean accessible fields, getters, setters and methods (\ref{classes}).
+\item There is only one namespace for getters, setters, methods and constructors (\ref{scoping}).
+  An instance or static variable $f$ introduces a getter $f$ and a non-final instance or static variable $f$ also introduces a setter $f=$ (\ref{instanceVariables}, \ref{staticVariables}).
+  When we speak of members here, we mean accessible instance or static variables, getters, setters, and methods (\ref{classes}).
 \item You cannot have two  members with the same name in the same class - be they declared or inherited (\ref{scoping}, \ref{classes}).
 \item Static members are never inherited.
 \item It is a warning if you have an  static member named $m$ in your class or any superclass (even though it is not inherited) and an  instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
@@ -2112,7 +2126,8 @@ A  mixin application of the form  \code{$S$ \WITH{} $M$;} defines a class  $C$ w
 A  mixin application of the form  \code{$S$ \WITH{} $M_1, \ldots, M_k$;} defines a class  $C$ whose superclass is the application of the mixin composition (\ref{mixinComposition}) $M_{k-1} * \ldots * M_1$ to $S$.
 
 \LMHash{}
-In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$). If any of the instance fields of $M$ (respectively, $M_k$) have initializers, they are executed in the scope of $M$ (respectively, $M_k$) to initialize the corresponding fields of $C$.
+In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$).
+If any of the instance variables of $M$ (respectively, $M_k$) have initializers, they are executed in the scope of $M$ (respectively, $M_k$) to initialize the corresponding instance variables of $C$.
 
 \LMHash{}
 Let $L_M$ be the library in which $M$ is declared.
@@ -2252,7 +2267,7 @@ Because type parameters are in scope in their bounds, we support F-bounded quant
 }
 
 \begin{dartCode}
-\INTERFACE{} Ordered<T> \{
+\CLASS{} Ordered<T> \{
   operator > (T x);
 \}
 
@@ -2380,7 +2395,7 @@ It is possible to associate metadata with constructs that may not be accessible 
 }
 
 \LMHash{}
-Metadata can appear before a library, part header, class, typedef, type parameter, constructor, factory, function, field, parameter, or variable declaration and before an import, export or part directive.
+Metadata can appear before a library, part header, class, typedef, type parameter, constructor, factory, function, parameter, or variable declaration and before an import, export or part directive.
 
 \LMHash{}
 The constant expression given in an annotation  is type checked and evaluated in the scope surrounding the declaration being annotated.
@@ -2462,8 +2477,8 @@ The predefined Dart function \cd{identical()} is defined such that \code{identic
  OR
  \item $c_1$ and $c_2$ are constant lists that are defined to be identical in the specification of literal list expressions (\ref{lists}), OR
  \item $c_1$ and $c_2$ are constant maps that are defined to be identical in the specification of literal map expressions (\ref{maps}), OR
- \item $c_1$ and $c_2$ are constant objects of the same class $C$ and each member field of $c_1$ is identical to the corresponding field of $c_2$. OR
-\item $c_1$ and $c_2$ are the same object.
+ \item $c_1$ and $c_2$ are constant objects of the same class $C$ and the value of each instance variable of $c_1$ is identical to the value of the corresponding instance variable of $c_2$. OR
+ \item $c_1$ and $c_2$ are the same object.
 \end{itemize}
 
 \commentary{
@@ -3535,13 +3550,19 @@ Then:
 \begin{itemize}
 \item If during execution of the program, a constant object expression has already evaluated to an instance $j$ of class $R$ with type arguments $V_i, 1 \le i \le m$, then:
 \begin{itemize}
-\item For each instance variable $f$ of $i$, let $v_{if}$ be the value of the field $f$ in $i$, and let $v_{jf}$ be the value of the field $f$ in $j$. If  \code{identical($v_{if}$, $v_{jf}$)} for all fields $f$ in $i$, then the value of $e$ is $j$, otherwise the value of $e$ is $i$.
+\item For each instance variable $f$ of $i$, let $v_{if}$ be the value of the instance variable $f$ in $i$, and let $v_{jf}$ be the value of the instance variable $f$ in $j$.
+  If \code{identical($v_{if}$, $v_{jf}$)} for all instance variables $f$ in $i$ then the value of $e$ is $j$, otherwise the value of $e$ is $i$.
 \end{itemize}
 \item Otherwise the value of $e$ is $i$.
 \end{itemize}
 
 \commentary{
-In other words, constant objects are canonicalized.  In order to determine if an object is actually new, one has to compute it; then it can be compared to any cached instances. If an equivalent object exists in the cache, we throw away the newly created object and use the cached one. Objects are equivalent if they have identical fields and identical type arguments. Since the constructor cannot induce any side effects, the execution of the constructor is unobservable.  The constructor need only be executed once per call site, at compile-time.
+In other words, constant objects are canonicalized.
+In order to determine if an object is actually new, one has to compute it; then it can be compared to any cached instances.
+If an equivalent object exists in the cache, we throw away the newly created object and use the cached one.
+Objects are equivalent if they have identical type arguments and identical instance variables.
+Since the constructor cannot induce any side effects, the execution of the constructor is unobservable.
+The constructor need only be executed once per call site, at compile-time.
 }
 
 \LMHash{}
@@ -5068,8 +5089,9 @@ Then $e$ evaluates to $r$.
 \LMHash{}
 The static type of such an expression is the static type of $v$.
 
-
-\rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below.
+\rationale{
+The above ensures that if $v$ is a variable, the getter gets called exactly once.
+Likewise in the cases below.
 }
 
 \LMHash{}
@@ -5434,13 +5456,18 @@ The is-expression \code{$e$ \IS{}! $T$} is equivalent to \code{!($e$ \IS{} $T$)}
 Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
 
 \rationale{
-The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style. The rules in the current specification are deliberately kept simple. It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
+The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style.
+The rules in the current specification are deliberately kept simple.
+It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
 
-The rule only applies to locals and parameters, as fields could be modified via side-effecting functions or methods that are not accessible to a local analysis.
+The rule only applies to locals and parameters, as instance or static variables could be modified via side-effecting functions or methods that are not accessible to a local analysis.
 
-It is pointless to deduce a weaker type than what is already known. Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification. Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
+It is pointless to deduce a weaker type than what is already known.
+Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification.
+Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
 
-We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than less.  The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
+We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than fewer.
+The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
 }
 
 \LMHash{}

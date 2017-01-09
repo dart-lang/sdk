@@ -200,9 +200,6 @@ class FixProcessor {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
       _addFix_createConstructorSuperImplicit();
     }
-    if (errorCode == CompileTimeErrorCode.PART_OF_NON_PART) {
-      _addFix_addPartOfDirective();
-    }
     if (errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
@@ -210,10 +207,6 @@ class FixProcessor {
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
       _addFix_createImportUri();
       _addFix_createPartUri();
-      _addFix_replaceImportUri();
-    }
-    if (errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) {
-      _addFix_replaceImportUri();
     }
     if (errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE) {
       _addFix_canBeNullAfterNullAware();
@@ -541,26 +534,6 @@ class FixProcessor {
           _insertBuilder(sb, targetElement);
           _addFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, []);
         }
-      }
-    }
-  }
-
-  void _addFix_addPartOfDirective() {
-    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
-    if (node is SimpleStringLiteral && node.parent is PartDirective) {
-      PartDirective directive = node.parent;
-      Source partSource = directive.uriSource;
-      CompilationUnit partUnit;
-      partUnit = context.getResolvedCompilationUnit2(partSource, partSource);
-      if (partUnit != null) {
-        CorrectionUtils partUtils = new CorrectionUtils(partUnit);
-        CorrectionUtils_InsertDesc desc = partUtils.getInsertDescTop();
-        String libraryName = unitLibraryElement.name;
-        _addInsertEdit(
-            desc.offset,
-            '${desc.prefix}part of $libraryName;$eol${desc.suffix}',
-            partUnit.element);
-        _addFix(DartFixKind.ADD_PART_OF, []);
       }
     }
   }
@@ -1365,6 +1338,7 @@ class FixProcessor {
 
   void _addFix_createMissingOverrides_single(SourceBuilder sb,
       ClassDeclaration targetClass, ExecutableElement element) {
+    utils.targetExecutableElement = element;
     // prepare environment
     String prefix = utils.getIndent(1);
     String prefix2 = utils.getIndent(2);
@@ -1400,6 +1374,7 @@ class FixProcessor {
     }
     // name
     sb.append(element.displayName);
+    _appendTypeParameters(sb, element.typeParameters);
     // parameters + body
     if (isGetter) {
       sb.append(' => null;');
@@ -1417,6 +1392,7 @@ class FixProcessor {
       sb.append('}');
     }
     sb.append(eol);
+    utils.targetExecutableElement = null;
   }
 
   void _addFix_createNoSuchMethod() {
@@ -1811,32 +1787,6 @@ class FixProcessor {
     _addFix(DartFixKind.REMOVE_UNUSED_IMPORT, []);
   }
 
-  void _addFix_replaceImportUri() {
-    if (node is SimpleStringLiteral) {
-      SimpleStringLiteral stringLiteral = node;
-      String uri = stringLiteral.value;
-      String uriName = substringAfterLast(uri, '/');
-      for (Source libSource in context.librarySources) {
-        String libFile = libSource.fullName;
-        if (substringAfterLast(libFile, '/') == uriName) {
-          String fixedUri;
-          // may be "package:" URI
-          String libPackageUri = findNonFileUri(context, libFile);
-          if (libPackageUri != null) {
-            fixedUri = libPackageUri;
-          } else {
-            String relativeFile = relative(libFile, from: unitLibraryFolder);
-            fixedUri = split(relativeFile).join('/');
-          }
-          // add fix
-          SourceRange range = rf.rangeNode(node);
-          _addReplaceEdit(range, "'$fixedUri'");
-          _addFix(DartFixKind.REPLACE_IMPORT_URI, [fixedUri]);
-        }
-      }
-    }
-  }
-
   void _addFix_replaceVarWithDynamic() {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, 'dynamic');
@@ -2164,33 +2114,31 @@ class FixProcessor {
     ConstructorDeclaration constructor = node.parent;
     // add these fields
     List<FieldElement> fields =
-        error.getProperty(ErrorProperty.NOT_INITIALIZED_FIELDS);
-    if (fields != null) {
-      // prepare new parameters code
-      fields.sort((a, b) => a.nameOffset - b.nameOffset);
-      String fieldParametersCode =
-          fields.map((field) => 'this.${field.name}').join(', ');
-      // prepare the last required parameter
-      FormalParameter lastRequiredParameter;
-      List<FormalParameter> parameters = constructor.parameters.parameters;
-      for (FormalParameter parameter in parameters) {
-        if (parameter.kind == ParameterKind.REQUIRED) {
-          lastRequiredParameter = parameter;
-        }
+        ErrorVerifier.computeNotInitializedFields(constructor);
+    // prepare new parameters code
+    fields.sort((a, b) => a.nameOffset - b.nameOffset);
+    String fieldParametersCode =
+        fields.map((field) => 'this.${field.name}').join(', ');
+    // prepare the last required parameter
+    FormalParameter lastRequiredParameter;
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+    for (FormalParameter parameter in parameters) {
+      if (parameter.kind == ParameterKind.REQUIRED) {
+        lastRequiredParameter = parameter;
       }
-      // append new field formal initializers
-      if (lastRequiredParameter != null) {
-        _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
-      } else {
-        int offset = constructor.parameters.leftParenthesis.end;
-        if (parameters.isNotEmpty) {
-          fieldParametersCode += ', ';
-        }
-        _addInsertEdit(offset, fieldParametersCode);
-      }
-      // add proposal
-      _addFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
     }
+    // append new field formal initializers
+    if (lastRequiredParameter != null) {
+      _addInsertEdit(lastRequiredParameter.end, ', $fieldParametersCode');
+    } else {
+      int offset = constructor.parameters.leftParenthesis.end;
+      if (parameters.isNotEmpty) {
+        fieldParametersCode += ', ';
+      }
+      _addInsertEdit(offset, fieldParametersCode);
+    }
+    // add proposal
+    _addFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, []);
   }
 
   void _addFix_useEffectiveIntegerDivision() {
@@ -2534,7 +2482,7 @@ class FixProcessor {
   }
 
   void _appendType(SourceBuilder sb, DartType type,
-      {String groupId, bool orVar: false}) {
+      {String groupId, bool orVar: false, bool trailingSpace: true}) {
     if (type != null && !type.isDynamic) {
       String typeSource = utils.getTypeSource(type, librariesToImport);
       if (groupId != null) {
@@ -2544,9 +2492,36 @@ class FixProcessor {
       } else {
         sb.append(typeSource);
       }
-      sb.append(' ');
+      if (trailingSpace) {
+        sb.append(' ');
+      }
     } else if (orVar) {
       sb.append('var ');
+    }
+  }
+
+  void _appendTypeParameter(
+      SourceBuilder sb, TypeParameterElement typeParameter) {
+    sb.append(typeParameter.name);
+    if (typeParameter.bound != null) {
+      sb.append(' extends ');
+      _appendType(sb, typeParameter.bound, trailingSpace: false);
+    }
+  }
+
+  void _appendTypeParameters(
+      SourceBuilder sb, List<TypeParameterElement> typeParameters) {
+    if (typeParameters.isNotEmpty) {
+      sb.append('<');
+      bool isFirst = true;
+      for (TypeParameterElement typeParameter in typeParameters) {
+        if (!isFirst) {
+          sb.append(', ');
+        }
+        isFirst = false;
+        _appendTypeParameter(sb, typeParameter);
+      }
+      sb.append('>');
     }
   }
 

@@ -116,7 +116,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   JavaScriptBackend get backend => compiler.backend;
 
   @override
-  TreeElements get elements => resolvedAst.elements;
+  TreeElements get elements => astAdapter.elements;
 
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
@@ -290,16 +290,22 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
-  /// Maps the fields of a class to their SSA values.
+  /// Maps the instance fields of a class to their SSA values.
   Map<ir.Field, HInstruction> _collectFieldValues(ir.Class clazz) {
     final fieldValues = <ir.Field, HInstruction>{};
 
     for (var field in clazz.fields) {
-      if (field.initializer == null) {
-        fieldValues[field] = graph.addConstantNull(closedWorld);
-      } else {
-        field.initializer.accept(this);
-        fieldValues[field] = pop();
+      if (field.isInstanceMember) {
+        if (field.initializer == null) {
+          fieldValues[field] = graph.addConstantNull(closedWorld);
+        } else {
+          // Gotta update the resolvedAst when we're looking at field values
+          // outside the constructor.
+          astAdapter.pushResolvedAst(field);
+          field.initializer.accept(this);
+          fieldValues[field] = pop();
+          astAdapter.popResolvedAstStack();
+        }
       }
     }
 
@@ -386,7 +392,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return builtArguments;
   }
 
-  /// Inlines the given super [constructor]'s initializers by collecting it's
+  /// Inlines the given super [constructor]'s initializers by collecting its
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
   void _buildInlinedInitializers(ir.Constructor constructor,
@@ -793,8 +799,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target =
-        elements.getTargetDefinition(astAdapter.getNode(doStatement));
+    JumpTarget target = astAdapter.elements
+        .getTargetDefinition(astAdapter.getNode(doStatement));
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -906,8 +912,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        JumpTarget target =
-            elements.getTargetDefinition(astAdapter.getNode(doStatement));
+        JumpTarget target = astAdapter.elements
+            .getTargetDefinition(astAdapter.getNode(doStatement));
         LabelDefinition label = target.addLabel(null, 'loop');
         label.setBreakTarget();
         HLabeledBlockInformation info = new HLabeledBlockInformation(
@@ -1207,7 +1213,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
     TypeMask mapType = new TypeMask.nonNullSubtype(
-        astAdapter.getElement(astAdapter.mapLiteralClass), closedWorld);
+        astAdapter.getClass(astAdapter.mapLiteralClass), closedWorld);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
         astAdapter.getElement(constructor), globalInferenceResults);
     TypeMask instructionType =
@@ -2098,7 +2104,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     TypeMask typeMask = new TypeMask.nonNullExact(
-        astAdapter.getElement(target.enclosingClass), closedWorld);
+        astAdapter.getClass(target.enclosingClass), closedWorld);
     _pushStaticInvocation(target, arguments, typeMask);
   }
 

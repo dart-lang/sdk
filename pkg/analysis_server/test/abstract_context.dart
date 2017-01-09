@@ -4,6 +4,8 @@
 
 library testing.abstract_context;
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -111,6 +113,9 @@ class AbstractContextTest {
    * Performs all analysis tasks in [context].
    */
   void performAllAnalysisTasks() {
+    if (enableNewAnalysisDriver) {
+      return;
+    }
     while (true) {
       engine.AnalysisResult result = context.performAnalysisTask();
       if (!result.hasMoreWork) {
@@ -123,12 +128,12 @@ class AbstractContextTest {
     AnalysisEngine.instance.processRequiredPlugins();
   }
 
-  CompilationUnit resolveDartUnit(Source unitSource, Source librarySource) {
-    return context.resolveCompilationUnit2(unitSource, librarySource);
-  }
-
-  CompilationUnit resolveLibraryUnit(Source source) {
-    return context.resolveCompilationUnit2(source, source);
+  Future<CompilationUnit> resolveLibraryUnit(Source source) async {
+    if (enableNewAnalysisDriver) {
+      return (await driver.getResult(source.fullName))?.unit;
+    } else {
+      return context.resolveCompilationUnit2(source, source);
+    }
   }
 
   void setUp() {

@@ -79,6 +79,7 @@ abstract class HVisitor<R> {
   R visitRangeConversion(HRangeConversion node);
   R visitReadModifyWrite(HReadModifyWrite node);
   R visitRef(HRef node);
+  R visitRemainder(HRemainder node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -386,6 +387,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
   visitRef(HRef node) => node.value.accept(this);
+  visitRemainder(HRemainder node) => visitBinaryArithmetic(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
@@ -881,6 +883,7 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
   static const int FOREIGN_CODE_TYPECODE = 41;
+  static const int REMAINDER_TYPECODE = 42;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -2005,6 +2008,19 @@ class HTruncatingDivide extends HBinaryArithmetic {
       constantSystem.truncatingDivide;
   int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HTruncatingDivide;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HRemainder extends HBinaryArithmetic {
+  HRemainder(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
+  accept(HVisitor visitor) => visitor.visitRemainder(this);
+
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.remainder;
+  int typeCode() => HInstruction.REMAINDER_TYPECODE;
+  bool typeEquals(other) => other is HRemainder;
   bool dataEquals(HInstruction other) => true;
 }
 

@@ -130,7 +130,7 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(const <String>[
   'checkGrowable',
 ]);
 
-class ListTracerVisitor extends TracerVisitor<ListTypeInformation> {
+class ListTracerVisitor extends TracerVisitor {
   // The [Set] of found assignments to the list.
   Set<TypeInformation> assignments = new Setlet<TypeInformation>();
   bool callsGrowableMethod = false;

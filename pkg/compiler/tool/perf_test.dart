@@ -8,4 +8,4 @@ library compiler.tool.perf_test;
 
 import 'perf.dart' as m;
 
-main() => print('done ${m.scanTotalChars}');
+main() => print('done ${m.inputSize}');

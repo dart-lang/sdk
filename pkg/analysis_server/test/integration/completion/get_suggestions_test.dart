@@ -129,11 +129,4 @@ class GetSuggestionsTest extends AbstractGetSuggestionsTest {}
 class GetSuggestionsTest_Driver extends AbstractGetSuggestionsTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_getSuggestions_sourceMissing_noWait() {
-    //  Expected: same instance as 'exception from server'
-    //    Actual: CompletionGetSuggestionsResult:<{"id":"0"}>
-    return super.test_getSuggestions_sourceMissing_noWait();
-  }
 }

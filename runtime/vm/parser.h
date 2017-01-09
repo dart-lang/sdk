@@ -805,7 +805,8 @@ class Parser : public ValueObject {
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
-                           TokenPosition ident_pos);
+                           TokenPosition ident_pos,
+                           const LibraryPrefix* prefix = NULL);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
                              TokenPosition ident_pos,

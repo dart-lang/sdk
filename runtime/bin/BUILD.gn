@@ -3,27 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("gypi_contents.gni")
-
-declare_args() {
-  # Whether to fall back to built-in root certificates when they cannot be
-  # verified at the operating system level.
-  dart_use_fallback_root_certificates = false
-
-  # The BUILD.gn file that we pull from chromium as part of zlib has a
-  # dependence on //base, which we don't pull in. In a standalone build of the
-  # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
-  # a dependence on //base.
-  dart_zlib_path = "//third_party/zlib"
-
-  # Whether to link the standalone VM against tcmalloc. The standalone build of
-  # the VM enables this only for Linux builds.
-  dart_use_tcmalloc = false
-}
-
-# TODO(zra): Remove this when Fuchsia has a root cert cache on the filesystem.
-if (defined(is_fuchsia) && is_fuchsia) {
-  dart_use_fallback_root_certificates = true
-}
+import("../runtime_args.gni")
 
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
@@ -590,11 +570,12 @@ template("dart_executable") {
              "$dart_zlib_path",
            ] + extra_deps
 
+    defines = extra_defines
+
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
+      defines += [ "DART_USE_TCMALLOC" ]
     }
-
-    defines = extra_defines
 
     sources = [
                 "main.cc",
@@ -810,6 +791,7 @@ executable("run_vm_tests") {
 
   if (dart_use_tcmalloc) {
     deps += [ "//third_party/tcmalloc" ]
+    defines += [ "DART_USE_TCMALLOC" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in

@@ -14,8 +14,6 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compiler.dart' show Compiler, GlobalDependencyRegistry;
 import 'options.dart';
-import 'elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import 'elements/elements.dart'
     show
         AnalyzableElement,
@@ -25,8 +23,9 @@ import 'elements/elements.dart'
         Entity,
         MemberElement;
 import 'elements/entities.dart';
+import 'elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import 'native/native.dart' as native;
-import 'types/types.dart' show TypeMaskStrategy;
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
@@ -34,7 +33,6 @@ import 'universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import 'util/enumset.dart';
 import 'util/util.dart' show Setlet;
-import 'world.dart' show OpenWorld;
 
 class EnqueueTask extends CompilerTask {
   ResolutionEnqueuer _resolution;

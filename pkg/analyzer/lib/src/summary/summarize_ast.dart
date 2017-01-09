@@ -597,7 +597,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     String text = documentationComment.tokens
         .map((Token t) => t.toString())
-        .join()
+        .join('\n')
         .replaceAll('\r\n', '\n');
     return new UnlinkedDocumentationCommentBuilder(text: text);
   }

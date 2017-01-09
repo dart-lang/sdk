@@ -4518,29 +4518,8 @@ class ImportedReferenceContributorTest_Driver
   @override
   bool get enableNewAnalysisDriver => true;
 
-  @failingTest
-  @override
-  test_doc_function() {
-    // Bad state: Should not be used with the new analysis driver.
-    return super.test_doc_function();
-  }
-
   @override
   test_enum_deprecated() {
     // TODO(scheglov) remove it?
-  }
-
-  @failingTest
-  @override
-  test_doc_class() {
-//    Expected: 'My class.\n'
-//        'Short description.'
-//    Actual: 'My class./// Short description.////// Longer description.'
-//    Which: is different.
-//    Expected: My class.\nShort de ...
-//    Actual: My class./// Short  ...
-//    ^
-//    Differ at offset 9
-    return super.test_doc_class();
   }
 }

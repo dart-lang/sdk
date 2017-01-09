@@ -465,6 +465,28 @@ label:
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_LibraryElement() async {
+    var codeA = 'part of lib; // A';
+    var codeB = 'part of lib; // B';
+    provider.newFile(_p('$testProject/unitA.dart'), codeA);
+    provider.newFile(_p('$testProject/unitB.dart'), codeB);
+    await _resolveTestUnit('''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+    LibraryElement element = testLibraryElement;
+    CompilationUnitElement unitElementA = element.parts[0];
+    CompilationUnitElement unitElementB = element.parts[1];
+    var expected = [
+      new ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
+          codeA.indexOf('lib; // A'), 'lib'.length),
+      new ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
+          codeB.indexOf('lib; // B'), 'lib'.length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_LocalVariableElement() async {
     await _resolveTestUnit(r'''
 main() {

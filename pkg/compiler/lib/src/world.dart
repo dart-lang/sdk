@@ -9,16 +9,18 @@ import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'core_types.dart' show CommonElements;
-import 'elements/resolution_types.dart';
+import 'elements/entities.dart';
 import 'elements/elements.dart'
     show
         ClassElement,
         Element,
+        Entity,
         FunctionElement,
         MemberElement,
         MixinApplicationElement,
         TypedefElement,
         FieldElement;
+import 'elements/resolution_types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
@@ -51,11 +53,11 @@ abstract class ClosedWorld implements World {
   ConstantSystem get constantSystem;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
-  bool isInstantiated(ClassElement cls);
+  bool isInstantiated(ClassEntity cls);
 
   /// Returns `true` if [cls] is directly instantiated. This means that at
   /// runtime instances of exactly [cls] are assumed to exist.
-  bool isDirectlyInstantiated(ClassElement cls);
+  bool isDirectlyInstantiated(ClassEntity cls);
 
   /// Returns `true` if [cls] is abstractly instantiated. This means that at
   /// runtime instances of [cls] or unknown subclasses of [cls] are assumed to
@@ -66,121 +68,121 @@ abstract class ClosedWorld implements World {
   /// so [cls] here represents the root of the subclasses. For reflectable
   /// classes we need event abstract classes to be 'live' even though they
   /// cannot themselves be instantiated.
-  bool isAbstractlyInstantiated(ClassElement cls);
+  bool isAbstractlyInstantiated(ClassEntity cls);
 
   /// Returns `true` if [cls] is either directly or abstractly instantiated.
   ///
   /// See [isDirectlyInstantiated] and [isAbstractlyInstantiated].
-  bool isExplicitlyInstantiated(ClassElement cls);
+  bool isExplicitlyInstantiated(ClassEntity cls);
 
   /// Returns `true` if [cls] is indirectly instantiated, that is through a
   /// subclass.
-  bool isIndirectlyInstantiated(ClassElement cls);
+  bool isIndirectlyInstantiated(ClassEntity cls);
 
   /// Returns `true` if [cls] is abstract and thus can only be instantiated
   /// through subclasses.
-  bool isAbstract(ClassElement cls);
+  bool isAbstract(ClassEntity cls);
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
-  bool isImplemented(ClassElement cls);
+  bool isImplemented(ClassEntity cls);
 
   /// Return `true` if [x] is a subclass of [y].
-  bool isSubclassOf(ClassElement x, ClassElement y);
+  bool isSubclassOf(ClassEntity x, ClassEntity y);
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
-  bool isSubtypeOf(ClassElement x, ClassElement y);
+  bool isSubtypeOf(ClassEntity x, ClassEntity y);
 
   /// Returns an iterable over the live classes that extend [cls] including
   /// [cls] itself.
-  Iterable<ClassElement> subclassesOf(ClassElement cls);
+  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
 
   /// Returns an iterable over the live classes that extend [cls] _not_
   /// including [cls] itself.
-  Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
+  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls);
 
   /// Returns the number of live classes that extend [cls] _not_
   /// including [cls] itself.
-  int strictSubclassCount(ClassElement cls);
+  int strictSubclassCount(ClassEntity cls);
 
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
   void forEachStrictSubclassOf(
-      ClassElement cls, IterationStep f(ClassElement cls));
+      ClassEntity cls, IterationStep f(ClassEntity cls));
 
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
-  bool anyStrictSubclassOf(ClassElement cls, bool predicate(ClassElement cls));
+  bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls));
 
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
-  Iterable<ClassElement> subtypesOf(ClassElement cls);
+  Iterable<ClassElement> subtypesOf(ClassEntity cls);
 
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
-  Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
+  Iterable<ClassElement> strictSubtypesOf(ClassEntity cls);
 
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
-  int strictSubtypeCount(ClassElement cls);
+  int strictSubtypeCount(ClassEntity cls);
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
   void forEachStrictSubtypeOf(
-      ClassElement cls, IterationStep f(ClassElement cls));
+      ClassEntity cls, IterationStep f(ClassEntity cls));
 
   /// Returns `true` if [predicate] applies to any live class that implements
   /// [cls] _not_ including [cls] itself.
-  bool anyStrictSubtypeOf(ClassElement cls, bool predicate(ClassElement cls));
+  bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls));
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
-  bool haveAnyCommonSubtypes(ClassElement a, ClassElement b);
+  bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b);
 
   /// Returns `true` if any live class other than [cls] extends [cls].
-  bool hasAnyStrictSubclass(ClassElement cls);
+  bool hasAnyStrictSubclass(ClassEntity cls);
 
   /// Returns `true` if any live class other than [cls] implements [cls].
-  bool hasAnyStrictSubtype(ClassElement cls);
+  bool hasAnyStrictSubtype(ClassEntity cls);
 
   /// Returns `true` if all live classes that implement [cls] extend it.
-  bool hasOnlySubclasses(ClassElement cls);
+  bool hasOnlySubclasses(ClassEntity cls);
 
   /// Returns the most specific subclass of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subclasses. If [cls] is not instantiated, `null` is returned.
-  ClassElement getLubOfInstantiatedSubclasses(ClassElement cls);
+  ClassEntity getLubOfInstantiatedSubclasses(ClassEntity cls);
 
   /// Returns the most specific subtype of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
-  ClassElement getLubOfInstantiatedSubtypes(ClassElement cls);
+  ClassEntity getLubOfInstantiatedSubtypes(ClassEntity cls);
 
   /// Returns an iterable over the common supertypes of the [classes].
-  Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes);
+  Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
-  Iterable<MixinApplicationElement> mixinUsesOf(ClassElement cls);
+  Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
 
   /// Returns `true` if [cls] is mixed into a live class.
-  bool isUsedAsMixin(ClassElement cls);
+  bool isUsedAsMixin(ClassEntity cls);
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
   bool hasAnySubclassOfMixinUseThatImplements(
-      ClassElement cls, ClassElement type);
+      ClassEntity cls, ClassEntity type);
 
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
-  bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin);
+  bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin);
 
   /// Returns `true` if [cls] or any superclass mixes in [mixin].
-  bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin);
+  bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin);
 
   /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
   /// of a mixin application of [y].
-  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y);
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y);
 
   /// Returns `true` if any subclass of [superclass] implements [type].
-  bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
+  bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type);
 
   /// Returns `true` if a call of [selector] on [cls] and/or subclasses/subtypes
   /// need noSuchMethod handling.
@@ -221,38 +223,38 @@ abstract class ClosedWorld implements World {
   ///
   /// If we're calling bar on an object of type A we do need the handler because
   /// we may have to call B.noSuchMethod since B does not implement bar.
-  bool needsNoSuchMethod(ClassElement cls, Selector selector, ClassQuery query);
+  bool needsNoSuchMethod(ClassEntity cls, Selector selector, ClassQuery query);
 
   /// Returns whether [element] will be the one used at runtime when being
   /// invoked on an instance of [cls]. [selector] is used to ensure library
   /// privacy is taken into account.
-  bool hasElementIn(ClassElement cls, Selector selector, Element element);
+  bool hasElementIn(ClassEntity cls, Selector selector, Entity element);
 
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [ClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
+  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
 
   /// Returns [ClassSet] for [cls] used to model the extends and implements
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [ClosedWorld].
-  ClassSet getClassSet(ClassElement cls);
+  ClassSet getClassSet(ClassEntity cls);
 
   /// Return the cached mask for [base] with the given flags, or
   /// calls [createMask] to create the mask and cache it.
   // TODO(johnniwinther): Find a better strategy for caching these?
-  TypeMask getCachedMask(ClassElement base, int flags, TypeMask createMask());
+  TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask());
 
   /// Returns the [FunctionSet] containing all live functions in the closed
   /// world.
   FunctionSet get allFunctions;
 
   /// Returns `true` if the field [element] is known to be effectively final.
-  bool fieldNeverChanges(MemberElement element);
+  bool fieldNeverChanges(MemberEntity element);
 
   /// Extends the receiver type [mask] for calling [selector] to take live
   /// `noSuchMethod` handlers into account.
@@ -263,12 +265,12 @@ abstract class ClosedWorld implements World {
 
   /// Returns the single [Element] that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist, `null` is returned.
-  MemberElement locateSingleElement(Selector selector, TypeMask mask);
+  MemberEntity locateSingleElement(Selector selector, TypeMask mask);
 
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
   /// is not a field, `null` is returned.
-  FieldElement locateSingleField(Selector selector, TypeMask mask);
+  FieldEntity locateSingleField(Selector selector, TypeMask mask);
 
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(Element element);
@@ -292,7 +294,7 @@ abstract class ClosedWorld implements World {
   /// Returns a string representation of the closed world.
   ///
   /// If [cls] is provided, the dump will contain only classes related to [cls].
-  String dump([ClassElement cls]);
+  String dump([ClassEntity cls]);
 }
 
 /// Interface for computing side effects and uses of elements. This is used
@@ -989,7 +991,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return (result != null && result.isField) ? result : null;
   }
 
-  Element locateSingleElement(Selector selector, TypeMask mask) {
+  MemberElement locateSingleElement(Selector selector, TypeMask mask) {
     assert(isClosed);
     mask ??= commonMasks.dynamicType;
     return mask.locateSingleElement(selector, this);
@@ -1066,7 +1068,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
-    for (Element e in allFunctions.filter(selector, mask)) {
+    for (MemberElement e in allFunctions.filter(selector, mask)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

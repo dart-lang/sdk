@@ -226,13 +226,21 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   EventListener _onData;
   final bool _useCapture;
 
-  // TODO(jacobr): for full strong mode correctness we should write
-  // _onData = onData == null ? null : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
-  // but that breaks 114 co19 tests as well as multiple html tests as it is reasonable
-  // to pass the wrong type of event object to an event listener as part of a
-  // test.
+  // TODO(leafp): It would be better to write this as
+  // _onData = onData == null ? null :
+  //   onData is _wrapZoneCallback<Event, dynamic>
+  //     ? _wrapZone/*<Event, dynamic>*/(onData)
+  //     : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
+  // In order to support existing tests which pass the wrong type of events but
+  // use a more general listener, without causing as much slowdown for things
+  // which are typed correctly.  But this currently runs afoul of restrictions
+  // on is checks for compatibility with the VM.
   _EventStreamSubscription(this._target, this._eventType, void onData(T event),
-      this._useCapture) : _onData = _wrapZone/*<Event, dynamic>*/(onData) {
+                           this._useCapture) :
+      _onData = onData == null
+      ? null
+      : _wrapZone/*<Event, dynamic>*/((e) => (onData as dynamic)(e))
+  {
     _tryResume();
   }
 

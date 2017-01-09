@@ -10,9 +10,9 @@ import '../elements/elements.dart'
     show
         Element,
         Elements,
-        FunctionElement,
         FunctionSignature,
         MemberElement,
+        MethodElement,
         Name,
         LibraryElement,
         PublicName;
@@ -218,12 +218,12 @@ class Selector {
     return kind;
   }
 
-  bool appliesUnnamed(Element element) {
+  bool appliesUnnamed(MemberElement element) {
     assert(name == element.name);
     return appliesUntyped(element);
   }
 
-  bool appliesUntyped(Element element) {
+  bool appliesUntyped(MemberElement element) {
     assert(name == element.name);
     if (Elements.isUnresolved(element)) return false;
     if (memberName.isPrivate && memberName.library != element.library) {
@@ -243,7 +243,7 @@ class Selector {
     return signatureApplies(element);
   }
 
-  bool signatureApplies(FunctionElement function) {
+  bool signatureApplies(MethodElement function) {
     if (Elements.isUnresolved(function)) return false;
     return callStructure.signatureApplies(function.functionSignature);
   }

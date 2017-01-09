@@ -1234,9 +1234,15 @@ RawBool* JitOptimizer::InstanceOfAsBool(
     if (cls.NumTypeArguments() > 0) {
       return Bool::null();
     }
+    // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
+    // any type. However, we are checking instances here and not types. The
+    // null instance is only an instance of Null, Object, and dynamic.
     const bool is_subtype =
-        cls.IsSubtypeOf(TypeArguments::Handle(Z), type_class,
-                        TypeArguments::Handle(Z), NULL, NULL, Heap::kOld);
+        cls.IsNullClass()
+            ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
+               type_class.IsDynamicClass())
+            : cls.IsSubtypeOf(TypeArguments::Handle(Z), type_class,
+                              TypeArguments::Handle(Z), NULL, NULL, Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {

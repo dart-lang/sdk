@@ -5,21 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ $compiler == none || $compiler == app_jit ]
-null_is_bottom_test/22: RuntimeError # Issue 28025
-null_is_bottom_test/34: RuntimeError # Issue 28025
-
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 # Other issues:
 generic_methods_type_expression_test: RuntimeError # Issue 25869
-null_is_bottom_test/05: RuntimeError # Issue 28025
-null_is_bottom_test/07: RuntimeError # Issue 28025
-null_is_bottom_test/20: RuntimeError # Issue 28025
-null_is_bottom_test/25: RuntimeError # Issue 28025
-null_is_bottom_test/27: RuntimeError # Issue 28025
-null_is_bottom_test/32: RuntimeError # Issue 28025
-null_is_bottom_test/37: RuntimeError # Issue 28025
-null_is_bottom_test/39: RuntimeError # Issue 28025
 
 # This is OK for now, but we may want to change the semantics to match the test.
 async_star_pause_test: Fail, OK
@@ -72,14 +60,8 @@ generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
-null_is_bottom_test/03: RuntimeError # Issue 28025
-null_is_bottom_test/18: RuntimeError # Issue 28025
-null_is_bottom_test/23: RuntimeError # Issue 28025
-null_is_bottom_test/30: RuntimeError # Issue 28025
-null_is_bottom_test/35: RuntimeError # Issue 28025
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled) ]
-
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
@@ -172,7 +154,7 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $runtime == dart_precompiled ]
 # Stacktraces in precompilation omit inlined frames.
 full_stacktrace1_test: Pass, RuntimeError
 full_stacktrace2_test: Pass, RuntimeError
@@ -183,7 +165,7 @@ stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
 regress_26948_test: Skip # Crashes, regis investigating
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $noopt || $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign
@@ -276,7 +258,7 @@ library_env_test/has_no_io_support: RuntimeError, OK
 # The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $noopt || $runtime == dart_precompiled || $mode == product ]
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
 
@@ -313,6 +295,7 @@ deferred_type_dependency_test: Crash # Requires deferred libraries
 issue_1751477_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_22443_test: Crash # Requires deferred libraries
+regress_28278_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
 override_field_method1_negative_test: Pass, Crash # Issue 27835
@@ -336,6 +319,9 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 [$runtime == vm && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 
+[$runtime == vm && $compiler == none && $system == windows && $arch == ia32]
+vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
+
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
@@ -351,7 +337,3 @@ async_star_pause_test: StaticWarning
 async_star_test: StaticWarning
 regress_18535_test: StaticWarning
 
-[ $runtime == dart_precompiled || $runtime == vm || $runtime == dartium]
-null_bottom_test/none: RuntimeError # Issue 28025
-null_bottom_test/01: RuntimeError # Issue 28025
-null_bottom_test/02: RuntimeError # Issue 28025

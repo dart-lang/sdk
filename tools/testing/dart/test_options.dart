@@ -64,7 +64,7 @@ class TestOptionsParser {
           '''Specify any compilation step (if needed).
 
    none: Do not compile the Dart code (run native Dart code on the VM).
-         (only valid with the following runtimes: vm, drt)
+         (only valid with the following runtimes: vm, flutter, drt)
 
    dart2js: Compile dart code to JavaScript by running dart2js.
          (only valid with the following runtimes: d8, drt, chrome,
@@ -99,6 +99,8 @@ class TestOptionsParser {
           '''Where the tests should be run.
     vm: Run Dart code on the standalone dart vm.
 
+    flutter: Run Dart code on the flutter engine.
+
     dart_precompiled: Run a precompiled snapshot on a variant of the standalone
                       dart vm lacking a JIT.
 
@@ -129,6 +131,7 @@ class TestOptionsParser {
           ['-r', '--runtime'],
           [
             'vm',
+            'flutter',
             'dart_precompiled',
             'd8',
             'jsshell',
@@ -306,6 +309,8 @@ class TestOptionsParser {
           type: 'bool'),
       new _TestOptionSpecification(
           'dart', 'Path to dart executable', ['--dart'], [], ''),
+      new _TestOptionSpecification(
+          'flutter', 'Path to flutter executable', ['--flutter'], [], ''),
       new _TestOptionSpecification(
           'drt', // TODO(antonm): fix the option name.
           'Path to content shell executable',
@@ -626,6 +631,7 @@ Note: currently only implemented for dart2js.''',
     'chrome',
     'copy_coredumps',
     'dart',
+    'flutter',
     'dartium',
     'drt',
     'exclude_suite',
@@ -720,6 +726,7 @@ Note: currently only implemented for dart2js.''',
       case 'none':
         validRuntimes = const [
           'vm',
+          'flutter',
           'drt',
           'dartium',
           'ContentShellOnAndroid',
@@ -748,6 +755,15 @@ Note: currently only implemented for dart2js.''',
       isValid = false;
       print("Cannot have both --use-repository-packages and "
           "--use-public-packages");
+    }
+    if ((config['runtime'] == 'flutter') && (config['flutter'] == '')) {
+      isValid = false;
+      print("-rflutter requires the flutter engine executable to "
+          "be specified using --flutter=");
+    }
+    if ((config['runtime'] == 'flutter') && (config['arch'] != 'x64')) {
+      isValid = false;
+      print("-rflutter is applicable only for --arch=x64");
     }
 
     return isValid;

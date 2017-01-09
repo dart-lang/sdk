@@ -1482,6 +1482,14 @@ class E {
 class C {}''');
   }
 
+  test_class_documented_tripleSlash() {
+    checkLibrary('''
+/// aaa
+/// bbbb
+/// cc
+class C {}''');
+  }
+
   test_class_documented_with_references() {
     checkLibrary('''
 /**
@@ -4307,6 +4315,12 @@ void named({x: 1}) {}
     addSource('/a.dart', 'part of my.lib;');
     addSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
+  test_parts_invalidUri() {
+    allowMissingFiles = true;
+    addSource('/foo/bar.dart', 'part of my.lib;');
+    checkLibrary('library my.lib; part "foo/";');
   }
 
   test_propagated_type_refers_to_closure() {

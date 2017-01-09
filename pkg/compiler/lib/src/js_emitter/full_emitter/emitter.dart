@@ -27,6 +27,7 @@ import '../../elements/elements.dart'
         FunctionElement,
         FunctionSignature,
         LibraryElement,
+        MemberElement,
         MetadataAnnotation,
         MethodElement,
         Name,

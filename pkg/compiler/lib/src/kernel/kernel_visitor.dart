@@ -1205,7 +1205,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildTypeLiteral(constant), callStructure, arguments);
+    return associateNode(
+        buildCall(buildTypeLiteral(constant), callStructure, arguments), node);
   }
 
   ir.Expression buildTypeLiteralSet(TypeConstantExpression constant, Node rhs) {
@@ -1318,8 +1319,17 @@ class KernelVisitor extends Object
     Accessor accessor = (receiver == null)
         ? new ThisPropertyAccessor(irName, null, null)
         : PropertyAccessor.make(visitForValue(receiver), irName, null, null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
+    return _finishSetIfNull(node, accessor, rhs);
+  }
+
+  ir.Expression _finishSetIfNull(Send node, Accessor accessor, Node rhs) {
+    ir.Expression result = accessor.buildNullAwareAssignment(
+        visitForValue(rhs), null,
         voidContext: isVoidContext);
+    if (accessor.builtGetter != null) {
+      kernel.nodeToAst[accessor.builtGetter] = node;
+    }
+    return result;
   }
 
   @override
@@ -1551,9 +1561,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitIfNotNullDynamicPropertySetIfNull(
       Send node, Node receiver, Name name, Node rhs, _) {
-    return buildNullAwarePropertyAccessor(receiver, name)
-        .buildNullAwareAssignment(visitForValue(rhs), null,
-            voidContext: isVoidContext);
+    return _finishSetIfNull(
+        node, buildNullAwarePropertyAccessor(receiver, name), rhs);
   }
 
   ir.LogicalExpression buildLogicalExpression(
@@ -1892,9 +1901,7 @@ class KernelVisitor extends Object
   ir.Expression handleLocalSetIfNulls(
       SendSet node, LocalElement local, Node rhs, _,
       {bool isSetterValid}) {
-    return new VariableAccessor(getLocal(local)).buildNullAwareAssignment(
-        visitForValue(rhs), null,
-        voidContext: isVoidContext);
+    return _finishSetIfNull(node, new VariableAccessor(getLocal(local)), rhs);
   }
 
   @override
@@ -2009,9 +2016,7 @@ class KernelVisitor extends Object
     if (setterKind == CompoundSetter.INVALID) {
       setter = null;
     }
-    return buildStaticAccessor(getter, setter).buildNullAwareAssignment(
-        visitForValue(rhs), null,
-        voidContext: isVoidContext);
+    return _finishSetIfNull(node, buildStaticAccessor(getter, setter), rhs);
   }
 
   ir.VariableDeclaration getLocal(LocalElement local) {
@@ -2230,7 +2235,8 @@ class KernelVisitor extends Object
       // TODO(ahe): Support deferred load.
       return new ir.InvalidExpression();
     }
-    return buildCall(buildStaticGet(getter), callStructure, arguments);
+    return associateNode(
+        buildCall(buildStaticGet(getter), callStructure, arguments), node);
   }
 
   @override
@@ -2456,9 +2462,8 @@ class KernelVisitor extends Object
     if (setterKind == CompoundSetter.INVALID) {
       setter = null;
     }
-    return buildSuperPropertyAccessor(getter, setter).buildNullAwareAssignment(
-        visitForValue(rhs), null,
-        voidContext: isVoidContext);
+    return _finishSetIfNull(
+        node, buildSuperPropertyAccessor(getter, setter), rhs);
   }
 
   @override
@@ -2585,7 +2590,8 @@ class KernelVisitor extends Object
   @override
   ir.MethodInvocation visitThisInvoke(
       Send node, NodeList arguments, CallStructure callStructure, _) {
-    return buildCall(new ir.ThisExpression(), callStructure, arguments);
+    return associateNode(
+        buildCall(new ir.ThisExpression(), callStructure, arguments), node);
   }
 
   Accessor buildThisPropertyAccessor(Name name) {
@@ -2672,7 +2678,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildTypeVariable(element), callStructure, arguments);
+    return associateNode(
+        buildCall(buildTypeVariable(element), callStructure, arguments), node);
   }
 
   @override
@@ -2685,9 +2692,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitTypeVariableTypeLiteralSetIfNull(
       Send node, TypeVariableElement element, Node rhs, _) {
-    return new ReadOnlyAccessor(buildTypeVariable(element))
-        .buildNullAwareAssignment(visitForValue(rhs), null,
-            voidContext: isVoidContext);
+    return _finishSetIfNull(
+        node, new ReadOnlyAccessor(buildTypeVariable(element)), rhs);
   }
 
   @override
@@ -2703,7 +2709,8 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return buildCall(buildTypeLiteral(constant), callStructure, arguments);
+    return associateNode(
+        buildCall(buildTypeLiteral(constant), callStructure, arguments), node);
   }
 
   @override
@@ -2751,17 +2758,14 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitIndexSetIfNull(
       SendSet node, Node receiver, Node index, Node rhs, _) {
-    return buildIndexAccessor(receiver, index).buildNullAwareAssignment(
-        visitForValue(rhs), null,
-        voidContext: isVoidContext);
+    return _finishSetIfNull(node, buildIndexAccessor(receiver, index), rhs);
   }
 
   @override
   ir.Expression visitSuperIndexSetIfNull(SendSet node, MethodElement getter,
       MethodElement setter, Node index, Node rhs, _) {
-    return buildSuperIndexAccessor(index, getter, setter)
-        .buildNullAwareAssignment(visitForValue(rhs), null,
-            voidContext: isVoidContext);
+    return _finishSetIfNull(
+        node, buildSuperIndexAccessor(index, getter, setter), rhs);
   }
 
   @override

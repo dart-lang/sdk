@@ -649,6 +649,13 @@ main() {
       context.deleteProperty('callback');
     });
 
+    test('pass a Dart function to JS and back', () {
+      var dartFunction = () => 42;
+      context['dartFunction'] = dartFunction;
+      expect(identical(context['dartFunction'], dartFunction), isTrue);
+      context.deleteProperty('dartFunction');
+    });
+
     test('callback as parameter', () {
       expect(context.callMethod('getTypeOf', [context['razzle']]),
           equals("function"));

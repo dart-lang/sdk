@@ -94,7 +94,7 @@ class ConstantEvaluationEngine {
             typeProvider.objectType.element.context.analysisOptions.strongMode,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem ?? new TypeSystemImpl();
+        typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider);
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1293,8 +1293,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(_typeProvider, thenType, elseType)
-        as InterfaceType);
+        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
   }
 
   @override

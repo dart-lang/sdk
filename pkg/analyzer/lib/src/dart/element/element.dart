@@ -4169,7 +4169,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("export ");
-    (exportedLibrary as LibraryElementImpl).appendTo(buffer);
+    LibraryElementImpl.getImpl(exportedLibrary).appendTo(buffer);
   }
 }
 
@@ -5126,7 +5126,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("import ");
-    (importedLibrary as LibraryElementImpl).appendTo(buffer);
+    LibraryElementImpl.getImpl(importedLibrary).appendTo(buffer);
   }
 
   @override
@@ -5934,6 +5934,16 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(exports, visitor);
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
+  }
+
+  /**
+   * Return the [LibraryElementImpl] of the given [element].
+   */
+  static LibraryElementImpl getImpl(LibraryElement element) {
+    if (element is LibraryElementHandle) {
+      return getImpl(element.actualElement);
+    }
+    return element as LibraryElementImpl;
   }
 
   /**

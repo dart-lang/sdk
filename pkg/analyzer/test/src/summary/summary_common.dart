@@ -1303,6 +1303,19 @@ class C {}''';
     checkDocumentationComment(cls.documentationComment, text);
   }
 
+  test_class_documented_tripleSlash() {
+    if (!includeInformative) return;
+    String text = '''
+/// aaa
+/// bbbb
+/// cc
+class C {}''';
+    UnlinkedClass cls = serializeClassText(text);
+    UnlinkedDocumentationComment comment = cls.documentationComment;
+    expect(comment, isNotNull);
+    expect(comment.text, '/// aaa\n/// bbbb\n/// cc');
+  }
+
   test_class_documented_with_references() {
     if (!includeInformative) return;
     String text = '''

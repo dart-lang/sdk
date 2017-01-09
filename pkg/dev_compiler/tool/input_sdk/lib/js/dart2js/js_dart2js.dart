@@ -502,9 +502,9 @@ Object _convertToDart(o) {
   }
 }
 
-JsObject _wrapToDart(o) => _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
+Object _wrapToDart(o) => _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
 
-JsObject _wrapToDartHelper(o) {
+Object _wrapToDartHelper(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return new JsFunction._fromJs(o);
   }

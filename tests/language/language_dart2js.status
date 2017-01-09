@@ -37,6 +37,8 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
+bad_typedef_test/00: Crash # Issue 28214
+
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
@@ -60,6 +62,7 @@ redirecting_factory_reflection_test: Fail # mirrors not supported
 regress_13462_0_test: Fail # mirrors not supported
 regress_13462_1_test: Fail # mirrors not supported
 regress_18535_test: Fail # mirrors not supported
+regress_28255_test: Fail # mirrors not supported
 super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported

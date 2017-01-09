@@ -320,12 +320,21 @@ TEST_CASE(ManySimpleTasksWithZones) {
   isolate->PrintJSON(&stream, false);
   const char* json = stream.ToCString();
 
+  Thread* current_thread = Thread::Current();
+  {
+    StackZone stack_zone(current_thread);
+    char* isolate_info_buf = OS::SCreate(current_thread->zone(),
+                                         "\"_memoryHighWatermark\":"
+                                         "\"%" Pu "\"",
+                                         isolate->memory_high_watermark());
+    EXPECT_SUBSTRING(isolate_info_buf, json);
+  }
+
   // Confirm all expected entries are in the JSON output.
   for (intptr_t i = 0; i < kTaskCount + 1; i++) {
     Thread* thread = threads[i];
     Zone* top_zone = thread->zone();
 
-    Thread* current_thread = Thread::Current();
     StackZone stack_zone(current_thread);
     Zone* current_zone = current_thread->zone();
 
@@ -348,9 +357,11 @@ TEST_CASE(ManySimpleTasksWithZones) {
                     "\"type\":\"_Thread\","
                     "\"id\":\"threads\\/%" Pd
                     "\","
-                    "\"kind\":\"%s\"",
+                    "\"kind\":\"%s\","
+                    "\"_memoryHighWatermark\":\"%" Pu "\"",
                     OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
-                    Thread::TaskKindToCString(thread->task_kind()));
+                    Thread::TaskKindToCString(thread->task_kind()),
+                    thread->memory_high_watermark());
 
     EXPECT_SUBSTRING(thread_info_buf, json);
   }

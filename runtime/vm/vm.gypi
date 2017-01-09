@@ -61,6 +61,13 @@
             ],
           },
         }],
+        # The following condition should be kept in sync with the corresponding
+        # configurations in runtime/bin/bin.gypi.
+	['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
+          'defines': [
+            'DART_USE_TCMALLOC'
+          ],
+        }],
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
             'libraries': [
@@ -104,6 +111,13 @@
               '-ldl',
             ],
           },
+        }],
+        # The following condition should be kept in sync with the corresponding
+        # configurations in runtime/bin/bin.gypi.
+        ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
+          'defines': [
+            'DART_USE_TCMALLOC'
+          ],
         }],
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
@@ -149,6 +163,13 @@
             ],
           },
         }],
+        # The following condition should be kept in sync with the corresponding
+        # configurations in runtime/bin/bin.gypi.
+        ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
+          'defines': [
+            'DART_USE_TCMALLOC'
+          ],
+        }],
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
             'libraries': [
@@ -193,6 +214,13 @@
               '-ldl',
             ],
           },
+        }],
+        # The following condition should be kept in sync with the corresponding
+        # configurations in runtime/bin/bin.gypi.
+        ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
+          'defines': [
+            'DART_USE_TCMALLOC'
+          ],
         }],
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {

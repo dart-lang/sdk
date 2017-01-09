@@ -629,7 +629,7 @@ Object _convertToDart(o) {
   }
 }
 
-JsObject _wrapToDart(o) {
+Object _wrapToDart(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(
         o, DART_CLOSURE_PROPERTY_NAME, (o) => new JsFunction._fromJs(o));

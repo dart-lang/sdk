@@ -1,0 +1,24 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+declare_args() {
+  # Whether to fall back to built-in root certificates when they cannot be
+  # verified at the operating system level.
+  dart_use_fallback_root_certificates = false
+
+  # The BUILD.gn file that we pull from chromium as part of zlib has a
+  # dependence on //base, which we don't pull in. In a standalone build of the
+  # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
+  # a dependence on //base.
+  dart_zlib_path = "//third_party/zlib"
+
+  # Whether to link the standalone VM against tcmalloc. The standalone build of
+  # the VM enables this only for Linux builds.
+  dart_use_tcmalloc = false
+}
+
+# TODO(zra): Remove this when Fuchsia has a root cert cache on the filesystem.
+if (defined(is_fuchsia) && is_fuchsia) {
+  dart_use_fallback_root_certificates = true
+}

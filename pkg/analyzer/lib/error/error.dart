@@ -6,13 +6,12 @@ library analyzer.error.error;
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/scanner/errors.dart';
@@ -862,13 +861,6 @@ class AnalysisErrorWithProperties extends AnalysisError {
  */
 class ErrorProperty<V> implements Comparable<ErrorProperty> {
   /**
-   * A property whose value is a list of [FieldElement]s that are final, but
-   * not initialized by a constructor.
-   */
-  static const ErrorProperty<List<FieldElement>> NOT_INITIALIZED_FIELDS =
-      const ErrorProperty<List<FieldElement>>('NOT_INITIALIZED_FIELDS', 0);
-
-  /**
    * A property whose value is the name of the library that is used by all
    * of the "part of" directives, so should be used in the "library" directive.
    * Is `null` if there is no a single name used by all of the parts.
@@ -877,7 +869,6 @@ class ErrorProperty<V> implements Comparable<ErrorProperty> {
       const ErrorProperty<String>('PARTS_LIBRARY_NAME', 1);
 
   static const List<ErrorProperty> values = const [
-    NOT_INITIALIZED_FIELDS,
     PARTS_LIBRARY_NAME,
   ];
 

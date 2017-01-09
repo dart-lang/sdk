@@ -165,11 +165,6 @@ bool Thread::Compare(ThreadId a, ThreadId b) {
 }
 
 
-void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
-  UNIMPLEMENTED();
-}
-
-
 void Thread::InitOnce() {
   // Nothing to be done.
 }

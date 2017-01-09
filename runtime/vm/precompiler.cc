@@ -53,7 +53,7 @@ namespace dart {
 #define Z (zone())
 
 
-DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynaic targets");
+DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(
     int,
@@ -274,6 +274,7 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
     if (!table->HasValidClassAt(cid)) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
+    if (cid == kNullCid) continue;  // Instance is not at Bottom like Null type.
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
     if (cls.is_patch()) continue;
@@ -2001,7 +2002,7 @@ void Precompiler::DropClasses() {
   // corpses. Request a full GC and wait for the sweeper tasks to finish before
   // we continue.
   I->heap()->CollectAllGarbage();
-  I->heap()->WaitForSweeperTasks();
+  I->heap()->WaitForSweeperTasks(T);
 #endif
 
   ClassTable* class_table = I->class_table();

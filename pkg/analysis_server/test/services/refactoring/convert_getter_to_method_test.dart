@@ -17,6 +17,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertGetterToMethodTest);
+    defineReflectiveTests(ConvertGetterToMethodTest_Driver);
   });
 }
 
@@ -24,8 +25,8 @@ main() {
 class ConvertGetterToMethodTest extends RefactoringTest {
   ConvertGetterToMethodRefactoring refactoring;
 
-  test_change_function() {
-    indexTestUnit('''
+  test_change_function() async {
+    await indexTestUnit('''
 int get test => 42;
 main() {
   var a = test;
@@ -43,8 +44,8 @@ main() {
 ''');
   }
 
-  test_change_method() {
-    indexTestUnit('''
+  test_change_method() async {
+    await indexTestUnit('''
 class A {
   int get test => 1;
 }
@@ -88,15 +89,15 @@ main(A a, B b, C c, D d) {
 ''');
   }
 
-  test_change_multipleFiles() {
-    indexUnit(
+  test_change_multipleFiles() async {
+    await indexUnit(
         '/other.dart',
         r'''
 class A {
   int get test => 1;
 }
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 import 'other.dart';
 class B extends A {
   int get test => 2;
@@ -120,8 +121,8 @@ main(A a, B b) {
 ''');
   }
 
-  test_checkInitialConditions_syntheticGetter() {
-    indexTestUnit('''
+  test_checkInitialConditions_syntheticGetter() async {
+    await indexTestUnit('''
 int test = 42;
 main() {
 }
@@ -163,4 +164,10 @@ main() {
     ExecutableElement element = findNodeElementAtString(search);
     _createRefactoringForElement(element);
   }
+}
+
+@reflectiveTest
+class ConvertGetterToMethodTest_Driver extends ConvertGetterToMethodTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

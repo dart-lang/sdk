@@ -1581,10 +1581,10 @@ const b = 3;''');
   }
 
   DartObjectImpl _evaluate(Expression expression, ErrorReporter errorReporter) {
+    TestTypeProvider typeProvider = new TestTypeProvider();
     return expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables(),
-            typeSystem: new TypeSystemImpl()),
+        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
+            typeSystem: new TypeSystemImpl(typeProvider)),
         errorReporter));
   }
 

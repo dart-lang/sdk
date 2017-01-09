@@ -14,13 +14,14 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
+    defineReflectiveTests(RenameUnitMemberTest_Driver);
   });
 }
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
   test_checkFinalConditions_hasTopLevel_ClassElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 class NewName {} // existing
 ''');
@@ -34,7 +35,7 @@ class NewName {} // existing
   }
 
   test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 typedef NewName(); // existing
 ''');
@@ -49,7 +50,7 @@ typedef NewName(); // existing
   }
 
   test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 class A {
   NewName() {}
@@ -68,10 +69,10 @@ class B extends A {
   }
 
   test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 ''');
-    indexUnit(
+    await indexUnit(
         '/lib.dart',
         '''
 library my.lib;
@@ -90,7 +91,7 @@ main() {
   }
 
   test_checkFinalConditions_shadowedBy_MethodElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 class A {
   void NewName() {}
@@ -110,10 +111,10 @@ class A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_importedLib() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 ''');
-    indexUnit(
+    await indexUnit(
         '/lib.dart',
         '''
 library my.lib;
@@ -136,10 +137,10 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 ''');
-    indexUnit(
+    await indexUnit(
         '/lib.dart',
         '''
 library my.lib;
@@ -161,7 +162,7 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_MethodElement() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 class A {
   NewName() {}
@@ -182,7 +183,7 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
-    indexUnit(
+    await indexUnit(
         '/lib.dart',
         '''
 library my.lib;
@@ -195,7 +196,7 @@ class B extends A {
   }",
 }
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 ''');
     createRenameRefactoringAtString('Test {}');
@@ -206,7 +207,7 @@ class Test {}
   }
 
   test_checkFinalConditions_shadowsInSubClass_notSubClass() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {}
 class A {
   NewName() {}
@@ -230,7 +231,7 @@ class B {
         r'''
 class A {}
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 import '/.pub-cache/lib.dart';
 main() {
   A a;
@@ -251,7 +252,7 @@ main() {
         r'''
 class A {}
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 import '/Pub/Cache/lib.dart';
 main() {
   A a;
@@ -267,7 +268,7 @@ main() {
   }
 
   test_checkInitialConditions_inSDK() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   String s;
 }
@@ -281,8 +282,8 @@ main() {
             "The class 'String' is defined in the SDK, so cannot be renamed.");
   }
 
-  test_checkNewName_ClassElement() {
-    indexTestUnit('''
+  test_checkNewName_ClassElement() async {
+    await indexTestUnit('''
 class Test {}
 ''');
     createRenameRefactoringAtString('Test {}');
@@ -307,8 +308,8 @@ class Test {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FunctionElement() {
-    indexTestUnit('''
+  test_checkNewName_FunctionElement() async {
+    await indexTestUnit('''
 test() {}
 ''');
     createRenameRefactoringAtString('test() {}');
@@ -327,8 +328,8 @@ test() {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FunctionTypeAliasElement() {
-    indexTestUnit('''
+  test_checkNewName_FunctionTypeAliasElement() async {
+    await indexTestUnit('''
 typedef Test();
 ''');
     createRenameRefactoringAtString('Test();');
@@ -342,8 +343,8 @@ typedef Test();
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_TopLevelVariableElement() {
-    indexTestUnit('''
+  test_checkNewName_TopLevelVariableElement() async {
+    await indexTestUnit('''
 var test;
 ''');
     createRenameRefactoringAtString('test;');
@@ -362,8 +363,8 @@ var test;
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_ClassElement() {
-    indexTestUnit('''
+  test_createChange_ClassElement() async {
+    await indexTestUnit('''
 class Test implements Other {
   Test() {}
   Test.named() {}
@@ -400,9 +401,9 @@ main() {
 ''');
   }
 
-  test_createChange_ClassElement_invocation() {
+  test_createChange_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
-    indexTestUnit('''
+    await indexTestUnit('''
 class Test {
 }
 main() {
@@ -425,8 +426,8 @@ main() {
 ''');
   }
 
-  test_createChange_ClassElement_parameterTypeNested() {
-    indexTestUnit('''
+  test_createChange_ClassElement_parameterTypeNested() async {
+    await indexTestUnit('''
 class Test {
 }
 main(f(Test p)) {
@@ -446,8 +447,8 @@ main(f(NewName p)) {
 ''');
   }
 
-  test_createChange_ClassElement_typeAlias() {
-    indexTestUnit('''
+  test_createChange_ClassElement_typeAlias() async {
+    await indexTestUnit('''
 class A {}
 class Test = Object with A;
 main(Test t) {
@@ -468,8 +469,8 @@ main(NewName t) {
 ''');
   }
 
-  test_createChange_FunctionElement() {
-    indexTestUnit('''
+  test_createChange_FunctionElement() async {
+    await indexTestUnit('''
 test() {}
 foo() {}
 main() {
@@ -497,13 +498,13 @@ main() {
   }
 
   test_createChange_FunctionElement_imported() async {
-    indexUnit(
+    await indexUnit(
         '/foo.dart',
         r'''
 test() {}
 foo() {}
 ''');
-    indexTestUnit('''
+    await indexTestUnit('''
 import 'foo.dart';
 main() {
   print(test);
@@ -534,44 +535,44 @@ foo() {}
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_getter_declaration() {
-    return _test_createChange_PropertyAccessorElement("test {}");
+  test_createChange_PropertyAccessorElement_getter_declaration() async {
+    await _test_createChange_PropertyAccessorElement("test {}");
   }
 
-  test_createChange_PropertyAccessorElement_getter_usage() {
-    return _test_createChange_PropertyAccessorElement("test);");
+  test_createChange_PropertyAccessorElement_getter_usage() async {
+    await _test_createChange_PropertyAccessorElement("test);");
   }
 
-  test_createChange_PropertyAccessorElement_mix() {
-    return _test_createChange_PropertyAccessorElement("test += 2");
+  test_createChange_PropertyAccessorElement_mix() async {
+    await _test_createChange_PropertyAccessorElement("test += 2");
   }
 
-  test_createChange_PropertyAccessorElement_setter_declaration() {
-    return _test_createChange_PropertyAccessorElement("test(x) {}");
+  test_createChange_PropertyAccessorElement_setter_declaration() async {
+    await _test_createChange_PropertyAccessorElement("test(x) {}");
   }
 
-  test_createChange_PropertyAccessorElement_setter_usage() {
-    return _test_createChange_PropertyAccessorElement("test = 1");
+  test_createChange_PropertyAccessorElement_setter_usage() async {
+    await _test_createChange_PropertyAccessorElement("test = 1");
   }
 
-  test_createChange_TopLevelVariableElement_field() {
-    return _test_createChange_TopLevelVariableElement("test = 0");
+  test_createChange_TopLevelVariableElement_field() async {
+    await _test_createChange_TopLevelVariableElement("test = 0");
   }
 
-  test_createChange_TopLevelVariableElement_getter() {
-    return _test_createChange_TopLevelVariableElement("test);");
+  test_createChange_TopLevelVariableElement_getter() async {
+    await _test_createChange_TopLevelVariableElement("test);");
   }
 
-  test_createChange_TopLevelVariableElement_mix() {
-    return _test_createChange_TopLevelVariableElement("test += 2");
+  test_createChange_TopLevelVariableElement_mix() async {
+    await _test_createChange_TopLevelVariableElement("test += 2");
   }
 
-  test_createChange_TopLevelVariableElement_setter() {
-    return _test_createChange_TopLevelVariableElement("test = 1");
+  test_createChange_TopLevelVariableElement_setter() async {
+    await _test_createChange_TopLevelVariableElement("test = 1");
   }
 
-  _test_createChange_PropertyAccessorElement(String search) {
-    indexTestUnit('''
+  _test_createChange_PropertyAccessorElement(String search) async {
+    await indexTestUnit('''
 get test {}
 set test(x) {}
 main() {
@@ -597,8 +598,8 @@ main() {
 ''');
   }
 
-  _test_createChange_TopLevelVariableElement(String search) {
-    indexTestUnit('''
+  _test_createChange_TopLevelVariableElement(String search) async {
+    await indexTestUnit('''
 int test = 0;
 main() {
   print(test);
@@ -622,4 +623,10 @@ main() {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class RenameUnitMemberTest_Driver extends RenameUnitMemberTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
