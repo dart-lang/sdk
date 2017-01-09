@@ -880,7 +880,6 @@ let HttpClientRequestToFutureOfHttpClientResponse = () => (HttpClientRequestToFu
 let dynamicToMap = () => (dynamicToMap = dart.constFn(dart.definiteFunctionType(core.Map, [dart.dynamic])))();
 let ListToIsolate = () => (ListToIsolate = dart.constFn(dart.definiteFunctionType(isolate.Isolate, [core.List])))();
 let dynamicTo_DartObject = () => (dynamicTo_DartObject = dart.constFn(dart.definiteFunctionType(js._DartObject, [dart.dynamic])))();
-let dynamicToJsObject = () => (dynamicToJsObject = dart.constFn(dart.definiteFunctionType(js.JsObject, [dart.dynamic])))();
 let dynamicAnddynamicAndFnToObject = () => (dynamicAnddynamicAndFnToObject = dart.constFn(dart.definiteFunctionType(core.Object, [dart.dynamic, dart.dynamic, dynamicTodynamic()])))();
 let FToF = () => (FToF = dart.constFn(dart.definiteFunctionType(F => [F, [F]])))();
 let FunctionToFunction = () => (FunctionToFunction = dart.constFn(dart.definiteFunctionType(core.Function, [core.Function])))();
@@ -52593,7 +52592,7 @@ dart.defineLazy(js, {
 });
 dart.defineLazy(js, {
   get context() {
-    return js._wrapToDart(js._global);
+    return js.JsObject._check(js._wrapToDart(js._global));
   }
 });
 const _jsObject = Symbol('_jsObject');
@@ -52606,22 +52605,22 @@ js.JsObject = class JsObject extends core.Object {
     if (arguments$ === void 0) arguments$ = null;
     let ctor = constructor[_jsObject];
     if (arguments$ == null) {
-      return js._wrapToDart(new ctor());
+      return js.JsObject._check(js._wrapToDart(new ctor()));
     }
     let unwrapped = core.List.from(arguments$[dartx.map](dart.dynamic)(js._convertToJS));
-    return js._wrapToDart(new ctor(...unwrapped));
+    return js.JsObject._check(js._wrapToDart(new ctor(...unwrapped)));
   }
   static fromBrowserObject(object) {
     if (typeof object == 'number' || typeof object == 'string' || typeof object == 'boolean' || object == null) {
       dart.throw(new core.ArgumentError("object cannot be a num, string, bool, or null"));
     }
-    return js._wrapToDart(js._convertToJS(object));
+    return js.JsObject._check(js._wrapToDart(js._convertToJS(object)));
   }
   static jsify(object) {
     if (!core.Map.is(object) && !core.Iterable.is(object)) {
       dart.throw(new core.ArgumentError("object must be a Map or Iterable"));
     }
-    return js._wrapToDart(js.JsObject._convertDataTree(object));
+    return js.JsObject._check(js._wrapToDart(js.JsObject._convertDataTree(object)));
   }
   static _convertDataTree(data) {
     let _convertedObjects = collection.HashMap.identity();
@@ -52949,9 +52948,9 @@ js._convertToDart = function(o) {
 };
 dart.fn(js._convertToDart, dynamicToObject());
 js._wrapToDart = function(o) {
-  return js.JsObject._check(js._putIfAbsent(js._dartProxies, o, js._wrapToDartHelper));
+  return js._putIfAbsent(js._dartProxies, o, js._wrapToDartHelper);
 };
-dart.fn(js._wrapToDart, dynamicToJsObject());
+dart.fn(js._wrapToDart, dynamicToObject());
 js._wrapToDartHelper = function(o) {
   if (typeof o == "function") {
     return new js.JsFunction._fromJs(o);
@@ -52961,7 +52960,7 @@ js._wrapToDartHelper = function(o) {
   }
   return new js.JsObject._fromJs(o);
 };
-dart.fn(js._wrapToDartHelper, dynamicToJsObject());
+dart.fn(js._wrapToDartHelper, dynamicToObject());
 dart.defineLazy(js, {
   get _dartProxies() {
     return new WeakMap();
