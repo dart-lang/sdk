@@ -455,6 +455,8 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
       project_file = 'dart.xcodeproj'
       if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
         project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
+      if target == 'all':
+        target = 'All'
       args = ['xcodebuild',
               '-project',
               project_file,
@@ -590,10 +592,7 @@ def Main():
     return 1
   # Determine which targets to build. By default we build the "all" target.
   if len(args) == 0:
-    if HOST_OS == 'macos':
-      targets = ['All']
-    else:
-      targets = ['all']
+    targets = ['all']
   else:
     targets = args
 
