@@ -46,8 +46,14 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(context.name, '/project');
     expect(context.explicitFileCount, 1); /* test.dart */
 
-    // dart:core dart:async dart:math dart:_internal
-    expect(context.implicitFileCount, 4);
+    if (enableNewAnalysisDriver) {
+      // dart:core (although it should not be here)
+      expect(context.implicitFileCount, 1);
+    } else {
+      // dart:core dart:async dart:math dart:_internal
+      expect(context.implicitFileCount, 4);
+    }
+
     expect(context.workItemQueueLength, isNotNull);
   }
 
@@ -66,17 +72,5 @@ class DiagnosticDomainTest_Driver extends DiagnosticDomainTest {
     enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     super.setUp();
-  }
-
-  @failingTest
-  @override
-  test_getDiagnostics() {
-    return super.test_getDiagnostics();
-  }
-
-  @failingTest
-  @override
-  test_getDiagnostics_noRoot() {
-    return super.test_getDiagnostics_noRoot();
   }
 }

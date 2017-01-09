@@ -297,6 +297,11 @@ class AnalysisDriver {
   Set<String> get knownFiles => _fsState.knownFilePaths;
 
   /**
+   * Return the number of files scheduled for analysis.
+   */
+  int get numberOfFilesToAnalyze => _filesToAnalyze.length;
+
+  /**
    * Return the list of files that the driver should try to analyze sooner.
    */
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
