@@ -1235,7 +1235,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitTypeLiteral(ir.TypeLiteral typeLiteral) {
     ir.DartType type = typeLiteral.type;
-    if (type is ir.InterfaceType) {
+    if (type is ir.InterfaceType || type is ir.DynamicType) {
       ConstantValue constant = astAdapter.getConstantForType(type);
       stack.add(graph.addConstant(constant, closedWorld));
       return;
@@ -1253,7 +1253,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           astAdapter.createRuntimeTypeReturnType);
       return;
     }
-    // TODO(27394): 'dynamic' and function types observed. Where are they from?
+    // TODO(27394): Function types observed. Where are they from?
     defaultExpression(typeLiteral);
     return;
   }
