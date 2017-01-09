@@ -556,7 +556,14 @@ abstract class AstNode implements SyntacticEntity {
 /**
  * An object that can be used to visit an AST structure.
  *
- * Clients may extend or implement this class.
+ * Clients may not extend, implement or mix-in this class. There are classes
+ * that implement this interface that provide useful default behaviors in
+ * `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful include
+ * * SimpleAstVisitor which implements every visit method by doing nothing,
+ * * RecursiveAstVisitor which will cause every node in a structure to be
+ *   visited, and
+ * * ThrowingAstVisitor which implements every visit method by throwing an
+ *   exception.
  */
 abstract class AstVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node);
