@@ -28,8 +28,8 @@ import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../context/mock_sdk.dart';
 import 'base.dart';
+import 'physical_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -54,8 +54,6 @@ Future pumpEventQueue([int times = 5000]) {
 
 @reflectiveTest
 class AnalysisDriverSchedulerTest {
-  static final MockSdk sdk = new MockSdk();
-
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
