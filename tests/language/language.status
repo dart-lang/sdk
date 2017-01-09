@@ -330,10 +330,3 @@ null_bottom_test/none: StaticWarning, CompileTimeError # Issue 28025
 null_bottom_test/01: Pass, CompileTimeError # Issue 28025
 null_bottom_test/02: Pass, CompileTimeError # Issue 28025
 null_bottom_test/03: Pass, CompileTimeError # Issue 28025
-
-# Issue #28236
-async_await_test: StaticWarning
-async_star_pause_test: StaticWarning
-async_star_test: StaticWarning
-regress_18535_test: StaticWarning
-

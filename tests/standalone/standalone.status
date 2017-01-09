@@ -88,19 +88,6 @@ io/file_constructor_test: fail
 # This is runtime test.
 io/process_exit_negative_test: Skip
 
-# Issue #28236
-io/addlatexhash_test: StaticWarning
-io/http_auth_digest_test: StaticWarning
-io/http_auth_test: StaticWarning
-io/http_proxy_advanced_test: StaticWarning
-io/http_proxy_test: StaticWarning
-io/skipping_dart2js_compilations_test: StaticWarning
-io/sleep_test: StaticWarning
-io/test_harness_analyzer_test: StaticWarning
-io/test_runner_test: StaticWarning
-io/web_socket_compression_test: StaticWarning
-io/web_socket_test: StaticWarning
-
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_data_test: Skip # dart:typed_data support needed.

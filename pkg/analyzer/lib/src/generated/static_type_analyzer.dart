@@ -1073,10 +1073,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (staticElement is VariableElement) {
       staticType = staticElement.type;
     }
-    if (_strongMode) {
-      staticType = _inferGenericInstantiationFromContext(
-          InferenceContext.getType(node), staticType);
-    }
+    staticType = _inferGenericInstantiationFromContext(node, staticType);
+
     if (!(_strongMode &&
         _inferObjectAccess(node, staticType, prefixedIdentifier))) {
       _recordStaticType(prefixedIdentifier, staticType);
@@ -1206,10 +1204,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
-    if (_strongMode) {
-      staticType = _inferGenericInstantiationFromContext(
-          InferenceContext.getType(node), staticType);
-    }
+    staticType = _inferGenericInstantiationFromContext(node, staticType);
+
     if (!(_strongMode && _inferObjectAccess(node, staticType, propertyName))) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
@@ -1310,10 +1306,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       staticType = _dynamicType;
     }
-    if (_strongMode) {
-      staticType = _inferGenericInstantiationFromContext(
-          InferenceContext.getType(node), staticType);
-    }
+    staticType = _inferGenericInstantiationFromContext(node, staticType);
+
     _recordStaticType(node, staticType);
     // TODO(brianwilkerson) I think we want to repeat the logic above using the
     // propagated element to get another candidate for the propagated type.
@@ -1906,13 +1900,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Given an uninstantiated generic function type, try to infer the
    * instantiated generic function type from the surrounding context.
    */
-  DartType _inferGenericInstantiationFromContext(
-      DartType context, DartType type) {
-    TypeSystem ts = _typeSystem;
-    if (context is FunctionType &&
-        type is FunctionType &&
-        ts is StrongTypeSystemImpl) {
-      return ts.inferFunctionTypeInstantiation(context, type);
+  DartType _inferGenericInstantiationFromContext(AstNode node, DartType type) {
+    if (_strongMode) {
+      TypeSystem ts = _typeSystem;
+      DartType context = InferenceContext.getType(node);
+      if (context is FunctionType &&
+          type is FunctionType &&
+          ts is StrongTypeSystemImpl) {
+        return ts.inferFunctionTypeInstantiation(context, type);
+      }
+    } else {
+      // In Dart 1 mode we want to implicitly instantiate generic functions to
+      // their bounds always, so we don't get a universal function type.
+      return _typeSystem.instantiateToBounds(type);
     }
     return type;
   }

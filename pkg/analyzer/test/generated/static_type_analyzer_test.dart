@@ -141,10 +141,11 @@ main() {
     // C - m
     TypeParameterType typeS;
     {
-      expectFunctionType('m);', '<S>(S) → void',
-          elementTypeParams: '[S]', typeFormals: '[S]');
+      FunctionTypeImpl type = expectFunctionType('m);', '<S>(S) → void',
+          elementTypeParams: '[S]',
+          typeFormals: '[S]',
+          identifierType: '(dynamic) → void');
 
-      FunctionTypeImpl type = findIdentifier('m);').staticType;
       typeS = type.typeFormals[0].type;
       type = type.instantiate([DynamicTypeImpl.instance]);
       expect(type.toString(), '(dynamic) → void');
@@ -154,13 +155,13 @@ main() {
     }
     // C - m - f
     {
-      expectFunctionType('f);', '<U>(S, U) → void',
+      FunctionTypeImpl type = expectFunctionType('f);', '<U>(S, U) → void',
           elementTypeParams: '[U]',
           typeParams: '[S]',
           typeArgs: '[S]',
-          typeFormals: '[U]');
+          typeFormals: '[U]',
+          identifierType: '(S, dynamic) → void');
 
-      FunctionTypeImpl type = findIdentifier('f);').staticType;
       type = type.instantiate([DynamicTypeImpl.instance]);
       expect(type.toString(), '(S, dynamic) → void');
       expect(type.typeParameters.toString(), '[S, U]');

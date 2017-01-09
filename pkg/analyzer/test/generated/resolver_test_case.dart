@@ -752,11 +752,14 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * stringifies to [type] and that its generics match the given stringified
    * output.
    */
-  expectFunctionType(String name, String type,
+  FunctionTypeImpl expectFunctionType(String name, String type,
       {String elementTypeParams: '[]',
       String typeParams: '[]',
       String typeArgs: '[]',
-      String typeFormals: '[]'}) {
+      String typeFormals: '[]',
+      String identifierType}) {
+    identifierType ??= type;
+
     typeParameters(Element element) {
       if (element is ExecutableElement) {
         return element.typeParameters;
@@ -768,13 +771,15 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
 
     SimpleIdentifier identifier = findIdentifier(name);
     // Element is either ExecutableElement or ParameterElement.
-    Element element = identifier.staticElement;
-    FunctionTypeImpl functionType = identifier.staticType;
+    var element = identifier.staticElement;
+    FunctionTypeImpl functionType = (element as dynamic).type;
     expect(functionType.toString(), type);
+    expect(identifier.staticType.toString(), identifierType);
     expect(typeParameters(element).toString(), elementTypeParams);
     expect(functionType.typeParameters.toString(), typeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
     expect(functionType.typeFormals.toString(), typeFormals);
+    return functionType;
   }
 
   /**
