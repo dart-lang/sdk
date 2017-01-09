@@ -30,10 +30,10 @@ cc/Sleep: Pass, Fail
 
 dart/data_uri_import_test/none: SkipByDesign
 
-[ $mode == debug && $arch != ia32 ]
+[ $mode == debug && $arch != ia32 && $system != windows ]
 cc/Profiler_ArrayAllocation: Fail # 28304
 cc/Profiler_BasicSourcePosition: Fail # 28304
-cc/Profiler_BasicSourcePositionOptimized: Fail # 28304
+cc/Profiler_BasicSourcePositionOptimized: Fail, Crash # 28304, # 28282
 cc/Profiler_BinaryOperatorSourcePosition: Fail # 28304
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail # 28304
 cc/Profiler_ChainedSamples: Fail # 28304
