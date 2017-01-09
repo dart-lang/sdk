@@ -745,7 +745,7 @@ config("no_optimize") {
     ldflags = common_optimize_on_ldflags
   } else {
     cflags = [
-      "-O1",
+      "-O2",
       "-fdata-sections",
       "-ffunction-sections",
     ]

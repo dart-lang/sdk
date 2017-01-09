@@ -31,6 +31,23 @@ cc/Sleep: Pass, Fail
 dart/data_uri_import_test/none: SkipByDesign
 
 [ $mode == debug ]
+cc/Profiler_ArrayAllocation: Fail # 28304
+cc/Profiler_BasicSourcePosition: Fail # 28304
+cc/Profiler_BasicSourcePositionOptimized: Fail # 28304
+cc/Profiler_BinaryOperatorSourcePosition: Fail # 28304
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail # 28304
+cc/Profiler_ChainedSamples: Fail # 28304
+cc/Profiler_ClosureAllocation: Fail # 28304
+cc/Profiler_CodeTicks: Fail # 28304
+cc/Profiler_ContextAllocation: Fail # 28304
+cc/Profiler_FunctionInline: Fail # 28304
+cc/Profiler_FunctionTicks: Fail # 28304
+cc/Profiler_SourcePosition: Fail # 28304
+cc/Profiler_SourcePositionOptimized: Fail # 28304
+cc/Profiler_ToggleRecordAllocation: Fail # 28304
+cc/Profiler_TrivialRecordAllocation: Fail # 28304
+cc/Profiler_TypedArrayAllocation: Fail # 28304
+
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
