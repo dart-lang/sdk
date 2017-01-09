@@ -5,8 +5,8 @@
 library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
+import '../elements/elements.dart' show MemberElement;
+import '../elements/entities.dart';
 import '../types/types.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import '../world.dart' show ClosedWorld;
@@ -18,7 +18,7 @@ class FunctionSetBuilder {
 
   FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 
-  void add(Element element) {
+  void add(MemberElement element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
@@ -26,7 +26,7 @@ class FunctionSetBuilder {
     node.add(element);
   }
 
-  void remove(Element element) {
+  void remove(MemberElement element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
@@ -50,7 +50,7 @@ class FunctionSet {
 
   FunctionSet(this.closedWorld, this.nodes);
 
-  bool contains(Element element) {
+  bool contains(MemberElement element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
@@ -62,7 +62,8 @@ class FunctionSet {
   /// receiver with the given [constraint]. The returned elements may include
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
-  Iterable<Element> filter(Selector selector, ReceiverConstraint constraint) {
+  Iterable<MemberElement> filter(
+      Selector selector, ReceiverConstraint constraint) {
     return query(selector, constraint).functions;
   }
 
@@ -133,7 +134,7 @@ class SelectorMask {
 
   String get name => selector.name;
 
-  bool applies(Element element, ClosedWorld closedWorld) {
+  bool applies(MemberEntity element, ClosedWorld closedWorld) {
     if (!selector.appliesUnnamed(element)) return false;
     return constraint.canHit(element, selector, closedWorld);
   }
@@ -161,12 +162,12 @@ class FunctionSetNode {
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
   static const int MAX_ELEMENTS_IN_LIST = 8;
-  var elements = <Element>[];
+  var elements = <MemberElement>[];
   bool isList = true;
 
   FunctionSetNode(this.name);
 
-  void add(Element element) {
+  void add(MemberElement element) {
     assert(element.name == name);
     // We try to avoid clearing the cache unless we have to. For that
     // reason we keep the explicit contains check even though the add
@@ -181,13 +182,13 @@ class FunctionSetNode {
     }
   }
 
-  void remove(Element element) {
+  void remove(MemberElement element) {
     assert(element.name == name);
     if (isList) {
       List list = elements;
       int index = list.indexOf(element);
       if (index < 0) return;
-      Element last = list.removeLast();
+      MemberElement last = list.removeLast();
       if (index != list.length) {
         list[index] = last;
       }
@@ -203,7 +204,7 @@ class FunctionSetNode {
     }
   }
 
-  bool contains(Element element) {
+  bool contains(MemberElement element) {
     assert(element.name == name);
     return elements.contains(element);
   }
@@ -220,14 +221,14 @@ class FunctionSetNode {
     FunctionSetQuery result = cache[selectorMask];
     if (result != null) return result;
 
-    Setlet<Element> functions;
-    for (Element element in elements) {
+    Setlet<MemberElement> functions;
+    for (MemberElement element in elements) {
       if (selectorMask.applies(element, closedWorld)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
           // lists when the filtering produced no results.
-          functions = new Setlet<Element>();
+          functions = new Setlet<MemberElement>();
         }
         functions.add(element);
       }
@@ -242,7 +243,8 @@ class FunctionSetNode {
           noSuchMethods.query(noSuchMethodMask, closedWorld);
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
-          functions = new Setlet<Element>.from(noSuchMethodQuery.functions);
+          functions =
+              new Setlet<MemberElement>.from(noSuchMethodQuery.functions);
         } else {
           functions.addAll(noSuchMethodQuery.functions);
         }
@@ -264,7 +266,7 @@ abstract class FunctionSetQuery {
   TypeMask computeMask(ClosedWorld closedWorld);
 
   /// Returns all potential targets of this function set.
-  Iterable<Element> get functions;
+  Iterable<MemberElement> get functions;
 }
 
 class EmptyFunctionSetQuery implements FunctionSetQuery {
@@ -275,12 +277,12 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
       const TypeMask.nonNullEmpty();
 
   @override
-  Iterable<Element> get functions => const <Element>[];
+  Iterable<MemberElement> get functions => const <MemberElement>[];
 }
 
 class FullFunctionSetQuery implements FunctionSetQuery {
   @override
-  final Iterable<Element> functions;
+  final Iterable<MemberElement> functions;
 
   TypeMask _mask;
 
@@ -292,14 +294,14 @@ class FullFunctionSetQuery implements FunctionSetQuery {
         .hasAnyStrictSubclass(closedWorld.commonElements.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(
-        functions.expand((element) {
-          ClassElement cls = element.enclosingClass;
+        functions.expand((MemberElement element) {
+          ClassEntity cls = element.enclosingClass.declaration;
           return [cls]..addAll(closedWorld.mixinUsesOf(cls));
         }).map((cls) {
           if (closedWorld.backendClasses.nullImplementation == cls) {
             return const TypeMask.empty();
-          } else if (closedWorld.isInstantiated(cls.declaration)) {
-            return new TypeMask.nonNullSubclass(cls.declaration, closedWorld);
+          } else if (closedWorld.isInstantiated(cls)) {
+            return new TypeMask.nonNullSubclass(cls, closedWorld);
           } else {
             // TODO(johnniwinther): Avoid the need for this case.
             return const TypeMask.empty();

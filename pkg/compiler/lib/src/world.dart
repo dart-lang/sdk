@@ -1068,7 +1068,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
-    for (Element e in allFunctions.filter(selector, mask)) {
+    for (MemberElement e in allFunctions.filter(selector, mask)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

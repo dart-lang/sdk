@@ -569,7 +569,8 @@ class FlatTypeMask implements TypeMask {
   MemberElement locateSingleElement(
       Selector selector, ClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
-    Iterable<Element> targets = closedWorld.allFunctions.filter(selector, this);
+    Iterable<MemberElement> targets =
+        closedWorld.allFunctions.filter(selector, this);
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.enclosingClass.declaration;

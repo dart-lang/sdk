@@ -53,7 +53,10 @@ class ClosureTracerVisitor extends TracerVisitor {
     Selector selector = info.selector;
     TypeMask mask = info.mask;
     tracedElements.forEach((FunctionElement functionElement) {
-      if (!selector.signatureApplies(functionElement)) return;
+      if (!selector.callStructure
+          .signatureApplies(functionElement.functionSignature)) {
+        return;
+      }
       inferrer.updateParameterAssignments(
           info, functionElement, info.arguments, selector, mask,
           remove: false, addToQueue: false);
