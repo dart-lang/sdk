@@ -581,6 +581,7 @@ let EventStreamProviderOfDeviceMotionEvent = () => (EventStreamProviderOfDeviceM
 let EventStreamProviderOfDeviceOrientationEvent = () => (EventStreamProviderOfDeviceOrientationEvent = dart.constFn(html.EventStreamProvider$(html.DeviceOrientationEvent)))();
 let EventStreamProviderOfAnimationEvent = () => (EventStreamProviderOfAnimationEvent = dart.constFn(html.EventStreamProvider$(html.AnimationEvent)))();
 let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html.EventStreamProvider$(html.BeforeUnloadEvent)))();
+let _EventStreamOfBeforeUnloadEvent = () => (_EventStreamOfBeforeUnloadEvent = dart.constFn(html._EventStream$(html.BeforeUnloadEvent)))();
 let StreamControllerOfBeforeUnloadEvent = () => (StreamControllerOfBeforeUnloadEvent = dart.constFn(async.StreamController$(html.BeforeUnloadEvent)))();
 let _ElementEventStreamImplOfBeforeUnloadEvent = () => (_ElementEventStreamImplOfBeforeUnloadEvent = dart.constFn(html._ElementEventStreamImpl$(html.BeforeUnloadEvent)))();
 let _ElementListEventStreamImplOfBeforeUnloadEvent = () => (_ElementListEventStreamImplOfBeforeUnloadEvent = dart.constFn(html._ElementListEventStreamImpl$(html.BeforeUnloadEvent)))();
@@ -923,6 +924,7 @@ let RtcSessionDescriptionTovoid = () => (RtcSessionDescriptionTovoid = dart.cons
 let RtcStatsResponseTovoid = () => (RtcStatsResponseTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.RtcStatsResponse])))();
 let OptionElementTobool = () => (OptionElementTobool = dart.constFn(dart.definiteFunctionType(core.bool, [html.OptionElement])))();
 let numTovoid = () => (numTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.num])))();
+let BeforeUnloadEventTovoid = () => (BeforeUnloadEventTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.BeforeUnloadEvent])))();
 let ElementTovoid = () => (ElementTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.Element])))();
 let ElementToCssClassSet = () => (ElementToCssClassSet = dart.constFn(dart.definiteFunctionType(html.CssClassSet, [html.Element])))();
 let CssClassSetImplTovoid = () => (CssClassSetImplTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html_common.CssClassSetImpl])))();
@@ -93232,12 +93234,12 @@ html._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider e
   }
   forTarget(e, opts) {
     let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-    let stream = new (_EventStreamOfEvent())(e, this[_eventType], useCapture);
+    let stream = new (_EventStreamOfBeforeUnloadEvent())(e, this[_eventType], useCapture);
     let controller = StreamControllerOfBeforeUnloadEvent().new({sync: true});
     stream.listen(dart.fn(event => {
       let wrapped = new html._BeforeUnloadEvent(event);
       controller.add(wrapped);
-    }, EventTovoid()));
+    }, BeforeUnloadEventTovoid()));
     return controller.stream;
   }
   getEventType(target) {
@@ -96399,7 +96401,7 @@ html._EventStreamSubscription$ = dart.generic(T => {
       this[_target] = target;
       this[_eventType] = eventType;
       this[_useCapture] = useCapture;
-      this[_onData] = html._wrapZone(html.Event, dart.dynamic)(_wrapZoneCallbackOfEvent$dynamic()._check(onData));
+      this[_onData] = onData == null ? null : html._wrapZone(html.Event, dart.dynamic)(dart.fn(e => dart.dcall(onData, e), EventTodynamic()));
       this[_pauseCount] = 0;
       this[_tryResume]();
     }
@@ -96450,10 +96452,12 @@ html._EventStreamSubscription$ = dart.generic(T => {
         this[_target][dartx.removeEventListener](this[_eventType], this[_onData], this[_useCapture]);
       }
     }
-    asFuture(futureValue) {
-      if (futureValue === void 0) futureValue = null;
-      let completer = async.Completer.new();
-      return completer.future;
+    asFuture(E) {
+      return futureValue => {
+        if (futureValue === void 0) futureValue = null;
+        let completer = async.Completer$(E).new();
+        return completer.future;
+      };
     }
   }
   dart.setSignature(_EventStreamSubscription, {
@@ -96478,7 +96482,7 @@ html._EventStreamSubscription$ = dart.generic(T => {
       resume: dart.definiteFunctionType(dart.void, []),
       [_tryResume]: dart.definiteFunctionType(dart.void, []),
       [_unlisten]: dart.definiteFunctionType(dart.void, []),
-      asFuture: dart.definiteFunctionType(async.Future, [], [dart.dynamic])
+      asFuture: dart.definiteFunctionType(E => [async.Future$(E), [], [E]])
     })
   });
   return _EventStreamSubscription;
