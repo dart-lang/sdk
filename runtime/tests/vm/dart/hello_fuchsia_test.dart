@@ -397,6 +397,17 @@ void testProcessRunSync() {
   print("$exe --version had stderr = '${result.stderr}'");
 }
 
+Future testKill() async {
+  String exe = Platform.resolvedExecutable;
+  String script = Platform.script.path;
+  print("Running $exe $script");
+  Process p = await Process.start(exe, [script, "infinite-loop"]);
+  await new Future.delayed(const Duration(seconds: 1));
+  p.kill();
+  int code = await p.exitCode;
+  print("$exe $script exited with code $code");
+}
+
 Future testLs(String path) async {
   Stream<FileSystemEntity> stream = (new Directory(path)).list();
   await for (FileSystemEntity fse in stream) {
@@ -431,7 +442,13 @@ Future testCopy() async {
   await tmp.delete();
 }
 
-main() async {
+main(List<String> args) async {
+  if (args.length >= 1) {
+    if (args[0] == "infinite-loop") {
+      while (true);
+    }
+  }
+
   print("Hello, Fuchsia!");
 
   print("testAddressParse");
@@ -477,6 +494,10 @@ main() async {
   print("testProcessRunSync");
   testProcessRunSync();
   print("testProcessRunSync done");
+
+  print("testKill");
+  await testKill();
+  print("testKill done");
 
   print("testCopy");
   await testCopy();
