@@ -12,7 +12,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   Set<TypeMask> _masks;
 
   @override
-  bool applies(Element element, Selector selector, ClosedWorld world) {
+  bool applies(MemberElement element, Selector selector, ClosedWorld world) {
     if (isAll) return true;
     if (_masks == null) return false;
     for (TypeMask mask in _masks) {
@@ -84,19 +84,19 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
-  factory TypeMask.exact(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.exact(ClassEntity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
 
-  factory TypeMask.exactOrEmpty(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.exactOrEmpty(ClassEntity base, ClosedWorld closedWorld) {
     if (closedWorld.isInstantiated(base)) return new FlatTypeMask.exact(base);
     return const TypeMask.empty();
   }
 
-  factory TypeMask.subclass(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.subclass(ClassEntity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
@@ -110,7 +110,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     }
   }
 
-  factory TypeMask.subtype(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.subtype(ClassEntity base, ClosedWorld closedWorld) {
     Entity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.empty();
@@ -127,25 +127,26 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
 
-  factory TypeMask.nonNullExact(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullExact(ClassEntity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
-  factory TypeMask.nonNullExactOrEmpty(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullExactOrEmpty(
+      ClassEntity base, ClosedWorld closedWorld) {
     if (closedWorld.isInstantiated(base)) {
       return new FlatTypeMask.nonNullExact(base);
     }
     return const TypeMask.nonNullEmpty();
   }
 
-  factory TypeMask.nonNullSubclass(Entity base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullSubclass(ClassEntity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
-    Entity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
+    ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
     } else if (closedWorld.hasAnyStrictSubclass(topmost)) {
@@ -155,8 +156,8 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     }
   }
 
-  factory TypeMask.nonNullSubtype(Entity base, ClosedWorld closedWorld) {
-    Entity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
+  factory TypeMask.nonNullSubtype(ClassEntity base, ClosedWorld closedWorld) {
+    ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
     }
@@ -327,9 +328,9 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   bool containsAll(ClosedWorld closedWorld);
 
-  /// Returns the [Entity] if this type represents a single class, otherwise
-  /// returns `null`.  This method is conservative.
-  Entity singleClass(ClosedWorld closedWorld);
+  /// Returns the [ClassEntity] if this type represents a single class,
+  /// otherwise returns `null`.  This method is conservative.
+  ClassEntity singleClass(ClosedWorld closedWorld);
 
   /**
    * Returns a type mask representing the union of [this] and [other].
@@ -349,13 +350,12 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(
-      MemberElement element, Selector selector, ClosedWorld closedWorld);
+  bool canHit(MemberEntity element, Selector selector, ClosedWorld closedWorld);
 
   /**
    * Returns the [element] that is known to always be hit at runtime
    * on this mask. Returns null if there is none.
    */
   // TODO(johnniwinther): Move this method to [World].
-  MemberElement locateSingleElement(Selector selector, ClosedWorld closedWorld);
+  MemberEntity locateSingleElement(Selector selector, ClosedWorld closedWorld);
 }

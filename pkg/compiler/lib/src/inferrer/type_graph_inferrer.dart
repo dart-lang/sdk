@@ -7,32 +7,15 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
-import '../constants/expressions.dart' show ConstantExpression;
-import '../constants/values.dart';
-import '../elements/resolution_types.dart' show ResolutionDartType;
 import '../elements/elements.dart';
-import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
-import '../resolution/tree_elements.dart' show TreeElementMapping;
-import '../tree/dartstring.dart' show DartString;
-import '../tree/tree.dart' as ast show Node, LiteralBool, TryStatement;
-import '../types/constants.dart' show computeTypeMask;
+import '../tree/tree.dart' as ast show Node;
 import '../types/masks.dart'
     show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
 import '../types/types.dart' show TypesInferrer;
-import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart' show SideEffects;
-import '../util/util.dart' show Setlet;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'closure_tracer.dart';
 import 'inferrer_engine.dart';
-import 'inferrer_visitor.dart' show ArgumentsTypes;
-import 'list_tracer.dart';
-import 'map_tracer.dart';
-import 'simple_types_inferrer.dart';
-import 'type_graph_dump.dart';
 import 'type_graph_nodes.dart';
 
 /**

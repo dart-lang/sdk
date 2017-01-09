@@ -11,7 +11,11 @@ import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionFunctionType, ResolutionTypeKind;
+    show
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionInterfaceType,
+        ResolutionTypeKind;
 import '../elements/elements.dart';
 import '../js_backend/backend.dart';
 import '../tree/dartstring.dart' show DartString;
@@ -1735,8 +1739,8 @@ TypeMask _narrowType(
   } else if (annotation.isVoid) {
     otherType = closedWorld.commonMasks.nullType;
   } else {
-    assert(annotation.isInterfaceType);
-    otherType = new TypeMask.nonNullSubtype(annotation.element, closedWorld);
+    ResolutionInterfaceType interfaceType = annotation;
+    otherType = new TypeMask.nonNullSubtype(interfaceType.element, closedWorld);
   }
   if (isNullable) otherType = otherType.nullable();
   if (type == null) return otherType;

@@ -1213,7 +1213,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
     TypeMask mapType = new TypeMask.nonNullSubtype(
-        astAdapter.getElement(astAdapter.mapLiteralClass), closedWorld);
+        astAdapter.getClass(astAdapter.mapLiteralClass), closedWorld);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
         astAdapter.getElement(constructor), globalInferenceResults);
     TypeMask instructionType =
@@ -2104,7 +2104,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     TypeMask typeMask = new TypeMask.nonNullExact(
-        astAdapter.getElement(target.enclosingClass), closedWorld);
+        astAdapter.getClass(target.enclosingClass), closedWorld);
     _pushStaticInvocation(target, arguments, typeMask);
   }
 

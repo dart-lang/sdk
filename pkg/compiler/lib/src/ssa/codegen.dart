@@ -2567,8 +2567,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
-  void checkType(HInstruction input, HInstruction interceptor,
-      DartType type, SourceInformation sourceInformation,
+  void checkType(HInstruction input, HInstruction interceptor, DartType type,
+      SourceInformation sourceInformation,
       {bool negative: false}) {
     if (type.isInterfaceType) {
       InterfaceType interfaceType = type;
@@ -2614,8 +2614,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void checkTypeViaProperty(HInstruction input, DartType type,
-      SourceInformation sourceInformation,
+  void checkTypeViaProperty(
+      HInstruction input, DartType type, SourceInformation sourceInformation,
       {bool negative: false}) {
     registry.registerTypeUse(new TypeUse.isCheck(type));
 
@@ -3014,8 +3014,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case TypeInfoExpressionKind.COMPLETE:
         int index = 0;
         js.Expression result = backend.rtiEncoder.getTypeRepresentation(
-            node.dartType,
-            (TypeVariableType variable) => arguments[index++]);
+            node.dartType, (TypeVariableType variable) => arguments[index++]);
         assert(index == node.inputs.length);
         push(result);
         return;

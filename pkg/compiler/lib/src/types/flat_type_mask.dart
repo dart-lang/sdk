@@ -512,7 +512,8 @@ class FlatTypeMask implements TypeMask {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, ClosedWorld closedWorld) {
+  bool canHit(
+      MemberElement element, Selector selector, ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     assert(element.name == selector.name);
     if (isEmpty) return false;
@@ -565,7 +566,8 @@ class FlatTypeMask implements TypeMask {
             : (isSubclass ? ClassQuery.SUBCLASS : ClassQuery.SUBTYPE));
   }
 
-  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
+  MemberElement locateSingleElement(
+      Selector selector, ClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
     Iterable<Element> targets = closedWorld.allFunctions.filter(selector, this);
     if (targets.length != 1) return null;

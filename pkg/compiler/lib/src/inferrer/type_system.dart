@@ -4,7 +4,8 @@
 
 import '../common.dart';
 import '../elements/elements.dart';
-import '../elements/resolution_types.dart' show ResolutionDartType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../tree/dartstring.dart';
 import '../tree/nodes.dart' as ast;
 import '../types/masks.dart';
@@ -287,10 +288,10 @@ class TypeSystem {
       // TODO(ngeoffray): Narrow to bound.
       return type;
     } else {
-      assert(annotation.isInterfaceType);
+      ResolutionInterfaceType interface = annotation;
       otherType = annotation.element == closedWorld.commonElements.objectClass
           ? dynamicType.type.nonNullable()
-          : new TypeMask.nonNullSubtype(annotation.element, closedWorld);
+          : new TypeMask.nonNullSubtype(interface.element, closedWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {

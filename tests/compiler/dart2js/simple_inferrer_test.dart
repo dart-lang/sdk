@@ -872,10 +872,9 @@ void main() {
         checkFactoryConstructor('A', '');
 
         checkReturn('testCascade1', commonMasks.growableListType);
-        checkReturn(
-            'testCascade2',
-            new TypeMask.nonNullExact(
-                findElement(compiler, 'CascadeHelper'), closedWorld));
+        ClassElement clsCascadeHelper = findElement(compiler, 'CascadeHelper');
+        checkReturn('testCascade2',
+            new TypeMask.nonNullExact(clsCascadeHelper, closedWorld));
         checkReturn('testSpecialization1', commonMasks.numType);
         checkReturn('testSpecialization2', commonMasks.dynamicType);
         checkReturn('testSpecialization3', commonMasks.uint31Type.nullable());

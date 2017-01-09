@@ -23,7 +23,8 @@ import 'elements/elements.dart'
         Entity,
         MemberElement;
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart' show ResolutionDartType, ResolutionInterfaceType;
+import 'elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import 'native/native.dart' as native;
 import 'universe/world_builder.dart';
 import 'universe/use.dart'

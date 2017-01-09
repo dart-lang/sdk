@@ -10,7 +10,6 @@ import '../elements/resolution_types.dart';
 import '../types/types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
-import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show TypeUse;
 
 /// Functions to insert type checking, coercion, and instruction insertion
@@ -29,7 +28,7 @@ class TypeBuilder {
     if (!type.isInterfaceType) return original;
     if (type.isObject) return original;
     // The type element is either a class or the void element.
-    Element element = type.element;
+    ClassElement element = type.element;
     TypeMask mask = new TypeMask.subtype(element, builder.closedWorld);
     return new HTypeKnown.pinned(mask, original);
   }
@@ -235,8 +234,9 @@ class TypeBuilder {
     type = type.unaliased;
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
+      ResolutionInterfaceType interfaceType = type;
       TypeMask subtype =
-          new TypeMask.subtype(type.element, builder.closedWorld);
+          new TypeMask.subtype(interfaceType.element, builder.closedWorld);
       HInstruction representations =
           buildTypeArgumentRepresentations(type, builder.sourceElement);
       builder.add(representations);

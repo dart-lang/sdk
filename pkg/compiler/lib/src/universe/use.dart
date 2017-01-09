@@ -252,8 +252,8 @@ class StaticUse {
 
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
-  factory StaticUse.typedConstructorInvoke(ConstructorElement element,
-      CallStructure callStructure, DartType type) {
+  factory StaticUse.typedConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     // TODO(johnniwinther): Use the [callStructure].
@@ -263,8 +263,8 @@ class StaticUse {
 
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
-  factory StaticUse.constConstructorInvoke(ConstructorElement element,
-      CallStructure callStructure, DartType type) {
+  factory StaticUse.constConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     // TODO(johnniwinther): Use the [callStructure].
