@@ -2518,8 +2518,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     cls.SetFunctions(functions);
   }
   // Every class should have at least a constructor, unless it is a top level
-  // class or a typedef class.
-  ASSERT(cls.IsTopLevel() || cls.IsTypedefClass() ||
+  // class or a typedef class. The Kernel frontend does not create an implicit
+  // constructor for abstract classes.
+  ASSERT(cls.IsTopLevel() || cls.IsTypedefClass() || cls.is_abstract() ||
          (Array::Handle(cls.functions()).Length() > 0));
   // Resolve and finalize all member types.
   ResolveAndFinalizeMemberTypes(cls);
