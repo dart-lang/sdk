@@ -985,7 +985,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (type is FunctionType) {
       return type;
     } else if (type is InterfaceType) {
-      return rules.getCallMethodType(type);
+      return rules.getCallMethodDefiniteType(type);
     }
     return null;
   }

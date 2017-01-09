@@ -229,6 +229,17 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   /**
    * Given a type t, if t is an interface type with a call method
+   * defined, return the definite function type for the call method,
+   * otherwise return null.
+   */
+  FunctionType getCallMethodDefiniteType(DartType t) {
+    var type = getCallMethodType(t);
+    if (type == null) return type;
+    return functionTypeToConcreteType(type);
+  }
+
+  /**
+   * Given a type t, if t is an interface type with a call method
    * defined, return the function type for the call method, otherwise
    * return null.
    */
@@ -956,7 +967,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // the interface type declares a call method with a type
     // which is a super type of the function type.
     if (t1 is InterfaceType && t2 is FunctionType) {
-      var callType = getCallMethodType(t1);
+      var callType = getCallMethodDefiniteType(t1);
       return (callType != null) && _isFunctionSubtypeOf(callType, t2);
     }
 

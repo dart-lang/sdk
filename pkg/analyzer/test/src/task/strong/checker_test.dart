@@ -1301,9 +1301,10 @@ void main() {
   }
 
   void test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() {
-    // Regression test for
+    // Regression test for definite function cases
     // https://github.com/dart-lang/sdk/issues/26118
     // https://github.com/dart-lang/sdk/issues/26156
+    // https://github.com/dart-lang/sdk/issues/28087
     checkFile('''
 void takesF(void f(int x)) {}
 
@@ -1313,20 +1314,27 @@ void update(_) {}
 void updateOpt([_]) {}
 void updateOptNum([num x]) {}
 
+class Callable {
+  void call(_) {}
+}
+
 class A {
   TakesInt f;
   A(TakesInt g) {
     f = update;
     f = updateOpt;
     f = updateOptNum;
+    f = new Callable();
   }
   TakesInt g(bool a, bool b) {
     if (a) {
       return update;
     } else if (b) {
       return updateOpt;
-    } else {
+    } else if (a) {
       return updateOptNum;
+    } else {
+      return new Callable();
     }
   }
 }
@@ -1335,13 +1343,16 @@ void test0() {
   takesF(update);
   takesF(updateOpt);
   takesF(updateOptNum);
+  takesF(new Callable());
   TakesInt f;
   f = update;
   f = updateOpt;
   f = updateOptNum;
+  f = new Callable();
   new A(update);
   new A(updateOpt);
   new A(updateOptNum);
+  new A(new Callable());
 }
 
 void test1() {
