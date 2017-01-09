@@ -9,8 +9,8 @@ import '../common.dart' show invariant;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
-import '../inferrer/type_graph_inferrer.dart'
-    show TypeGraphInferrer, TypeInformationSystem;
+import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
+import '../inferrer/type_system.dart';
 import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Maplet;
@@ -211,8 +211,8 @@ class GlobalTypeInferenceResults {
             dynamicType));
   }
 
-  GlobalTypeInferenceResults(this._inferrer, this._compiler, this.closedWorld,
-      TypeInformationSystem types);
+  GlobalTypeInferenceResults(
+      this._inferrer, this._compiler, this.closedWorld, TypeSystem types);
 
   TypeMask get dynamicType => closedWorld.commonMasks.dynamicType;
 

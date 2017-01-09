@@ -7,7 +7,7 @@ import 'dart:async';
 
 import '../elements/elements.dart';
 import '../types/types.dart';
-import 'type_graph_inferrer.dart';
+import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
 /// Dumps the type inference graph in Graphviz Dot format into the `typegraph`
@@ -29,7 +29,7 @@ import 'type_graph_nodes.dart';
 class TypeGraphDump {
   static const String outputDir = 'typegraph';
 
-  final TypeGraphInferrerEngine inferrer;
+  final InferrerEngine inferrer;
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeAnalysis =
       <TypeInformation, Set<TypeInformation>>{};
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeTracing =

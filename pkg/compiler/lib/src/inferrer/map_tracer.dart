@@ -31,7 +31,7 @@ Set<String> okMapSelectorsSet = new Set.from(const <String>[
   "remove"
 ]);
 
-class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
+class MapTracerVisitor extends TracerVisitor {
   // These lists are used to keep track of newly discovered assignments to
   // the map. Note that elements at corresponding indices are expected to
   // belong to the same assignment operation.
