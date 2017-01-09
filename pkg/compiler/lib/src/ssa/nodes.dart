@@ -271,6 +271,15 @@ class HGraph {
     return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
   }
 
+  HConstant addConstantUnreachable(ClosedWorld closedWorld) {
+    // A constant with an empty type used as the HInstruction of an expression
+    // in an unreachable context.
+    return addConstant(
+        new SyntheticConstantValue(
+            SyntheticConstantKind.EMPTY_VALUE, const TypeMask.nonNullEmpty()),
+        closedWorld);
+  }
+
   void finalize() {
     addBlock(exit);
     exit.open();

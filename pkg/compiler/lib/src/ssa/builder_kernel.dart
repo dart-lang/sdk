@@ -2214,6 +2214,21 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitRethrow(ir.Rethrow rethrowNode) {
+    HInstruction exception = rethrowableException;
+    if (exception == null) {
+      exception = graph.addConstantNull(closedWorld);
+      compiler.reporter.internalError(astAdapter.getNode(rethrowNode),
+          'rethrowableException should not be null.');
+    }
+    SourceInformation sourceInformation = null;
+    closeAndGotoExit(new HThrow(exception, sourceInformation, isRethrow: true));
+    // ir.Rethrow is an expression so we need to push a value - a constant with
+    // no type.
+    stack.add(graph.addConstantUnreachable(closedWorld));
+  }
+
+  @override
   void visitThisExpression(ir.ThisExpression thisExpression) {
     stack.add(localsHandler.readThis());
   }
