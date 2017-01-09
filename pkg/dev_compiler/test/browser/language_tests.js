@@ -9,6 +9,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   async_helper = async_helper.async_helper;
   let minitest = expect.minitest;
 
+  dart_sdk.dart.trapRuntimeErrors(false);
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   let html_config = unittest.html_config;
   // Test attributes are a list of strings, or a string for a single
