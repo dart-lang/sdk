@@ -11,8 +11,7 @@ many UI frameworks.
 
 Note that this feature is relevant in strong mode where parameter types
 cannot otherwise be tightened, but it affects standard mode Dart in the
-sense that the syntax should be accepted and ignored. We specify the
-feature for strong mode first, and then for standard mode.
+sense that the syntax should be accepted and ignored.
 
 ## Informal specification
 
@@ -98,8 +97,13 @@ An invocation of an instance method with one or more covariant parameters
 is checked as if no `covariant` modifiers had been present on any of the
 involved declarations.
 
-*Intuitively, covariant overrides are irrelevant for clients, it is a
-feature which is encapsulated in the invoked method.*
+*From one point of view, covariant overrides are irrelevant for clients,
+it is a feature which is encapsulated in the invoked method. This is
+reflected in the typing. From another point of view, clients may need to
+provide arguments with a proper subtype of the one required in the static
+type, because there may be a dynamic check for that subtype. This is
+handled by developers using ad-hoc reasoning and suitable programming
+idioms. The whole point of this mechanism is to allow this.*
 
 ##### Overriding
 
