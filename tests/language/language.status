@@ -100,6 +100,7 @@ main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+vm/regress_28325_test: SkipByDesign  # Requires dart:io
 
 # These tests need the flag --initializing-formal-access to pass:
 initializing_formal_access_test: Skip

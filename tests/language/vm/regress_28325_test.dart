@@ -15,6 +15,6 @@ main() async {
     Expect.isTrue(e is SocketException);
     Expect.isTrue(s.toString().contains("regress_28325_test.dart"));
     print(s);
-    Expect.isTrue(s.toString().contains(":12:5"));  // Position of "await".
+    Expect.isTrue(s.toString().contains(":12"));  // Line number of "await".
   }
 }
