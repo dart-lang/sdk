@@ -1909,7 +1909,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           ts is StrongTypeSystemImpl) {
         return ts.inferFunctionTypeInstantiation(context, type);
       }
-    } else {
+    } else if (type is FunctionType) {
       // In Dart 1 mode we want to implicitly instantiate generic functions to
       // their bounds always, so we don't get a universal function type.
       return _typeSystem.instantiateToBounds(type);
