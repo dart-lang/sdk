@@ -9,6 +9,7 @@ library dart.dom._blink;
 
 import 'dart:js' as js;
 import 'dart:html' show DomException;
+import 'dart:_internal' as internal;
 
 // This is a place to put custom renames if we need them.
 final resolverMap = {
@@ -23274,6 +23275,12 @@ class Blink_Utils {
   static void spawnDomHelper(Function f, int replyTo) native "Utils_spawnDomHelper";
 
   static register(document, tag, customType, extendsTagName) native "Utils_register";
+
+  // Below code sets up VMLibraryHooks for resolvePackageUri.
+  static Uri resolvePackageUri(Uri packageUri) native "Utils_resolvePackageUri";
+  static void _setupHooks() {
+    internal.VMLibraryHooks.resolvePackageUriFuture = resolvePackageUri;
+  }
 
   // Defines an interceptor if there is an appropriate JavaScript prototype to define it on.
   // In any case, returns a typed JS wrapper compatibile with dart:html and the new

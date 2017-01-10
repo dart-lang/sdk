@@ -154,7 +154,7 @@ pause_test: RuntimeError, OK  # Uses Isolate.spawn.
 simple_message_test/none: RuntimeError, OK  # Uses Isolate.spawn.
 start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
 message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
-browser/package_*: Skip # Issue 25594 (missing implementation in Dartium).
+browser/package_resolve_browser_hook*: Skip # Tests that use defaultPackagesBase (not supported in Dartium).
 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
