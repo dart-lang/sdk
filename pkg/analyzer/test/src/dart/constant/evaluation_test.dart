@@ -5,6 +5,7 @@
 library analyzer.test.constant_test;
 
 import 'dart:async';
+
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -384,7 +385,7 @@ const E e = E.id0;
 
   test_dependencyOnConstructor() async {
     // x depends on "const A()"
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A();
 }
@@ -393,7 +394,7 @@ const x = const A();''');
 
   test_dependencyOnConstructorArgument() async {
     // "const A(x)" depends on x
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A(this.next);
   final A next;
@@ -404,7 +405,7 @@ const A y = const A(x);''');
 
   test_dependencyOnConstructorArgument_unresolvedConstructor() async {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    await _assertProperDependencies2(
+    await _assertProperDependencies(
         r'''
 class A {
 }
@@ -415,7 +416,7 @@ const A y = const A.a(x);''',
 
   test_dependencyOnConstructorInitializer() async {
     // "const A()" depends on x
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const int x = 1;
 class A {
   const A() : v = x;
@@ -425,7 +426,7 @@ class A {
 
   test_dependencyOnExplicitSuperConstructor() async {
     // b depends on B() depends on A()
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A(this.x);
   final int x;
@@ -438,7 +439,7 @@ const B b = const B();''');
 
   test_dependencyOnExplicitSuperConstructorParameters() async {
     // b depends on B() depends on i
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A(this.x);
   final int x;
@@ -452,7 +453,7 @@ const int i = 5;''');
 
   test_dependencyOnFactoryRedirect() async {
     // a depends on A.foo() depends on A.bar()
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   factory const A.foo() = A.bar;
@@ -461,7 +462,7 @@ class A {
   }
 
   test_dependencyOnFactoryRedirectWithTypeParams() async {
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const factory A(var a) = B<int>;
 }
@@ -476,7 +477,7 @@ const A a = const A(10);''');
 
   test_dependencyOnImplicitSuperConstructor() async {
     // b depends on B() depends on A()
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A() : x = 5;
   final int x;
@@ -489,7 +490,7 @@ const B b = const B();''');
 
   test_dependencyOnInitializedFinal() async {
     // a depends on A() depends on A.x
-    await _assertProperDependencies2('''
+    await _assertProperDependencies('''
 class A {
   const A();
   final int x = 1;
@@ -502,7 +503,7 @@ const A a = const A();
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
     // a depends on A() depends on A.x
-    await _assertProperDependencies2(
+    await _assertProperDependencies(
         '''
 class A {
   const A();
@@ -515,7 +516,7 @@ const A a = const A();
 
   test_dependencyOnNonFactoryRedirect() async {
     // a depends on A.foo() depends on A.bar()
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
@@ -525,7 +526,7 @@ class A {
 
   test_dependencyOnNonFactoryRedirect_arg() async {
     // a depends on A.foo() depends on b
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 const int b = 1;
 class A {
@@ -537,7 +538,7 @@ class A {
 
   test_dependencyOnNonFactoryRedirect_defaultValue() async {
     // a depends on A.foo() depends on A.bar() depends on b
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 const int b = 1;
 class A {
@@ -550,7 +551,7 @@ class A {
   test_dependencyOnNonFactoryRedirect_toMissing() async {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    await _assertProperDependencies2(
+    await _assertProperDependencies(
         r'''
 const A a = const A.foo();
 class A {
@@ -562,7 +563,7 @@ class A {
   test_dependencyOnNonFactoryRedirect_toNonConst() async {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // non-const.
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
@@ -572,7 +573,7 @@ class A {
 
   test_dependencyOnNonFactoryRedirect_unnamed() async {
     // a depends on A.foo() depends on A()
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this();
@@ -582,7 +583,7 @@ class A {
 
   test_dependencyOnOptionalParameterDefault() async {
     // a depends on A() depends on B()
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A([x = const B()]) : b = x;
   final B b;
@@ -595,7 +596,7 @@ const A a = const A();''');
 
   test_dependencyOnVariable() async {
     // x depends on y
-    await _assertProperDependencies2(r'''
+    await _assertProperDependencies(r'''
 const x = y + 1;
 const y = 2;''');
   }
@@ -1189,7 +1190,7 @@ const A a = const A();
     expect(field.isNull, isTrue);
   }
 
-  Future<Null> _assertProperDependencies2(String sourceText,
+  Future<Null> _assertProperDependencies(String sourceText,
       [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) async {
     Source source = addSource(sourceText);
     LibraryElement element = resolve2(source);
@@ -1199,7 +1200,8 @@ const A a = const A();
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
-    await assertErrors(source, expectedErrorCodes);
+    await computeAnalysisResult(source);
+    assertErrors(source, expectedErrorCodes);
   }
 
   Map<String, DartObjectImpl> _assertType(

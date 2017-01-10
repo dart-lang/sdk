@@ -77,7 +77,8 @@ class B extends A {
   }
 }
 ''');
-    await assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -92,7 +93,8 @@ class B extends A {
   }
 }
 ''');
-    await assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -107,7 +109,8 @@ class B extends A {
   }
 }
 ''');
-    await assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -122,7 +125,8 @@ class B extends A {
   }
 }
 ''');
-    await assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -135,7 +139,8 @@ m() {
 class A {
   n(void f(int i)) {}
 }''');
-    await assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -153,7 +158,8 @@ m() {
   n(i);
 }
 n(int i) {}''');
-    await assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -163,7 +169,8 @@ m(x) {
   x?.a()?.b();
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -178,7 +185,8 @@ m(x) {
   x?.b().toString();
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -188,7 +196,8 @@ m(x) {
   x?.a?.b;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -198,7 +207,8 @@ m(x) {
   x?.a.b();
 }
 ''');
-    await assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
 
@@ -208,7 +218,8 @@ m(x) {
   (x?.a).b;
 }
 ''');
-    await assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
 
@@ -218,7 +229,8 @@ m(x) {
   x?.a.b;
 }
 ''');
-    await assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
 
@@ -227,7 +239,8 @@ m(x) {
 f() {
   true ? 1 : 2;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -237,7 +250,8 @@ f() {
 f() {
   true ? true : false && false;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -246,7 +260,8 @@ f() {
 f() {
   false ? 1 : 2;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -256,7 +271,8 @@ f() {
 f() {
   false ? false && false : true;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -265,7 +281,8 @@ f() {
 f() {
   if(true) {} else {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -275,7 +292,8 @@ f() {
 f() {
   if(true) {} else {if (false) {}}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -284,7 +302,8 @@ f() {
 f() {
   if(false) {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -294,7 +313,8 @@ f() {
 f() {
   if(false) {if(false) {}}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -303,7 +323,8 @@ f() {
 f() {
   while(false) {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -313,7 +334,8 @@ f() {
 f() {
   while(false) {if(false) {}}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -323,7 +345,8 @@ class A {}
 f() {
   try {} catch (e) {} catch (e) {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
 
@@ -334,7 +357,8 @@ class A {}
 f() {
   try {} catch (e) {} catch (e) {if(false) {}}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
 
@@ -343,7 +367,8 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
 
@@ -353,7 +378,8 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
 
@@ -364,7 +390,8 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
     verify([source]);
   }
 
@@ -376,7 +403,8 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {if(false) {}}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
     verify([source]);
   }
 
@@ -395,7 +423,8 @@ f() {
     break;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -416,7 +445,8 @@ f() {
 }''');
     // A single dead statement at the end of a switch case that is not a
     // terminating statement will yield two errors.
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [HintCode.DEAD_CODE, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
     verify([source]);
   }
@@ -426,7 +456,8 @@ f() {
 f() {
   bool b = false && false;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -435,7 +466,8 @@ f() {
 f() {
   bool b = false && (false && false);
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -444,7 +476,8 @@ f() {
 f() {
   bool b = true || true;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -453,7 +486,8 @@ f() {
 f() {
   bool b = true || (false && false);
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -467,7 +501,8 @@ f(v) {
       var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -480,7 +515,8 @@ f() {
     var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -492,7 +528,8 @@ f() {
     var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -505,7 +542,8 @@ f(v) {
       var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -517,7 +555,8 @@ f(v) {
     var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -530,7 +569,8 @@ f() {
     var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -542,7 +582,8 @@ f() {
     var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -554,7 +595,8 @@ f(v) {
     var a;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -568,7 +610,8 @@ f() {
   }
   var one = 1;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -582,7 +625,8 @@ f() {
     var two = 2;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -593,7 +637,8 @@ f() {
   return;
   var two = 2;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -606,7 +651,8 @@ f(bool b) {
     var two = 2;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -619,7 +665,8 @@ class A {
     var two = 2;
   }
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -630,7 +677,8 @@ f() {
   return;
   if(false) {}
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -643,7 +691,8 @@ f() {
   return;
   var three = 3;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -654,7 +703,8 @@ f() {
   throw 'Stop here';
   var two = 2;
 }''');
-    await assertErrors(source, [HintCode.DEAD_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
@@ -668,7 +718,8 @@ f(A a) {
   A b;
   a += b;
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -682,7 +733,8 @@ class A {
     a();
   }
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -693,7 +745,8 @@ class A {
   m() {}
   n() {m();}
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -704,7 +757,8 @@ class A {
   m() {}
   n() {m();}
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -716,7 +770,8 @@ class A {
 @deprecated
 library deprecated_library;
 class A {}''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -729,7 +784,8 @@ class A {
 f(A a) {
   return a.x;
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -742,7 +798,8 @@ class A {
 f(A a) {
   return a.m;
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -756,7 +813,8 @@ f(A a) {}''');
 @deprecated
 library deprecated_library;
 class A {}''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -769,7 +827,8 @@ class A {
 f(A a) {
   return a[1];
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -782,7 +841,8 @@ class A {
 f() {
   A a = new A(1);
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -795,7 +855,8 @@ class A {
 f() {
   A a = new A.named(1);
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -805,7 +866,8 @@ class A {
   m({@deprecated int x}) {}
   n() {m(x: 1);}
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -819,7 +881,8 @@ f(A a) {
   A b;
   return a + b;
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -829,7 +892,8 @@ class A {
   m([@deprecated int x]) {}
   n() {m(1);}
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -842,7 +906,8 @@ class A {
 f(A a) {
   return a.s = 1;
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -855,7 +920,8 @@ class A {
 class B extends A {
   B() : super() {}
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -868,7 +934,8 @@ class A {
 class B extends A {
   B() : super.named() {}
 }''');
-    await assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
@@ -877,7 +944,8 @@ class B extends A {
 f(double x, double y) {
   var v = (x / y).toInt();
 }''');
-    await assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
 
@@ -886,7 +954,8 @@ f(double x, double y) {
 f(int x, int y) {
   var v = (x / y).toInt();
 }''');
-    await assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
 
@@ -898,7 +967,8 @@ f(x, y) {
   y = 1;
   var v = (x / y).toInt();
 }''');
-    await assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
 
@@ -907,7 +977,8 @@ f(x, y) {
 f(int x, int y) {
   var v = (((x / y))).toInt();
 }''');
-    await assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
 
@@ -922,7 +993,8 @@ A a;''');
         r'''
 library lib1;
 class A {}''');
-    await assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
 
@@ -938,7 +1010,8 @@ A a;''');
         r'''
 library lib1;
 class A {}''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
@@ -955,7 +1028,8 @@ M.A a;''');
 library lib1;
 class A {}
 class B {}''');
-    await assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
 
@@ -970,7 +1044,8 @@ class Stateful {
 
 class State { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -985,7 +1060,8 @@ abstract class Stateful {
 
 class State { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1002,7 +1078,8 @@ class Stateful {
 
 class State { }
 ''');
-    await assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_IMPL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_IMPL]);
     verify([source]);
   }
 
@@ -1019,7 +1096,8 @@ class Stateful {
 
 class State { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1036,7 +1114,8 @@ class Stateful {
 
 class State { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1051,7 +1130,8 @@ class Stateful {
 
 class State { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1068,7 +1148,8 @@ class X {
 @factory
 main() { }
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       HintCode.INVALID_FACTORY_ANNOTATION,
       HintCode.INVALID_FACTORY_ANNOTATION,
       HintCode.INVALID_FACTORY_ANNOTATION
@@ -1088,7 +1169,8 @@ class Stateful {
 }
 ''');
     // Null return types will get flagged elsewhere, no need to pile-on here.
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1112,7 +1194,8 @@ class MyThing extends Stateful {
 class State { }
 class MyState extends State { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1125,7 +1208,8 @@ class Stateful {
   void createState() {}
 }
 ''');
-    await assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_DECL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_DECL]);
     verify([source]);
   }
 
@@ -1155,7 +1239,8 @@ f(var y) {
     a.x = y;
   }
 }''');
-    await assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1166,7 +1251,8 @@ f(var y) {
     int x = y;
   }
 }''');
-    await assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1187,7 +1273,8 @@ f(var y) {
     A.x = y;
   }
 }''');
-    await assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1206,7 +1293,8 @@ main() {
   var p2 = new Point(10, 10);
   int n = p1 + p2;
 }''');
-    await assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1231,8 +1319,10 @@ void main() {
   print(leak);
 }
 ''');
-    await assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source, source2]);
   }
 
@@ -1255,8 +1345,10 @@ abstract class B {
   int b() => new A().a;
 }
 ''');
-    await assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source, source2]);
   }
 
@@ -1270,7 +1362,8 @@ class A {
 abstract class B implements A {
   int b() => a;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1293,8 +1386,10 @@ main() {
   new A().a();
 }
 ''');
-    await assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source, source2]);
   }
 
@@ -1309,7 +1404,8 @@ class A {
 abstract class B implements A {
   int b() => a();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1323,7 +1419,8 @@ class A {
 main() {
   new A().a();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1347,8 +1444,10 @@ class B {
   int b() => a.a;
 }
 ''');
-    await assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source, source2]);
   }
 
@@ -1362,7 +1461,8 @@ class A {
 abstract class B implements A {
   int b() => a;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1382,7 +1482,8 @@ class A {
 /// OK: [A.a], [A.b], [A.c].
 f() {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1405,9 +1506,9 @@ class B {
   void b() => new A().a();
 }
 ''');
-    List<AnalysisError> errors = analysisContext2.computeErrors(source2);
-    expect(errors, hasLength(1));
-    expect(errors[0].errorCode, HintCode.INVALID_USE_OF_PROTECTED_MEMBER);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     verify([source, source2]);
   }
 
@@ -1431,8 +1532,10 @@ class B {
 }
 ''');
 
-    await assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source, source2]);
   }
 
@@ -1454,7 +1557,8 @@ class Button extends State<Object> {
   }
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1468,7 +1572,8 @@ class A {
 class B extends A {
   void b() => a();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1482,7 +1587,8 @@ class A {
 class B extends Object with A {
   void b() => a();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1495,7 +1601,8 @@ class A {
 class B extends A {
   static m2(A a) => a.m1();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1512,7 +1619,8 @@ class B extends A {
 main() {
   new B().a();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1527,7 +1635,8 @@ class B extends A {
   int b() => a;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1542,7 +1651,8 @@ class B extends A {
   int b() => a;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1559,7 +1669,8 @@ class B extends A {
   }
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1575,7 +1686,8 @@ class A {
   }
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1601,8 +1713,10 @@ class B{
   }
 }
 ''');
-    await assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertNoErrors(source);
     verify([source, source2]);
   }
 
@@ -1618,7 +1732,8 @@ abstract class B implements A {
     a = i;
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1632,7 +1747,8 @@ main() {
 }''');
     // TODO(brianwilkerson) This should produce a hint because the annotation is
     // being applied to the wrong kind of declaration.
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1641,14 +1757,16 @@ main() {
     options.dart2jsHint = true;
     resetWithOptions(options);
     Source source = addSource("var v = 1 is double;");
-    await assertErrors(source, [HintCode.IS_DOUBLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.IS_DOUBLE]);
     verify([source]);
   }
 
   @failingTest
   test_isInt() async {
     Source source = addSource("var v = 1 is int;");
-    await assertErrors(source, [HintCode.IS_INT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.IS_INT]);
     verify([source]);
   }
 
@@ -1657,14 +1775,16 @@ main() {
     options.dart2jsHint = true;
     resetWithOptions(options);
     Source source = addSource("var v = 1 is! double;");
-    await assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
     verify([source]);
   }
 
   @failingTest
   test_isNotInt() async {
     Source source = addSource("var v = 1 is! int;");
-    await assertErrors(source, [HintCode.IS_NOT_INT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.IS_NOT_INT]);
     verify([source]);
   }
 
@@ -1678,7 +1798,8 @@ import 'package:js/js.dart';
 @JS()
 class A { }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1691,7 +1812,8 @@ import 'package:js/js.dart';
 @JS()
 class A { }
 ''');
-    await assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
 
@@ -1703,7 +1825,8 @@ import 'package:js/js.dart';
 @JS()
 external dynamic exports;
 ''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [ParserErrorCode.EXTERNAL_FIELD, HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
@@ -1717,7 +1840,8 @@ import 'package:js/js.dart';
 @JS('acxZIndex')
 set _currentZIndex(int value) { }
 ''');
-    await assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
 
@@ -1732,7 +1856,8 @@ class A {
   void a() { }
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
 
@@ -1743,7 +1868,8 @@ import 'package:js/js.dart';
 @JS()
 dynamic variable;
 ''');
-    await assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
 
@@ -1752,7 +1878,8 @@ dynamic variable;
 import 'dart:async';
 Future<int> f() async {}
 ''');
-    await assertErrors(source, [HintCode.MISSING_RETURN]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
@@ -1762,13 +1889,15 @@ class A {
   factory A() {}
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_RETURN]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
   test_missingReturn_function() async {
     Source source = addSource("int f() {}");
-    await assertErrors(source, [HintCode.MISSING_RETURN]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
@@ -1777,7 +1906,8 @@ class A {
 class A {
   int m() {}
 }''');
-    await assertErrors(source, [HintCode.MISSING_RETURN]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
@@ -1794,7 +1924,8 @@ class B extends A {
   {}
 }
 ''');
-    await assertErrors(source, [HintCode.MUST_CALL_SUPER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_CALL_SUPER]);
     verify([source]);
   }
 
@@ -1810,7 +1941,8 @@ class C implements A {
   void a() {}
 }
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
     verify([source]);
   }
 
@@ -1832,7 +1964,8 @@ class D extends C {
   void a() {}
 }
 ''');
-    await assertErrors(source, [HintCode.MUST_CALL_SUPER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_CALL_SUPER]);
     verify([source]);
   }
 
@@ -1850,7 +1983,8 @@ class C extends A {
   }
 }
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
     verify([source]);
   }
 
@@ -1860,7 +1994,8 @@ m(x) {
   assert (x?.a);
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1870,7 +2005,8 @@ m(x) {
   return x?.a ? 0 : 1;
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1880,7 +2016,8 @@ m(x) {
   do {} while (x?.a);
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1890,7 +2027,8 @@ m(x) {
   for (var v = x; v?.a; v = v.next) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1900,7 +2038,8 @@ m(x) {
   if (x?.a) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1910,7 +2049,8 @@ m(x) {
   if (x?.a && x.b) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1920,7 +2060,8 @@ m(x) {
   if (x.a && x?.b) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1930,7 +2071,8 @@ m(x) {
   if (x.a && x.b && x?.c) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1940,7 +2082,8 @@ m(x) {
   if (x?.a || x.b) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1950,7 +2093,8 @@ m(x) {
   if (x.a || x?.b) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1960,7 +2104,8 @@ m(x) {
   if (x.a || x.b || x?.c) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1970,7 +2115,8 @@ m(x) {
   if (!x?.a) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1980,7 +2126,8 @@ m(x) {
   if ((x?.a)) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -1990,7 +2137,8 @@ m(x) {
   while (x?.a) {}
 }
 ''');
-    await assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -2000,7 +2148,8 @@ m(x) {
 class A {
   bool operator ==(x) {}
 }''');
-    await assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
     verify([source]);
   }
 
@@ -2012,7 +2161,8 @@ class B extends A {
   @override
   final int m = 1;
 }''');
-    await assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
     verify([source]);
   }
 
@@ -2024,7 +2174,8 @@ class B extends A {
   @override
   int get m => 1;
 }''');
-    await assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
     verify([source]);
   }
 
@@ -2036,7 +2187,8 @@ class B extends A {
   @override
   int m() => 1;
 }''');
-    await assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
     verify([source]);
   }
 
@@ -2048,7 +2200,8 @@ class B extends A {
   @override
   set m(int x) {}
 }''');
-    await assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
     verify([source]);
   }
 
@@ -2064,7 +2217,8 @@ main() {
   new C();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -2080,7 +2234,8 @@ main() {
   new C();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
 
@@ -2096,7 +2251,8 @@ main() {
   new C();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
 
@@ -2112,7 +2268,8 @@ main() {
   new C(a: 2);
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2125,7 +2282,8 @@ class C {
   C.named() : this();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
 
@@ -2141,7 +2299,8 @@ class D extends C {
   D() : super();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -2155,7 +2314,8 @@ main() {
   f();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -2169,7 +2329,8 @@ f() {
   new A().m();
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -2191,7 +2352,8 @@ f() {
 }
 ''');
 
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -2207,7 +2369,8 @@ class C {
   F m() => ({@required String x}) => null;
 }
 ''');
-    await assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
 
@@ -2216,7 +2379,8 @@ class C {
 m(i) {
   bool b = i is Null;
 }''');
-    await assertErrors(source, [HintCode.TYPE_CHECK_IS_NULL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.TYPE_CHECK_IS_NULL]);
     verify([source]);
   }
 
@@ -2225,7 +2389,8 @@ m(i) {
 m(i) {
   bool b = i is! Null;
 }''');
-    await assertErrors(source, [HintCode.TYPE_CHECK_IS_NOT_NULL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.TYPE_CHECK_IS_NOT_NULL]);
     verify([source]);
   }
 
@@ -2237,7 +2402,8 @@ f(var a) {
     return a.m;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_GETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedGetter_message() async {
@@ -2253,7 +2419,8 @@ f(var a) {
 library L;
 export 'lib1.dart' hide a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    await assertErrors(source, [HintCode.UNDEFINED_HIDDEN_NAME]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_HIDDEN_NAME]);
     verify([source]);
   }
 
@@ -2262,7 +2429,8 @@ export 'lib1.dart' hide a;''');
 library L;
 export 'lib1.dart' show a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    await assertErrors(source, [HintCode.UNDEFINED_SHOWN_NAME]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_SHOWN_NAME]);
     verify([source]);
   }
 
@@ -2271,7 +2439,8 @@ export 'lib1.dart' show a;''');
 library L;
 import 'lib1.dart' hide a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
     verify([source]);
   }
@@ -2281,7 +2450,8 @@ import 'lib1.dart' hide a;''');
 library L;
 import 'lib1.dart' show a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
     verify([source]);
   }
@@ -2292,7 +2462,8 @@ f() {
   var a = 'str';
   a.notAMethodOnString();
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedMethod_assignmentExpression() async {
@@ -2305,7 +2476,8 @@ class B {
     a += a2;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedOperator_binaryExpression() async {
@@ -2316,7 +2488,8 @@ f(var a) {
     a + 1;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexBoth() async {
@@ -2327,7 +2500,8 @@ f(var a) {
     a[0]++;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexGetter() async {
@@ -2338,7 +2512,8 @@ f(var a) {
     a[0];
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexSetter() async {
@@ -2349,7 +2524,8 @@ f(var a) {
     a[0] = 1;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -2360,7 +2536,8 @@ f(var a) {
     a++;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_prefixExpression() async {
@@ -2371,7 +2548,8 @@ f(var a) {
     ++a;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedSetter() async {
@@ -2382,7 +2560,8 @@ f(var a) {
     a.m = 0;
   }
 }''');
-    await assertErrors(source, [HintCode.UNDEFINED_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNDEFINED_SETTER]);
   }
 
   test_undefinedSetter_message() async {
@@ -2398,7 +2577,8 @@ f(var a) {
 m(int i) {
   var b = i as Object;
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_CAST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
   }
 
@@ -2407,7 +2587,8 @@ m(int i) {
 m(num i) {
   var b = i as num;
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_CAST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
   }
 
@@ -2422,7 +2603,8 @@ class B extends A {
     return super.noSuchMethod(y);
   }
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
     verify([source]);
   }
 
@@ -2435,19 +2617,22 @@ class B extends A {
   mmm();
   noSuchMethod(y) => super.noSuchMethod(y);
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
     verify([source]);
   }
 
   test_unnecessaryTypeCheck_null_is_Null() async {
     Source source = addSource("bool b = null is Null;");
-    await assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
 
   test_unnecessaryTypeCheck_null_not_Null() async {
     Source source = addSource("bool b = null is! Null;");
-    await assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
 
@@ -2456,7 +2641,8 @@ class B extends A {
 m(i) {
   bool b = i is dynamic;
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
 
@@ -2465,7 +2651,8 @@ m(i) {
 m(i) {
   bool b = i is Object;
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
 
@@ -2474,7 +2661,8 @@ m(i) {
 m(i) {
   bool b = i is! dynamic;
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
 
@@ -2483,7 +2671,8 @@ m(i) {
 m(i) {
   bool b = i is! Object;
 }''');
-    await assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
 
@@ -2493,7 +2682,8 @@ m(i) {
 class _A {}
 class B extends _A {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2508,7 +2698,8 @@ class _Bar {
 }
 ''';
     Source source = addSource(src);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2518,7 +2709,8 @@ class _Bar {
 class _A {}
 class B implements _A {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2529,7 +2721,8 @@ class _A {}
 main() {
   new _A();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2542,7 +2735,8 @@ class _A {
 main() {
   _A.F;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2555,7 +2749,8 @@ class _A {
 main() {
   _A.m();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2567,7 +2762,8 @@ main() {
   var v = new List<_A>();
   print(v);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2583,7 +2779,8 @@ class _A {
   }
 }
 ''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2595,7 +2792,8 @@ class _A {
   _A.named() {}
 }
 ''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2608,7 +2806,8 @@ main(p) {
   }
 }
 ''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2618,7 +2817,8 @@ main(p) {
 class _A {}
 main() {
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2632,7 +2832,8 @@ main() {
 }
 print(x) {}
 ''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2643,7 +2844,8 @@ enum _MyEnum {A, B, C}
 main() {
   print(_MyEnum.B);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2653,7 +2855,8 @@ main() {
 enum _MyEnum {A, B, C}
 main() {
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2665,7 +2868,8 @@ main() {
 }
 print(x) {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2676,7 +2880,8 @@ main() {
   f() {}
   f();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2689,7 +2894,8 @@ main() {
 }
 print(x) {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2699,7 +2905,8 @@ print(x) {}
 main() {
   f() {}
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2711,7 +2918,8 @@ main() {
     _f(p - 1);
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2722,7 +2930,8 @@ _f() {}
 main() {
   _f();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2735,7 +2944,8 @@ main() {
 }
 print(x) {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2745,7 +2955,8 @@ print(x) {}
 _f() {}
 main() {
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2757,7 +2968,8 @@ _f(int p) {
 }
 main() {
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2770,7 +2982,8 @@ main(f) {
     print('F');
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2780,7 +2993,8 @@ main(f) {
 typedef _F(a, b);
 main(_F f) {
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2792,7 +3006,8 @@ main() {
   var v = new List<_F>();
   print(v);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2803,7 +3018,8 @@ typedef _F(a, b);
 class A {
   _F f;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2813,7 +3029,8 @@ class A {
 typedef _F(a, b);
 main() {
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2826,7 +3043,8 @@ class A {
     var v = _g;
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2840,7 +3058,8 @@ main(A a) {
   var v = a._g;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2854,7 +3073,8 @@ main() {
   var v = new A()._g;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2864,7 +3084,8 @@ main() {
 class A {
   get _g => null;
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2876,7 +3097,8 @@ class A {
     return _g;
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -2891,7 +3113,8 @@ class A {
 }
 print(x) {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2909,7 +3132,8 @@ class B extends A {
 }
 print(x) {}
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2922,7 +3146,8 @@ class A {
 main(A a) {
   a._m;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2935,7 +3160,8 @@ class A {
 main() {
   new A()._m;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2948,7 +3174,8 @@ class A {
     _m();
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2964,7 +3191,8 @@ class A {
 class B extends A {
   _m() {}
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2977,7 +3205,8 @@ class A<T> {
 main(A<int> a) {
   a._m(0);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2991,7 +3220,8 @@ main() {
   var a = new A();
   a._m();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3005,7 +3235,8 @@ main() {
   A a = new A();
   a._m();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3021,7 +3252,8 @@ class B extends A {
 main(A a) {
   a._m();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3033,7 +3265,8 @@ class A {
 }
 main() {
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3046,7 +3279,8 @@ class A {
 main() {
   A._m();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3056,7 +3290,8 @@ main() {
 class A {
   static _m() {}
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -3068,7 +3303,8 @@ class A {
     _m(p - 1);
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -3081,7 +3317,8 @@ class A {
     _s = 42;
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3095,7 +3332,8 @@ main(A a) {
   a._s = 42;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3109,7 +3347,8 @@ main() {
   new A()._s = 42;
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3119,7 +3358,8 @@ main() {
 class A {
   set _s(x) {}
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -3133,7 +3373,8 @@ class A {
     }
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
 
@@ -3147,7 +3388,8 @@ class A {
   }
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3161,7 +3403,8 @@ class A {
   }
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3172,7 +3415,8 @@ class A {
   int _f;
   m() => _f;
 }''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3189,7 +3433,8 @@ class B extends A {
   int _f;
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3204,7 +3449,8 @@ main() {
   print(a._f);
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3219,7 +3465,8 @@ main() {
   print(a._f);
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3233,7 +3480,8 @@ main(a) {
   print(a._f);
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3246,7 +3494,8 @@ class A {
     _f += 2;
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3257,7 +3506,8 @@ class A {
   int _f;
   A() : _f = 0;
 }''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3268,7 +3518,8 @@ class A {
   int _f;
   A(this._f);
 }''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3279,7 +3530,8 @@ class A {
   int _f;
 }
 ''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3292,7 +3544,8 @@ class A {
     _f++;
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3305,7 +3558,8 @@ class A {
     ++_f;
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3322,7 +3576,8 @@ main(A a) {
   a._f = 2;
 }
 ''');
-    await assertErrors(source, [HintCode.UNUSED_FIELD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
 
@@ -3331,8 +3586,10 @@ main(A a) {
 library L;
 import 'lib1.dart';''');
     Source source2 = addNamedSource("/lib1.dart", "library lib1;");
-    await assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3347,8 +3604,10 @@ one.A a;''');
         r'''
 library lib1;
 class A {}''');
-    await assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3370,9 +3629,12 @@ class A {}''');
         r'''
 library lib2;
 class B {}''');
-    await assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    await assertNoErrors(source2);
-    await assertNoErrors(source3);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    await computeAnalysisResult(source3);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
+    assertNoErrors(source3);
     verify([source, source2, source3]);
   }
 
@@ -3387,8 +3649,10 @@ A a;''');
         r'''
 library lib1;
 class A {}''');
-    await assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3398,7 +3662,8 @@ class A {}''');
 library L;
 import 'dart:async';
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_unusedImport_show() async {
@@ -3413,8 +3678,10 @@ A a;''');
 library lib1;
 class A {}
 class B {}''');
-    await assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3426,7 +3693,8 @@ main() {
   } on String catch (exception) {
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_CATCH_CLAUSE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_CATCH_CLAUSE]);
     verify([source]);
   }
 
@@ -3439,7 +3707,8 @@ main() {
     print(stack);
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3451,7 +3720,8 @@ main() {
   } catch (exception) {
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3463,7 +3733,8 @@ main() {
   } catch (exception, stackTrace) {
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_CATCH_STACK]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_CATCH_STACK]);
     verify([source]);
   }
 
@@ -3477,7 +3748,8 @@ main() {
   }
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3491,7 +3763,8 @@ main() {
     }
   }
 }''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3502,7 +3775,8 @@ main() {
   var v = 1;
   v = 2;
 }''');
-    await assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
 
@@ -3515,7 +3789,8 @@ class A {
     v = 2;
   }
 }''');
-    await assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
 
@@ -3527,7 +3802,8 @@ main() {
   Foo foo;
   foo();
 }''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3538,7 +3814,8 @@ main() {
   var v = 1;
   v += 2;
 }''');
-    await assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
 
@@ -3549,7 +3826,8 @@ main() {
   var v = 1;
   v++;
 }''');
-    await assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
 
@@ -3560,7 +3838,8 @@ main() {
   var v = 1;
   ++v;
 }''');
-    await assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
 
@@ -3572,7 +3851,8 @@ main() {
   print(++v);
 }
 print(x) {}''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3587,7 +3867,8 @@ main() {
   a.foo();
 }
 ''');
-    await assertErrors(source);
+    await computeAnalysisResult(source);
+    assertErrors(source);
     verify([source]);
   }
 
@@ -3602,8 +3883,10 @@ A a;''');
 library lib1;
 class A {}
 class B {}''');
-    await assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3618,8 +3901,10 @@ p.A a;''');
 library lib1;
 class A {}
 class B {}''');
-    await assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3638,9 +3923,11 @@ class A {}
 class B {}
 class C {}
 class D {}''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
         source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
-    await assertNoErrors(source2);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3660,8 +3947,10 @@ const int var1 = 1;
 const int var2 = 2;
 const int var3 = 3;
 const int var4 = 4;''');
-    await assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    await assertNoErrors(source2);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -3674,7 +3963,8 @@ class A {
     a = f();
   }
 }''');
-    await assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
 
@@ -3687,7 +3977,8 @@ class A {
     a = m();
   }
 }''');
-    await assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
 
@@ -3699,7 +3990,8 @@ class A {
     for(var a = m();;) {}
   }
 }''');
-    await assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
 
@@ -3711,7 +4003,8 @@ class A {
     var a = f();
   }
 }''');
-    await assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
 
@@ -3723,7 +4016,8 @@ class A {
     var a = m();
   }
 }''');
-    await assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
 
@@ -3735,7 +4029,8 @@ class A {
     var a = m(), b = m();
   }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }

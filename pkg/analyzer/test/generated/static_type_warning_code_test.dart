@@ -133,7 +133,8 @@ f() {}''');
         r'''
 library lib2;
 f() {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_assert_message_suppresses_type_promotion() async {
@@ -1720,7 +1721,8 @@ main() { return f.g(); }''');
         r'''
 library lib;
 h() {}''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
   test_undefinedGetter() async {
@@ -2423,7 +2425,8 @@ main() {
   f/*<int>*/();
 }
 ''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       if (error.errorCode ==

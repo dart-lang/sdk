@@ -23,7 +23,8 @@ class ErrorSuppressionTest extends ResolverTestCase {
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
@@ -36,7 +37,8 @@ int x = '';
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
   }
 
@@ -46,7 +48,8 @@ int x = ''; // ignore: invalid_assignment
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
   }
 
@@ -54,7 +57,8 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     Source source = addSource('''
 int x = ''; // ignore: invalid_assignment
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_ignore_second() async {
@@ -64,7 +68,8 @@ int x = '';
 // ignore: const_initialized_with_non_constant_value
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_ignore_second_trailing() async {
@@ -73,14 +78,16 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 int x = '';
 const y = x; // ignore: const_initialized_with_non_constant_value
 ''');
-    await assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_ignore_upper_case() async {
     Source source = addSource('''
 int x = ''; // ignore: INVALID_ASSIGNMENT
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_invalid_error_code() async {
@@ -89,7 +96,8 @@ int x = ''; // ignore: INVALID_ASSIGNMENT
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
@@ -101,7 +109,8 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // ignore:
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
@@ -112,7 +121,8 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
 ''');
-    await assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_multiple_comments() async {
@@ -121,7 +131,8 @@ int x = ''; //This is the first comment...
 // ignore: const_initialized_with_non_constant_value
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_multiple_ignores() async {
@@ -130,7 +141,8 @@ int x = 3;
 // ignore: invalid_assignment, const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_multiple_ignores_traling() async {
@@ -138,7 +150,8 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 int x = 3;
 const String y = x; // ignore: invalid_assignment, const_initialized_with_non_constant_value
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_multiple_ignores_whitespace_variant_1() async {
@@ -147,7 +160,8 @@ int x = 3;
 //ignore:invalid_assignment,const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_multiple_ignores_whitespace_variant_2() async {
@@ -156,7 +170,8 @@ int x = 3;
 //ignore: invalid_assignment,const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_multiple_ignores_whitespace_variant_3() async {
@@ -165,7 +180,8 @@ int x = 3;
 // ignore: invalid_assignment,const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, []);
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_no_ignores() async {
@@ -173,7 +189,8 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 int x = '';  //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);

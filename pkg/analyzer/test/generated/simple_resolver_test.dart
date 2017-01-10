@@ -397,7 +397,8 @@ class A {
 int f(A a) {
   return a(0);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -406,7 +407,8 @@ int f(A a) {
 class A extends B implements C {}
 class B {}
 class C {}''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -419,7 +421,8 @@ class A {
   A.n() {}
   m() {}
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -431,7 +434,8 @@ class A {
   /** [e] [f] */
   m(e, f()) {}
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -439,7 +443,8 @@ class A {
     Source source = addSource(r'''
 /// [A]
 class A {}''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -572,7 +577,8 @@ void f() {
 
   test_empty() async {
     Source source = addSource("");
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -592,7 +598,8 @@ export 'two.dart';''');
     FunctionElement main = library.entryPoint;
     expect(main, isNotNull);
     expect(main.library, isNot(same(library)));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -607,7 +614,8 @@ main() {}''');
     FunctionElement main = library.entryPoint;
     expect(main, isNotNull);
     expect(main.library, same(library));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -616,7 +624,8 @@ main() {}''');
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     expect(library.entryPoint, isNull);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -631,7 +640,8 @@ import 'my_lib.dart';
 main() {
   EEE e = null;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -644,7 +654,8 @@ abstract class Comparable<T> {
 class A {
   void sort([compare = Comparable.compare]) {}
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -669,7 +680,8 @@ class A {
     SimpleIdentifier identifierX = initializer.expression;
     expect(identifierX.staticElement, paramElement);
 
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -680,7 +692,8 @@ f() {
   for (int x in list) {}
   for (int x in list) {}
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -692,7 +705,8 @@ f() {
   for (int i = 0; i < 3; i++) {
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -705,7 +719,8 @@ class A {
     if (p(e)) {}
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -727,7 +742,8 @@ class C extends B with M1, M2 {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that both the getter and setter for "x" in C.f() refer to the
     // accessors defined in M2.
@@ -768,7 +784,8 @@ void main() {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that both the getter and setter for "x" in "new C().x" refer to
     // the accessors defined in M2.
@@ -806,7 +823,8 @@ class C extends B with M1, M2 {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
@@ -834,7 +852,8 @@ void main() {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
@@ -860,7 +879,8 @@ class A {
 g (A a) {
   a.f = a.f.toString();
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
   }
@@ -877,7 +897,8 @@ class B {toString() => super.toString();}''');
     expect(classes, hasLength(2));
     expect(classes[0].hasReferenceToSuper, isFalse);
     expect(classes[1].hasReferenceToSuper, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -903,7 +924,8 @@ main() {
   foo = 0;
 }
 A a;''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -923,7 +945,8 @@ import 'two.dart' as _two;
 main() {
   _two.f(0);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -952,7 +975,8 @@ class H extends D<p.W> {
   H(int i) : super(i);
 }
 ''');
-    await assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verify([source]);
   }
 
@@ -981,7 +1005,8 @@ class H extends D<W> {
   H(int i) : super(i);
 }
 ''');
-    await assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verify([source]);
   }
 
@@ -999,7 +1024,8 @@ import 'sub folder/lib.dart';
 main() {
   foo();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1013,7 +1039,8 @@ f() {
   List<List<List<int>>> c;
   c[0][0][0];
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1023,7 +1050,8 @@ f() {
   List<List<int>> b;
   b[0][0] = 'hi';
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -1044,7 +1072,8 @@ g(int x) {}
 main() {
   g(f()[0]);
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1056,7 +1085,8 @@ class A {
     X.last;
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1071,8 +1101,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
-    await assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
     verify([source]);
   }
 
@@ -1088,7 +1118,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1104,8 +1135,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
-    await assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1122,8 +1153,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
-    await assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -1139,7 +1170,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1156,7 +1188,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1174,7 +1207,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
-    await assertErrors(source, [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
     verify([source]);
   }
 
@@ -1193,7 +1227,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1207,7 +1242,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1222,7 +1258,8 @@ class C = Object with A;''');
     expect(unit, isNotNull);
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isTrue);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1240,7 +1277,8 @@ void doSwitch(int target) {
 }''');
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1279,7 +1317,8 @@ const A = null;
     expect(classes, hasLength(1));
     List<ElementAnnotation> annotations = classes[0].metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -1312,7 +1351,8 @@ class C {
     FieldElement field = classes[0].fields[0];
     List<ElementAnnotation> annotations = field.metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1335,7 +1375,8 @@ class C {
     expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations = parameters[0].metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1351,7 +1392,8 @@ const A = null;
     expect(functions, hasLength(1));
     List<ElementAnnotation> annotations = functions[0].metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1369,7 +1411,8 @@ f(@A int p(int x)) {}''');
     expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
     expect(annotations1, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1381,7 +1424,8 @@ const A = null;''');
     expect(library, isNotNull);
     List<ElementAnnotation> annotations = library.metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1400,7 +1444,8 @@ class C {
     MethodElement method = classes[0].methods[0];
     List<ElementAnnotation> annotations = method.metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1418,7 +1463,8 @@ f({@A int p : 0}) {}''');
     expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
     expect(annotations1, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1436,7 +1482,8 @@ f([@A int p = 0]) {}''');
     expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
     expect(annotations1, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1456,7 +1503,8 @@ f(@A p1, @A int p2) {}''');
     expect(annotations1, hasLength(1));
     List<ElementAnnotation> annotations2 = parameters[1].metadata;
     expect(annotations2, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1472,7 +1520,8 @@ const A = null;
     expect(aliases, hasLength(1));
     List<ElementAnnotation> annotations = aliases[0].metadata;
     expect(annotations, hasLength(1));
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -1503,7 +1552,8 @@ class C extends B with A {
   bar() => super.bar();
   foo() => super.foo();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1522,7 +1572,8 @@ void main() {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
     FunctionDeclaration main =
@@ -1554,7 +1605,8 @@ class C extends B with M1, M2 {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the call to f() in C.g() refers to the method defined in M2.
     ClassElement classC = library.definingCompilationUnit.types[3];
@@ -1586,7 +1638,8 @@ void main() {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the call to f() in "new C().f()" refers to the method
     // defined in M2.
@@ -1615,7 +1668,8 @@ class C extends B {
 f(C c) {
   c.m1();
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1630,7 +1684,8 @@ class A {
      ..m2();
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1648,7 +1703,8 @@ class A {
   }
 }''');
     // failing with error code: INVOCATION_OF_NON_FUNCTION
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1657,7 +1713,8 @@ class A {
 f(var p) {
   return null == p;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_setter_fromMixins_bare_identifier() async {
@@ -1676,7 +1733,8 @@ class C extends B with M1, M2 {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the setter for "x" in C.f() refers to the setter defined in
     // M2.
@@ -1709,7 +1767,8 @@ void main() {
 }
 ''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     // Verify that the setter for "x" in "new C().x" refers to the setter
     // defined in M2.
@@ -1737,7 +1796,8 @@ class B extends A {
   int get x => super.x == null ? 0 : super.x;
   int f() => x = 1;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1749,7 +1809,8 @@ set s(x) {
 main() {
   s = 123;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1764,7 +1825,8 @@ class B {
     A.g(1,0);
   }
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 

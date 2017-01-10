@@ -31,15 +31,16 @@ g(C c) {
   print(h('s'));
 }
 ''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
   fail_undefinedGetter() async {
     Source source = addSource(r'''
 ''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_GETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_GETTER]);
     verify([source]);
   }
 
@@ -48,7 +49,8 @@ g(C c) {
 /** [m] xxx [new B.c] */
 class A {
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.UNDEFINED_IDENTIFIER,
       StaticWarningCode.UNDEFINED_IDENTIFIER
     ]);
@@ -60,7 +62,8 @@ class C {}
 f(var p) {
   C.m = 0;
 }''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_SETTER]);
     verify([source]);
   }
 
@@ -79,7 +82,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_extends() async {
@@ -97,7 +101,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       CompileTimeErrorCode.EXTENDS_NON_CLASS
     ]);
@@ -118,7 +123,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS
     ]);
@@ -145,8 +151,10 @@ class N {}''');
         r'''
 part of lib;
 class A extends N {}''');
-    await assertNoErrors(source);
-    await assertErrors(partSource, [
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(partSource);
+    assertNoErrors(source);
+    assertErrors(partSource, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       CompileTimeErrorCode.EXTENDS_NON_CLASS
     ]);
@@ -168,7 +176,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_is() async {
@@ -186,7 +195,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_qualifier() async {
@@ -204,7 +214,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_typeAnnotation() async {
@@ -230,7 +241,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       StaticWarningCode.AMBIGUOUS_IMPORT,
       StaticWarningCode.AMBIGUOUS_IMPORT,
@@ -257,7 +269,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_typeArgument_instanceCreation() async {
@@ -276,7 +289,8 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_varRead() async {
@@ -295,7 +309,8 @@ var v;''');
         r'''
 library lib2;
 var v;''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_varWrite() async {
@@ -313,7 +328,8 @@ var v;''');
         r'''
 library lib2;
 var v;''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_withPrefix() async {
@@ -334,7 +350,8 @@ f() {}''');
         r'''
 library lib2;
 f() {}''');
-    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_argumentTypeNotAssignable_ambiguousClassName() async {
@@ -375,8 +392,8 @@ class A {
 @A.fromInt('0')
 main() {
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -388,8 +405,8 @@ class A {
 @A('0')
 main() {
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -401,8 +418,8 @@ class A {
 f(A a) {
   a + '0';
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -420,8 +437,8 @@ main() {
   A a = new A();
   a..  ma().mb(0);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -433,7 +450,8 @@ class A {
 main() {
   const A(42);
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -448,8 +466,8 @@ class A {
 class B extends A {
   const B() : super(42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -458,8 +476,8 @@ class B extends A {
 main() {
   (int x) {} ('');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -471,8 +489,8 @@ class A {
 f(A a) {
   a['0'];
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -484,8 +502,8 @@ class A {
 f(A a) {
   a('0');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -498,8 +516,8 @@ main() {
   A a = new A();
   a('0');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -508,8 +526,8 @@ main() {
 a(b(int p)) {
   b('0');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -520,8 +538,8 @@ class A<K, V> {
     f(v);
   }
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -532,8 +550,8 @@ void funNumBool(bool b) {}
 main() {
   acceptFunNumOptBool(funNumBool);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -545,8 +563,8 @@ class A<T> {
 f(A<String> a) {
   a.m(1);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -556,8 +574,8 @@ f({String p}) {}
 main() {
   f(p: 42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -567,8 +585,8 @@ f([String p]) {}
 main() {
   f(42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -578,8 +596,8 @@ f(String p) {}
 main() {
   f(42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -589,8 +607,8 @@ typedef A<T>(T p);
 f(A<int> a) {
   a('1');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -602,8 +620,8 @@ main() {
   A a = getA();
   a('1');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -613,8 +631,8 @@ typedef A(int p);
 f(A a) {
   a('1');
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -626,8 +644,8 @@ class A<T> {
 main() {
   new A<String>(42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -639,8 +657,8 @@ class A {
 main() {
   new A(42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -652,8 +670,8 @@ class A {
 main() {
   new A(42);
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -664,7 +682,8 @@ main() {
   C = null;
 }
 ''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
   test_assignmentToConst_instanceVariable() async {
@@ -675,7 +694,8 @@ class A {
 f() {
   A.v = 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
@@ -687,7 +707,8 @@ class A {
 f() {
   A.v += 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
@@ -697,7 +718,8 @@ f() {
   const x = 0;
   x = 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
@@ -707,7 +729,8 @@ f() {
   const x = 0;
   x += 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
@@ -718,7 +741,8 @@ main() {
   E = null;
 }
 ''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
   test_assignmentToFinal_instanceVariable() async {
@@ -730,7 +754,8 @@ f() {
   A a = new A();
   a.v = 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -743,7 +768,8 @@ f() {
   A a = new A();
   a.v += 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -753,7 +779,8 @@ f() {
   final x = 0;
   x = 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -763,7 +790,8 @@ f() {
   final x = 0;
   x += 1;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -773,7 +801,8 @@ f() {
   final x = 0;
   x--;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -783,7 +812,8 @@ f() {
   final x = 0;
   x++;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -793,7 +823,8 @@ f() {
   final x = 0;
   --x;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -803,7 +834,8 @@ f() {
   final x = 0;
   ++x;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -813,7 +845,8 @@ f() {
   final x = 0;
   x--;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -823,7 +856,8 @@ f() {
   final x = 0;
   x++;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -831,7 +865,8 @@ f() {
     Source source = addSource(r'''
 final x = 0;
 f() { x = 1; }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
@@ -844,8 +879,8 @@ main() {
   A a = new A();
   a.x = 0;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
     verify([source]);
   }
 
@@ -860,8 +895,8 @@ class B {
 main() {
   B.a.x = 0;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
     verify([source]);
   }
 
@@ -871,7 +906,8 @@ f() {}
 main() {
   f = null;
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FUNCTION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FUNCTION]);
     verify([source]);
   }
 
@@ -883,7 +919,8 @@ class A {
 f(A a) {
   a.m = () {};
 }''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_METHOD]);
     verify([source]);
   }
 
@@ -894,7 +931,8 @@ main() {
   F = null;
 }
 ''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
   test_assignmentToTypeParameter() async {
@@ -905,7 +943,8 @@ class C<T> {
   }
 }
 ''');
-    await assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
   test_caseBlockNotTerminated() async {
@@ -918,7 +957,8 @@ f(int p) {
       break;
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
     verify([source]);
   }
 
@@ -926,7 +966,8 @@ f(int p) {
     Source source = addSource(r'''
 var A = 0;
 f(String s) { var x = s as A; }''');
-    await assertErrors(source, [StaticWarningCode.CAST_TO_NON_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.CAST_TO_NON_TYPE]);
     verify([source]);
   }
 
@@ -935,7 +976,8 @@ f(String s) { var x = s as A; }''');
 class A {
   m();
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
     verify([source]);
   }
@@ -948,7 +990,8 @@ class I {
 class A implements I {
   m();
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
     verify([source]);
   }
@@ -964,7 +1007,8 @@ Stream s;''');
         r'''
 library lib;
 class Future {}''');
-    await assertErrors(source, [StaticWarningCode.CONFLICTING_DART_IMPORT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.CONFLICTING_DART_IMPORT]);
   }
 
   test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() async {
@@ -975,7 +1019,8 @@ class A {
 class B extends A {
   var v;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -988,7 +1033,8 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1001,7 +1047,8 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1014,7 +1061,8 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1028,7 +1076,8 @@ class B extends A {}
 class C extends B {
   get v => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1041,7 +1090,8 @@ class M {
 class B extends Object with M {
   get v => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1054,7 +1104,8 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1065,7 +1116,8 @@ class A {
   foo() {}
   set foo(a) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2]);
     verify([source]);
   }
@@ -1076,7 +1128,8 @@ class A {
   set foo(a) {}
   foo() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
     verify([source]);
   }
@@ -1089,7 +1142,8 @@ abstract class A {
 abstract class B implements A {
   foo() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
     verify([source]);
   }
@@ -1102,7 +1156,8 @@ class A {
 class B extends A {
   foo() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
     verify([source]);
   }
@@ -1115,7 +1170,8 @@ class A {
 class B extends A {
   set v(x) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
@@ -1128,7 +1184,8 @@ class A {
 class B extends Object with A {
   static get x => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER]);
     verify([source]);
   }
@@ -1141,7 +1198,8 @@ class A {
 class B extends A {
   static get x => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER]);
     verify([source]);
   }
@@ -1152,7 +1210,8 @@ class A {
   static get x => 0;
   set x(int p) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER]);
     verify([source]);
   }
@@ -1163,7 +1222,8 @@ class A {
   get x => 0;
   static set x(int p) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER]);
     verify([source]);
   }
@@ -1174,7 +1234,8 @@ class A {
   x() {}
   static set x(int p) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER]);
     verify([source]);
   }
@@ -1187,13 +1248,15 @@ abstract class A {
 void f() {
   A a = const A();
 }''');
-    await assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
     verify([source]);
   }
 
   test_equalKeysInMap() async {
     Source source = addSource("var m = {'a' : 0, 'b' : 1, 'a' : 2};");
-    await assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
     verify([source]);
   }
 
@@ -1203,7 +1266,8 @@ class A<T> {
   const A();
 }
 var m = {const A<int>(): 0, const A<int>(): 1};''');
-    await assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
     verify([source]);
   }
 
@@ -1215,7 +1279,8 @@ class A<T> {
   const A();
 }
 var m = {const A<int>(): 0, const A<num>(): 1};''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1226,8 +1291,8 @@ export 'lib1.dart';
 export 'lib2.dart';''');
     addNamedSource("/lib1.dart", "library lib;");
     addNamedSource("/lib2.dart", "library lib;");
-    await assertErrors(
-        source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED]);
     verify([source]);
   }
 
@@ -1237,7 +1302,8 @@ f() {}
 main() {
   f(0, 1, '2');
 }''');
-    await assertErrors(source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS]);
     verify([source]);
   }
 
@@ -1246,7 +1312,8 @@ main() {
 main() {
   (int x) {} (0, 1);
 }''');
-    await assertErrors(source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS]);
     verify([source]);
   }
 
@@ -1256,7 +1323,8 @@ class A {
   final int x = 0;
   A() : x = 1 {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
     verify([source]);
   }
@@ -1267,8 +1335,8 @@ class A {
   int x;
   A() : x = '';
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -1278,7 +1346,8 @@ class A {
   int x;
   A(String this.x) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
     verify([source]);
   }
@@ -1298,7 +1367,8 @@ class A {
   final x = 0;
   A() : x = 0 {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
     verify([source]);
   }
@@ -1309,7 +1379,8 @@ class A {
   final x = 0;
   A(this.x) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR]);
     verify([source]);
   }
@@ -1320,7 +1391,8 @@ class A {
   final int x;
   A() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1]);
     verify([source]);
   }
@@ -1332,7 +1404,8 @@ class A {
   final int b;
   A() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2]);
     verify([source]);
   }
@@ -1345,7 +1418,8 @@ class A {
   final int c;
   A() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS]);
     verify([source]);
   }
@@ -1355,7 +1429,8 @@ class A {
 class A {
   final F;
 }''');
-    await assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
@@ -1364,13 +1439,15 @@ class A {
 class A {
   static final F;
 }''');
-    await assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
   test_finalNotInitialized_library_final() async {
     Source source = addSource("final F;");
-    await assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
@@ -1379,7 +1456,8 @@ class A {
 f() {
   final int x;
 }''');
-    await assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
@@ -1387,7 +1465,8 @@ f() {
     Source source = addSource(r'''
 class A implements Function {
 }''');
-    await assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
   }
 
@@ -1397,7 +1476,8 @@ abstract class A implements Function {
 }
 class B extends A {
 }''');
-    await assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
   }
 
@@ -1407,7 +1487,8 @@ abstract class A implements Function {
 }
 class B implements A {
 }''');
-    await assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
   }
 
@@ -1418,7 +1499,8 @@ import 'lib1.dart';
 import 'lib2.dart';''');
     addNamedSource("/lib1.dart", "library lib;");
     addNamedSource("/lib2.dart", "library lib;");
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
       HintCode.UNUSED_IMPORT,
       HintCode.UNUSED_IMPORT
@@ -1450,7 +1532,8 @@ abstract class B {
 }
 class C implements A, B {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
     verify([source]);
   }
@@ -1463,7 +1546,8 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1479,7 +1563,8 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1493,7 +1578,8 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1509,7 +1595,8 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1527,7 +1614,8 @@ class C extends Base implements Ifc {
   foo() {}
 }
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1541,7 +1629,8 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1557,7 +1646,8 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1571,7 +1661,8 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1587,7 +1678,8 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
@@ -1601,7 +1693,8 @@ class A {
 class B extends A {
   String get g { return 'a'; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1614,7 +1707,8 @@ class A {
 class B extends A {
   int f;
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
       StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
     ]);
@@ -1634,7 +1728,8 @@ abstract class A implements I, J {}
 class B extends A {
   String get getter => null;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1650,7 +1745,8 @@ abstract class J<V> {
 class B implements I<int>, J<String> {
   double get g => null;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1663,7 +1759,8 @@ class A {
 class B implements A {
   m({String a}) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE]);
     verify([source]);
   }
@@ -1676,7 +1773,8 @@ class A {
 class B implements A {
   m(String a) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1689,7 +1787,8 @@ class A {
 class B extends A {
   m(String a) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1705,7 +1804,8 @@ abstract class J<V> {
 class B extends I<int> implements J<String> {
   m(double d) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1722,7 +1822,8 @@ abstract class A implements I, J {}
 class B extends A {
   m(String n) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1739,7 +1840,8 @@ abstract class J<V> {
 class B implements I<int>, J<String> {
   m(double d) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1752,7 +1854,8 @@ class A {
 class B implements A {
   m([String a]) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1769,7 +1872,8 @@ abstract class A implements I, J {}
 class B extends A {
   m([String n]) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -1782,7 +1886,8 @@ class A {
 class B implements A {
   String m() { return 'a'; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1797,7 +1902,8 @@ abstract class B implements A {
 class C implements B {
   String m() { return 'a'; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1810,7 +1916,8 @@ class A {
 class B extends Object with A {
   String m() { return 'a'; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1823,7 +1930,8 @@ class A {
 class B extends A {
   String m() { return 'a'; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1838,7 +1946,8 @@ class B extends A {
 class C extends B {
   String m() { return 'a'; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1855,7 +1964,8 @@ abstract class A implements I, J {}
 class B extends A {
   String m() => '';
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1868,7 +1978,8 @@ class A {
 class B extends A {
   void m() {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
@@ -1885,7 +1996,8 @@ class B extends A {
   foo([x]) {}
 }
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
     ]);
     verify([source]);
@@ -1903,7 +2015,8 @@ class B extends A {
   foo({x}) {}
 }
 ''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
     verify([source]);
   }
@@ -1921,7 +2034,8 @@ class B extends A {
   foo([x]) {}
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1938,7 +2052,8 @@ class B extends A {
   foo({x}) {}
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1954,7 +2069,8 @@ class B extends A {
   foo([x = 1]) {}
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1970,7 +2086,8 @@ class B extends A {
   foo({x: 1}) {}
 }
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1982,7 +2099,8 @@ class A {
 class B extends A {
   m({int p : 1}) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
     verify([source]);
   }
@@ -1995,7 +2113,8 @@ class A {
 class B extends A {
   m([int p = 1]) {}
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
     ]);
     verify([source]);
@@ -2009,7 +2128,8 @@ class A {
 class B extends A {
   m({a}) {}
 }''');
-    await assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
     verify([source]);
   }
 
@@ -2021,7 +2141,8 @@ class A {
 class B extends A {
   m({a, c}) {}
 }''');
-    await assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
     verify([source]);
   }
 
@@ -2033,8 +2154,8 @@ class A {
 class B extends A {
   m([a]) {}
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
     verify([source]);
   }
 
@@ -2046,8 +2167,8 @@ class A {
 class B extends A {
   m(a, b, [c]) {}
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
     verify([source]);
   }
 
@@ -2059,8 +2180,8 @@ class A {
 class B extends A {
   m(a, [c, d]) {}
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
     verify([source]);
   }
 
@@ -2072,7 +2193,8 @@ class A {
 class B extends A {
   m(a, b) {}
 }''');
-    await assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_REQUIRED]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_REQUIRED]);
     verify([source]);
   }
 
@@ -2084,7 +2206,8 @@ class A {
 class B extends A {
   void set s(String v) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -2101,7 +2224,8 @@ abstract class A extends I implements J {}
 class B extends A {
   set setter14(String _) => null;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -2119,7 +2243,8 @@ abstract class A implements I, J {}
 class B extends A {
   set setter14(String _) => null;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
@@ -2135,29 +2260,30 @@ abstract class J<V> {
 class B implements I<int>, J<String> {
   set s(double d) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
   test_listElementTypeNotAssignable() async {
     Source source = addSource("var v = <String> [42];");
-    await assertErrors(
-        source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
   test_mapKeyTypeNotAssignable() async {
     Source source = addSource("var v = <String, int > {1 : 2};");
-    await assertErrors(
-        source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
   test_mapValueTypeNotAssignable() async {
     Source source = addSource("var v = <String, String> {'a' : 2};");
-    await assertErrors(
-        source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -2167,7 +2293,8 @@ class A {
   int get g { return 0; }
   set g(String v) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
   }
@@ -2180,7 +2307,8 @@ class A {
 class B extends A {
   set g(String v) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE]);
     verify([source]);
   }
@@ -2193,7 +2321,8 @@ class A {
 class B extends A {
   String get g { return ''; }
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE]);
     verify([source]);
   }
@@ -2202,7 +2331,8 @@ class B extends A {
     Source source = addSource(r'''
 int get g { return 0; }
 set g(String v) {}''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
   }
@@ -2217,7 +2347,8 @@ bool odd(E e) {
   }
   return false;
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
       StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
     ]);
@@ -2236,7 +2367,8 @@ class C {
     };
   }
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.MIXED_RETURN_TYPES,
       StaticWarningCode.MIXED_RETURN_TYPES
     ]);
@@ -2253,7 +2385,8 @@ class C {
     return 0;
   }
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.MIXED_RETURN_TYPES,
       StaticWarningCode.MIXED_RETURN_TYPES
     ]);
@@ -2268,7 +2401,8 @@ f(int x) {
   }
   return 0;
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.MIXED_RETURN_TYPES,
       StaticWarningCode.MIXED_RETURN_TYPES
     ]);
@@ -2281,7 +2415,8 @@ abstract class A {}
 void f() {
   A a = new A();
 }''');
-    await assertErrors(source, [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS]);
     verify([source]);
   }
 
@@ -2289,8 +2424,8 @@ void f() {
     Source source = addSource(r'''
 class A {}
 f() { return new A<A>(); }''');
-    await assertErrors(
-        source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
@@ -2301,8 +2436,8 @@ class C<K, V> {}
 f(p) {
   return new C<A>();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
@@ -2313,8 +2448,8 @@ class C<E> {}
 f(p) {
   return new C<A, A>();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
@@ -2324,7 +2459,8 @@ var A = 0;
 void f() {
   var a = new A();
 }''');
-    await assertErrors(source, [StaticWarningCode.NEW_WITH_NON_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_NON_TYPE]);
     verify([source]);
   }
 
@@ -2338,7 +2474,9 @@ void f() {
   var a = new lib.A();
 }
 lib.B b;''');
-    await assertErrors(source2, [StaticWarningCode.NEW_WITH_NON_TYPE]);
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [StaticWarningCode.NEW_WITH_NON_TYPE]);
     verify([source1]);
   }
 
@@ -2350,8 +2488,8 @@ class A {
 f() {
   new A.name();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR]);
     // no verify(), 'name' is not resolved
   }
 
@@ -2363,7 +2501,8 @@ class A {
 f() {
   new A();
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
     verify([source]);
   }
@@ -2379,7 +2518,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS
     ]);
     verify([source]);
@@ -2395,7 +2535,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR]);
     verify([source]);
   }
@@ -2409,7 +2550,8 @@ abstract class I {
   m();
 }
 class B = A with M implements I;''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2422,7 +2564,8 @@ abstract class M {
 }
 abstract class A {}
 class B = A with M;''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2435,7 +2578,8 @@ abstract class A {
   m();
 }
 class B = A with M;''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2450,7 +2594,8 @@ abstract class D {
   foo(x, [y]);
 }
 class E extends C implements D {}''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2462,7 +2607,8 @@ class I {
 }
 class C implements I {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2474,7 +2620,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2486,7 +2633,8 @@ class I {
 }
 class C implements I {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2498,7 +2646,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2514,7 +2663,8 @@ abstract class B {
 }
 class C implements A, B {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2525,7 +2675,8 @@ class C implements A, B {
 abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
   }
 
@@ -2535,7 +2686,8 @@ class C extends Object with B {}''');
 abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
   }
 
@@ -2545,7 +2697,8 @@ class C extends Object with B {}''');
 abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
   }
 
@@ -2560,7 +2713,8 @@ abstract class A {
 }
 class B extends A implements I {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2577,7 +2731,8 @@ abstract class I {
 class B extends A implements I {
   get field => 0;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2589,7 +2744,8 @@ class I {
 }
 class C implements I {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2601,7 +2757,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2617,7 +2774,8 @@ abstract class B implements A {
 }
 class C extends B {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2631,7 +2789,8 @@ class I {
 class C implements I {
   set v(_) {}
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2645,7 +2804,8 @@ class I {
 class C implements I {
   get v => 1;
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
@@ -2659,7 +2819,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE]);
     verify([source]);
   }
@@ -2672,7 +2833,8 @@ abstract class A {
 }
 class C extends A {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
     verify([source]);
   }
@@ -2685,7 +2847,8 @@ class I {
 }
 class C implements I {
 }''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
     verify([source]);
   }
@@ -2700,7 +2863,8 @@ class A {
 class B extends A {}
 class C extends Object with B {}
 ''');
-    await assertErrors(source,
+    await computeAnalysisResult(source);
+    assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
     verify([source]);
   }
@@ -2712,7 +2876,8 @@ f() {
   } on T catch (e) {
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE]);
     verify([source]);
   }
 
@@ -2724,7 +2889,8 @@ f() {
   } on T catch (e) {
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE]);
     verify([source]);
   }
 
@@ -2733,8 +2899,8 @@ f() {
 class A {
   int operator []=(a, b) { return a; }
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR]);
     verify([source]);
   }
 
@@ -2743,7 +2909,8 @@ class A {
 int set x(int v) {
   return 42;
 }''');
-    await assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
     verify([source]);
   }
 
@@ -2754,7 +2921,8 @@ class A {
     return 42;
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
     verify([source]);
   }
 
@@ -2764,7 +2932,8 @@ f() {}
 main() {
   f v = null;
 }''');
-    await assertErrors(source, [StaticWarningCode.NOT_A_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NOT_A_TYPE]);
     verify([source]);
   }
 
@@ -2774,8 +2943,8 @@ f(int a, String b) {}
 main() {
   f();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
     verify([source]);
   }
 
@@ -2784,8 +2953,8 @@ main() {
 main() {
   (int x) {} ();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
     verify([source]);
   }
 
@@ -2796,8 +2965,8 @@ Getter getter = (x) => x;
 main() {
   getter();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
     verify([source]);
   }
 
@@ -2806,7 +2975,8 @@ main() {
 library lib;
 part 'part.dart';''');
     addNamedSource("/part.dart", "part of lub;");
-    await assertErrors(source, [StaticWarningCode.PART_OF_DIFFERENT_LIBRARY]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.PART_OF_DIFFERENT_LIBRARY]);
     verify([source]);
   }
 
@@ -2818,8 +2988,8 @@ class A implements B {
 class B {
   factory B() = A;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE]);
     verify([source]);
   }
 
@@ -2831,8 +3001,8 @@ class A {
 class B {
   factory B() = A;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE]);
     verify([source]);
   }
 
@@ -2844,8 +3014,8 @@ class A implements B{
 class B {
   factory B() = A.name;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
   test_redirectToMissingConstructor_unnamed() async {
@@ -2856,8 +3026,8 @@ class A implements B{
 class B {
   factory B() = A;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
   test_redirectToNonClass_notAType() async {
@@ -2866,7 +3036,8 @@ class B {
   int A;
   factory B() = A;
 }''');
-    await assertErrors(source, [StaticWarningCode.REDIRECT_TO_NON_CLASS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.REDIRECT_TO_NON_CLASS]);
     verify([source]);
   }
 
@@ -2875,7 +3046,8 @@ class B {
 class B {
   factory B() = A;
 }''');
-    await assertErrors(source, [StaticWarningCode.REDIRECT_TO_NON_CLASS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.REDIRECT_TO_NON_CLASS]);
     verify([source]);
   }
 
@@ -2886,25 +3058,29 @@ Future<int> f() async {
   return;
 }
 ''');
-    await assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
   test_returnWithoutValue_factoryConstructor() async {
     Source source = addSource("class A { factory A() { return; } }");
-    await assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
   test_returnWithoutValue_function() async {
     Source source = addSource("int f() { return; }");
-    await assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
   test_returnWithoutValue_method() async {
     Source source = addSource("class A { int m() { return; } }");
-    await assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
@@ -2918,7 +3094,8 @@ int f(int x) {
   }
   return;
 }''');
-    await assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
@@ -2930,8 +3107,8 @@ class A {
 main() {
   A.m();
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
@@ -2943,8 +3120,8 @@ class A {
 main() {
   A.m;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
@@ -2956,8 +3133,8 @@ class A {
 main() {
   A.f;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
@@ -2969,8 +3146,8 @@ class A {
 main() {
   A.f;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
@@ -2982,8 +3159,8 @@ class A {
 main() {
   A.f = 42;
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
@@ -2994,8 +3171,8 @@ f(int p) {
     case 'a': break;
   }
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -3192,7 +3369,8 @@ class A {
     }
   }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
     verify([source]);
   }
@@ -3204,7 +3382,8 @@ class A {
     return (t is T) ? t : null;
   }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
     verify([source]);
   }
@@ -3214,7 +3393,8 @@ class A {
 T function<T>(Object t) {
   return (t is T) ? t : null;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
     verify([source]);
   }
@@ -3224,7 +3404,8 @@ T function<T>(Object t) {
 class A<K> {
   static K k;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
@@ -3234,7 +3415,8 @@ class A<K> {
 class A<K> {
   static K get k => null;
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
@@ -3246,7 +3428,8 @@ class A<K> {
     K k;
   }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
@@ -3256,7 +3439,8 @@ class A<K> {
 class A<K> {
   static m(K k) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
@@ -3266,7 +3450,8 @@ class A<K> {
 class A<K> {
   static K m() { return null; }
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
@@ -3276,7 +3461,8 @@ class A<K> {
 class A<K> {
   static set s(K k) {}
 }''');
-    await assertErrors(
+    await computeAnalysisResult(source);
+    assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
@@ -3292,8 +3478,8 @@ main(FuncA f) {
     f(new B());
   }
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_typeTestNonType() async {
@@ -3303,7 +3489,8 @@ f(var p) {
   if (p is A) {
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_NON_TYPE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_NON_TYPE]);
     verify([source]);
   }
 
@@ -3313,24 +3500,27 @@ f(var p) {
   if (p is A) {
   }
 }''');
-    await assertErrors(
-        source, [StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME]);
     verify([source]);
   }
 
   test_undefinedClass_instanceCreation() async {
     Source source = addSource("f() { new C(); }");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   test_undefinedClass_variableDeclaration() async {
     Source source = addSource("f() { C c; }");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   test_undefinedClassBoolean_variableDeclaration() async {
     Source source = addSource("f() { boolean v; }");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
   }
 
   test_undefinedGetter_fromLibrary() async {
@@ -3342,7 +3532,9 @@ import 'lib.dart' as lib;
 void f() {
   var g = lib.gg;
 }''');
-    await assertErrors(source2, [StaticWarningCode.UNDEFINED_GETTER]);
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [StaticWarningCode.UNDEFINED_GETTER]);
     verify([source1]);
   }
 
@@ -3352,12 +3544,14 @@ f(var l) {
   for (e in l) {
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_function() async {
     Source source = addSource("int a() => b;");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_importCore_withShow() async {
@@ -3367,17 +3561,20 @@ main() {
   List;
   String;
 }''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_initializer() async {
     Source source = addSource("var a = b;");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_methodInvocation() async {
     Source source = addSource("f() { C.m(); }");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_private_getter() async {
@@ -3395,7 +3592,8 @@ class B extends A {
     var v = _foo;
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_private_setter() async {
@@ -3413,12 +3611,14 @@ class B extends A {
     _foo = 42;
   }
 }''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
   test_undefinedIdentifierAwait_function() async {
     Source source = addSource("void a() { await; }");
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
   }
 
   test_undefinedNamedParameter() async {
@@ -3427,7 +3627,8 @@ f({a, b}) {}
 main() {
   f(c: 1);
 }''');
-    await assertErrors(source, [StaticWarningCode.UNDEFINED_NAMED_PARAMETER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_NAMED_PARAMETER]);
     // no verify(), 'c' is not resolved
   }
 
@@ -3440,7 +3641,8 @@ import 'lib.dart' as lib;
 void f() {
   lib.gg = null;
 }''');
-    await assertErrors(source2, [StaticWarningCode.UNDEFINED_SETTER]);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [StaticWarningCode.UNDEFINED_SETTER]);
   }
 
   test_undefinedStaticMethodOrGetter_getter() async {
@@ -3449,7 +3651,8 @@ class C {}
 f(var p) {
   f(C.m);
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedStaticMethodOrGetter_getter_inSuperclass() async {
@@ -3461,7 +3664,8 @@ class C extends S {}
 f(var p) {
   f(C.g);
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedStaticMethodOrGetter_method() async {
@@ -3470,7 +3674,8 @@ class C {}
 f(var p) {
   f(C.m());
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedStaticMethodOrGetter_method_inSuperclass() async {
@@ -3482,7 +3687,8 @@ class C extends S {}
 f(var p) {
   f(C.m());
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedStaticMethodOrGetter_setter_inSuperclass() async {
@@ -3494,7 +3700,8 @@ class C extends S {}
 f(var p) {
   f(C.s = 1);
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
   test_voidReturnForGetter() async {
@@ -3502,6 +3709,7 @@ f(var p) {
 class S {
   void get value {}
 }''');
-    await assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
   }
 }

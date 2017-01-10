@@ -787,7 +787,8 @@ core.int value;''');
   Future<CompilationUnit> _resolveContents(String code) async {
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     return analysisContext.resolveCompilationUnit(source, library);
   }

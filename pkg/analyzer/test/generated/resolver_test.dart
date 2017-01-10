@@ -172,8 +172,8 @@ class A {
     }
   }
 }''');
-    await assertErrors(
-        source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
     verify([source]);
   }
 
@@ -187,7 +187,8 @@ class A {
     }
   }
 }''');
-    await assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
     verify([source]);
   }
 
@@ -216,7 +217,8 @@ class C {
     expect(functions, isNotNull);
     expect(functions, hasLength(1));
     expect(functions[0].enclosingElement, constructor);
-    await assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
 }
 
@@ -622,7 +624,8 @@ int f(List<int> list) {
     sum += list[i];
   }
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   @override
@@ -638,7 +641,8 @@ int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_conditional_and_is() async {
@@ -646,7 +650,8 @@ int f(num n) {
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_conditional_is() async {
@@ -654,7 +659,8 @@ int f(num n) {
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_conditional_isNot() async {
@@ -662,7 +668,8 @@ int f(num n) {
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_conditional_or_is() async {
@@ -670,7 +677,8 @@ int f(num n) {
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_forEach() async {
@@ -681,7 +689,8 @@ int f(List<int> list) {
     sum += n & 0x0F;
   }
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_if_and_is() async {
@@ -692,7 +701,8 @@ int f(num n) {
   }
   return 0;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_if_is() async {
@@ -703,7 +713,8 @@ int f(num n) {
   }
   return 0;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_if_isNot() async {
@@ -715,7 +726,8 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_if_isNot_abrupt() async {
@@ -726,7 +738,8 @@ int f(num n) {
   }
   return n & 0x0F;
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_if_or_is() async {
@@ -738,7 +751,8 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_localVar() async {
@@ -747,7 +761,8 @@ int f() {
   num n = 1234;
   return n & 0x0F;
 }''');
-    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 }
 
@@ -1077,7 +1092,8 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1101,7 +1117,8 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1123,7 +1140,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1142,7 +1160,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1164,7 +1183,8 @@ main() {
     {
       Source source = addSource(code);
       LibraryElement library = resolve2(source);
-      await assertNoErrors(source);
+      await computeAnalysisResult(source);
+      assertNoErrors(source);
       verify([source]);
       unit = resolveCompilationUnit(source, library);
     }
@@ -1196,7 +1216,8 @@ main(CanvasElement canvas) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     SimpleIdentifier identifier = EngineTestCase.findNode(
@@ -1215,7 +1236,8 @@ main() {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType stringType = typeProvider.stringType;
@@ -1243,7 +1265,8 @@ f(Stream<String> stream) async {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType stringType = typeProvider.stringType;
@@ -1275,7 +1298,8 @@ f(MyCustomStream<String> stream) async {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType listOfStringType =
@@ -1307,7 +1331,8 @@ f(MyMap<int, String> m) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
@@ -1341,7 +1366,8 @@ f(MyMap<int, String> m) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
@@ -1365,7 +1391,8 @@ main() {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -1393,7 +1420,8 @@ f(MyList list) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -1419,8 +1447,8 @@ x() {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertErrors(
-        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // () => 0
@@ -1443,7 +1471,8 @@ f(MyList<String> list) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -1470,7 +1499,8 @@ main(Future<int> firstFuture) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // p1
@@ -1494,7 +1524,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1542,7 +1573,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1573,7 +1605,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1607,7 +1640,8 @@ main() {
     {
       Source source = addSource(code);
       LibraryElement library = resolve2(source);
-      await assertNoErrors(source);
+      await computeAnalysisResult(source);
+      assertNoErrors(source);
       verify([source]);
       unit = resolveCompilationUnit(source, library);
     }
@@ -1651,7 +1685,8 @@ A f(var p) {
   return (p is A) ? p : null;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1679,7 +1714,8 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // prepare A
@@ -1719,7 +1755,8 @@ A f(A p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
 //    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -1745,7 +1782,8 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1769,7 +1807,8 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1795,7 +1834,8 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1822,7 +1862,8 @@ A f(A p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
     BlockFunctionBody body =
@@ -1845,7 +1886,8 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1868,7 +1910,8 @@ A f(var p) {
   return (p is! A) ? null : p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1896,7 +1939,8 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1923,7 +1967,8 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
@@ -1946,7 +1991,8 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1970,7 +2016,8 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -2045,7 +2092,8 @@ f() {
   return v[2];
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2063,7 +2111,8 @@ f() {
   return v[2];
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2087,7 +2136,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2110,7 +2160,8 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2236,7 +2287,8 @@ void g() {
   }
   x = null;
 }''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {
@@ -2420,7 +2472,8 @@ main() {
   return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];
 }''');
     LibraryElement library = resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration main = unit.declarations[0] as FunctionDeclaration;

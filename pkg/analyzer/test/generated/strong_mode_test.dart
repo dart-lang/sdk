@@ -5,6 +5,7 @@
 library analyzer.test.generated.strong_mode_test;
 
 import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -685,7 +686,8 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
      }
    ''');
     resolve2(source);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1328,16 +1330,6 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expectIdentifierType('paramTearOffInst', "(int) → int");
   }
 
-  Future<Null> _objectMethodOnFunctions_helper2(String code) async {
-    await resolveTestUnit(code);
-    expectIdentifierType('t0', "String");
-    expectIdentifierType('t1', "() → String");
-    expectIdentifierType('t2', "int");
-    expectIdentifierType('t3', "String");
-    expectIdentifierType('t4', "() → String");
-    expectIdentifierType('t5', "int");
-  }
-
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -1814,7 +1806,8 @@ class C {
 class D extends C {
   String f/*<S>*/(/*=S*/ x) => null;
 }''');
-    await assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -1828,7 +1821,8 @@ class C {
 class D extends C {
   /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
 }''');
-    await assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -1840,7 +1834,8 @@ class C {
 class D extends C {
   /*=S*/ f/*<T, S>*/(/*=T*/ x) => null;
 }''');
-    await assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -2081,7 +2076,8 @@ class A {
 }
 dynamic set g(int x) => null;
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
     ]);
@@ -2096,7 +2092,8 @@ class A {
 }
 void set g(int x) => returnsVoid();
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2109,7 +2106,8 @@ class A {
 }
 set g(int x) => 42;
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
     ]);
     verify([source]);
@@ -2123,7 +2121,8 @@ class A {
 }
 set g(int x) => returnsVoid();
 ''');
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2134,7 +2133,8 @@ class A {
 }
 Object set g(x) => null;
 ''');
-    await assertErrors(source, [
+    await computeAnalysisResult(source);
+    assertErrors(source, [
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
     ]);
@@ -2159,6 +2159,16 @@ main() {
 ''';
     await resolveTestUnit(code);
     expectInitializerType('foo', 'int', isNull);
+  }
+
+  Future<Null> _objectMethodOnFunctions_helper2(String code) async {
+    await resolveTestUnit(code);
+    expectIdentifierType('t0', "String");
+    expectIdentifierType('t1', "() → String");
+    expectIdentifierType('t2', "int");
+    expectIdentifierType('t3', "String");
+    expectIdentifierType('t4', "() → String");
+    expectIdentifierType('t5', "int");
   }
 }
 

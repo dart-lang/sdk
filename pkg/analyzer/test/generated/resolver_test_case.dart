@@ -325,6 +325,8 @@ class ResolverTestCase extends EngineTestCase {
    */
   bool enableUnusedLocalVariable = false;
 
+  final Map<Source, TestAnalysisResult> analysisResults = {};
+
   AnalysisContext get analysisContext => analysisContext2;
 
   /**
@@ -369,10 +371,13 @@ class ResolverTestCase extends EngineTestCase {
    * the expected error codes. The order in which the errors were gathered is
    * ignored.
    */
-  Future<Null> assertErrors(Source source,
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) async {
+  void assertErrors(Source source,
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+    TestAnalysisResult result = analysisResults[source];
+    expect(result, isNotNull);
+
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (AnalysisError error in analysisContext2.computeErrors(source)) {
+    for (AnalysisError error in result.errors) {
       expect(error.source, source);
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
@@ -399,7 +404,8 @@ class ResolverTestCase extends EngineTestCase {
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<Null> assertErrorsInCode(String code, List<ErrorCode> errors) async {
     Source source = addSource(code);
-    await assertErrors(source, errors);
+    await computeAnalysisResult(source);
+    assertErrors(source, errors);
     verify([source]);
   }
 
@@ -411,7 +417,8 @@ class ResolverTestCase extends EngineTestCase {
   Future<Null> assertErrorsInUnverifiedCode(
       String code, List<ErrorCode> errors) async {
     Source source = addSource(code);
-    await assertErrors(source, errors);
+    await computeAnalysisResult(source);
+    assertErrors(source, errors);
   }
 
   /**
@@ -421,8 +428,8 @@ class ResolverTestCase extends EngineTestCase {
    * @throws AnalysisException if the reported errors could not be computed
    * @throws AssertionFailedError if any errors have been reported
    */
-  Future<Null> assertNoErrors(Source source) async {
-    await assertErrors(source);
+  void assertNoErrors(Source source) {
+    assertErrors(source);
   }
 
   /**
@@ -431,7 +438,8 @@ class ResolverTestCase extends EngineTestCase {
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<Null> assertNoErrorsInCode(String code) async {
     Source source = addSource(code);
-    await assertNoErrors(source);
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -493,6 +501,17 @@ class ResolverTestCase extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
     analysisContext2.applyChanges(changeSet);
+  }
+
+  Future<Null> computeAnalysisResult(Source source) async {
+    analysisContext2.computeKindOf(source);
+    List<Source> libraries = analysisContext2.getLibrariesContaining(source);
+    if (libraries.length > 0) {
+      CompilationUnit unit =
+          analysisContext.resolveCompilationUnit2(source, libraries.first);
+      List<AnalysisError> errors = analysisContext.computeErrors(source);
+      analysisResults[source] = new TestAnalysisResult(source, unit, errors);
+    }
   }
 
   /**
@@ -570,7 +589,8 @@ class ResolverTestCase extends EngineTestCase {
     try {
       Source source = addSource(code);
       LibraryElement library = resolve2(source);
-      await assertNoErrors(source);
+      await computeAnalysisResult(source);
+      assertNoErrors(source);
       verify([source]);
       CompilationUnit unit = resolveCompilationUnit(source, library);
       // Could generalize this further by making [SimpleIdentifier.class] a
@@ -656,13 +676,13 @@ class ResolverTestCase extends EngineTestCase {
     return analysisContext.resolveCompilationUnit(source, library);
   }
 
-  Source resolveSources(List<String> sourceTexts) {
+  Future<Source> resolveSources(List<String> sourceTexts) async {
     for (int i = 0; i < sourceTexts.length; i++) {
-      CompilationUnit unit =
-          resolveSource2("/lib${i + 1}.dart", sourceTexts[i]);
+      Source source = addNamedSource('/lib${i + 1}.dart', sourceTexts[i]);
+      await computeAnalysisResult(source);
       // reference the source if this is the last source
       if (i + 1 == sourceTexts.length) {
-        return resolutionMap.elementDeclaredByCompilationUnit(unit).source;
+        return source;
       }
     }
     return null;
@@ -677,22 +697,23 @@ class ResolverTestCase extends EngineTestCase {
 //    options.enableDeferredLoading = false;
     resetWithOptions(options);
     // Analysis and assertions
-    Source source = resolveSources(strSources);
-    await assertErrors(source, codesWithoutExperimental);
+    Source source = await resolveSources(strSources);
+    await computeAnalysisResult(source);
+    assertErrors(source, codesWithoutExperimental);
     verify([source]);
     // Setup analysis context as experimental
     reset();
     // Analysis and assertions
-    source = resolveSources(strSources);
-    await assertErrors(source, codesWithExperimental);
+    source = await resolveSources(strSources);
+    await computeAnalysisResult(source);
+    assertErrors(source, codesWithExperimental);
     verify([source]);
   }
 
   Future<Null> resolveWithErrors(
       List<String> strSources, List<ErrorCode> codes) async {
-    // Analysis and assertions
-    Source source = resolveSources(strSources);
-    await assertErrors(source, codes);
+    Source source = await resolveSources(strSources);
+    assertErrors(source, codes);
     verify([source]);
   }
 
@@ -716,12 +737,9 @@ class ResolverTestCase extends EngineTestCase {
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      List<Source> libraries = analysisContext2.getLibrariesContaining(source);
-      for (Source library in libraries) {
-        analysisContext2
-            .resolveCompilationUnit2(source, library)
-            .accept(verifier);
-      }
+      TestAnalysisResult result = analysisResults[source];
+      expect(result, isNotNull);
+      result.unit.accept(verifier);
     }
     verifier.assertResolved();
   }
@@ -821,7 +839,8 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     testCode = code;
     testSource = addSource(testCode);
     LibraryElement library = resolve2(testSource);
-    await assertNoErrors(testSource);
+    await computeAnalysisResult(testSource);
+    assertNoErrors(testSource);
     verify([testSource]);
     testUnit = resolveCompilationUnit(testSource, library);
   }
@@ -839,4 +858,11 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
       expect(type, expected);
     }
   }
+}
+
+class TestAnalysisResult {
+  final Source source;
+  final CompilationUnit unit;
+  final List<AnalysisError> errors;
+  TestAnalysisResult(this.source, this.unit, this.errors);
 }
