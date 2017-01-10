@@ -68,8 +68,7 @@ def target_builder(arch, mode, total_shards, shard_index):
   test_py = os.path.join('tools', 'test.py')
   test_args = [sys.executable, test_py, '--progress=line', '--report',
                '--time', '--compiler=none', '--runtime=vm', '--write-debug-log',
-               '--write-test-outcome-log', '--mode=' + mode, '--arch=' + arch,
-               '--exclude-suite=pkg']
+               '--write-test-outcome-log', '--mode=' + mode, '--arch=' + arch]
   if total_shards and shard_index:
     test_args.append('--shards=%s' % total_shards)
     test_args.append('--shard=%s' % shard_index)
