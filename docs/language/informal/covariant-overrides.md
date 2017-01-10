@@ -130,10 +130,10 @@ one or more covariant parameters is the static type of the function `T.m`,
 where `T` is the static type of `e`, if `T.m` is defined. Otherwise the
 static type of `e.m` is `dynamic`.
 
-The static type of a property extraction expression `super.m` which gives rise
-to closurization of a method (including an operator or a setter) which has
-one or more covariant parameters is the static type of the function `T.m`,
-where `T` is the superclass of the enclosing class.
+The static type of a property extraction expression `super.m` which gives
+rise to closurization of a method (including an operator or a setter)
+which has one or more covariant parameters is the static type of the
+function `T.m`, where `T` is the superclass of the enclosing class.
 
 In both cases, for the static type of the function `T.m`, all occurrences
 of the modifier `covariant` are ignored.
@@ -170,6 +170,12 @@ dynamic type of *f* which corresponds to `p` is the static type of `p` in
 which corresponds to `q` is the least upper bound of all the types declared
 for parameters corresponding to `q` in directly and indirectly overridden
 declarations of `m`.
+
+# Background Material
+
+The rest of this document contains motivations for having the covariant
+overrides feature, and discussions about it, leading to the design which is
+specified in the first part of this document.
 
 ## Motivation
 
