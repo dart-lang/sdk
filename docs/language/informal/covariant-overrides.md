@@ -145,9 +145,9 @@ that this is not true for the dynamic type of the tear-off.*
 
 *The run-time semantics of the language with covariant overrides is the
 same as the run-time semantics of the language without that feature, except
-that some type checks which are not guaranteed to succeed based on static
-checks must be performed at run time. We emphasize this point by specifying
-these checks explicitly.*
+for the dynamic type of tear-offs, and except that some type checks which
+are not guaranteed to succeed based on static checks must be performed at
+run time.*
 
 A dynamic error occurs if a method with a covariant parameter `p` is
 invoked, and the binding for `p` is a value which is not `null` and whose
