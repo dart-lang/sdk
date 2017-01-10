@@ -144,9 +144,6 @@ class DartObjectImpl implements DartObject {
    */
   static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
 
-  /**
-   * The run-time type of this object.
-   */
   @override
   final ParameterizedType type;
 
@@ -163,7 +160,7 @@ class DartObjectImpl implements DartObject {
   /**
    * Create an object to represent an unknown value.
    */
-  factory DartObjectImpl.validWithUnknownValue(InterfaceType type) {
+  factory DartObjectImpl.validWithUnknownValue(ParameterizedType type) {
     if (type.element.library.isDartCore) {
       String typeName = type.name;
       if (typeName == "bool") {

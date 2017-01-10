@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -29,7 +30,6 @@ import 'package:analyzer/src/generated/type_system.dart'
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 
 /**
  * Helper class encapsulating the methods for evaluating constants and
@@ -1292,8 +1292,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
-    return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
+    return new DartObjectImpl.validWithUnknownValue(_typeSystem
+        .getLeastUpperBound(thenType, elseType) as ParameterizedType);
   }
 
   @override
