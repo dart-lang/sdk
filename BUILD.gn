@@ -49,6 +49,7 @@ group("runtime_precompiled") {
   deps = [
     "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
+    "runtime/bin:process_test",
     "runtime/vm:patched_sdk",
   ]
 }
