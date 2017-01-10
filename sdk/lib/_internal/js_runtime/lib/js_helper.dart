@@ -3467,8 +3467,7 @@ void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
  * field that is currently being initialized.
  */
 void throwCyclicInit(String staticName) {
-  throw new CyclicInitializationError(
-      "Cyclic initialization for static $staticName");
+  throw new CyclicInitializationError(staticName);
 }
 
 /**
