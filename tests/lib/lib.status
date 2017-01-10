@@ -105,6 +105,18 @@ mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/raw_type_test/01: RuntimeError # Issue 6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 mirrors/regress_26187_test: RuntimeError # Issue 6490
+mirrors/reflected_type_generics_test/01: Fail # Issues in reflecting generic typedefs.
+mirrors/reflected_type_generics_test/02: Fail # Issues in reflecting bounded type variables.
+# The following tests fail because we have disabled a test in
+# `reflectClassByName`. `MirrorsUsed` leads to classes not having the
+# information necessary to correctly handle these checks.
+mirrors/reflected_type_generics_test/03: Fail # Issues in reflecting generic typedefs.
+mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded type variables.
+mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs.
+mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
+
+[ $compiler == none && $unchecked ]
+mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported

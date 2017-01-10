@@ -33,8 +33,8 @@ import "dart:_internal" as internal;
   return _Mirrors.reflectClass(key);
 }
 
-@patch TypeMirror reflectType(Type key) {
-  return _Mirrors.reflectType(key);
+@patch TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
+  return _Mirrors.reflectType(key, typeArguments);
 }
 
 @patch class MirrorSystem {
