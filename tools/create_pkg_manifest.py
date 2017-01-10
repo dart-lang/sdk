@@ -70,7 +70,7 @@ def WriteManifest(deps, manifest_file):
     manifest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     manifest.write('<manifest>\n')
     manifest.write('  <projects>\n')
-    for path, remote in deps.iteritems():
+    for path, remote in sorted(deps.iteritems()):
       remote_components = remote.split('@')
       remote_url = remote_components[0]
       remote_version = remote_components[1]
