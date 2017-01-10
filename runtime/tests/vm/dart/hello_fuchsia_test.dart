@@ -442,6 +442,28 @@ Future testCopy() async {
   await tmp.delete();
 }
 
+Future testRecursiveDelete() async {
+  Directory tmp0 = await Directory.systemTemp.createTemp("testRD");
+  Directory tmp1 = await tmp0.createTemp("testRD");
+  Directory tmp2 = await tmp1.createTemp("testRD");
+  File file0 = new File("${tmp0.path}/file");
+  File file1 = new File("${tmp1.path}/file");
+  File file2 = new File("${tmp2.path}/file");
+  List<int> data = new List<int>.generate(10 * 1024, (int i) => i & 0xff);
+  await file0.writeAsBytes(data);
+  await file1.writeAsBytes(data);
+  await file2.writeAsBytes(data);
+
+  await tmp0.delete(recursive: true);
+
+  assert(!await file2.exists());
+  assert(!await file1.exists());
+  assert(!await file0.exists());
+  assert(!await tmp2.exists());
+  assert(!await tmp1.exists());
+  assert(!await tmp0.exists());
+}
+
 main(List<String> args) async {
   if (args.length >= 1) {
     if (args[0] == "infinite-loop") {
@@ -502,6 +524,10 @@ main(List<String> args) async {
   print("testCopy");
   await testCopy();
   print("testCopy done");
+
+  print("testRecursiveDelete");
+  await testRecursiveDelete();
+  print("testRecursiveDelete done");
 
   print("Goodbyte, Fuchsia!");
 }
