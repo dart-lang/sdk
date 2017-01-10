@@ -133,7 +133,6 @@ f() {}''');
         r'''
 library lib2;
 f() {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
@@ -1724,7 +1723,6 @@ main() { return f.g(); }''');
         r'''
 library lib;
 h() {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
@@ -2428,7 +2426,6 @@ main() {
   f/*<int>*/();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
     for (AnalysisError error in analysisContext2.computeErrors(source)) {

@@ -32,7 +32,6 @@ class B extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -51,7 +50,6 @@ f() {
   throw 'foo';
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -62,7 +60,6 @@ const bool DEBUG = true;
 f() {
   DEBUG ? 1 : 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -73,7 +70,6 @@ const bool DEBUG = false;
 f() {
   DEBUG ? 1 : 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -84,7 +80,6 @@ const bool DEBUG = true;
 f() {
   if(DEBUG) {} else {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -97,7 +92,6 @@ class A {
 f() {
   if(A.DEBUG) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -116,7 +110,6 @@ library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -135,7 +128,6 @@ library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -146,7 +138,6 @@ const bool DEBUG = false;
 f() {
   if(DEBUG) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -157,7 +148,6 @@ const bool DEBUG = false;
 f() {
   while(DEBUG) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -169,7 +159,6 @@ class B extends A {}
 f() {
   try {} on B catch (e) {} on A catch (e) {} catch (e) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -189,7 +178,6 @@ f() {
     break;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -200,7 +188,6 @@ const bool DEBUG = false;
 f() {
   bool b = DEBUG && false;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -211,7 +198,6 @@ const bool DEBUG = true;
 f() {
   bool b = DEBUG || true;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -224,7 +210,6 @@ f() {
   }
   int a = 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -241,7 +226,6 @@ class C {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -256,7 +240,6 @@ g() {
   f();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -275,7 +258,6 @@ class C {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -292,7 +274,6 @@ class C {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -310,7 +291,6 @@ class C {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -320,7 +300,6 @@ class C {
 f(int x, int y) {
   var v = x / y.toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -330,7 +309,6 @@ f(int x, int y) {
 f(x, y) {
   var v = (x / y).toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -343,7 +321,6 @@ class A {
 f(A x, A y) {
   var v = (x / y).toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -360,7 +337,6 @@ one.A a2;''');
         r'''
 library lib1;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -378,7 +354,6 @@ B b;''');
 library lib1;
 class A {}
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -396,7 +371,6 @@ B b;''');
 library lib1;
 class A {}
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -422,7 +396,6 @@ f(var message, var dynamic_) {
   }
   int s = message;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -439,7 +412,6 @@ f(var message) {
   }
   int s = message;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -455,7 +427,6 @@ f(var message) {
   }
   String s = message;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -465,28 +436,24 @@ f(var message) {
 abstract class A {
   int m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_missingReturn_expressionFunctionBody() {
     Source source = addSource("int f() => 0;");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_missingReturn_noReturnType() {
     Source source = addSource("f() {}");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_missingReturn_voidReturnType() {
     Source source = addSource("void f() {}");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -497,7 +464,6 @@ m(x) {
   for (var v = x; ; v++) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -508,7 +474,6 @@ m(x) {
   if (x?.y == null) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -519,7 +484,6 @@ class A {
   bool operator ==(x) { return x; }
   get hashCode => 0;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -539,7 +503,6 @@ class B implements A {
   @override
   int c;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -559,7 +522,6 @@ class B extends A {
   @override
   int c;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -573,7 +535,6 @@ class B implements A {
   @override
   int get m => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -587,7 +548,6 @@ class B extends A {
   @override
   int get m => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -601,7 +561,6 @@ class B implements A {
   @override
   int m() => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -615,7 +574,6 @@ class B extends A {
   @override
   int m() => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -629,7 +587,6 @@ class B extends A {
   @override
   int m() => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -643,7 +600,6 @@ class B implements A {
   @override
   set m(int x) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -657,7 +613,6 @@ class B extends A {
   @override
   set m(int x) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -674,7 +629,6 @@ class Z {
     y.x.add(new A());
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -693,7 +647,6 @@ f(var a) {
   a++;
   ++a;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -713,7 +666,6 @@ class B {
     ++a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -733,7 +685,6 @@ class B {
 }
 @proxy
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -748,7 +699,6 @@ f(var a) {
     return a.b;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -763,7 +713,6 @@ f(var a, var a2) {
   a2 = new A();
   a += a2;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -773,7 +722,6 @@ class D<T extends dynamic> {
   fieldAccess(T t) => t.abc;
   methodAccess(T t) => t.xyz(1, 2, 'three');
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -787,7 +735,6 @@ f() {
   var a = new A();
   a.b();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -808,7 +755,6 @@ f(A a, B b) {
   }
   ab.m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -827,7 +773,6 @@ f(A a, B b) {
   }
   ab.m(0);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -842,7 +787,6 @@ f(var a) {
     a + 1;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -857,7 +801,6 @@ f(var a) {
     a[0]++;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -872,7 +815,6 @@ f(var a) {
     a[0];
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -887,7 +829,6 @@ f(var a) {
     a[0] = 1;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -902,7 +843,6 @@ f(var a) {
     a++;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -917,7 +857,6 @@ f(var a) {
     ++a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -932,7 +871,6 @@ f(var a) {
     a.b = 0;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -948,7 +886,6 @@ class B<E> {
     (e as A).a();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -961,7 +898,6 @@ class B implements I {}
 I m(A a, B b) {
   return a == null ? b as I : a as I;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -971,7 +907,6 @@ I m(A a, B b) {
 m(v) {
   var b = v as Object;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -984,7 +919,6 @@ Future<int> f() => new Future.value(0);
 void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -994,7 +928,6 @@ void g(bool c) {
 m(v) {
   var b = Object as dynamic;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1010,7 +943,6 @@ class B extends A {
     print(y);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1027,7 +959,6 @@ class B extends A {
     return super.noSuchMethod(y);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1041,7 +972,6 @@ class B extends A {
   mmm();
   noSuchMethod(y) => super.hashCode;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1055,7 +985,6 @@ class B extends A {
   mmm();
   noSuchMethod(y) => 42;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1072,7 +1001,6 @@ library lib1;
 class A {
   const A() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source, source2]);
   }
@@ -1095,7 +1023,6 @@ class A {}''');
         r'''
 library lib2;
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     assertNoErrors(source2);
     assertNoErrors(source3);
@@ -1106,7 +1033,6 @@ class B {}''');
     Source source = addSource(r'''
 library L;
 import 'dart:core';''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1127,7 +1053,6 @@ class One {}''');
         r'''
 library lib2;
 class Two {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1154,7 +1079,6 @@ class Two {}''');
         r'''
 library lib3;
 class Three {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1182,7 +1106,6 @@ class Two {}''');
 library lib3;
 export 'lib2.dart';
 class Three {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1201,7 +1124,6 @@ class A {
         r'''
 library lib1;
 const x = 0;''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1223,7 +1145,6 @@ class A {
 library lib1;
 class One {}
 topLevelFunction() {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1247,7 +1168,6 @@ class A {
 library lib1;
 class One {}
 topLevelFunction() {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1260,7 +1180,6 @@ class A {
     var a = f();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1271,7 +1190,6 @@ int f() => 1;
 g() {
   var a = f();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1280,13 +1198,11 @@ g() {
 class PubSuggestionCodeTest extends ResolverTestCase {
   void test_import_package() {
     Source source = addSource("import 'package:somepackage/other.dart';");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   void test_import_packageWithDotDot() {
     Source source = addSource("import 'package:somepackage/../other.dart';");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
@@ -1295,7 +1211,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
 
   void test_import_packageWithLeadingDotDot() {
     Source source = addSource("import 'package:../other.dart';");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
@@ -1307,7 +1222,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
   }
@@ -1316,7 +1230,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -1325,7 +1238,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
   }
@@ -1334,7 +1246,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -1343,7 +1254,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import 'other.dart';");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -1352,7 +1262,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/bar/other.dart", "");
     Source source = addNamedSource(
         "/myproj/lib/foo/test.dart", "import '../bar/other.dart';");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -1361,7 +1270,6 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib2/test.dart", "import '../web/other.dart';");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 }

@@ -34,7 +34,6 @@ class C {
   const C(this.a);
 }
 var v = const C(const B());''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -48,7 +47,6 @@ class A {
   const A(String this.x);
 }
 var v = const A(null);''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
@@ -67,7 +65,6 @@ class C {
   const C(this.a);
 }
 var v = const C(const B());''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -79,7 +76,6 @@ class A {
   const A(List<int> x);
 }
 var x = const A(const [1, 2, 3]);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -91,7 +87,6 @@ class A {
   const A(List<num> x);
 }
 var x = const A(const <int>[1, 2, 3]);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -104,7 +99,6 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const {1: 2});''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -117,7 +111,6 @@ class A {
   const A(Map<num, int> x);
 }
 var x = const A(const <int, int>{1: 2});''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -130,7 +123,6 @@ class A {
   const A(Map<int, num> x);
 }
 var x = const A(const <int, int>{1: 2});''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -144,7 +136,6 @@ class A {
   const A(this.x);
 }
 var v = const A(5);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -157,7 +148,6 @@ class A {
   const A(this.x);
 }
 var v = const A(null);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -173,7 +163,6 @@ class A {
 }
 foo(x) => 1;
 var v = const A(foo);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -187,7 +176,6 @@ class A<T> {
   const A(this.x);
 }
 var v = const A<int>(3);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -199,7 +187,6 @@ class A {
   const A(this.x);
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -223,7 +210,6 @@ class C {
   const C(this.b);
 }
 var v = const C(const A());''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -237,7 +223,6 @@ class A {
   const A(String this.x);
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
@@ -252,7 +237,6 @@ class A {
   const A(String this.x);
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -274,7 +258,6 @@ class C {
   const C(this.b);
 }
 var v = const C(const A());''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -288,7 +271,6 @@ class A {
   const A(List<int> x);
 }
 var x = const A(const <num>[1, 2, 3]);''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -303,7 +285,6 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const <num, int>{1: 2});''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -318,7 +299,6 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const <int, num>{1: 2});''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -332,7 +312,6 @@ class A {
   const A([this.x = 'foo']);
 }
 var v = const A();''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
@@ -351,7 +330,6 @@ class A {
 }
 int foo(String x) => 1;
 var v = const A(foo);''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -365,7 +343,6 @@ class A {
   final int x;
   const A() : x = '';
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
       StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE
@@ -380,7 +357,6 @@ class A {
   final int y;
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
     ]);
@@ -396,7 +372,6 @@ class C<T> {
 const int y = 1;
 var v = const C<String>();
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
@@ -411,7 +386,6 @@ class A {
   final Unresolved y;
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -428,7 +402,6 @@ class C<T> {
 const int y = 1;
 var v = const C<int>();
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -440,7 +413,6 @@ class A {
   final int y;
 }
 var v = const A(null);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -454,14 +426,12 @@ class A {
   final Unresolved y;
 }
 var v = const A(null);''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
   void test_listElementTypeNotAssignable() {
     Source source = addSource("var v = const <String> [42];");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -471,7 +441,6 @@ var v = const A(null);''');
 
   void test_mapKeyTypeNotAssignable() {
     Source source = addSource("var v = const <String, int > {1 : 2};");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
@@ -481,7 +450,6 @@ var v = const A(null);''');
 
   void test_mapValueTypeNotAssignable() {
     Source source = addSource("var v = const <String, String> {'a' : 2};");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -496,7 +464,6 @@ class A {
   const A(int x);
 }
 var v = const A(null);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -507,7 +474,6 @@ class A<T> {
   const A(T x);
 }
 var v = const A<int>(3);''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -520,7 +486,6 @@ class A {
   const A(Unresolved x);
 }
 var v = const A(null);''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
@@ -531,7 +496,6 @@ class A {
   const A(int x);
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -545,7 +509,6 @@ class A<T> {
   const A(T x);
 }
 var v = const A<int>('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -559,7 +522,6 @@ class A {
   const A(Unresolved x);
 }
 var v = const A('foo');''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -574,7 +536,6 @@ class A {
   const A.a2(String x);
 }
 var v = const A.a1(0);''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -583,7 +544,6 @@ var v = const A.a1(0);''');
 
   void test_topLevelVarAssignable_null() {
     Source source = addSource("const int x = null;");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -592,14 +552,12 @@ var v = const A.a1(0);''');
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     Source source = addSource("const Unresolved x = null;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
   void test_topLevelVarNotAssignable() {
     Source source = addSource("const int x = 'foo';");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
@@ -609,7 +567,6 @@ var v = const A.a1(0);''');
 
   void test_topLevelVarNotAssignable_undefined() {
     Source source = addSource("const Unresolved x = 'foo';");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS

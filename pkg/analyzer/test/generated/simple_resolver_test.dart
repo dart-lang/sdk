@@ -397,7 +397,6 @@ class A {
 int f(A a) {
   return a(0);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -407,7 +406,6 @@ int f(A a) {
 class A extends B implements C {}
 class B {}
 class C {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -421,7 +419,6 @@ class A {
   A.n() {}
   m() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -434,7 +431,6 @@ class A {
   /** [e] [f] */
   m(e, f()) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -443,7 +439,6 @@ class A {
     Source source = addSource(r'''
 /// [A]
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -577,7 +572,6 @@ void f() {
 
   void test_empty() {
     Source source = addSource("");
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -637,7 +631,6 @@ import 'my_lib.dart';
 main() {
   EEE e = null;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -651,7 +644,6 @@ abstract class Comparable<T> {
 class A {
   void sort([compare = Comparable.compare]) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -677,7 +669,6 @@ class A {
     SimpleIdentifier identifierX = initializer.expression;
     expect(identifierX.staticElement, paramElement);
 
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -689,7 +680,6 @@ f() {
   for (int x in list) {}
   for (int x in list) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -702,7 +692,6 @@ f() {
   for (int i = 0; i < 3; i++) {
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -716,7 +705,6 @@ class A {
     if (p(e)) {}
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -872,7 +860,6 @@ class A {
 g (A a) {
   a.f = a.f.toString();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
@@ -916,7 +903,6 @@ main() {
   foo = 0;
 }
 A a;''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -937,7 +923,6 @@ import 'two.dart' as _two;
 main() {
   _two.f(0);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -967,7 +952,6 @@ class H extends D<p.W> {
   H(int i) : super(i);
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verify([source]);
   }
@@ -997,7 +981,6 @@ class H extends D<W> {
   H(int i) : super(i);
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verify([source]);
   }
@@ -1016,7 +999,6 @@ import 'sub folder/lib.dart';
 main() {
   foo();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1031,7 +1013,6 @@ f() {
   List<List<List<int>>> c;
   c[0][0][0];
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1042,7 +1023,6 @@ f() {
   List<List<int>> b;
   b[0][0] = 'hi';
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -1064,7 +1044,6 @@ g(int x) {}
 main() {
   g(f()[0]);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1077,7 +1056,6 @@ class A {
     X.last;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1522,7 +1500,6 @@ class C extends B with A {
   bar() => super.bar();
   foo() => super.foo();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1635,7 +1612,6 @@ class C extends B {
 f(C c) {
   c.m1();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1651,7 +1627,6 @@ class A {
      ..m2();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1669,7 +1644,6 @@ class A {
      ..m2();
   }
 }''');
-    computeLibrarySourceErrors(source);
     // failing with error code: INVOCATION_OF_NON_FUNCTION
     assertNoErrors(source);
     verify([source]);
@@ -1680,7 +1654,6 @@ class A {
 f(var p) {
   return null == p;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -1761,7 +1734,6 @@ class B extends A {
   int get x => super.x == null ? 0 : super.x;
   int f() => x = 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1774,7 +1746,6 @@ set s(x) {
 main() {
   s = 123;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1790,7 +1761,6 @@ class B {
     A.g(1,0);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }

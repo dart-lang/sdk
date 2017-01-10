@@ -2080,7 +2080,6 @@ class A {
 }
 dynamic set g(int x) => null;
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER
@@ -2096,7 +2095,6 @@ class A {
 }
 void set g(int x) => returnsVoid();
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2110,7 +2108,6 @@ class A {
 }
 set g(int x) => 42;
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
     ]);
@@ -2125,7 +2122,6 @@ class A {
 }
 set g(int x) => returnsVoid();
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2137,7 +2133,6 @@ class A {
 }
 Object set g(x) => null;
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
       StaticWarningCode.NON_VOID_RETURN_FOR_SETTER

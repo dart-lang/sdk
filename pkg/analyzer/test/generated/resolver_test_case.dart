@@ -402,7 +402,6 @@ class ResolverTestCase extends EngineTestCase {
   // TODO(rnystrom): Use this in more tests that have the same structure.
   void assertErrorsInCode(String code, List<ErrorCode> errors) {
     Source source = addSource(code);
-    computeLibrarySourceErrors(source);
     assertErrors(source, errors);
     verify([source]);
   }
@@ -414,7 +413,6 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertErrorsInUnverifiedCode(String code, List<ErrorCode> errors) {
     Source source = addSource(code);
-    computeLibrarySourceErrors(source);
     assertErrors(source, errors);
   }
 
@@ -435,7 +433,6 @@ class ResolverTestCase extends EngineTestCase {
   // TODO(rnystrom): Use this in more tests that have the same structure.
   void assertNoErrorsInCode(String code) {
     Source source = addSource(code);
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -497,15 +494,6 @@ class ResolverTestCase extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
     analysisContext2.applyChanges(changeSet);
-  }
-
-  /**
-   * Computes errors for the given [librarySource].
-   * This assumes that the given [librarySource] and its parts have already
-   * been added to the content provider using the method [addNamedSource].
-   */
-  void computeLibrarySourceErrors(Source librarySource) {
-    analysisContext.computeErrors(librarySource);
   }
 
   /**

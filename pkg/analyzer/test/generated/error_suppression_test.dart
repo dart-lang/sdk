@@ -23,7 +23,6 @@ class ErrorSuppressionTest extends ResolverTestCase {
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
@@ -37,7 +36,6 @@ int x = '';
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
   }
@@ -48,7 +46,6 @@ int x = ''; // ignore: invalid_assignment
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
   }
@@ -57,7 +54,6 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     Source source = addSource('''
 int x = ''; // ignore: invalid_assignment
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -68,7 +64,6 @@ int x = '';
 // ignore: const_initialized_with_non_constant_value
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
@@ -78,7 +73,6 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 int x = '';
 const y = x; // ignore: const_initialized_with_non_constant_value
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
@@ -86,7 +80,6 @@ const y = x; // ignore: const_initialized_with_non_constant_value
     Source source = addSource('''
 int x = ''; // ignore: INVALID_ASSIGNMENT
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -96,7 +89,6 @@ int x = ''; // ignore: INVALID_ASSIGNMENT
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
@@ -109,7 +101,6 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // ignore:
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
@@ -121,7 +112,6 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
@@ -131,7 +121,6 @@ int x = ''; //This is the first comment...
 // ignore: const_initialized_with_non_constant_value
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
@@ -141,7 +130,6 @@ int x = 3;
 // ignore: invalid_assignment, const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -150,7 +138,6 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 int x = 3;
 const String y = x; // ignore: invalid_assignment, const_initialized_with_non_constant_value
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -160,7 +147,6 @@ int x = 3;
 //ignore:invalid_assignment,const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -170,7 +156,6 @@ int x = 3;
 //ignore: invalid_assignment,const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -180,7 +165,6 @@ int x = 3;
 // ignore: invalid_assignment,const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
   }
 
@@ -189,7 +173,6 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 int x = '';  //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticTypeWarningCode.INVALID_ASSIGNMENT,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE

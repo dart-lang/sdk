@@ -77,7 +77,6 @@ class B extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
@@ -93,7 +92,6 @@ class B extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
@@ -109,7 +107,6 @@ class B extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
@@ -125,7 +122,6 @@ class B extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
@@ -139,7 +135,6 @@ m() {
 class A {
   n(void f(int i)) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
@@ -158,7 +153,6 @@ m() {
   n(i);
 }
 n(int i) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
@@ -169,7 +163,6 @@ m(x) {
   x?.a()?.b();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -185,7 +178,6 @@ m(x) {
   x?.b().toString();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -196,7 +188,6 @@ m(x) {
   x?.a?.b;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -207,7 +198,6 @@ m(x) {
   x?.a.b();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
@@ -218,7 +208,6 @@ m(x) {
   (x?.a).b;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
@@ -229,7 +218,6 @@ m(x) {
   x?.a.b;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
     verify([source]);
   }
@@ -239,7 +227,6 @@ m(x) {
 f() {
   true ? 1 : 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -250,7 +237,6 @@ f() {
 f() {
   true ? true : false && false;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -260,7 +246,6 @@ f() {
 f() {
   false ? 1 : 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -271,7 +256,6 @@ f() {
 f() {
   false ? false && false : true;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -281,7 +265,6 @@ f() {
 f() {
   if(true) {} else {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -292,7 +275,6 @@ f() {
 f() {
   if(true) {} else {if (false) {}}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -302,7 +284,6 @@ f() {
 f() {
   if(false) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -313,7 +294,6 @@ f() {
 f() {
   if(false) {if(false) {}}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -323,7 +303,6 @@ f() {
 f() {
   while(false) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -334,7 +313,6 @@ f() {
 f() {
   while(false) {if(false) {}}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -345,7 +323,6 @@ class A {}
 f() {
   try {} catch (e) {} catch (e) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -357,7 +334,6 @@ class A {}
 f() {
   try {} catch (e) {} catch (e) {if(false) {}}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -367,7 +343,6 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -378,7 +353,6 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -390,7 +364,6 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
     verify([source]);
   }
@@ -403,7 +376,6 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {if(false) {}}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
     verify([source]);
   }
@@ -423,7 +395,6 @@ f() {
     break;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -443,7 +414,6 @@ f() {
     break;
   }
 }''');
-    computeLibrarySourceErrors(source);
     // A single dead statement at the end of a switch case that is not a
     // terminating statement will yield two errors.
     assertErrors(source,
@@ -456,7 +426,6 @@ f() {
 f() {
   bool b = false && false;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -466,7 +435,6 @@ f() {
 f() {
   bool b = false && (false && false);
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -476,7 +444,6 @@ f() {
 f() {
   bool b = true || true;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -486,7 +453,6 @@ f() {
 f() {
   bool b = true || (false && false);
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -501,7 +467,6 @@ f(v) {
       var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -515,7 +480,6 @@ f() {
     var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -528,7 +492,6 @@ f() {
     var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -542,7 +505,6 @@ f(v) {
       var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -555,7 +517,6 @@ f(v) {
     var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -569,7 +530,6 @@ f() {
     var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -582,7 +542,6 @@ f() {
     var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -595,7 +554,6 @@ f(v) {
     var a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -610,7 +568,6 @@ f() {
   }
   var one = 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -625,7 +582,6 @@ f() {
     var two = 2;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -637,7 +593,6 @@ f() {
   return;
   var two = 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -651,7 +606,6 @@ f(bool b) {
     var two = 2;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -665,7 +619,6 @@ class A {
     var two = 2;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -677,7 +630,6 @@ f() {
   return;
   if(false) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -691,7 +643,6 @@ f() {
   return;
   var three = 3;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -703,7 +654,6 @@ f() {
   throw 'Stop here';
   var two = 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -718,7 +668,6 @@ f(A a) {
   A b;
   a += b;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -733,7 +682,6 @@ class A {
     a();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -745,7 +693,6 @@ class A {
   m() {}
   n() {m();}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -757,7 +704,6 @@ class A {
   m() {}
   n() {m();}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -770,7 +716,6 @@ class A {
 @deprecated
 library deprecated_library;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -784,7 +729,6 @@ class A {
 f(A a) {
   return a.x;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -798,7 +742,6 @@ class A {
 f(A a) {
   return a.m;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -813,7 +756,6 @@ f(A a) {}''');
 @deprecated
 library deprecated_library;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -827,7 +769,6 @@ class A {
 f(A a) {
   return a[1];
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -841,7 +782,6 @@ class A {
 f() {
   A a = new A(1);
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -855,7 +795,6 @@ class A {
 f() {
   A a = new A.named(1);
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -866,7 +805,6 @@ class A {
   m({@deprecated int x}) {}
   n() {m(x: 1);}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -881,7 +819,6 @@ f(A a) {
   A b;
   return a + b;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -892,7 +829,6 @@ class A {
   m([@deprecated int x]) {}
   n() {m(1);}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -906,7 +842,6 @@ class A {
 f(A a) {
   return a.s = 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -920,7 +855,6 @@ class A {
 class B extends A {
   B() : super() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -934,7 +868,6 @@ class A {
 class B extends A {
   B() : super.named() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -944,7 +877,6 @@ class B extends A {
 f(double x, double y) {
   var v = (x / y).toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -954,7 +886,6 @@ f(double x, double y) {
 f(int x, int y) {
   var v = (x / y).toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -967,7 +898,6 @@ f(x, y) {
   y = 1;
   var v = (x / y).toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -977,7 +907,6 @@ f(x, y) {
 f(int x, int y) {
   var v = (((x / y))).toInt();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -993,7 +922,6 @@ A a;''');
         r'''
 library lib1;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
@@ -1010,7 +938,6 @@ A a;''');
         r'''
 library lib1;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
     verify([source]);
@@ -1028,7 +955,6 @@ M.A a;''');
 library lib1;
 class A {}
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
@@ -1044,7 +970,6 @@ class Stateful {
 
 class State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1060,7 +985,6 @@ abstract class Stateful {
 
 class State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1078,7 +1002,6 @@ class Stateful {
 
 class State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_IMPL]);
     verify([source]);
   }
@@ -1096,7 +1019,6 @@ class Stateful {
 
 class State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1114,7 +1036,6 @@ class Stateful {
 
 class State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1130,7 +1051,6 @@ class Stateful {
 
 class State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1148,7 +1068,6 @@ class X {
 @factory
 main() { }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [
       HintCode.INVALID_FACTORY_ANNOTATION,
       HintCode.INVALID_FACTORY_ANNOTATION,
@@ -1168,7 +1087,6 @@ class Stateful {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     // Null return types will get flagged elsewhere, no need to pile-on here.
     assertNoErrors(source);
     verify([source]);
@@ -1194,7 +1112,6 @@ class MyThing extends Stateful {
 class State { }
 class MyState extends State { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1208,7 +1125,6 @@ class Stateful {
   void createState() {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_FACTORY_METHOD_DECL]);
     verify([source]);
   }
@@ -1239,7 +1155,6 @@ f(var y) {
     a.x = y;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -1251,7 +1166,6 @@ f(var y) {
     int x = y;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -1273,7 +1187,6 @@ f(var y) {
     A.x = y;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -1293,7 +1206,6 @@ main() {
   var p2 = new Point(10, 10);
   int n = p1 + p2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -1319,7 +1231,6 @@ void main() {
   print(leak);
 }
 ''');
-    computeLibrarySourceErrors(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     assertNoErrors(source);
     verify([source, source2]);
@@ -1344,7 +1255,6 @@ abstract class B {
   int b() => new A().a;
 }
 ''');
-    computeLibrarySourceErrors(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     assertNoErrors(source);
     verify([source, source2]);
@@ -1360,7 +1270,6 @@ class A {
 abstract class B implements A {
   int b() => a;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1384,7 +1293,6 @@ main() {
   new A().a();
 }
 ''');
-    computeLibrarySourceErrors(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     assertNoErrors(source);
     verify([source, source2]);
@@ -1401,7 +1309,6 @@ class A {
 abstract class B implements A {
   int b() => a();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1416,7 +1323,6 @@ class A {
 main() {
   new A().a();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1441,7 +1347,6 @@ class B {
   int b() => a.a;
 }
 ''');
-    computeLibrarySourceErrors(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     assertNoErrors(source);
     verify([source, source2]);
@@ -1457,7 +1362,6 @@ class A {
 abstract class B implements A {
   int b() => a;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1478,7 +1382,6 @@ class A {
 /// OK: [A.a], [A.b], [A.c].
 f() {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1528,7 +1431,6 @@ class B {
 }
 ''');
 
-    computeLibrarySourceErrors(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     assertNoErrors(source);
     verify([source, source2]);
@@ -1552,7 +1454,6 @@ class Button extends State<Object> {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1567,7 +1468,6 @@ class A {
 class B extends A {
   void b() => a();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1582,7 +1482,6 @@ class A {
 class B extends Object with A {
   void b() => a();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1596,7 +1495,6 @@ class A {
 class B extends A {
   static m2(A a) => a.m1();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1614,7 +1512,6 @@ class B extends A {
 main() {
   new B().a();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1630,7 +1527,6 @@ class B extends A {
   int b() => a;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1646,7 +1542,6 @@ class B extends A {
   int b() => a;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1664,7 +1559,6 @@ class B extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1681,7 +1575,6 @@ class A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1708,7 +1601,6 @@ class B{
   }
 }
 ''');
-    computeLibrarySourceErrors(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     assertNoErrors(source);
     verify([source, source2]);
@@ -1726,7 +1618,6 @@ abstract class B implements A {
     a = i;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1739,7 +1630,6 @@ int x = 0;
 main() {
   print(x);
 }''');
-    computeLibrarySourceErrors(source);
     // TODO(brianwilkerson) This should produce a hint because the annotation is
     // being applied to the wrong kind of declaration.
     assertNoErrors(source);
@@ -1751,7 +1641,6 @@ main() {
     options.dart2jsHint = true;
     resetWithOptions(options);
     Source source = addSource("var v = 1 is double;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_DOUBLE]);
     verify([source]);
   }
@@ -1759,7 +1648,6 @@ main() {
   @failingTest
   void test_isInt() {
     Source source = addSource("var v = 1 is int;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_INT]);
     verify([source]);
   }
@@ -1769,7 +1657,6 @@ main() {
     options.dart2jsHint = true;
     resetWithOptions(options);
     Source source = addSource("var v = 1 is! double;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
     verify([source]);
   }
@@ -1777,7 +1664,6 @@ main() {
   @failingTest
   void test_isNotInt() {
     Source source = addSource("var v = 1 is! int;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_INT]);
     verify([source]);
   }
@@ -1792,7 +1678,6 @@ import 'package:js/js.dart';
 @JS()
 class A { }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1806,7 +1691,6 @@ import 'package:js/js.dart';
 @JS()
 class A { }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
@@ -1819,7 +1703,6 @@ import 'package:js/js.dart';
 @JS()
 external dynamic exports;
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source,
         [ParserErrorCode.EXTERNAL_FIELD, HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
@@ -1834,7 +1717,6 @@ import 'package:js/js.dart';
 @JS('acxZIndex')
 set _currentZIndex(int value) { }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
@@ -1850,7 +1732,6 @@ class A {
   void a() { }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
@@ -1862,7 +1743,6 @@ import 'package:js/js.dart';
 @JS()
 dynamic variable;
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
@@ -1872,7 +1752,6 @@ dynamic variable;
 import 'dart:async';
 Future<int> f() async {}
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
@@ -1883,14 +1762,12 @@ class A {
   factory A() {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
   void test_missingReturn_function() {
     Source source = addSource("int f() {}");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
@@ -1900,7 +1777,6 @@ class A {
 class A {
   int m() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
@@ -1918,7 +1794,6 @@ class B extends A {
   {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MUST_CALL_SUPER]);
     verify([source]);
   }
@@ -1935,7 +1810,6 @@ class C implements A {
   void a() {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
     verify([source]);
   }
@@ -1958,7 +1832,6 @@ class D extends C {
   void a() {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MUST_CALL_SUPER]);
     verify([source]);
   }
@@ -1977,7 +1850,6 @@ class C extends A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, []);
     verify([source]);
   }
@@ -1988,7 +1860,6 @@ m(x) {
   assert (x?.a);
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -1999,7 +1870,6 @@ m(x) {
   return x?.a ? 0 : 1;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2010,7 +1880,6 @@ m(x) {
   do {} while (x?.a);
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2021,7 +1890,6 @@ m(x) {
   for (var v = x; v?.a; v = v.next) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2032,7 +1900,6 @@ m(x) {
   if (x?.a) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2043,7 +1910,6 @@ m(x) {
   if (x?.a && x.b) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2054,7 +1920,6 @@ m(x) {
   if (x.a && x?.b) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2065,7 +1930,6 @@ m(x) {
   if (x.a && x.b && x?.c) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2076,7 +1940,6 @@ m(x) {
   if (x?.a || x.b) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2087,7 +1950,6 @@ m(x) {
   if (x.a || x?.b) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2098,7 +1960,6 @@ m(x) {
   if (x.a || x.b || x?.c) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2109,7 +1970,6 @@ m(x) {
   if (!x?.a) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2120,7 +1980,6 @@ m(x) {
   if ((x?.a)) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2131,7 +1990,6 @@ m(x) {
   while (x?.a) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
@@ -2142,7 +2000,6 @@ m(x) {
 class A {
   bool operator ==(x) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
     verify([source]);
   }
@@ -2155,7 +2012,6 @@ class B extends A {
   @override
   final int m = 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
     verify([source]);
   }
@@ -2168,7 +2024,6 @@ class B extends A {
   @override
   int get m => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
     verify([source]);
   }
@@ -2181,7 +2036,6 @@ class B extends A {
   @override
   int m() => 1;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
     verify([source]);
   }
@@ -2194,7 +2048,6 @@ class B extends A {
   @override
   set m(int x) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
     verify([source]);
   }
@@ -2211,7 +2064,6 @@ main() {
   new C();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
@@ -2228,7 +2080,6 @@ main() {
   new C();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
@@ -2245,7 +2096,6 @@ main() {
   new C();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
@@ -2262,7 +2112,6 @@ main() {
   new C(a: 2);
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2276,7 +2125,6 @@ class C {
   C.named() : this();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
@@ -2293,7 +2141,6 @@ class D extends C {
   D() : super();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
@@ -2308,7 +2155,6 @@ main() {
   f();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
@@ -2323,7 +2169,6 @@ f() {
   new A().m();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
@@ -2346,7 +2191,6 @@ f() {
 }
 ''');
 
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
@@ -2363,7 +2207,6 @@ class C {
   F m() => ({@required String x}) => null;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
@@ -2373,7 +2216,6 @@ class C {
 m(i) {
   bool b = i is Null;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.TYPE_CHECK_IS_NULL]);
     verify([source]);
   }
@@ -2383,7 +2225,6 @@ m(i) {
 m(i) {
   bool b = i is! Null;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.TYPE_CHECK_IS_NOT_NULL]);
     verify([source]);
   }
@@ -2396,7 +2237,6 @@ f(var a) {
     return a.m;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_GETTER]);
   }
 
@@ -2413,7 +2253,6 @@ f(var a) {
 library L;
 export 'lib1.dart' hide a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_HIDDEN_NAME]);
     verify([source]);
   }
@@ -2423,7 +2262,6 @@ export 'lib1.dart' hide a;''');
 library L;
 export 'lib1.dart' show a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_SHOWN_NAME]);
     verify([source]);
   }
@@ -2433,7 +2271,6 @@ export 'lib1.dart' show a;''');
 library L;
 import 'lib1.dart' hide a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
     verify([source]);
@@ -2444,7 +2281,6 @@ import 'lib1.dart' hide a;''');
 library L;
 import 'lib1.dart' show a;''');
     addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
     verify([source]);
@@ -2456,7 +2292,6 @@ f() {
   var a = 'str';
   a.notAMethodOnString();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
@@ -2470,7 +2305,6 @@ class B {
     a += a2;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
@@ -2482,7 +2316,6 @@ f(var a) {
     a + 1;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -2494,7 +2327,6 @@ f(var a) {
     a[0]++;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -2506,7 +2338,6 @@ f(var a) {
     a[0];
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -2518,7 +2349,6 @@ f(var a) {
     a[0] = 1;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -2530,7 +2360,6 @@ f(var a) {
     a++;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -2542,7 +2371,6 @@ f(var a) {
     ++a;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -2554,7 +2382,6 @@ f(var a) {
     a.m = 0;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_SETTER]);
   }
 
@@ -2571,7 +2398,6 @@ f(var a) {
 m(int i) {
   var b = i as Object;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
   }
@@ -2581,7 +2407,6 @@ m(int i) {
 m(num i) {
   var b = i as num;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
   }
@@ -2597,7 +2422,6 @@ class B extends A {
     return super.noSuchMethod(y);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
     verify([source]);
   }
@@ -2611,21 +2435,18 @@ class B extends A {
   mmm();
   noSuchMethod(y) => super.noSuchMethod(y);
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
     verify([source]);
   }
 
   void test_unnecessaryTypeCheck_null_is_Null() {
     Source source = addSource("bool b = null is Null;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
 
   void test_unnecessaryTypeCheck_null_not_Null() {
     Source source = addSource("bool b = null is! Null;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
@@ -2635,7 +2456,6 @@ class B extends A {
 m(i) {
   bool b = i is dynamic;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
@@ -2645,7 +2465,6 @@ m(i) {
 m(i) {
   bool b = i is Object;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
@@ -2655,7 +2474,6 @@ m(i) {
 m(i) {
   bool b = i is! dynamic;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
@@ -2665,7 +2483,6 @@ m(i) {
 m(i) {
   bool b = i is! Object;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
@@ -2676,7 +2493,6 @@ m(i) {
 class _A {}
 class B extends _A {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2692,7 +2508,6 @@ class _Bar {
 }
 ''';
     Source source = addSource(src);
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2703,7 +2518,6 @@ class _Bar {
 class _A {}
 class B implements _A {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2715,7 +2529,6 @@ class _A {}
 main() {
   new _A();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2729,7 +2542,6 @@ class _A {
 main() {
   _A.F;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2743,7 +2555,6 @@ class _A {
 main() {
   _A.m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2756,7 +2567,6 @@ main() {
   var v = new List<_A>();
   print(v);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2773,7 +2583,6 @@ class _A {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2786,7 +2595,6 @@ class _A {
   _A.named() {}
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2800,7 +2608,6 @@ main(p) {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2811,7 +2618,6 @@ main(p) {
 class _A {}
 main() {
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2826,7 +2632,6 @@ main() {
 }
 print(x) {}
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2838,7 +2643,6 @@ enum _MyEnum {A, B, C}
 main() {
   print(_MyEnum.B);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2849,7 +2653,6 @@ main() {
 enum _MyEnum {A, B, C}
 main() {
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2862,7 +2665,6 @@ main() {
 }
 print(x) {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2874,7 +2676,6 @@ main() {
   f() {}
   f();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2888,7 +2689,6 @@ main() {
 }
 print(x) {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2899,7 +2699,6 @@ print(x) {}
 main() {
   f() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2912,7 +2711,6 @@ main() {
     _f(p - 1);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2924,7 +2722,6 @@ _f() {}
 main() {
   _f();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2938,7 +2735,6 @@ main() {
 }
 print(x) {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2949,7 +2745,6 @@ print(x) {}
 _f() {}
 main() {
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2962,7 +2757,6 @@ _f(int p) {
 }
 main() {
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -2976,7 +2770,6 @@ main(f) {
     print('F');
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -2987,7 +2780,6 @@ main(f) {
 typedef _F(a, b);
 main(_F f) {
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3000,7 +2792,6 @@ main() {
   var v = new List<_F>();
   print(v);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3012,7 +2803,6 @@ typedef _F(a, b);
 class A {
   _F f;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3023,7 +2813,6 @@ class A {
 typedef _F(a, b);
 main() {
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3037,7 +2826,6 @@ class A {
     var v = _g;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3052,7 +2840,6 @@ main(A a) {
   var v = a._g;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3067,7 +2854,6 @@ main() {
   var v = new A()._g;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3078,7 +2864,6 @@ main() {
 class A {
   get _g => null;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3091,7 +2876,6 @@ class A {
     return _g;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3107,7 +2891,6 @@ class A {
 }
 print(x) {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3126,7 +2909,6 @@ class B extends A {
 }
 print(x) {}
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3140,7 +2922,6 @@ class A {
 main(A a) {
   a._m;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3154,7 +2935,6 @@ class A {
 main() {
   new A()._m;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3168,7 +2948,6 @@ class A {
     _m();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3185,7 +2964,6 @@ class A {
 class B extends A {
   _m() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3199,7 +2977,6 @@ class A<T> {
 main(A<int> a) {
   a._m(0);
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3214,7 +2991,6 @@ main() {
   var a = new A();
   a._m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3229,7 +3005,6 @@ main() {
   A a = new A();
   a._m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3246,7 +3021,6 @@ class B extends A {
 main(A a) {
   a._m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3259,7 +3033,6 @@ class A {
 }
 main() {
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3273,7 +3046,6 @@ class A {
 main() {
   A._m();
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3284,7 +3056,6 @@ main() {
 class A {
   static _m() {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3297,7 +3068,6 @@ class A {
     _m(p - 1);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3311,7 +3081,6 @@ class A {
     _s = 42;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3326,7 +3095,6 @@ main(A a) {
   a._s = 42;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3341,7 +3109,6 @@ main() {
   new A()._s = 42;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3352,7 +3119,6 @@ main() {
 class A {
   set _s(x) {}
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3367,7 +3133,6 @@ class A {
     }
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3382,7 +3147,6 @@ class A {
   }
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3397,7 +3161,6 @@ class A {
   }
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3409,7 +3172,6 @@ class A {
   int _f;
   m() => _f;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3427,7 +3189,6 @@ class B extends A {
   int _f;
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3443,7 +3204,6 @@ main() {
   print(a._f);
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3459,7 +3219,6 @@ main() {
   print(a._f);
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3474,7 +3233,6 @@ main(a) {
   print(a._f);
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3488,7 +3246,6 @@ class A {
     _f += 2;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3500,7 +3257,6 @@ class A {
   int _f;
   A() : _f = 0;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3512,7 +3268,6 @@ class A {
   int _f;
   A(this._f);
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3524,7 +3279,6 @@ class A {
   int _f;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3538,7 +3292,6 @@ class A {
     _f++;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3552,7 +3305,6 @@ class A {
     ++_f;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3570,7 +3322,6 @@ main(A a) {
   a._f = 2;
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -3580,7 +3331,6 @@ main(A a) {
 library L;
 import 'lib1.dart';''');
     Source source2 = addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3597,7 +3347,6 @@ one.A a;''');
         r'''
 library lib1;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3621,7 +3370,6 @@ class A {}''');
         r'''
 library lib2;
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     assertNoErrors(source3);
@@ -3639,7 +3387,6 @@ A a;''');
         r'''
 library lib1;
 class A {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3666,7 +3413,6 @@ A a;''');
 library lib1;
 class A {}
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3680,7 +3426,6 @@ main() {
   } on String catch (exception) {
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_CATCH_CLAUSE]);
     verify([source]);
   }
@@ -3694,7 +3439,6 @@ main() {
     print(stack);
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3707,7 +3451,6 @@ main() {
   } catch (exception) {
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3720,7 +3463,6 @@ main() {
   } catch (exception, stackTrace) {
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_CATCH_STACK]);
     verify([source]);
   }
@@ -3735,7 +3477,6 @@ main() {
   }
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3750,7 +3491,6 @@ main() {
     }
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3762,7 +3502,6 @@ main() {
   var v = 1;
   v = 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -3776,7 +3515,6 @@ class A {
     v = 2;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -3789,7 +3527,6 @@ main() {
   Foo foo;
   foo();
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3801,7 +3538,6 @@ main() {
   var v = 1;
   v += 2;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -3813,7 +3549,6 @@ main() {
   var v = 1;
   v++;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -3825,7 +3560,6 @@ main() {
   var v = 1;
   ++v;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -3838,7 +3572,6 @@ main() {
   print(++v);
 }
 print(x) {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3854,7 +3587,6 @@ main() {
   a.foo();
 }
 ''');
-    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -3870,7 +3602,6 @@ A a;''');
 library lib1;
 class A {}
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3887,7 +3618,6 @@ p.A a;''');
 library lib1;
 class A {}
 class B {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3908,7 +3638,6 @@ class A {}
 class B {}
 class C {}
 class D {}''');
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
     assertNoErrors(source2);
@@ -3931,7 +3660,6 @@ const int var1 = 1;
 const int var2 = 2;
 const int var3 = 3;
 const int var4 = 4;''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -3946,7 +3674,6 @@ class A {
     a = f();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -3960,7 +3687,6 @@ class A {
     a = m();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -3973,7 +3699,6 @@ class A {
     for(var a = m();;) {}
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -3986,7 +3711,6 @@ class A {
     var a = f();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -3999,7 +3723,6 @@ class A {
     var a = m();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -4012,7 +3735,6 @@ class A {
     var a = m(), b = m();
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
     verify([source]);

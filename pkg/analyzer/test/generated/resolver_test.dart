@@ -172,7 +172,6 @@ class A {
     }
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
     verify([source]);
   }
@@ -187,7 +186,6 @@ class A {
     }
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
     verify([source]);
   }
@@ -623,7 +621,6 @@ int f(List<int> list) {
     sum += list[i];
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -640,7 +637,6 @@ int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -649,7 +645,6 @@ int f(num n) {
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -658,7 +653,6 @@ int f(num n) {
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -667,7 +661,6 @@ int f(num n) {
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -676,7 +669,6 @@ int f(num n) {
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -688,7 +680,6 @@ int f(List<int> list) {
     sum += n & 0x0F;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -700,7 +691,6 @@ int f(num n) {
   }
   return 0;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -712,7 +702,6 @@ int f(num n) {
   }
   return 0;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -725,7 +714,6 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -737,7 +725,6 @@ int f(num n) {
   }
   return n & 0x0F;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -750,7 +737,6 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -760,7 +746,6 @@ int f() {
   num n = 1234;
   return n & 0x0F;
 }''');
-    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 }
@@ -2248,7 +2233,6 @@ void g() {
   }
   x = null;
 }''');
-    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
