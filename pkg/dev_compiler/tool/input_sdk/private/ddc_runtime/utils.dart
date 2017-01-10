@@ -98,7 +98,7 @@ copyProperty(to, from, name) {
     // On native types, Symbol.iterator may already be present.
     // TODO(jmesserly): investigate if we still need this.
     // If so, we need to find a better solution.
-    // See: https://github.com/dart-lang/dev_compiler/issues/487
+    // See https://github.com/dart-lang/sdk/issues/28324
     var existing = getOwnPropertyDescriptor(to, name);
     if (existing != null) {
       if (JS('bool', '#.writable', existing)) {

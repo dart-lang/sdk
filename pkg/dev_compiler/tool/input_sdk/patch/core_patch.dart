@@ -56,8 +56,8 @@ class Function {
   static apply(Function f,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
-    // TODO(vsm): Handle named args.
-    // See: https://github.com/dart-lang/dev_compiler/issues/176
+    // TODO(vsm): Handle named args:
+    // https://github.com/dart-lang/sdk/issues/27257
     return JS('', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
   }
 

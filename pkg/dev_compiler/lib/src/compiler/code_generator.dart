@@ -1331,7 +1331,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // bypass the ES6 restrictions.
       //
       // TODO(jmesserly): we'll need to rethink this.
-      // See <https://github.com/dart-lang/dev_compiler/issues/51>.
+      // See https://github.com/dart-lang/sdk/issues/28322.
       // This level of indirection will hurt performance.
       jsMethods.add(new JS.Method(
           _propertyName('constructor'),
@@ -2293,7 +2293,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
 
       // TODO(jmesserly): various problems here, see:
-      // https://github.com/dart-lang/dev_compiler/issues/116
+      // https://github.com/dart-lang/sdk/issues/27259
       var paramType =
           resolutionMap.elementDeclaredByFormalParameter(param).type;
       if (node is MethodDeclaration &&
@@ -2648,8 +2648,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // are not mutated inside the generator.
     //
     // In the future, we might be able to simplify this, see:
-    // https://github.com/dart-lang/dev_compiler/issues/247.
-    //
+    // https://github.com/dart-lang/sdk/issues/28320
     // `async` works the same, but uses the `dart.async` helper.
     //
     // In the body of a `sync*` and `async`, `yield`/`await` are both generated
@@ -2956,8 +2955,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     var typeFormals = type.typeFormals;
     if (typeFormals.isNotEmpty && !lowerTypedef) {
       // TODO(jmesserly): this is a suboptimal representation for universal
-      // function types (as callable functions). See discussion at:
-      // https://github.com/dart-lang/dev_compiler/issues/526
+      // function types (as callable functions). See discussion at
+      // https://github.com/dart-lang/sdk/issues/27333
       var tf = _emitTypeFormals(typeFormals);
       var names = _typeTable.discharge(typeFormals);
       var parts = new JS.ArrayInitializer(typeParts);
@@ -5643,7 +5642,6 @@ class CodeGenerator extends GeneralizingAstVisitor
         expectedType = types.streamType;
       } else {
         // Future<T> -> T
-        // TODO(vsm): Revisit with issue #228.
         expectedType = types.futureType;
       }
     } else {

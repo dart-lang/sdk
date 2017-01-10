@@ -761,7 +761,7 @@ String _toString(obj) {
   }
   // TODO(jmesserly): restore this faster path once ES Symbol is treated as
   // an extension type (and thus hits the above code path).
-  // See https://github.com/dart-lang/dev_compiler/issues/578.
+  // See https://github.com/dart-lang/sdk/issues/28323
   // return JS('', '"" + #', obj);
   return JS('String', '#.toString()', obj);
 }

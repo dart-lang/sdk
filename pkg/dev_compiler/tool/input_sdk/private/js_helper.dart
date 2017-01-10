@@ -878,8 +878,8 @@ String jsonEncodeNative(String string) {
 }
 
 
-// TODO(jmesserly): this adapter is to work around:
-// https://github.com/dart-lang/dev_compiler/issues/247
+// TODO(jmesserly): this adapter is to work around
+// https://github.com/dart-lang/sdk/issues/28320
 class SyncIterator<E> implements Iterator<E> {
   final dynamic _jsIterator;
   E _current;

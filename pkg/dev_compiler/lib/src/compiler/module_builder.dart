@@ -238,7 +238,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    // TODO(vsm): See https://github.com/dart-lang/dev_compiler/issues/512
+    // TODO(vsm): See https://github.com/dart-lang/sdk/issues/27309
     // This extra level of indirection should be unnecessary.
     var block =
         js.statement("(function() { 'use strict'; #; })()", [statements]);

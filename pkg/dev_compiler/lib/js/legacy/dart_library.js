@@ -125,13 +125,15 @@ var dart_library =
     // Force import of core.
     var dart_sdk = import_('dart_sdk');
 
-    // TODO(vsm): DOM facades?
-    // See: https://github.com/dart-lang/dev_compiler/issues/173
+    // TODO(vsm): Move this to a shared location:
+    // https://github.com/dart-lang/sdk/issues/27605
     if (typeof NodeList !== "undefined") {
+      // TODO(vsm): Do we still need these?
       NodeList.prototype.get = function(i) { return this[i]; };
       NamedNodeMap.prototype.get = function(i) { return this[i]; };
       DOMTokenList.prototype.get = function(i) { return this[i]; };
       HTMLCollection.prototype.get = function(i) { return this[i]; };
+
       // Expose constructors for DOM types dart:html needs to assume are
       // available on window.
       if (typeof PannerNode == "undefined") {
