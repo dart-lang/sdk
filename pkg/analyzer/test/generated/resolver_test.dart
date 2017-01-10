@@ -7,8 +7,8 @@ library analyzer.test.generated.resolver_test;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -146,7 +146,7 @@ class ChangeSetTest extends EngineTestCase {
 
 @reflectiveTest
 class EnclosedScopeTest extends ResolverTestCase {
-  void test_define_duplicate() {
+  test_define_duplicate() async {
     Scope rootScope = new _RootScope();
     EnclosedScope scope = new EnclosedScope(rootScope);
     SimpleIdentifier identifier = AstTestFactory.identifier3('v');
@@ -160,7 +160,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 
 @reflectiveTest
 class ErrorResolverTest extends ResolverTestCase {
-  void test_breakLabelOnSwitchMember() {
+  test_breakLabelOnSwitchMember() async {
     Source source = addSource(r'''
 class A {
   void m(int i) {
@@ -172,11 +172,12 @@ class A {
     }
   }
 }''');
-    assertErrors(source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
+    await assertErrors(
+        source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
     verify([source]);
   }
 
-  void test_continueLabelOnSwitch() {
+  test_continueLabelOnSwitch() async {
     Source source = addSource(r'''
 class A {
   void m(int i) {
@@ -186,11 +187,11 @@ class A {
     }
   }
 }''');
-    assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
+    await assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
     verify([source]);
   }
 
-  void test_enclosingElement_invalidLocalFunction() {
+  test_enclosingElement_invalidLocalFunction() async {
     Source source = addSource(r'''
 class C {
   C() {
@@ -215,7 +216,7 @@ class C {
     expect(functions, isNotNull);
     expect(functions, hasLength(1));
     expect(functions[0].enclosingElement, constructor);
-    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+    await assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
 }
 
@@ -224,7 +225,7 @@ class C {
  */
 @reflectiveTest
 class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
-  void test_genericMethod_propagatedType_promotion() {
+  test_genericMethod_propagatedType_promotion() async {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25340
     //
@@ -233,7 +234,7 @@ class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
     // therefore discard the propagated type.
     //
     // So this test does not use strong mode.
-    resolveTestUnit(r'''
+    await resolveTestUnit(r'''
 abstract class Iter {
   List<S> map<S>(S f(x));
 }
@@ -613,7 +614,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
  */
 @reflectiveTest
 class StrictModeTest extends ResolverTestCase {
-  void fail_for() {
+  fail_for() async {
     Source source = addSource(r'''
 int f(List<int> list) {
   num sum = 0;
@@ -621,7 +622,7 @@ int f(List<int> list) {
     sum += list[i];
   }
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   @override
@@ -631,48 +632,48 @@ int f(List<int> list) {
     resetWithOptions(options);
   }
 
-  void test_assert_is() {
+  test_assert_is() async {
     Source source = addSource(r'''
 int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_conditional_and_is() {
+  test_conditional_and_is() async {
     Source source = addSource(r'''
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
   }
 
-  void test_conditional_is() {
+  test_conditional_is() async {
     Source source = addSource(r'''
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
   }
 
-  void test_conditional_isNot() {
+  test_conditional_isNot() async {
     Source source = addSource(r'''
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_conditional_or_is() {
+  test_conditional_or_is() async {
     Source source = addSource(r'''
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_forEach() {
+  test_forEach() async {
     Source source = addSource(r'''
 int f(List<int> list) {
   num sum = 0;
@@ -680,10 +681,10 @@ int f(List<int> list) {
     sum += n & 0x0F;
   }
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_if_and_is() {
+  test_if_and_is() async {
     Source source = addSource(r'''
 int f(num n) {
   if (n is int && n > 0) {
@@ -691,10 +692,10 @@ int f(num n) {
   }
   return 0;
 }''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
   }
 
-  void test_if_is() {
+  test_if_is() async {
     Source source = addSource(r'''
 int f(num n) {
   if (n is int) {
@@ -702,10 +703,10 @@ int f(num n) {
   }
   return 0;
 }''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
   }
 
-  void test_if_isNot() {
+  test_if_isNot() async {
     Source source = addSource(r'''
 int f(num n) {
   if (n is! int) {
@@ -714,10 +715,10 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_if_isNot_abrupt() {
+  test_if_isNot_abrupt() async {
     Source source = addSource(r'''
 int f(num n) {
   if (n is! int) {
@@ -725,10 +726,10 @@ int f(num n) {
   }
   return n & 0x0F;
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_if_or_is() {
+  test_if_or_is() async {
     Source source = addSource(r'''
 int f(num n) {
   if (n is! int || n < 0) {
@@ -737,16 +738,16 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_localVar() {
+  test_localVar() async {
     Source source = addSource(r'''
 int f() {
   num n = 1234;
   return n & 0x0F;
 }''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 }
 
@@ -915,9 +916,9 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
-  void fail_mergePropagatedTypesAtJoinPoint_1() {
+  fail_mergePropagatedTypesAtJoinPoint_1() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f1(x) {
   var y = [];
@@ -934,9 +935,9 @@ f1(x) {
         typeProvider.dynamicType);
   }
 
-  void fail_mergePropagatedTypesAtJoinPoint_2() {
+  fail_mergePropagatedTypesAtJoinPoint_2() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f2(x) {
   var y = [];
@@ -952,9 +953,9 @@ f2(x) {
         typeProvider.dynamicType);
   }
 
-  void fail_mergePropagatedTypesAtJoinPoint_3() {
+  fail_mergePropagatedTypesAtJoinPoint_3() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f4(x) {
   var y = [];
@@ -972,9 +973,9 @@ f4(x) {
         typeProvider.numType);
   }
 
-  void fail_mergePropagatedTypesAtJoinPoint_5() {
+  fail_mergePropagatedTypesAtJoinPoint_5() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f6(x,y) {
   var z = [];
@@ -990,7 +991,7 @@ f6(x,y) {
         typeProvider.dynamicType);
   }
 
-  void fail_mergePropagatedTypesAtJoinPoint_7() {
+  fail_mergePropagatedTypesAtJoinPoint_7() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
     //
     // In general [continue]s are unsafe for the purposes of
@@ -1014,12 +1015,13 @@ f() {
     x; // marker
   }
 }''';
-    DartType t = findMarkedIdentifier(code, "; // marker").propagatedType;
+    DartType t =
+        (await findMarkedIdentifier(code, "; // marker")).propagatedType;
     expect(typeProvider.intType.isSubtypeOf(t), isTrue);
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
 
-  void fail_mergePropagatedTypesAtJoinPoint_8() {
+  fail_mergePropagatedTypesAtJoinPoint_8() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
     //
     // In nested loops [breaks]s are unsafe for the purposes of
@@ -1046,22 +1048,23 @@ f() {
     }
   }
 }''';
-    DartType t = findMarkedIdentifier(code, "; // marker").propagatedType;
+    DartType t =
+        (await findMarkedIdentifier(code, "; // marker")).propagatedType;
     expect(typeProvider.intType.isSubtypeOf(t), isTrue);
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
 
-  void fail_propagatedReturnType_functionExpression() {
+  fail_propagatedReturnType_functionExpression() async {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = r'''
 main() {
   var v = (() {return 42;})();
 }''';
-    assertPropagatedAssignedType(
+    await assertPropagatedAssignedType(
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void test_as() {
+  test_as() async {
     Source source = addSource(r'''
 class A {
   bool get g => true;
@@ -1074,7 +1077,7 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1090,7 +1093,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_assert() {
+  test_assert() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1098,7 +1101,7 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1112,7 +1115,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_assignment() {
+  test_assignment() async {
     Source source = addSource(r'''
 f() {
   var v;
@@ -1120,7 +1123,7 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1131,7 +1134,7 @@ f() {
     expect(variableName.propagatedType, same(typeProvider.intType));
   }
 
-  void test_assignment_afterInitializer() {
+  test_assignment_afterInitializer() async {
     Source source = addSource(r'''
 f() {
   var v = 0;
@@ -1139,7 +1142,7 @@ f() {
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1150,7 +1153,7 @@ f() {
     expect(variableName.propagatedType, same(typeProvider.doubleType));
   }
 
-  void test_assignment_null() {
+  test_assignment_null() async {
     String code = r'''
 main() {
   int v; // declare
@@ -1161,7 +1164,7 @@ main() {
     {
       Source source = addSource(code);
       LibraryElement library = resolve2(source);
-      assertNoErrors(source);
+      await assertNoErrors(source);
       verify([source]);
       unit = resolveCompilationUnit(source, library);
     }
@@ -1185,7 +1188,7 @@ main() {
     }
   }
 
-  void test_CanvasElement_getContext() {
+  test_CanvasElement_getContext() async {
     String code = r'''
 import 'dart:html';
 main(CanvasElement canvas) {
@@ -1193,7 +1196,7 @@ main(CanvasElement canvas) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     SimpleIdentifier identifier = EngineTestCase.findNode(
@@ -1202,7 +1205,7 @@ main(CanvasElement canvas) {
         "CanvasRenderingContext2D");
   }
 
-  void test_forEach() {
+  test_forEach() async {
     String code = r'''
 main() {
   var list = <String> [];
@@ -1212,7 +1215,7 @@ main() {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType stringType = typeProvider.stringType;
@@ -1230,7 +1233,7 @@ main() {
     }
   }
 
-  void test_forEach_async() {
+  test_forEach_async() async {
     String code = r'''
 import 'dart:async';
 f(Stream<String> stream) async {
@@ -1240,7 +1243,7 @@ f(Stream<String> stream) async {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType stringType = typeProvider.stringType;
@@ -1258,7 +1261,7 @@ f(Stream<String> stream) async {
     }
   }
 
-  void test_forEach_async_inheritedStream() {
+  test_forEach_async_inheritedStream() async {
     // From https://github.com/dart-lang/sdk/issues/24191, this ensures that
     // `await for` works for types where the generic parameter doesn't
     // correspond to the type of the Stream's data.
@@ -1272,7 +1275,7 @@ f(MyCustomStream<String> stream) async {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType listOfStringType =
@@ -1291,7 +1294,7 @@ f(MyCustomStream<String> stream) async {
     }
   }
 
-  void test_functionExpression_asInvocationArgument() {
+  test_functionExpression_asInvocationArgument() async {
     String code = r'''
 class MyMap<K, V> {
   forEach(f(K key, V value)) {}
@@ -1304,7 +1307,7 @@ f(MyMap<int, String> m) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
@@ -1327,7 +1330,7 @@ f(MyMap<int, String> m) {
     expect(vIdentifier.staticType, same(typeProvider.dynamicType));
   }
 
-  void test_functionExpression_asInvocationArgument_fromInferredInvocation() {
+  test_functionExpression_asInvocationArgument_fromInferredInvocation() async {
     String code = r'''
 class MyMap<K, V> {
   forEach(f(K key, V value)) {}
@@ -1338,7 +1341,7 @@ f(MyMap<int, String> m) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
@@ -1353,8 +1356,7 @@ f(MyMap<int, String> m) {
     expect(vParameter.identifier.propagatedType, same(stringType));
   }
 
-  void
-      test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
+  test_functionExpression_asInvocationArgument_functionExpressionInvocation() async {
     String code = r'''
 main() {
   (f(String value)) {} ((v) {
@@ -1363,7 +1365,7 @@ main() {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -1379,7 +1381,7 @@ main() {
     expect(vIdentifier.staticType, same(dynamicType));
   }
 
-  void test_functionExpression_asInvocationArgument_keepIfLessSpecific() {
+  test_functionExpression_asInvocationArgument_keepIfLessSpecific() async {
     String code = r'''
 class MyList {
   forEach(f(Object value)) {}
@@ -1391,7 +1393,7 @@ f(MyList list) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -1406,7 +1408,7 @@ f(MyList list) {
     expect(vIdentifier.propagatedType, same(null));
   }
 
-  void test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() {
+  test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() async {
     String code = r'''
 class A {
   m(void f(int i)) {}
@@ -1417,7 +1419,8 @@ x() {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    await assertErrors(
+        source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // () => 0
@@ -1428,7 +1431,7 @@ x() {
     expect(functionExpression.propagatedType, same(null));
   }
 
-  void test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() {
+  test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() async {
     String code = r'''
 class MyList<E> {
   forEach(f(E value)) {}
@@ -1440,7 +1443,7 @@ f(MyList<String> list) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -1454,7 +1457,7 @@ f(MyList<String> list) {
     expect(vIdentifier.propagatedType, same(stringType));
   }
 
-  void test_Future_then() {
+  test_Future_then() async {
     String code = r'''
 import 'dart:async';
 main(Future<int> firstFuture) {
@@ -1467,7 +1470,7 @@ main(Future<int> firstFuture) {
 }''';
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // p1
@@ -1484,14 +1487,14 @@ main(Future<int> firstFuture) {
     expect(p3.identifier.propagatedType, same(typeProvider.stringType));
   }
 
-  void test_initializer() {
+  test_initializer() async {
     Source source = addSource(r'''
 f() {
   var v = 0;
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1514,7 +1517,7 @@ f() {
     }
   }
 
-  void test_initializer_dereference() {
+  test_initializer_dereference() async {
     Source source = addSource(r'''
 f() {
   var v = 'String';
@@ -1532,14 +1535,14 @@ f() {
     expect(variableName.propagatedType, same(typeProvider.stringType));
   }
 
-  void test_initializer_hasStaticType() {
+  test_initializer_hasStaticType() async {
     Source source = addSource(r'''
 f() {
   int v = 0;
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1563,14 +1566,14 @@ f() {
     }
   }
 
-  void test_initializer_hasStaticType_parameterized() {
+  test_initializer_hasStaticType_parameterized() async {
     Source source = addSource(r'''
 f() {
   List<int> v = <int>[];
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1594,7 +1597,7 @@ f() {
     }
   }
 
-  void test_initializer_null() {
+  test_initializer_null() async {
     String code = r'''
 main() {
   int v = null;
@@ -1604,7 +1607,7 @@ main() {
     {
       Source source = addSource(code);
       LibraryElement library = resolve2(source);
-      assertNoErrors(source);
+      await assertNoErrors(source);
       verify([source]);
       unit = resolveCompilationUnit(source, library);
     }
@@ -1622,7 +1625,7 @@ main() {
     }
   }
 
-  void test_invocation_target_prefixed() {
+  test_invocation_target_prefixed() async {
     addNamedSource(
         '/helper.dart',
         '''
@@ -1635,20 +1638,20 @@ main() {
   helper.max(10, 10); // marker
 }''';
     SimpleIdentifier methodName =
-        findMarkedIdentifier(code, "(10, 10); // marker");
+        await findMarkedIdentifier(code, "(10, 10); // marker");
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodInvoke.methodName.staticElement, isNotNull);
     expect(methodInvoke.methodName.propagatedElement, isNull);
   }
 
-  void test_is_conditional() {
+  test_is_conditional() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
   return (p is A) ? p : null;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1665,7 +1668,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_is_if() {
+  test_is_if() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1676,7 +1679,7 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // prepare A
@@ -1705,7 +1708,7 @@ A f(var p) {
     }
   }
 
-  void test_is_if_lessSpecific() {
+  test_is_if_lessSpecific() async {
     Source source = addSource(r'''
 class A {}
 A f(A p) {
@@ -1716,7 +1719,7 @@ A f(A p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
 //    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -1731,7 +1734,7 @@ A f(A p) {
     expect(variableName.propagatedType, same(null));
   }
 
-  void test_is_if_logicalAnd() {
+  test_is_if_logicalAnd() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1742,7 +1745,7 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1758,7 +1761,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_is_postConditional() {
+  test_is_postConditional() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1766,7 +1769,7 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1780,7 +1783,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_is_postIf() {
+  test_is_postIf() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1792,7 +1795,7 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1806,7 +1809,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_is_subclass() {
+  test_is_subclass() async {
     Source source = addSource(r'''
 class A {}
 class B extends A {
@@ -1819,7 +1822,7 @@ A f(A p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
     BlockFunctionBody body =
@@ -1832,7 +1835,7 @@ A f(A p) {
     expect(invocation.methodName.propagatedElement, isNull);
   }
 
-  void test_is_while() {
+  test_is_while() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1842,7 +1845,7 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1858,14 +1861,14 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_isNot_conditional() {
+  test_isNot_conditional() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
   return (p is! A) ? null : p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1882,7 +1885,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_isNot_if() {
+  test_isNot_if() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1893,7 +1896,7 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1909,7 +1912,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_isNot_if_logicalOr() {
+  test_isNot_if_logicalOr() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1920,7 +1923,7 @@ A f(var p) {
   }
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
@@ -1935,7 +1938,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_isNot_postConditional() {
+  test_isNot_postConditional() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1943,7 +1946,7 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1957,7 +1960,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_isNot_postIf() {
+  test_isNot_postIf() async {
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1967,7 +1970,7 @@ A f(var p) {
   return p;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -1981,7 +1984,7 @@ A f(var p) {
     expect(variableName.propagatedType, same(typeA));
   }
 
-  void test_issue20904BuggyTypePromotionAtIfJoin_5() {
+  test_issue20904BuggyTypePromotionAtIfJoin_5() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
     //
     // This is not an example of the 20904 bug, but rather,
@@ -2011,11 +2014,11 @@ f() {
     return a; // marker
   }
 }''';
-    DartType tB = findMarkedIdentifier(code, "; // B").propagatedType;
-    assertTypeOfMarkedExpression(code, null, tB);
+    DartType tB = (await findMarkedIdentifier(code, "; // B")).propagatedType;
+    await assertTypeOfMarkedExpression(code, null, tB);
   }
 
-  void test_issue20904BuggyTypePromotionAtIfJoin_6() {
+  test_issue20904BuggyTypePromotionAtIfJoin_6() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
     //
     // The other half of the *_5() test.
@@ -2031,18 +2034,18 @@ f() {
     return b; // marker
   }
 }''';
-    DartType tB = findMarkedIdentifier(code, "; // B").propagatedType;
-    assertTypeOfMarkedExpression(code, null, tB);
+    DartType tB = (await findMarkedIdentifier(code, "; // B")).propagatedType;
+    await assertTypeOfMarkedExpression(code, null, tB);
   }
 
-  void test_listLiteral_different() {
+  test_listLiteral_different() async {
     Source source = addSource(r'''
 f() {
   var v = [0, '1', 2];
   return v[2];
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2053,14 +2056,14 @@ f() {
     expect(indexExpression.propagatedType, isNull);
   }
 
-  void test_listLiteral_same() {
+  test_listLiteral_same() async {
     Source source = addSource(r'''
 f() {
   var v = [0, 1, 2];
   return v[2];
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2077,14 +2080,14 @@ f() {
     expect(typeArguments[0], same(typeProvider.dynamicType));
   }
 
-  void test_mapLiteral_different() {
+  test_mapLiteral_different() async {
     Source source = addSource(r'''
 f() {
   var v = {'0' : 0, 1 : '1', '2' : 2};
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2100,14 +2103,14 @@ f() {
     expect(typeArguments[1], same(typeProvider.dynamicType));
   }
 
-  void test_mapLiteral_same() {
+  test_mapLiteral_same() async {
     Source source = addSource(r'''
 f() {
   var v = {'a' : 0, 'b' : 1, 'c' : 2};
   return v;
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -2123,7 +2126,7 @@ f() {
     expect(typeArguments[1], same(typeProvider.dynamicType));
   }
 
-  void test_mergePropagatedTypes_afterIfThen_different() {
+  test_mergePropagatedTypes_afterIfThen_different() async {
     String code = r'''
 main() {
   var v = 0;
@@ -2133,17 +2136,17 @@ main() {
   return v;
 }''';
     {
-      SimpleIdentifier identifier = findMarkedIdentifier(code, "v;");
+      SimpleIdentifier identifier = await findMarkedIdentifier(code, "v;");
       expect(identifier.propagatedType, null);
     }
     {
-      SimpleIdentifier identifier = findMarkedIdentifier(code, "v = '';");
+      SimpleIdentifier identifier = await findMarkedIdentifier(code, "v = '';");
       expect(identifier.propagatedType, typeProvider.stringType);
     }
   }
 
-  void test_mergePropagatedTypes_afterIfThen_same() {
-    assertTypeOfMarkedExpression(
+  test_mergePropagatedTypes_afterIfThen_same() async {
+    await assertTypeOfMarkedExpression(
         r'''
 main() {
   var v = 1;
@@ -2156,8 +2159,8 @@ main() {
         typeProvider.intType);
   }
 
-  void test_mergePropagatedTypes_afterIfThenElse_different() {
-    assertTypeOfMarkedExpression(
+  test_mergePropagatedTypes_afterIfThenElse_different() async {
+    await assertTypeOfMarkedExpression(
         r'''
 main() {
   var v = 1;
@@ -2172,8 +2175,8 @@ main() {
         null);
   }
 
-  void test_mergePropagatedTypes_afterIfThenElse_same() {
-    assertTypeOfMarkedExpression(
+  test_mergePropagatedTypes_afterIfThenElse_same() async {
+    await assertTypeOfMarkedExpression(
         r'''
 main() {
   var v = 1;
@@ -2188,9 +2191,9 @@ main() {
         typeProvider.intType);
   }
 
-  void test_mergePropagatedTypesAtJoinPoint_4() {
+  test_mergePropagatedTypesAtJoinPoint_4() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f5(x) {
   var y = [];
@@ -2206,7 +2209,7 @@ f5(x) {
         typeProvider.intType);
   }
 
-  void test_mutatedOutsideScope() {
+  test_mutatedOutsideScope() async {
     // https://code.google.com/p/dart/issues/detail?id=22732
     Source source = addSource(r'''
 class Base {
@@ -2233,10 +2236,10 @@ void g() {
   }
   x = null;
 }''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
   }
 
-  void test_objectAccessInference_disabled_for_library_prefix() {
+  test_objectAccessInference_disabled_for_library_prefix() async {
     String name = 'hashCode';
     addNamedSource(
         '/helper.dart',
@@ -2250,13 +2253,13 @@ main() {
   helper.$name; // marker
 }''';
 
-    SimpleIdentifier id = findMarkedIdentifier(code, "; // marker");
+    SimpleIdentifier id = await findMarkedIdentifier(code, "; // marker");
     PrefixedIdentifier prefixedId = id.parent;
     expect(id.staticType, typeProvider.dynamicType);
     expect(prefixedId.staticType, typeProvider.dynamicType);
   }
 
-  void test_objectAccessInference_disabled_for_local_getter() {
+  test_objectAccessInference_disabled_for_local_getter() async {
     String name = 'hashCode';
     String code = '''
 dynamic get $name => null;
@@ -2264,23 +2267,24 @@ main() {
   $name; // marker
 }''';
 
-    SimpleIdentifier getter = findMarkedIdentifier(code, "; // marker");
+    SimpleIdentifier getter = await findMarkedIdentifier(code, "; // marker");
     expect(getter.staticType, typeProvider.dynamicType);
   }
 
-  void test_objectAccessInference_enabled_for_cascades() {
+  test_objectAccessInference_enabled_for_cascades() async {
     String name = 'hashCode';
     String code = '''
 main() {
   dynamic obj;
   obj..$name..$name; // marker
 }''';
-    PropertyAccess access = findMarkedIdentifier(code, "; // marker").parent;
+    PropertyAccess access =
+        (await findMarkedIdentifier(code, "; // marker")).parent;
     expect(access.staticType, typeProvider.dynamicType);
     expect(access.realTarget.staticType, typeProvider.dynamicType);
   }
 
-  void test_objectMethodInference_disabled_for_library_prefix() {
+  test_objectMethodInference_disabled_for_library_prefix() async {
     String name = 'toString';
     addNamedSource(
         '/helper.dart',
@@ -2293,50 +2297,53 @@ import 'helper.dart' as helper;
 main() {
   helper.$name(); // marker
 }''';
-    SimpleIdentifier methodName = findMarkedIdentifier(code, "(); // marker");
+    SimpleIdentifier methodName =
+        await findMarkedIdentifier(code, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
   }
 
-  void test_objectMethodInference_disabled_for_local_function() {
+  test_objectMethodInference_disabled_for_local_function() async {
     String name = 'toString';
     String code = '''
 main() {
   dynamic $name = () => null;
   $name(); // marker
 }''';
-    SimpleIdentifier identifier = findMarkedIdentifier(code, "$name = ");
+    SimpleIdentifier identifier = await findMarkedIdentifier(code, "$name = ");
     expect(identifier.staticType, typeProvider.dynamicType);
 
-    SimpleIdentifier methodName = findMarkedIdentifier(code, "(); // marker");
+    SimpleIdentifier methodName =
+        await findMarkedIdentifier(code, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
   }
 
-  void test_objectMethodInference_enabled_for_cascades() {
+  test_objectMethodInference_enabled_for_cascades() async {
     String name = 'toString';
     String code = '''
 main() {
   dynamic obj;
   obj..$name()..$name(); // marker
 }''';
-    SimpleIdentifier methodName = findMarkedIdentifier(code, "(); // marker");
+    SimpleIdentifier methodName =
+        await findMarkedIdentifier(code, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
 
     expect(methodInvoke.staticType, typeProvider.dynamicType);
     expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
   }
 
-  void test_objectMethodOnDynamicExpression_doubleEquals() {
+  test_objectMethodOnDynamicExpression_doubleEquals() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
     //
     // This was not actually part of Issue 20342, since the spec specifies a
     // static type of [bool] for [==] comparison and the implementation
     // was already consistent with the spec there. But, it's another
     // [Object] method, so it's included here.
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f1(x) {
   var v = (x == x);
@@ -2346,9 +2353,9 @@ f1(x) {
         typeProvider.boolType);
   }
 
-  void test_objectMethodOnDynamicExpression_hashCode() {
+  test_objectMethodOnDynamicExpression_hashCode() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f1(x) {
   var v = x.hashCode;
@@ -2358,9 +2365,9 @@ f1(x) {
         typeProvider.intType);
   }
 
-  void test_objectMethodOnDynamicExpression_runtimeType() {
+  test_objectMethodOnDynamicExpression_runtimeType() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f1(x) {
   var v = x.runtimeType;
@@ -2370,9 +2377,9 @@ f1(x) {
         typeProvider.typeType);
   }
 
-  void test_objectMethodOnDynamicExpression_toString() {
+  test_objectMethodOnDynamicExpression_toString() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    assertTypeOfMarkedExpression(
+    await assertTypeOfMarkedExpression(
         r'''
 f1(x) {
   var v = x.toString();
@@ -2382,17 +2389,17 @@ f1(x) {
         typeProvider.stringType);
   }
 
-  void test_propagatedReturnType_localFunction() {
+  test_propagatedReturnType_localFunction() async {
     String code = r'''
 main() {
   f() => 42;
   var v = f();
 }''';
-    assertPropagatedAssignedType(
+    await assertPropagatedAssignedType(
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void test_query() {
+  test_query() async {
     Source source = addSource(r'''
 import 'dart:html';
 
@@ -2413,7 +2420,7 @@ main() {
   return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];
 }''');
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration main = unit.declarations[0] as FunctionDeclaration;
@@ -2567,17 +2574,17 @@ class TypeResolverVisitorTest {
    */
   TypeResolverVisitor _visitor;
 
-  void fail_visitConstructorDeclaration() {
+  fail_visitConstructorDeclaration() async {
     fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
-  void fail_visitFunctionTypeAlias() {
+  fail_visitFunctionTypeAlias() async {
     fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
-  void fail_visitVariableDeclaration() {
+  fail_visitVariableDeclaration() async {
     fail("Not yet tested");
     ClassElement type = ElementFactory.classElement2("A");
     VariableDeclaration node = AstTestFactory.variableDeclaration("a");
@@ -2606,7 +2613,7 @@ class TypeResolverVisitorTest {
         nameScope: libraryScope);
   }
 
-  void test_modeApi() {
+  test_modeApi() async {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
 class C extends A with A implements A {
   A f = new A();
@@ -2707,7 +2714,7 @@ A V = new A();
     }
   }
 
-  void test_modeLocal_noContext() {
+  test_modeLocal_noContext() async {
     CompilationUnit unit;
     _resolveTypeModeLocal(
         r'''
@@ -2821,7 +2828,7 @@ A get G => new A();
     }
   }
 
-  void test_modeLocal_withContext_bad_methodBody() {
+  test_modeLocal_withContext_bad_methodBody() async {
     expect(() {
       _resolveTypeModeLocal(
           r'''
@@ -2840,7 +2847,7 @@ class C<T1> {
     }, throwsStateError);
   }
 
-  void test_modeLocal_withContext_bad_topLevelVariable_declaration() {
+  test_modeLocal_withContext_bad_topLevelVariable_declaration() async {
     expect(() {
       _resolveTypeModeLocal(
           r'''
@@ -2852,7 +2859,7 @@ var v = new A();
     }, throwsStateError);
   }
 
-  void test_modeLocal_withContext_bad_topLevelVariable_initializer() {
+  test_modeLocal_withContext_bad_topLevelVariable_initializer() async {
     expect(() {
       _resolveTypeModeLocal(
           r'''
@@ -2864,7 +2871,7 @@ var v = new A();
     }, throwsStateError);
   }
 
-  void test_modeLocal_withContext_class() {
+  test_modeLocal_withContext_class() async {
     ClassDeclaration c;
     _resolveTypeModeLocal(
         r'''
@@ -2899,7 +2906,7 @@ class C<T1> {
     }
   }
 
-  void test_modeLocal_withContext_inClass_constructor() {
+  test_modeLocal_withContext_inClass_constructor() async {
     ConstructorDeclaration cc;
     _resolveTypeModeLocal(
         r'''
@@ -2924,7 +2931,7 @@ class C<T> {
     }
   }
 
-  void test_modeLocal_withContext_inClass_method() {
+  test_modeLocal_withContext_inClass_method() async {
     MethodDeclaration m;
     _resolveTypeModeLocal(
         r'''
@@ -2959,7 +2966,7 @@ class C<T1> {
     }
   }
 
-  void test_modeLocal_withContext_topLevelFunction() {
+  test_modeLocal_withContext_topLevelFunction() async {
     FunctionDeclaration f;
     _resolveTypeModeLocal(
         r'''
@@ -2982,7 +2989,7 @@ A m<T>() {
     expect(vd.variables.type.type.toString(), 'T');
   }
 
-  void test_modeLocal_withContext_topLevelVariable() {
+  test_modeLocal_withContext_topLevelVariable() async {
     TopLevelVariableDeclaration v;
     _resolveTypeModeLocal(
         r'''
@@ -3000,7 +3007,7 @@ A v = new A();
     expect(vi.constructorName.type.type.toString(), 'A');
   }
 
-  void test_visitCatchClause_exception() {
+  test_visitCatchClause_exception() async {
     // catch (e)
     CatchClause clause = AstTestFactory.catchClause("e");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
@@ -3010,7 +3017,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitCatchClause_exception_stackTrace() {
+  test_visitCatchClause_exception_stackTrace() async {
     // catch (e, s)
     CatchClause clause = AstTestFactory.catchClause2("e", "s");
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
@@ -3024,7 +3031,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitCatchClause_on_exception() {
+  test_visitCatchClause_on_exception() async {
     // on E catch (e)
     ClassElement exceptionElement = ElementFactory.classElement2("E");
     TypeName exceptionType = AstTestFactory.typeName(exceptionElement);
@@ -3037,7 +3044,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitCatchClause_on_exception_stackTrace() {
+  test_visitCatchClause_on_exception_stackTrace() async {
     // on E catch (e, s)
     ClassElement exceptionElement = ElementFactory.classElement2("E");
     TypeName exceptionType = AstTestFactory.typeName(exceptionElement);
@@ -3054,7 +3061,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitClassDeclaration() {
+  test_visitClassDeclaration() async {
     // class A extends B with C implements D {}
     // class B {}
     // class C {}
@@ -3083,7 +3090,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitClassDeclaration_instanceMemberCollidesWithClass() {
+  test_visitClassDeclaration_instanceMemberCollidesWithClass() async {
     // class A {}
     // class B extends A {
     //   void A() {}
@@ -3103,7 +3110,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitClassTypeAlias() {
+  test_visitClassTypeAlias() async {
     // class A = B with C implements D;
     ClassElement elementA = ElementFactory.classElement2("A");
     ClassElement elementB = ElementFactory.classElement2("B");
@@ -3127,7 +3134,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitClassTypeAlias_constructorWithOptionalParams_ignored() {
+  test_visitClassTypeAlias_constructorWithOptionalParams_ignored() async {
     // class T {}
     // class B {
     //   B.c1();
@@ -3168,7 +3175,7 @@ A v = new A();
     expect(constructor.parameters, isEmpty);
   }
 
-  void test_visitClassTypeAlias_constructorWithParams() {
+  test_visitClassTypeAlias_constructorWithParams() async {
     // class T {}
     // class B {
     //   B(T a0);
@@ -3202,7 +3209,7 @@ A v = new A();
         equals(constructorB.parameters[0].name));
   }
 
-  void test_visitClassTypeAlias_defaultConstructor() {
+  test_visitClassTypeAlias_defaultConstructor() async {
     // class B {}
     // class M {}
     // class C = B with M
@@ -3230,7 +3237,7 @@ A v = new A();
     expect(constructor.parameters, isEmpty);
   }
 
-  void test_visitFieldFormalParameter_functionType() {
+  test_visitFieldFormalParameter_functionType() async {
     InterfaceType intType = _typeProvider.intType;
     TypeName intTypeName = AstTestFactory.typeName4("int");
     String innerParameterName = "a";
@@ -3255,7 +3262,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitFieldFormalParameter_noType() {
+  test_visitFieldFormalParameter_noType() async {
     String parameterName = "p";
     FormalParameter node =
         AstTestFactory.fieldFormalParameter(Keyword.VAR, null, parameterName);
@@ -3265,7 +3272,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitFieldFormalParameter_type() {
+  test_visitFieldFormalParameter_type() async {
     InterfaceType intType = _typeProvider.intType;
     TypeName intTypeName = AstTestFactory.typeName4("int");
     String parameterName = "p";
@@ -3277,7 +3284,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitFunctionDeclaration() {
+  test_visitFunctionDeclaration() async {
     // R f(P p) {}
     // class R {}
     // class P {}
@@ -3303,7 +3310,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitFunctionDeclaration_typeParameter() {
+  test_visitFunctionDeclaration_typeParameter() async {
     // E f<E>(E e) {}
     TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
     FunctionElementImpl elementF = ElementFactory.functionElement('f');
@@ -3327,7 +3334,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitFunctionTypedFormalParameter() {
+  test_visitFunctionTypedFormalParameter() async {
     // R f(R g(P p)) {}
     // class R {}
     // class P {}
@@ -3358,7 +3365,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitFunctionTypedFormalParameter_typeParameter() {
+  test_visitFunctionTypedFormalParameter_typeParameter() async {
     // R f(R g<E>(E e)) {}
     // class R {}
     ClassElement elementR = ElementFactory.classElement2('R');
@@ -3389,7 +3396,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitMethodDeclaration() {
+  test_visitMethodDeclaration() async {
     // class A {
     //   R m(P p) {}
     // }
@@ -3418,7 +3425,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitMethodDeclaration_typeParameter() {
+  test_visitMethodDeclaration_typeParameter() async {
     // class A {
     //   E m<E>(E e) {}
     // }
@@ -3445,7 +3452,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitSimpleFormalParameter_noType() {
+  test_visitSimpleFormalParameter_noType() async {
     // p
     FormalParameter node = AstTestFactory.simpleFormalParameter3("p");
     node.identifier.staticElement =
@@ -3454,7 +3461,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitSimpleFormalParameter_type() {
+  test_visitSimpleFormalParameter_type() async {
     // int p
     InterfaceType intType = _typeProvider.intType;
     ClassElement intElement = intType.element;
@@ -3467,7 +3474,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitTypeName_noParameters_noArguments() {
+  test_visitTypeName_noParameters_noArguments() async {
     ClassElement classA = ElementFactory.classElement2("A");
     TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
@@ -3476,7 +3483,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitTypeName_noParameters_noArguments_undefined() {
+  test_visitTypeName_noParameters_noArguments_undefined() async {
     SimpleIdentifier id = AstTestFactory.identifier3("unknown")
       ..staticElement = new _StaleElement();
     TypeName typeName = astFactory.typeName(id, null);
@@ -3486,7 +3493,7 @@ A v = new A();
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
 
-  void test_visitTypeName_parameters_arguments() {
+  test_visitTypeName_parameters_arguments() async {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
     TypeName typeName =
@@ -3501,7 +3508,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitTypeName_parameters_noArguments() {
+  test_visitTypeName_parameters_noArguments() async {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
@@ -3514,7 +3521,7 @@ A v = new A();
     _listener.assertNoErrors();
   }
 
-  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
+  test_visitTypeName_prefixed_noParameters_noArguments_undefined() async {
     SimpleIdentifier prefix = AstTestFactory.identifier3("unknownPrefix")
       ..staticElement = new _StaleElement();
     SimpleIdentifier suffix = AstTestFactory.identifier3("unknownSuffix")
@@ -3528,7 +3535,7 @@ A v = new A();
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
 
-  void test_visitTypeName_void() {
+  test_visitTypeName_void() async {
     ClassElement classA = ElementFactory.classElement2("A");
     TypeName typeName = AstTestFactory.typeName4("void");
     _resolveNode(typeName, [classA]);

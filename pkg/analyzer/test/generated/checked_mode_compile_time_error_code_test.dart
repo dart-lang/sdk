@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
-  void test_fieldFormalParameterAssignableToField_extends() {
+  test_fieldFormalParameterAssignableToField_extends() async {
     // According to checked-mode type checking rules, a value of type B is
     // assignable to a field of type A, because B extends A (and hence is a
     // subtype of A).
@@ -34,11 +34,11 @@ class C {
   const C(this.a);
 }
 var v = const C(const B());''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_fieldType_unresolved_null() {
+  test_fieldFormalParameterAssignableToField_fieldType_unresolved_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     Source source = addSource(r'''
@@ -47,11 +47,11 @@ class A {
   const A(String this.x);
 }
 var v = const A(null);''');
-    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
+    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_implements() {
+  test_fieldFormalParameterAssignableToField_implements() async {
     // According to checked-mode type checking rules, a value of type B is
     // assignable to a field of type A, because B implements A (and hence is a
     // subtype of A).
@@ -65,33 +65,33 @@ class C {
   const C(this.a);
 }
 var v = const C(const B());''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_list_dynamic() {
+  test_fieldFormalParameterAssignableToField_list_dynamic() async {
     // [1, 2, 3] has type List<dynamic>, which is a subtype of List<int>.
     Source source = addSource(r'''
 class A {
   const A(List<int> x);
 }
 var x = const A(const [1, 2, 3]);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_list_nonDynamic() {
+  test_fieldFormalParameterAssignableToField_list_nonDynamic() async {
     // <int>[1, 2, 3] has type List<int>, which is a subtype of List<num>.
     Source source = addSource(r'''
 class A {
   const A(List<num> x);
 }
 var x = const A(const <int>[1, 2, 3]);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_map_dynamic() {
+  test_fieldFormalParameterAssignableToField_map_dynamic() async {
     // {1: 2} has type Map<dynamic, dynamic>, which is a subtype of
     // Map<int, int>.
     Source source = addSource(r'''
@@ -99,11 +99,11 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const {1: 2});''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_map_keyDifferent() {
+  test_fieldFormalParameterAssignableToField_map_keyDifferent() async {
     // <int, int>{1: 2} has type Map<int, int>, which is a subtype of
     // Map<num, int>.
     Source source = addSource(r'''
@@ -111,11 +111,11 @@ class A {
   const A(Map<num, int> x);
 }
 var x = const A(const <int, int>{1: 2});''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_map_valueDifferent() {
+  test_fieldFormalParameterAssignableToField_map_valueDifferent() async {
     // <int, int>{1: 2} has type Map<int, int>, which is a subtype of
     // Map<int, num>.
     Source source = addSource(r'''
@@ -123,11 +123,11 @@ class A {
   const A(Map<int, num> x);
 }
 var x = const A(const <int, int>{1: 2});''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_notype() {
+  test_fieldFormalParameterAssignableToField_notype() async {
     // If a field is declared without a type, then any value may be assigned to
     // it.
     Source source = addSource(r'''
@@ -136,11 +136,11 @@ class A {
   const A(this.x);
 }
 var v = const A(5);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_null() {
+  test_fieldFormalParameterAssignableToField_null() async {
     // Null is assignable to anything.
     Source source = addSource(r'''
 class A {
@@ -148,11 +148,11 @@ class A {
   const A(this.x);
 }
 var v = const A(null);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_typedef() {
+  test_fieldFormalParameterAssignableToField_typedef() async {
     // foo has the runtime type dynamic -> dynamic, so it should be assignable
     // to A.f.
     Source source = addSource(r'''
@@ -163,11 +163,11 @@ class A {
 }
 foo(x) => 1;
 var v = const A(foo);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterAssignableToField_typeSubstitution() {
+  test_fieldFormalParameterAssignableToField_typeSubstitution() async {
     // foo has the runtime type dynamic -> dynamic, so it should be assignable
     // to A.f.
     Source source = addSource(r'''
@@ -176,25 +176,25 @@ class A<T> {
   const A(this.x);
 }
 var v = const A<int>(3);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField() {
+  test_fieldFormalParameterNotAssignableToField() async {
     Source source = addSource(r'''
 class A {
   final int x;
   const A(this.x);
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_extends() {
+  test_fieldFormalParameterNotAssignableToField_extends() async {
     // According to checked-mode type checking rules, a value of type A is not
     // assignable to a field of type B, because B extends A (the subtyping
     // relationship is in the wrong direction).
@@ -210,41 +210,41 @@ class C {
   const C(this.b);
 }
 var v = const C(const A());''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_fieldType() {
+  test_fieldFormalParameterNotAssignableToField_fieldType() async {
     Source source = addSource(r'''
 class A {
   final int x;
   const A(String this.x);
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_fieldType_unresolved() {
+  test_fieldFormalParameterNotAssignableToField_fieldType_unresolved() async {
     Source source = addSource(r'''
 class A {
   final Unresolved x;
   const A(String this.x);
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_implements() {
+  test_fieldFormalParameterNotAssignableToField_implements() async {
     // According to checked-mode type checking rules, a value of type A is not
     // assignable to a field of type B, because B implements A (the subtyping
     // relationship is in the wrong direction).
@@ -258,26 +258,26 @@ class C {
   const C(this.b);
 }
 var v = const C(const A());''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_list() {
+  test_fieldFormalParameterNotAssignableToField_list() async {
     // <num>[1, 2, 3] has type List<num>, which is not a subtype of List<int>.
     Source source = addSource(r'''
 class A {
   const A(List<int> x);
 }
 var x = const A(const <num>[1, 2, 3]);''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_map_keyMismatch() {
+  test_fieldFormalParameterNotAssignableToField_map_keyMismatch() async {
     // <num, int>{1: 2} has type Map<num, int>, which is not a subtype of
     // Map<int, int>.
     Source source = addSource(r'''
@@ -285,13 +285,13 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const <num, int>{1: 2});''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_map_valueMismatch() {
+  test_fieldFormalParameterNotAssignableToField_map_valueMismatch() async {
     // <int, num>{1: 2} has type Map<int, num>, which is not a subtype of
     // Map<int, int>.
     Source source = addSource(r'''
@@ -299,27 +299,27 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const <int, num>{1: 2});''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_optional() {
+  test_fieldFormalParameterNotAssignableToField_optional() async {
     Source source = addSource(r'''
 class A {
   final int x;
   const A([this.x = 'foo']);
 }
 var v = const A();''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
     ]);
     verify([source]);
   }
 
-  void test_fieldFormalParameterNotAssignableToField_typedef() {
+  test_fieldFormalParameterNotAssignableToField_typedef() async {
     // foo has the runtime type String -> int, so it should not be assignable
     // to A.f (A.f requires it to be int -> String).
     Source source = addSource(r'''
@@ -330,40 +330,40 @@ class A {
 }
 int foo(String x) => 1;
 var v = const A(foo);''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_fieldInitializerNotAssignable() {
+  test_fieldInitializerNotAssignable() async {
     Source source = addSource(r'''
 class A {
   final int x;
   const A() : x = '';
 }''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
       StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_fieldTypeMismatch() {
+  test_fieldTypeMismatch() async {
     Source source = addSource(r'''
 class A {
   const A(x) : y = x;
   final int y;
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_fieldTypeMismatch_generic() {
+  test_fieldTypeMismatch_generic() async {
     Source source = addSource(r'''
 class C<T> {
   final T x = y;
@@ -372,28 +372,28 @@ class C<T> {
 const int y = 1;
 var v = const C<String>();
 ''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
     ]);
     verify([source]);
   }
 
-  void test_fieldTypeMismatch_unresolved() {
+  test_fieldTypeMismatch_unresolved() async {
     Source source = addSource(r'''
 class A {
   const A(x) : y = x;
   final Unresolved y;
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
     ]);
     verify([source]);
   }
 
-  void test_fieldTypeOk_generic() {
+  test_fieldTypeOk_generic() async {
     Source source = addSource(r'''
 class C<T> {
   final T x = y;
@@ -402,22 +402,22 @@ class C<T> {
 const int y = 1;
 var v = const C<int>();
 ''');
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    await assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
-  void test_fieldTypeOk_null() {
+  test_fieldTypeOk_null() async {
     Source source = addSource(r'''
 class A {
   const A(x) : y = x;
   final int y;
 }
 var v = const A(null);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_fieldTypeOk_unresolved_null() {
+  test_fieldTypeOk_unresolved_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     Source source = addSource(r'''
@@ -426,59 +426,59 @@ class A {
   final Unresolved y;
 }
 var v = const A(null);''');
-    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
+    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
-  void test_listElementTypeNotAssignable() {
+  test_listElementTypeNotAssignable() async {
     Source source = addSource("var v = const <String> [42];");
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_mapKeyTypeNotAssignable() {
+  test_mapKeyTypeNotAssignable() async {
     Source source = addSource("var v = const <String, int > {1 : 2};");
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_mapValueTypeNotAssignable() {
+  test_mapValueTypeNotAssignable() async {
     Source source = addSource("var v = const <String, String> {'a' : 2};");
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_parameterAssignable_null() {
+  test_parameterAssignable_null() async {
     // Null is assignable to anything.
     Source source = addSource(r'''
 class A {
   const A(int x);
 }
 var v = const A(null);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_parameterAssignable_typeSubstitution() {
+  test_parameterAssignable_typeSubstitution() async {
     Source source = addSource(r'''
 class A<T> {
   const A(T x);
 }
 var v = const A<int>(3);''');
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_parameterAssignable_undefined_null() {
+  test_parameterAssignable_undefined_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     Source source = addSource(r'''
@@ -486,88 +486,88 @@ class A {
   const A(Unresolved x);
 }
 var v = const A(null);''');
-    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
+    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
-  void test_parameterNotAssignable() {
+  test_parameterNotAssignable() async {
     Source source = addSource(r'''
 class A {
   const A(int x);
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_parameterNotAssignable_typeSubstitution() {
+  test_parameterNotAssignable_typeSubstitution() async {
     Source source = addSource(r'''
 class A<T> {
   const A(T x);
 }
 var v = const A<int>('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
 
-  void test_parameterNotAssignable_undefined() {
+  test_parameterNotAssignable_undefined() async {
     Source source = addSource(r'''
 class A {
   const A(Unresolved x);
 }
 var v = const A('foo');''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
     ]);
     verify([source]);
   }
 
-  void test_redirectingConstructor_paramTypeMismatch() {
+  test_redirectingConstructor_paramTypeMismatch() async {
     Source source = addSource(r'''
 class A {
   const A.a1(x) : this.a2(x);
   const A.a2(String x);
 }
 var v = const A.a1(0);''');
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
     verify([source]);
   }
 
-  void test_topLevelVarAssignable_null() {
+  test_topLevelVarAssignable_null() async {
     Source source = addSource("const int x = null;");
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
-  void test_topLevelVarAssignable_undefined_null() {
+  test_topLevelVarAssignable_undefined_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     Source source = addSource("const Unresolved x = null;");
-    assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
+    await assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
-  void test_topLevelVarNotAssignable() {
+  test_topLevelVarNotAssignable() async {
     Source source = addSource("const int x = 'foo';");
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
     ]);
     verify([source]);
   }
 
-  void test_topLevelVarNotAssignable_undefined() {
+  test_topLevelVarNotAssignable_undefined() async {
     Source source = addSource("const Unresolved x = 'foo';");
-    assertErrors(source, [
+    await assertErrors(source, [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
     ]);

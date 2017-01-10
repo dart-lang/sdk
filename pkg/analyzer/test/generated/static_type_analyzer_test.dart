@@ -41,17 +41,17 @@ main() {
  */
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  void test_FunctionExpressionInvocation_block() {
+  test_FunctionExpressionInvocation_block() async {
     String code = r'''
 main() {
   var foo = (() { return 1; })();
 }
 ''';
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     expectInitializerType('foo', 'dynamic', isNull);
   }
 
-  void test_FunctionExpressionInvocation_curried() {
+  test_FunctionExpressionInvocation_curried() async {
     String code = r'''
 typedef int F();
 F f() => null;
@@ -59,21 +59,21 @@ main() {
   var foo = f()();
 }
 ''';
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     expectInitializerType('foo', 'int', isNull);
   }
 
-  void test_FunctionExpressionInvocation_expression() {
+  test_FunctionExpressionInvocation_expression() async {
     String code = r'''
 main() {
   var foo = (() => 1)();
 }
 ''';
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     expectInitializerType('foo', 'int', isNull);
   }
 
-  void test_MethodInvocation_nameType_localVariable() {
+  test_MethodInvocation_nameType_localVariable() async {
     String code = r"""
 typedef Foo();
 main() {
@@ -81,24 +81,24 @@ main() {
   foo();
 }
 """;
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
     expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
   }
 
-  void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
+  test_MethodInvocation_nameType_parameter_FunctionTypeAlias() async {
     String code = r"""
 typedef Foo();
 main(Foo foo) {
   foo();
 }
 """;
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
     expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
   }
 
-  void test_MethodInvocation_nameType_parameter_propagatedType() {
+  test_MethodInvocation_nameType_parameter_propagatedType() async {
     String code = r"""
 typedef Foo();
 main(p) {
@@ -107,12 +107,12 @@ main(p) {
   }
 }
 """;
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     expectIdentifierType("p()", DynamicTypeImpl.instance,
         predicate((type) => type.name == 'Foo'));
   }
 
-  void test_staticMethods_classTypeParameters() {
+  test_staticMethods_classTypeParameters() async {
     String code = r'''
 class C<T> {
   static void m() => null;
@@ -121,11 +121,11 @@ main() {
   print(C.m);
 }
 ''';
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     expectFunctionType('m);', '() → void');
   }
 
-  void test_staticMethods_classTypeParameters_genericMethod() {
+  test_staticMethods_classTypeParameters_genericMethod() async {
     String code = r'''
 class C<T> {
   static void m<S>(S s) {
@@ -137,7 +137,7 @@ main() {
   print(C.m);
 }
 ''';
-    resolveTestUnit(code);
+    await resolveTestUnit(code);
     // C - m
     TypeParameterType typeS;
     {

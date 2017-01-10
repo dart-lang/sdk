@@ -23,10 +23,10 @@ main() {
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  void fail_method_lookup_mixin_of_extends() {
+  fail_method_lookup_mixin_of_extends() async {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
-    assertErrorsInUnverifiedCode(
+    await assertErrorsInUnverifiedCode(
         '''
 class A { a() => null; }
 class B {}
@@ -43,10 +43,10 @@ main() {
         ]);
   }
 
-  void fail_method_lookup_mixin_of_implements() {
+  fail_method_lookup_mixin_of_implements() async {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
-    assertErrorsInUnverifiedCode(
+    await assertErrorsInUnverifiedCode(
         '''
 class A { a() => null; }
 class B {}
@@ -62,10 +62,10 @@ main() {
         ]);
   }
 
-  void fail_method_lookup_mixin_of_mixin() {
+  fail_method_lookup_mixin_of_mixin() async {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
-    assertErrorsInUnverifiedCode(
+    await assertErrorsInUnverifiedCode(
         '''
 class A {}
 class B { b() => null; }
@@ -79,10 +79,10 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void fail_method_lookup_mixin_of_mixin_application() {
+  fail_method_lookup_mixin_of_mixin_application() async {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
-    assertErrorsInUnverifiedCode(
+    await assertErrorsInUnverifiedCode(
         '''
 class A { a() => null; }
 class B {}
@@ -96,8 +96,8 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
-    assertErrorsInCode(
+  fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -107,9 +107,9 @@ F<B> fff;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void fail_undefinedEnumConstant() {
+  fail_undefinedEnumConstant() async {
     // We need a way to set the parseEnum flag in the parser to true.
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 enum E { ONE }
 E e() {
@@ -118,7 +118,7 @@ E e() {
         [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
   }
 
-  void test_ambiguousImport_function() {
+  test_ambiguousImport_function() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -133,16 +133,16 @@ f() {}''');
         r'''
 library lib2;
 f() {}''');
-    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    await assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_assert_message_suppresses_type_promotion() {
+  test_assert_message_suppresses_type_promotion() async {
     // If a variable is assigned to inside the expression for an assert
     // message, type promotion should be suppressed, just as it would be if the
     // assignment occurred outside an assert statement.  (Note that it is a
     // dubious practice for the computation of an assert message to have side
     // effects, since it is only evaluated if the assert fails).
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 class C {
   void foo() {}
@@ -159,8 +159,8 @@ f(Object x) {
     // Do not verify since `x.foo()` fails to resolve.
   }
 
-  void test_await_flattened() {
-    assertErrorsInCode(
+  test_await_flattened() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Future<Future<int>> ffi() => null;
@@ -171,8 +171,8 @@ f() async {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_await_simple() {
-    assertErrorsInCode(
+  test_await_simple() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Future<int> fi() => null;
@@ -183,8 +183,8 @@ f() async {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_awaitForIn_declaredVariableRightType() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_declaredVariableRightType() async {
+    await assertNoErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
@@ -193,8 +193,8 @@ f() async {
 ''');
   }
 
-  void test_awaitForIn_declaredVariableWrongType() {
-    assertErrorsInCode(
+  test_awaitForIn_declaredVariableWrongType() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 f() async {
@@ -205,8 +205,8 @@ f() async {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
   }
 
-  void test_awaitForIn_downcast() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_downcast() async {
+    await assertNoErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<num> stream;
@@ -215,8 +215,8 @@ f() async {
 ''');
   }
 
-  void test_awaitForIn_dynamicStream() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_dynamicStream() async {
+    await assertNoErrorsInCode('''
 f() async {
   dynamic stream;
   await for (int i in stream) {}
@@ -224,8 +224,8 @@ f() async {
 ''');
   }
 
-  void test_awaitForIn_dynamicVariable() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_dynamicVariable() async {
+    await assertNoErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
@@ -234,8 +234,8 @@ f() async {
 ''');
   }
 
-  void test_awaitForIn_existingVariableRightType() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_existingVariableRightType() async {
+    await assertNoErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
@@ -245,8 +245,8 @@ f() async {
 ''');
   }
 
-  void test_awaitForIn_existingVariableWrongType() {
-    assertErrorsInCode(
+  test_awaitForIn_existingVariableWrongType() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 f() async {
@@ -258,8 +258,8 @@ f() async {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
   }
 
-  void test_awaitForIn_notStream() {
-    assertErrorsInCode(
+  test_awaitForIn_notStream() async {
+    await assertErrorsInCode(
         '''
 f() async {
   await for (var i in true) {}
@@ -268,8 +268,8 @@ f() async {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
   }
 
-  void test_awaitForIn_streamOfDynamic() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_streamOfDynamic() async {
+    await assertNoErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream stream;
@@ -278,8 +278,8 @@ f() async {
 ''');
   }
 
-  void test_awaitForIn_upcast() {
-    assertNoErrorsInCode('''
+  test_awaitForIn_upcast() async {
+    await assertNoErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
@@ -288,8 +288,8 @@ f() async {
 ''');
   }
 
-  void test_bug21912() {
-    assertErrorsInCode(
+  test_bug21912() async {
+    await assertErrorsInCode(
         '''
 class A {}
 class B extends A {}
@@ -316,8 +316,8 @@ void main() {
         ]);
   }
 
-  void test_expectedOneListTypeArgument() {
-    assertErrorsInCode(
+  test_expectedOneListTypeArgument() async {
+    await assertErrorsInCode(
         r'''
 main() {
   <int, int> [];
@@ -325,8 +325,8 @@ main() {
         [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
   }
 
-  void test_expectedTwoMapTypeArguments_one() {
-    assertErrorsInCode(
+  test_expectedTwoMapTypeArguments_one() async {
+    await assertErrorsInCode(
         r'''
 main() {
   <int> {};
@@ -334,8 +334,8 @@ main() {
         [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 
-  void test_expectedTwoMapTypeArguments_three() {
-    assertErrorsInCode(
+  test_expectedTwoMapTypeArguments_three() async {
+    await assertErrorsInCode(
         r'''
 main() {
   <int, int, int> {};
@@ -343,16 +343,16 @@ main() {
         [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 
-  void test_forIn_declaredVariableRightType() {
-    assertNoErrorsInCode('''
+  test_forIn_declaredVariableRightType() async {
+    await assertNoErrorsInCode('''
 f() {
   for (int i in <int>[]) {}
 }
 ''');
   }
 
-  void test_forIn_declaredVariableWrongType() {
-    assertErrorsInCode(
+  test_forIn_declaredVariableWrongType() async {
+    await assertErrorsInCode(
         '''
 f() {
   for (int i in <String>[]) {}
@@ -361,16 +361,16 @@ f() {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
   }
 
-  void test_forIn_downcast() {
-    assertNoErrorsInCode('''
+  test_forIn_downcast() async {
+    await assertNoErrorsInCode('''
 f() {
   for (int i in <num>[]) {}
 }
 ''');
   }
 
-  void test_forIn_dynamic() {
-    assertNoErrorsInCode('''
+  test_forIn_dynamic() async {
+    await assertNoErrorsInCode('''
 f() {
   dynamic d; // Could be [].
   for (var i in d) {}
@@ -378,8 +378,8 @@ f() {
 ''');
   }
 
-  void test_forIn_dynamicIterable() {
-    assertNoErrorsInCode('''
+  test_forIn_dynamicIterable() async {
+    await assertNoErrorsInCode('''
 f() {
   dynamic iterable;
   for (int i in iterable) {}
@@ -387,16 +387,16 @@ f() {
 ''');
   }
 
-  void test_forIn_dynamicVariable() {
-    assertNoErrorsInCode('''
+  test_forIn_dynamicVariable() async {
+    await assertNoErrorsInCode('''
 f() {
   for (var i in <int>[]) {}
 }
 ''');
   }
 
-  void test_forIn_existingVariableRightType() {
-    assertNoErrorsInCode('''
+  test_forIn_existingVariableRightType() async {
+    await assertNoErrorsInCode('''
 f() {
   int i;
   for (i in <int>[]) {}
@@ -404,8 +404,8 @@ f() {
 ''');
   }
 
-  void test_forIn_existingVariableWrongType() {
-    assertErrorsInCode(
+  test_forIn_existingVariableWrongType() async {
+    await assertErrorsInCode(
         '''
 f() {
   int i;
@@ -415,16 +415,16 @@ f() {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
   }
 
-  void test_forIn_iterableOfDynamic() {
-    assertNoErrorsInCode('''
+  test_forIn_iterableOfDynamic() async {
+    await assertNoErrorsInCode('''
 f() {
   for (int i in []) {}
 }
 ''');
   }
 
-  void test_forIn_notIterable() {
-    assertErrorsInCode(
+  test_forIn_notIterable() async {
+    await assertErrorsInCode(
         '''
 f() {
   for (var i in true) {}
@@ -433,8 +433,8 @@ f() {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
   }
 
-  void test_forIn_object() {
-    assertNoErrorsInCode('''
+  test_forIn_object() async {
+    await assertNoErrorsInCode('''
 f() {
   Object o; // Could be [].
   for (var i in o) {}
@@ -442,8 +442,8 @@ f() {
 ''');
   }
 
-  void test_forIn_typeBoundBad() {
-    assertErrorsInCode(
+  test_forIn_typeBoundBad() async {
+    await assertErrorsInCode(
         '''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
@@ -454,8 +454,8 @@ class Foo<T extends Iterable<int>> {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
   }
 
-  void test_forIn_typeBoundGood() {
-    assertNoErrorsInCode('''
+  test_forIn_typeBoundGood() async {
+    await assertNoErrorsInCode('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (var i in iterable) {}
@@ -464,25 +464,25 @@ class Foo<T extends Iterable<int>> {
 ''');
   }
 
-  void test_forIn_upcast() {
-    assertNoErrorsInCode('''
+  test_forIn_upcast() async {
+    await assertNoErrorsInCode('''
 f() {
   for (num i in <int>[]) {}
 }
 ''');
   }
 
-  void test_illegalAsyncGeneratorReturnType_function_nonStream() {
-    assertErrorsInCode(
+  test_illegalAsyncGeneratorReturnType_function_nonStream() async {
+    await assertErrorsInCode(
         '''
 int f() async* {}
 ''',
         [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() {
+  test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 abstract class SubStream<T> implements Stream<T> {}
@@ -491,8 +491,8 @@ SubStream<int> f() async* {}
         [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalAsyncGeneratorReturnType_method_nonStream() {
-    assertErrorsInCode(
+  test_illegalAsyncGeneratorReturnType_method_nonStream() async {
+    await assertErrorsInCode(
         '''
 class C {
   int f() async* {}
@@ -501,9 +501,9 @@ class C {
         [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() {
+  test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 abstract class SubStream<T> implements Stream<T> {}
@@ -514,8 +514,8 @@ class C {
         [StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalAsyncReturnType_function_nonFuture() {
-    assertErrorsInCode(
+  test_illegalAsyncReturnType_function_nonFuture() async {
+    await assertErrorsInCode(
         '''
 int f() async {}
 ''',
@@ -525,9 +525,9 @@ int f() async {}
         ]);
   }
 
-  void test_illegalAsyncReturnType_function_subtypeOfFuture() {
+  test_illegalAsyncReturnType_function_subtypeOfFuture() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
@@ -538,8 +538,8 @@ SubFuture<int> f() async {
         [StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE]);
   }
 
-  void test_illegalAsyncReturnType_method_nonFuture() {
-    assertErrorsInCode(
+  test_illegalAsyncReturnType_method_nonFuture() async {
+    await assertErrorsInCode(
         '''
 class C {
   int m() async {}
@@ -551,9 +551,9 @@ class C {
         ]);
   }
 
-  void test_illegalAsyncReturnType_method_subtypeOfFuture() {
+  test_illegalAsyncReturnType_method_subtypeOfFuture() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
@@ -566,17 +566,17 @@ class C {
         [StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE]);
   }
 
-  void test_illegalSyncGeneratorReturnType_function_nonIterator() {
-    assertErrorsInCode(
+  test_illegalSyncGeneratorReturnType_function_nonIterator() async {
+    await assertErrorsInCode(
         '''
 int f() sync* {}
 ''',
         [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalSyncGeneratorReturnType_function_subclassOfIterator() {
+  test_illegalSyncGeneratorReturnType_function_subclassOfIterator() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 abstract class SubIterator<T> implements Iterator<T> {}
 SubIterator<int> f() sync* {}
@@ -584,8 +584,8 @@ SubIterator<int> f() sync* {}
         [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalSyncGeneratorReturnType_method_nonIterator() {
-    assertErrorsInCode(
+  test_illegalSyncGeneratorReturnType_method_nonIterator() async {
+    await assertErrorsInCode(
         '''
 class C {
   int f() sync* {}
@@ -594,9 +594,9 @@ class C {
         [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_illegalSyncGeneratorReturnType_method_subclassOfIterator() {
+  test_illegalSyncGeneratorReturnType_method_subclassOfIterator() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 abstract class SubIterator<T> implements Iterator<T> {}
 class C {
@@ -606,8 +606,8 @@ class C {
         [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  void test_inconsistentMethodInheritance_paramCount() {
-    assertErrorsInCode(
+  test_inconsistentMethodInheritance_paramCount() async {
+    await assertErrorsInCode(
         r'''
 abstract class A {
   int x();
@@ -620,8 +620,8 @@ class C implements A, B {
         [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_inconsistentMethodInheritance_paramType() {
-    assertErrorsInCode(
+  test_inconsistentMethodInheritance_paramType() async {
+    await assertErrorsInCode(
         r'''
 abstract class A {
   x(int i);
@@ -634,8 +634,8 @@ abstract class C implements A, B {}
         [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_inconsistentMethodInheritance_returnType() {
-    assertErrorsInCode(
+  test_inconsistentMethodInheritance_returnType() async {
+    await assertErrorsInCode(
         r'''
 abstract class A {
   int x();
@@ -648,8 +648,8 @@ abstract class C implements A, B {}
         [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_instanceAccessToStaticMember_method_invocation() {
-    assertErrorsInCode(
+  test_instanceAccessToStaticMember_method_invocation() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static m() {}
@@ -660,8 +660,8 @@ main(A a) {
         [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
-  void test_instanceAccessToStaticMember_method_reference() {
-    assertErrorsInCode(
+  test_instanceAccessToStaticMember_method_reference() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static m() {}
@@ -672,8 +672,8 @@ main(A a) {
         [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
-  void test_instanceAccessToStaticMember_propertyAccess_field() {
-    assertErrorsInCode(
+  test_instanceAccessToStaticMember_propertyAccess_field() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static var f;
@@ -684,8 +684,8 @@ main(A a) {
         [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
-  void test_instanceAccessToStaticMember_propertyAccess_getter() {
-    assertErrorsInCode(
+  test_instanceAccessToStaticMember_propertyAccess_getter() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static get f => 42;
@@ -696,8 +696,8 @@ main(A a) {
         [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
-  void test_instanceAccessToStaticMember_propertyAccess_setter() {
-    assertErrorsInCode(
+  test_instanceAccessToStaticMember_propertyAccess_setter() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static set f(x) {}
@@ -708,8 +708,8 @@ main(A a) {
         [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
-  void test_invalidAssignment_compoundAssignment() {
-    assertErrorsInCode(
+  test_invalidAssignment_compoundAssignment() async {
+    await assertErrorsInCode(
         r'''
 class byte {
   int _value;
@@ -724,24 +724,24 @@ void main() {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_defaultValue_named() {
-    assertErrorsInCode(
+  test_invalidAssignment_defaultValue_named() async {
+    await assertErrorsInCode(
         r'''
 f({String x: 0}) {
 }''',
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_defaultValue_optional() {
-    assertErrorsInCode(
+  test_invalidAssignment_defaultValue_optional() async {
+    await assertErrorsInCode(
         r'''
 f([String x = 0]) {
 }''',
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_dynamic() {
-    assertErrorsInCode(
+  test_invalidAssignment_dynamic() async {
+    await assertErrorsInCode(
         r'''
 main() {
   dynamic = 1;
@@ -750,8 +750,8 @@ main() {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_functionExpressionInvocation() {
-    assertErrorsInCode(
+  test_invalidAssignment_functionExpressionInvocation() async {
+    await assertErrorsInCode(
         '''
 main() {
   String x = (() => 5)();
@@ -759,8 +759,8 @@ main() {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_ifNullAssignment() {
-    assertErrorsInCode(
+  test_invalidAssignment_ifNullAssignment() async {
+    await assertErrorsInCode(
         '''
 void f(int i) {
   double d;
@@ -770,8 +770,8 @@ void f(int i) {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_instanceVariable() {
-    assertErrorsInCode(
+  test_invalidAssignment_instanceVariable() async {
+    await assertErrorsInCode(
         r'''
 class A {
   int x;
@@ -783,8 +783,8 @@ f() {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_localVariable() {
-    assertErrorsInCode(
+  test_invalidAssignment_localVariable() async {
+    await assertErrorsInCode(
         r'''
 f() {
   int x;
@@ -793,9 +793,9 @@ f() {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_regressionInIssue18468Fix() {
+  test_invalidAssignment_regressionInIssue18468Fix() async {
     // https://code.google.com/p/dart/issues/detail?id=18628
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 class C<T> {
   T t = int;
@@ -803,8 +803,8 @@ class C<T> {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_staticVariable() {
-    assertErrorsInCode(
+  test_invalidAssignment_staticVariable() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static int x;
@@ -815,14 +815,14 @@ f() {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_topLevelVariableDeclaration() {
-    assertErrorsInCode(
+  test_invalidAssignment_topLevelVariableDeclaration() async {
+    await assertErrorsInCode(
         "int x = 'string';", [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_typeParameter() {
+  test_invalidAssignment_typeParameter() async {
     // 14221
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 class B<T> {
   T value;
@@ -833,8 +833,8 @@ class B<T> {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invalidAssignment_variableDeclaration() {
-    assertErrorsInCode(
+  test_invalidAssignment_variableDeclaration() async {
+    await assertErrorsInCode(
         r'''
 class A {
   int x = 'string';
@@ -842,8 +842,8 @@ class A {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
-  void test_invocationOfNonFunction_class() {
-    assertErrorsInCode(
+  test_invocationOfNonFunction_class() async {
+    await assertErrorsInCode(
         r'''
 class A {
   void m() {
@@ -853,7 +853,7 @@ class A {
         [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
-  void test_invocationOfNonFunction_localGenericFunction() {
+  test_invocationOfNonFunction_localGenericFunction() async {
     // Objects having a specific function type may be invoked, but objects
     // having type Function may not, because type Function lacks a call method
     // (this is because it is impossible to know what signature the call should
@@ -861,7 +861,7 @@ class A {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
     resetWithOptions(options);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 f(Function f) {
   return f();
@@ -869,11 +869,11 @@ f(Function f) {
         [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
-  void test_invocationOfNonFunction_localObject() {
+  test_invocationOfNonFunction_localObject() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
     resetWithOptions(options);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 f(Object o) {
   return o();
@@ -881,8 +881,8 @@ f(Object o) {
         [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
-  void test_invocationOfNonFunction_localVariable() {
-    assertErrorsInCode(
+  test_invocationOfNonFunction_localVariable() async {
+    await assertErrorsInCode(
         r'''
 f() {
   int x;
@@ -891,8 +891,8 @@ f() {
         [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
-  void test_invocationOfNonFunction_ordinaryInvocation() {
-    assertErrorsInCode(
+  test_invocationOfNonFunction_ordinaryInvocation() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static int x;
@@ -906,8 +906,8 @@ class B {
     // A call to verify(source) fails as A.x() cannot be resolved.
   }
 
-  void test_invocationOfNonFunction_staticInvocation() {
-    assertErrorsInCode(
+  test_invocationOfNonFunction_staticInvocation() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static int get g => 0;
@@ -919,8 +919,8 @@ class A {
     // A call to verify(source) fails as g() cannot be resolved.
   }
 
-  void test_invocationOfNonFunction_superExpression() {
-    assertErrorsInCode(
+  test_invocationOfNonFunction_superExpression() async {
+    await assertErrorsInCode(
         r'''
 class A {
   int get g => 0;
@@ -933,8 +933,8 @@ class B extends A {
         [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
-  void test_invocationOfNonFunctionExpression_literal() {
-    assertErrorsInCode(
+  test_invocationOfNonFunctionExpression_literal() async {
+    await assertErrorsInCode(
         r'''
 f() {
   3(5);
@@ -942,13 +942,13 @@ f() {
         [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION]);
   }
 
-  void test_nonBoolCondition_conditional() {
-    assertErrorsInCode("f() { return 3 ? 2 : 1; }",
+  test_nonBoolCondition_conditional() async {
+    await assertErrorsInCode("f() { return 3 ? 2 : 1; }",
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  void test_nonBoolCondition_do() {
-    assertErrorsInCode(
+  test_nonBoolCondition_do() async {
+    await assertErrorsInCode(
         r'''
 f() {
   do {} while (3);
@@ -956,9 +956,9 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  void test_nonBoolCondition_for() {
+  test_nonBoolCondition_for() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 f() {
   for (;3;) {}
@@ -966,8 +966,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  void test_nonBoolCondition_if() {
-    assertErrorsInCode(
+  test_nonBoolCondition_if() async {
+    await assertErrorsInCode(
         r'''
 f() {
   if (3) return 2; else return 1;
@@ -975,8 +975,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  void test_nonBoolCondition_while() {
-    assertErrorsInCode(
+  test_nonBoolCondition_while() async {
+    await assertErrorsInCode(
         r'''
 f() {
   while (3) {}
@@ -984,8 +984,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  void test_nonBoolExpression_functionType() {
-    assertErrorsInCode(
+  test_nonBoolExpression_functionType() async {
+    await assertErrorsInCode(
         r'''
 int makeAssertion() => 1;
 f() {
@@ -994,8 +994,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
   }
 
-  void test_nonBoolExpression_interfaceType() {
-    assertErrorsInCode(
+  test_nonBoolExpression_interfaceType() async {
+    await assertErrorsInCode(
         r'''
 f() {
   assert(0);
@@ -1003,8 +1003,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
   }
 
-  void test_nonBoolNegationExpression() {
-    assertErrorsInCode(
+  test_nonBoolNegationExpression() async {
+    await assertErrorsInCode(
         r'''
 f() {
   !42;
@@ -1012,8 +1012,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION]);
   }
 
-  void test_nonBoolOperand_and_left() {
-    assertErrorsInCode(
+  test_nonBoolOperand_and_left() async {
+    await assertErrorsInCode(
         r'''
 bool f(int left, bool right) {
   return left && right;
@@ -1021,8 +1021,8 @@ bool f(int left, bool right) {
         [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
-  void test_nonBoolOperand_and_right() {
-    assertErrorsInCode(
+  test_nonBoolOperand_and_right() async {
+    await assertErrorsInCode(
         r'''
 bool f(bool left, String right) {
   return left && right;
@@ -1030,8 +1030,8 @@ bool f(bool left, String right) {
         [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
-  void test_nonBoolOperand_or_left() {
-    assertErrorsInCode(
+  test_nonBoolOperand_or_left() async {
+    await assertErrorsInCode(
         r'''
 bool f(List<int> left, bool right) {
   return left || right;
@@ -1039,8 +1039,8 @@ bool f(List<int> left, bool right) {
         [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
-  void test_nonBoolOperand_or_right() {
-    assertErrorsInCode(
+  test_nonBoolOperand_or_right() async {
+    await assertErrorsInCode(
         r'''
 bool f(bool left, double right) {
   return left || right;
@@ -1048,8 +1048,8 @@ bool f(bool left, double right) {
         [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
-  void test_nonTypeAsTypeArgument_notAType() {
-    assertErrorsInCode(
+  test_nonTypeAsTypeArgument_notAType() async {
+    await assertErrorsInCode(
         r'''
 int A;
 class B<E> {}
@@ -1057,16 +1057,16 @@ f(B<A> b) {}''',
         [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
-  void test_nonTypeAsTypeArgument_undefinedIdentifier() {
-    assertErrorsInCode(
+  test_nonTypeAsTypeArgument_undefinedIdentifier() async {
+    await assertErrorsInCode(
         r'''
 class B<E> {}
 f(B<A> b) {}''',
         [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
-  void test_returnOfInvalidType_async_future_int_mismatches_future_null() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_async_future_int_mismatches_future_null() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Future<Null> f() async {
@@ -1076,8 +1076,8 @@ Future<Null> f() async {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_async_future_int_mismatches_future_string() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_async_future_int_mismatches_future_string() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Future<String> f() async {
@@ -1087,8 +1087,8 @@ Future<String> f() async {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_async_future_int_mismatches_int() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_async_future_int_mismatches_int() async {
+    await assertErrorsInCode(
         '''
 int f() async {
   return 5;
@@ -1100,18 +1100,18 @@ int f() async {
         ]);
   }
 
-  void test_returnOfInvalidType_expressionFunctionBody_function() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_expressionFunctionBody_function() async {
+    await assertErrorsInCode(
         "int f() => '0';", [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_expressionFunctionBody_getter() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_expressionFunctionBody_getter() async {
+    await assertErrorsInCode(
         "int get g => '0';", [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_expressionFunctionBody_localFunction() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_expressionFunctionBody_localFunction() async {
+    await assertErrorsInCode(
         r'''
 class A {
   String m() {
@@ -1122,8 +1122,8 @@ class A {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_expressionFunctionBody_method() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_expressionFunctionBody_method() async {
+    await assertErrorsInCode(
         r'''
 class A {
   int f() => '0';
@@ -1131,23 +1131,23 @@ class A {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_expressionFunctionBody_void() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_expressionFunctionBody_void() async {
+    await assertErrorsInCode(
         "void f() => 42;", [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_function() {
-    assertErrorsInCode("int f() { return '0'; }",
+  test_returnOfInvalidType_function() async {
+    await assertErrorsInCode("int f() { return '0'; }",
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_getter() {
-    assertErrorsInCode("int get g { return '0'; }",
+  test_returnOfInvalidType_getter() async {
+    await assertErrorsInCode("int get g { return '0'; }",
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_localFunction() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_localFunction() async {
+    await assertErrorsInCode(
         r'''
 class A {
   String m() {
@@ -1158,8 +1158,8 @@ class A {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_method() {
-    assertErrorsInCode(
+  test_returnOfInvalidType_method() async {
+    await assertErrorsInCode(
         r'''
 class A {
   int f() { return '0'; }
@@ -1167,8 +1167,8 @@ class A {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_returnOfInvalidType_not_issued_for_valid_generic_return() {
-    assertNoErrorsInCode(r'''
+  test_returnOfInvalidType_not_issued_for_valid_generic_return() async {
+    await assertNoErrorsInCode(r'''
 abstract class F<T, U>  {
   U get value;
 }
@@ -1184,13 +1184,13 @@ abstract class H<S> {
 void main() { }''');
   }
 
-  void test_returnOfInvalidType_void() {
-    assertErrorsInCode("void f() { return 42; }",
+  test_returnOfInvalidType_void() async {
+    await assertErrorsInCode("void f() { return 42; }",
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  void test_typeArgumentNotMatchingBounds_classTypeAlias() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_classTypeAlias() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1201,8 +1201,8 @@ class D = G<B> with C;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_extends() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_extends() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1212,9 +1212,9 @@ class C extends G<B>{}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_extends_regressionInIssue18468Fix() {
+  test_typeArgumentNotMatchingBounds_extends_regressionInIssue18468Fix() async {
     // https://code.google.com/p/dart/issues/detail?id=18628
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 class X<T extends Type> {}
 class Y<U> extends X<U> {}
@@ -1222,8 +1222,8 @@ class Y<U> extends X<U> {}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_fieldFormalParameter() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_fieldFormalParameter() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1235,8 +1235,8 @@ class C {
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_functionReturnType() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_functionReturnType() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1246,8 +1246,8 @@ G<B> f() { return null; }
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_functionTypeAlias() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_functionTypeAlias() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1257,8 +1257,8 @@ typedef G<B> f();
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_functionTypedFormalParameter() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_functionTypedFormalParameter() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1268,8 +1268,8 @@ f(G<B> h()) {}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_implements() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_implements() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1279,8 +1279,8 @@ class C implements G<B>{}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_is() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_is() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1290,9 +1290,9 @@ var b = 1 is G<B>;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() {
+  test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 class Point<T extends num> {
   Point(T x, T y);
@@ -1308,9 +1308,9 @@ main() {
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_methodInvocation_method() {
+  test_typeArgumentNotMatchingBounds_methodInvocation_method() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 class Point<T extends num> {
   Point(T x, T y);
@@ -1329,9 +1329,9 @@ f(PointFactory factory) {
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() {
+  test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() async {
     resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 class Point<T extends num> {
   Point(T x, T y);
@@ -1348,8 +1348,8 @@ main() {
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_methodReturnType() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_methodReturnType() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1360,8 +1360,8 @@ class C {
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_new() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_new() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1371,8 +1371,8 @@ f() { return new G<B>(); }
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_new_superTypeOfUpperBound() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_new_superTypeOfUpperBound() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B extends A {}
@@ -1383,8 +1383,8 @@ f() { return new G<A>(); }
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_parameter() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_parameter() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1394,8 +1394,8 @@ f(G<B> g) {}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_redirectingConstructor() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_redirectingConstructor() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1409,8 +1409,8 @@ class X<T extends A> {
         ]);
   }
 
-  void test_typeArgumentNotMatchingBounds_typeArgumentList() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_typeArgumentList() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1421,8 +1421,8 @@ C<D<B>> Var;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_typeParameter() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_typeParameter() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1433,8 +1433,8 @@ class D<F extends G<B>> {}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_variableDeclaration() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_variableDeclaration() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1444,8 +1444,8 @@ G<B> g;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeArgumentNotMatchingBounds_with() {
-    assertErrorsInCode(
+  test_typeArgumentNotMatchingBounds_with() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {}
@@ -1455,8 +1455,8 @@ class C extends Object with G<B>{}
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
-  void test_typeParameterSupertypeOfItsBound() {
-    assertErrorsInCode(
+  test_typeParameterSupertypeOfItsBound() async {
+    await assertErrorsInCode(
         r'''
 class A<T extends T> {
 }
@@ -1464,9 +1464,8 @@ class A<T extends T> {
         [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND]);
   }
 
-  void
-      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1476,8 +1475,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_mutatedInLeft() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_booleanAnd_useInRight_mutatedInLeft() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
@@ -1485,8 +1484,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_mutatedInRight() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_booleanAnd_useInRight_mutatedInRight() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
@@ -1494,9 +1493,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void
-      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1506,9 +1504,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void
-      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1518,8 +1515,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_hasAssignment() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_conditional_useInThen_hasAssignment() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   p is String ? (p.length + (p = 42)) : 0;
@@ -1527,8 +1524,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_accessedInClosure_hasAssignment() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_accessedInClosure_hasAssignment() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1542,8 +1539,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_and_right_hasAssignment() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_and_right_hasAssignment() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   if (p is String && (p = null) == null) {
@@ -1553,8 +1550,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_extends_notMoreSpecific_dynamic() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_extends_notMoreSpecific_dynamic() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class V {}
 class A<T> {}
@@ -1570,8 +1567,8 @@ main(A<V> p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class V {}
 class A<T> {}
@@ -1587,8 +1584,8 @@ main(A<V> p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_hasAssignment_after() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_hasAssignment_after() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   if (p is String) {
@@ -1599,8 +1596,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_hasAssignment_before() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_hasAssignment_before() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   if (p is String) {
@@ -1611,8 +1608,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_hasAssignment_inClosure_anonymous_after() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_hasAssignment_inClosure_anonymous_after() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   if (p is String) {
@@ -1623,8 +1620,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_hasAssignment_inClosure_anonymous_before() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_hasAssignment_inClosure_anonymous_before() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   () {p = 0;};
@@ -1635,8 +1632,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_hasAssignment_inClosure_function_after() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_hasAssignment_inClosure_function_after() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   if (p is String) {
@@ -1647,8 +1644,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_hasAssignment_inClosure_function_before() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_hasAssignment_inClosure_function_before() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 main(Object p) {
   f() {p = 0;};
@@ -1659,8 +1656,8 @@ main(Object p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_implements_notMoreSpecific_dynamic() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_implements_notMoreSpecific_dynamic() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class V {}
 class A<T> {}
@@ -1676,8 +1673,8 @@ main(A<V> p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_if_with_notMoreSpecific_dynamic() {
-    assertErrorsInUnverifiedCode(
+  test_typePromotion_if_with_notMoreSpecific_dynamic() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class V {}
 class A<T> {}
@@ -1693,8 +1690,8 @@ main(A<V> p) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedFunction() {
-    assertErrorsInCode(
+  test_undefinedFunction() async {
+    await assertErrorsInCode(
         r'''
 void f() {
   g();
@@ -1702,8 +1699,8 @@ void f() {
         [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
-  void test_undefinedFunction_inCatch() {
-    assertErrorsInCode(
+  test_undefinedFunction_inCatch() async {
+    await assertErrorsInCode(
         r'''
 void f() {
   try {
@@ -1714,7 +1711,7 @@ void f() {
         [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
-  void test_undefinedFunction_inImportedLib() {
+  test_undefinedFunction_inImportedLib() async {
     Source source = addSource(r'''
 import 'lib.dart' as f;
 main() { return f.g(); }''');
@@ -1723,25 +1720,25 @@ main() { return f.g(); }''');
         r'''
 library lib;
 h() {}''');
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+    await assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
-  void test_undefinedGetter() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedGetter() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class T {}
 f(T e) { return e.m; }''',
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_generic_function_call() {
+  test_undefinedGetter_generic_function_call() async {
     // Objects having a specific function type have a call() method, but
     // objects having type Function do not (this is because it is impossible to
     // know what signature the call should have).
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
     resetWithOptions(options);
-    assertErrorsInUnverifiedCode(
+    await assertErrorsInUnverifiedCode(
         '''
 f(Function f) {
   return f.call;
@@ -1750,11 +1747,11 @@ f(Function f) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_object_call() {
+  test_undefinedGetter_object_call() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
     resetWithOptions(options);
-    assertErrorsInUnverifiedCode(
+    await assertErrorsInUnverifiedCode(
         '''
 f(Object o) {
   return o.call;
@@ -1763,8 +1760,8 @@ f(Object o) {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_proxy_annotation_fakeProxy() {
-    assertErrorsInCode(
+  test_undefinedGetter_proxy_annotation_fakeProxy() async {
+    await assertErrorsInCode(
         r'''
 library L;
 class Fake {
@@ -1778,16 +1775,16 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_static() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedGetter_static() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 var a = A.B;''',
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_typeLiteral_cascadeTarget() {
-    assertErrorsInCode(
+  test_undefinedGetter_typeLiteral_cascadeTarget() async {
+    await assertErrorsInCode(
         r'''
 class T {
   static int get foo => 42;
@@ -1798,10 +1795,10 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_typeLiteral_conditionalAccess() {
+  test_undefinedGetter_typeLiteral_conditionalAccess() async {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 class A {}
 f() => A?.hashCode;
@@ -1809,8 +1806,8 @@ f() => A?.hashCode;
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_void() {
-    assertErrorsInCode(
+  test_undefinedGetter_void() async {
+    await assertErrorsInCode(
         r'''
 class T {
   void m() {}
@@ -1819,8 +1816,8 @@ f(T e) { return e.m().f; }''',
         [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() {
-    assertErrorsInCode(
+  test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
+    await assertErrorsInCode(
         r'''
 class A<K, V> {
   K element;
@@ -1831,8 +1828,8 @@ main(A<int> a) {
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() {
-    assertErrorsInCode(
+  test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() async {
+    await assertErrorsInCode(
         r'''
 class A<E> {
   E element;
@@ -1843,8 +1840,8 @@ main(A<int,int> a) {
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_undefinedGetter_wrongOfTypeArgument() {
-    assertErrorsInCode(
+  test_undefinedGetter_wrongOfTypeArgument() async {
+    await assertErrorsInCode(
         r'''
 class A<E> {
   E element;
@@ -1855,8 +1852,8 @@ main(A<NoSuchType> a) {
         [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
-  void test_undefinedMethod() {
-    assertErrorsInCode(
+  test_undefinedMethod() async {
+    await assertErrorsInCode(
         r'''
 class A {
   void m() {
@@ -1866,8 +1863,8 @@ class A {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_assignmentExpression() {
-    assertErrorsInCode(
+  test_undefinedMethod_assignmentExpression() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B {
@@ -1879,14 +1876,14 @@ class B {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_generic_function_call() {
+  test_undefinedMethod_generic_function_call() async {
     // Objects having a specific function type have a call() method, but
     // objects having type Function do not (this is because it is impossible to
     // know what signature the call should have).
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
     resetWithOptions(options);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 f(Function f) {
   f.call();
@@ -1895,8 +1892,8 @@ f(Function f) {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_ignoreTypePropagation() {
-    assertErrorsInCode(
+  test_undefinedMethod_ignoreTypePropagation() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B extends A {
@@ -1911,16 +1908,16 @@ class C {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_leastUpperBoundWithNull() {
-    assertErrorsInCode('f(bool b, int i) => (b ? null : i).foo();',
+  test_undefinedMethod_leastUpperBoundWithNull() async {
+    await assertErrorsInCode('f(bool b, int i) => (b ? null : i).foo();',
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_object_call() {
+  test_undefinedMethod_object_call() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
     resetWithOptions(options);
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 f(Object o) {
   o.call();
@@ -1929,7 +1926,7 @@ f(Object o) {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_private() {
+  test_undefinedMethod_private() async {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -1937,7 +1934,7 @@ library lib;
 class A {
   _foo() {}
 }''');
-    assertErrorsInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib.dart';
 class B extends A {
@@ -1948,8 +1945,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_proxy_annotation_fakeProxy() {
-    assertErrorsInCode(
+  test_undefinedMethod_proxy_annotation_fakeProxy() async {
+    await assertErrorsInCode(
         r'''
 library L;
 class Fake {
@@ -1963,8 +1960,8 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_typeLiteral_cascadeTarget() {
-    assertErrorsInCode(
+  test_undefinedMethod_typeLiteral_cascadeTarget() async {
+    await assertErrorsInCode(
         '''
 class T {
   static void foo() {}
@@ -1976,10 +1973,10 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_typeLiteral_conditionalAccess() {
+  test_undefinedMethod_typeLiteral_conditionalAccess() async {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance methods of Type.
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 class A {}
 f() => A?.toString();
@@ -1987,8 +1984,8 @@ f() => A?.toString();
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethodWithConstructor() {
-    assertErrorsInCode(
+  test_undefinedMethodWithConstructor() async {
+    await assertErrorsInCode(
         r'''
 class C {
   C.m();
@@ -1999,8 +1996,8 @@ f() {
         [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR]);
   }
 
-  void test_undefinedOperator_indexBoth() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedOperator_indexBoth() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 f(A a) {
@@ -2009,8 +2006,8 @@ f(A a) {
         [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_undefinedOperator_indexGetter() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedOperator_indexGetter() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 f(A a) {
@@ -2019,8 +2016,8 @@ f(A a) {
         [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_undefinedOperator_indexSetter() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedOperator_indexSetter() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 f(A a) {
@@ -2029,8 +2026,8 @@ f(A a) {
         [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_undefinedOperator_plus() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedOperator_plus() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 f(A a) {
@@ -2039,8 +2036,8 @@ f(A a) {
         [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_undefinedOperator_postfixExpression() {
-    assertErrorsInCode(
+  test_undefinedOperator_postfixExpression() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 f(A a) {
@@ -2049,8 +2046,8 @@ f(A a) {
         [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_undefinedOperator_prefixExpression() {
-    assertErrorsInCode(
+  test_undefinedOperator_prefixExpression() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 f(A a) {
@@ -2059,24 +2056,24 @@ f(A a) {
         [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
-  void test_undefinedSetter() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedSetter() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class T {}
 f(T e1) { e1.m = 0; }''',
         [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  void test_undefinedSetter_static() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedSetter_static() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 f() { A.B = 0;}''',
         [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  void test_undefinedSetter_typeLiteral_cascadeTarget() {
-    assertErrorsInCode(
+  test_undefinedSetter_typeLiteral_cascadeTarget() async {
+    await assertErrorsInCode(
         r'''
 class T {
   static void set foo(_) {}
@@ -2087,8 +2084,8 @@ main() {
         [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  void test_undefinedSetter_void() {
-    assertErrorsInCode(
+  test_undefinedSetter_void() async {
+    await assertErrorsInCode(
         r'''
 class T {
   void m() {}
@@ -2097,8 +2094,8 @@ f(T e) { e.m().f = 0; }''',
         [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  void test_undefinedSuperGetter() {
-    assertErrorsInCode(
+  test_undefinedSuperGetter() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B extends A {
@@ -2109,8 +2106,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
   }
 
-  void test_undefinedSuperMethod() {
-    assertErrorsInCode(
+  test_undefinedSuperMethod() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B extends A {
@@ -2119,8 +2116,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
   }
 
-  void test_undefinedSuperOperator_binaryExpression() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedSuperOperator_binaryExpression() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 class B extends A {
@@ -2131,8 +2128,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
-  void test_undefinedSuperOperator_indexBoth() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedSuperOperator_indexBoth() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 class B extends A {
@@ -2143,8 +2140,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
-  void test_undefinedSuperOperator_indexGetter() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedSuperOperator_indexGetter() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 class B extends A {
@@ -2155,8 +2152,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
-  void test_undefinedSuperOperator_indexSetter() {
-    assertErrorsInUnverifiedCode(
+  test_undefinedSuperOperator_indexSetter() async {
+    await assertErrorsInUnverifiedCode(
         r'''
 class A {}
 class B extends A {
@@ -2167,8 +2164,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
-  void test_undefinedSuperSetter() {
-    assertErrorsInCode(
+  test_undefinedSuperSetter() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class B extends A {
@@ -2179,8 +2176,8 @@ class B extends A {
         [StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
   }
 
-  void test_unqualifiedReferenceToNonLocalStaticMember_getter() {
-    assertErrorsInCode(
+  test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static int get a => 0;
@@ -2195,8 +2192,8 @@ class B extends A {
         ]);
   }
 
-  void test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() {
-    assertErrorsInCode(
+  test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static int foo;
@@ -2213,8 +2210,8 @@ class B extends A {
         ]);
   }
 
-  void test_unqualifiedReferenceToNonLocalStaticMember_method() {
-    assertErrorsInCode(
+  test_unqualifiedReferenceToNonLocalStaticMember_method() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static void a() {}
@@ -2229,8 +2226,8 @@ class B extends A {
         ]);
   }
 
-  void test_unqualifiedReferenceToNonLocalStaticMember_setter() {
-    assertErrorsInCode(
+  test_unqualifiedReferenceToNonLocalStaticMember_setter() async {
+    await assertErrorsInCode(
         r'''
 class A {
   static set a(x) {}
@@ -2245,8 +2242,8 @@ class B extends A {
         ]);
   }
 
-  void test_wrongNumberOfTypeArguments_classAlias() {
-    assertErrorsInCode(
+  test_wrongNumberOfTypeArguments_classAlias() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class M {}
@@ -2254,24 +2251,24 @@ class B<F extends num> = A<F> with M;''',
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_wrongNumberOfTypeArguments_tooFew() {
-    assertErrorsInCode(
+  test_wrongNumberOfTypeArguments_tooFew() async {
+    await assertErrorsInCode(
         r'''
 class A<E, F> {}
 A<A> a = null;''',
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_wrongNumberOfTypeArguments_tooMany() {
-    assertErrorsInCode(
+  test_wrongNumberOfTypeArguments_tooMany() async {
+    await assertErrorsInCode(
         r'''
 class A<E> {}
 A<A, A> a = null;''',
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_wrongNumberOfTypeArguments_typeTest_tooFew() {
-    assertErrorsInCode(
+  test_wrongNumberOfTypeArguments_typeTest_tooFew() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class C<K, V> {}
@@ -2281,8 +2278,8 @@ f(p) {
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_wrongNumberOfTypeArguments_typeTest_tooMany() {
-    assertErrorsInCode(
+  test_wrongNumberOfTypeArguments_typeTest_tooMany() async {
+    await assertErrorsInCode(
         r'''
 class A {}
 class C<E> {}
@@ -2292,8 +2289,8 @@ f(p) {
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  void test_yield_async_to_basic_type() {
-    assertErrorsInCode(
+  test_yield_async_to_basic_type() async {
+    await assertErrorsInCode(
         '''
 int f() async* {
   yield 3;
@@ -2305,8 +2302,8 @@ int f() async* {
         ]);
   }
 
-  void test_yield_async_to_iterable() {
-    assertErrorsInCode(
+  test_yield_async_to_iterable() async {
+    await assertErrorsInCode(
         '''
 Iterable<int> f() async* {
   yield 3;
@@ -2318,8 +2315,8 @@ Iterable<int> f() async* {
         ]);
   }
 
-  void test_yield_async_to_mistyped_stream() {
-    assertErrorsInCode(
+  test_yield_async_to_mistyped_stream() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Stream<int> f() async* {
@@ -2329,8 +2326,8 @@ Stream<int> f() async* {
         [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
-  void test_yield_each_async_non_stream() {
-    assertErrorsInCode(
+  test_yield_each_async_non_stream() async {
+    await assertErrorsInCode(
         '''
 f() async* {
   yield* 0;
@@ -2339,8 +2336,8 @@ f() async* {
         [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
-  void test_yield_each_async_to_mistyped_stream() {
-    assertErrorsInCode(
+  test_yield_each_async_to_mistyped_stream() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Stream<int> f() async* {
@@ -2351,8 +2348,8 @@ Stream<String> g() => null;
         [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
-  void test_yield_each_sync_non_iterable() {
-    assertErrorsInCode(
+  test_yield_each_sync_non_iterable() async {
+    await assertErrorsInCode(
         '''
 f() sync* {
   yield* 0;
@@ -2361,8 +2358,8 @@ f() sync* {
         [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
-  void test_yield_each_sync_to_mistyped_iterable() {
-    assertErrorsInCode(
+  test_yield_each_sync_to_mistyped_iterable() async {
+    await assertErrorsInCode(
         '''
 Iterable<int> f() sync* {
   yield* g();
@@ -2372,8 +2369,8 @@ Iterable<String> g() => null;
         [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
-  void test_yield_sync_to_basic_type() {
-    assertErrorsInCode(
+  test_yield_sync_to_basic_type() async {
+    await assertErrorsInCode(
         '''
 int f() sync* {
   yield 3;
@@ -2385,8 +2382,8 @@ int f() sync* {
         ]);
   }
 
-  void test_yield_sync_to_mistyped_iterable() {
-    assertErrorsInCode(
+  test_yield_sync_to_mistyped_iterable() async {
+    await assertErrorsInCode(
         '''
 Iterable<int> f() sync* {
   yield "foo";
@@ -2395,8 +2392,8 @@ Iterable<int> f() sync* {
         [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
-  void test_yield_sync_to_stream() {
-    assertErrorsInCode(
+  test_yield_sync_to_stream() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 Stream<int> f() sync* {
@@ -2419,14 +2416,14 @@ class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
     resetWithOptions(options);
   }
 
-  void test_genericMethodWrongNumberOfTypeArguments() {
+  test_genericMethodWrongNumberOfTypeArguments() async {
     Source source = addSource('''
 f() {}
 main() {
   f/*<int>*/();
 }
 ''');
-    assertErrors(
+    await assertErrors(
         source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       if (error.errorCode ==
@@ -2438,8 +2435,8 @@ main() {
     verify([source]);
   }
 
-  void test_legalAsyncGeneratorReturnType_function_supertypeOfStream() {
-    assertErrorsInCode(
+  test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 f() async* { yield 42; }
@@ -2454,8 +2451,8 @@ Stream<int> f8() async* { yield 42; }
         []);
   }
 
-  void test_legalAsyncReturnType_function_supertypeOfFuture() {
-    assertErrorsInCode(
+  test_legalAsyncReturnType_function_supertypeOfFuture() async {
+    await assertErrorsInCode(
         '''
 import 'dart:async';
 f() async { return 42; }
@@ -2470,8 +2467,8 @@ Future<int> f8() async { return 42; }
         []);
   }
 
-  void test_legalSyncGeneratorReturnType_function_supertypeOfIterable() {
-    assertErrorsInCode(
+  test_legalSyncGeneratorReturnType_function_supertypeOfIterable() async {
+    await assertErrorsInCode(
         '''
 f() sync* { yield 42; }
 dynamic f2() sync* { yield 42; }

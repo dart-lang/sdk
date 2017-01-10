@@ -4,6 +4,8 @@
 
 library analyzer.test.generated.resolver_test_case;
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -362,18 +364,13 @@ class ResolverTestCase extends EngineTestCase {
   Source addSource(String contents) => addNamedSource("/test.dart", contents);
 
   /**
-   * Assert that the number of errors reported against the given source matches the number of errors
-   * that are given and that they have the expected error codes. The order in which the errors were
-   * gathered is ignored.
-   *
-   * @param source the source against which the errors should have been reported
-   * @param expectedErrorCodes the error codes of the errors that should have been reported
-   * @throws AnalysisException if the reported errors could not be computed
-   * @throws AssertionFailedError if a different number of errors have been reported than were
-   *           expected
+   * Assert that the number of errors reported against the given
+   * [source] matches the number of errors that are given and that they have
+   * the expected error codes. The order in which the errors were gathered is
+   * ignored.
    */
-  void assertErrors(Source source,
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+  Future<Null> assertErrors(Source source,
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) async {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       expect(error.source, source);
@@ -400,9 +397,9 @@ class ResolverTestCase extends EngineTestCase {
    * Like [assertErrors], but takes a string of source code.
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
-  void assertErrorsInCode(String code, List<ErrorCode> errors) {
+  Future<Null> assertErrorsInCode(String code, List<ErrorCode> errors) async {
     Source source = addSource(code);
-    assertErrors(source, errors);
+    await assertErrors(source, errors);
     verify([source]);
   }
 
@@ -411,9 +408,10 @@ class ResolverTestCase extends EngineTestCase {
    *
    * Like [assertErrors], but takes a string of source code.
    */
-  void assertErrorsInUnverifiedCode(String code, List<ErrorCode> errors) {
+  Future<Null> assertErrorsInUnverifiedCode(
+      String code, List<ErrorCode> errors) async {
     Source source = addSource(code);
-    assertErrors(source, errors);
+    await assertErrors(source, errors);
   }
 
   /**
@@ -423,17 +421,17 @@ class ResolverTestCase extends EngineTestCase {
    * @throws AnalysisException if the reported errors could not be computed
    * @throws AssertionFailedError if any errors have been reported
    */
-  void assertNoErrors(Source source) {
-    assertErrors(source);
+  Future<Null> assertNoErrors(Source source) async {
+    await assertErrors(source);
   }
 
   /**
    * Asserts that [code] has no errors or warnings.
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
-  void assertNoErrorsInCode(String code) {
+  Future<Null> assertNoErrorsInCode(String code) async {
     Source source = addSource(code);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
   }
 
@@ -441,9 +439,9 @@ class ResolverTestCase extends EngineTestCase {
    * @param code the code that assigns the value to the variable "v", no matter how. We check that
    *          "v" has expected static and propagated type.
    */
-  void assertPropagatedAssignedType(String code, DartType expectedStaticType,
-      DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, "v = ");
+  Future<Null> assertPropagatedAssignedType(String code,
+      DartType expectedStaticType, DartType expectedPropagatedType) async {
+    SimpleIdentifier identifier = await findMarkedIdentifier(code, "v = ");
     expect(identifier.staticType, same(expectedStaticType));
     expect(identifier.propagatedType, same(expectedPropagatedType));
   }
@@ -452,9 +450,9 @@ class ResolverTestCase extends EngineTestCase {
    * @param code the code that iterates using variable "v". We check that
    *          "v" has expected static and propagated type.
    */
-  void assertPropagatedIterationType(String code, DartType expectedStaticType,
-      DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, "v in ");
+  Future<Null> assertPropagatedIterationType(String code,
+      DartType expectedStaticType, DartType expectedPropagatedType) async {
+    SimpleIdentifier identifier = await findMarkedIdentifier(code, "v in ");
     expect(identifier.staticType, same(expectedStaticType));
     expect(identifier.propagatedType, same(expectedPropagatedType));
   }
@@ -467,9 +465,10 @@ class ResolverTestCase extends EngineTestCase {
    * @param expectedPropagatedType if non-null, check actual static type is equal to this.
    * @throws Exception
    */
-  void assertTypeOfMarkedExpression(String code, DartType expectedStaticType,
-      DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, "; // marker");
+  Future<Null> assertTypeOfMarkedExpression(String code,
+      DartType expectedStaticType, DartType expectedPropagatedType) async {
+    SimpleIdentifier identifier =
+        await findMarkedIdentifier(code, "; // marker");
     if (expectedStaticType != null) {
       expect(identifier.staticType, expectedStaticType);
     }
@@ -566,11 +565,12 @@ class ResolverTestCase extends EngineTestCase {
    * @return expression marked by the marker.
    * @throws Exception
    */
-  SimpleIdentifier findMarkedIdentifier(String code, String marker) {
+  Future<SimpleIdentifier> findMarkedIdentifier(
+      String code, String marker) async {
     try {
       Source source = addSource(code);
       LibraryElement library = resolve2(source);
-      assertNoErrors(source);
+      await assertNoErrors(source);
       verify([source]);
       CompilationUnit unit = resolveCompilationUnit(source, library);
       // Could generalize this further by making [SimpleIdentifier.class] a
@@ -668,30 +668,31 @@ class ResolverTestCase extends EngineTestCase {
     return null;
   }
 
-  void resolveWithAndWithoutExperimental(
+  Future<Null> resolveWithAndWithoutExperimental(
       List<String> strSources,
       List<ErrorCode> codesWithoutExperimental,
-      List<ErrorCode> codesWithExperimental) {
+      List<ErrorCode> codesWithExperimental) async {
     // Setup analysis context as non-experimental
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 //    options.enableDeferredLoading = false;
     resetWithOptions(options);
     // Analysis and assertions
     Source source = resolveSources(strSources);
-    assertErrors(source, codesWithoutExperimental);
+    await assertErrors(source, codesWithoutExperimental);
     verify([source]);
     // Setup analysis context as experimental
     reset();
     // Analysis and assertions
     source = resolveSources(strSources);
-    assertErrors(source, codesWithExperimental);
+    await assertErrors(source, codesWithExperimental);
     verify([source]);
   }
 
-  void resolveWithErrors(List<String> strSources, List<ErrorCode> codes) {
+  Future<Null> resolveWithErrors(
+      List<String> strSources, List<ErrorCode> codes) async {
     // Analysis and assertions
     Source source = resolveSources(strSources);
-    assertErrors(source, codes);
+    await assertErrors(source, codes);
     verify([source]);
   }
 
@@ -816,11 +817,11 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     return identifier;
   }
 
-  void resolveTestUnit(String code) {
+  Future<Null> resolveTestUnit(String code) async {
     testCode = code;
     testSource = addSource(testCode);
     LibraryElement library = resolve2(testSource);
-    assertNoErrors(testSource);
+    await assertNoErrors(testSource);
     verify([testSource]);
     testUnit = resolveCompilationUnit(testSource, library);
   }

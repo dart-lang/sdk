@@ -4,6 +4,8 @@
 
 library analyzer.test.generated.all_the_rest_test;
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -93,7 +95,7 @@ library dart.core;
 
 @reflectiveTest
 class ContentCacheTest {
-  void test_setContents() {
+  test_setContents() async {
     Source source = new TestSource();
     ContentCache cache = new ContentCache();
     expect(cache.getContents(source), isNull);
@@ -366,8 +368,8 @@ class ElementLocatorTest extends ResolverTestCase {
     resetWithOptions(analysisOptions);
   }
 
-  void test_locate_AssignmentExpression() {
-    AstNode id = _findNodeIn(
+  test_locate_AssignmentExpression() async {
+    AstNode id = await _findNodeIn(
         "+=",
         r'''
 int x = 0;
@@ -379,29 +381,29 @@ void main() {
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_BinaryExpression() {
-    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
+  test_locate_BinaryExpression() async {
+    AstNode id = await _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_ClassDeclaration() {
-    AstNode id = _findNodeIn("class", "class A { }");
+  test_locate_ClassDeclaration() async {
+    AstNode id = await _findNodeIn("class", "class A { }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement, ClassElement, element);
   }
 
-  void test_locate_CompilationUnit() {
-    CompilationUnit cu = _resolveContents("// only comment");
+  test_locate_CompilationUnit() async {
+    CompilationUnit cu = await _resolveContents("// only comment");
     expect(cu.element, isNotNull);
     Element element = ElementLocator.locate(cu);
     expect(element, same(cu.element));
   }
 
-  void test_locate_ConstructorDeclaration() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_ConstructorDeclaration() async {
+    AstNode id = await _findNodeIndexedIn(
         "bar",
         0,
         r'''
@@ -415,15 +417,15 @@ class A {
         (obj) => obj is ConstructorElement, ConstructorElement, element);
   }
 
-  void test_locate_ExportDirective() {
-    AstNode id = _findNodeIn("export", "export 'dart:core';");
+  test_locate_ExportDirective() async {
+    AstNode id = await _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ExportElement, ExportElement, element);
   }
 
-  void test_locate_FunctionDeclaration() {
-    AstNode id = _findNodeIn("f", "int f() => 3;");
+  test_locate_FunctionDeclaration() async {
+    AstNode id = await _findNodeIn("f", "int f() => 3;");
     FunctionDeclaration declaration =
         id.getAncestor((node) => node is FunctionDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -431,9 +433,8 @@ class A {
         (obj) => obj is FunctionElement, FunctionElement, element);
   }
 
-  void
-      test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() async {
+    AstNode id = await _findNodeIndexedIn(
         "Class",
         2,
         r'''
@@ -447,9 +448,8 @@ void main(@Class.name() parameter) {
         (obj) => obj is ClassElement, ClassElement, element);
   }
 
-  void
-      test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() async {
+    AstNode id = await _findNodeIndexedIn(
         "Class",
         2,
         r'''
@@ -463,15 +463,15 @@ void main(@Class() parameter) {
         (obj) => obj is ConstructorElement, ConstructorElement, element);
   }
 
-  void test_locate_Identifier_className() {
-    AstNode id = _findNodeIn("A", "class A { }");
+  test_locate_Identifier_className() async {
+    AstNode id = await _findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement, ClassElement, element);
   }
 
-  void test_locate_Identifier_constructor_named() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_Identifier_constructor_named() async {
+    AstNode id = await _findNodeIndexedIn(
         "bar",
         0,
         r'''
@@ -483,8 +483,8 @@ class A {
         (obj) => obj is ConstructorElement, ConstructorElement, element);
   }
 
-  void test_locate_Identifier_constructor_unnamed() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_Identifier_constructor_unnamed() async {
+    AstNode id = await _findNodeIndexedIn(
         "A",
         1,
         r'''
@@ -496,22 +496,22 @@ class A {
         (obj) => obj is ConstructorElement, ConstructorElement, element);
   }
 
-  void test_locate_Identifier_fieldName() {
-    AstNode id = _findNodeIn("x", "class A { var x; }");
+  test_locate_Identifier_fieldName() async {
+    AstNode id = await _findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FieldElement, FieldElement, element);
   }
 
-  void test_locate_Identifier_libraryDirective() {
-    AstNode id = _findNodeIn("foo", "library foo.bar;");
+  test_locate_Identifier_libraryDirective() async {
+    AstNode id = await _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
-  void test_locate_Identifier_propertyAccess() {
-    AstNode id = _findNodeIn(
+  test_locate_Identifier_propertyAccess() async {
+    AstNode id = await _findNodeIn(
         "length",
         r'''
 void main() {
@@ -522,15 +522,15 @@ void main() {
         PropertyAccessorElement, element);
   }
 
-  void test_locate_ImportDirective() {
-    AstNode id = _findNodeIn("import", "import 'dart:core';");
+  test_locate_ImportDirective() async {
+    AstNode id = await _findNodeIn("import", "import 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ImportElement, ImportElement, element);
   }
 
-  void test_locate_IndexExpression() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_IndexExpression() async {
+    AstNode id = await _findNodeIndexedIn(
         "\\[",
         1,
         r'''
@@ -543,8 +543,8 @@ void main() {
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_InstanceCreationExpression() {
-    AstNode node = _findNodeIndexedIn(
+  test_locate_InstanceCreationExpression() async {
+    AstNode node = await _findNodeIndexedIn(
         "A(",
         0,
         r'''
@@ -557,7 +557,7 @@ void main() {
         (obj) => obj is ConstructorElement, ConstructorElement, element);
   }
 
-  void test_locate_InstanceCreationExpression_type_prefixedIdentifier() {
+  test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
     // prepare: new pref.A()
     SimpleIdentifier identifier = AstTestFactory.identifier3("A");
     PrefixedIdentifier prefixedIdentifier =
@@ -577,7 +577,7 @@ void main() {
     expect(element, same(classElement));
   }
 
-  void test_locate_InstanceCreationExpression_type_simpleIdentifier() {
+  test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
     // prepare: new A()
     SimpleIdentifier identifier = AstTestFactory.identifier3("A");
     InstanceCreationExpression creation =
@@ -595,15 +595,15 @@ void main() {
     expect(element, same(classElement));
   }
 
-  void test_locate_LibraryDirective() {
-    AstNode id = _findNodeIn("library", "library foo;");
+  test_locate_LibraryDirective() async {
+    AstNode id = await _findNodeIn("library", "library foo;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
-  void test_locate_MethodDeclaration() {
-    AstNode id = _findNodeIn(
+  test_locate_MethodDeclaration() async {
+    AstNode id = await _findNodeIn(
         "m",
         r'''
 class A {
@@ -616,8 +616,8 @@ class A {
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_MethodInvocation_method() {
-    AstNode id = _findNodeIndexedIn(
+  test_locate_MethodInvocation_method() async {
+    AstNode id = await _findNodeIndexedIn(
         "bar",
         1,
         r'''
@@ -632,13 +632,13 @@ void main() {
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_MethodInvocation_topLevel() {
+  test_locate_MethodInvocation_topLevel() async {
     String code = r'''
 foo(x) {}
 void main() {
  foo(0);
 }''';
-    CompilationUnit cu = _resolveContents(code);
+    CompilationUnit cu = await _resolveContents(code);
     int offset = code.indexOf('foo(0)');
     AstNode node = new NodeLocator(offset).searchWithin(cu);
     MethodInvocation invocation =
@@ -648,7 +648,7 @@ void main() {
         (obj) => obj is FunctionElement, FunctionElement, element);
   }
 
-  void test_locate_PartOfDirective() {
+  test_locate_PartOfDirective() async {
     Source librarySource = addNamedSource(
         '/lib.dart',
         '''
@@ -668,15 +668,15 @@ part of my.lib;
         (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
-  void test_locate_PostfixExpression() {
-    AstNode id = _findNodeIn("++", "int addOne(int x) => x++;");
+  test_locate_PostfixExpression() async {
+    AstNode id = await _findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_PrefixedIdentifier() {
-    AstNode id = _findNodeIn(
+  test_locate_PrefixedIdentifier() async {
+    AstNode id = await _findNodeIn(
         "int",
         r'''
 import 'dart:core' as core;
@@ -688,46 +688,47 @@ core.int value;''');
         (obj) => obj is ClassElement, ClassElement, element);
   }
 
-  void test_locate_PrefixExpression() {
-    AstNode id = _findNodeIn("++", "int addOne(int x) => ++x;");
+  test_locate_PrefixExpression() async {
+    AstNode id = await _findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement, MethodElement, element);
   }
 
-  void test_locate_StringLiteral_exportUri() {
+  test_locate_StringLiteral_exportUri() async {
     addNamedSource("/foo.dart", "library foo;");
-    AstNode id = _findNodeIn("'foo.dart'", "export 'foo.dart';");
+    AstNode id = await _findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
-  void test_locate_StringLiteral_expression() {
-    AstNode id = _findNodeIn("abc", "var x = 'abc';");
+  test_locate_StringLiteral_expression() async {
+    AstNode id = await _findNodeIn("abc", "var x = 'abc';");
     Element element = ElementLocator.locate(id);
     expect(element, isNull);
   }
 
-  void test_locate_StringLiteral_importUri() {
+  test_locate_StringLiteral_importUri() async {
     addNamedSource("/foo.dart", "library foo; class A {}");
-    AstNode id =
-        _findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
+    AstNode id = await _findNodeIn(
+        "'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement, LibraryElement, element);
   }
 
-  void test_locate_StringLiteral_partUri() {
+  test_locate_StringLiteral_partUri() async {
     addNamedSource("/foo.dart", "part of app;");
-    AstNode id = _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
+    AstNode id =
+        await _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnitElement,
         CompilationUnitElement, element);
   }
 
-  void test_locate_VariableDeclaration() {
-    AstNode id = _findNodeIn("x", "var x = 'abc';");
+  test_locate_VariableDeclaration() async {
+    AstNode id = await _findNodeIn("x", "var x = 'abc';");
     VariableDeclaration declaration =
         id.getAncestor((node) => node is VariableDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -742,8 +743,8 @@ core.int value;''');
    * [code] the code to resolve.
    * Returns the matched node in the resolved AST for the given source lines.
    */
-  AstNode _findNodeIn(String nodePattern, String code) {
-    return _findNodeIndexedIn(nodePattern, 0, code);
+  Future<AstNode> _findNodeIn(String nodePattern, String code) async {
+    return await _findNodeIndexedIn(nodePattern, 0, code);
   }
 
   /**
@@ -755,8 +756,9 @@ core.int value;''');
    * [code] the code to resolve.
    * Returns the matched node in the resolved AST for the given source lines
    */
-  AstNode _findNodeIndexedIn(String nodePattern, int index, String code) {
-    CompilationUnit cu = _resolveContents(code);
+  Future<AstNode> _findNodeIndexedIn(
+      String nodePattern, int index, String code) async {
+    CompilationUnit cu = await _resolveContents(code);
     int start = _getOffsetOfMatch(code, nodePattern, index);
     int end = start + nodePattern.length;
     return new NodeLocator(start, end).searchWithin(cu);
@@ -782,10 +784,10 @@ core.int value;''');
    *
    * Throws if source cannot be verified.
    */
-  CompilationUnit _resolveContents(String code) {
+  Future<CompilationUnit> _resolveContents(String code) async {
     Source source = addSource(code);
     LibraryElement library = resolve2(source);
-    assertNoErrors(source);
+    await assertNoErrors(source);
     verify([source]);
     return analysisContext.resolveCompilationUnit(source, library);
   }
@@ -793,7 +795,7 @@ core.int value;''');
 
 @reflectiveTest
 class EnumMemberBuilderTest extends EngineTestCase {
-  void test_visitEnumDeclaration_multiple() {
+  test_visitEnumDeclaration_multiple() async {
     String firstName = "ONE";
     String secondName = "TWO";
     String thirdName = "THREE";
@@ -826,7 +828,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
     _assertGetter(constant);
   }
 
-  void test_visitEnumDeclaration_single() {
+  test_visitEnumDeclaration_single() async {
     String firstName = "ONE";
     EnumDeclaration enumDeclaration =
         AstTestFactory.enumDeclaration2("E", [firstName]);
@@ -901,13 +903,13 @@ class ErrorReporterTest extends EngineTestCase {
     return element.type;
   }
 
-  void test_creation() {
+  test_creation() async {
     GatheringErrorListener listener = new GatheringErrorListener();
     TestSource source = new TestSource();
     expect(new ErrorReporter(listener, source), isNotNull);
   }
 
-  void test_reportErrorForElement_named() {
+  test_reportErrorForElement_named() async {
     DartType type = createType("/test1.dart", "A");
     ClassElement element = type.element;
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -920,7 +922,7 @@ class ErrorReporterTest extends EngineTestCase {
     expect(error.offset, element.nameOffset);
   }
 
-  void test_reportErrorForElement_unnamed() {
+  test_reportErrorForElement_unnamed() async {
     ImportElementImpl element =
         ElementFactory.importFor(ElementFactory.library(null, ''), null);
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -936,7 +938,7 @@ class ErrorReporterTest extends EngineTestCase {
     expect(error.offset, element.nameOffset);
   }
 
-  void test_reportErrorForSpan() {
+  test_reportErrorForSpan() async {
     GatheringErrorListener listener = new GatheringErrorListener();
     ErrorReporter reporter = new ErrorReporter(listener, new TestSource());
 
@@ -959,7 +961,7 @@ zap: baz
     expect(listener.errors.first.length, length);
   }
 
-  void test_reportTypeErrorForNode_differentNames() {
+  test_reportTypeErrorForNode_differentNames() async {
     DartType firstType = createType("/test1.dart", "A");
     DartType secondType = createType("/test2.dart", "B");
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -973,7 +975,7 @@ zap: baz
     expect(error.message.indexOf("(") < 0, isTrue);
   }
 
-  void test_reportTypeErrorForNode_sameName() {
+  test_reportTypeErrorForNode_sameName() async {
     String typeName = "A";
     DartType firstType = createType("/test1.dart", typeName);
     DartType secondType = createType("/test2.dart", typeName);
@@ -991,47 +993,47 @@ zap: baz
 
 @reflectiveTest
 class ErrorSeverityTest extends EngineTestCase {
-  void test_max_error_error() {
+  test_max_error_error() async {
     expect(ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
         same(ErrorSeverity.ERROR));
   }
 
-  void test_max_error_none() {
+  test_max_error_none() async {
     expect(
         ErrorSeverity.ERROR.max(ErrorSeverity.NONE), same(ErrorSeverity.ERROR));
   }
 
-  void test_max_error_warning() {
+  test_max_error_warning() async {
     expect(ErrorSeverity.ERROR.max(ErrorSeverity.WARNING),
         same(ErrorSeverity.ERROR));
   }
 
-  void test_max_none_error() {
+  test_max_none_error() async {
     expect(
         ErrorSeverity.NONE.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
   }
 
-  void test_max_none_none() {
+  test_max_none_none() async {
     expect(
         ErrorSeverity.NONE.max(ErrorSeverity.NONE), same(ErrorSeverity.NONE));
   }
 
-  void test_max_none_warning() {
+  test_max_none_warning() async {
     expect(ErrorSeverity.NONE.max(ErrorSeverity.WARNING),
         same(ErrorSeverity.WARNING));
   }
 
-  void test_max_warning_error() {
+  test_max_warning_error() async {
     expect(ErrorSeverity.WARNING.max(ErrorSeverity.ERROR),
         same(ErrorSeverity.ERROR));
   }
 
-  void test_max_warning_none() {
+  test_max_warning_none() async {
     expect(ErrorSeverity.WARNING.max(ErrorSeverity.NONE),
         same(ErrorSeverity.WARNING));
   }
 
-  void test_max_warning_warning() {
+  test_max_warning_warning() async {
     expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
         same(ErrorSeverity.WARNING));
   }
@@ -1044,220 +1046,220 @@ class ErrorSeverityTest extends EngineTestCase {
  */
 @reflectiveTest
 class ExitDetectorTest extends ParserTestCase {
-  void test_asExpression() {
+  test_asExpression() async {
     _assertFalse("a as Object;");
   }
 
-  void test_asExpression_throw() {
+  test_asExpression_throw() async {
     _assertTrue("throw '' as Object;");
   }
 
-  void test_assertStatement() {
+  test_assertStatement() async {
     _assertFalse("assert(a);");
   }
 
-  void test_assertStatement_throw() {
+  test_assertStatement_throw() async {
     _assertFalse("assert((throw 0));");
   }
 
-  void test_assignmentExpression() {
+  test_assignmentExpression() async {
     _assertFalse("v = 1;");
   }
 
-  void test_assignmentExpression_compound_lazy() {
+  test_assignmentExpression_compound_lazy() async {
     enableLazyAssignmentOperators = true;
     _assertFalse("v ||= false;");
   }
 
-  void test_assignmentExpression_lhs_throw() {
+  test_assignmentExpression_lhs_throw() async {
     _assertTrue("a[throw ''] = 0;");
   }
 
-  void test_assignmentExpression_rhs_throw() {
+  test_assignmentExpression_rhs_throw() async {
     _assertTrue("v = throw '';");
   }
 
-  void test_await_false() {
+  test_await_false() async {
     _assertFalse("await x;");
   }
 
-  void test_await_throw_true() {
+  test_await_throw_true() async {
     _assertTrue("bool b = await (throw '' || true);");
   }
 
-  void test_binaryExpression_and() {
+  test_binaryExpression_and() async {
     _assertFalse("a && b;");
   }
 
-  void test_binaryExpression_and_lhs() {
+  test_binaryExpression_and_lhs() async {
     _assertTrue("throw '' && b;");
   }
 
-  void test_binaryExpression_and_rhs() {
+  test_binaryExpression_and_rhs() async {
     _assertFalse("a && (throw '');");
   }
 
-  void test_binaryExpression_and_rhs2() {
+  test_binaryExpression_and_rhs2() async {
     _assertFalse("false && (throw '');");
   }
 
-  void test_binaryExpression_and_rhs3() {
+  test_binaryExpression_and_rhs3() async {
     _assertTrue("true && (throw '');");
   }
 
-  void test_binaryExpression_ifNull() {
+  test_binaryExpression_ifNull() async {
     _assertFalse("a ?? b;");
   }
 
-  void test_binaryExpression_ifNull_lhs() {
+  test_binaryExpression_ifNull_lhs() async {
     _assertTrue("throw '' ?? b;");
   }
 
-  void test_binaryExpression_ifNull_rhs() {
+  test_binaryExpression_ifNull_rhs() async {
     _assertFalse("a ?? (throw '');");
   }
 
-  void test_binaryExpression_ifNull_rhs2() {
+  test_binaryExpression_ifNull_rhs2() async {
     _assertFalse("null ?? (throw '');");
   }
 
-  void test_binaryExpression_or() {
+  test_binaryExpression_or() async {
     _assertFalse("a || b;");
   }
 
-  void test_binaryExpression_or_lhs() {
+  test_binaryExpression_or_lhs() async {
     _assertTrue("throw '' || b;");
   }
 
-  void test_binaryExpression_or_rhs() {
+  test_binaryExpression_or_rhs() async {
     _assertFalse("a || (throw '');");
   }
 
-  void test_binaryExpression_or_rhs2() {
+  test_binaryExpression_or_rhs2() async {
     _assertFalse("true || (throw '');");
   }
 
-  void test_binaryExpression_or_rhs3() {
+  test_binaryExpression_or_rhs3() async {
     _assertTrue("false || (throw '');");
   }
 
-  void test_block_empty() {
+  test_block_empty() async {
     _assertFalse("{}");
   }
 
-  void test_block_noReturn() {
+  test_block_noReturn() async {
     _assertFalse("{ int i = 0; }");
   }
 
-  void test_block_return() {
+  test_block_return() async {
     _assertTrue("{ return 0; }");
   }
 
-  void test_block_returnNotLast() {
+  test_block_returnNotLast() async {
     _assertTrue("{ return 0; throw 'a'; }");
   }
 
-  void test_block_throwNotLast() {
+  test_block_throwNotLast() async {
     _assertTrue("{ throw 0; x = null; }");
   }
 
-  void test_cascadeExpression_argument() {
+  test_cascadeExpression_argument() async {
     _assertTrue("a..b(throw '');");
   }
 
-  void test_cascadeExpression_index() {
+  test_cascadeExpression_index() async {
     _assertTrue("a..[throw ''];");
   }
 
-  void test_cascadeExpression_target() {
+  test_cascadeExpression_target() async {
     _assertTrue("throw ''..b();");
   }
 
-  void test_conditional_ifElse_bothThrows() {
+  test_conditional_ifElse_bothThrows() async {
     _assertTrue("c ? throw '' : throw '';");
   }
 
-  void test_conditional_ifElse_elseThrows() {
+  test_conditional_ifElse_elseThrows() async {
     _assertFalse("c ? i : throw '';");
   }
 
-  void test_conditional_ifElse_noThrow() {
+  test_conditional_ifElse_noThrow() async {
     _assertFalse("c ? i : j;");
   }
 
-  void test_conditional_ifElse_thenThrow() {
+  test_conditional_ifElse_thenThrow() async {
     _assertFalse("c ? throw '' : j;");
   }
 
-  void test_conditionalAccess() {
+  test_conditionalAccess() async {
     _assertFalse("a?.b;");
   }
 
-  void test_conditionalAccess_lhs() {
+  test_conditionalAccess_lhs() async {
     _assertTrue("(throw '')?.b;");
   }
 
-  void test_conditionalAccessAssign() {
+  test_conditionalAccessAssign() async {
     _assertFalse("a?.b = c;");
   }
 
-  void test_conditionalAccessAssign_lhs() {
+  test_conditionalAccessAssign_lhs() async {
     _assertTrue("(throw '')?.b = c;");
   }
 
-  void test_conditionalAccessAssign_rhs() {
+  test_conditionalAccessAssign_rhs() async {
     _assertFalse("a?.b = throw '';");
   }
 
-  void test_conditionalAccessAssign_rhs2() {
+  test_conditionalAccessAssign_rhs2() async {
     _assertFalse("null?.b = throw '';");
   }
 
-  void test_conditionalAccessIfNullAssign() {
+  test_conditionalAccessIfNullAssign() async {
     _assertFalse("a?.b ??= c;");
   }
 
-  void test_conditionalAccessIfNullAssign_lhs() {
+  test_conditionalAccessIfNullAssign_lhs() async {
     _assertTrue("(throw '')?.b ??= c;");
   }
 
-  void test_conditionalAccessIfNullAssign_rhs() {
+  test_conditionalAccessIfNullAssign_rhs() async {
     _assertFalse("a?.b ??= throw '';");
   }
 
-  void test_conditionalAccessIfNullAssign_rhs2() {
+  test_conditionalAccessIfNullAssign_rhs2() async {
     _assertFalse("null?.b ??= throw '';");
   }
 
-  void test_conditionalCall() {
+  test_conditionalCall() async {
     _assertFalse("a?.b(c);");
   }
 
-  void test_conditionalCall_lhs() {
+  test_conditionalCall_lhs() async {
     _assertTrue("(throw '')?.b(c);");
   }
 
-  void test_conditionalCall_rhs() {
+  test_conditionalCall_rhs() async {
     _assertFalse("a?.b(throw '');");
   }
 
-  void test_conditionalCall_rhs2() {
+  test_conditionalCall_rhs2() async {
     _assertFalse("null?.b(throw '');");
   }
 
-  void test_creation() {
+  test_creation() async {
     expect(new ExitDetector(), isNotNull);
   }
 
-  void test_doStatement_break_and_throw() {
+  test_doStatement_break_and_throw() async {
     _assertFalse("{ do { if (1==1) break; throw 'T'; } while (0==1); }");
   }
 
-  void test_doStatement_continue_and_throw() {
+  test_doStatement_continue_and_throw() async {
     _assertFalse("{ do { if (1==1) continue; throw 'T'; } while (0==1); }");
   }
 
-  void test_doStatement_continueDoInSwitch_and_throw() {
+  test_doStatement_continueDoInSwitch_and_throw() async {
     _assertFalse('''
 {
   D: do {
@@ -1270,7 +1272,7 @@ class ExitDetectorTest extends ParserTestCase {
 }''');
   }
 
-  void test_doStatement_continueInSwitch_and_throw() {
+  test_doStatement_continueInSwitch_and_throw() async {
     _assertFalse('''
 {
   do {
@@ -1283,287 +1285,287 @@ class ExitDetectorTest extends ParserTestCase {
 }''');
   }
 
-  void test_doStatement_return() {
+  test_doStatement_return() async {
     _assertTrue("{ do { return null; } while (1 == 2); }");
   }
 
-  void test_doStatement_throwCondition() {
+  test_doStatement_throwCondition() async {
     _assertTrue("{ do {} while (throw ''); }");
   }
 
-  void test_doStatement_true_break() {
+  test_doStatement_true_break() async {
     _assertFalse("{ do { break; } while (true); }");
   }
 
-  void test_doStatement_true_continue() {
+  test_doStatement_true_continue() async {
     _assertTrue("{ do { continue; } while (true); }");
   }
 
-  void test_doStatement_true_continueWithLabel() {
+  test_doStatement_true_continueWithLabel() async {
     _assertTrue("{ x: do { continue x; } while (true); }");
   }
 
-  void test_doStatement_true_if_return() {
+  test_doStatement_true_if_return() async {
     _assertTrue("{ do { if (true) {return null;} } while (true); }");
   }
 
-  void test_doStatement_true_noBreak() {
+  test_doStatement_true_noBreak() async {
     _assertTrue("{ do {} while (true); }");
   }
 
-  void test_doStatement_true_return() {
+  test_doStatement_true_return() async {
     _assertTrue("{ do { return null; } while (true);  }");
   }
 
-  void test_emptyStatement() {
+  test_emptyStatement() async {
     _assertFalse(";");
   }
 
-  void test_forEachStatement() {
+  test_forEachStatement() async {
     _assertFalse("for (element in list) {}");
   }
 
-  void test_forEachStatement_throw() {
+  test_forEachStatement_throw() async {
     _assertTrue("for (element in throw '') {}");
   }
 
-  void test_forStatement_condition() {
+  test_forStatement_condition() async {
     _assertTrue("for (; throw 0;) {}");
   }
 
-  void test_forStatement_implicitTrue() {
+  test_forStatement_implicitTrue() async {
     _assertTrue("for (;;) {}");
   }
 
-  void test_forStatement_implicitTrue_break() {
+  test_forStatement_implicitTrue_break() async {
     _assertFalse("for (;;) { break; }");
   }
 
-  void test_forStatement_implicitTrue_if_break() {
+  test_forStatement_implicitTrue_if_break() async {
     _assertFalse("{ for (;;) { if (1==2) { var a = 1; } else { break; } } }");
   }
 
-  void test_forStatement_initialization() {
+  test_forStatement_initialization() async {
     _assertTrue("for (i = throw 0;;) {}");
   }
 
-  void test_forStatement_true() {
+  test_forStatement_true() async {
     _assertTrue("for (; true; ) {}");
   }
 
-  void test_forStatement_true_break() {
+  test_forStatement_true_break() async {
     _assertFalse("{ for (; true; ) { break; } }");
   }
 
-  void test_forStatement_true_continue() {
+  test_forStatement_true_continue() async {
     _assertTrue("{ for (; true; ) { continue; } }");
   }
 
-  void test_forStatement_true_if_return() {
+  test_forStatement_true_if_return() async {
     _assertTrue("{ for (; true; ) { if (true) {return null;} } }");
   }
 
-  void test_forStatement_true_noBreak() {
+  test_forStatement_true_noBreak() async {
     _assertTrue("{ for (; true; ) {} }");
   }
 
-  void test_forStatement_updaters() {
+  test_forStatement_updaters() async {
     _assertTrue("for (;; i++, throw 0) {}");
   }
 
-  void test_forStatement_variableDeclaration() {
+  test_forStatement_variableDeclaration() async {
     _assertTrue("for (int i = throw 0;;) {}");
   }
 
-  void test_functionExpression() {
+  test_functionExpression() async {
     _assertFalse("(){};");
   }
 
-  void test_functionExpression_bodyThrows() {
+  test_functionExpression_bodyThrows() async {
     _assertFalse("(int i) => throw '';");
   }
 
-  void test_functionExpressionInvocation() {
+  test_functionExpressionInvocation() async {
     _assertFalse("f(g);");
   }
 
-  void test_functionExpressionInvocation_argumentThrows() {
+  test_functionExpressionInvocation_argumentThrows() async {
     _assertTrue("f(throw '');");
   }
 
-  void test_functionExpressionInvocation_targetThrows() {
+  test_functionExpressionInvocation_targetThrows() async {
     _assertTrue("throw ''(g);");
   }
 
-  void test_identifier_prefixedIdentifier() {
+  test_identifier_prefixedIdentifier() async {
     _assertFalse("a.b;");
   }
 
-  void test_identifier_simpleIdentifier() {
+  test_identifier_simpleIdentifier() async {
     _assertFalse("a;");
   }
 
-  void test_if_false_else_return() {
+  test_if_false_else_return() async {
     _assertTrue("if (false) {} else { return 0; }");
   }
 
-  void test_if_false_noReturn() {
+  test_if_false_noReturn() async {
     _assertFalse("if (false) {}");
   }
 
-  void test_if_false_return() {
+  test_if_false_return() async {
     _assertFalse("if (false) { return 0; }");
   }
 
-  void test_if_noReturn() {
+  test_if_noReturn() async {
     _assertFalse("if (c) i++;");
   }
 
-  void test_if_return() {
+  test_if_return() async {
     _assertFalse("if (c) return 0;");
   }
 
-  void test_if_true_noReturn() {
+  test_if_true_noReturn() async {
     _assertFalse("if (true) {}");
   }
 
-  void test_if_true_return() {
+  test_if_true_return() async {
     _assertTrue("if (true) { return 0; }");
   }
 
-  void test_ifElse_bothReturn() {
+  test_ifElse_bothReturn() async {
     _assertTrue("if (c) return 0; else return 1;");
   }
 
-  void test_ifElse_elseReturn() {
+  test_ifElse_elseReturn() async {
     _assertFalse("if (c) i++; else return 1;");
   }
 
-  void test_ifElse_noReturn() {
+  test_ifElse_noReturn() async {
     _assertFalse("if (c) i++; else j++;");
   }
 
-  void test_ifElse_thenReturn() {
+  test_ifElse_thenReturn() async {
     _assertFalse("if (c) return 0; else j++;");
   }
 
-  void test_ifNullAssign() {
+  test_ifNullAssign() async {
     _assertFalse("a ??= b;");
   }
 
-  void test_ifNullAssign_rhs() {
+  test_ifNullAssign_rhs() async {
     _assertFalse("a ??= throw '';");
   }
 
-  void test_indexExpression() {
+  test_indexExpression() async {
     _assertFalse("a[b];");
   }
 
-  void test_indexExpression_index() {
+  test_indexExpression_index() async {
     _assertTrue("a[throw ''];");
   }
 
-  void test_indexExpression_target() {
+  test_indexExpression_target() async {
     _assertTrue("throw ''[b];");
   }
 
-  void test_instanceCreationExpression() {
+  test_instanceCreationExpression() async {
     _assertFalse("new A(b);");
   }
 
-  void test_instanceCreationExpression_argumentThrows() {
+  test_instanceCreationExpression_argumentThrows() async {
     _assertTrue("new A(throw '');");
   }
 
-  void test_isExpression() {
+  test_isExpression() async {
     _assertFalse("A is B;");
   }
 
-  void test_isExpression_throws() {
+  test_isExpression_throws() async {
     _assertTrue("throw '' is B;");
   }
 
-  void test_labeledStatement() {
+  test_labeledStatement() async {
     _assertFalse("label: a;");
   }
 
-  void test_labeledStatement_throws() {
+  test_labeledStatement_throws() async {
     _assertTrue("label: throw '';");
   }
 
-  void test_literal_boolean() {
+  test_literal_boolean() async {
     _assertFalse("true;");
   }
 
-  void test_literal_double() {
+  test_literal_double() async {
     _assertFalse("1.1;");
   }
 
-  void test_literal_integer() {
+  test_literal_integer() async {
     _assertFalse("1;");
   }
 
-  void test_literal_null() {
+  test_literal_null() async {
     _assertFalse("null;");
   }
 
-  void test_literal_String() {
+  test_literal_String() async {
     _assertFalse("'str';");
   }
 
-  void test_methodInvocation() {
+  test_methodInvocation() async {
     _assertFalse("a.b(c);");
   }
 
-  void test_methodInvocation_argument() {
+  test_methodInvocation_argument() async {
     _assertTrue("a.b(throw '');");
   }
 
-  void test_methodInvocation_target() {
+  test_methodInvocation_target() async {
     _assertTrue("throw ''.b(c);");
   }
 
-  void test_parenthesizedExpression() {
+  test_parenthesizedExpression() async {
     _assertFalse("(a);");
   }
 
-  void test_parenthesizedExpression_throw() {
+  test_parenthesizedExpression_throw() async {
     _assertTrue("(throw '');");
   }
 
-  void test_propertyAccess() {
+  test_propertyAccess() async {
     _assertFalse("new Object().a;");
   }
 
-  void test_propertyAccess_throws() {
+  test_propertyAccess_throws() async {
     _assertTrue("(throw '').a;");
   }
 
-  void test_rethrow() {
+  test_rethrow() async {
     _assertTrue("rethrow;");
   }
 
-  void test_return() {
+  test_return() async {
     _assertTrue("return 0;");
   }
 
-  void test_superExpression() {
+  test_superExpression() async {
     _assertFalse("super.a;");
   }
 
-  void test_switch_allReturn() {
+  test_switch_allReturn() async {
     _assertTrue("switch (i) { case 0: return 0; default: return 1; }");
   }
 
-  void test_switch_defaultWithNoStatements() {
+  test_switch_defaultWithNoStatements() async {
     _assertFalse("switch (i) { case 0: return 0; default: }");
   }
 
-  void test_switch_fallThroughToNotReturn() {
+  test_switch_fallThroughToNotReturn() async {
     _assertFalse("switch (i) { case 0: case 1: break; default: return 1; }");
   }
 
-  void test_switch_fallThroughToReturn() {
+  test_switch_fallThroughToReturn() async {
     _assertTrue("switch (i) { case 0: case 1: return 0; default: return 1; }");
   }
 
@@ -1571,7 +1573,7 @@ class ExitDetectorTest extends ParserTestCase {
   // determine that `case 0` exits, `case 1` continues to an exiting case, and
   // `default` exits, so the switch exits.
   @failingTest
-  void test_switch_includesContinue() {
+  test_switch_includesContinue() async {
     _assertTrue('''
 switch (i) {
   zero: case 0: return 0;
@@ -1580,63 +1582,63 @@ switch (i) {
 }''');
   }
 
-  void test_switch_noDefault() {
+  test_switch_noDefault() async {
     _assertFalse("switch (i) { case 0: return 0; }");
   }
 
-  void test_switch_nonReturn() {
+  test_switch_nonReturn() async {
     _assertFalse("switch (i) { case 0: i++; default: return 1; }");
   }
 
-  void test_thisExpression() {
+  test_thisExpression() async {
     _assertFalse("this.a;");
   }
 
-  void test_throwExpression() {
+  test_throwExpression() async {
     _assertTrue("throw new Object();");
   }
 
-  void test_tryStatement_noReturn() {
+  test_tryStatement_noReturn() async {
     _assertFalse("try {} catch (e, s) {} finally {}");
   }
 
-  void test_tryStatement_noReturn_noFinally() {
+  test_tryStatement_noReturn_noFinally() async {
     _assertFalse("try {} catch (e, s) {}");
   }
 
-  void test_tryStatement_return_catch() {
+  test_tryStatement_return_catch() async {
     _assertFalse("try {} catch (e, s) { return 1; } finally {}");
   }
 
-  void test_tryStatement_return_catch_noFinally() {
+  test_tryStatement_return_catch_noFinally() async {
     _assertFalse("try {} catch (e, s) { return 1; }");
   }
 
-  void test_tryStatement_return_finally() {
+  test_tryStatement_return_finally() async {
     _assertTrue("try {} catch (e, s) {} finally { return 1; }");
   }
 
-  void test_tryStatement_return_try_noCatch() {
+  test_tryStatement_return_try_noCatch() async {
     _assertTrue("try { return 1; } finally {}");
   }
 
-  void test_tryStatement_return_try_oneCatchDoesNotExit() {
+  test_tryStatement_return_try_oneCatchDoesNotExit() async {
     _assertFalse("try { return 1; } catch (e, s) {} finally {}");
   }
 
-  void test_tryStatement_return_try_oneCatchDoesNotExit_noFinally() {
+  test_tryStatement_return_try_oneCatchDoesNotExit_noFinally() async {
     _assertFalse("try { return 1; } catch (e, s) {}");
   }
 
-  void test_tryStatement_return_try_oneCatchExits() {
+  test_tryStatement_return_try_oneCatchExits() async {
     _assertTrue("try { return 1; } catch (e, s) { return 1; } finally {}");
   }
 
-  void test_tryStatement_return_try_oneCatchExits_noFinally() {
+  test_tryStatement_return_try_oneCatchExits_noFinally() async {
     _assertTrue("try { return 1; } catch (e, s) { return 1; }");
   }
 
-  void test_tryStatement_return_try_twoCatchesDoExit() {
+  test_tryStatement_return_try_twoCatchesDoExit() async {
     _assertTrue('''
 try { return 1; }
 on int catch (e, s) { return 1; }
@@ -1644,14 +1646,14 @@ on String catch (e, s) { return 1; }
 finally {}''');
   }
 
-  void test_tryStatement_return_try_twoCatchesDoExit_noFinally() {
+  test_tryStatement_return_try_twoCatchesDoExit_noFinally() async {
     _assertTrue('''
 try { return 1; }
 on int catch (e, s) { return 1; }
 on String catch (e, s) { return 1; }''');
   }
 
-  void test_tryStatement_return_try_twoCatchesDoNotExit() {
+  test_tryStatement_return_try_twoCatchesDoNotExit() async {
     _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
@@ -1659,14 +1661,14 @@ on String catch (e, s) {}
 finally {}''');
   }
 
-  void test_tryStatement_return_try_twoCatchesDoNotExit_noFinally() {
+  test_tryStatement_return_try_twoCatchesDoNotExit_noFinally() async {
     _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
 on String catch (e, s) {}''');
   }
 
-  void test_tryStatement_return_try_twoCatchesMixed() {
+  test_tryStatement_return_try_twoCatchesMixed() async {
     _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
@@ -1674,66 +1676,66 @@ on String catch (e, s) { return 1; }
 finally {}''');
   }
 
-  void test_tryStatement_return_try_twoCatchesMixed_noFinally() {
+  test_tryStatement_return_try_twoCatchesMixed_noFinally() async {
     _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
 on String catch (e, s) { return 1; }''');
   }
 
-  void test_variableDeclarationStatement_noInitializer() {
+  test_variableDeclarationStatement_noInitializer() async {
     _assertFalse("int i;");
   }
 
-  void test_variableDeclarationStatement_noThrow() {
+  test_variableDeclarationStatement_noThrow() async {
     _assertFalse("int i = 0;");
   }
 
-  void test_variableDeclarationStatement_throw() {
+  test_variableDeclarationStatement_throw() async {
     _assertTrue("int i = throw new Object();");
   }
 
-  void test_whileStatement_false_nonReturn() {
+  test_whileStatement_false_nonReturn() async {
     _assertFalse("{ while (false) {} }");
   }
 
-  void test_whileStatement_throwCondition() {
+  test_whileStatement_throwCondition() async {
     _assertTrue("{ while (throw '') {} }");
   }
 
-  void test_whileStatement_true_break() {
+  test_whileStatement_true_break() async {
     _assertFalse("{ while (true) { break; } }");
   }
 
-  void test_whileStatement_true_break_and_throw() {
+  test_whileStatement_true_break_and_throw() async {
     _assertFalse("{ while (true) { if (1==1) break; throw 'T'; } }");
   }
 
-  void test_whileStatement_true_continue() {
+  test_whileStatement_true_continue() async {
     _assertTrue("{ while (true) { continue; } }");
   }
 
-  void test_whileStatement_true_continueWithLabel() {
+  test_whileStatement_true_continueWithLabel() async {
     _assertTrue("{ x: while (true) { continue x; } }");
   }
 
-  void test_whileStatement_true_doStatement_scopeRequired() {
+  test_whileStatement_true_doStatement_scopeRequired() async {
     _assertTrue("{ while (true) { x: do { continue x; } while (true); } }");
   }
 
-  void test_whileStatement_true_if_return() {
+  test_whileStatement_true_if_return() async {
     _assertTrue("{ while (true) { if (true) {return null;} } }");
   }
 
-  void test_whileStatement_true_noBreak() {
+  test_whileStatement_true_noBreak() async {
     _assertTrue("{ while (true) {} }");
   }
 
-  void test_whileStatement_true_return() {
+  test_whileStatement_true_return() async {
     _assertTrue("{ while (true) { return null; } }");
   }
 
-  void test_whileStatement_true_throw() {
+  test_whileStatement_true_throw() async {
     _assertTrue("{ while (true) { throw ''; } }");
   }
 
@@ -1759,7 +1761,7 @@ on String catch (e, s) { return 1; }''');
  */
 @reflectiveTest
 class ExitDetectorTest2 extends ResolverTestCase {
-  void test_forStatement_implicitTrue_breakWithLabel() {
+  test_forStatement_implicitTrue_breakWithLabel() async {
     Source source = addSource(r'''
 void f() {
   x: for (;;) {
@@ -1773,7 +1775,7 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_switch_withEnum_false_noDefault() {
+  test_switch_withEnum_false_noDefault() async {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -1790,7 +1792,7 @@ String f(E e) {
     _assertNthStatementDoesNotExit(source, 1);
   }
 
-  void test_switch_withEnum_false_withDefault() {
+  test_switch_withEnum_false_withDefault() async {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -1807,7 +1809,7 @@ String f(E e) {
     _assertNthStatementDoesNotExit(source, 1);
   }
 
-  void test_switch_withEnum_true_noDefault() {
+  test_switch_withEnum_true_noDefault() async {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -1822,7 +1824,7 @@ String f(E e) {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_switch_withEnum_true_withExitingDefault() {
+  test_switch_withEnum_true_withExitingDefault() async {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -1837,7 +1839,7 @@ String f(E e) {
     _assertNthStatementExits(source, 0);
   }
 
-  void test_switch_withEnum_true_withNonExitingDefault() {
+  test_switch_withEnum_true_withNonExitingDefault() async {
     Source source = addSource(r'''
 enum E { A, B }
 String f(E e) {
@@ -1853,7 +1855,7 @@ String f(E e) {
     _assertNthStatementDoesNotExit(source, 1);
   }
 
-  void test_whileStatement_breakWithLabel() {
+  test_whileStatement_breakWithLabel() async {
     Source source = addSource(r'''
 void f() {
   x: while (true) {
@@ -1867,7 +1869,7 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_whileStatement_breakWithLabel_afterExiting() {
+  test_whileStatement_breakWithLabel_afterExiting() async {
     Source source = addSource(r'''
 void f() {
   x: while (true) {
@@ -1881,7 +1883,7 @@ void f() {
     _assertNthStatementExits(source, 0);
   }
 
-  void test_whileStatement_switchWithBreakWithLabel() {
+  test_whileStatement_switchWithBreakWithLabel() async {
     Source source = addSource(r'''
 void f() {
   x: while (true) {
@@ -1895,7 +1897,7 @@ void f() {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_yieldStatement_plain() {
+  test_yieldStatement_plain() async {
     Source source = addSource(r'''
 void f() sync* {
   yield 1;
@@ -1904,7 +1906,7 @@ void f() sync* {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_yieldStatement_star_plain() {
+  test_yieldStatement_star_plain() async {
     Source source = addSource(r'''
 void f() sync* {
   yield* 1;
@@ -1913,7 +1915,7 @@ void f() sync* {
     _assertNthStatementDoesNotExit(source, 0);
   }
 
-  void test_yieldStatement_star_throw() {
+  test_yieldStatement_star_throw() async {
     Source source = addSource(r'''
 void f() sync* {
   yield* throw '';
@@ -1922,7 +1924,7 @@ void f() sync* {
     _assertNthStatementExits(source, 0);
   }
 
-  void test_yieldStatement_throw() {
+  test_yieldStatement_throw() async {
     Source source = addSource(r'''
 void f() sync* {
   yield throw '';
@@ -1955,7 +1957,7 @@ void f() sync* {
 
 @reflectiveTest
 class FileBasedSourceTest {
-  void test_equals_false_differentFiles() {
+  test_equals_false_differentFiles() async {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist1.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist2.dart");
     FileBasedSource source1 = new FileBasedSource(file1);
@@ -1963,13 +1965,13 @@ class FileBasedSourceTest {
     expect(source1 == source2, isFalse);
   }
 
-  void test_equals_false_null() {
+  test_equals_false_null() async {
     JavaFile file = FileUtilities2.createFile("/does/not/exist1.dart");
     FileBasedSource source1 = new FileBasedSource(file);
     expect(source1 == null, isFalse);
   }
 
-  void test_equals_true() {
+  test_equals_true() async {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source1 = new FileBasedSource(file1);
@@ -1977,7 +1979,7 @@ class FileBasedSourceTest {
     expect(source1 == source2, isTrue);
   }
 
-  void test_fileReadMode() {
+  test_fileReadMode() async {
     expect(FileBasedSource.fileReadMode('a'), 'a');
     expect(FileBasedSource.fileReadMode('a\n'), 'a\n');
     expect(FileBasedSource.fileReadMode('ab'), 'ab');
@@ -1987,7 +1989,7 @@ class FileBasedSourceTest {
     expect(FileBasedSource.fileReadMode('a\r\nb'), 'a\r\nb');
   }
 
-  void test_fileReadMode_changed() {
+  test_fileReadMode_changed() async {
     FileBasedSource.fileReadMode = (String s) => s + 'xyz';
     expect(FileBasedSource.fileReadMode('a'), 'axyz');
     expect(FileBasedSource.fileReadMode('a\n'), 'a\nxyz');
@@ -1996,7 +1998,7 @@ class FileBasedSourceTest {
     FileBasedSource.fileReadMode = (String s) => s;
   }
 
-  void test_fileReadMode_normalize_eol_always() {
+  test_fileReadMode_normalize_eol_always() async {
     FileBasedSource.fileReadMode =
         PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS;
     expect(FileBasedSource.fileReadMode('a'), 'a');
@@ -2019,7 +2021,7 @@ class FileBasedSourceTest {
     FileBasedSource.fileReadMode = (String s) => s;
   }
 
-  void test_getEncoding() {
+  test_getEncoding() async {
     SourceFactory factory = new SourceFactory(
         [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
     String fullPath = "/does/not/exist.dart";
@@ -2028,20 +2030,20 @@ class FileBasedSourceTest {
     expect(factory.fromEncoding(source.encoding), source);
   }
 
-  void test_getFullName() {
+  test_getFullName() async {
     String fullPath = "/does/not/exist.dart";
     JavaFile file = FileUtilities2.createFile(fullPath);
     FileBasedSource source = new FileBasedSource(file);
     expect(source.fullName, file.getAbsolutePath());
   }
 
-  void test_getShortName() {
+  test_getShortName() async {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source.shortName, "exist.dart");
   }
 
-  void test_hashCode() {
+  test_hashCode() async {
     JavaFile file1 = FileUtilities2.createFile("/does/not/exist.dart");
     JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source1 = new FileBasedSource(file1);
@@ -2049,7 +2051,7 @@ class FileBasedSourceTest {
     expect(source2.hashCode, source1.hashCode);
   }
 
-  void test_isInSystemLibrary_contagious() {
+  test_isInSystemLibrary_contagious() async {
     DartSdk sdk = _createSdk();
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
@@ -2063,7 +2065,7 @@ class FileBasedSourceTest {
     expect(partSource.isInSystemLibrary, isTrue);
   }
 
-  void test_isInSystemLibrary_false() {
+  test_isInSystemLibrary_false() async {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
@@ -2071,7 +2073,7 @@ class FileBasedSourceTest {
     expect(source.isInSystemLibrary, isFalse);
   }
 
-  void test_issue14500() {
+  test_issue14500() async {
     // see https://code.google.com/p/dart/issues/detail?id=14500
     FileBasedSource source = new FileBasedSource(
         FileUtilities2.createFile("/some/packages/foo:bar.dart"));
@@ -2079,7 +2081,7 @@ class FileBasedSourceTest {
     expect(source.exists(), isFalse);
   }
 
-  void test_resolveRelative_file_fileName() {
+  test_resolveRelative_file_fileName() async {
     if (OSUtilities.isWindows()) {
       // On Windows, the URI that is produced includes a drive letter,
       // which I believe is not consistent across all machines that might run
@@ -2094,7 +2096,7 @@ class FileBasedSourceTest {
     expect(relative.toString(), "file:///a/b/lib.dart");
   }
 
-  void test_resolveRelative_file_filePath() {
+  test_resolveRelative_file_filePath() async {
     if (OSUtilities.isWindows()) {
       // On Windows, the URI that is produced includes a drive letter,
       // which I believe is not consistent across all machines that might run
@@ -2109,7 +2111,7 @@ class FileBasedSourceTest {
     expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
 
-  void test_resolveRelative_file_filePathWithParent() {
+  test_resolveRelative_file_filePathWithParent() async {
     if (OSUtilities.isWindows()) {
       // On Windows, the URI that is produced includes a drive letter, which I
       // believe is not consistent across all machines that might run this test.
@@ -2123,7 +2125,7 @@ class FileBasedSourceTest {
     expect(relative.toString(), "file:///a/c/lib.dart");
   }
 
-  void test_system() {
+  test_system() async {
     JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
@@ -2134,44 +2136,44 @@ class FileBasedSourceTest {
 
 @reflectiveTest
 class ResolveRelativeUriTest {
-  void test_resolveRelative_dart_dartUri() {
+  test_resolveRelative_dart_dartUri() async {
     _assertResolve('dart:foo', 'dart:bar', 'dart:bar');
   }
 
-  void test_resolveRelative_dart_fileName() {
+  test_resolveRelative_dart_fileName() async {
     _assertResolve('dart:test', 'lib.dart', 'dart:test/lib.dart');
   }
 
-  void test_resolveRelative_dart_filePath() {
+  test_resolveRelative_dart_filePath() async {
     _assertResolve('dart:test', 'c/lib.dart', 'dart:test/c/lib.dart');
   }
 
-  void test_resolveRelative_dart_filePathWithParent() {
+  test_resolveRelative_dart_filePathWithParent() async {
     _assertResolve(
         'dart:test/b/test.dart', '../c/lib.dart', 'dart:test/c/lib.dart');
   }
 
-  void test_resolveRelative_package_dartUri() {
+  test_resolveRelative_package_dartUri() async {
     _assertResolve('package:foo/bar.dart', 'dart:test', 'dart:test');
   }
 
-  void test_resolveRelative_package_emptyPath() {
+  test_resolveRelative_package_emptyPath() async {
     _assertResolve('package:foo/bar.dart', '', 'package:foo/bar.dart');
   }
 
-  void test_resolveRelative_package_fileName() {
+  test_resolveRelative_package_fileName() async {
     _assertResolve('package:b/test.dart', 'lib.dart', 'package:b/lib.dart');
   }
 
-  void test_resolveRelative_package_fileNameWithoutPackageName() {
+  test_resolveRelative_package_fileNameWithoutPackageName() async {
     _assertResolve('package:test.dart', 'lib.dart', 'package:lib.dart');
   }
 
-  void test_resolveRelative_package_filePath() {
+  test_resolveRelative_package_filePath() async {
     _assertResolve('package:b/test.dart', 'c/lib.dart', 'package:b/c/lib.dart');
   }
 
-  void test_resolveRelative_package_filePathWithParent() {
+  test_resolveRelative_package_filePathWithParent() async {
     _assertResolve(
         'package:a/b/test.dart', '../c/lib.dart', 'package:a/c/lib.dart');
   }
@@ -2188,7 +2190,7 @@ class ResolveRelativeUriTest {
 @deprecated
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
-  void test_readFrom_dart2js() {
+  test_readFrom_dart2js() async {
     LibraryMap libraryMap = new SdkLibrariesReader(true).readFromFile(
         FileUtilities2.createFile("/libs.dart"),
         r'''
@@ -2213,14 +2215,14 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(first.isVmLibrary, true);
   }
 
-  void test_readFrom_empty() {
+  test_readFrom_empty() async {
     LibraryMap libraryMap = new SdkLibrariesReader(false)
         .readFromFile(FileUtilities2.createFile("/libs.dart"), "");
     expect(libraryMap, isNotNull);
     expect(libraryMap.size(), 0);
   }
 
-  void test_readFrom_normal() {
+  test_readFrom_normal() async {
     LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
         FileUtilities2.createFile("/libs.dart"),
         r'''
@@ -2263,14 +2265,14 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 
 @reflectiveTest
 class UriKindTest {
-  void test_fromEncoding() {
+  test_fromEncoding() async {
     expect(UriKind.fromEncoding(0x64), same(UriKind.DART_URI));
     expect(UriKind.fromEncoding(0x66), same(UriKind.FILE_URI));
     expect(UriKind.fromEncoding(0x70), same(UriKind.PACKAGE_URI));
     expect(UriKind.fromEncoding(0x58), same(null));
   }
 
-  void test_getEncoding() {
+  test_getEncoding() async {
     expect(UriKind.DART_URI.encoding, 0x64);
     expect(UriKind.FILE_URI.encoding, 0x66);
     expect(UriKind.PACKAGE_URI.encoding, 0x70);
