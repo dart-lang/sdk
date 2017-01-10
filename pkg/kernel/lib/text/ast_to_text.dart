@@ -191,7 +191,7 @@ class Printer extends Visitor<Null> {
   Printer(this.sink,
       {NameSystem syntheticNames,
       this.showExternal,
-      this.showOffsets,
+      this.showOffsets: false,
       this.importTable,
       this.annotator: const InferredValueAnnotator()})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
