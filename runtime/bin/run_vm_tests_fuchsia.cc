@@ -133,7 +133,11 @@ static mx_status_t lp_setup(launchpad_t** lp_out,
   }
   launchpad_t* lp;
   mx_status_t status;
-  status = launchpad_create(0, argv[0], &lp);
+  mx_handle_t job = MX_HANDLE_INVALID;
+  status =
+      mx_handle_duplicate(launchpad_get_mxio_job(), MX_RIGHT_SAME_RIGHTS, &job);
+  RETURN_IF_ERROR(status);
+  status = launchpad_create(job, argv[0], &lp);
   RETURN_IF_ERROR(status);
   status = launchpad_arguments(lp, argc, argv);
   RETURN_IF_ERROR(status);

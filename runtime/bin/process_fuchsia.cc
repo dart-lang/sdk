@@ -735,7 +735,12 @@ class ProcessStarter {
     launchpad_t* lp;
     mx_status_t status;
 
-    status = launchpad_create(0, program_arguments_[0], &lp);
+    mx_handle_t job = MX_HANDLE_INVALID;
+    status = mx_handle_duplicate(launchpad_get_mxio_job(), MX_RIGHT_SAME_RIGHTS,
+                                 &job);
+    CHECK_FOR_ERROR(status, "mx_handle_duplicate");
+
+    status = launchpad_create(job, program_arguments_[0], &lp);
     CHECK_FOR_ERROR(status, "launchpad_create");
     launchpad_ = lp;
 
