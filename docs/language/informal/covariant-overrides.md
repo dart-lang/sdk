@@ -41,6 +41,19 @@ simpleFormalParameter: // CHANGED
 
 declaredIdentifier: // CHANGED
   metadata 'covariant'? finalConstVarOrType identifier
+
+declaration: // CHANGED: last alternative
+  constantConstructorSignature (redirection | initializers)? |
+  constructorSignature (redirection | initializers)? |
+  'external' constantConstructorSignature |
+  'external' constructorSignature |
+  ('external' 'static' ?)? getterSignature |
+  ('external' 'static'?)? setterSignature |
+  'external'? operatorSignature |
+  ('external' 'static'?)? functionSignature |
+  'static' ('final' | 'const') type? staticFinalDeclarationList |
+  'final' type? initializedIdentifierList |
+  'static'? ('var' | 'covariant'? type) initializedIdentifierList
 ```
 
 ### Standard mode
