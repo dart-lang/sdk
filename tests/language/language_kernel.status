@@ -349,10 +349,8 @@ redirecting_factory_reflection_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
 async_star_regression_fisk_test: Crash  # Stack mismatch during expression translation.
 async_star_test: Crash  # Stack mismatch during expression translation.
-issue23244_test: Crash  # Class finalization issue
 not_enough_positional_arguments_test/02: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
-vm/optimized_guarded_field_isolates_test: Crash  # Class finalization issue
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
