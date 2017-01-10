@@ -96,6 +96,7 @@ HEADER = """/* Copyright (c) 2014, the Dart project authors.  Please see the AUT
  */
 library dart.dom._blink;
 
+import 'dart:async';
 import 'dart:js' as js;
 import 'dart:html' show DomException;
 import 'dart:_internal' as internal;
@@ -130,8 +131,11 @@ class Blink_Utils {
 
   // Below code sets up VMLibraryHooks for resolvePackageUri.
   static Uri resolvePackageUri(Uri packageUri) native "Utils_resolvePackageUri";
+  static Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
+      return resolvePackageUri(packageUri);
+  }
   static void _setupHooks() {
-    internal.VMLibraryHooks.resolvePackageUriFuture = resolvePackageUri;
+    internal.VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
   }
 
   // Defines an interceptor if there is an appropriate JavaScript prototype to define it on.
