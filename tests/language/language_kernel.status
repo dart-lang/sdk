@@ -88,6 +88,7 @@ vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
 vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
 vm/reflect_core_vm_test: DartkCompileTimeError
 vm/regress_27201_test: DartkCompileTimeError
+vm/regress_28325_test: RuntimeError  # Issue 28055.
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]

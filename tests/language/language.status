@@ -164,6 +164,8 @@ stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
 regress_26948_test: Skip # Crashes, regis investigating
+vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
+
 
 [ $noopt || $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
