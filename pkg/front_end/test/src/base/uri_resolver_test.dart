@@ -46,11 +46,11 @@ abstract class UriResolverTest {
   }
 
   void test_file() {
-    _expectResolution('file:///foo.dart', _p('foo.dart'));
+    _expectResolution(_fileUri('foo.dart'), _p('foo.dart'));
   }
 
   void test_fileLongPath() {
-    _expectResolution('file:///foo/bar.dart', _p('foo/bar.dart'));
+    _expectResolution(_fileUri('foo/bar.dart'), _p('foo/bar.dart'));
   }
 
   void test_noSchemeAbsolute() {
@@ -121,14 +121,27 @@ abstract class UriResolverTest {
     expect(uriResolver.resolve(Uri.parse(uriString)), expectedResult);
   }
 
+  /// Prepends "file:///", plus a Windows drive letter if applicable, to the
+  /// given path.
+  String _fileUri(String pathPart) {
+    if (pathContext.separator == '/') {
+      return 'file:///$pathPart';
+    } else {
+      return 'file:///C:/$pathPart';
+    }
+  }
+
   /// Converts a posix style path into a path appropriate for the current path
   /// context.
   String _p(String posixPath) {
-    return pathContext.fromUri(_u(posixPath));
+    if (!posixPath.startsWith('/')) posixPath = '/$posixPath';
+    if (pathContext.separator == '/') return posixPath;
+    // Windows
+    return 'C:${posixPath.replaceAll('/', pathContext.separator)}';
   }
 
   /// Converts a posix style path into a file URI.
-  Uri _u(String posixPath) => Uri.parse('file:///$posixPath');
+  Uri _u(String posixPath) => pathContext.toUri(_p(posixPath));
 }
 
 /// Override of [UriResolverTest] which uses the native path context for the
