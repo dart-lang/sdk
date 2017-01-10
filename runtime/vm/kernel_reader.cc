@@ -23,9 +23,9 @@ namespace kernel {
 
 class SimpleExpressionConverter : public ExpressionVisitor {
  public:
-  SimpleExpressionConverter(Thread* thread, Zone* zone)
-      : translation_helper_(thread, zone, NULL),
-        zone_(zone),
+  explicit SimpleExpressionConverter(Thread* thread)
+      : translation_helper_(thread),
+        zone_(translation_helper_.zone()),
         is_simple_(false),
         simple_value_(NULL) {}
 
@@ -99,7 +99,7 @@ KernelReader::KernelReader(Program* program)
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
       scripts_(Array::ZoneHandle(zone_)),
-      translation_helper_(this, thread_, zone_, isolate_),
+      translation_helper_(this, thread_),
       type_translator_(&translation_helper_,
                        &active_class_,
                        /*finalize=*/false) {
@@ -473,7 +473,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
     // Static fields with initializers either have the static value set to the
     // initializer value if it is simple enough or else set to an uninitialized
     // sentinel.
-    SimpleExpressionConverter converter(H.thread(), Z);
+    SimpleExpressionConverter converter(H.thread());
     if (converter.IsSimple(kernel_field->initializer())) {
       // We do not need a getter.
       field.SetStaticValue(converter.SimpleValue(), true);

@@ -94,7 +94,6 @@ enum Tag {
   kAwaitExpression = 51,
   kFunctionExpression = 52,
   kLet = 53,
-  kBlockExpression = 54,
 
   kPositiveIntLiteral = 55,
   kNegativeIntLiteral = 56,
@@ -1424,8 +1423,6 @@ Expression* Expression::ReadFrom(Reader* reader) {
       return FunctionExpression::ReadFrom(reader);
     case kLet:
       return Let::ReadFrom(reader);
-    case kBlockExpression:
-      return BlockExpression::ReadFrom(reader);
     case kBigIntLiteral:
       return BigintLiteral::ReadFrom(reader);
     case kStringLiteral:
@@ -2127,23 +2124,6 @@ void Let::WriteTo(Writer* writer) {
   writer->WriteTag(kLet);
   variable_->WriteToImpl(writer);
   body_->WriteTo(writer);
-}
-
-
-BlockExpression* BlockExpression::ReadFrom(Reader* reader) {
-  TRACE_READ_OFFSET();
-  BlockExpression* be = new BlockExpression();
-  be->body_ = Block::ReadFromImpl(reader);
-  be->value_ = Expression::ReadFrom(reader);
-  return be;
-}
-
-
-void BlockExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kBlockExpression);
-  body_->WriteToImpl(writer);
-  value_->WriteTo(writer);
 }
 
 

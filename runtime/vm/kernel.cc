@@ -752,20 +752,6 @@ void Let::VisitChildren(Visitor* visitor) {
 }
 
 
-BlockExpression::~BlockExpression() {}
-
-
-void BlockExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitBlockExpression(this);
-}
-
-
-void BlockExpression::VisitChildren(Visitor* visitor) {
-  visitor->VisitBlock(body());
-  value()->AcceptExpressionVisitor(visitor);
-}
-
-
 Statement::~Statement() {}
 
 

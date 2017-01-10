@@ -79,7 +79,6 @@
   M(AwaitExpression)                                                           \
   M(FunctionExpression)                                                        \
   M(Let)                                                                       \
-  M(BlockExpression)                                                           \
   M(Statement)                                                                 \
   M(InvalidStatement)                                                          \
   M(ExpressionStatement)                                                       \
@@ -1905,31 +1904,6 @@ class Let : public Expression {
 };
 
 
-class BlockExpression : public Expression {
- public:
-  static BlockExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
-
-  virtual ~BlockExpression();
-
-  DEFINE_CASTING_OPERATIONS(BlockExpression);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
-  Block* body() { return body_; }
-  Expression* value() { return value_; }
-
- private:
-  BlockExpression() {}
-
-  Child<Block> body_;
-  Child<Expression> value_;
-
-  DISALLOW_COPY_AND_ASSIGN(BlockExpression);
-};
-
-
 class Statement : public TreeNode {
  public:
   static Statement* ReadFrom(Reader* reader);
@@ -2941,9 +2915,6 @@ class ExpressionVisitor {
     VisitDefaultBasicLiteral(node);
   }
   virtual void VisitLet(Let* node) { VisitDefaultExpression(node); }
-  virtual void VisitBlockExpression(BlockExpression* node) {
-    VisitDefaultExpression(node);
-  }
 };
 
 

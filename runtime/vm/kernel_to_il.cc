@@ -1319,7 +1319,7 @@ Object& ConstantEvaluator::EvaluateExpressionSafe(Expression* expression) {
   if (setjmp(*jump.Set()) == 0) {
     return EvaluateExpression(expression);
   } else {
-    Thread* thread = Thread::Current();
+    Thread* thread = H.thread();
     Error& error = Error::Handle(Z);
     error = thread->sticky_error();
     thread->clear_sticky_error();
@@ -1850,10 +1850,8 @@ FlowGraphBuilder::FlowGraphBuilder(
     InlineExitCollector* exit_collector,
     intptr_t osr_id,
     intptr_t first_block_id)
-    : zone_(Thread::Current()->zone()),
-      translation_helper_(Thread::Current(),
-                          zone_,
-                          Thread::Current()->isolate()),
+    : translation_helper_(Thread::Current()),
+      zone_(translation_helper_.zone()),
       node_(node),
       parsed_function_(parsed_function),
       osr_id_(osr_id),
@@ -2192,7 +2190,7 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
-      /* needs_stacktrace = */ true, Thread::Current()->GetNextDeoptId(),
+      /* needs_stacktrace = */ true, H.thread()->GetNextDeoptId(),
       should_restore_closure_context);
   graph_entry_->AddCatchEntry(entry);
   Fragment instructions(entry);
@@ -2562,11 +2560,9 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
   if (FLAG_use_field_guards) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
-    instructions +=
-        GuardFieldClass(field_clone, Thread::Current()->GetNextDeoptId());
+    instructions += GuardFieldClass(field_clone, H.thread()->GetNextDeoptId());
     instructions += LoadLocal(store_expression);
-    instructions +=
-        GuardFieldLength(field_clone, Thread::Current()->GetNextDeoptId());
+    instructions += GuardFieldLength(field_clone, H.thread()->GetNextDeoptId());
   }
   instructions += StoreInstanceField(field_clone);
   return instructions;
@@ -4907,13 +4903,6 @@ void FlowGraphBuilder::VisitRethrow(Rethrow* node) {
   instructions += PushArgument();
   instructions += RethrowException(catch_block_->catch_try_index());
 
-  fragment_ = instructions;
-}
-
-
-void FlowGraphBuilder::VisitBlockExpression(BlockExpression* node) {
-  Fragment instructions = TranslateStatement(node->body());
-  instructions += TranslateExpression(node->value());
   fragment_ = instructions;
 }
 
