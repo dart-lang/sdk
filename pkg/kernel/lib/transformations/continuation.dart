@@ -125,9 +125,12 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     final function = new FunctionNode(buildClosureBody(),
         positionalParameters: [iteratorVariable],
         requiredParameterCount: 1,
-        asyncMarker: AsyncMarker.SyncYielding);
+        asyncMarker: AsyncMarker.SyncYielding)
+      ..fileOffset = enclosingFunction.fileOffset
+      ..fileEndOffset = enclosingFunction.fileEndOffset;
     final closureFunction =
-        new FunctionDeclaration(nestedClosureVariable, function);
+        new FunctionDeclaration(nestedClosureVariable, function)
+          ..fileOffset = enclosingFunction.parent.fileOffset;
 
     // return new _SyncIterable(:sync_body);
     final arguments = new Arguments([new VariableGet(nestedClosureVariable)]);
@@ -209,7 +212,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     final function = new FunctionNode(buildWrappedBody(),
         positionalParameters: parameters,
         requiredParameterCount: 0,
-        asyncMarker: AsyncMarker.SyncYielding);
+        asyncMarker: AsyncMarker.SyncYielding)
+      ..fileOffset = enclosingFunction.fileOffset
+      ..fileEndOffset = enclosingFunction.fileEndOffset;
 
     // The await expression lifter might have created a number of
     // [VariableDeclarations].
@@ -220,7 +225,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
     // Now add the closure function itself.
     final closureFunction =
-        new FunctionDeclaration(nestedClosureVariable, function);
+        new FunctionDeclaration(nestedClosureVariable, function)
+          ..fileOffset = enclosingFunction.parent.fileOffset;
     statements.add(closureFunction);
 
     // :async_op_then = _asyncThenWrapperHelper(asyncBody);
@@ -535,7 +541,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var condition = new AwaitExpression(new MethodInvocation(
           new VariableGet(iteratorVariable),
           new Name('moveNext'),
-          new Arguments(<Expression>[])));
+          new Arguments(<Expression>[])))..fileOffset = stmt.fileOffset;
 
       // var <variable> = iterator.current;
       var valueVariable = stmt.variable;
@@ -659,8 +665,9 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     // :controller = new _AsyncController(:async_op);
     var arguments =
         new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]);
-    var buildController = new ConstructorInvocation(
-        helper.streamControllerConstructor, arguments);
+    var buildController =
+        new ConstructorInvocation(helper.streamControllerConstructor, arguments)
+          ..fileOffset = enclosingFunction.fileOffset;
     var setController = new ExpressionStatement(
         new VariableSet(controllerVariable, buildController));
     statements.add(setController);
@@ -696,7 +703,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
           new VariableGet(controllerVariable),
           new Name("close", helper.asyncLibrary),
           new Arguments(<Expression>[]))),
-      new ReturnStatement()
+      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 
@@ -706,10 +713,12 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     var addExpression = new MethodInvocation(
         new VariableGet(controllerVariable),
         new Name(stmt.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
-        new Arguments(<Expression>[expr]));
+        new Arguments(<Expression>[expr]))..fileOffset = stmt.fileOffset;
 
-    statements.add(new IfStatement(addExpression,
-        new ReturnStatement(new NullLiteral()), createContinuationPoint()));
+    statements.add(new IfStatement(
+        addExpression,
+        new ReturnStatement(new NullLiteral()),
+        createContinuationPoint()..fileOffset = stmt.fileOffset));
     return null;
   }
 
@@ -735,7 +744,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // var :completer = new Completer.sync();
     completerVariable = new VariableDeclaration(":completer",
         initializer: new StaticInvocation(helper.completerConstructor,
-            new Arguments([], types: [const DynamicType()])),
+            new Arguments([], types: [const DynamicType()]))
+          ..fileOffset = enclosingFunction.body.fileOffset,
         isFinal: true);
     statements.add(completerVariable);
 
@@ -748,7 +758,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     var newMicrotaskStatement = new ExpressionStatement(new StaticInvocation(
         helper.futureMicrotaskConstructor,
         new Arguments([new VariableGet(nestedClosureVariable)],
-            types: [const DynamicType()])));
+            types: [const DynamicType()]))
+      ..fileOffset = enclosingFunction.fileOffset);
     statements.add(newMicrotaskStatement);
 
     // return :completer.future;
@@ -760,6 +771,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     enclosingFunction.body = new Block(statements);
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
+    enclosingFunction.debuggable = false;
     return enclosingFunction;
   }
 
@@ -782,7 +794,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
           new VariableGet(completerVariable),
           new Name("complete", helper.asyncLibrary),
           new Arguments([new VariableGet(returnVariable)]))),
-      new ReturnStatement()
+      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 

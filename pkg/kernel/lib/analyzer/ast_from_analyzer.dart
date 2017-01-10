@@ -472,7 +472,7 @@ class TypeScope extends ReferenceScope {
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: requiredParameterCount,
-        returnType: returnType);
+        returnType: returnType)..fileOffset = element.nameOffset;
   }
 }
 
@@ -566,6 +566,8 @@ class ExpressionScope extends TypeScope {
           break;
       }
     }
+    int offset = formalParameters?.offset ?? body.offset;
+    int endOffset = body.endToken.offset;
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,
         positionalParameters: positional,
@@ -575,7 +577,9 @@ class ExpressionScope extends TypeScope {
             inferredReturnType ??
             const ast.DynamicType(),
         asyncMarker: getAsyncMarker(
-            isAsync: body.isAsynchronous, isStar: body.isGenerator));
+            isAsync: body.isAsynchronous, isStar: body.isGenerator))
+      ..fileOffset = offset
+      ..fileEndOffset = endOffset;
   }
 
   ast.Expression buildOptionalTopLevelExpression(Expression node) {
@@ -636,7 +640,8 @@ class ExpressionScope extends TypeScope {
   ast.VariableDeclaration getVariableReference(LocalElement element) {
     return localVariables.putIfAbsent(element, () {
       return new ast.VariableDeclaration(element.name,
-          isFinal: isFinal(element), isConst: isConst(element));
+          isFinal: isFinal(element),
+          isConst: isConst(element))..fileOffset = element.nameOffset;
     });
   }
 
@@ -900,11 +905,19 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
   StatementBuilder(this.scope, [this.breakStack, this.continueStack]);
 
   ast.Statement build(Statement node) {
-    return node.accept(this);
+    ast.Statement result = node.accept(this);
+    result.fileOffset = _getOffset(node);
+    return result;
   }
 
   ast.Statement buildOptional(Statement node) {
-    return node?.accept(this);
+    ast.Statement result = node?.accept(this);
+    result?.fileOffset = _getOffset(node);
+    return result;
+  }
+
+  int _getOffset(AstNode node) {
+    return node.offset;
   }
 
   ast.Statement buildInScope(
@@ -1286,7 +1299,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
             typeParameters: scope.buildOptionalTypeParameterList(
                 expression.typeParameters,
                 strongModeOnly: true),
-            returnType: declaration.returnType));
+            returnType: declaration.returnType))..fileOffset = node.offset;
   }
 
   @override
@@ -1320,6 +1333,14 @@ class ExpressionBuilder
       return node.identifier.offset;
     } else if (node is AssignmentExpression) {
       return _getOffset(node.leftHandSide);
+    } else if (node is PropertyAccess) {
+      return node.propertyName.offset;
+    } else if (node is IsExpression) {
+      return node.isOperator.offset;
+    } else if (node is StringLiteral) {
+      // Use a catch-all for StringInterpolation and AdjacentStrings:
+      // the debugger stops at the end.
+      return node.end;
     }
     return node.offset;
   }
@@ -1353,6 +1374,7 @@ class ExpressionBuilder
       // Cut off the trailing '='.
       var name = new ast.Name(operator.substring(0, operator.length - 1));
       return leftHand.buildCompoundAssignment(name, rightHand,
+          offset: node.offset,
           voidContext: voidContext,
           interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
     }
@@ -1376,7 +1398,7 @@ class ExpressionBuilder
       ast.Expression leftOperand = build(node.leftOperand);
       if (leftOperand is ast.VariableGet) {
         return new ast.ConditionalExpression(
-            buildIsNull(leftOperand),
+            buildIsNull(leftOperand, offset: node.leftOperand.offset),
             build(node.rightOperand),
             new ast.VariableGet(leftOperand.variable),
             scope.getInferredType(node));
@@ -1385,7 +1407,8 @@ class ExpressionBuilder
         return new ast.Let(
             variable,
             new ast.ConditionalExpression(
-                buildIsNull(new ast.VariableGet(variable)),
+                buildIsNull(new ast.VariableGet(variable),
+                    offset: leftOperand.fileOffset),
                 build(node.rightOperand),
                 new ast.VariableGet(variable),
                 scope.getInferredType(node)));
@@ -1894,7 +1917,7 @@ class ExpressionBuilder
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
                   buildArgumentsForInvocation(node),
-                  element),
+                  element)..fileOffset = node.methodName.offset,
               scope.buildType(node.staticType)));
     } else {
       return buildDecomposableMethodInvocation(
@@ -1929,6 +1952,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPostfixIncrement(binaryOperator,
+            offset: node.offset,
             voidContext: isInVoidContext(node),
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
@@ -1962,6 +1986,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPrefixIncrement(binaryOperator,
+            offset: node.offset,
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
       default:
@@ -2353,7 +2378,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     currentClass.name = element.name;
     currentClass.supertype = scope.getRootClassReference().asRawSupertype;
     currentClass.constructors.add(
-        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement())));
+        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement()))
+          ..fileOffset = element.nameOffset);
   }
 
   void addAnnotations(List<Annotation> annotations) {
@@ -2502,7 +2528,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         initializers: [
           new ast.FieldInitializer(indexField, new ast.VariableGet(parameter)),
           new ast.SuperInitializer(superConstructor, new ast.Arguments.empty())
-        ]);
+        ])..fileOffset = element.nameOffset;
     classNode.addMember(constructor);
     int index = 0;
     var enumConstantFields = <ast.Field>[];
@@ -2578,6 +2604,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   void build(AstNode node) {
     if (node != null) {
+      currentMember.fileEndOffset = node.endToken.offset;
       node.accept(this);
     } else {
       buildBrokenMember();
