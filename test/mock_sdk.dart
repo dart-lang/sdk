@@ -142,6 +142,8 @@ class Future<T> {
   factory Future.value([value]) => null;
   static Future wait(List<Future> futures) => null;
 }
+
+class FutureOr<T> {}
 ''',
       const <_MockSdkFile>[
         const _MockSdkFile(
