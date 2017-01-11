@@ -90,7 +90,7 @@ vm/reflect_core_vm_test: DartkCompileTimeError
 vm/regress_27201_test: DartkCompileTimeError
 vm/regress_28325_test: RuntimeError  # Issue 28055.
 covariant_test/none: CompileTimeError # Issue 28166
-covariant_override_test: Crash # Issue 28166
+covariant_override_test: DartkCrash # Issue 28166
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
