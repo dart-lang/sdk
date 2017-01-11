@@ -276,9 +276,8 @@ positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError
 redirecting_constructor_initializer_test: RuntimeError
-regress_22443_test: RuntimeError
-regress_23408_test: RuntimeError
-regress_27164_test: CompileTimeError
+regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
+regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
 regress_r24720_test: RuntimeError
 regress_28278_test: RuntimeError
 script1_negative_test: Fail

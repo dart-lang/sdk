@@ -4264,12 +4264,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
       fragment_ = StaticCall(node->position(), target, 0);
     } else if (procedure->kind() == Procedure::kMethod) {
       ASSERT(procedure->IsStatic());
-      Function& closure_function =
-          Function::ZoneHandle(Z, target.ImplicitClosureFunction());
-      closure_function.set_kernel_function(target.kernel_function());
-      const Instance& closure =
-          Instance::ZoneHandle(Z, closure_function.ImplicitStaticClosure());
-      fragment_ = Constant(closure);
+      fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
     } else {
       UNIMPLEMENTED();
     }
