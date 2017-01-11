@@ -488,6 +488,7 @@ class Class : public TreeNode {
   intptr_t source_uri_index() { return source_uri_index_; }
   bool is_abstract() { return is_abstract_; }
   List<Expression>& annotations() { return annotations_; }
+  TokenPosition position() { return position_; }
 
   virtual List<TypeParameter>& type_parameters() = 0;
   virtual List<InterfaceType>& implemented_classes() = 0;
@@ -496,7 +497,7 @@ class Class : public TreeNode {
   virtual List<Procedure>& procedures() = 0;
 
  protected:
-  Class() : is_abstract_(false) {}
+  Class() : is_abstract_(false), position_(TokenPosition::kNoSource) {}
 
  private:
   template <typename T>
@@ -507,6 +508,7 @@ class Class : public TreeNode {
   intptr_t source_uri_index_;
   bool is_abstract_;
   List<Expression> annotations_;
+  TokenPosition position_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
@@ -607,9 +609,13 @@ class Member : public TreeNode {
   TreeNode* parent() { return parent_; }
   Name* name() { return name_; }
   List<Expression>& annotations() { return annotations_; }
+  TokenPosition position() { return position_; }
+  TokenPosition end_position() { return end_position_; }
 
  protected:
-  Member() {}
+  Member()
+      : position_(TokenPosition::kNoSource),
+        end_position_(TokenPosition::kNoSource) {}
 
   template <typename T>
   friend class List;
@@ -617,6 +623,8 @@ class Member : public TreeNode {
   Ref<TreeNode> parent_;
   Child<Name> name_;
   List<Expression> annotations_;
+  TokenPosition position_;
+  TokenPosition end_position_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Member);
@@ -650,10 +658,9 @@ class Field : public Member {
   DartType* type() { return type_; }
   InferredValue* inferred_value() { return inferred_value_; }
   Expression* initializer() { return initializer_; }
-  TokenPosition position() { return position_; }
 
  private:
-  Field() : position_(TokenPosition::kNoSource) {}
+  Field() {}
 
   template <typename T>
   friend class List;
@@ -663,7 +670,6 @@ class Field : public Member {
   Child<DartType> type_;
   Child<InferredValue> inferred_value_;
   Child<Expression> initializer_;
-  TokenPosition position_;
 
   DISALLOW_COPY_AND_ASSIGN(Field);
 };
@@ -919,6 +925,7 @@ class FunctionNode : public TreeNode {
   virtual void VisitChildren(Visitor* visitor);
 
   AsyncMarker async_marker() { return async_marker_; }
+  bool debuggable() { return debuggable_; }
   TypeParameterList& type_parameters() { return type_parameters_; }
   int required_parameter_count() { return required_parameter_count_; }
   List<VariableDeclaration>& positional_parameters() {
@@ -928,11 +935,16 @@ class FunctionNode : public TreeNode {
   DartType* return_type() { return return_type_; }
   InferredValue* inferred_return_value() { return inferred_return_value_; }
   Statement* body() { return body_; }
+  TokenPosition position() { return position_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  FunctionNode() {}
+  FunctionNode()
+      : position_(TokenPosition::kNoSource),
+        end_position_(TokenPosition::kNoSource) {}
 
   AsyncMarker async_marker_;
+  bool debuggable_;
   TypeParameterList type_parameters_;
   int required_parameter_count_;
   List<VariableDeclaration> positional_parameters_;
@@ -940,6 +952,8 @@ class FunctionNode : public TreeNode {
   Child<DartType> return_type_;
   Child<InferredValue> inferred_return_value_;
   Child<Statement> body_;
+  TokenPosition position_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(FunctionNode);
 };
@@ -1893,12 +1907,18 @@ class Let : public Expression {
 
   VariableDeclaration* variable() { return variable_; }
   Expression* body() { return body_; }
+  TokenPosition position() { return position_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  Let() {}
+  Let()
+      : position_(TokenPosition::kNoSource),
+        end_position_(TokenPosition::kNoSource) {}
 
   Child<VariableDeclaration> variable_;
   Child<Expression> body_;
+  TokenPosition position_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(Let);
 };
@@ -1915,9 +1935,11 @@ class Statement : public TreeNode {
 
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void AcceptStatementVisitor(StatementVisitor* visitor) = 0;
+  TokenPosition position() { return position_; }
 
  protected:
-  Statement() {}
+  Statement() : position_(TokenPosition::kNoSource) {}
+  TokenPosition position_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Statement);

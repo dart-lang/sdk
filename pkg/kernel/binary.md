@@ -196,6 +196,7 @@ abstract type Class extends Node {}
 
 type NormalClass extends Class {
   Byte tag = 2;
+  FileOffset fileOffset;
   Byte flags (isAbstract, isTypeLevel);
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
@@ -211,6 +212,7 @@ type NormalClass extends Class {
 
 type MixinClass extends Class {
   Byte tag = 3;
+  FileOffset fileOffset;
   Byte flags (isAbstract, isTypeLevel);
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
@@ -228,6 +230,7 @@ abstract type Member extends Node {}
 type Field extends Member {
   Byte tag = 4;
   FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
@@ -240,6 +243,8 @@ type Field extends Member {
 
 type Constructor extends Member {
   Byte tag = 5;
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
   List<Expression> annotations;
@@ -259,6 +264,8 @@ enum ProcedureKind {
 
 type Procedure extends Member {
   Byte tag = 6;
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);
   Name name;
@@ -309,7 +316,10 @@ enum AsyncMarker {
 
 type FunctionNode {
   // Note: there is no tag on FunctionNode.
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
+  Byte debuggable; // 1 for yes, 0 for no
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
@@ -350,22 +360,26 @@ type InvalidExpression extends Expression {
 
 type VariableGet extends Expression {
   Byte tag = 20;
+  FileOffset fileOffset;
   VariableReference variable;
 }
 
 type SpecializedVariableGet extends Expression {
   Byte tag = 128 + N; // Where 0 <= N < 8.
   // Equivalent to a VariableGet with index N.
+  FileOffset fileOffset;
 }
 
 type VariableSet extends Expression {
   Byte tag = 21;
+  FileOffset fileOffset;
   VariableReference variable;
   Expression value;
 }
 
 type SpecializedVariableSet extends Expression {
   Byte tag = 136 + N; // Where 0 <= N < 8.
+  FileOffset fileOffset;
   Expression value;
   // Equivalent to VariableSet with index N.
 }
@@ -518,11 +532,13 @@ type ConditionalExpression extends Expression {
 
 type StringConcatenation extends Expression {
   Byte tag = 36;
+  FileOffset fileOffset;
   List<Expression> expressions;
 }
 
 type IsExpression extends Expression {
   Byte tag = 37;
+  FileOffset fileOffset;
   Expression operand;
   DartType type;
 }
@@ -613,6 +629,7 @@ type ConstListLiteral extends Expression {
 
 type MapLiteral extends Expression {
   Byte tag = 50;
+  FileOffset fileOffset;
   DartType keyType;
   DartType valueType;
   List<MapEntry> entries;
@@ -759,6 +776,7 @@ type IfStatement extends Statement {
 
 type ReturnStatement extends Statement {
   Byte tag = 74;
+  FileOffset fileOffset;
   Option<Expression> expression;
 }
 
@@ -783,6 +801,7 @@ type TryFinally extends Statement {
 
 type YieldStatement extends Statement {
   Byte tag = 77;
+  FileOffset fileOffset;
   Byte flags (isYieldStar);
   Expression expression;
 }
@@ -793,6 +812,7 @@ type VariableDeclarationStatement extends Statement {
 }
 
 type VariableDeclaration {
+  FileOffset fileOffset;
   Byte flags (isFinal, isConst);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
@@ -809,6 +829,7 @@ type VariableDeclaration {
 
 type FunctionDeclaration extends Statement {
   Byte tag = 79;
+  FileOffset fileOffset;
   // The variable binding the function.  The variable is in scope
   // within the function for use as a self-reference.
   // Some of the fields in the variable are redundant, but its presence here
