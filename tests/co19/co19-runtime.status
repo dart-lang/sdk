@@ -366,7 +366,3 @@ LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
 LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Timing dependent
 LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Timing dependent
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
-
-[ $runtime == dart_precompiled ]
-Language/Types/Interface_Types/subtype_t27: Pass, Timeout # Issue 28318
-Language/Types/Interface_Types/subtype_t28: Pass, Timeout # Issue 28318
