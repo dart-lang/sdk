@@ -504,15 +504,15 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   Token asOperator;
 
   /**
-   * The name of the type being cast to.
+   * The type being cast to.
    */
-  TypeName _type;
+  TypeAnnotation _type;
 
   /**
    * Initialize a newly created as expression.
    */
   AsExpressionImpl(
-      ExpressionImpl expression, this.asOperator, TypeNameImpl type) {
+      ExpressionImpl expression, this.asOperator, TypeAnnotationImpl type) {
     _expression = _becomeParentOf(expression);
     _type = _becomeParentOf(type);
   }
@@ -539,11 +539,11 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   int get precedence => 7;
 
   @override
-  TypeName get type => _type;
+  TypeAnnotation get type => _type;
 
   @override
-  void set type(TypeName name) {
-    _type = _becomeParentOf(name as AstNodeImpl);
+  void set type(TypeAnnotation type) {
+    _type = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -1575,7 +1575,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
    * The type of exceptions caught by this catch clause, or `null` if this catch
    * clause catches every type of exception.
    */
-  TypeName _exceptionType;
+  TypeAnnotation _exceptionType;
 
   /**
    * The token representing the 'catch' keyword, or `null` if there is no
@@ -1628,7 +1628,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
    */
   CatchClauseImpl(
       this.onKeyword,
-      TypeNameImpl exceptionType,
+      TypeAnnotationImpl exceptionType,
       this.catchKeyword,
       this.leftParenthesis,
       SimpleIdentifierImpl exceptionParameter,
@@ -1682,10 +1682,10 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  TypeName get exceptionType => _exceptionType;
+  TypeAnnotation get exceptionType => _exceptionType;
 
   @override
-  void set exceptionType(TypeName exceptionType) {
+  void set exceptionType(TypeAnnotation exceptionType) {
     _exceptionType = _becomeParentOf(exceptionType as AstNodeImpl);
   }
 
@@ -3294,7 +3294,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
    * The name of the declared type of the parameter, or `null` if the parameter
    * does not have a declared type.
    */
-  TypeName _type;
+  TypeAnnotation _type;
 
   /**
    * The name of the variable being declared.
@@ -3308,7 +3308,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
    * given. The [type] must be `null` if the keyword is 'var'.
    */
   DeclaredIdentifierImpl(CommentImpl comment, List<Annotation> metadata,
-      this.keyword, TypeNameImpl type, SimpleIdentifierImpl identifier)
+      this.keyword, TypeAnnotationImpl type, SimpleIdentifierImpl identifier)
       : super(comment, metadata) {
     _type = _becomeParentOf(type);
     _identifier = _becomeParentOf(identifier);
@@ -3354,11 +3354,11 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
-  TypeName get type => _type;
+  TypeAnnotation get type => _type;
 
   @override
-  void set type(TypeName typeName) {
-    _type = _becomeParentOf(typeName as AstNodeImpl);
+  void set type(TypeAnnotation type) {
+    _type = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -4408,7 +4408,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
    * The name of the declared type of the parameter, or `null` if the parameter
    * does not have a declared type.
    */
-  TypeName _type;
+  TypeAnnotation _type;
 
   /**
    * The token representing the 'this' keyword.
@@ -4447,7 +4447,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       this.keyword,
-      TypeNameImpl type,
+      TypeAnnotationImpl type,
       this.thisKeyword,
       this.period,
       SimpleIdentifierImpl identifier,
@@ -4501,11 +4501,11 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  TypeName get type => _type;
+  TypeAnnotation get type => _type;
 
   @override
-  void set type(TypeName typeName) {
-    _type = _becomeParentOf(typeName as AstNodeImpl);
+  void set type(TypeAnnotation type) {
+    _type = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -5084,7 +5084,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   /**
    * The return type of the function, or `null` if no return type was declared.
    */
-  TypeName _returnType;
+  TypeAnnotation _returnType;
 
   /**
    * The token representing the 'get' or 'set' keyword, or `null` if this is a
@@ -5110,7 +5110,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
       CommentImpl comment,
       List<Annotation> metadata,
       this.externalKeyword,
-      TypeNameImpl returnType,
+      TypeAnnotationImpl returnType,
       this.propertyKeyword,
       SimpleIdentifierImpl name,
       FunctionExpressionImpl functionExpression)
@@ -5162,11 +5162,11 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   bool get isSetter => propertyKeyword?.keyword == Keyword.SET;
 
   @override
-  TypeName get returnType => _returnType;
+  TypeAnnotation get returnType => _returnType;
 
   @override
-  void set returnType(TypeName returnType) {
-    _returnType = _becomeParentOf(returnType as AstNodeImpl);
+  void set returnType(TypeAnnotation type) {
+    _returnType = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -5195,8 +5195,9 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   /**
    * Initialize a newly created function declaration statement.
    */
-  FunctionDeclarationStatementImpl(FunctionDeclaration functionDeclaration) {
-    _functionDeclaration = _becomeParentOf(functionDeclaration as AstNodeImpl);
+  FunctionDeclarationStatementImpl(
+      FunctionDeclarationImpl functionDeclaration) {
+    _functionDeclaration = _becomeParentOf(functionDeclaration);
   }
 
   @override
@@ -5434,7 +5435,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
    * The name of the return type of the function type being defined, or `null`
    * if no return type was given.
    */
-  TypeName _returnType;
+  TypeAnnotation _returnType;
 
   /**
    * The type parameters for the function type, or `null` if the function type
@@ -5458,7 +5459,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
       CommentImpl comment,
       List<Annotation> metadata,
       Token keyword,
-      TypeNameImpl returnType,
+      TypeAnnotationImpl returnType,
       SimpleIdentifierImpl name,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters,
@@ -5491,11 +5492,11 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   }
 
   @override
-  TypeName get returnType => _returnType;
+  TypeAnnotation get returnType => _returnType;
 
   @override
-  void set returnType(TypeName typeName) {
-    _returnType = _becomeParentOf(typeName as AstNodeImpl);
+  void set returnType(TypeAnnotation type) {
+    _returnType = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -5532,7 +5533,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
    * The return type of the function, or `null` if the function does not have a
    * return type.
    */
-  TypeName _returnType;
+  TypeAnnotation _returnType;
 
   /**
    * The type parameters associated with the function, or `null` if the function
@@ -5557,7 +5558,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   FunctionTypedFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
-      TypeNameImpl returnType,
+      TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters,
@@ -5598,10 +5599,10 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  TypeName get returnType => _returnType;
+  TypeAnnotation get returnType => _returnType;
 
   @override
-  void set returnType(TypeName type) {
+  void set returnType(TypeAnnotation type) {
     _returnType = _becomeParentOf(type as AstNodeImpl);
   }
 
@@ -5624,6 +5625,214 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     identifier?.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
+  }
+}
+
+/**
+ * An anonymous function type.
+ *
+ *    functionType ::=
+ *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
+ *
+ * where the FormalParameterList is being used to represent the following
+ * grammar, despite the fact that FormalParameterList can represent a much
+ * larger grammar than the one below. This is done in order to simplify the
+ * implementation.
+ *
+ *    parameterTypeList ::=
+ *        () |
+ *        ( normalParameterTypes ,? ) |
+ *        ( normalParameterTypes , optionalParameterTypes ) |
+ *        ( optionalParameterTypes )
+ *    namedParameterTypes ::=
+ *        { namedParameterType (, namedParameterType)* ,? }
+ *    namedParameterType ::=
+ *        [TypeAnnotation]? [SimpleIdentifier]
+ *    normalParameterTypes ::=
+ *        normalParameterType (, normalParameterType)*
+ *    normalParameterType ::=
+ *        [TypeAnnotation] [SimpleIdentifier]?
+ *    optionalParameterTypes ::=
+ *        optionalPositionalParameterTypes | namedParameterTypes
+ *    optionalPositionalParameterTypes ::=
+ *        [ normalParameterTypes ,? ]
+ */
+class GenericFunctionTypeImpl extends TypeAnnotationImpl
+    implements GenericFunctionType {
+  /**
+   * The name of the return type of the function type being defined, or
+   * `null` if no return type was given.
+   */
+  TypeAnnotation _returnType;
+
+  @override
+  Token functionKeyword;
+
+  /**
+   * The type parameters for the function type, or `null` if the function type
+   * does not have any type parameters.
+   */
+  TypeParameterList _typeParameters;
+
+  /**
+   * The parameters associated with the function type.
+   */
+  FormalParameterList _parameters;
+
+  /**
+   * Initialize a newly created generic function type.
+   */
+  GenericFunctionTypeImpl(
+      TypeAnnotationImpl returnType,
+      this.functionKeyword,
+      TypeParameterListImpl typeParameters,
+      FormalParameterListImpl parameters) {
+    _returnType = _becomeParentOf(returnType);
+    _typeParameters = _becomeParentOf(typeParameters);
+    _parameters = _becomeParentOf(parameters);
+  }
+
+  @override
+  Token get beginToken =>
+      _returnType == null ? functionKeyword : _returnType.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_returnType)
+    ..add(functionKeyword)
+    ..add(_typeParameters)
+    ..add(_parameters);
+
+  @override
+  Token get endToken => _parameters.endToken;
+
+  @override
+  FormalParameterList get parameters => _parameters;
+
+  @override
+  void set parameters(FormalParameterList parameters) {
+    _parameters = _becomeParentOf(parameters as AstNodeImpl);
+  }
+
+  @override
+  TypeAnnotation get returnType => _returnType;
+
+  @override
+  void set returnType(TypeAnnotation type) {
+    _returnType = _becomeParentOf(type as AstNodeImpl);
+  }
+
+  @override
+  DartType get type => null;
+
+  /**
+   * Return the type parameters for the function type, or `null` if the function
+   * type does not have any type parameters.
+   */
+  TypeParameterList get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters for the function type to the given list of
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as AstNodeImpl);
+  }
+
+  // TODO: implement type
+  @override
+  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) {
+    return visitor.visitGenericFunctionType(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _returnType?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
+  }
+}
+
+/**
+ * A generic type alias.
+ *
+ *    functionTypeAlias ::=
+ *        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
+ */
+class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
+  /**
+   * The type parameters for the function type, or `null` if the function
+   * type does not have any type parameters.
+   */
+  TypeParameterList _typeParameters;
+
+  @override
+  Token equals;
+
+  /**
+   * The type of function being defined by the alias.
+   */
+  GenericFunctionType _functionType;
+
+  /**
+   * Returns a newly created generic type alias. Either or both of the
+   * [comment] and [metadata] can be `null` if the variable list does not have
+   * the corresponding attribute. The [typeParameters] can be `null` if there
+   * are no type parameters.
+   */
+  GenericTypeAliasImpl(
+      Comment comment,
+      List<Annotation> metadata,
+      Token typedefToken,
+      SimpleIdentifier name,
+      TypeParameterListImpl typeParameters,
+      this.equals,
+      GenericFunctionTypeImpl functionType,
+      Token semicolon)
+      : super(comment, metadata, typedefToken, name, semicolon) {
+    _typeParameters = _becomeParentOf(typeParameters);
+    _functionType = _becomeParentOf(functionType);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(metadata)
+    ..add(typedefKeyword)
+    ..add(name)
+    ..add(_typeParameters)
+    ..add(equals)
+    ..add(_functionType);
+  @override
+  Element get element => null;
+
+  @override
+  GenericFunctionType get functionType => _functionType;
+
+  @override
+  void set functionType(GenericFunctionType functionType) {
+    _functionType = _becomeParentOf(functionType as AstNodeImpl);
+  }
+
+  @override
+  TypeParameterList get typeParameters => _typeParameters;
+
+  @override
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as AstNodeImpl);
+  }
+
+  @override
+  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) {
+    return visitor.visitGenericTypeAlias(this);
+  }
+
+  // TODO: implement element
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _functionType?.accept(visitor);
   }
 }
 
@@ -6527,14 +6736,14 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   /**
    * The name of the type being tested for.
    */
-  TypeName _type;
+  TypeAnnotation _type;
 
   /**
    * Initialize a newly created is expression. The [notOperator] can be `null`
    * if the sense of the test is not negated.
    */
   IsExpressionImpl(ExpressionImpl expression, this.isOperator, this.notOperator,
-      TypeNameImpl type) {
+      TypeAnnotationImpl type) {
     _expression = _becomeParentOf(expression);
     _type = _becomeParentOf(type);
   }
@@ -6564,11 +6773,11 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   int get precedence => 7;
 
   @override
-  TypeName get type => _type;
+  TypeAnnotation get type => _type;
 
   @override
-  void set type(TypeName name) {
-    _type = _becomeParentOf(name as AstNodeImpl);
+  void set type(TypeAnnotation type) {
+    _type = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -7124,7 +7333,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /**
    * The return type of the method, or `null` if no return type was declared.
    */
-  TypeName _returnType;
+  TypeAnnotation _returnType;
 
   /**
    * The token representing the 'get' or 'set' keyword, or `null` if this is a
@@ -7178,7 +7387,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
       List<Annotation> metadata,
       this.externalKeyword,
       this.modifierKeyword,
-      TypeNameImpl returnType,
+      TypeAnnotationImpl returnType,
       this.propertyKeyword,
       this.operatorKeyword,
       SimpleIdentifierImpl name,
@@ -7277,11 +7486,11 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  TypeName get returnType => _returnType;
+  TypeAnnotation get returnType => _returnType;
 
   @override
-  void set returnType(TypeName typeName) {
-    _returnType = _becomeParentOf(typeName as AstNodeImpl);
+  void set returnType(TypeAnnotation type) {
+    _returnType = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -8991,7 +9200,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
    * The name of the declared type of the parameter, or `null` if the parameter
    * does not have a declared type.
    */
-  TypeName _type;
+  TypeAnnotation _type;
 
   /**
    * Initialize a newly created formal parameter. Either or both of the
@@ -9000,7 +9209,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
    * specified. The [type] must be `null` if the keyword is 'var'.
    */
   SimpleFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      this.keyword, TypeNameImpl type, SimpleIdentifierImpl identifier)
+      this.keyword, TypeAnnotationImpl type, SimpleIdentifierImpl identifier)
       : super(comment, metadata, identifier) {
     _type = _becomeParentOf(type);
   }
@@ -9032,11 +9241,11 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
-  TypeName get type => _type;
+  TypeAnnotation get type => _type;
 
   @override
-  void set type(TypeName typeName) {
-    _type = _becomeParentOf(typeName as AstNodeImpl);
+  void set type(TypeAnnotation type) {
+    _type = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -10299,6 +10508,16 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
 }
 
 /**
+ * A type annotation.
+ *
+ *    type ::=
+ *        [NamedType]
+ *      | [GenericFunctionType]
+ */
+abstract class TypeAnnotationImpl extends AstNodeImpl
+    implements TypeAnnotation {}
+
+/**
  * A list of type arguments.
  *
  *    typeArguments ::=
@@ -10313,7 +10532,7 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   /**
    * The type arguments associated with the type.
    */
-  NodeList<TypeName> _arguments;
+  NodeList<TypeAnnotation> _arguments;
 
   /**
    * The right bracket.
@@ -10324,12 +10543,12 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
    * Initialize a newly created list of type arguments.
    */
   TypeArgumentListImpl(
-      this.leftBracket, List<TypeName> arguments, this.rightBracket) {
-    _arguments = new NodeListImpl<TypeName>(this, arguments);
+      this.leftBracket, List<TypeAnnotation> arguments, this.rightBracket) {
+    _arguments = new NodeListImpl<TypeAnnotation>(this, arguments);
   }
 
   @override
-  NodeList<TypeName> get arguments => _arguments;
+  NodeList<TypeAnnotation> get arguments => _arguments;
 
   @override
   Token get beginToken => leftBracket;
@@ -10406,7 +10625,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
  *    typeName ::=
  *        [Identifier] typeArguments?
  */
-class TypeNameImpl extends AstNodeImpl implements TypeName {
+class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   /**
    * The name of the type.
    */
@@ -10512,7 +10731,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
    * The name of the upper bound for legal arguments, or `null` if there is no
    * explicit upper bound.
    */
-  TypeName _bound;
+  TypeAnnotation _bound;
 
   /**
    * Initialize a newly created type parameter. Either or both of the [comment]
@@ -10521,18 +10740,18 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
    * the parameter does not have an upper bound.
    */
   TypeParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      SimpleIdentifierImpl name, this.extendsKeyword, TypeNameImpl bound)
+      SimpleIdentifierImpl name, this.extendsKeyword, TypeAnnotationImpl bound)
       : super(comment, metadata) {
     _name = _becomeParentOf(name);
     _bound = _becomeParentOf(bound);
   }
 
   @override
-  TypeName get bound => _bound;
+  TypeAnnotation get bound => _bound;
 
   @override
-  void set bound(TypeName typeName) {
-    _bound = _becomeParentOf(typeName as AstNodeImpl);
+  void set bound(TypeAnnotation type) {
+    _bound = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override
@@ -10890,7 +11109,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   /**
    * The type of the variables being declared, or `null` if no type was provided.
    */
-  TypeName _type;
+  TypeAnnotation _type;
 
   /**
    * A list containing the individual variables being declared.
@@ -10903,8 +11122,12 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
    * the corresponding attribute. The [keyword] can be `null` if a type was
    * specified. The [type] must be `null` if the keyword is 'var'.
    */
-  VariableDeclarationListImpl(CommentImpl comment, List<Annotation> metadata,
-      this.keyword, TypeNameImpl type, List<VariableDeclaration> variables)
+  VariableDeclarationListImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.keyword,
+      TypeAnnotationImpl type,
+      List<VariableDeclaration> variables)
       : super(comment, metadata) {
     _type = _becomeParentOf(type);
     _variables = new NodeListImpl<VariableDeclaration>(this, variables);
@@ -10937,11 +11160,11 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
-  TypeName get type => _type;
+  TypeAnnotation get type => _type;
 
   @override
-  void set type(TypeName typeName) {
-    _type = _becomeParentOf(typeName as AstNodeImpl);
+  void set type(TypeAnnotation type) {
+    _type = _becomeParentOf(type as AstNodeImpl);
   }
 
   @override

@@ -336,6 +336,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitNormalFormalParameter(node);
 
   @override
+  R visitGenericFunctionType(GenericFunctionType node) =>
+      visitTypeAnnotation(node);
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
+
+  @override
   R visitHideCombinator(HideCombinator node) => visitCombinator(node);
 
   R visitIdentifier(Identifier node) => visitExpression(node);
@@ -527,6 +534,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitTryStatement(TryStatement node) => visitStatement(node);
 
   R visitTypeAlias(TypeAlias node) => visitNamedCompilationUnitMember(node);
+
+  R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
 
   @override
   R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
@@ -875,6 +884,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
@@ -1398,6 +1419,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
       null;
 
   @override
+  R visitGenericFunctionType(GenericFunctionType node) => null;
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => null;
+
+  @override
   R visitHideCombinator(HideCombinator node) => null;
 
   @override
@@ -1743,6 +1770,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
       _throw(node);
 
   @override
+  R visitGenericFunctionType(GenericFunctionType node) => _throw(node);
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+
+  @override
   R visitHideCombinator(HideCombinator node) => _throw(node);
 
   @override
@@ -1921,7 +1954,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitWithClause(WithClause node) => _throw(node);
-
   @override
   R visitYieldStatement(YieldStatement node) => _throw(node);
 
@@ -2349,6 +2381,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     stopwatch.start();
     T result = _baseVisitor.visitFunctionTypedFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitGenericFunctionType(GenericFunctionType node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitGenericFunctionType(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitGenericTypeAlias(GenericTypeAlias node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitGenericTypeAlias(node);
     stopwatch.stop();
     return result;
   }
@@ -2994,6 +3042,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       visitNode(node);
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
 
   @override
   R visitHideCombinator(HideCombinator node) => visitNode(node);

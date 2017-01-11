@@ -178,8 +178,12 @@ abstract class AbstractConstExprSerializer {
   /**
    * Return [EntityRefBuilder] that corresponds to the given [type].
    */
-  EntityRefBuilder serializeTypeName(TypeName type) {
-    return serializeType(type?.type, type?.name, type?.typeArguments);
+  EntityRefBuilder serializeTypeName(TypeAnnotation type) {
+    if (type is TypeName) {
+      return serializeType(type?.type, type?.name, type?.typeArguments);
+    }
+    throw new ArgumentError(
+        'Cannot serialize an instance of ${type.runtimeType}');
   }
 
   /**
@@ -649,8 +653,8 @@ abstract class AbstractConstExprSerializer {
       ints.add(0);
     } else {
       ints.add(typeArguments.arguments.length);
-      for (TypeName typeName in typeArguments.arguments) {
-        references.add(serializeTypeName(typeName));
+      for (TypeAnnotation type in typeArguments.arguments) {
+        references.add(serializeTypeName(type));
       }
     }
   }

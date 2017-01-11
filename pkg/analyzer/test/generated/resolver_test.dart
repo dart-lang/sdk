@@ -412,9 +412,9 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
   List<Expression> _invalidlyPropagatedExpressions = new List<Expression>();
 
   /**
-   * A list containing all of the AST TypeName nodes that were not resolved.
+   * The TypeAnnotation nodes that were not resolved.
    */
-  List<TypeName> _unresolvedTypes = new List<TypeName>();
+  List<TypeAnnotation> _unresolvedTypes = new List<TypeAnnotation>();
 
   /**
    * Counter for the number of Expression nodes visited that are resolved.
@@ -444,7 +444,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
         buffer.write(" of ");
         buffer.write(_resolvedTypeCount + unresolvedTypeCount);
         buffer.writeln(" type names:");
-        for (TypeName identifier in _unresolvedTypes) {
+        for (TypeAnnotation identifier in _unresolvedTypes) {
           buffer.write("  ");
           buffer.write(identifier.toString());
           buffer.write(" (");
@@ -578,9 +578,21 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  Object visitTypeAnnotation(TypeAnnotation node) {
+    if (node.type == null) {
+      _unresolvedTypes.add(node);
+    } else {
+      _resolvedTypeCount++;
+    }
+    return super.visitTypeAnnotation(node);
+  }
+
+  @override
   Object visitTypeName(TypeName node) {
     // Note: do not visit children from this node, the child SimpleIdentifier in
     // TypeName (i.e. "String") does not have a static type defined.
+    // TODO(brianwilkerson) Not visiting the children means that we won't catch
+    // type arguments that were not resolved.
     if (node.type == null) {
       _unresolvedTypes.add(node);
     } else {

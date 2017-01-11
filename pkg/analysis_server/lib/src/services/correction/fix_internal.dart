@@ -570,7 +570,7 @@ class FixProcessor {
       AstNode variableList = declaration.parent;
       if (variableList is VariableDeclarationList &&
           variableList.variables.length == 1) {
-        TypeName typeNode = variableList.type;
+        TypeAnnotation typeNode = variableList.type;
         if (typeNode != null) {
           Expression initializer = coveredNode;
           DartType newType = initializer.bestType;
@@ -1436,7 +1436,7 @@ class FixProcessor {
 
   void _addFix_illegalAsyncReturnType() {
     // prepare the existing type
-    TypeName typeName = node.getAncestor((n) => n is TypeName);
+    TypeAnnotation typeName = node.getAncestor((n) => n is TypeAnnotation);
     _replaceTypeWithFuture(typeName);
     // add proposal
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
@@ -2825,7 +2825,7 @@ class FixProcessor {
     }
   }
 
-  void _replaceTypeWithFuture(TypeName typeName) {
+  void _replaceTypeWithFuture(TypeAnnotation typeName) {
     InterfaceType futureType = context.typeProvider.futureType;
     // validate the type
     DartType type = typeName?.type;

@@ -95,13 +95,13 @@ class _Visitor extends LocalDeclarationVisitor {
   void declaredLabel(Label label, bool isCaseLabel) {}
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeName type) {}
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {}
 
   @override
   void declaredMethod(MethodDeclaration declaration) {}
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeName type) {}
+  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {}
 
   @override
   void declaredTopLevelVar(

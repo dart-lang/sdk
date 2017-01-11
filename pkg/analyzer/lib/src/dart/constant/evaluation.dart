@@ -1358,9 +1358,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
     DartType elementType = _typeProvider.dynamicType;
-    NodeList<TypeName> typeArgs = node.typeArguments?.arguments;
+    NodeList<TypeAnnotation> typeArgs = node.typeArguments?.arguments;
     if (typeArgs?.length == 1) {
-      DartType type = visitTypeName(typeArgs[0])?.toTypeValue();
+      DartType type = visitTypeAnnotation(typeArgs[0])?.toTypeValue();
       if (type != null) {
         elementType = type;
       }
@@ -1393,13 +1393,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     DartType keyType = _typeProvider.dynamicType;
     DartType valueType = _typeProvider.dynamicType;
-    NodeList<TypeName> typeArgs = node.typeArguments?.arguments;
+    NodeList<TypeAnnotation> typeArgs = node.typeArguments?.arguments;
     if (typeArgs?.length == 2) {
-      DartType keyTypeCandidate = visitTypeName(typeArgs[0])?.toTypeValue();
+      DartType keyTypeCandidate =
+          visitTypeAnnotation(typeArgs[0])?.toTypeValue();
       if (keyTypeCandidate != null) {
         keyType = keyTypeCandidate;
       }
-      DartType valueTypeCandidate = visitTypeName(typeArgs[1])?.toTypeValue();
+      DartType valueTypeCandidate =
+          visitTypeAnnotation(typeArgs[1])?.toTypeValue();
       if (valueTypeCandidate != null) {
         valueType = valueTypeCandidate;
       }
@@ -1549,14 +1551,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         _typeProvider.symbolType, new SymbolState(buffer.toString()));
   }
 
-  @override
-  DartObjectImpl visitTypeName(TypeName node) {
+  DartObjectImpl visitTypeAnnotation(TypeAnnotation node) {
     DartType type = evaluateType(node.type);
     if (type == null) {
       return super.visitTypeName(node);
     }
     return typeConstant(type);
   }
+
+  @override
+  DartObjectImpl visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
   /**
    * Create an error associated with the given [node]. The error will have the

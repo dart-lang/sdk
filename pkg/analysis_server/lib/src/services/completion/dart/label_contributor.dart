@@ -103,7 +103,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
     // ignored
   }
 
@@ -113,7 +113,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeName type) {
+  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {
     // ignored
   }
 
