@@ -396,10 +396,14 @@ class Printer extends Visitor<Null> {
   }
 
   void writeNode(Node node) {
-    if (showOffsets && node is TreeNode) {
-      writeWord("[${node.fileOffset}]");
+    if (node == null) {
+      writeSymbol("<Null>");
+    } else {
+      if (showOffsets && node is TreeNode) {
+        writeWord("[${node.fileOffset}]");
+      }
+      node.accept(this);
     }
-    node.accept(this);
   }
 
   void writeOptionalNode(Node node) {
