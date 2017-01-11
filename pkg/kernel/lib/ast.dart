@@ -1517,7 +1517,7 @@ class DirectPropertySet extends Expression {
 }
 
 /// Directly call an instance method, bypassing ordinary dispatch.
-class DirectMethodInvocation extends Expression {
+class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
   Procedure target;
   Arguments arguments;
@@ -1526,6 +1526,8 @@ class DirectMethodInvocation extends Expression {
     receiver?.parent = this;
     arguments?.parent = this;
   }
+
+  Name get name => target?.name;
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
