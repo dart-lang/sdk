@@ -367,6 +367,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Timing dependent
 LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Timing dependent
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
 
-[ $compiler == precompiler ]
-Language/Types/Interface_Types/subtype_t27: Pass, Slow # Issue 28318
+[ $runtime == dart_precompiled ]
+Language/Types/Interface_Types/subtype_t27: Pass, Timeout # Issue 28318
 Language/Types/Interface_Types/subtype_t28: Pass, Timeout # Issue 28318
