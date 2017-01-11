@@ -232,6 +232,15 @@ class ClassHierarchy {
     }
   }
 
+  /// True if the program contains another class that is a subtype of given one.
+  bool hasProperSubtypes(Class class_) {
+    var info = _infoFor[class_];
+    var subtypes = info.subtypeIntervalList;
+    return !(subtypes.length == 2 &&
+        subtypes[0] == info.topDownIndex &&
+        subtypes[1] == info.topDownIndex + 1);
+  }
+
   ClassHierarchy._internal(Program program, int numberOfClasses)
       : classes = new List<Class>(numberOfClasses) {
     // Build the class ordering based on a topological sort.

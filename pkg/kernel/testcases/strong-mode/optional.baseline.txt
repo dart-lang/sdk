@@ -1,4 +1,3 @@
-// #lib1::InvalidListener is not a subtype of #lib1::Listener (optional.dart:42:21)
 // Too few positional arguments (optional.dart:44:22)
 // Too many positional arguments (optional.dart:45:22)
 // Too few positional arguments (optional.dart:46:25)
@@ -58,7 +57,7 @@ static method main() → dynamic {
   core::String string6 = extern.{self::External::externalMethod}(1, 2, 3);
   extern.{self::External::listen}(new self::TestListener::•());
   extern.{self::External::listen}(new self::ExtendedListener::•());
-  extern.{self::External::listen}(new self::InvalidListener::•());
+  extern.{self::External::listen}(new self::InvalidListener::•() as self::Listener);
   dynamic nothing1 = foo.{self::Foo::method}();
   dynamic nothing2 = foo.{self::Foo::method}(1, 2, 3, 4);
   core::String nothing3 = extern.{self::External::externalMethod}();

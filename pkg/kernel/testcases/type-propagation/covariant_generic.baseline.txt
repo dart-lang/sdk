@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object> extends core::Object {
+  final field self::Foo::T/core::int* {int} finalField;
+  final field (self::Foo::T) → void/core::Function* {other} callbackField;
+  field self::Foo::T/core::num* {null,int,double} mutableField = null;
+  field (self::Foo::T) → void/core::Function* {null,other} mutableCallbackField = null;
+  constructor •(self::Foo::T/core::int* {int} finalField, (self::Foo::T) → void/core::Function* {other} callbackField) → void
+    : self::Foo::finalField = finalField, self::Foo::callbackField = callbackField, super core::Object::•()
+    ;
+  method method(self::Foo::T/core::num* {int,double} x) → void/Null {}
+  set setter(self::Foo::T/core::num* {int,double} x) → dynamic/Null {}
+  method withCallback((self::Foo::T) → void/core::Function* {other} callback) → void/Null {
+    callback.call(this.finalField);
+  }
+}
+static method main() → dynamic/Null {
+  self::Foo<core::int>/self::Foo! {other} fooInt = new self::Foo::•<core::int>(1, (core::int/Nothing x) → dynamic/Null {});
+  fooInt.method(3);
+  fooInt.setter = 3;
+  fooInt.withCallback((core::int/core::Object+ {*} x) → dynamic/Null {});
+  fooInt.withCallback((core::num/core::Object+ {*} x) → dynamic/Null {});
+  fooInt.mutableField = 3;
+  fooInt.mutableCallbackField = (core::int/core::Object+ {*} x) → dynamic/Null {};
+  self::Foo<core::num>/self::Foo! {other} fooNum = fooInt;
+  fooNum.method(3);
+  fooNum.method(2.5);
+  fooNum.setter = 3;
+  fooNum.setter = 2.5;
+  fooNum.withCallback((core::num/core::Object+ {*} x) → dynamic/Null {});
+  fooNum.mutableField = 3;
+  fooNum.mutableField = 2.5;
+  fooNum.mutableCallbackField(3);
+  fooNum.mutableCallbackField(2.5);
+  fooNum.mutableCallbackField = (core::num/core::Object+ {*} x) → dynamic/Null {};
+}

@@ -118,6 +118,21 @@ class TypeEnvironment extends SubtypeTester {
     if (type1 == doubleType || type2 == doubleType) return doubleType;
     return numType;
   }
+
+  /// Returns true if [class_] has no proper subtypes that are usable as type
+  /// argument.
+  bool isSealedClass(Class class_) {
+    // The sealed core classes have subtypes in the patched SDK, but those
+    // classes cannot occur as type argument.
+    if (class_ == coreTypes.intClass ||
+        class_ == coreTypes.doubleClass ||
+        class_ == coreTypes.stringClass ||
+        class_ == coreTypes.boolClass ||
+        class_ == coreTypes.nullClass) {
+      return true;
+    }
+    return !hierarchy.hasProperSubtypes(class_);
+  }
 }
 
 /// The part of [TypeEnvironment] that deals with subtype tests.
