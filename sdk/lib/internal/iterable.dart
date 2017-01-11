@@ -402,8 +402,7 @@ class MappedIterator<S, T> extends Iterator<T> {
  *
  * Expects efficient `length` and `elementAt` on the source iterable.
  */
-class MappedListIterable<S, T> extends ListIterable<T>
-                               implements EfficientLengthIterable<T> {
+class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
