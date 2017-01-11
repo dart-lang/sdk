@@ -2046,6 +2046,14 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 }
 
 
+Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
+  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
+      TokenPosition::kNoSource, type, *active_class_.klass, Pop());
+  Push(instr);
+  return Fragment(instr);
+}
+
+
 Fragment FlowGraphBuilder::InstantiateTypeArguments(
     const TypeArguments& type_arguments) {
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
@@ -4204,7 +4212,14 @@ void FlowGraphBuilder::VisitTypeLiteral(TypeLiteral* node) {
   const AbstractType& type = T.TranslateType(node->type());
   if (type.IsMalformed()) H.ReportError("Malformed type literal");
 
-  fragment_ = Constant(type);
+  Fragment instructions;
+  if (type.IsInstantiated()) {
+    instructions += Constant(type);
+  } else {
+    instructions += LoadInstantiatorTypeArguments();
+    instructions += InstantiateType(type);
+  }
+  fragment_ = instructions;
 }
 
 

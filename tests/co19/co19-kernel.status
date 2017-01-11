@@ -136,7 +136,6 @@ Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass
 Language/Expressions/Identifier_Reference/evaluation_property_extraction_t03: RuntimeError
-Language/Expressions/Identifier_Reference/evaluation_type_parameter_t01: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t12: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
