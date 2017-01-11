@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
 
 class C {
   Future<List<int>> m() async => []..add(await _m());
@@ -11,5 +12,7 @@ class C {
 }
 
 main() async {
-  Expect.equals(await new C().m(), 42);
+  asyncStart();
+  Expect.equals((await new C().m()).first, 42);
+  asyncEnd();
 }
