@@ -591,6 +591,19 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    computer._addRegion_token(
+        node.functionKeyword, HighlightRegionType.KEYWORD);
+    return super.visitGenericFunctionType(node);
+  }
+
+  @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    computer._addRegion_token(node.typedefKeyword, HighlightRegionType.KEYWORD);
+    return super.visitGenericTypeAlias(node);
+  }
+
+  @override
   Object visitHideCombinator(HideCombinator node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitHideCombinator(node);

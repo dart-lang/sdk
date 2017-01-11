@@ -126,15 +126,6 @@ class OpType {
   OpType._();
 
   /**
-   * Indicate whether only type names should be suggested
-   */
-  bool get includeOnlyNamedArgumentSuggestions =>
-      includeNamedArgumentSuggestions &&
-      !includeTypeNameSuggestions &&
-      !includeReturnValueSuggestions &&
-      !includeVoidReturnSuggestions;
-
-  /**
    * Return `true` if free standing identifiers should be suggested
    */
   bool get includeIdentifiers {
@@ -144,6 +135,15 @@ class OpType {
             includeVoidReturnSuggestions ||
             includeConstructorSuggestions);
   }
+
+  /**
+   * Indicate whether only type names should be suggested
+   */
+  bool get includeOnlyNamedArgumentSuggestions =>
+      includeNamedArgumentSuggestions &&
+      !includeTypeNameSuggestions &&
+      !includeReturnValueSuggestions &&
+      !includeVoidReturnSuggestions;
 
   /**
    * Indicate whether only type names should be suggested
@@ -845,9 +845,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    NodeList<TypeName> arguments = node.arguments;
-    for (TypeName typeName in arguments) {
-      if (identical(entity, typeName)) {
+    NodeList<TypeAnnotation> arguments = node.arguments;
+    for (TypeAnnotation type in arguments) {
+      if (identical(entity, type)) {
         optype.includeTypeNameSuggestions = true;
         break;
       }

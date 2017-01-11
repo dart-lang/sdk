@@ -607,10 +607,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // If we have explicit arguments, use them
     if (typeArguments != null) {
       DartType staticType = _dynamicType;
-      NodeList<TypeName> arguments = typeArguments.arguments;
+      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
       if (arguments != null && arguments.length == 1) {
-        TypeName argumentTypeName = arguments[0];
-        DartType argumentType = _getType(argumentTypeName);
+        DartType argumentType = _getType(arguments[0]);
         if (argumentType != null) {
           staticType = argumentType;
         }
@@ -684,15 +683,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (typeArguments != null) {
       DartType staticKeyType = _dynamicType;
       DartType staticValueType = _dynamicType;
-      NodeList<TypeName> arguments = typeArguments.arguments;
+      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
       if (arguments != null && arguments.length == 2) {
-        TypeName entryKeyTypeName = arguments[0];
-        DartType entryKeyType = _getType(entryKeyTypeName);
+        DartType entryKeyType = _getType(arguments[0]);
         if (entryKeyType != null) {
           staticKeyType = entryKeyType;
         }
-        TypeName entryValueTypeName = arguments[1];
-        DartType entryValueType = _getType(entryValueTypeName);
+        DartType entryValueType = _getType(arguments[1]);
         if (entryValueType != null) {
           staticValueType = entryValueType;
         }
@@ -1565,7 +1562,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   DartType _computeStaticReturnTypeOfFunctionDeclaration(
       FunctionDeclaration node) {
-    TypeName returnType = node.returnType;
+    TypeAnnotation returnType = node.returnType;
     if (returnType == null) {
       return _dynamicType;
     }
@@ -1822,13 +1819,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the type represented by the given type name.
-   *
-   * @param typeName the type name representing the type to be returned
-   * @return the type represented by the type name
+   * Return the type represented by the given type [annotation].
    */
-  DartType _getType(TypeName typeName) {
-    DartType type = typeName.type;
+  DartType _getType(TypeAnnotation annotation) {
+    DartType type = annotation.type;
     if (type == null) {
       //TODO(brianwilkerson) Determine the conditions for which the type is
       // null.
@@ -2253,10 +2247,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       library != null && "dart.dom.html" == library.name;
 
   /**
-   * Return `true` if the given node is not a type literal.
-   *
-   * @param node the node being tested
-   * @return `true` if the given node is not a type literal
+   * Return `true` if the given [node] is not a type literal.
    */
   bool _isNotTypeLiteral(Identifier node) {
     AstNode parent = node.parent;

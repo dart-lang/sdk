@@ -3624,7 +3624,15 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else if (typeArgs != null) {
       // Dynamic calls may have type arguments, even though the function types
       // are not known.
-      return typeArgs.arguments.map(visitTypeName).toList(growable: false);
+      return typeArgs.arguments.map((argument) {
+        if (argument is TypeName) {
+          return visitTypeName(argument);
+        } else {
+          // TODO(brianwilkerson) Implement support for GenericFunctionType.
+          throw new StateError(
+              'Cannot compile type argument of kind ${argument.runtimeType}');
+        }
+      }).toList(growable: false);
     }
     return null;
   }

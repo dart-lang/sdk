@@ -166,7 +166,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (optype.includeReturnValueSuggestions &&
         (!optype.inStaticMethodBody || fieldDecl.isStatic)) {
       bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-      TypeName typeName = fieldDecl.fields.type;
+      TypeAnnotation typeName = fieldDecl.fields.type;
       _addLocalSuggestion_includeReturnValueSuggestions(
           fieldDecl.documentationComment,
           varDecl.name,
@@ -182,7 +182,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunction(FunctionDeclaration declaration) {
     if (optype.includeReturnValueSuggestions ||
         optype.includeVoidReturnSuggestions) {
-      TypeName typeName = declaration.returnType;
+      TypeAnnotation typeName = declaration.returnType;
       protocol.ElementKind elemKind;
       int relevance = DART_RELEVANCE_DEFAULT;
       if (declaration.isGetter) {
@@ -233,7 +233,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier id, TypeName typeName) {
+  void declaredLocalVar(SimpleIdentifier id, TypeAnnotation typeName) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(
           null, id, typeName, protocol.ElementKind.LOCAL_VARIABLE,
@@ -248,7 +248,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         (!optype.inStaticMethodBody || declaration.isStatic)) {
       protocol.ElementKind elemKind;
       FormalParameterList param;
-      TypeName typeName = declaration.returnType;
+      TypeAnnotation typeName = declaration.returnType;
       int relevance = DART_RELEVANCE_DEFAULT;
       if (declaration.isGetter) {
         elemKind = protocol.ElementKind.GETTER;
@@ -283,7 +283,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier id, TypeName typeName) {
+  void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(
           null, id, typeName, protocol.ElementKind.PARAMETER,
@@ -306,7 +306,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   void _addLocalSuggestion(Comment documentationComment, SimpleIdentifier id,
-      TypeName typeName, protocol.ElementKind elemKind,
+      TypeAnnotation typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
       ClassDeclaration classDecl,
@@ -377,7 +377,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void _addLocalSuggestion_includeReturnValueSuggestions(
       Comment documentationComment,
       SimpleIdentifier id,
-      TypeName typeName,
+      TypeAnnotation typeName,
       protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
@@ -417,7 +417,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void _addLocalSuggestion_includeTypeNameSuggestions(
       Comment documentationComment,
       SimpleIdentifier id,
-      TypeName typeName,
+      TypeAnnotation typeName,
       protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
@@ -443,7 +443,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         .map((FormalParameter param) => param.identifier.name)
         .toList();
     suggestion.parameterTypes = paramList.map((FormalParameter param) {
-      TypeName type = null;
+      TypeAnnotation type = null;
       if (param is DefaultFormalParameter) {
         NormalFormalParameter child = param.parameter;
         if (child is SimpleFormalParameter) {
@@ -460,11 +460,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       if (type == null) {
         return 'dynamic';
       }
-      Identifier typeId = type.name;
-      if (typeId == null) {
-        return 'dynamic';
+      if (type is TypeName) {
+        Identifier typeId = type.name;
+        if (typeId == null) {
+          return 'dynamic';
+        }
+        return typeId.name;
       }
-      return typeId.name;
+      // TODO(brianwilkerson) Support function types.
+      return 'dynamic';
     }).toList();
     suggestion.requiredParameterCount = paramList
         .where((FormalParameter param) => param is! DefaultFormalParameter)
@@ -473,8 +477,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         .any((FormalParameter param) => param.kind == ParameterKind.NAMED);
   }
 
-  bool _isVoid(TypeName returnType) {
-    if (returnType != null) {
+  bool _isVoid(TypeAnnotation returnType) {
+    if (returnType is TypeName) {
       Identifier id = returnType.name;
       if (id != null && id.name == 'void') {
         return true;

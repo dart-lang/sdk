@@ -3822,7 +3822,7 @@ class C {
     VariableDeclaration field = fields[0];
     expect(field.name.name, 'f');
     // validate the type
-    TypeArgumentList typeArguments = fieldList.type.typeArguments;
+    TypeArgumentList typeArguments = (fieldList.type as TypeName).typeArguments;
     expect(typeArguments.arguments, hasLength(1));
     // synthetic '>'
     Token token = typeArguments.endToken;
@@ -3869,9 +3869,9 @@ class C<K {
     expect(expression.expression, isNotNull);
     expect(expression.isOperator, isNotNull);
     expect(expression.notOperator, isNotNull);
-    TypeName type = expression.type;
+    TypeAnnotation type = expression.type;
     expect(type, isNotNull);
-    expect(type.name.isSynthetic, isTrue);
+    expect(type is TypeName && type.name.isSynthetic, isTrue);
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyStatement,
         EmptyStatement, ifStatement.thenStatement);
   }
@@ -6042,7 +6042,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect(method.returnType.name.name, 'T');
+    expect((method.returnType as TypeName).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
@@ -6062,14 +6062,14 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect(method.returnType.name.name, 'T');
+    expect((method.returnType as TypeName).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     TypeParameter tp = method.typeParameters.typeParameters[0];
     expect(tp.name.name, 'T');
     expect(tp.extendsKeyword, isNotNull);
-    expect(tp.bound.name.name, 'num');
+    expect((tp.bound as TypeName).name.name, 'num');
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -10150,9 +10150,9 @@ void''');
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
-    NodeList<TypeName> arguments = type.typeArguments.arguments;
+    NodeList<TypeAnnotation> arguments = type.typeArguments.arguments;
     expect(arguments, hasLength(1));
-    expect(arguments[0].question, isNotNull);
+    expect((arguments[0] as TypeName).question, isNotNull);
   }
 
   void test_parseLibraryDirective() {
@@ -13073,7 +13073,7 @@ void''');
         .parseVariableDeclarationListAfterMetadata(emptyCommentAndMetadata());
     expectNotNullIfNoErrors(declarationList);
     listener.assertNoErrors();
-    expect(declarationList.type.name.name, 'T');
+    expect((declarationList.type as TypeName).name.name, 'T');
     expect(declarationList.isFinal, true);
   }
 
@@ -13128,7 +13128,7 @@ void''');
         .parseVariableDeclarationListAfterMetadata(emptyCommentAndMetadata());
     expectNotNullIfNoErrors(declarationList);
     listener.assertNoErrors();
-    expect(declarationList.type.name.name, 'T');
+    expect((declarationList.type as TypeName).name.name, 'T');
     expect(declarationList.keyword, isNull);
   }
 
