@@ -179,7 +179,7 @@ class SuperCallResolutionTransformer extends Transformer {
       return new DirectPropertyGet(new ThisExpression(), target);
     } else {
       return _callNoSuchMethod(node.name.name, new Arguments.empty(), node,
-          isGetter: true);
+          isGetter: true, isSuper: true);
     }
   }
 
@@ -195,7 +195,7 @@ class SuperCallResolutionTransformer extends Transformer {
           new VariableDeclaration.forValue(visit(node.value));
       Expression result = _callNoSuchMethod(
           node.name.name, new Arguments([new VariableGet(rightHandSide)]), node,
-          isSetter: true);
+          isSetter: true, isSuper: true);
       VariableDeclaration call = new VariableDeclaration.forValue(result);
       return new Let(
           rightHandSide, new Let(call, new VariableGet(rightHandSide)));
