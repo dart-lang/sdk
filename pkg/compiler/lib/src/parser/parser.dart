@@ -432,7 +432,7 @@ class Parser {
     // This enables the case where `covariant` is the name of the parameter:
     //    void foo(covariant);
     if (identical(token.stringValue, 'covariant') &&
-        token.next.isIdentifier() || isModifier(token.next)) {
+        (token.next.isIdentifier() || isModifier(token.next))) {
       token = token.next;
     }
     token = parseModifiers(token);
