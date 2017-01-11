@@ -33,6 +33,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
+    defineReflectiveTests(StaticTypeAnalyzer2Test_Driver);
   });
 }
 
@@ -169,6 +170,12 @@ main() {
       expect(type.typeFormals, isEmpty);
     }
   }
+}
+
+@reflectiveTest
+class StaticTypeAnalyzer2Test_Driver extends StaticTypeAnalyzer2Test {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
 
 @reflectiveTest

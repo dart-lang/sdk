@@ -517,10 +517,11 @@ class ResolverTestCase extends EngineTestCase {
     analysisContext2.applyChanges(changeSet);
   }
 
-  Future<Null> computeAnalysisResult(Source source) async {
+  Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
+    TestAnalysisResult analysisResult;
     if (enableNewAnalysisDriver) {
       AnalysisResult result = await driver.getResult(source.fullName);
-      analysisResults[source] =
+      analysisResult =
           new TestAnalysisResult(source, result.unit, result.errors);
     } else {
       analysisContext2.computeKindOf(source);
@@ -529,9 +530,11 @@ class ResolverTestCase extends EngineTestCase {
         CompilationUnit unit =
             analysisContext.resolveCompilationUnit2(source, libraries.first);
         List<AnalysisError> errors = analysisContext.computeErrors(source);
-        analysisResults[source] = new TestAnalysisResult(source, unit, errors);
+        analysisResult = new TestAnalysisResult(source, unit, errors);
       }
     }
+    analysisResults[source] = analysisResult;
+    return analysisResult;
   }
 
   /**
@@ -916,11 +919,10 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   Future<Null> resolveTestUnit(String code) async {
     testCode = code;
     testSource = addSource(testCode);
-    LibraryElement library = resolve2(testSource);
-    await computeAnalysisResult(testSource);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);
     assertNoErrors(testSource);
     verify([testSource]);
-    testUnit = resolveCompilationUnit(testSource, library);
+    testUnit = analysisResult.unit;
   }
 
   /**

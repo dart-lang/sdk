@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.resolver_test;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -51,6 +52,7 @@ main() {
     defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
+    defineReflectiveTests(TypePropagationTest_Driver);
   });
 }
 
@@ -1091,11 +1093,7 @@ A f(var p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1116,11 +1114,7 @@ A f(var p) {
   assert (p is A);
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1139,11 +1133,7 @@ f() {
   v = 0;
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1159,11 +1149,7 @@ f() {
   v = 1.0;
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1182,11 +1168,10 @@ main() {
     CompilationUnit unit;
     {
       Source source = addSource(code);
-      LibraryElement library = resolve2(source);
-      await computeAnalysisResult(source);
+      TestAnalysisResult analysisResult = await computeAnalysisResult(source);
       assertNoErrors(source);
       verify([source]);
-      unit = resolveCompilationUnit(source, library);
+      unit = analysisResult.unit;
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
@@ -1215,11 +1200,7 @@ main(CanvasElement canvas) {
   var context = canvas.getContext('2d');
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     SimpleIdentifier identifier = EngineTestCase.findNode(
         unit, code, "context", (node) => node is SimpleIdentifier);
     expect(resolutionMap.propagatedTypeForExpression(identifier).name,
@@ -1235,11 +1216,7 @@ main() {
   }
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     InterfaceType stringType = typeProvider.stringType;
     // in the declaration
     {
@@ -1264,11 +1241,7 @@ f(Stream<String> stream) async {
   }
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     InterfaceType stringType = typeProvider.stringType;
     // in the declaration
     {
@@ -1297,11 +1270,7 @@ f(MyCustomStream<String> stream) async {
   }
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     InterfaceType listOfStringType =
         typeProvider.listType.instantiate([typeProvider.stringType]);
     // in the declaration
@@ -1330,11 +1299,7 @@ f(MyMap<int, String> m) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // k
     DartType intType = typeProvider.intType;
     FormalParameter kParameter = EngineTestCase.findNode(
@@ -1365,11 +1330,7 @@ f(MyMap<int, String> m) {
   m2.forEach((k, v) {});
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // k
     DartType intType = typeProvider.intType;
     FormalParameter kParameter = EngineTestCase.findNode(
@@ -1390,11 +1351,7 @@ main() {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // v
     DartType dynamicType = typeProvider.dynamicType;
     DartType stringType = typeProvider.stringType;
@@ -1419,11 +1376,7 @@ f(MyList list) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // v
     DartType intType = typeProvider.intType;
     FormalParameter vParameter = EngineTestCase.findNode(
@@ -1446,11 +1399,8 @@ x() {
   a.m(() => 0);
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
     // () => 0
     FunctionExpression functionExpression = EngineTestCase.findNode(
         unit, code, "() => 0)", (node) => node is FunctionExpression);
@@ -1470,11 +1420,7 @@ f(MyList<String> list) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // v
     DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
@@ -1498,11 +1444,7 @@ main(Future<int> firstFuture) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // p1
     FormalParameter p1 = EngineTestCase.findNode(
         unit, code, "p1) {", (node) => node is SimpleFormalParameter);
@@ -1523,11 +1465,7 @@ f() {
   var v = 0;
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1554,8 +1492,7 @@ f() {
   var v = 'String';
   v.
 }''');
-    LibraryElement library = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1572,11 +1509,7 @@ f() {
   int v = 0;
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1604,11 +1537,7 @@ f() {
   List<int> v = <int>[];
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1639,11 +1568,7 @@ main() {
     CompilationUnit unit;
     {
       Source source = addSource(code);
-      LibraryElement library = resolve2(source);
-      await computeAnalysisResult(source);
-      assertNoErrors(source);
-      verify([source]);
-      unit = resolveCompilationUnit(source, library);
+      unit = await _computeResolvedUnit(source);
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
@@ -1684,11 +1609,7 @@ class A {}
 A f(var p) {
   return (p is A) ? p : null;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1713,11 +1634,7 @@ A f(var p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     // prepare A
     InterfaceType typeA;
     {
@@ -1754,13 +1671,7 @@ A f(A p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-//    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
-//    InterfaceType typeA = classA.getElement().getType();
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1781,11 +1692,7 @@ A f(var p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1806,11 +1713,7 @@ A f(var p) {
   A a = (p is A) ? p : throw null;
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1833,11 +1736,7 @@ A f(var p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1861,10 +1760,7 @@ A f(A p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -1885,11 +1781,7 @@ A f(var p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1909,11 +1801,7 @@ class A {}
 A f(var p) {
   return (p is! A) ? null : p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1938,11 +1826,7 @@ A f(var p) {
     return p;
   }
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1966,10 +1850,7 @@ A f(var p) {
     return p;
   }
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -1990,11 +1871,7 @@ A f(var p) {
   A a = (p is! A) ? throw null : p;
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -2015,11 +1892,7 @@ A f(var p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA =
         resolutionMap.elementDeclaredByClassDeclaration(classA).type;
@@ -2091,11 +1964,7 @@ f() {
   var v = [0, '1', 2];
   return v[2];
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -2110,11 +1979,7 @@ f() {
   var v = [0, 1, 2];
   return v[2];
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -2135,11 +2000,7 @@ f() {
   var v = {'0' : 0, 1 : '1', '2' : 2};
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -2159,11 +2020,7 @@ f() {
   var v = {'a' : 0, 'b' : 1, 'c' : 2};
   return v;
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
@@ -2471,11 +2328,7 @@ main() {
   var b3 = query('body div');
   return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];
 }''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
+    CompilationUnit unit = await _computeResolvedUnit(source);
     FunctionDeclaration main = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body = main.functionExpression.body as BlockFunctionBody;
     ReturnStatement statement = body.block.statements[11] as ReturnStatement;
@@ -2503,6 +2356,33 @@ main() {
         resolutionMap.propagatedTypeForExpression(elements[9]).name, "Element");
     expect(resolutionMap.propagatedTypeForExpression(elements[10]).name,
         "Element");
+  }
+
+  /**
+   * Return the resolved unit for the given [source].
+   *
+   * If [noErrors] is not specified or is not `true`, [assertNoErrors].
+   */
+  Future<CompilationUnit> _computeResolvedUnit(Source source,
+      {bool noErrors: true}) async {
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    if (noErrors) {
+      assertNoErrors(source);
+      verify([source]);
+    }
+    return analysisResult.unit;
+  }
+}
+
+@reflectiveTest
+class TypePropagationTest_Driver extends TypePropagationTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_query() {
+    return super.test_query();
   }
 }
 
