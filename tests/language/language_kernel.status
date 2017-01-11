@@ -200,14 +200,6 @@ deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
 duplicate_export_negative_test: Fail
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_mirror_test: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
 evaluation_redirecting_constructor_test: RuntimeError
 example_constructor_test: RuntimeError
 external_test/10: MissingRuntimeError

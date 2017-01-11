@@ -2557,35 +2557,55 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
+
     var intType = scope.loader.getCoreClassReference('int').rawType;
     var indexFieldElement = element.fields.firstWhere(_isIndexField);
     ast.Field indexField = scope.getMemberReference(indexFieldElement);
     indexField.type = intType;
     classNode.addMember(indexField);
-    var parameter = new ast.VariableDeclaration('index', type: intType);
+
+    var stringType = scope.loader.getCoreClassReference('String').rawType;
+    ast.Field nameField = new ast.Field(
+        new ast.Name('_name', scope.currentLibrary),
+        type: stringType,
+        isFinal: true,
+        fileUri: classNode.fileUri);
+    classNode.addMember(nameField);
+
+    var indexParameter = new ast.VariableDeclaration('index', type: intType);
+    var nameParameter = new ast.VariableDeclaration('name', type: stringType);
     var function = new ast.FunctionNode(new ast.EmptyStatement(),
-        positionalParameters: [parameter]);
+        positionalParameters: [indexParameter, nameParameter]);
     var superConstructor = scope.loader.getRootClassConstructorReference();
     var constructor = new ast.Constructor(function,
         name: new ast.Name(''),
         isConst: true,
         initializers: [
-          new ast.FieldInitializer(indexField, new ast.VariableGet(parameter)),
+          new ast.FieldInitializer(
+              indexField, new ast.VariableGet(indexParameter)),
+          new ast.FieldInitializer(
+              nameField, new ast.VariableGet(nameParameter)),
           new ast.SuperInitializer(superConstructor, new ast.Arguments.empty())
         ])..fileOffset = element.nameOffset;
     classNode.addMember(constructor);
+
     int index = 0;
     var enumConstantFields = <ast.Field>[];
     for (var constant in node.constants) {
       ast.Field field = scope.getMemberReference(constant.element);
       field.initializer = new ast.ConstructorInvocation(
-          constructor, new ast.Arguments([new ast.IntLiteral(index)]),
+          constructor,
+          new ast.Arguments([
+            new ast.IntLiteral(index),
+            new ast.StringLiteral('${classNode.name}.${field.name.name}')
+          ]),
           isConst: true)..parent = field;
       field.type = classNode.rawType;
       classNode.addMember(field);
       ++index;
       enumConstantFields.add(field);
     }
+
     // Add the 'values' field.
     var valuesFieldElement = element.fields.firstWhere(_isValuesField);
     ast.Field valuesField = scope.getMemberReference(valuesFieldElement);
@@ -2597,7 +2617,15 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         isConst: true,
         typeArgument: enumType)..parent = valuesField;
     classNode.addMember(valuesField);
-    // TODO: Add the toString method.
+
+    // Add the 'toString()' method.
+    var body = new ast.ReturnStatement(
+        new ast.DirectPropertyGet(new ast.ThisExpression(), nameField));
+    var toStringFunction = new ast.FunctionNode(body, returnType: stringType);
+    var toStringMethod = new ast.Procedure(
+        new ast.Name('toString'), ast.ProcedureKind.Method, toStringFunction,
+        fileUri: classNode.fileUri);
+    classNode.addMember(toStringMethod);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
