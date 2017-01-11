@@ -13,6 +13,8 @@ Program transformProgram(Program program,
     {String libraryUri: 'dart:_builtin'}) {
   Procedure mainMethod = program.mainMethod;
 
+  if (mainMethod == null) return program;
+
   Library builtinLibrary;
   for (Library library in program.libraries) {
     if (library.importUri.toString() == libraryUri) {
