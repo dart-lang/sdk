@@ -275,7 +275,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
@@ -296,7 +296,7 @@ void f() {
   } while (true);
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     DoStatement doStatement =
         EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
@@ -312,7 +312,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     ForStatement forStatement =
         EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
@@ -328,7 +328,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     ForEachStatement forStatement = EngineTestCase.findNode(
         unit, text, 'for', (n) => n is ForEachStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
@@ -347,7 +347,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     SwitchStatement switchStatement = EngineTestCase.findNode(
         unit, text, 'switch', (n) => n is SwitchStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
@@ -363,7 +363,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while', (n) => n is WhileStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
@@ -383,7 +383,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     BreakStatement breakStatement = EngineTestCase.findNode(
         unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, isNull);
@@ -461,7 +461,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
@@ -482,7 +482,7 @@ void f() {
   } while (true);
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     DoStatement doStatement =
         EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
@@ -498,7 +498,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     ForStatement forStatement =
         EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
@@ -514,7 +514,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     ForEachStatement forStatement = EngineTestCase.findNode(
         unit, text, 'for', (n) => n is ForEachStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
@@ -530,7 +530,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while', (n) => n is WhileStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
@@ -549,7 +549,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while', (n) => n is WhileStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
@@ -569,7 +569,7 @@ void f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(text);
+    CompilationUnit unit = await resolveSource(text);
     ContinueStatement continueStatement = EngineTestCase.findNode(
         unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, isNull);

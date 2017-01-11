@@ -735,14 +735,15 @@ class ResolverTestCase extends EngineTestCase {
           Source source, LibraryElement library) =>
       analysisContext2.resolveCompilationUnit(source, library);
 
-  CompilationUnit resolveSource(String sourceText) =>
-      resolveSource2("/test.dart", sourceText);
-
-  CompilationUnit resolveSource2(String fileName, String sourceText) {
+  Future<CompilationUnit> resolveSource2(
+      String fileName, String sourceText) async {
     Source source = addNamedSource(fileName, sourceText);
-    LibraryElement library = analysisContext.computeLibraryElement(source);
-    return analysisContext.resolveCompilationUnit(source, library);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    return analysisResult.unit;
   }
+
+  Future<CompilationUnit> resolveSource(String sourceText) =>
+      resolveSource2('/test.dart', sourceText);
 
   Future<Source> resolveSources(List<String> sourceTexts) async {
     for (int i = 0; i < sourceTexts.length; i++) {

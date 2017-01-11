@@ -52,6 +52,7 @@ main() {
     defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
+    defineReflectiveTests(StrictModeTest_Driver);
     defineReflectiveTests(TypePropagationTest_Driver);
   });
 }
@@ -778,6 +779,12 @@ int f() {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
+}
+
+@reflectiveTest
+class StrictModeTest_Driver extends StrictModeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
 
 @reflectiveTest
