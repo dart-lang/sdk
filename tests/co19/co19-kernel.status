@@ -122,7 +122,6 @@ Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: Shared JIT & Precompiled failures
 [ ($compiler == dartk && $runtime == vm) || ($compiler == dartkp && $runtime == dart_precompiled) ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: RuntimeError
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: RuntimeError
 Language/Classes/definition_t23: CompileTimeError
@@ -160,7 +159,6 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
 Language/Statements/Labels/syntax_t03: Pass
 Language/Statements/Switch/syntax_t02: Pass
 Language/Statements/Try/catch_scope_t01: RuntimeError
-Language/Types/Interface_Types/subtype_t44: RuntimeError
 Language/Types/Static_Types/deferred_type_t01: RuntimeError
 Language/Variables/final_t01/01: MissingRuntimeError
 Language/Variables/final_t02/01: MissingRuntimeError

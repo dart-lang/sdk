@@ -4576,26 +4576,21 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
     const TypeArguments& type_arguments = T.TranslateInstantiatedTypeArguments(
         klass, kernel_type_arguments.raw_array(),
         kernel_type_arguments.length());
+    if (!klass.IsGeneric()) {
+      Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
 
-    if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
-      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      // TODO(27590): Can we move this code into [ReceiverType]?
+      type ^= ClassFinalizer::FinalizeType(*active_class_.klass, type,
+                                           ClassFinalizer::kFinalize);
+      ASSERT(!type.IsMalformedOrMalbounded());
+
+      TypeArguments& canonicalized_type_arguments =
+          TypeArguments::ZoneHandle(Z, type.arguments());
+      canonicalized_type_arguments =
+          canonicalized_type_arguments.Canonicalize();
+      instructions += Constant(canonicalized_type_arguments);
     } else {
-      if (!klass.IsGeneric()) {
-        Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
-
-        // TODO(27590): Can we move this code into [ReceiverType]?
-        type ^= ClassFinalizer::FinalizeType(*active_class_.klass, type,
-                                             ClassFinalizer::kFinalize);
-        ASSERT(!type.IsMalformedOrMalbounded());
-
-        TypeArguments& canonicalized_type_arguments =
-            TypeArguments::ZoneHandle(Z, type.arguments());
-        canonicalized_type_arguments =
-            canonicalized_type_arguments.Canonicalize();
-        instructions += Constant(canonicalized_type_arguments);
-      } else {
-        instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      }
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
     }
 
     instructions += PushArgument();

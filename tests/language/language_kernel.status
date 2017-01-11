@@ -152,13 +152,6 @@ evaluation_redirecting_constructor_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-f_bounded_equality_test: RuntimeError
-fixed_type_variable2_test/02: RuntimeError
-fixed_type_variable2_test/04: RuntimeError
-fixed_type_variable2_test/06: RuntimeError
-fixed_type_variable_test/02: RuntimeError
-fixed_type_variable_test/04: RuntimeError
-fixed_type_variable_test/06: RuntimeError
 for2_test: RuntimeError
 for_variable_capture_test: RuntimeError
 function_subtype2_test: RuntimeError
@@ -172,11 +165,8 @@ function_subtype_not1_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
-generic2_test: RuntimeError
 generic_closure_test: RuntimeError
-generic_creation_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
-generic_inheritance_test: RuntimeError
 generic_method_types_test: Pass, RuntimeError
 generic_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError
@@ -194,7 +184,6 @@ map_literal3_test: RuntimeError
 map_literal4_test: RuntimeError  # Checked Mode Issue
 map_literal6_test: RuntimeError
 method_override_test: RuntimeError
-mixin_mixin2_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 multiline_newline_test/none: RuntimeError
@@ -211,7 +200,6 @@ prefix21_test: RuntimeError
 redirecting_constructor_initializer_test: RuntimeError
 regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
 regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
-regress_r24720_test: RuntimeError
 regress_28278_test: RuntimeError  # Mirrors Issue
 script1_negative_test: Fail
 script2_negative_test: Fail
