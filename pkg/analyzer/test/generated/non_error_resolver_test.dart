@@ -3631,7 +3631,7 @@ class B extends Object with A {}''');
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource(r'''
 class A {}
 class B extends A {}
@@ -3654,7 +3654,7 @@ class C extends Object with B {}''');
   test_mixinInheritsFromNotObject_classDeclaration_with() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource(r'''
 class A {}
 class B extends Object with A {}
@@ -3667,7 +3667,7 @@ class C extends Object with B {}''');
   test_mixinInheritsFromNotObject_typeAlias_extends() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource(r'''
 class A {}
 class B extends A {}
@@ -3680,7 +3680,7 @@ class C = Object with B;''');
   test_mixinInheritsFromNotObject_typeAlias_with() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource(r'''
 class A {}
 class B extends Object with A {}
@@ -3703,7 +3703,7 @@ class C = Object with B;''');
   test_mixinReferencesSuper() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource(r'''
 class A {
   toString() => super.toString();

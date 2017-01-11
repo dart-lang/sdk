@@ -362,10 +362,10 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   @override
-  void reset({List<List<String>> packages}) {
+  void reset() {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.hint = false;
-    resetWithOptions(analysisOptions);
+    resetWith(options: analysisOptions);
   }
 
   test_locate_AssignmentExpression() async {

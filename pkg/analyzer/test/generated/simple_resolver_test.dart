@@ -1107,7 +1107,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_badSuperclass_withSuperMixins() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A extends B {}
 class B {}
@@ -1141,7 +1141,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_constructor_withSuperMixins() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   A() {}
@@ -1176,7 +1176,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_factoryConstructor_withSuperMixins() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   factory A() => null;
@@ -1213,7 +1213,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_super_withSuperMixins() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   toString() {
@@ -1248,7 +1248,7 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_valid_withSuperMixins() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource('''
 class A {}
 class C = Object with A;''');

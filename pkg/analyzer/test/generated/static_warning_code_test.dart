@@ -2855,7 +2855,7 @@ class C implements I {
 
   test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromMixin_missingBoth() async {
     // 26411
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   int f;

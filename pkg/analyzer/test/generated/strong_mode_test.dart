@@ -62,7 +62,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     _assertions = new TypeAssertions(typeProvider);
     _isType = _assertions.isType;
     _hasElement = _assertions.hasElement;
@@ -1335,7 +1335,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
-    resetWithOptions(options);
+    resetWith(options: options);
   }
 
   test_dynamicObjectGetter_hashCode() async {
@@ -2180,7 +2180,7 @@ class StrongModeTypePropagationTest extends ResolverTestCase {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
-    resetWithOptions(options);
+    resetWith(options: options);
   }
 
   test_foreachInference_dynamic_disabled() async {

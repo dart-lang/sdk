@@ -1605,6 +1605,6 @@ const b = 3;''');
 class StrongConstantValueComputerTest extends ConstantValueComputerTest {
   void setUp() {
     super.setUp();
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
   }
 }

@@ -23,8 +23,8 @@ main() {
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   @override
-  void reset({List<List<String>> packages}) {
-    super.reset(packages: [
+  void reset() {
+    super.resetWith(packages: [
       [
         'meta',
         r'''
@@ -1760,7 +1760,7 @@ main() {
   test_isDouble() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.dart2jsHint = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource("var v = 1 is double;");
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.IS_DOUBLE]);
@@ -1778,7 +1778,7 @@ main() {
   test_isNotDouble() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.dart2jsHint = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     Source source = addSource("var v = 1 is! double;");
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);

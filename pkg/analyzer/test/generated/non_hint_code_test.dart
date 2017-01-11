@@ -1264,7 +1264,7 @@ g() {
   }
 
   test_withSuperMixin() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 abstract class A {
   void test();

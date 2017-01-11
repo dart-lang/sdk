@@ -24,6 +24,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -648,13 +649,25 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * Re-create the analysis context being used by the test case.
    */
-  void reset({List<List<String>> packages}) {
+  void reset() {
+    resetWith();
+  }
+
+  /**
+   * Re-create the analysis context being used by the test with the either given
+   * [options] or [packages].
+   */
+  void resetWith({AnalysisOptions options, List<List<String>> packages}) {
+    if (options != null && packages != null) {
+      fail('Only packages or options can be specified.');
+    }
     if (enableNewAnalysisDriver) {
-      PerformanceLog log = new PerformanceLog(_logBuffer);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+      options ??= new AnalysisOptionsImpl();
+      DartSdk sdk =
+          options.strongMode ? physical_sdk.strongSdk : physical_sdk.sdk;
 
       List<UriResolver> resolvers = <UriResolver>[
-        new DartUriResolver(physical_sdk.sdk),
+        new DartUriResolver(sdk),
         new ResourceUriResolver(resourceProvider)
       ];
       if (packages != null) {
@@ -671,14 +684,10 @@ class ResolverTestCase extends EngineTestCase {
       }
       SourceFactory sourceFactory = new SourceFactory(resolvers);
 
-      driver = new AnalysisDriver(
-          scheduler,
-          log,
-          resourceProvider,
-          new MemoryByteStore(),
-          _fileContentOverlay,
-          sourceFactory,
-          new AnalysisOptionsImpl());
+      PerformanceLog log = new PerformanceLog(_logBuffer);
+      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+      driver = new AnalysisDriver(scheduler, log, resourceProvider,
+          new MemoryByteStore(), _fileContentOverlay, sourceFactory, options);
       scheduler.start();
     } else {
       if (packages != null) {
@@ -691,36 +700,14 @@ class ResolverTestCase extends EngineTestCase {
         analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages(
             packageMap,
             resourceProvider: resourceProvider);
+      } else if (options != null) {
+        analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(
+            options,
+            resourceProvider: resourceProvider);
       } else {
         analysisContext2 = AnalysisContextFactory.contextWithCore(
             resourceProvider: resourceProvider);
       }
-    }
-  }
-
-  /**
-   * Re-create the analysis context being used by the test case and set the
-   * [options] in the newly created context to the given [options].
-   */
-  void resetWithOptions(AnalysisOptions options) {
-    // TODO(scheglov) remove duplication
-    if (enableNewAnalysisDriver) {
-      PerformanceLog log = new PerformanceLog(_logBuffer);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-
-      List<UriResolver> resolvers = <UriResolver>[
-        new DartUriResolver(
-            options.strongMode ? physical_sdk.strongSdk : physical_sdk.sdk),
-        new ResourceUriResolver(resourceProvider)
-      ];
-      SourceFactory sourceFactory = new SourceFactory(resolvers);
-      driver = new AnalysisDriver(scheduler, log, resourceProvider,
-          new MemoryByteStore(), _fileContentOverlay, sourceFactory, options);
-      scheduler.start();
-    } else {
-      analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(
-          options,
-          resourceProvider: resourceProvider);
     }
   }
 
@@ -776,7 +763,7 @@ class ResolverTestCase extends EngineTestCase {
     // Setup analysis context as non-experimental
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 //    options.enableDeferredLoading = false;
-    resetWithOptions(options);
+    resetWith(options: options);
     // Analysis and assertions
     Source source = await resolveSources(strSources);
     await computeAnalysisResult(source);

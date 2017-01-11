@@ -634,7 +634,7 @@ int f(List<int> list) {
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.hint = false;
-    resetWithOptions(options);
+    resetWith(options: options);
   }
 
   test_assert_is() async {

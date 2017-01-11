@@ -27,7 +27,7 @@ main() {
 class StaticTypeWarningCodeTest extends ResolverTestCase {
   fail_method_lookup_mixin_of_extends() async {
     // See dartbug.com/25605
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     await assertErrorsInUnverifiedCode(
         '''
 class A { a() => null; }
@@ -47,7 +47,7 @@ main() {
 
   fail_method_lookup_mixin_of_implements() async {
     // See dartbug.com/25605
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     await assertErrorsInUnverifiedCode(
         '''
 class A { a() => null; }
@@ -66,7 +66,7 @@ main() {
 
   fail_method_lookup_mixin_of_mixin() async {
     // See dartbug.com/25605
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     await assertErrorsInUnverifiedCode(
         '''
 class A {}
@@ -83,7 +83,7 @@ main() {
 
   fail_method_lookup_mixin_of_mixin_application() async {
     // See dartbug.com/25605
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     await assertErrorsInUnverifiedCode(
         '''
 class A { a() => null; }
@@ -484,7 +484,7 @@ int f() async* {}
   }
 
   test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         '''
 import 'dart:async';
@@ -505,7 +505,7 @@ class C {
   }
 
   test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         '''
 import 'dart:async';
@@ -529,7 +529,7 @@ int f() async {}
   }
 
   test_illegalAsyncReturnType_function_subtypeOfFuture() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         '''
 import 'dart:async';
@@ -555,7 +555,7 @@ class C {
   }
 
   test_illegalAsyncReturnType_method_subtypeOfFuture() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         '''
 import 'dart:async';
@@ -578,7 +578,7 @@ int f() sync* {}
   }
 
   test_illegalSyncGeneratorReturnType_function_subclassOfIterator() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         '''
 abstract class SubIterator<T> implements Iterator<T> {}
@@ -598,7 +598,7 @@ class C {
   }
 
   test_illegalSyncGeneratorReturnType_method_subclassOfIterator() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         '''
 abstract class SubIterator<T> implements Iterator<T> {}
@@ -863,7 +863,7 @@ class A {
     // have).
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     await assertErrorsInCode(
         '''
 f(Function f) {
@@ -875,7 +875,7 @@ f(Function f) {
   test_invocationOfNonFunction_localObject() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     await assertErrorsInCode(
         '''
 f(Object o) {
@@ -1294,7 +1294,7 @@ var b = 1 is G<B>;
   }
 
   test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         r'''
 class Point<T extends num> {
@@ -1312,7 +1312,7 @@ main() {
   }
 
   test_typeArgumentNotMatchingBounds_methodInvocation_method() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         r'''
 class Point<T extends num> {
@@ -1333,7 +1333,7 @@ f(PointFactory factory) {
   }
 
   test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() async {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(
         r'''
 class Point<T extends num> {
@@ -1741,7 +1741,7 @@ f(T e) { return e.m; }''',
     // know what signature the call should have).
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     await assertErrorsInUnverifiedCode(
         '''
 f(Function f) {
@@ -1754,7 +1754,7 @@ f(Function f) {
   test_undefinedGetter_object_call() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     await assertErrorsInUnverifiedCode(
         '''
 f(Object o) {
@@ -1886,7 +1886,7 @@ class B {
     // know what signature the call should have).
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     await assertErrorsInCode(
         '''
 f(Function f) {
@@ -1920,7 +1920,7 @@ class C {
   test_undefinedMethod_object_call() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;
-    resetWithOptions(options);
+    resetWith(options: options);
     await assertErrorsInCode(
         '''
 f(Object o) {
@@ -2423,7 +2423,7 @@ class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
-    resetWithOptions(options);
+    resetWith(options: options);
   }
 
   test_genericMethodWrongNumberOfTypeArguments() async {
