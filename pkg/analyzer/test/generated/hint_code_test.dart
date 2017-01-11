@@ -17,7 +17,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HintCodeTest);
-    defineReflectiveTests(HintCodeTest_Driver);
   });
 }
 
@@ -4040,10 +4039,4 @@ class A {
         source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
-}
-
-@reflectiveTest
-class HintCodeTest_Driver extends HintCodeTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

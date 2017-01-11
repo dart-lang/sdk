@@ -16,7 +16,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticWarningCodeTest);
-    defineReflectiveTests(StaticWarningCodeTest_Driver);
   });
 }
 
@@ -3712,23 +3711,5 @@ class S {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
-  }
-}
-
-@reflectiveTest
-class StaticWarningCodeTest_Driver extends StaticWarningCodeTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_argumentTypeNotAssignable_ambiguousClassName() {
-    return super.test_argumentTypeNotAssignable_ambiguousClassName();
-  }
-
-  @failingTest
-  @override
-  test_importOfNonLibrary() {
-    return super.test_importOfNonLibrary();
   }
 }
