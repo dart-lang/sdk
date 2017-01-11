@@ -119,11 +119,13 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitStaticInvocation(StaticInvocation node) {
-    return new StaticInvocation(node.target, clone(node.arguments));
+    return new StaticInvocation(node.target, clone(node.arguments),
+        isConst: node.isConst);
   }
 
   visitConstructorInvocation(ConstructorInvocation node) {
-    return new ConstructorInvocation(node.target, clone(node.arguments));
+    return new ConstructorInvocation(node.target, clone(node.arguments),
+        isConst: node.isConst);
   }
 
   visitNot(Not node) {
