@@ -1137,7 +1137,7 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
       }
       if (newobj.raw() != objref->raw()) {
         ZoneGrowableArray<intptr_t>* patches = backref.patch_records();
-        ASSERT(newobj.IsCanonical());
+        ASSERT(newobj.IsNull() || newobj.IsCanonical());
         ASSERT(patches != NULL);
         // First we replace the back ref table with the canonical object.
         *objref = newobj.raw();

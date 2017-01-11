@@ -702,6 +702,7 @@ class RawClass : public RawObject {
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;
+  friend class RawTypeArguments;
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
   friend class CidRewriteVisitor;
@@ -1701,6 +1702,7 @@ class RawType : public RawAbstractType {
   int8_t type_state_;
 
   friend class CidRewriteVisitor;
+  friend class RawTypeArguments;
 };
 
 
