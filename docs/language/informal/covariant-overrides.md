@@ -47,7 +47,7 @@ declaration: // CHANGED: last alternative
   constructorSignature (redirection | initializers)? |
   'external' constantConstructorSignature |
   'external' constructorSignature |
-  ('external' 'static' ?)? getterSignature |
+  ('external' 'static'?)? getterSignature |
   ('external' 'static'?)? setterSignature |
   'external'? operatorSignature |
   ('external' 'static'?)? functionSignature |
