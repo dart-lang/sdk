@@ -117,6 +117,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'const_switch_test_04_multi': skip_fail,
       'constructor11_test': skip_fail,
       'constructor12_test': skip_fail,
+      'custom_await_stack_trace_test': skip_fail,
       'cyclic_type2_test': skip_fail,
       'cyclic_type_test_00_multi': skip_fail,
       'cyclic_type_test_01_multi': skip_fail,
@@ -151,6 +152,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'field_optimization3_test': skip_fail,
       'final_syntax_test_08_multi': skip_fail,
       'first_class_types_test': skip_fail,
+      'flatten_test_01_multi': skip_fail,
+      'flatten_test_04_multi': skip_fail,
       'for_in2_test': skip_fail,
       'for_variable_capture_test': skip_fail,
       'function_subtype0_test': skip_fail,
@@ -223,6 +226,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'issue13179_test': skip_fail,
       'issue21079_test': skip_fail,
       'issue21957_test': skip_fail,
+      'issue23244_test': skip_fail,
       'issue_1751477_test': skip_fail,
       'issue_22780_test_01_multi': skip_fail,
       'issue_23914_test': skip_fail,
@@ -241,6 +245,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mixin_forwarding_constructor3_test': skip_fail,
       'mixin_generic_test': skip_fail,
       'mixin_implements_test': skip_fail,
+      'mixin_invalid_inheritance1_test_none_multi': skip_fail,
       'mixin_issue10216_2_test': skip_fail,
       'mixin_mixin2_test': skip_fail,
       'mixin_mixin3_test': skip_fail,
@@ -689,6 +694,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'relation_assignable_test': fail,
       'relation_subtype_test': fail,
       'set_field_with_final_test': fail,
+      'spawn_function_root_library_test': skip_fail,
       'symbol_validation_test_01_multi': fail,
       'symbol_validation_test_none_multi': fail,
       'to_string_test': fail,
@@ -771,6 +777,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         async_helper.asyncTestInitialize(done);
         console.debug('Running test:  ' + name);
 
+        var result = null;
         let mainLibrary = require(module)[libraryName(name)];
         let negative = /negative_test/.test(name);
         if (has('slow')) this.timeout(10000);
@@ -792,7 +799,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
             if (negative) {
               assert.throws(mainLibrary.main);
             } else {
-              mainLibrary.main();
+              result = mainLibrary.main();
             }
           } finally {
             minitest.finishTests();
@@ -804,7 +811,13 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         document.body.innerHTML = '';
         console.log("cleared");
 
-        if (!async_helper.asyncTestStarted) done();
+        if (!async_helper.asyncTestStarted) {
+          if (!result) {
+            done();
+          } else {
+            result.then(dart_sdk.dart.dynamic)(() => done());
+          }
+        }
       });
     }
   }
