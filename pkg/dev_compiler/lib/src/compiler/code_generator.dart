@@ -1248,24 +1248,25 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     _loader.startTopLevel(element);
 
-    // Find the super type
-    JS.Expression heritage;
-    var supertype = type.superclass;
-    if (_deferIfNeeded(supertype, element)) {
-      // Fall back to raw type.
-      supertype = fillDynamicTypeArgs(supertype.element.type);
+    // List of "direct" supertypes (supertype + mixins)
+    var basetypes = [type.superclass]..addAll(type.mixins);
+
+    // If any of these are recursive (via type parameter), defer setting
+    // the real superclass.
+    if (basetypes.any((t) => _deferIfNeeded(t, element))) {
+      // Fall back to raw type
+      basetypes =
+          basetypes.map((t) => fillDynamicTypeArgs(t.element.type)).toList();
       _hasDeferredSupertype.add(element);
     }
-    // We could choose to name the superclasses, but it's
-    // not clear that there's much benefit
-    heritage = _emitType(supertype, nameType: false);
 
-    if (type.mixins.isNotEmpty) {
-      var mixins =
-          type.mixins.map((t) => _emitType(t, nameType: false)).toList();
-      mixins.insert(0, heritage);
-      heritage = _callHelper('mixin(#)', [mixins]);
-    }
+    // List of "direct" JS superclasses
+    var baseclasses =
+        basetypes.map((t) => _emitType(t, nameType: false)).toList();
+    assert(baseclasses.isNotEmpty);
+    var heritage = (baseclasses.length == 1)
+        ? baseclasses.first
+        : _callHelper('mixin(#)', [baseclasses]);
 
     _loader.finishTopLevel(element);
 
@@ -1682,8 +1683,17 @@ class CodeGenerator extends GeneralizingAstVisitor
             'setExtensionBaseClass(#, #);', [className, newBaseClass]));
       }
     } else if (_hasDeferredSupertype.contains(classElem)) {
+      // TODO(vsm): consider just threading the deferred supertype through
+      // instead of recording classElem in a set on the class and recomputing
       var newBaseClass = _emitType(classElem.type.superclass,
           nameType: false, subClass: classElem, className: className);
+      if (classElem.type.mixins.isNotEmpty) {
+        var mixins = classElem.type.mixins
+            .map((t) => _emitType(t, nameType: false))
+            .toList();
+        mixins.insert(0, newBaseClass);
+        newBaseClass = _callHelper('mixin(#)', [mixins]);
+      }
       var deferredBaseClass = _callHelperStatement(
           'setBaseClass(#, #);', [className, newBaseClass]);
       if (typeFormals.isNotEmpty) return deferredBaseClass;

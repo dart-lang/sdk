@@ -45206,7 +45206,7 @@ io._HttpConnection = class _HttpConnection extends dart.mixin(collection.LinkedL
     return r;
   }
 };
-dart.setBaseClass(io._HttpConnection, collection.LinkedListEntry$(io._HttpConnection));
+dart.setBaseClass(io._HttpConnection, dart.mixin(collection.LinkedListEntry$(io._HttpConnection), io._ServiceObject));
 dart.addSimpleTypeTests(io._HttpConnection);
 dart.setSignature(io._HttpConnection, {
   constructors: () => ({new: dart.definiteFunctionType(io._HttpConnection, [dart.dynamic, io._HttpServer])}),
