@@ -2426,30 +2426,4 @@ class StrongModeTypePropagationTest_Driver
     extends StrongModeTypePropagationTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_localVariableInference_transitive_field_inferred_lexical() {
-    return super
-        .test_localVariableInference_transitive_field_inferred_lexical();
-  }
-
-  @failingTest
-  @override
-  test_localVariableInference_transitive_field_inferred_reversed() {
-    return super
-        .test_localVariableInference_transitive_field_inferred_reversed();
-  }
-
-  @failingTest
-  @override
-  test_localVariableInference_transitive_field_lexical() {
-    return super.test_localVariableInference_transitive_field_lexical();
-  }
-
-  @failingTest
-  @override
-  test_localVariableInference_transitive_field_reversed() {
-    return super.test_localVariableInference_transitive_field_reversed();
-  }
 }

@@ -1309,7 +1309,7 @@ class _ReferenceInfo {
       // If type arguments are specified, use them.
       // Otherwise, delay until they are requested.
       if (numTypeParameters == 0) {
-        typeArguments = const <DartType>[];
+        return element.type;
       } else if (numTypeArguments == numTypeParameters) {
         typeArguments = new List<DartType>(numTypeParameters);
         for (int i = 0; i < numTypeParameters; i++) {
