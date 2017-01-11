@@ -19,6 +19,10 @@ class VerifyingVisitor extends RecursiveVisitor {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   bool classTypeParametersAreInScope = false;
 
+  /// If true, relax certain checks for *outline* mode. For example, don't
+  /// attempt to validate constructor initializers.
+  bool isOutline = false;
+
   Member currentMember;
   Class currentClass;
   TreeNode currentParent;
@@ -113,23 +117,27 @@ class VerifyingVisitor extends RecursiveVisitor {
   }
 
   visitProgram(Program program) {
-    for (var library in program.libraries) {
-      for (var class_ in library.classes) {
-        if (!classes.add(class_)) {
-          throw 'Class $class_ declared more than once';
+    try {
+      for (var library in program.libraries) {
+        for (var class_ in library.classes) {
+          if (!classes.add(class_)) {
+            throw 'Class $class_ declared more than once.';
+          }
+        }
+        library.members.forEach(declareMember);
+        for (var class_ in library.classes) {
+          class_.members.forEach(declareMember);
         }
       }
-      library.members.forEach(declareMember);
-      for (var class_ in library.classes) {
-        class_.members.forEach(declareMember);
+      visitChildren(program);
+    } finally {
+      for (var library in program.libraries) {
+        library.members.forEach(undeclareMember);
+        for (var class_ in library.classes) {
+          class_.members.forEach(undeclareMember);
+        }
       }
-    }
-    visitChildren(program);
-    for (var library in program.libraries) {
-      library.members.forEach(undeclareMember);
-      for (var class_ in library.classes) {
-        class_.members.forEach(undeclareMember);
-      }
+      variableStack.forEach(undeclareVariable);
     }
   }
 
@@ -164,6 +172,9 @@ class VerifyingVisitor extends RecursiveVisitor {
     int stackHeight = enterLocalScope();
     visitChildren(node.function);
     visitList(node.initializers, this);
+    if (!isOutline) {
+      checkInitializers(node);
+    }
     exitLocalScope(stackHeight);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
@@ -448,4 +459,8 @@ class CheckParentPointers extends Visitor {
     node.visitChildren(this);
     parent = oldParent;
   }
+}
+
+void checkInitializers(Constructor constructor) {
+  // TODO(ahe): I'll add more here in other CLs.
 }
