@@ -53,6 +53,15 @@ _enforceTrailingSlash(uri) {
   return uri;
 }
 
+class FileRequest {
+  final SendPort sp;
+  final int tag;
+  final Uri uri;
+  final Uri resolvedUri;
+  final String libraryUrl;
+  FileRequest(this.sp, this.tag, this.uri, this.resolvedUri, this.libraryUrl);
+}
+
 // State associated with the isolate that is used for loading.
 class IsolateLoaderState extends IsolateEmbedderData {
   IsolateLoaderState(this.isolateId);
@@ -78,6 +87,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
     if (packagesConfigFlag != null) {
       _setPackagesConfig(packagesConfigFlag);
     }
+    _fileRequestQueue = new List<FileRequest>();
   }
 
   void cleanup() {
@@ -113,6 +123,24 @@ class IsolateLoaderState extends IsolateEmbedderData {
   // The map describing how certain package names are mapped to Uris.
   Uri _packageConfig = null;
   Map<String, Uri> _packageMap = null;
+
+  // We issue only 16 concurrent calls to File.readAsBytes() to stay within
+  // platform-specific resource limits (e.g. max open files). The rest go on
+  // _fileRequestQueue and are processed when we can safely issue them.
+  static const int _maxFileRequests = 16;
+  int currentFileRequests = 0;
+  List<FileRequest> _fileRequestQueue;
+
+  bool get shouldIssueFileRequest => currentFileRequests < _maxFileRequests;
+  void enqueueFileRequest(FileRequest fr) {
+    _fileRequestQueue.add(fr);
+  }
+  FileRequest dequeueFileRequest() {
+    if (_fileRequestQueue.length == 0) {
+      return null;
+    }
+    return _fileRequestQueue.removeAt(0);
+  }
 
   _setPackageRoot(String packageRoot) {
     packageRoot = _sanitizeWindowsPath(packageRoot);
@@ -399,7 +427,8 @@ void _loadHttp(SendPort sp,
   Timer.run(() {});
 }
 
-void _loadFile(SendPort sp,
+void _loadFile(IsolateLoaderState loaderState,
+               SendPort sp,
                int tag,
                Uri uri,
                Uri resolvedUri,
@@ -411,6 +440,17 @@ void _loadFile(SendPort sp,
   },
   onError: (e) {
     _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
+  }).whenComplete(() {
+    loaderState.currentFileRequests--;
+    while (loaderState.shouldIssueFileRequest) {
+      FileRequest fr = loaderState.dequeueFileRequest();
+      if (fr == null) {
+        break;
+      }
+      _loadFile(
+          loaderState, fr.sp, fr.tag, fr.uri, fr.resolvedUri, fr.libraryUrl);
+      loaderState.currentFileRequests++;
+    }
   });
 }
 
@@ -507,7 +547,13 @@ _handleResourceRequest(IsolateLoaderState loaderState,
                        Uri resolvedUri,
                        String libraryUrl) {
   if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
-    _loadFile(sp, tag, uri, resolvedUri, libraryUrl);
+    if (loaderState.shouldIssueFileRequest) {
+      _loadFile(loaderState, sp, tag, uri, resolvedUri, libraryUrl);
+      loaderState.currentFileRequests++;
+    } else {
+      FileRequest fr = new FileRequest(sp, tag, uri, resolvedUri, libraryUrl);
+      loaderState.enqueueFileRequest(fr);
+    }
   } else if ((resolvedUri.scheme == 'http') ||
              (resolvedUri.scheme == 'https')) {
     _loadHttp(sp, tag, uri, resolvedUri, libraryUrl);
