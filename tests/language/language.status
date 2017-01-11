@@ -51,6 +51,10 @@ async_star_cancel_while_paused_test: RuntimeError
 # Fails because `as T` is an error rather than being treated like `as dynamic`.
 generic_methods_type_expression_test: RuntimeError # Issue 27460
 
+# Doesn't yet implement `covariant` keyword.
+covariant_test/none: CompileTimeError # Issue 28166
+covariant_override_test: CompileTimeError # Issue 28166
+
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,
 # because the parsed type parameters are mapped to dynamic type.

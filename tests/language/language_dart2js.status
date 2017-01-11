@@ -39,6 +39,17 @@ duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
 bad_typedef_test/00: Crash # Issue 28214
 
+covariant_test/02: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/08: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/12: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/14: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/16: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/22: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/28: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/32: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/34: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/36: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported

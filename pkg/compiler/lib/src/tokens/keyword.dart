@@ -53,6 +53,7 @@ class Keyword {
 
     const Keyword("abstract", isBuiltIn: true),
     const Keyword("as", info: Precedence.AS_INFO, isBuiltIn: true),
+    const Keyword("covariant", isBuiltIn: true),
     const Keyword("dynamic", isBuiltIn: true),
     const Keyword("export", isBuiltIn: true),
     const Keyword("external", isBuiltIn: true),
@@ -77,7 +78,7 @@ class Keyword {
     const Keyword("async", isPseudo: true),
     const Keyword("sync", isPseudo: true),
     const Keyword("await", isPseudo: true),
-    const Keyword("yield", isPseudo: true)
+    const Keyword("yield", isPseudo: true),
   ];
 
   final String syntax;
