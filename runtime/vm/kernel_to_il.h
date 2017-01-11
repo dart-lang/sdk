@@ -414,6 +414,7 @@ class ConstantEvaluator : public ExpressionVisitor {
   virtual void VisitConditionalExpression(ConditionalExpression* node);
   virtual void VisitLogicalExpression(LogicalExpression* node);
   virtual void VisitNot(Not* node);
+  virtual void VisitPropertyGet(PropertyGet* node);
 
  private:
   // This will translate type arguments form [kernel_arguments].  If no type

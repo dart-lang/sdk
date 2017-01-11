@@ -1770,6 +1770,28 @@ void ConstantEvaluator::VisitNot(Not* node) {
 }
 
 
+void ConstantEvaluator::VisitPropertyGet(PropertyGet* node) {
+  const size_t kLengthLen = strlen("length");
+
+  String* string = node->name()->string();
+  if (string->size() == kLengthLen &&
+      memcmp(string->buffer(), "length", kLengthLen) == 0) {
+    node->receiver()->AcceptExpressionVisitor(this);
+    if (result_.IsString()) {
+      const dart::String& str =
+          dart::String::Handle(Z, dart::String::RawCast(result_.raw()));
+      result_ = Integer::New(str.Length());
+    } else {
+      H.ReportError(
+          "Constant expressions can only call "
+          "'length' on string constants.");
+    }
+  } else {
+    VisitDefaultExpression(node);
+  }
+}
+
+
 const TypeArguments* ConstantEvaluator::TranslateTypeArguments(
     const Function& target,
     dart::Class* target_klass,
