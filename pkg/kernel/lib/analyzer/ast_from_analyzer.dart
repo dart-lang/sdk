@@ -307,6 +307,11 @@ class TypeScope extends ReferenceScope {
 
   ast.DartType get defaultTypeParameterBound => getRootClassReference().rawType;
 
+  ast.TypeParameter tryGetTypeParameterReference(TypeParameterElement element) {
+    return localTypeParameters[element] ??
+        loader.tryGetClassTypeParameter(element);
+  }
+
   ast.TypeParameter getTypeParameterReference(TypeParameterElement element) {
     return localTypeParameters[element] ??
         loader.tryGetClassTypeParameter(element) ??
@@ -385,7 +390,8 @@ class TypeScope extends ReferenceScope {
             .toList();
       }
       return new List<ast.DartType>.filled(
-          genericFunctionType.typeParameters.length, const ast.DynamicType());
+          genericFunctionType.typeParameters.length, const ast.DynamicType(),
+          growable: true);
     } else {
       return <ast.DartType>[];
     }
@@ -1184,6 +1190,28 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     return loop;
   }
 
+  DartType iterableElementType(DartType iterable) {
+    if (iterable is InterfaceType) {
+      var iterator = iterable.lookUpInheritedGetter('iterator')?.returnType;
+      if (iterator is InterfaceType) {
+        return iterator.lookUpInheritedGetter('current')?.returnType;
+      }
+    }
+    return null;
+  }
+
+  DartType streamElementType(DartType stream) {
+    if (stream is InterfaceType) {
+      var class_ = stream.element;
+      if (class_.library.isDartAsync &&
+          class_.name == 'Stream' &&
+          stream.typeArguments.length == 1) {
+        return stream.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
   ast.Statement visitForEachStatement(ForEachStatement node) {
     ast.VariableDeclaration variable;
     Accessor leftHand;
@@ -1193,8 +1221,16 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
           type: scope.buildOptionalTypeAnnotation(loopVariable.type));
     } else if (node.identifier != null) {
       leftHand = scope.buildLeftHandValue(node.identifier);
-      // TODO: In strong mode, set variable type based on iterable type.
       variable = new ast.VariableDeclaration(null, isFinal: true);
+      if (scope.strongMode) {
+        var containerType = node.iterable.staticType;
+        DartType elementType = node.awaitKeyword != null
+            ? streamElementType(containerType)
+            : iterableElementType(containerType);
+        if (elementType != null) {
+          variable.type = scope.buildType(elementType);
+        }
+      }
     }
     var breakNode = new LabelStack.unlabeled(breakStack);
     var continueNode = new LabelStack.unlabeled(continueStack);
@@ -1221,7 +1257,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         variable,
         scope.buildExpression(node.iterable),
         makeBreakTarget(body, continueNode),
-        isAsync: node.awaitKeyword != null);
+        isAsync: node.awaitKeyword != null)..fileOffset = node.offset;
     return makeBreakTarget(loop, breakNode);
   }
 
@@ -1292,9 +1328,9 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     var declaration = node.functionDeclaration;
     var expression = declaration.functionExpression;
     LocalElement element = declaration.element as dynamic; // Cross cast.
-    // TODO: Set a function type on the variable.
     return new ast.FunctionDeclaration(
-        scope.makeVariableDeclaration(element),
+        scope.makeVariableDeclaration(element,
+            type: scope.buildType(declaration.element.type)),
         scope.buildFunctionNode(expression.parameters, expression.body,
             typeParameters: scope.buildOptionalTypeParameterList(
                 expression.typeParameters,
@@ -2150,7 +2186,15 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
         return const ast.DynamicType();
       }
       if (boundVariables == null || boundVariables.contains(type)) {
-        var typeParameter = scope.getTypeParameterReference(type.element);
+        var typeParameter = scope.tryGetTypeParameterReference(type.element);
+        if (typeParameter == null) {
+          // The analyzer sometimes gives us a type parameter that was not
+          // bound anywhere.  Make sure we do not emit a dangling reference.
+          if (type.element.bound != null) {
+            return convertType(type.element.bound, []);
+          }
+          return const ast.DynamicType();
+        }
         if (!scope.allowClassTypeParameters &&
             typeParameter.parent is ast.Class) {
           return const ast.InvalidType();

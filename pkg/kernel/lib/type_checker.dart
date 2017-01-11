@@ -85,6 +85,16 @@ abstract class TypeChecker {
   /// [where] is an AST node indicating roughly where the check is required.
   void checkAssignable(TreeNode where, DartType from, DartType to);
 
+  /// Checks that [expression], which has type [from], can be assigned to [to].
+  ///
+  /// Should return a downcast if necessary, or [expression] if no cast is
+  /// needed.
+  Expression checkAndDowncastExpression(
+      Expression expression, DartType from, DartType to) {
+    checkAssignable(expression, from, to);
+    return expression;
+  }
+
   /// Indicates that type checking failed.
   void fail(TreeNode where, String message);
 }
@@ -108,8 +118,16 @@ class TypeCheckingVisitor
     checker.checkAssignable(where, from, to);
   }
 
-  void checkAssignableExpression(Expression from, DartType to) {
-    checker.checkAssignable(from, visitExpression(from), to);
+  Expression checkAndDowncastExpression(Expression from, DartType to) {
+    var parent = from.parent;
+    var type = visitExpression(from);
+    var result = checker.checkAndDowncastExpression(from, type, to);
+    result.parent = parent;
+    return result;
+  }
+
+  void checkExpressionNoDowncast(Expression expression, DartType to) {
+    checkAssignable(expression, visitExpression(expression), to);
   }
 
   void fail(TreeNode node, String message) {
@@ -146,7 +164,8 @@ class TypeCheckingVisitor
 
   visitField(Field node) {
     if (node.initializer != null) {
-      checkAssignableExpression(node.initializer, node.type);
+      node.initializer =
+          checkAndDowncastExpression(node.initializer, node.type);
     }
   }
 
@@ -188,7 +207,8 @@ class TypeCheckingVisitor
 
   void handleOptionalParameter(VariableDeclaration parameter) {
     if (parameter.initializer != null) {
-      checkAssignableExpression(parameter.initializer, parameter.type);
+      // Default parameter values cannot be downcast.
+      checkExpressionNoDowncast(parameter.initializer, parameter.type);
     }
   }
 
@@ -255,7 +275,8 @@ class TypeCheckingVisitor
       var expectedType = substitution.substituteType(
           function.positionalParameters[i].type,
           contravariant: true);
-      checkAssignableExpression(arguments.positional[i], expectedType);
+      arguments.positional[i] =
+          checkAndDowncastExpression(arguments.positional[i], expectedType);
     }
     for (int i = 0; i < arguments.named.length; ++i) {
       var argument = arguments.named[i];
@@ -265,7 +286,8 @@ class TypeCheckingVisitor
           var expectedType = substitution.substituteType(
               function.namedParameters[j].type,
               contravariant: true);
-          checkAssignableExpression(argument.value, expectedType);
+          argument.value =
+              checkAndDowncastExpression(argument.value, expectedType);
           found = true;
           break;
         }
@@ -344,9 +366,11 @@ class TypeCheckingVisitor
 
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
-    checkAssignableExpression(node.condition, environment.boolType);
-    checkAssignableExpression(node.then, node.staticType);
-    checkAssignableExpression(node.otherwise, node.staticType);
+    node.condition =
+        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.then = checkAndDowncastExpression(node.then, node.staticType);
+    node.otherwise =
+        checkAndDowncastExpression(node.otherwise, node.staticType);
     return node.staticType;
   }
 
@@ -419,24 +443,25 @@ class TypeCheckingVisitor
 
   @override
   DartType visitListLiteral(ListLiteral node) {
-    for (var item in node.expressions) {
-      checkAssignableExpression(item, node.typeArgument);
+    for (int i = 0; i < node.expressions.length; ++i) {
+      node.expressions[i] =
+          checkAndDowncastExpression(node.expressions[i], node.typeArgument);
     }
     return environment.literalListType(node.typeArgument);
   }
 
   @override
   DartType visitLogicalExpression(LogicalExpression node) {
-    checkAssignableExpression(node.left, environment.boolType);
-    checkAssignableExpression(node.right, environment.boolType);
+    node.left = checkAndDowncastExpression(node.left, environment.boolType);
+    node.right = checkAndDowncastExpression(node.right, environment.boolType);
     return environment.boolType;
   }
 
   @override
   DartType visitMapLiteral(MapLiteral node) {
     for (var entry in node.entries) {
-      checkAssignableExpression(entry.key, node.keyType);
-      checkAssignableExpression(entry.value, node.valueType);
+      entry.key = checkAndDowncastExpression(entry.key, node.keyType);
+      entry.value = checkAndDowncastExpression(entry.value, node.valueType);
     }
     return environment.literalMapType(node.keyType, node.valueType);
   }
@@ -467,7 +492,8 @@ class TypeCheckingVisitor
       var expectedType = instantiation.substituteType(
           function.positionalParameters[i],
           contravariant: true);
-      checkAssignableExpression(arguments.positional[i], expectedType);
+      arguments.positional[i] =
+          checkAndDowncastExpression(arguments.positional[i], expectedType);
     }
     for (int i = 0; i < arguments.named.length; ++i) {
       var argument = arguments.named[i];
@@ -477,7 +503,8 @@ class TypeCheckingVisitor
           var expectedType = instantiation.substituteType(
               function.namedParameters[j].type,
               contravariant: true);
-          checkAssignableExpression(argument.value, expectedType);
+          argument.value =
+              checkAndDowncastExpression(argument.value, expectedType);
           found = true;
           break;
         }
@@ -674,7 +701,8 @@ class TypeCheckingVisitor
   @override
   visitDoStatement(DoStatement node) {
     visitStatement(node.body);
-    checkAssignableExpression(node.condition, environment.boolType);
+    node.condition =
+        checkAndDowncastExpression(node.condition, environment.boolType);
   }
 
   @override
@@ -700,23 +728,27 @@ class TypeCheckingVisitor
   }
 
   static final Name iteratorName = new Name('iterator');
-  static final Name nextName = new Name('next');
+  static final Name currentName = new Name('current');
 
   DartType getIterableElementType(DartType iterable) {
     if (iterable is InterfaceType) {
       var iteratorGetter =
           hierarchy.getInterfaceMember(iterable.classNode, iteratorName);
       if (iteratorGetter == null) return const DynamicType();
+      var castedIterable = hierarchy.getTypeAsInstanceOf(
+          iterable, iteratorGetter.enclosingClass);
       var iteratorType = Substitution
-          .fromInterfaceType(iterable)
+          .fromInterfaceType(castedIterable)
           .substituteType(iteratorGetter.getterType);
       if (iteratorType is InterfaceType) {
-        var nextGetter =
-            hierarchy.getInterfaceMember(iteratorType.classNode, nextName);
-        if (nextGetter == null) return const DynamicType();
+        var currentGetter =
+            hierarchy.getInterfaceMember(iteratorType.classNode, currentName);
+        if (currentGetter == null) return const DynamicType();
+        var castedIteratorType = hierarchy.getTypeAsInstanceOf(
+            iteratorType, currentGetter.enclosingClass);
         return Substitution
-            .fromInterfaceType(iteratorType)
-            .substituteType(nextGetter.getterType);
+            .fromInterfaceType(castedIteratorType)
+            .substituteType(currentGetter.getterType);
       }
     }
     return const DynamicType();
@@ -736,7 +768,8 @@ class TypeCheckingVisitor
   visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
-      checkAssignableExpression(node.condition, environment.boolType);
+      node.condition =
+          checkAndDowncastExpression(node.condition, environment.boolType);
     }
     node.updates.forEach(visitExpression);
     visitStatement(node.body);
@@ -749,7 +782,8 @@ class TypeCheckingVisitor
 
   @override
   visitIfStatement(IfStatement node) {
-    checkAssignableExpression(node.condition, environment.boolType);
+    node.condition =
+        checkAndDowncastExpression(node.condition, environment.boolType);
     visitStatement(node.then);
     if (node.otherwise != null) {
       visitStatement(node.otherwise);
@@ -805,13 +839,15 @@ class TypeCheckingVisitor
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer != null) {
-      checkAssignableExpression(node.initializer, node.type);
+      node.initializer =
+          checkAndDowncastExpression(node.initializer, node.type);
     }
   }
 
   @override
   visitWhileStatement(WhileStatement node) {
-    checkAssignableExpression(node.condition, environment.boolType);
+    node.condition =
+        checkAndDowncastExpression(node.condition, environment.boolType);
     visitStatement(node.body);
   }
 
@@ -832,13 +868,14 @@ class TypeCheckingVisitor
         fail(node.expression, '$type is not an instance of $container');
       }
     } else {
-      checkAssignableExpression(node.expression, environment.yieldType);
+      node.expression =
+          checkAndDowncastExpression(node.expression, environment.yieldType);
     }
   }
 
   @override
   visitFieldInitializer(FieldInitializer node) {
-    checkAssignableExpression(node.value, node.field.type);
+    node.value = checkAndDowncastExpression(node.value, node.field.type);
   }
 
   @override
@@ -850,7 +887,8 @@ class TypeCheckingVisitor
   @override
   visitSuperInitializer(SuperInitializer node) {
     handleCall(node.arguments, node.target.function,
-        typeParameters: const <TypeParameter>[]);
+        typeParameters: const <TypeParameter>[],
+        receiver: getSuperReceiverType(node.target));
   }
 
   @override

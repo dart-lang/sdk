@@ -991,6 +991,12 @@ class Printer extends Visitor<Null> {
 
   visitVariableGet(VariableGet node) {
     writeVariableReference(node.variable);
+    if (node.promotedType != null) {
+      writeSymbol('{');
+      writeNode(node.promotedType);
+      writeSymbol('}');
+      state = WORD;
+    }
   }
 
   visitVariableSet(VariableSet node) {
@@ -1389,6 +1395,9 @@ class Printer extends Visitor<Null> {
   }
 
   visitFunctionType(FunctionType node) {
+    if (state == WORD) {
+      ensureSpace();
+    }
     writeTypeParameterList(node.typeParameters);
     writeSymbol('(');
     var positional = node.positionalParameters;

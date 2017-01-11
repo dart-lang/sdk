@@ -95,7 +95,11 @@ class TypeEnvironment extends SubtypeTester {
     Class class_ = member.enclosingClass;
     if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
       String name = member.name.name;
-      return name == '+' || name == '-' || name == '*' || name == 'remainder';
+      return name == '+' ||
+          name == '-' ||
+          name == '*' ||
+          name == 'remainder' ||
+          name == '%';
     }
     return false;
   }
@@ -128,7 +132,9 @@ abstract class SubtypeTester {
   bool isSubtypeOf(DartType subtype, DartType supertype) {
     if (identical(subtype, supertype)) return true;
     if (subtype is BottomType) return true;
-    if (supertype is DynamicType || supertype == objectType) {
+    if (supertype is DynamicType ||
+        supertype is VoidType ||
+        supertype == objectType) {
       return true;
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
@@ -194,8 +200,7 @@ abstract class SubtypeTester {
       }
       subtype = substitute(subtype.withoutTypeParameters, substitution);
     }
-    if (supertype.returnType is! VoidType &&
-        !isSubtypeOf(subtype.returnType, supertype.returnType)) {
+    if (!isSubtypeOf(subtype.returnType, supertype.returnType)) {
       return false;
     }
     for (int i = 0; i < supertype.positionalParameters.length; ++i) {

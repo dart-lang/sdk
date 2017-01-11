@@ -9,6 +9,7 @@ convert/chunked_conversion_utf82_test: DartkCompileTimeError
 convert/chunked_conversion_utf83_test: DartkCompileTimeError
 convert/chunked_conversion_utf85_test: DartkCompileTimeError
 convert/encoding_test: DartkCompileTimeError
+convert/json_toEncodable_reviver_test: Crash # Type error in constant
 convert/json_utf8_chunk_test: DartkCompileTimeError
 convert/latin1_test: DartkCompileTimeError
 convert/streamed_conversion_json_encode1_test: RuntimeError
@@ -171,7 +172,7 @@ html/xhr_cross_origin_test: DartkCompileTimeError
 html/xhr_test: DartkCompileTimeError
 html/xsltprocessor_test: DartkCompileTimeError
 mirrors/basic_types_in_dart_core_test: RuntimeError
-mirrors/class_mirror_location_test: Crash
+mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_optional_args_test: CompileTimeError
@@ -216,6 +217,8 @@ mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/library_uri_io_test: DartkCompileTimeError
 mirrors/library_uri_package_test: DartkCompileTimeError
+mirrors/list_constructor_test/01: RuntimeError
+mirrors/list_constructor_test/none: RuntimeError
 mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/metadata_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError

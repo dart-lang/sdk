@@ -949,6 +949,10 @@ class Procedure extends Member {
 
   _MemberAccessor get _getterInterface => _reference;
   _MemberAccessor get _setterInterface => _reference;
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return enclosingProgram.getLocation(fileUri, offset);
+  }
 }
 
 enum ProcedureKind {
@@ -3558,7 +3562,7 @@ class Program extends TreeNode {
     int lineIndex = low;
     int lineStart = lines[lineIndex];
     int lineNumber = 1 + lineIndex;
-    int columnNumber = offset - lineStart;
+    int columnNumber = 1 + offset - lineStart;
     return new Location(file, lineNumber, columnNumber);
   }
 }
