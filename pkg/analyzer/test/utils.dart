@@ -201,7 +201,9 @@ class TypeAssertions {
   // TODO(leafp): Make these matchers.
   // https://www.dartdocs.org/documentation/matcher/0.12.0%2B1/matcher/Matcher-class.html
 
-  /* Provides primitive types for basic type assertions */
+  /**
+   * Provides primitive types for basic type assertions.
+   */
   final TypeProvider _typeProvider;
 
   TypeAssertions(this._typeProvider);

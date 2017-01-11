@@ -19,6 +19,7 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
+    defineReflectiveTests(CompileTimeErrorCodeTest_Driver);
   });
 }
 
@@ -6156,6 +6157,7 @@ main() {
     assertErrors(test, [HintCode.UNUSED_IMPORT]);
 
     // Remove the overlay in the same way as AnalysisServer.
+    resourceProvider.deleteFile('/target.dart');
     analysisContext2.setContents(target, null);
     ChangeSet changeSet = new ChangeSet()..removedSource(target);
     analysisContext2.applyChanges(changeSet);
@@ -6434,5 +6436,96 @@ class A {
   Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "");
     await _check_wrongNumberOfParametersForOperator(name, "a, b");
+  }
+}
+
+@reflectiveTest
+class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_exportOfNonLibrary() {
+    return super.test_exportOfNonLibrary();
+  }
+
+  @failingTest
+  @override
+  test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() {
+    return super
+        .test_fieldInitializerOutsideConstructor_inFunctionTypeParameter();
+  }
+
+  @failingTest
+  @override
+  test_fromEnvironment_bool_badDefault_whenDefined() {
+    return super.test_fromEnvironment_bool_badDefault_whenDefined();
+  }
+
+  @failingTest
+  @override
+  test_importOfNonLibrary() {
+    return super.test_importOfNonLibrary();
+  }
+
+  @failingTest
+  @override
+  test_nonConstValueInInitializer_assert_condition() {
+    return super.test_nonConstValueInInitializer_assert_condition();
+  }
+
+  @failingTest
+  @override
+  test_nonConstValueInInitializer_assert_message() {
+    return super.test_nonConstValueInInitializer_assert_message();
+  }
+
+  @failingTest
+  @override
+  test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
+    return super.test_prefixCollidesWithTopLevelMembers_functionTypeAlias();
+  }
+
+  @failingTest
+  @override
+  test_prefixCollidesWithTopLevelMembers_topLevelFunction() {
+    return super.test_prefixCollidesWithTopLevelMembers_topLevelFunction();
+  }
+
+  @failingTest
+  @override
+  test_prefixCollidesWithTopLevelMembers_topLevelVariable() {
+    return super.test_prefixCollidesWithTopLevelMembers_topLevelVariable();
+  }
+
+  @failingTest
+  @override
+  test_prefixCollidesWithTopLevelMembers_type() {
+    return super.test_prefixCollidesWithTopLevelMembers_type();
+  }
+
+  @failingTest
+  @override
+  test_typeAliasCannotReferenceItself_typeVariableBounds() {
+    return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
+  }
+
+  @failingTest
+  @override
+  test_uriDoesNotExist_import_appears_after_deleting_target() {
+    return super.test_uriDoesNotExist_import_appears_after_deleting_target();
+  }
+
+  @failingTest
+  @override
+  test_uriDoesNotExist_import_disappears_when_fixed() {
+    return super.test_uriDoesNotExist_import_disappears_when_fixed();
+  }
+
+  @failingTest
+  @override
+  test_uriWithInterpolation_nonConstant() {
+    return super.test_uriWithInterpolation_nonConstant();
   }
 }

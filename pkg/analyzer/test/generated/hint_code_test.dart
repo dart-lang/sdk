@@ -12,21 +12,23 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HintCodeTest);
+    defineReflectiveTests(HintCodeTest_Driver);
   });
 }
 
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   @override
-  void reset() {
-    analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages({
-      'package:meta/meta.dart': r'''
+  void reset({List<List<String>> packages}) {
+    super.reset(packages: [
+      [
+        'meta',
+        r'''
 library meta;
 
 const _Factory factory = const _Factory();
@@ -55,14 +57,18 @@ class _Required {
   final String reason;
   const _Required([this.reason]));
 }
-''',
-      'package:js/js.dart': r'''
+'''
+      ],
+      [
+        'js',
+        r'''
 library js;
 class JS {
   const JS([String js]) { }
 }
 '''
-    }, resourceProvider: resourceProvider);
+      ]
+    ]);
   }
 
   test_abstractSuperMemberReference_getter() async {
@@ -4034,4 +4040,10 @@ class A {
         source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
+}
+
+@reflectiveTest
+class HintCodeTest_Driver extends HintCodeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

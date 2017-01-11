@@ -18,6 +18,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeWarningCodeTest);
     defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+    defineReflectiveTests(StaticTypeWarningCodeTest_Driver);
+    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest_Driver);
   });
 }
 
@@ -2410,6 +2412,12 @@ Stream<int> f() sync* {
 }
 
 @reflectiveTest
+class StaticTypeWarningCodeTest_Driver extends StaticTypeWarningCodeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+}
+
+@reflectiveTest
 class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
@@ -2483,5 +2491,18 @@ Iterable<num> f7() sync* { yield 42; }
 Iterable<int> f8() sync* { yield 42; }
 ''',
         []);
+  }
+}
+
+@reflectiveTest
+class StrongModeStaticTypeWarningCodeTest_Driver
+    extends StrongModeStaticTypeWarningCodeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_genericMethodWrongNumberOfTypeArguments() {
+    return super.test_genericMethodWrongNumberOfTypeArguments();
   }
 }

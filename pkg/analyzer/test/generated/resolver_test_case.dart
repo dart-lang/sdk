@@ -12,11 +12,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -24,6 +29,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 
+import '../src/dart/analysis/physical_sdk.dart' as physical_sdk;
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
 
@@ -327,7 +333,13 @@ class ResolverTestCase extends EngineTestCase {
 
   final Map<Source, TestAnalysisResult> analysisResults = {};
 
+  StringBuffer _logBuffer = new StringBuffer();
+  FileContentOverlay _fileContentOverlay = new FileContentOverlay();
+  AnalysisDriver driver;
+
   AnalysisContext get analysisContext => analysisContext2;
+
+  bool get enableNewAnalysisDriver => false;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -335,7 +347,13 @@ class ResolverTestCase extends EngineTestCase {
    * @return a type provider
    * @throws AnalysisException if dart:core cannot be resolved
    */
-  TypeProvider get typeProvider => analysisContext2.typeProvider;
+  TypeProvider get typeProvider {
+    if (enableNewAnalysisDriver) {
+      return driver.sourceFactory.dartSdk.context.typeProvider;
+    } else {
+      return analysisContext2.typeProvider;
+    }
+  }
 
   /**
    * Return a type system that can be used to test the results of resolution.
@@ -350,11 +368,17 @@ class ResolverTestCase extends EngineTestCase {
    * set in the content provider. Return the source representing the added file.
    */
   Source addNamedSource(String filePath, String contents) {
-    Source source =
-        cacheSource(resourceProvider.convertPath(filePath), contents);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    analysisContext2.applyChanges(changeSet);
+    filePath = resourceProvider.convertPath(filePath);
+    File file = resourceProvider.newFile(filePath, contents);
+    Source source = file.createSource();
+    if (enableNewAnalysisDriver) {
+      driver.addFile(filePath);
+    } else {
+      analysisContext2.setContents(source, contents);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.addedSource(source);
+      analysisContext2.applyChanges(changeSet);
+    }
     return source;
   }
 
@@ -484,16 +508,6 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Cache the [contents] for the file at the given [filePath] but don't add the
-   * source to the analysis context. The file path must be absolute.
-   */
-  Source cacheSource(String filePath, String contents) {
-    Source source = resourceProvider.getFile(filePath).createSource();
-    analysisContext2.setContents(source, contents);
-    return source;
-  }
-
-  /**
    * Change the contents of the given [source] to the given [contents].
    */
   void changeSource(Source source, String contents) {
@@ -504,13 +518,19 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   Future<Null> computeAnalysisResult(Source source) async {
-    analysisContext2.computeKindOf(source);
-    List<Source> libraries = analysisContext2.getLibrariesContaining(source);
-    if (libraries.length > 0) {
-      CompilationUnit unit =
-          analysisContext.resolveCompilationUnit2(source, libraries.first);
-      List<AnalysisError> errors = analysisContext.computeErrors(source);
-      analysisResults[source] = new TestAnalysisResult(source, unit, errors);
+    if (enableNewAnalysisDriver) {
+      AnalysisResult result = await driver.getResult(source.fullName);
+      analysisResults[source] =
+          new TestAnalysisResult(source, result.unit, result.errors);
+    } else {
+      analysisContext2.computeKindOf(source);
+      List<Source> libraries = analysisContext2.getLibrariesContaining(source);
+      if (libraries.length > 0) {
+        CompilationUnit unit =
+            analysisContext.resolveCompilationUnit2(source, libraries.first);
+        List<AnalysisError> errors = analysisContext.computeErrors(source);
+        analysisResults[source] = new TestAnalysisResult(source, unit, errors);
+      }
     }
   }
 
@@ -588,13 +608,10 @@ class ResolverTestCase extends EngineTestCase {
       String code, String marker) async {
     try {
       Source source = addSource(code);
-      LibraryElement library = resolve2(source);
       await computeAnalysisResult(source);
       assertNoErrors(source);
       verify([source]);
-      CompilationUnit unit = resolveCompilationUnit(source, library);
-      // Could generalize this further by making [SimpleIdentifier.class] a
-      // parameter.
+      CompilationUnit unit = analysisResults[source].unit;
       return EngineTestCase.findNode(
           unit, code, marker, (node) => node is SimpleIdentifier);
     } catch (exception) {
@@ -610,7 +627,6 @@ class ResolverTestCase extends EngineTestCase {
   Expression findTopLevelConstantExpression(
           CompilationUnit compilationUnit, String name) =>
       findTopLevelDeclaration(compilationUnit, name).initializer;
-
   VariableDeclaration findTopLevelDeclaration(
       CompilationUnit compilationUnit, String name) {
     for (CompilationUnitMember member in compilationUnit.declarations) {
@@ -629,9 +645,54 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * Re-create the analysis context being used by the test case.
    */
-  void reset() {
-    analysisContext2 = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+  void reset({List<List<String>> packages}) {
+    if (enableNewAnalysisDriver) {
+      PerformanceLog log = new PerformanceLog(_logBuffer);
+      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(physical_sdk.sdk),
+        new ResourceUriResolver(resourceProvider)
+      ];
+      if (packages != null) {
+        var packageMap = <String, List<Folder>>{};
+        packages.forEach((args) {
+          String name = args[0];
+          String path =
+              resourceProvider.convertPath('/packages/$name/$name.dart');
+          String content = args[1];
+          File file = resourceProvider.newFile(path, content);
+          packageMap[name] = <Folder>[file.parent];
+        });
+        resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
+      }
+      SourceFactory sourceFactory = new SourceFactory(resolvers);
+
+      driver = new AnalysisDriver(
+          scheduler,
+          log,
+          resourceProvider,
+          new MemoryByteStore(),
+          _fileContentOverlay,
+          sourceFactory,
+          new AnalysisOptionsImpl());
+      scheduler.start();
+    } else {
+      if (packages != null) {
+        var packageMap = <String, String>{};
+        packages.forEach((args) {
+          String name = args[0];
+          String content = args[1];
+          packageMap['package:$name/$name.dart'] = content;
+        });
+        analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages(
+            packageMap,
+            resourceProvider: resourceProvider);
+      } else {
+        analysisContext2 = AnalysisContextFactory.contextWithCore(
+            resourceProvider: resourceProvider);
+      }
+    }
   }
 
   /**
@@ -639,8 +700,25 @@ class ResolverTestCase extends EngineTestCase {
    * [options] in the newly created context to the given [options].
    */
   void resetWithOptions(AnalysisOptions options) {
-    analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(options,
-        resourceProvider: resourceProvider);
+    // TODO(scheglov) remove duplication
+    if (enableNewAnalysisDriver) {
+      PerformanceLog log = new PerformanceLog(_logBuffer);
+      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(
+            options.strongMode ? physical_sdk.strongSdk : physical_sdk.sdk),
+        new ResourceUriResolver(resourceProvider)
+      ];
+      SourceFactory sourceFactory = new SourceFactory(resolvers);
+      driver = new AnalysisDriver(scheduler, log, resourceProvider,
+          new MemoryByteStore(), _fileContentOverlay, sourceFactory, options);
+      scheduler.start();
+    } else {
+      analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(
+          options,
+          resourceProvider: resourceProvider);
+    }
   }
 
   /**

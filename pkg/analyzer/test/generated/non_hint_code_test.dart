@@ -15,28 +15,12 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonHintCodeTest);
+    defineReflectiveTests(NonHintCodeTest_Driver);
   });
 }
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
-  test_() async {
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
-    Source source = addSource(r'''
-abstract class A {
-  void test();
-}
-class B extends A {
-  void test() {
-    super.test;
-  }
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_deadCode_afterTryCatch() async {
     Source source = addSource('''
 main() {
@@ -1278,6 +1262,29 @@ g() {
     assertNoErrors(source);
     verify([source]);
   }
+
+  test_withSuperMixin() async {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+abstract class A {
+  void test();
+}
+class B extends A {
+  void test() {
+    super.test;
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+}
+
+@reflectiveTest
+class NonHintCodeTest_Driver extends NonHintCodeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }
 
 class PubSuggestionCodeTest extends ResolverTestCase {
@@ -1306,8 +1313,8 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_referenceIntoLibDirectory() async {
-    cacheSource("/myproj/pubspec.yaml", "");
-    cacheSource("/myproj/lib/other.dart", "");
+    addNamedSource("/myproj/pubspec.yaml", "");
+    addNamedSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
     await computeAnalysisResult(source);
@@ -1316,7 +1323,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_referenceIntoLibDirectory_no_pubspec() async {
-    cacheSource("/myproj/lib/other.dart", "");
+    addNamedSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
     await computeAnalysisResult(source);
@@ -1324,8 +1331,8 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_referenceOutOfLibDirectory() async {
-    cacheSource("/myproj/pubspec.yaml", "");
-    cacheSource("/myproj/web/other.dart", "");
+    addNamedSource("/myproj/pubspec.yaml", "");
+    addNamedSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
     await computeAnalysisResult(source);
@@ -1334,7 +1341,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_referenceOutOfLibDirectory_no_pubspec() async {
-    cacheSource("/myproj/web/other.dart", "");
+    addNamedSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
     await computeAnalysisResult(source);
@@ -1342,8 +1349,8 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_valid_inside_lib1() async {
-    cacheSource("/myproj/pubspec.yaml", "");
-    cacheSource("/myproj/lib/other.dart", "");
+    addNamedSource("/myproj/pubspec.yaml", "");
+    addNamedSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import 'other.dart';");
     await computeAnalysisResult(source);
@@ -1351,8 +1358,8 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_valid_inside_lib2() async {
-    cacheSource("/myproj/pubspec.yaml", "");
-    cacheSource("/myproj/lib/bar/other.dart", "");
+    addNamedSource("/myproj/pubspec.yaml", "");
+    addNamedSource("/myproj/lib/bar/other.dart", "");
     Source source = addNamedSource(
         "/myproj/lib/foo/test.dart", "import '../bar/other.dart';");
     await computeAnalysisResult(source);
@@ -1360,8 +1367,8 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   test_import_valid_outside_lib() async {
-    cacheSource("/myproj/pubspec.yaml", "");
-    cacheSource("/myproj/web/other.dart", "");
+    addNamedSource("/myproj/pubspec.yaml", "");
+    addNamedSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib2/test.dart", "import '../web/other.dart';");
     await computeAnalysisResult(source);

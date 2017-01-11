@@ -4,8 +4,14 @@
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 
 final DartSdk sdk = new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
     FolderBasedDartSdk.defaultSdkDirectory(PhysicalResourceProvider.INSTANCE))
+  ..useSummary = true;
+
+final DartSdk strongSdk = new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
+    FolderBasedDartSdk.defaultSdkDirectory(PhysicalResourceProvider.INSTANCE))
+  ..analysisOptions = (new AnalysisOptionsImpl()..strongMode = true)
   ..useSummary = true;
