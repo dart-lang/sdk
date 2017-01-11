@@ -2455,12 +2455,13 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   /// This is true for redirecting factories with a resolved target. These are
   /// always bypassed at the call site.
   bool _isIgnoredMember(ClassMember node) {
-    return node is ConstructorDeclaration &&
-        node.factoryKeyword != null &&
-        resolutionMap
-                .elementDeclaredByConstructorDeclaration(node)
-                .redirectedConstructor !=
-            null;
+    if (node is ConstructorDeclaration && node.factoryKeyword != null) {
+      var element = resolutionMap.elementDeclaredByConstructorDeclaration(node);
+      return element.redirectedConstructor != null &&
+          (element.isSynthetic || scope.loader.ignoreRedirectingFactories);
+    } else {
+      return false;
+    }
   }
 
   visitClassDeclaration(ClassDeclaration node) {
@@ -2822,21 +2823,65 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     procedure.function = function..parent = procedure;
     handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {
-      // Redirecting factories with resolved targets don't show up here.
-      assert(resolutionMap
-              .elementDeclaredByConstructorDeclaration(node)
-              .redirectedConstructor ==
-          null);
-      var function = procedure.function;
-      var name = node.redirectedConstructor.type.name.name;
-      if (node.redirectedConstructor.name != null) {
-        name += '.' + node.redirectedConstructor.name.name;
+      // Add a new synthetic field to [classNode] for representing factory
+      // constructors. This is used by the new frontend engine to support
+      // resolving source code.
+      //
+      // The synthetic field looks like this:
+      //
+      //     final _redirecting# = [c1, ..., cn];
+      //
+      // Where each c1 ... cn are an instance of [StaticGet] whose target is
+      // the redirecting factory created above. The new frontend engine reads
+      // this field and rewrites them.
+      //
+      // TODO(ahe): Generate the correct factory body instead. This requires
+      // access to default values from other files, we'll probably never do
+      // that in this file, and instead rely on the new compiler for this.
+      var element = resolutionMap.elementDeclaredByConstructorDeclaration(node);
+      assert(!element.isSynthetic);
+      var expression;
+      if (node.element.redirectedConstructor != null) {
+        assert(!scope.loader.ignoreRedirectingFactories);
+        ConstructorElement element = node.element.redirectedConstructor;
+        while (element.isFactory && element.redirectedConstructor != null) {
+          element = element.redirectedConstructor;
+        }
+        ast.Member target = scope.getMemberReference(element);
+        assert(target != null);
+        expression = new ast.Let(
+            new ast.VariableDeclaration.forValue(new ast.StaticGet(target)),
+            new ast.InvalidExpression());
+        ast.Name constructors =
+            new ast.Name("_redirecting#", scope.currentLibrary);
+        ast.Field constructorsField;
+        for (ast.Field field in classNode.fields) {
+          if (field.name == constructors) {
+            constructorsField = field;
+            break;
+          }
+        }
+        if (constructorsField == null) {
+          ast.ListLiteral literal = new ast.ListLiteral(<ast.Expression>[]);
+          constructorsField = new ast.Field(constructors, isStatic: true,
+              initializer: literal, fileUri: classNode.fileUri)
+              ..fileOffset = classNode.fileOffset;
+          classNode.addMember(constructorsField);
+        }
+        ast.ListLiteral literal = constructorsField.initializer;
+        literal.expressions.add(new ast.StaticGet(procedure)..parent = literal);
+      } else {
+        var name = node.redirectedConstructor.type.name.name;
+        if (node.redirectedConstructor.name != null) {
+          name += '.' + node.redirectedConstructor.name.name;
+        }
+        // TODO(asgerf): Sometimes a TypeError should be thrown.
+        expression = scope.buildThrowNoSuchMethodError(
+            new ast.NullLiteral(), name, new ast.Arguments.empty());
       }
-      // TODO(asgerf): Sometimes a TypeError should be thrown.
-      function.body = new ast.ExpressionStatement(
-          scope.buildThrowNoSuchMethodError(
-              new ast.NullLiteral(), name, new ast.Arguments.empty()))
-        ..parent = function;
+      var function = procedure.function;
+      function.body = new ast.ExpressionStatement(expression)
+          ..parent = function;
     }
   }
 

@@ -82,6 +82,9 @@ abstract class ReferenceLevelLoader {
   ast.Class getSharedMixinApplicationClass(
       ast.Library library, ast.Class supertype, ast.Class mixin);
   bool get strongMode;
+
+  /// Whether or not to include redirecting factories in the output.
+  bool get ignoreRedirectingFactories;
 }
 
 class DartLoader implements ReferenceLevelLoader {
@@ -103,12 +106,15 @@ class DartLoader implements ReferenceLevelLoader {
   /// so as not to expose partially initialized classes.
   final List<ast.Class> temporaryClassWorklist = [];
 
+  final bool ignoreRedirectingFactories;
+
   LibraryElement _libraryBeingLoaded = null;
 
   bool get strongMode => context.analysisOptions.strongMode;
 
   DartLoader(this.repository, DartOptions options, Packages packages,
-      {DartSdk dartSdk, AnalysisContext context})
+      {DartSdk dartSdk, AnalysisContext context,
+       this.ignoreRedirectingFactories: true})
       : this.context =
             context ?? createContext(options, packages, dartSdk: dartSdk),
         this.applicationRoot = options.applicationRoot;
