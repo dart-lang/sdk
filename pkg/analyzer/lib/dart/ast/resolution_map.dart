@@ -279,7 +279,7 @@ abstract class ResolutionMap {
    * Return the type being named by [node], or `null` if the AST structure has
    * not been resolved.
    */
-  DartType typeForTypeName(TypeAnnotation node);
+  DartType typeForTypeName(TypeName node);
 
   /**
    * Return the element associated with the uri of the directive [node], or

@@ -505,9 +505,7 @@ class AssistProcessor {
         getter = n;
         break;
       }
-      if (n is SimpleIdentifier ||
-          n is TypeAnnotation ||
-          n is TypeArgumentList) {
+      if (n is SimpleIdentifier || n is TypeName || n is TypeArgumentList) {
         continue;
       }
       break;
@@ -573,7 +571,7 @@ class AssistProcessor {
       if (n is SimpleIdentifier ||
           n is VariableDeclaration ||
           n is VariableDeclarationList ||
-          n is TypeAnnotation ||
+          n is TypeName ||
           n is TypeArgumentList) {
         continue;
       }
@@ -1566,7 +1564,7 @@ class AssistProcessor {
       return;
     }
     // we need a type
-    TypeAnnotation typeNode = declarationList.type;
+    TypeName typeNode = declarationList.type;
     if (typeNode == null) {
       _coverageMarker();
       return;

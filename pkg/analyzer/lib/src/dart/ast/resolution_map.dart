@@ -151,7 +151,7 @@ class ResolutionMapImpl implements ResolutionMap {
   DartType staticTypeForExpression(Expression node) => node.staticType;
 
   @override
-  DartType typeForTypeName(TypeAnnotation node) => node.type;
+  DartType typeForTypeName(TypeName node) => node.type;
 
   @override
   Element uriElementForDirective(UriBasedDirective node) => node.uriElement;

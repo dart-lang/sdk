@@ -567,7 +567,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       NodeList<Annotation> annotations,
       bool isFinal,
       bool isConst,
-      TypeAnnotation type,
+      TypeName type,
       bool assignPropagatedTypeSlot,
       SimpleIdentifier declaredIdentifier) {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
@@ -615,7 +615,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       int nameOffset,
       bool isGetter,
       bool isSetter,
-      TypeAnnotation returnType,
+      TypeName returnType,
       FormalParameterList formalParameters,
       FunctionBody body,
       bool isTopLevel,
@@ -764,7 +764,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * parameter and store them in [b].
    */
   void serializeFunctionTypedParameterDetails(UnlinkedParamBuilder b,
-      TypeAnnotation returnType, FormalParameterList parameters) {
+      TypeName returnType, FormalParameterList parameters) {
     EntityRefBuilder serializedReturnType = serializeTypeName(returnType);
     if (serializedReturnType != null) {
       b.type = serializedReturnType;
@@ -933,13 +933,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * a [EntityRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  EntityRefBuilder serializeTypeName(TypeAnnotation node) {
-    if (node is TypeName) {
-      return serializeType(node?.name, node?.typeArguments);
-    } else if (node != null) {
-      throw new ArgumentError('Cannot serialize a ${node.runtimeType}');
-    }
-    return null;
+  EntityRefBuilder serializeTypeName(TypeName node) {
+    return serializeType(node?.name, node?.typeArguments);
   }
 
   /**
@@ -1399,6 +1394,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     serializeVariables(
         enclosingBlock, node.variables, false, null, null, false);
+  }
+
+  /**
+   * Helper method to determine if a given [typeName] refers to `dynamic`.
+   */
+  static bool isDynamic(TypeName typeName) {
+    Identifier name = typeName.name;
+    return name is SimpleIdentifier && name.name == 'dynamic';
   }
 
   /**

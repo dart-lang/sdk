@@ -254,7 +254,7 @@ abstract class ArgumentList extends AstNode {
  * An as expression.
  *
  *    asExpression ::=
- *        [Expression] 'as' [TypeAnnotation]
+ *        [Expression] 'as' [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -281,14 +281,14 @@ abstract class AsExpression extends Expression {
   void set expression(Expression expression);
 
   /**
-   * Return the type being cast to.
+   * Return the name of the type being cast to.
    */
-  TypeAnnotation get type;
+  TypeName get type;
 
   /**
-   * Set the type being cast to to the given [type].
+   * Set the name of the type being cast to to the given [name].
    */
-  void set type(TypeAnnotation type);
+  void set type(TypeName name);
 }
 
 /**
@@ -665,10 +665,6 @@ abstract class AstVisitor<R> {
   R visitFunctionTypeAlias(FunctionTypeAlias functionTypeAlias);
 
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node);
-
-  R visitGenericFunctionType(GenericFunctionType node);
-
-  R visitGenericTypeAlias(GenericTypeAlias node);
 
   R visitHideCombinator(HideCombinator node);
 
@@ -1108,13 +1104,13 @@ abstract class CatchClause extends AstNode {
    * Return the type of exceptions caught by this catch clause, or `null` if
    * this catch clause catches every type of exception.
    */
-  TypeAnnotation get exceptionType;
+  TypeName get exceptionType;
 
   /**
    * Set the type of exceptions caught by this catch clause to the given
    * [exceptionType].
    */
-  void set exceptionType(TypeAnnotation exceptionType);
+  void set exceptionType(TypeName exceptionType);
 
   /**
    * Return the left parenthesis, or `null` if there is no 'catch' keyword.
@@ -2198,12 +2194,12 @@ abstract class DeclaredIdentifier extends Declaration {
    * Return the name of the declared type of the parameter, or `null` if the
    * parameter does not have a declared type.
    */
-  TypeAnnotation get type;
+  TypeName get type;
 
   /**
-   * Set the declared type of the parameter to the given [type].
+   * Set the name of the declared type of the parameter to the given [typeName].
    */
-  void set type(TypeAnnotation type);
+  void set type(TypeName typeName);
 }
 
 /**
@@ -2800,7 +2796,7 @@ abstract class FieldDeclaration extends ClassMember {
  * A field formal parameter.
  *
  *    fieldFormalParameter ::=
- *        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
+ *        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
  *        'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2851,16 +2847,17 @@ abstract class FieldFormalParameter extends NormalFormalParameter {
   void set thisKeyword(Token token);
 
   /**
-   * Return the declared type of the parameter, or `null` if the parameter does
-   * not have a declared type. Note that if this is a function-typed field
-   * formal parameter this is the return type of the function.
+   * Return the name of the declared type of the parameter, or `null` if the
+   * parameter does not have a declared type. Note that if this is a
+   * function-typed field formal parameter this is the return type of the
+   * function.
    */
-  TypeAnnotation get type;
+  TypeName get type;
 
   /**
-   * Set the declared type of the parameter to the given [type].
+   * Set the name of the declared type of the parameter to the given [typeName].
    */
-  void set type(TypeAnnotation type);
+  void set type(TypeName typeName);
 
   /**
    * Return the type parameters associated with this method, or `null` if this
@@ -3358,12 +3355,12 @@ abstract class FunctionDeclaration extends NamedCompilationUnitMember {
    * Return the return type of the function, or `null` if no return type was
    * declared.
    */
-  TypeAnnotation get returnType;
+  TypeName get returnType;
 
   /**
-   * Set the return type of the function to the given [type].
+   * Set the return type of the function to the given [returnType].
    */
-  void set returnType(TypeAnnotation type);
+  void set returnType(TypeName returnType);
 }
 
 /**
@@ -3516,7 +3513,7 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
  *        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
  *
  *    functionPrefix ::=
- *        [TypeAnnotation]? [SimpleIdentifier]
+ *        [TypeName]? [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3533,15 +3530,16 @@ abstract class FunctionTypeAlias extends TypeAlias {
   void set parameters(FormalParameterList parameters);
 
   /**
-   * Return the return type of the function type being defined, or `null` if no
-   * return type was given.
+   * Return the name of the return type of the function type being defined, or
+   * `null` if no return type was given.
    */
-  TypeAnnotation get returnType;
+  TypeName get returnType;
 
   /**
-   * Set the return type of the function type being defined to the given [type].
+   * Set the name of the return type of the function type being defined to the
+   * given [typeName].
    */
-  void set returnType(TypeAnnotation type);
+  void set returnType(TypeName typeName);
 
   /**
    * Return the type parameters for the function type, or `null` if the function
@@ -3560,7 +3558,7 @@ abstract class FunctionTypeAlias extends TypeAlias {
  * A function-typed formal parameter.
  *
  *    functionSignature ::=
- *        [TypeAnnotation]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
+ *        [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3592,12 +3590,12 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
    * Return the return type of the function, or `null` if the function does not
    * have a return type.
    */
-  TypeAnnotation get returnType;
+  TypeName get returnType;
 
   /**
    * Set the return type of the function to the given [type].
    */
-  void set returnType(TypeAnnotation type);
+  void set returnType(TypeName type);
 
   /**
    * Return the type parameters associated with this function, or `null` if
@@ -3609,128 +3607,6 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
    * Set the type parameters associated with this method to the given
    * [typeParameters].
    */
-  void set typeParameters(TypeParameterList typeParameters);
-}
-
-/**
- * An anonymous function type.
- *
- *    functionType ::=
- *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
- *
- * where the FormalParameterList is being used to represent the following
- * grammar, despite the fact that FormalParameterList can represent a much
- * larger grammar than the one below. This is done in order to simplify the
- * implementation.
- *
- *    parameterTypeList ::=
- *        () |
- *        ( normalParameterTypes ,? ) |
- *        ( normalParameterTypes , optionalParameterTypes ) |
- *        ( optionalParameterTypes )
- *    namedParameterTypes ::=
- *        { namedParameterType (, namedParameterType)* ,? }
- *    namedParameterType ::=
- *        [TypeAnnotation]? [SimpleIdentifier]
- *    normalParameterTypes ::=
- *        normalParameterType (, normalParameterType)*
- *    normalParameterType ::=
- *        [TypeAnnotation] [SimpleIdentifier]?
- *    optionalParameterTypes ::=
- *        optionalPositionalParameterTypes | namedParameterTypes
- *    optionalPositionalParameterTypes ::=
- *        [ normalParameterTypes ,? ]
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class GenericFunctionType extends TypeAnnotation {
-  /**
-   * Return the keyword 'Function'.
-   */
-  Token get functionKeyword;
-
-  /**
-   * Set the keyword 'Function' to the given [token].
-   */
-  void set functionKeyword(Token token);
-
-  /**
-   * Return the parameters associated with the function type.
-   */
-  FormalParameterList get parameters;
-
-  /**
-   * Set the parameters associated with the function type to the given list of
-   * [parameters].
-   */
-  void set parameters(FormalParameterList parameters);
-
-  /**
-   * Return the return type of the function type being defined, or `null` if
-   * no return type was given.
-   */
-  TypeAnnotation get returnType;
-
-  /**
-   * Set the return type of the function type being defined to the given[type].
-   */
-  void set returnType(TypeAnnotation type);
-
-  /**
-   * Return the type parameters for the function type, or `null` if the function
-   * type does not have any type parameters.
-   */
-  TypeParameterList get typeParameters;
-
-  /**
-   * Set the type parameters for the function type to the given list of
-   * [typeParameters].
-   */
-  void set typeParameters(TypeParameterList typeParameters);
-}
-
-/**
- * A generic type alias.
- *
- *    functionTypeAlias ::=
- *        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class GenericTypeAlias extends TypeAlias {
-  /**
-     * Return the equal sign separating the name being defined from the function
-     * type.
-     */
-  Token get equals;
-
-  /**
-     * Set the equal sign separating the name being defined from the function type
-     * to the given [token].
-     */
-  void set equals(Token token);
-
-  /**
-     * Return the type of function being defined by the alias.
-     */
-  GenericFunctionType get functionType;
-
-  /**
-     * Set the type of function being defined by the alias to the given
-     * [functionType].
-     */
-  void set functionType(GenericFunctionType functionType);
-
-  /**
-     * Return the type parameters for the function type, or `null` if the function
-     * type does not have any type parameters.
-     */
-  TypeParameterList get typeParameters;
-
-  /**
-     * Set the type parameters for the function type to the given list of
-     * [typeParameters].
-     */
   void set typeParameters(TypeParameterList typeParameters);
 }
 
@@ -4434,7 +4310,7 @@ abstract class InvocationExpression extends Expression {
  * An is expression.
  *
  *    isExpression ::=
- *        [Expression] 'is' '!'? [TypeAnnotation]
+ *        [Expression] 'is' '!'? [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4471,14 +4347,14 @@ abstract class IsExpression extends Expression {
   void set notOperator(Token token);
 
   /**
-   * Return the type being tested for.
+   * Return the name of the type being tested for.
    */
-  TypeAnnotation get type;
+  TypeName get type;
 
   /**
-   * Set the type being tested for to the given [type].
+   * Set the name of the type being tested for to the given [name].
    */
-  void set type(TypeAnnotation type);
+  void set type(TypeName name);
 }
 
 /**
@@ -4597,7 +4473,7 @@ abstract class LibraryIdentifier extends Identifier {
  * A list literal.
  *
  *    listLiteral ::=
- *        'const'? ('<' [TypeAnnotation] '>')? '[' ([Expression] ','?)? ']'
+ *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4648,7 +4524,7 @@ abstract class Literal extends Expression {}
  * A literal map.
  *
  *    mapLiteral ::=
- *        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
+ *        'const'? ('<' [TypeName] (',' [TypeName])* '>')?
  *        '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
  *
  * Clients may not extend, implement or mix-in this class.
@@ -4850,12 +4726,12 @@ abstract class MethodDeclaration extends ClassMember {
    * Return the return type of the method, or `null` if no return type was
    * declared.
    */
-  TypeAnnotation get returnType;
+  TypeName get returnType;
 
   /**
-   * Set the return type of the method to the given [type].
+   * Set the return type of the method to the given [typeName].
    */
-  void set returnType(TypeAnnotation type);
+  void set returnType(TypeName typeName);
 
   /**
    * Return the type parameters associated with this method, or `null` if this
@@ -5767,7 +5643,7 @@ abstract class ShowCombinator extends Combinator {
  * A simple formal parameter.
  *
  *    simpleFormalParameter ::=
- *        ('final' [TypeAnnotation] | 'var' | [TypeAnnotation])? [SimpleIdentifier]
+ *        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5785,15 +5661,15 @@ abstract class SimpleFormalParameter extends NormalFormalParameter {
   void set keyword(Token token);
 
   /**
-   * Return the declared type of the parameter, or `null` if the parameter does
-   * not have a declared type.
+   * Return the name of the declared type of the parameter, or `null` if the
+   * parameter does not have a declared type.
    */
-  TypeAnnotation get type;
+  TypeName get type;
 
   /**
-   * Set the declared type of the parameter to the given [type].
+   * Set the name of the declared type of the parameter to the given [typeName].
    */
-  void set type(TypeAnnotation type);
+  void set type(TypeName typeName);
 }
 
 /**
@@ -6460,23 +6336,6 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
 }
 
 /**
- * A type annotation.
- *
- *    type ::=
- *        [NamedType]
- *      | [GenericFunctionType]
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class TypeAnnotation extends AstNode {
-  /**
-   * Return the type being named, or `null` if the AST structure has not been
-   * resolved.
-   */
-  DartType get type;
-}
-
-/**
  * A list of type arguments.
  *
  *    typeArguments ::=
@@ -6488,7 +6347,7 @@ abstract class TypeArgumentList extends AstNode {
   /**
    * Return the type arguments associated with the type.
    */
-  NodeList<TypeAnnotation> get arguments;
+  NodeList<TypeName> get arguments;
 
   /**
    * Return the left bracket.
@@ -6553,7 +6412,7 @@ abstract class TypedLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeName extends TypeAnnotation {
+abstract class TypeName extends AstNode {
   /**
    * Return `true` if this type is a deferred type.
    *
@@ -6585,6 +6444,12 @@ abstract class TypeName extends TypeAnnotation {
   void set question(Token question);
 
   /**
+   * Return the type being named, or `null` if the AST structure has not been
+   * resolved.
+   */
+  DartType get type;
+
+  /**
    * Set the type being named to the given [type].
    */
   void set type(DartType type);
@@ -6606,21 +6471,22 @@ abstract class TypeName extends TypeAnnotation {
  * A type parameter.
  *
  *    typeParameter ::=
- *        [SimpleIdentifier] ('extends' [TypeAnnotation])?
+ *        [SimpleIdentifier] ('extends' [TypeName])?
  *
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class TypeParameter extends Declaration {
   /**
-   * Return the upper bound for legal arguments, or `null` if there is no
-   * explicit upper bound.
+   * Return the name of the upper bound for legal arguments, or `null` if there
+   * is no explicit upper bound.
    */
-  TypeAnnotation get bound;
+  TypeName get bound;
 
   /**
-   * Set the upper bound for legal arguments to the given [type].
+   * Set the name of the upper bound for legal arguments to the given
+   * [typeName].
    */
-  void set bound(TypeAnnotation type);
+  void set bound(TypeName typeName);
 
   /**
    * Return the token representing the 'extends' keyword, or `null` if there is
@@ -6803,10 +6669,10 @@ abstract class VariableDeclaration extends Declaration {
  *        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
  *
  *    finalConstVarOrType ::=
- *      | 'final' [TypeAnnotation]?
- *      | 'const' [TypeAnnotation]?
+ *      | 'final' [TypeName]?
+ *      | 'const' [TypeName]?
  *      | 'var'
- *      | [TypeAnnotation]
+ *      | [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6841,12 +6707,12 @@ abstract class VariableDeclarationList extends AnnotatedNode {
    * Return the type of the variables being declared, or `null` if no type was
    * provided.
    */
-  TypeAnnotation get type;
+  TypeName get type;
 
   /**
-   * Set the type of the variables being declared to the given [type].
+   * Set the type of the variables being declared to the given [typeName].
    */
-  void set type(TypeAnnotation type);
+  void set type(TypeName typeName);
 
   /**
    * Return a list containing the individual variables being declared.

@@ -196,13 +196,23 @@ class ConstantEvaluatorTest extends ParserTestCase {
     expect(value, true);
   }
 
+  void test_binary_plus_string() {
+    Object value = _getConstantValue("'hello ' + 'world'");
+    expect(value, 'hello world');
+  }
+
   void test_binary_plus_double() {
     Object value = _getConstantValue("2.3 + 3.2");
     expect(value, 2.3 + 3.2);
   }
 
-  void test_binary_plus_double_string() {
-    Object value = _getConstantValue("'world' + 5.5");
+  void test_binary_plus_integer() {
+    Object value = _getConstantValue("2 + 3");
+    expect(value, 5);
+  }
+
+  void test_binary_plus_string_int() {
+    Object value = _getConstantValue("5 + 'world'");
     expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
@@ -211,23 +221,13 @@ class ConstantEvaluatorTest extends ParserTestCase {
     expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
-  void test_binary_plus_integer() {
-    Object value = _getConstantValue("2 + 3");
-    expect(value, 5);
-  }
-
-  void test_binary_plus_string() {
-    Object value = _getConstantValue("'hello ' + 'world'");
-    expect(value, 'hello world');
+  void test_binary_plus_double_string() {
+    Object value = _getConstantValue("'world' + 5.5");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_plus_string_double() {
     Object value = _getConstantValue("5.5 + 'world'");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
-  }
-
-  void test_binary_plus_string_int() {
-    Object value = _getConstantValue("5 + 'world'");
     expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
@@ -372,7 +372,7 @@ class NodeLocator2Test extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
-    Identifier typeName = (variableList.type as TypeName).name;
+    Identifier typeName = variableList.type.name;
     SimpleIdentifier varName = variableList.variables[0].name;
     expect(new NodeLocator2(0).searchWithin(unit), same(unit));
     expect(new NodeLocator2(1).searchWithin(unit), same(typeName));
@@ -393,7 +393,7 @@ class NodeLocator2Test extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
-    Identifier typeName = (variableList.type as TypeName).name;
+    Identifier typeName = variableList.type.name;
     SimpleIdentifier varName = variableList.variables[0].name;
     expect(new NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(new NodeLocator2(0, 2).searchWithin(unit), same(unit));
@@ -696,9 +696,9 @@ class ResolutionCopierTest extends EngineTestCase {
         .functionExpressionInvocation(AstTestFactory.identifier3("f"));
     ClassElement elementT = ElementFactory.classElement2('T');
     fromNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName(elementT)]);
+        .typeArgumentList(<TypeName>[AstTestFactory.typeName(elementT)]);
     toNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName4('T')]);
+        .typeArgumentList(<TypeName>[AstTestFactory.typeName4('T')]);
 
     _copyAndVerifyInvocation(fromNode, toNode);
 
@@ -831,9 +831,9 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodInvocation toNode = AstTestFactory.methodInvocation2("m");
     ClassElement elementT = ElementFactory.classElement2('T');
     fromNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName(elementT)]);
+        .typeArgumentList(<TypeName>[AstTestFactory.typeName(elementT)]);
     toNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName4('T')]);
+        .typeArgumentList(<TypeName>[AstTestFactory.typeName4('T')]);
     _copyAndVerifyInvocation(fromNode, toNode);
   }
 
@@ -1130,12 +1130,12 @@ class ResolutionCopierTest extends EngineTestCase {
     expect(toNode.staticType, same(staticType));
     expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
     expect(toNode.staticInvokeType, same(staticInvokeType));
-    List<TypeAnnotation> fromTypeArguments = toNode.typeArguments.arguments;
-    List<TypeAnnotation> toTypeArguments = fromNode.typeArguments.arguments;
+    List<TypeName> fromTypeArguments = toNode.typeArguments.arguments;
+    List<TypeName> toTypeArguments = fromNode.typeArguments.arguments;
     if (fromTypeArguments != null) {
       for (int i = 0; i < fromTypeArguments.length; i++) {
-        TypeAnnotation toArgument = fromTypeArguments[i];
-        TypeAnnotation fromArgument = toTypeArguments[i];
+        TypeName toArgument = fromTypeArguments[i];
+        TypeName fromArgument = toTypeArguments[i];
         expect(toArgument.type, same(fromArgument.type));
       }
     }

@@ -859,15 +859,6 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
-    super.visitGenericFunctionType(node);
-    if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a single type reference.');
-    }
-    return null;
-  }
-
-  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     if (_isFirstSelectedNode(node)) {

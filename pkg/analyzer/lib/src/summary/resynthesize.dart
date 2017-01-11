@@ -477,18 +477,17 @@ class _ConstExprBuilder {
           _pushList(null);
           break;
         case UnlinkedExprOperation.makeTypedList:
-          TypeAnnotation itemType = _newTypeName();
-          _pushList(
-              AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+          TypeName itemType = _newTypeName();
+          _pushList(AstTestFactory.typeArgumentList(<TypeName>[itemType]));
           break;
         case UnlinkedExprOperation.makeUntypedMap:
           _pushMap(null);
           break;
         case UnlinkedExprOperation.makeTypedMap:
-          TypeAnnotation keyType = _newTypeName();
-          TypeAnnotation valueType = _newTypeName();
-          _pushMap(AstTestFactory
-              .typeArgumentList(<TypeAnnotation>[keyType, valueType]));
+          TypeName keyType = _newTypeName();
+          TypeName valueType = _newTypeName();
+          _pushMap(
+              AstTestFactory.typeArgumentList(<TypeName>[keyType, valueType]));
           break;
         case UnlinkedExprOperation.pushReference:
           _pushReference();
@@ -580,8 +579,8 @@ class _ConstExprBuilder {
     return AstTestFactory.propertyAccess(enclosing, property);
   }
 
-  TypeAnnotation _buildTypeAst(DartType type) {
-    List<TypeAnnotation> argumentNodes;
+  TypeName _buildTypeAst(DartType type) {
+    List<TypeName> argumentNodes;
     if (type is ParameterizedType) {
       if (!resynthesizer.libraryResynthesizer.typesWithImplicitTypeArguments
           .contains(type)) {
@@ -615,7 +614,7 @@ class _ConstExprBuilder {
    * Convert the next reference to the [DartType] and return the AST
    * corresponding to this type.
    */
-  TypeAnnotation _newTypeName() {
+  TypeName _newTypeName() {
     EntityRef typeRef = uc.references[refPtr++];
     DartType type =
         resynthesizer.buildType(typeRef, context?.typeParameterContext);
@@ -725,8 +724,7 @@ class _ConstExprBuilder {
     TypeArgumentList typeArguments;
     int numTypeArguments = uc.ints[intPtr++];
     if (numTypeArguments > 0) {
-      List<TypeAnnotation> typeNames =
-          new List<TypeAnnotation>(numTypeArguments);
+      List<TypeName> typeNames = new List<TypeName>(numTypeArguments);
       for (int i = 0; i < numTypeArguments; i++) {
         typeNames[i] = _newTypeName();
       }

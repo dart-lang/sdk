@@ -141,7 +141,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['value'] = node.value;
     } else if (node is SuperConstructorInvocation) {
       properties['static element'] = node.staticElement;
-    } else if (node is TypeAnnotation) {
+    } else if (node is TypeName) {
       properties['type'] = node.type;
     } else if (node is VariableDeclarationList) {
       properties['keyword'] = node.keyword;
@@ -195,7 +195,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       return node.name.name;
     } else if (node is TopLevelVariableDeclaration) {
       return _getNames(node.variables);
-    } else if (node is TypeAnnotation) {
+    } else if (node is TypeName) {
       return node.toSource();
     } else if (node is TypeParameter) {
       return node.name.name;

@@ -1631,9 +1631,9 @@ class Getter_NodeReplacerTest_test_annotation_3
 }
 
 class Getter_NodeReplacerTest_test_asExpression
-    implements NodeReplacerTest_Getter<AsExpression, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<AsExpression, TypeName> {
   @override
-  TypeAnnotation get(AsExpression node) => node.type;
+  TypeName get(AsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_asExpression_2
@@ -1715,9 +1715,9 @@ class Getter_NodeReplacerTest_test_catchClause_2
 }
 
 class Getter_NodeReplacerTest_test_catchClause_3
-    implements NodeReplacerTest_Getter<CatchClause, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<CatchClause, TypeName> {
   @override
-  TypeAnnotation get(CatchClause node) => node.exceptionType;
+  TypeName get(CatchClause node) => node.exceptionType;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration
@@ -1883,9 +1883,9 @@ class Getter_NodeReplacerTest_test_continueStatement
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier
-    implements NodeReplacerTest_Getter<DeclaredIdentifier, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<DeclaredIdentifier, TypeName> {
   @override
-  TypeAnnotation get(DeclaredIdentifier node) => node.type;
+  TypeName get(DeclaredIdentifier node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier_2
@@ -1965,9 +1965,9 @@ class Getter_NodeReplacerTest_test_fieldFormalParameter
 }
 
 class Getter_NodeReplacerTest_test_fieldFormalParameter_2
-    implements NodeReplacerTest_Getter<FieldFormalParameter, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<FieldFormalParameter, TypeName> {
   @override
-  TypeAnnotation get(FieldFormalParameter node) => node.type;
+  TypeName get(FieldFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier
@@ -2043,9 +2043,9 @@ class Getter_NodeReplacerTest_test_forStatement_withVariables_3
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration
-    implements NodeReplacerTest_Getter<FunctionDeclaration, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<FunctionDeclaration, TypeName> {
   @override
-  TypeAnnotation get(FunctionDeclaration node) => node.returnType;
+  TypeName get(FunctionDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration_2
@@ -2110,9 +2110,9 @@ class Getter_NodeReplacerTest_test_functionTypeAlias_2
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_3
-    implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeName> {
   @override
-  TypeAnnotation get(FunctionTypeAlias node) => node.returnType;
+  TypeName get(FunctionTypeAlias node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_4
@@ -2122,10 +2122,9 @@ class Getter_NodeReplacerTest_test_functionTypeAlias_4
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter
-    implements
-        NodeReplacerTest_Getter<FunctionTypedFormalParameter, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<FunctionTypedFormalParameter, TypeName> {
   @override
-  TypeAnnotation get(FunctionTypedFormalParameter node) => node.returnType;
+  TypeName get(FunctionTypedFormalParameter node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter_2
@@ -2199,9 +2198,9 @@ class Getter_NodeReplacerTest_test_isExpression
 }
 
 class Getter_NodeReplacerTest_test_isExpression_2
-    implements NodeReplacerTest_Getter<IsExpression, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<IsExpression, TypeName> {
   @override
-  TypeAnnotation get(IsExpression node) => node.type;
+  TypeName get(IsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_label
@@ -2235,9 +2234,9 @@ class Getter_NodeReplacerTest_test_mapLiteralEntry_2
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration
-    implements NodeReplacerTest_Getter<MethodDeclaration, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<MethodDeclaration, TypeName> {
   @override
-  TypeAnnotation get(MethodDeclaration node) => node.returnType;
+  TypeName get(MethodDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration_2
@@ -2372,9 +2371,9 @@ class Getter_NodeReplacerTest_test_returnStatement
 }
 
 class Getter_NodeReplacerTest_test_simpleFormalParameter
-    implements NodeReplacerTest_Getter<SimpleFormalParameter, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<SimpleFormalParameter, TypeName> {
   @override
-  TypeAnnotation get(SimpleFormalParameter node) => node.type;
+  TypeName get(SimpleFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_superConstructorInvocation
@@ -2443,9 +2442,9 @@ class Getter_NodeReplacerTest_test_typeName_2
 }
 
 class Getter_NodeReplacerTest_test_typeParameter
-    implements NodeReplacerTest_Getter<TypeParameter, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<TypeParameter, TypeName> {
   @override
-  TypeAnnotation get(TypeParameter node) => node.bound;
+  TypeName get(TypeParameter node) => node.bound;
 }
 
 class Getter_NodeReplacerTest_test_typeParameter_2
@@ -2467,10 +2466,9 @@ class Getter_NodeReplacerTest_test_variableDeclaration_2
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationList
-    implements
-        NodeReplacerTest_Getter<VariableDeclarationList, TypeAnnotation> {
+    implements NodeReplacerTest_Getter<VariableDeclarationList, TypeName> {
   @override
-  TypeAnnotation get(VariableDeclarationList node) => node.type;
+  TypeName get(VariableDeclarationList node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationStatement
@@ -2766,11 +2764,11 @@ class ListGetter_NodeReplacerTest_test_tryStatement
 }
 
 class ListGetter_NodeReplacerTest_test_typeArgumentList
-    extends NodeReplacerTest_ListGetter<TypeArgumentList, TypeAnnotation> {
+    extends NodeReplacerTest_ListGetter<TypeArgumentList, TypeName> {
   ListGetter_NodeReplacerTest_test_typeArgumentList(int arg0) : super(arg0);
 
   @override
-  NodeList<TypeAnnotation> getList(TypeArgumentList node) => node.arguments;
+  NodeList<TypeName> getList(TypeArgumentList node) => node.arguments;
 }
 
 class ListGetter_NodeReplacerTest_test_typeParameterList

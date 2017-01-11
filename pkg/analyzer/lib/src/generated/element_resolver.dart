@@ -1575,7 +1575,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (invokeType is FunctionType) {
       List<TypeParameterElement> parameters = invokeType.typeFormals;
 
-      NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
+      NodeList<TypeName> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
         if (_resolver.strongMode) {
           _resolver.errorReporter.reportErrorForNode(

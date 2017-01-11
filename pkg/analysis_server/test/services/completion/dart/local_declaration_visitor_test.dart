@@ -73,7 +73,7 @@ class TestVisitor extends LocalDeclarationVisitor {
   void declaredLabel(Label label, bool isCaseLabel) {}
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
     expect(name, isNotNull);
   }
 
@@ -81,7 +81,7 @@ class TestVisitor extends LocalDeclarationVisitor {
   void declaredMethod(MethodDeclaration declaration) {}
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {}
+  void declaredParam(SimpleIdentifier name, TypeName type) {}
 
   @override
   void declaredTopLevelVar(

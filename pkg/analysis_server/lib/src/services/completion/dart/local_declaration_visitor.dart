@@ -39,11 +39,11 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredLabel(Label label, bool isCaseLabel);
 
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type);
+  void declaredLocalVar(SimpleIdentifier name, TypeName type);
 
   void declaredMethod(MethodDeclaration declaration);
 
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type);
+  void declaredParam(SimpleIdentifier name, TypeName type);
 
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl);
@@ -128,7 +128,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   @override
   void visitForEachStatement(ForEachStatement node) {
     SimpleIdentifier id;
-    TypeAnnotation type;
+    TypeName type;
     DeclaredIdentifier loopVar = node.loopVariable;
     if (loopVar != null) {
       id = loopVar.identifier;
@@ -233,7 +233,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         } else if (param is NormalFormalParameter) {
           normalParam = param;
         }
-        TypeAnnotation type = null;
+        TypeName type = null;
         if (normalParam is FieldFormalParameter) {
           type = normalParam.type;
         } else if (normalParam is FunctionTypedFormalParameter) {

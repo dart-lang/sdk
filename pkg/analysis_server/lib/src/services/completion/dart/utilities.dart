@@ -34,7 +34,7 @@ final TypeName NO_RETURN_TYPE = astFactory.typeName(
 protocol.Element createLocalElement(
     Source source, protocol.ElementKind kind, SimpleIdentifier id,
     {String parameters,
-    TypeAnnotation returnType,
+    TypeName returnType,
     bool isAbstract: false,
     bool isDeprecated: false}) {
   String name;
@@ -64,7 +64,7 @@ protocol.Element createLocalElement(
 CompletionSuggestion createLocalFieldSuggestion(
     Source source, FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
   bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
-  TypeAnnotation type = fieldDecl.fields.type;
+  TypeName type = fieldDecl.fields.type;
   return createLocalSuggestion(
       varDecl.name, deprecated, DART_RELEVANCE_LOCAL_FIELD, type,
       classDecl: fieldDecl.parent,
@@ -78,7 +78,7 @@ CompletionSuggestion createLocalFieldSuggestion(
  * suggestion or `null` if it could not be created.
  */
 CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
-    bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
+    bool isDeprecated, int defaultRelevance, TypeName returnType,
     {ClassDeclaration classDecl,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
     protocol.Element element}) {
@@ -129,29 +129,24 @@ bool isDeprecated(AnnotatedNode node) {
 /**
  * Return the name for the given [type].
  */
-String nameForType(TypeAnnotation type) {
+String nameForType(TypeName type) {
   if (type == NO_RETURN_TYPE) {
     return null;
   }
   if (type == null) {
     return DYNAMIC;
   }
-  if (type is TypeName) {
-    Identifier id = type.name;
-    if (id == null) {
-      return DYNAMIC;
-    }
-    String name = id.name;
-    if (name == null || name.length <= 0) {
-      return DYNAMIC;
-    }
-    TypeArgumentList typeArgs = type.typeArguments;
-    if (typeArgs != null) {
-      //TODO (danrubel) include type arguments
-    }
-    return name;
-  } else if (type is GenericFunctionType) {
-    // TODO(brianwilkerson) Implement this.
+  Identifier id = type.name;
+  if (id == null) {
+    return DYNAMIC;
   }
-  return DYNAMIC;
+  String name = id.name;
+  if (name == null || name.length <= 0) {
+    return DYNAMIC;
+  }
+  TypeArgumentList typeArgs = type.typeArguments;
+  if (typeArgs != null) {
+    //TODO (danrubel) include type arguments
+  }
+  return name;
 }

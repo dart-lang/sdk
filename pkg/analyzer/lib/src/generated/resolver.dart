@@ -372,13 +372,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkAllTypeChecks(IsExpression node) {
     Expression expression = node.expression;
-    TypeAnnotation typeName = node.type;
+    TypeName typeName = node.type;
     DartType lhsType = expression.staticType;
     DartType rhsType = typeName.type;
     if (lhsType == null || rhsType == null) {
       return false;
     }
-    String rhsNameStr = typeName is TypeName ? typeName.name.name : null;
+    String rhsNameStr = typeName.name.name;
     // if x is dynamic
     if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.syntax) {
       if (node.notOperator == null) {
@@ -884,7 +884,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.MISSING_RETURN].
    */
-  void _checkForMissingReturn(TypeAnnotation returnType, FunctionBody body) {
+  void _checkForMissingReturn(TypeName returnType, FunctionBody body) {
     // Check that the method or function has a return type, and a function body
     if (returnType == null || body == null) {
       return;
@@ -1847,7 +1847,8 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
    * [HintCode.IS_NOT_INT].
    */
   bool _checkForIsDoubleHints(IsExpression node) {
-    DartType type = node.type.type;
+    TypeName typeName = node.type;
+    DartType type = typeName.type;
     Element element = type?.element;
     if (element != null) {
       String typeNameStr = element.name;
@@ -3017,9 +3018,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     return node.argumentList.accept(this);
   }
-
-  @override
-  bool visitGenericFunctionType(GenericFunctionType node) => false;
 
   @override
   bool visitIdentifier(Identifier node) => false;
@@ -6094,9 +6092,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) => null;
-
-  @override
   Object visitHideCombinator(HideCombinator node) => null;
 
   @override
@@ -8030,7 +8025,7 @@ class ToDoFinder {
 }
 
 /**
- * Helper for resolving types.
+ * Helper for resolving [TypeName]s.
  *
  * The client must set [nameScope] before calling [resolveTypeName].
  */
@@ -8309,14 +8304,15 @@ class TypeNameResolver {
       return;
     }
     if (argumentList != null) {
-      NodeList<TypeAnnotation> arguments = argumentList.arguments;
+      NodeList<TypeName> arguments = argumentList.arguments;
       int argumentCount = arguments.length;
       List<DartType> parameters = typeSystem.typeFormalsAsTypes(type);
       int parameterCount = parameters.length;
       List<DartType> typeArguments = new List<DartType>(parameterCount);
       if (argumentCount == parameterCount) {
         for (int i = 0; i < parameterCount; i++) {
-          DartType argumentType = _getType(arguments[i]);
+          TypeName argumentTypeName = arguments[i];
+          DartType argumentType = _getType(argumentTypeName);
           if (argumentType == null) {
             argumentType = dynamicType;
           }
@@ -8338,12 +8334,16 @@ class TypeNameResolver {
   }
 
   /**
-   * The number of type arguments in the given [typeName] does not match the
-   * number of parameters in the corresponding class element. Return the error
-   * code that should be used to report this error.
+   * The number of type arguments in the given type name does not match the number of parameters in
+   * the corresponding class element. Return the error code that should be used to report this
+   * error.
+   *
+   * @param node the type name with the wrong number of type arguments
+   * @return the error code that should be used to report that the wrong number of type arguments
+   *         were provided
    */
-  ErrorCode _getInvalidTypeParametersErrorCode(TypeName typeName) {
-    AstNode parent = typeName.parent;
+  ErrorCode _getInvalidTypeParametersErrorCode(TypeName node) {
+    AstNode parent = node.parent;
     if (parent is ConstructorName) {
       parent = parent.parent;
       if (parent is InstanceCreationExpression) {
@@ -8358,7 +8358,11 @@ class TypeNameResolver {
   }
 
   /**
-   * Checks if the given [typeName] is the target in a redirected constructor.
+   * Checks if the given type name is the target in a redirected constructor.
+   *
+   * @param typeName the type name to analyze
+   * @return some [RedirectingConstructorKind] if the given type name is used as the type in a
+   *         redirected constructor, or `null` otherwise
    */
   RedirectingConstructorKind _getRedirectingConstructorKind(TypeName typeName) {
     AstNode parent = typeName.parent;
@@ -8377,10 +8381,13 @@ class TypeNameResolver {
   }
 
   /**
-   * Return the type represented by the given type [annotation].
+   * Return the type represented by the given type name.
+   *
+   * @param typeName the type name representing the type to be returned
+   * @return the type represented by the type name
    */
-  DartType _getType(TypeAnnotation annotation) {
-    DartType type = annotation.type;
+  DartType _getType(TypeName typeName) {
+    DartType type = typeName.type;
     if (type == null) {
       return undefinedType;
     }
@@ -8424,7 +8431,10 @@ class TypeNameResolver {
   }
 
   /**
-   * Checks if the given [typeName] is used as the type in an as expression.
+   * Checks if the given type name is used as the type in an as expression.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the type in an as expression
    */
   bool _isTypeNameInAsExpression(TypeName typeName) {
     AstNode parent = typeName.parent;
@@ -8435,8 +8445,10 @@ class TypeNameResolver {
   }
 
   /**
-   * Checks if the given [typeName] is used as the exception type in a catch
-   * clause.
+   * Checks if the given type name is used as the exception type in a catch clause.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the exception type in a catch clause
    */
   bool _isTypeNameInCatchClause(TypeName typeName) {
     AstNode parent = typeName.parent;
@@ -8447,8 +8459,11 @@ class TypeNameResolver {
   }
 
   /**
-   * Checks if the given [typeName] is used as the type in an instance creation
-   * expression.
+   * Checks if the given type name is used as the type in an instance creation expression.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the type in an instance creation
+   *         expression
    */
   bool _isTypeNameInInstanceCreationExpression(TypeName typeName) {
     AstNode parent = typeName.parent;
@@ -8460,7 +8475,10 @@ class TypeNameResolver {
   }
 
   /**
-   * Checks if the given [typeName] is used as the type in an is expression.
+   * Checks if the given type name is used as the type in an is expression.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the type in an is expression
    */
   bool _isTypeNameInIsExpression(TypeName typeName) {
     AstNode parent = typeName.parent;
@@ -8471,7 +8489,10 @@ class TypeNameResolver {
   }
 
   /**
-   * Checks if the given [typeName] used in a type argument list.
+   * Checks if the given type name used in a type argument list.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is in a type argument list
    */
   bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
       typeName.parent is TypeArgumentList;
@@ -8494,24 +8515,24 @@ class TypeNameResolver {
   }
 
   /**
-   * Return `true` if the name of the given [typeName] is an built-in identifier.
+   * @return `true` if the name of the given [TypeName] is an built-in identifier.
    */
-  static bool _isBuiltInIdentifier(TypeName typeName) {
-    Token token = typeName.name.beginToken;
+  static bool _isBuiltInIdentifier(TypeName node) {
+    Token token = node.name.beginToken;
     return token.type == TokenType.KEYWORD;
   }
 
   /**
-   * @return `true` if given [typeName] is used as a type annotation.
+   * @return `true` if given [TypeName] is used as a type annotation.
    */
-  static bool _isTypeAnnotation(TypeName typeName) {
-    AstNode parent = typeName.parent;
+  static bool _isTypeAnnotation(TypeName node) {
+    AstNode parent = node.parent;
     if (parent is VariableDeclarationList) {
-      return identical(parent.type, typeName);
+      return identical(parent.type, node);
     } else if (parent is FieldFormalParameter) {
-      return identical(parent.type, typeName);
+      return identical(parent.type, node);
     } else if (parent is SimpleFormalParameter) {
-      return identical(parent.type, typeName);
+      return identical(parent.type, node);
     }
     return false;
   }
@@ -8779,15 +8800,10 @@ class TypeParameterBoundsResolver {
     }
   }
 
-  void _resolveTypeName(TypeAnnotation type) {
-    if (type is TypeName) {
-      type.typeArguments?.arguments?.forEach(_resolveTypeName);
-      typeNameResolver.resolveTypeName(type);
-      // TODO(scheglov) report error when don't apply type bounds for type bounds
-    } else {
-      // TODO(brianwilkerson) Add resolution of GenericFunctionType
-      throw new ArgumentError('Cannot resolve a ${type.runtimeType}');
-    }
+  void _resolveTypeName(TypeName typeName) {
+    typeName.typeArguments?.arguments?.forEach(_resolveTypeName);
+    typeNameResolver.resolveTypeName(typeName);
+    // TODO(scheglov) report error when don't apply type bounds for type bounds
   }
 
   void _resolveTypeParameters(
@@ -8795,19 +8811,13 @@ class TypeParameterBoundsResolver {
     if (typeParameters != null) {
       Scope typeParametersScope = null;
       for (TypeParameter typeParameter in typeParameters.typeParameters) {
-        TypeAnnotation bound = typeParameter.bound;
+        TypeName bound = typeParameter.bound;
         if (bound != null) {
           Element typeParameterElement = typeParameter.name.staticElement;
           if (typeParameterElement is TypeParameterElementImpl) {
             if (LibraryElementImpl.hasResolutionCapability(
                 library, LibraryResolutionCapability.resolvedTypeNames)) {
-              if (bound is TypeName) {
-                bound.type = typeParameterElement.bound;
-              } else {
-                // TODO(brianwilkerson) Add resolution of GenericFunctionType
-                throw new ArgumentError(
-                    'Cannot resolve a ${bound.runtimeType}');
-              }
+              bound.type = typeParameterElement.bound;
             } else {
               libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
@@ -9485,7 +9495,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   TypeSystem _typeSystem;
 
   /**
-   * The helper to resolve types.
+   * The helper to resolve [TypeName]s.
    */
   TypeNameResolver _typeNameResolver;
 
@@ -9567,7 +9577,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       // If an 'on' clause is provided the type of the exception parameter is
       // the type in the 'on' clause. Otherwise, the type of the exception
       // parameter is 'Object'.
-      TypeAnnotation exceptionTypeName = node.exceptionType;
+      TypeName exceptionTypeName = node.exceptionType;
       DartType exceptionType;
       if (exceptionTypeName == null) {
         exceptionType = typeProvider.dynamicType;
@@ -9706,7 +9716,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     super.visitDeclaredIdentifier(node);
     DartType declaredType;
-    TypeAnnotation typeName = node.type;
+    TypeName typeName = node.type;
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {
@@ -9725,7 +9735,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       FormalParameterList parameterList = node.parameters;
       if (parameterList == null) {
         DartType type;
-        TypeAnnotation typeName = node.type;
+        TypeName typeName = node.type;
         if (typeName == null) {
           element.hasImplicitType = true;
           if (element is FieldFormalParameterElement) {
@@ -9948,7 +9958,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     super.visitSimpleFormalParameter(node);
     DartType declaredType;
-    TypeAnnotation typeName = node.type;
+    TypeName typeName = node.type;
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {
@@ -9987,7 +9997,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       // Bounds of parameters of classes and function type aliases are
       // already resolved.
     } else {
-      TypeAnnotation bound = node.bound;
+      TypeName bound = node.bound;
       if (bound != null) {
         TypeParameterElementImpl typeParameter =
             node.name.staticElement as TypeParameterElementImpl;
@@ -10012,7 +10022,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     // Resolve the type.
     DartType declaredType;
-    TypeAnnotation typeName = variableList.type;
+    TypeName typeName = variableList.type;
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {
@@ -10026,10 +10036,13 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Given the [returnType] of a function, compute the return type of the
+   * Given a type name representing the return type of a function, compute the return type of the
    * function.
+   *
+   * @param returnType the type name representing the return type of the function
+   * @return the return type that was computed
    */
-  DartType _computeReturnType(TypeAnnotation returnType) {
+  DartType _computeReturnType(TypeName returnType) {
     if (returnType == null) {
       return _dynamicType;
     } else {
@@ -10111,8 +10124,13 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Resolve the types in the given [withClause] and [implementsClause] and
-   * associate those types with the given [classElement].
+   * Resolve the types in the given with and implements clauses and associate those types with the
+   * given class element.
+   *
+   * @param classElement the class element with which the mixin and interface types are to be
+   *          associated
+   * @param withClause the with clause to be resolved
+   * @param implementsClause the implements clause to be resolved
    */
   void _resolve(ClassElementImpl classElement, WithClause withClause,
       ImplementsClause implementsClause) {
@@ -10221,12 +10239,15 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Given a parameter [element], create a function type based on the given
-   * [returnType] and [parameterList] and associate the created type with the
-   * element.
+   * Given a parameter element, create a function type based on the given return type and parameter
+   * list and associate the created type with the element.
+   *
+   * @param element the parameter element whose type is to be set
+   * @param returnType the (possibly `null`) return type of the function
+   * @param parameterList the list of parameters to the function
    */
   void _setFunctionTypedParameterType(ParameterElementImpl element,
-      TypeAnnotation returnType, FormalParameterList parameterList) {
+      TypeName returnType, FormalParameterList parameterList) {
     List<ParameterElement> parameters = _getElements(parameterList);
     FunctionElementImpl functionElement = new FunctionElementImpl.forNode(null);
     functionElement.isSynthetic = true;

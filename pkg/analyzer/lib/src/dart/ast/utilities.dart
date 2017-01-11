@@ -551,26 +551,6 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.parameters));
 
   @override
-  AstNode visitGenericFunctionType(GenericFunctionType node) =>
-      astFactory.genericFunctionType(
-          cloneNode(node.returnType),
-          cloneToken(node.functionKeyword),
-          cloneNode(node.typeParameters),
-          cloneNode(node.parameters));
-
-  @override
-  AstNode visitGenericTypeAlias(GenericTypeAlias node) =>
-      astFactory.genericTypeAlias(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.typedefKeyword),
-          cloneNode(node.name),
-          cloneNode(node.typeParameters),
-          cloneToken(node.equals),
-          cloneNode(node.functionType),
-          cloneToken(node.semicolon));
-
-  @override
   HideCombinator visitHideCombinator(HideCombinator node) =>
       astFactory.hideCombinator(
           cloneToken(node.keyword), cloneNodeList(node.hiddenNames));
@@ -1605,28 +1585,6 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualNodes(node.identifier, other.identifier) &&
         isEqualNodes(node.parameters, other.parameters);
-  }
-
-  @override
-  bool visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionType other = _other as GenericFunctionType;
-    return isEqualNodes(node.returnType, other.returnType) &&
-        isEqualTokens(node.functionKeyword, other.functionKeyword) &&
-        isEqualNodes(node.typeParameters, other.typeParameters) &&
-        isEqualNodes(node.parameters, other.parameters);
-  }
-
-  @override
-  bool visitGenericTypeAlias(GenericTypeAlias node) {
-    GenericTypeAlias other = _other as GenericTypeAlias;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.typedefKeyword, other.typedefKeyword) &&
-        isEqualNodes(node.name, other.name) &&
-        isEqualNodes(node.typeParameters, other.typeParameters) &&
-        isEqualTokens(node.equals, other.equals) &&
-        isEqualNodes(node.functionType, other.functionType);
   }
 
   @override
@@ -3302,26 +3260,6 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNode(node.parameters));
 
   @override
-  AstNode visitGenericFunctionType(GenericFunctionType node) =>
-      astFactory.genericFunctionType(
-          _cloneNode(node.returnType),
-          _mapToken(node.functionKeyword),
-          _cloneNode(node.typeParameters),
-          _cloneNode(node.parameters));
-
-  @override
-  AstNode visitGenericTypeAlias(GenericTypeAlias node) =>
-      astFactory.genericTypeAlias(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.typedefKeyword),
-          _cloneNode(node.name),
-          _cloneNode(node.typeParameters),
-          _mapToken(node.equals),
-          _cloneNode(node.functionType),
-          _mapToken(node.semicolon));
-
-  @override
   HideCombinator visitHideCombinator(HideCombinator node) =>
       astFactory.hideCombinator(
           _mapToken(node.keyword), _cloneNodeList(node.hiddenNames));
@@ -4169,7 +4107,7 @@ class NodeReplacer implements AstVisitor<bool> {
       node.expression = _newNode as Expression;
       return true;
     } else if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeName;
       return true;
     }
     return visitNode(node);
@@ -4277,7 +4215,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitCatchClause(CatchClause node) {
     if (identical(node.exceptionType, _oldNode)) {
-      node.exceptionType = _newNode as TypeAnnotation;
+      node.exceptionType = _newNode as TypeName;
       return true;
     } else if (identical(node.exceptionParameter, _oldNode)) {
       node.exceptionParameter = _newNode as SimpleIdentifier;
@@ -4455,7 +4393,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeName;
       return true;
     } else if (identical(node.identifier, _oldNode)) {
       node.identifier = _newNode as SimpleIdentifier;
@@ -4568,7 +4506,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeName;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
@@ -4626,7 +4564,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeName;
       return true;
     } else if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
@@ -4674,7 +4612,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeName;
       return true;
     } else if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
@@ -4692,45 +4630,13 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeName;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
     }
     return visitNormalFormalParameter(node);
-  }
-
-  @override
-  bool visitGenericFunctionType(GenericFunctionType node) {
-    if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
-      return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
-      return true;
-    } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterList;
-      return true;
-    }
-    return null;
-  }
-
-  @override
-  bool visitGenericTypeAlias(GenericTypeAlias node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as SimpleIdentifier;
-      return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
-      return true;
-    } else if (identical(node.functionType, _oldNode)) {
-      node.functionType = _newNode as GenericFunctionType;
-      return true;
-    } else if (_replaceInList(node.metadata)) {
-      return true;
-    }
-    return visitNode(node);
   }
 
   @override
@@ -4818,7 +4724,7 @@ class NodeReplacer implements AstVisitor<bool> {
       node.expression = _newNode as Expression;
       return true;
     } else if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeName;
       return true;
     }
     return visitNode(node);
@@ -4892,7 +4798,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitMethodDeclaration(MethodDeclaration node) {
     if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotation;
+      node.returnType = _newNode as TypeName;
       return true;
     } else if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
@@ -5081,7 +4987,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeName;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -5220,7 +5126,7 @@ class NodeReplacer implements AstVisitor<bool> {
       node.name = _newNode as SimpleIdentifier;
       return true;
     } else if (identical(node.bound, _oldNode)) {
-      node.bound = _newNode as TypeAnnotation;
+      node.bound = _newNode as TypeName;
       return true;
     }
     return visitNode(node);
@@ -5257,7 +5163,7 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotation;
+      node.type = _newNode as TypeName;
       return true;
     } else if (_replaceInList(node.variables)) {
       return true;
@@ -5956,38 +5862,6 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.returnType, toNode.returnType),
         _isEqualNodes(node.identifier, toNode.identifier),
         _isEqualNodes(node.parameters, toNode.parameters));
-  }
-
-  @override
-  bool visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionType toNode = this._toNode as GenericFunctionType;
-    if (_and(
-        _isEqualNodes(node.returnType, toNode.returnType),
-        _isEqualTokens(node.functionKeyword, toNode.functionKeyword),
-        _isEqualNodes(node.typeParameters, toNode.typeParameters),
-        _isEqualNodes(node.parameters, toNode.parameters))) {
-      // TODO(brianwilkerson) Copy the type information.
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitGenericTypeAlias(GenericTypeAlias node) {
-    GenericTypeAlias toNode = this._toNode as GenericTypeAlias;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.typedefKeyword, toNode.typedefKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.typeParameters, toNode.typeParameters),
-        _isEqualTokens(node.equals, toNode.equals),
-        _isEqualNodes(node.functionType, toNode.functionType),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      // TODO(brianwilkerson) Copy the type and element information.
-      return true;
-    }
-    return false;
   }
 
   @override
@@ -7521,26 +7395,6 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
-    _visitNode(node.returnType);
-    _writer.print(' Function ');
-    _visitNode(node.typeParameters);
-    _visitNode(node.parameters);
-    return null;
-  }
-
-  @override
-  Object visitGenericTypeAlias(GenericTypeAlias node) {
-    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    _writer.print("typedef ");
-    _visitNode(node.name);
-    _visitNode(node.typeParameters);
-    _writer.print(" = ");
-    _visitNode(node.functionType);
-    return null;
-  }
-
-  @override
   Object visitHideCombinator(HideCombinator node) {
     _writer.print("hide ");
     _visitNodeListWithSeparator(node.hiddenNames, ", ");
@@ -8824,26 +8678,6 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
     if (node.question != null) {
       sink.write('?');
     }
-    return null;
-  }
-
-  @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
-    safelyVisitNode(node.returnType);
-    sink.write(' Function ');
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNode(node.parameters);
-    return null;
-  }
-
-  @override
-  Object visitGenericTypeAlias(GenericTypeAlias node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("typedef ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
-    sink.write(" = ");
-    safelyVisitNode(node.functionType);
     return null;
   }
 

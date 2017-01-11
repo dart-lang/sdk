@@ -29,7 +29,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   AsExpression asExpression(
-          Expression expression, Token asOperator, TypeAnnotation type) =>
+          Expression expression, Token asOperator, TypeName type) =>
       new AsExpressionImpl(expression, asOperator, type);
 
   @override
@@ -98,7 +98,7 @@ class AstFactoryImpl extends AstFactory {
   @override
   CatchClause catchClause(
           Token onKeyword,
-          TypeAnnotation exceptionType,
+          TypeName exceptionType,
           Token catchKeyword,
           Token leftParenthesis,
           SimpleIdentifier exceptionParameter,
@@ -262,7 +262,7 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           Token keyword,
-          TypeAnnotation type,
+          TypeName type,
           SimpleIdentifier identifier) =>
       new DeclaredIdentifierImpl(comment, metadata, keyword, type, identifier);
 
@@ -367,7 +367,7 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           Token keyword,
-          TypeAnnotation type,
+          TypeName type,
           Token thisKeyword,
           Token period,
           SimpleIdentifier identifier,
@@ -455,7 +455,7 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           Token externalKeyword,
-          TypeAnnotation returnType,
+          TypeName returnType,
           Token propertyKeyword,
           SimpleIdentifier name,
           FunctionExpression functionExpression) =>
@@ -483,7 +483,7 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           Token keyword,
-          TypeAnnotation returnType,
+          TypeName returnType,
           SimpleIdentifier name,
           TypeParameterList typeParameters,
           FormalParameterList parameters,
@@ -495,35 +495,13 @@ class AstFactoryImpl extends AstFactory {
   FunctionTypedFormalParameter functionTypedFormalParameter(
           Comment comment,
           List<Annotation> metadata,
-          TypeAnnotation returnType,
+          TypeName returnType,
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters,
           {Token question: null}) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, returnType,
           identifier, typeParameters, parameters, question);
-
-  @override
-  GenericFunctionType genericFunctionType(
-          TypeAnnotation returnType,
-          Token functionKeyword,
-          TypeParameterList typeParameters,
-          FormalParameterList _parameters) =>
-      new GenericFunctionTypeImpl(
-          returnType, functionKeyword, typeParameters, _parameters);
-
-  @override
-  GenericTypeAlias genericTypeAlias(
-          Comment comment,
-          List<Annotation> metadata,
-          Token typedefKeyword,
-          SimpleIdentifier name,
-          TypeParameterList typeParameters,
-          Token equals,
-          GenericFunctionType functionType,
-          Token semicolon) =>
-      new GenericTypeAliasImpl(comment, metadata, typedefKeyword, name,
-          typeParameters, equals, functionType, semicolon);
 
   @override
   HideCombinator hideCombinator(
@@ -604,7 +582,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   IsExpression isExpression(Expression expression, Token isOperator,
-          Token notOperator, TypeAnnotation type) =>
+          Token notOperator, TypeName type) =>
       new IsExpressionImpl(expression, isOperator, notOperator, type);
 
   @override
@@ -652,7 +630,7 @@ class AstFactoryImpl extends AstFactory {
           List<Annotation> metadata,
           Token externalKeyword,
           Token modifierKeyword,
-          TypeAnnotation returnType,
+          TypeName returnType,
           Token propertyKeyword,
           Token operatorKeyword,
           SimpleIdentifier name,
@@ -775,7 +753,7 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           Token keyword,
-          TypeAnnotation type,
+          TypeName type,
           SimpleIdentifier identifier) =>
       new SimpleFormalParameterImpl(
           comment, metadata, keyword, type, identifier);
@@ -809,6 +787,7 @@ class AstFactoryImpl extends AstFactory {
   @override
   SuperExpression superExpression(Token superKeyword) =>
       new SuperExpressionImpl(superKeyword);
+
   @override
   SwitchCase switchCase(List<Label> labels, Token keyword,
           Expression expression, Token colon, List<Statement> statements) =>
@@ -818,7 +797,6 @@ class AstFactoryImpl extends AstFactory {
   SwitchDefault switchDefault(List<Label> labels, Token keyword, Token colon,
           List<Statement> statements) =>
       new SwitchDefaultImpl(labels, keyword, colon, statements);
-
   @override
   SwitchStatement switchStatement(
           Token switchKeyword,
@@ -863,8 +841,8 @@ class AstFactoryImpl extends AstFactory {
           tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
 
   @override
-  TypeArgumentList typeArgumentList(Token leftBracket,
-          List<TypeAnnotation> arguments, Token rightBracket) =>
+  TypeArgumentList typeArgumentList(
+          Token leftBracket, List<TypeName> arguments, Token rightBracket) =>
       new TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
   @override
@@ -874,7 +852,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,
-          SimpleIdentifier name, Token extendsKeyword, TypeAnnotation bound) =>
+          SimpleIdentifier name, Token extendsKeyword, TypeName bound) =>
       new TypeParameterImpl(comment, metadata, name, extendsKeyword, bound);
 
   @override
@@ -892,7 +870,7 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           Token keyword,
-          TypeAnnotation type,
+          TypeName type,
           List<VariableDeclaration> variables) =>
       new VariableDeclarationListImpl(
           comment, metadata, keyword, type, variables);

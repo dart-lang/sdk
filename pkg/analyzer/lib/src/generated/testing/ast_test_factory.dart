@@ -45,8 +45,7 @@ class AstTestFactory {
       astFactory.argumentList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           arguments, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
-  static AsExpression asExpression(
-          Expression expression, TypeAnnotation type) =>
+  static AsExpression asExpression(Expression expression, TypeName type) =>
       astFactory.asExpression(
           expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
 
@@ -159,16 +158,16 @@ class AstTestFactory {
           [List<Statement> statements]) =>
       catchClause5(null, exceptionParameter, stackTraceParameter, statements);
 
-  static CatchClause catchClause3(TypeAnnotation exceptionType,
+  static CatchClause catchClause3(TypeName exceptionType,
           [List<Statement> statements]) =>
       catchClause5(exceptionType, null, null, statements);
 
   static CatchClause catchClause4(
-          TypeAnnotation exceptionType, String exceptionParameter,
+          TypeName exceptionType, String exceptionParameter,
           [List<Statement> statements]) =>
       catchClause5(exceptionType, exceptionParameter, null, statements);
 
-  static CatchClause catchClause5(TypeAnnotation exceptionType,
+  static CatchClause catchClause5(TypeName exceptionType,
           String exceptionParameter, String stackTraceParameter,
           [List<Statement> statements]) =>
       astFactory.catchClause(
@@ -368,7 +367,7 @@ class AstTestFactory {
       declaredIdentifier2(keyword, null, identifier);
 
   static DeclaredIdentifier declaredIdentifier2(
-          Keyword keyword, TypeAnnotation type, String identifier) =>
+          Keyword keyword, TypeName type, String identifier) =>
       astFactory.declaredIdentifier(
           null,
           null,
@@ -380,7 +379,7 @@ class AstTestFactory {
       declaredIdentifier2(Keyword.VAR, null, identifier);
 
   static DeclaredIdentifier declaredIdentifier4(
-          TypeAnnotation type, String identifier) =>
+          TypeName type, String identifier) =>
       declaredIdentifier2(null, type, identifier);
 
   static Comment documentationComment(
@@ -460,7 +459,7 @@ class AstTestFactory {
       TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
-          TypeAnnotation type, List<VariableDeclaration> variables) =>
+          TypeName type, List<VariableDeclaration> variables) =>
       astFactory.fieldDeclaration(
           null,
           null,
@@ -473,7 +472,7 @@ class AstTestFactory {
       fieldDeclaration(isStatic, keyword, null, variables);
 
   static FieldFormalParameter fieldFormalParameter(
-          Keyword keyword, TypeAnnotation type, String identifier,
+          Keyword keyword, TypeName type, String identifier,
           [FormalParameterList parameterList]) =>
       astFactory.fieldFormalParameter(
           null,
@@ -550,11 +549,8 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body);
 
-  static FunctionDeclaration functionDeclaration(
-          TypeAnnotation type,
-          Keyword keyword,
-          String name,
-          FunctionExpression functionExpression) =>
+  static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword,
+          String name, FunctionExpression functionExpression) =>
       astFactory.functionDeclaration(
           null,
           null,
@@ -565,7 +561,7 @@ class AstTestFactory {
           functionExpression);
 
   static FunctionDeclarationStatement functionDeclarationStatement(
-          TypeAnnotation type,
+          TypeName type,
           Keyword keyword,
           String name,
           FunctionExpression functionExpression) =>
@@ -598,7 +594,7 @@ class AstTestFactory {
           function, typeArguments, argumentList(arguments));
 
   static FunctionTypedFormalParameter functionTypedFormalParameter(
-          TypeAnnotation returnType, String identifier,
+          TypeName returnType, String identifier,
           [List<FormalParameter> parameters]) =>
       astFactory.functionTypedFormalParameter(null, null, returnType,
           identifier3(identifier), null, formalParameterList(parameters));
@@ -741,7 +737,7 @@ class AstTestFactory {
           TokenFactory.tokenFromString(contents), value);
 
   static IsExpression isExpression(
-          Expression expression, bool negated, TypeAnnotation type) =>
+          Expression expression, bool negated, TypeName type) =>
       astFactory.isExpression(
           expression,
           TokenFactory.tokenFromKeyword(Keyword.IS),
@@ -817,7 +813,7 @@ class AstTestFactory {
 
   static MethodDeclaration methodDeclaration(
           Keyword modifier,
-          TypeAnnotation returnType,
+          TypeName returnType,
           Keyword property,
           Keyword operator,
           SimpleIdentifier name,
@@ -837,7 +833,7 @@ class AstTestFactory {
 
   static MethodDeclaration methodDeclaration2(
           Keyword modifier,
-          TypeAnnotation returnType,
+          TypeName returnType,
           Keyword property,
           Keyword operator,
           SimpleIdentifier name,
@@ -858,7 +854,7 @@ class AstTestFactory {
 
   static MethodDeclaration methodDeclaration3(
           Keyword modifier,
-          TypeAnnotation returnType,
+          TypeName returnType,
           Keyword property,
           Keyword operator,
           SimpleIdentifier name,
@@ -881,7 +877,7 @@ class AstTestFactory {
   static MethodDeclaration methodDeclaration4(
           {bool external: false,
           Keyword modifier,
-          TypeAnnotation returnType,
+          TypeName returnType,
           Keyword property,
           bool operator: false,
           String name,
@@ -1055,7 +1051,7 @@ class AstTestFactory {
       simpleFormalParameter2(keyword, null, parameterName);
 
   static SimpleFormalParameter simpleFormalParameter2(
-          Keyword keyword, TypeAnnotation type, String parameterName) =>
+          Keyword keyword, TypeName type, String parameterName) =>
       astFactory.simpleFormalParameter(
           null,
           null,
@@ -1067,7 +1063,7 @@ class AstTestFactory {
       simpleFormalParameter2(null, null, parameterName);
 
   static SimpleFormalParameter simpleFormalParameter4(
-          TypeAnnotation type, String parameterName) =>
+          TypeName type, String parameterName) =>
       simpleFormalParameter2(null, type, parameterName);
 
   static StringInterpolation string([List<InterpolationElement> elements]) =>
@@ -1157,7 +1153,7 @@ class AstTestFactory {
 
   static TopLevelVariableDeclaration topLevelVariableDeclaration(
           Keyword keyword,
-          TypeAnnotation type,
+          TypeName type,
           List<VariableDeclaration> variables) =>
       astFactory.topLevelVariableDeclaration(
           null,
@@ -1191,7 +1187,7 @@ class AstTestFactory {
               : TokenFactory.tokenFromKeyword(Keyword.FINALLY),
           finallyClause);
 
-  static FunctionTypeAlias typeAlias(TypeAnnotation returnType, String name,
+  static FunctionTypeAlias typeAlias(TypeName returnType, String name,
           TypeParameterList typeParameters, FormalParameterList parameters) =>
       astFactory.functionTypeAlias(
           null,
@@ -1203,12 +1199,12 @@ class AstTestFactory {
           parameters,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
-  static TypeArgumentList typeArgumentList(List<TypeAnnotation> types) {
-    if (types == null || types.length == 0) {
+  static TypeArgumentList typeArgumentList(List<TypeName> typeNames) {
+    if (typeNames == null || typeNames.length == 0) {
       return null;
     }
     return astFactory.typeArgumentList(TokenFactory.tokenFromType(TokenType.LT),
-        types, TokenFactory.tokenFromType(TokenType.GT));
+        typeNames, TokenFactory.tokenFromType(TokenType.GT));
   }
 
   /**
@@ -1218,8 +1214,7 @@ class AstTestFactory {
    * <b>Note:</b> This method does not correctly handle class elements that have
    * type parameters.
    */
-  static TypeName typeName(ClassElement element,
-      [List<TypeAnnotation> arguments]) {
+  static TypeName typeName(ClassElement element, [List<TypeName> arguments]) {
     SimpleIdentifier name = identifier3(element.name);
     name.staticElement = element;
     TypeName typeName = typeName3(name, arguments);
@@ -1227,17 +1222,16 @@ class AstTestFactory {
     return typeName;
   }
 
-  static TypeName typeName3(Identifier name,
-          [List<TypeAnnotation> arguments]) =>
+  static TypeName typeName3(Identifier name, [List<TypeName> arguments]) =>
       astFactory.typeName(name, typeArgumentList(arguments));
 
-  static TypeName typeName4(String name, [List<TypeAnnotation> arguments]) =>
+  static TypeName typeName4(String name, [List<TypeName> arguments]) =>
       astFactory.typeName(identifier3(name), typeArgumentList(arguments));
 
   static TypeParameter typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);
 
-  static TypeParameter typeParameter2(String name, TypeAnnotation bound) =>
+  static TypeParameter typeParameter2(String name, TypeName bound) =>
       astFactory.typeParameter(null, null, identifier3(name),
           TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
 
@@ -1264,7 +1258,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.EQ), initializer);
 
   static VariableDeclarationList variableDeclarationList(Keyword keyword,
-          TypeAnnotation type, List<VariableDeclaration> variables) =>
+          TypeName type, List<VariableDeclaration> variables) =>
       astFactory.variableDeclarationList(
           null,
           null,
@@ -1278,7 +1272,7 @@ class AstTestFactory {
 
   static VariableDeclarationStatement variableDeclarationStatement(
           Keyword keyword,
-          TypeAnnotation type,
+          TypeName type,
           List<VariableDeclaration> variables) =>
       astFactory.variableDeclarationStatement(
           variableDeclarationList(keyword, type, variables),
