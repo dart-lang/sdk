@@ -55,7 +55,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   AsserterBuilder<DartType, DartType> _isType;
 
   AsserterBuilder<Element, DartType> _hasElement;
-  AsserterBuilder<DartType, DartType> _sameElement;
+  AsserterBuilder<DartType, DartType> _hasElementOf;
 
   @override
   void setUp() {
@@ -74,11 +74,11 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     _isListOf = _assertions.isListOf;
     _isMapOf = _assertions.isMapOf;
     _isFunction2Of = _assertions.isFunction2Of;
-    _sameElement = _assertions.sameElement;
-    _isFutureOf = _isInstantiationOf(_sameElement(typeProvider.futureType));
+    _hasElementOf = _assertions.hasElementOf;
+    _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
     _isFutureOfDynamic = _isFutureOf([_isDynamic]);
     _isFutureOfInt = _isFutureOf([_isInt]);
-    _isStreamOf = _isInstantiationOf(_sameElement(typeProvider.streamType));
+    _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
   }
 
   test_async_method_propagation() async {
