@@ -6157,7 +6157,7 @@ main() {
     assertErrors(test, [HintCode.UNUSED_IMPORT]);
 
     // Remove the overlay in the same way as AnalysisServer.
-    resourceProvider.deleteFile('/target.dart');
+    resourceProvider.deleteFile(resourceProvider.convertPath('/target.dart'));
     analysisContext2.setContents(target, null);
     ChangeSet changeSet = new ChangeSet()..removedSource(target);
     analysisContext2.applyChanges(changeSet);
