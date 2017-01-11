@@ -132,11 +132,6 @@ Language/Expressions/Function_Invocation/Function_Expression_Invocation/not_a_fu
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t03: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t04: RuntimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/static_method_invocation_t02: RuntimeError
-Language/Expressions/Function_Invocation/async_cleanup_t07: Fail
-Language/Expressions/Function_Invocation/async_cleanup_t08: Fail
-Language/Expressions/Function_Invocation/async_generator_invokation_t05: RuntimeError
-Language/Expressions/Function_Invocation/async_generator_invokation_t06: RuntimeError
-Language/Expressions/Function_Invocation/async_generator_invokation_t09: RuntimeError
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass
@@ -166,13 +161,8 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRunti
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
 Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
 Language/Statements/Labels/syntax_t03: Pass
-Language/Statements/Rethrow/execution_t04: RuntimeError
 Language/Statements/Switch/syntax_t02: Pass
 Language/Statements/Try/catch_scope_t01: RuntimeError
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: Fail
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t05: Fail
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t06: Fail
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t01: RuntimeError
 Language/Types/Interface_Types/subtype_t44: RuntimeError
 Language/Types/Static_Types/deferred_type_t01: RuntimeError
 Language/Variables/final_t01/01: MissingRuntimeError

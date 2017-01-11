@@ -50,13 +50,12 @@ class RecursiveContinuationRewriter extends Transformer {
 abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   final FunctionNode enclosingFunction;
 
-  int currentTryDepth; // Nesting depth for try-blocks.
+  int currentTryDepth = 0; // Nesting depth for try-blocks.
   int currentCatchDepth = 0; // Nesting depth for catch-blocks.
   int capturedTryDepth = 0; // Deepest yield point within a try-block.
   int capturedCatchDepth = 0; // Deepest yield point within a catch-block.
 
-  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction,
-      {this.currentTryDepth: 0})
+  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction)
       : super(helper);
 
   Statement createContinuationPoint([Expression value]) {
@@ -68,28 +67,30 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
 
   TreeNode visitTryCatch(TryCatch node) {
     if (node.body != null) {
-      currentTryDepth++;
+      ++currentTryDepth;
       node.body = node.body.accept(this);
       node.body?.parent = node;
-      currentTryDepth--;
+      --currentTryDepth;
     }
 
-    currentCatchDepth++;
+    ++currentCatchDepth;
     transformList(node.catches, this, node);
-    currentCatchDepth--;
+    --currentCatchDepth;
     return node;
   }
 
   TreeNode visitTryFinally(TryFinally node) {
     if (node.body != null) {
-      currentTryDepth++;
+      ++currentTryDepth;
       node.body = node.body.accept(this);
       node.body?.parent = node;
-      currentTryDepth--;
+      --currentTryDepth;
     }
     if (node.finalizer != null) {
+      ++currentCatchDepth;
       node.finalizer = node.finalizer.accept(this);
       node.finalizer?.parent = node;
+      --currentCatchDepth;
     }
     return node;
   }
@@ -189,8 +190,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   ExpressionLifter expressionRewriter;
 
   AsyncRewriterBase(helper, enclosingFunction)
-      // Body is wrapped in the try-catch so initial currentTryDepth is 1.
-      : super(helper, enclosingFunction, currentTryDepth: 1) {}
+      : super(helper, enclosingFunction) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
@@ -247,9 +247,11 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   Statement buildWrappedBody() {
+    ++currentTryDepth;
     labeledBody = new LabeledStatement(null);
     labeledBody.body = visitDelimited(enclosingFunction.body)
       ..parent = labeledBody;
+    --currentTryDepth;
 
     var exceptionVariable = new VariableDeclaration(":exception");
     var stackTraceVariable = new VariableDeclaration(":stack_trace");
@@ -617,7 +619,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     ++currentTryDepth;
     stmt.body = visitDelimited(stmt.body)..parent = stmt;
     --currentTryDepth;
+    ++currentCatchDepth;
     stmt.finalizer = visitDelimited(stmt.finalizer)..parent = stmt;
+    --currentCatchDepth;
     statements.add(stmt);
     return null;
   }
@@ -684,10 +688,24 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     return enclosingFunction;
   }
 
+  Statement buildWrappedBody() {
+    ++currentTryDepth;
+    Statement body = super.buildWrappedBody();
+    --currentTryDepth;
+
+    var finallyBody = new ExpressionStatement(new MethodInvocation(
+        new VariableGet(controllerVariable),
+        new Name("close", helper.asyncLibrary),
+        new Arguments(<Expression>[])));
+
+    var tryFinally = new TryFinally(body, new Block(<Statement>[finallyBody]));
+    return tryFinally;
+  }
+
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
     return new ExpressionStatement(new MethodInvocation(
         new VariableGet(controllerVariable),
-        new Name("completeError", helper.asyncLibrary),
+        new Name("addError", helper.asyncLibrary),
         new Arguments(<Expression>[
           new VariableGet(exceptionVariable),
           new VariableGet(stackTraceVariable)
@@ -699,11 +717,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     // have been translated into breaks from the labeled body.
     return new Block(<Statement>[
       body,
-      new ExpressionStatement(new MethodInvocation(
-          new VariableGet(controllerVariable),
-          new Name("close", helper.asyncLibrary),
-          new Arguments(<Expression>[]))),
-      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
+      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset,
     ]);
   }
 

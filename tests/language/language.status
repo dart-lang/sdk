@@ -5,12 +5,14 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+async_star_cancel_while_paused_test: RuntimeError
+# This is OK for now, but we may want to change the semantics to match the test.
+async_star_pause_test: Fail, OK
+
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 # Other issues:
 generic_methods_type_expression_test: RuntimeError # Issue 25869
-
-# This is OK for now, but we may want to change the semantics to match the test.
-async_star_pause_test: Fail, OK
 
 # These tests are skipped in the VM because it has "--supermixin"
 # functionality enabled unconditionally.  The tests should be removed
@@ -46,7 +48,6 @@ cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
-async_star_cancel_while_paused_test: RuntimeError
 
 # Fails because `as T` is an error rather than being treated like `as dynamic`.
 generic_methods_type_expression_test: RuntimeError # Issue 27460
