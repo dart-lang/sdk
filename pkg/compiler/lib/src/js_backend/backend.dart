@@ -2361,10 +2361,16 @@ class JavaScriptBackend extends Backend {
             parameter.metadata.forEach(onMetadata);
           }
         }
-        if (element.enclosingElement is ClassElement) {
-          // Use [enclosingElement] instead of [enclosingClass] to ensure that
-          // we process patch class metadata for patch and injected members.
-          processElementMetadata(element.enclosingElement);
+        if (element.enclosingClass != null) {
+          // Only process library of top level fields/methods
+          // (and not for classes).
+          // TODO(johnniwinther): Fix this: We are missing some metadata on
+          // libraries (example: in co19/Language/Metadata/before_export_t01).
+          if (element.enclosingElement is ClassElement) {
+            // Use [enclosingElement] instead of [enclosingClass] to ensure that
+            // we process patch class metadata for patch and injected members.
+            processElementMetadata(element.enclosingElement);
+          }
         } else {
           processLibraryMetadata(element.library);
         }
