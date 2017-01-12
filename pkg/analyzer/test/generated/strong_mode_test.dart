@@ -25,9 +25,6 @@ main() {
     defineReflectiveTests(StrongModeDownwardsInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
-    defineReflectiveTests(StrongModeDownwardsInferenceTest_Driver);
-    defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test_Driver);
-    defineReflectiveTests(StrongModeTypePropagationTest_Driver);
   });
 }
 
@@ -1297,19 +1294,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   }
 }
 
-@reflectiveTest
-class StrongModeDownwardsInferenceTest_Driver
-    extends StrongModeDownwardsInferenceTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_inference_hints() {
-    return super.test_inference_hints();
-  }
-}
-
 /**
  * Strong mode static analyzer end to end tests
  */
@@ -2189,49 +2173,6 @@ main() {
 }
 
 @reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test_Driver
-    extends StrongModeStaticTypeAnalyzer2Test {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_genericFunction_parameter() {
-    return super.test_genericFunction_parameter();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionExpressionInvocation_explicit() {
-    return super.test_genericMethod_functionExpressionInvocation_explicit();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionExpressionInvocation_inferred() {
-    return super.test_genericMethod_functionExpressionInvocation_inferred();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionInvocation_explicit() {
-    return super.test_genericMethod_functionInvocation_explicit();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionInvocation_inferred() {
-    return super.test_genericMethod_functionInvocation_inferred();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_tearoff() {
-    return super.test_genericMethod_tearoff();
-  }
-}
-
-@reflectiveTest
 class StrongModeTypePropagationTest extends ResolverTestCase {
   @override
   void setUp() {
@@ -2477,11 +2418,4 @@ int x = 3;
     await assertPropagatedAssignedType(code, typeProvider.intType, null);
     await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
   }
-}
-
-@reflectiveTest
-class StrongModeTypePropagationTest_Driver
-    extends StrongModeTypePropagationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

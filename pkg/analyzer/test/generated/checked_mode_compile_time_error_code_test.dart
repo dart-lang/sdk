@@ -13,7 +13,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest);
-    defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest_Driver);
   });
 }
 
@@ -617,11 +616,4 @@ var v = const A.a1(0);''');
     ]);
     verify([source]);
   }
-}
-
-@reflectiveTest
-class CheckedModeCompileTimeErrorCodeTest_Driver
-    extends CheckedModeCompileTimeErrorCodeTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

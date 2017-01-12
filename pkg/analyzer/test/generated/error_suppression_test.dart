@@ -12,7 +12,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ErrorSuppressionTest);
-    defineReflectiveTests(ErrorSuppressionTest_Driver);
   });
 }
 
@@ -196,10 +195,4 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
   }
-}
-
-@reflectiveTest
-class ErrorSuppressionTest_Driver extends ErrorSuppressionTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

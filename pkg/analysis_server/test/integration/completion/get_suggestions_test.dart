@@ -11,7 +11,6 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
-    defineReflectiveTests(GetSuggestionsTest_Driver);
   });
 }
 
@@ -124,9 +123,3 @@ main() {
 
 @reflectiveTest
 class GetSuggestionsTest extends AbstractGetSuggestionsTest {}
-
-@reflectiveTest
-class GetSuggestionsTest_Driver extends AbstractGetSuggestionsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}

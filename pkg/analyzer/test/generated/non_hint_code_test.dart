@@ -15,7 +15,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonHintCodeTest);
-    defineReflectiveTests(NonHintCodeTest_Driver);
   });
 }
 
@@ -1279,12 +1278,6 @@ class B extends A {
     assertNoErrors(source);
     verify([source]);
   }
-}
-
-@reflectiveTest
-class NonHintCodeTest_Driver extends NonHintCodeTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class PubSuggestionCodeTest extends ResolverTestCase {
