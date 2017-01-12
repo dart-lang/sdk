@@ -83,11 +83,14 @@ instance setters and instance operators). It is a compile-time error if the
 `covariant` modifier occurs on a variable declaration which is not a
 non-final instance variable.
 
-For a given parameter `p` in an instance method (including setter and operator)
-`m`, `p` is considered to be a **covariant parameter** if it has the modifier
-`covariant`, and if there is a direct or indirect supertype containing an
-overridden declaration of `m` where the parameter corresponding to `p` has the
-modifier `covariant`.
+For a given parameter `p` in an instance method (including setter and
+operator) `m`, `p` is considered to be a **covariant parameter** if it has
+the modifier `covariant` or there is a direct or indirect supertype
+containing an overridden declaration of `m` where the parameter
+corresponding to `p` has the modifier `covariant`. For a type `T`, if
+multiple direct supertypes of `T` has a method `m` which is not overridden
+in `T`, each parameter of `m` is covariant iff that parameter is covariant
+in `m` in at least one of the supertypes.
 
 *In short, the property of being covariant is inherited, for each
 parameter. There is no conflict if only some overridden declarations have
