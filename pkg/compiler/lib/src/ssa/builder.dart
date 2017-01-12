@@ -3464,6 +3464,7 @@ class SsaBuilder extends ast.Visitor
       }
       js.Template code = js.js.parseForeignJS('new Array(#)');
       var behavior = new native.NativeBehavior();
+      behavior.typesInstantiated.add(expectedType);
       behavior.typesReturned.add(expectedType);
       // The allocation can throw only if the given length is a double or
       // outside the unsigned 32 bit range.
