@@ -74,7 +74,7 @@ Future<CompilerImpl> reuseCompiler(
       return compiler.libraryLoader.loadLibrary(core).then((_) {
         // Likewise, always be prepared for runtimeType support.
         // TODO(johnniwinther): Add global switch to force RTI.
-        compiler.resolverWorld.hasRuntimeTypeSupport = true;
+        compiler.resolutionWorldBuilder.hasRuntimeTypeSupport = true;
         compiler.enqueuer.resolution.applyImpact(backend.registerRuntimeType());
         return compiler;
       });

@@ -20,7 +20,7 @@ class ParameterStubGenerator {
   DiagnosticReporter get reporter => compiler.reporter;
 
   bool needsSuperGetter(FunctionElement element) =>
-      compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
+      compiler.codegenWorldBuilder.methodsNeedingSuperGetter.contains(element);
 
   /**
    * Generates stubs to handle invocation of methods with optional
@@ -214,12 +214,12 @@ class ParameterStubGenerator {
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
-      selectors = compiler.codegenWorld.invocationsByName(member.name);
+      selectors = compiler.codegenWorldBuilder.invocationsByName(member.name);
     }
 
     if (canTearOff) {
       String call = namer.closureInvocationSelectorName;
-      callSelectors = compiler.codegenWorld.invocationsByName(call);
+      callSelectors = compiler.codegenWorldBuilder.invocationsByName(call);
     }
 
     assert(emptySelectorSet.isEmpty);

@@ -1292,7 +1292,7 @@ class JavaScriptBackend extends Backend {
     }
     computeMembersNeededForReflection(closedWorld);
     rti.computeClassesNeedingRti(
-        compiler.enqueuer.resolution.universe, closedWorld);
+        compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _registeredMetadata.clear();
   }
 
@@ -2049,13 +2049,15 @@ class JavaScriptBackend extends Backend {
     // can include the correct ones when including the class.
     Map<ClassElement, List<LocalFunctionElement>> closureMap =
         new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure in compiler.resolverWorld.allClosures) {
+    for (LocalFunctionElement closure
+        in compiler.resolutionWorldBuilder.allClosures) {
       closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
     }
     bool foundClosure = false;
     Set<Element> reflectableMembers = new Set<Element>();
     ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
-    for (ClassElement cls in resolution.universe.directlyInstantiatedClasses) {
+    for (ClassElement cls
+        in resolution.worldBuilder.directlyInstantiatedClasses) {
       // Do not process internal classes.
       if (cls.library.isInternalLibrary || cls.isInjected) continue;
       if (referencedFromMirrorSystem(cls)) {
@@ -2158,7 +2160,8 @@ class JavaScriptBackend extends Backend {
     if (foundClosure) {
       reflectableMembers.add(helpers.closureClass);
     }
-    Set<Element> closurizedMembers = compiler.resolverWorld.closurizedMembers;
+    Set<Element> closurizedMembers =
+        compiler.resolutionWorldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
       reflectableMembers.add(helpers.boundClosureClass);
     }
@@ -2400,7 +2403,7 @@ class JavaScriptBackend extends Backend {
 
   WorldImpact onCodegenStart(ClosedWorld closedWorld) {
     _closedWorld = closedWorld;
-    _namer = determineNamer(_closedWorld, compiler.codegenWorld);
+    _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
     tracer = new Tracer(_closedWorld, namer, compiler.outputProvider);
     emitter.createEmitter(_namer, _closedWorld);
     lookupMapAnalysis.onCodegenStart();

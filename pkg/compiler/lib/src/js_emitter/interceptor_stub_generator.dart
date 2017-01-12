@@ -169,7 +169,7 @@ class InterceptorStubGenerator {
           ]));
     } else {
       ClassElement jsUnknown = helpers.jsUnknownJavaScriptObjectClass;
-      if (compiler.codegenWorld.directlyInstantiatedClasses
+      if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
           .contains(jsUnknown)) {
         statements.add(js.statement('if (!(receiver instanceof #)) return #;', [
           backend.emitter

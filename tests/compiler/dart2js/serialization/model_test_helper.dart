@@ -98,8 +98,9 @@ Future checkModels(Uri entryPoint,
     checkResolutionEnqueuers(compilerNormal.enqueuer.resolution,
         compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
-    checkClosedWorlds(compilerNormal.resolverWorld.closedWorldForTesting,
-        compilerDeserialized.resolverWorld.closedWorldForTesting,
+    checkClosedWorlds(
+        compilerNormal.resolutionWorldBuilder.closedWorldForTesting,
+        compilerDeserialized.resolutionWorldBuilder.closedWorldForTesting,
         verbose: verbose);
     checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
   });
@@ -115,8 +116,8 @@ void checkResolutionEnqueuers(
       "Processed element mismatch", areElementsEquivalent,
       elementFilter: elementFilter, verbose: verbose);
 
-  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.universe;
-  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.universe;
+  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.worldBuilder;
+  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.worldBuilder;
 
   checkMaps(
       worldBuilder1.getInstantiationMap(),
@@ -127,20 +128,20 @@ void checkResolutionEnqueuers(
       verbose: verbose);
 
   checkSets(
-      enqueuer1.universe.directlyInstantiatedClasses,
-      enqueuer2.universe.directlyInstantiatedClasses,
+      enqueuer1.worldBuilder.directlyInstantiatedClasses,
+      enqueuer2.worldBuilder.directlyInstantiatedClasses,
       "Directly instantiated classes mismatch",
       areElementsEquivalent,
       verbose: verbose);
 
   checkSets(
-      enqueuer1.universe.instantiatedTypes,
-      enqueuer2.universe.instantiatedTypes,
+      enqueuer1.worldBuilder.instantiatedTypes,
+      enqueuer2.worldBuilder.instantiatedTypes,
       "Instantiated types mismatch",
       typeEquivalence,
       verbose: verbose);
 
-  checkSets(enqueuer1.universe.isChecks, enqueuer2.universe.isChecks,
+  checkSets(enqueuer1.worldBuilder.isChecks, enqueuer2.worldBuilder.isChecks,
       "Is-check mismatch", typeEquivalence,
       verbose: verbose);
 

@@ -76,7 +76,7 @@ class ResolverTask extends CompilerTask {
   ParsingContext get parsingContext => resolution.parsingContext;
   CompilerOptions get options => resolution.options;
   ResolutionEnqueuer get enqueuer => resolution.enqueuer;
-  OpenWorld get world => enqueuer.universe;
+  OpenWorld get world => enqueuer.worldBuilder;
 
   ResolutionImpact resolve(Element element) {
     return measure(() {

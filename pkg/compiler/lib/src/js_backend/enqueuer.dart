@@ -72,7 +72,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
-  CodegenWorldBuilder get universe => _universe;
+  CodegenWorldBuilder get worldBuilder => _universe;
 
   bool get queueIsEmpty => _queue.isEmpty;
 

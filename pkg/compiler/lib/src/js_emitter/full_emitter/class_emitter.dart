@@ -10,7 +10,7 @@ class ClassEmitter extends CodeEmitterHelper {
   ClassEmitter(this.closedWorld);
 
   ClassStubGenerator get _stubGenerator =>
-      new ClassStubGenerator(namer, backend, codegenWorld, closedWorld,
+      new ClassStubGenerator(namer, backend, codegenWorldBuilder, closedWorld,
           enableMinification: compiler.options.enableMinification);
 
   /**

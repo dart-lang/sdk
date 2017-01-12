@@ -93,7 +93,7 @@ Future test(String source, List<String> directlyInstantiatedClasses,
     Iterable<ClassElement> expectedClasses =
         directlyInstantiatedClasses.map(env.getElement);
     Iterable<ClassElement> actualClasses = env
-        .compiler.resolverWorld.directlyInstantiatedClasses
+        .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
         .where((c) => c.library == env.compiler.mainApp);
     Expect.setEquals(expectedClasses, actualClasses);
   });

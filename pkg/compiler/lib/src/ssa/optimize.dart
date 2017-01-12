@@ -2317,7 +2317,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
-      compiler.codegenWorld.forEachInstanceField(instruction.element,
+      compiler.codegenWorldBuilder.forEachInstanceField(instruction.element,
           (_, FieldEntity member) {
         if (compiler.elementHasCompileTimeError(member as Entity)) return;
         memorySet.registerFieldValue(

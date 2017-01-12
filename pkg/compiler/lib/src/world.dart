@@ -424,7 +424,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   ClosedWorldImpl(
       {JavaScriptBackend backend,
       this.commonElements,
-      ResolutionWorldBuilder resolverWorld,
+      ResolutionWorldBuilder resolutionWorldBuilder,
       FunctionSetBuilder functionSetBuilder,
       Iterable<TypedefElement> allTypedefs,
       Map<ClassElement, Set<MixinApplicationElement>> mixinUses,
@@ -432,7 +432,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       Map<ClassElement, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassElement, ClassSet> classSets})
       : this._backend = backend,
-        this._resolverWorld = resolverWorld,
+        this._resolverWorld = resolutionWorldBuilder,
         this._allTypedefs = allTypedefs,
         this._mixinUses = mixinUses,
         this._typesImplementedBySubclasses = typesImplementedBySubclasses,

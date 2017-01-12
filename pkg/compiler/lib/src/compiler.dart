@@ -305,10 +305,9 @@ abstract class Compiler implements LibraryLoaderListener {
     return new ResolverTask(resolution, backend.constantCompilerTask, measurer);
   }
 
-  // TODO(johnniwinther): Rename these appropriately when unification of worlds/
-  // universes is complete.
-  ResolutionWorldBuilder get resolverWorld => enqueuer.resolution.universe;
-  CodegenWorldBuilder get codegenWorld => enqueuer.codegen.universe;
+  ResolutionWorldBuilder get resolutionWorldBuilder =>
+      enqueuer.resolution.worldBuilder;
+  CodegenWorldBuilder get codegenWorldBuilder => enqueuer.codegen.worldBuilder;
 
   bool get analyzeAll => options.analyzeAll || compileAll;
 
@@ -709,7 +708,7 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        codegenWorld.open(closedWorld);
+        codegenWorldBuilder.open(closedWorld);
         enqueuer.codegen.applyImpact(backend.onCodegenStart(closedWorld));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
@@ -736,7 +735,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    ClosedWorldImpl world = resolverWorld.closeWorld(reporter);
+    ClosedWorldImpl world = resolutionWorldBuilder.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete(world, world);
@@ -1967,7 +1966,7 @@ class CompilerResolution implements Resolution {
 
   @override
   void registerClass(ClassElement cls) {
-    enqueuer.universe.registerClass(cls);
+    enqueuer.worldBuilder.registerClass(cls);
   }
 
   @override

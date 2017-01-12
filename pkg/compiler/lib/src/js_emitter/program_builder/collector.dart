@@ -178,7 +178,10 @@ class Collector {
 
     // Compute needed classes.
     Set<ClassElement> instantiatedClasses = compiler
-        .codegenWorld.directlyInstantiatedClasses
+        // TODO(johnniwinther): This should be accessed from a codegen closed
+        // world.
+        .codegenWorldBuilder
+        .directlyInstantiatedClasses
         .where(computeClassFilter())
         .toSet();
 
@@ -286,7 +289,11 @@ class Collector {
       list.add(element);
     }
 
-    Iterable<Element> fields = compiler.codegenWorld.allReferencedStaticFields
+    Iterable<Element> fields = compiler
+        // TODO(johnniwinther): This should be accessed from a codegen closed
+        // world.
+        .codegenWorldBuilder
+        .allReferencedStaticFields
         .where((FieldElement field) {
       if (!field.isConst) {
         return field.isField &&

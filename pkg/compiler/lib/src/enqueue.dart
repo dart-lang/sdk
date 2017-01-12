@@ -67,8 +67,7 @@ class EnqueueTask extends CompilerTask {
 }
 
 abstract class Enqueuer {
-  // TODO(johnniwinther): Rename to `worldBuilder`.
-  WorldBuilder get universe;
+  WorldBuilder get worldBuilder;
   native.NativeEnqueuer get nativeEnqueuer;
   void forgetEntity(Entity entity, Compiler compiler);
 
@@ -168,7 +167,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
-  ResolutionWorldBuilder get universe => _universe;
+  ResolutionWorldBuilder get worldBuilder => _universe;
 
   bool get queueIsEmpty => _queue.isEmpty;
 
@@ -298,7 +297,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type.isTypedef) {
-          universe.registerTypedef(type.element);
+          worldBuilder.registerTypedef(type.element);
         }
         break;
     }
@@ -483,7 +482,7 @@ class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
     enqueuer.task.measure(() {
       // Run through the classes and see if we need to enqueue more methods.
       for (ClassElement classElement
-          in enqueuer.universe.directlyInstantiatedClasses) {
+          in enqueuer.worldBuilder.directlyInstantiatedClasses) {
         for (ClassElement currentClass = classElement;
             currentClass != null;
             currentClass = currentClass.superclass) {

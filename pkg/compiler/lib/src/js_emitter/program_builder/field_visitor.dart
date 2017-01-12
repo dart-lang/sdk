@@ -72,8 +72,9 @@ class FieldVisitor {
 
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
-    bool isInstantiated =
-        compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+    bool isInstantiated = compiler
+        .codegenWorldBuilder.directlyInstantiatedClasses
+        .contains(element);
 
     void visitField(Element holder, FieldElement field) {
       assert(invariant(element, field.isDeclaration));
@@ -141,7 +142,7 @@ class FieldVisitor {
     if (fieldAccessNeverThrows(field)) return false;
     if (backend.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedGetter(field, closedWorld);
+        compiler.codegenWorldBuilder.hasInvokedGetter(field, closedWorld);
   }
 
   bool fieldNeedsSetter(VariableElement field) {
@@ -150,7 +151,7 @@ class FieldVisitor {
     if (field.isFinal || field.isConst) return false;
     if (backend.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedSetter(field, closedWorld);
+        compiler.codegenWorldBuilder.hasInvokedSetter(field, closedWorld);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {
