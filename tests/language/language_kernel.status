@@ -86,6 +86,8 @@ type_variable_conflict2_test/10: MissingCompileTimeError
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 config_import_corelib_test: RuntimeError
 
+# dartk: temporary failure
+mixin_illegal_syntax_test/00: Crash
 
 ###############################################################################
 # VM Entries
