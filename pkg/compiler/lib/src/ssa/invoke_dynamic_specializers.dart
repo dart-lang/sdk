@@ -72,9 +72,21 @@ class InvokeDynamicSpecializer {
         int argumentCount = selector.argumentCount;
         if (argumentCount == 0) {
           if (name == 'round') return const RoundSpecializer();
+          if (name == 'trim') return const TrimSpecializer();
         } else if (argumentCount == 1) {
           if (name == 'codeUnitAt') return const CodeUnitAtSpecializer();
           if (name == 'remainder') return const RemainderSpecializer();
+          if (name == 'substring') return const SubstringSpecializer();
+          if (name == 'contains') return const PatternMatchSpecializer();
+          if (name == 'indexOf') return const PatternMatchSpecializer();
+          if (name == 'startsWith') return const PatternMatchSpecializer();
+          if (name == 'endsWith') return const PatternMatchSpecializer();
+        } else if (argumentCount == 2) {
+          if (name == 'substring') return const SubstringSpecializer();
+          if (name == 'contains') return const PatternMatchSpecializer();
+          if (name == 'indexOf') return const PatternMatchSpecializer();
+          if (name == 'startsWith') return const PatternMatchSpecializer();
+          if (name == 'endsWith') return const PatternMatchSpecializer();
         }
       }
     }
@@ -841,6 +853,46 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       // Even if there is no builtin equivalent instruction, we know
       // String.codeUnitAt does not have any side effect (other than throwing),
       // and that it can be GVN'ed.
+      clearAllSideEffects(instruction);
+    }
+    return null;
+  }
+}
+
+class IdempotentStringOperationSpecializer extends InvokeDynamicSpecializer {
+  const IdempotentStringOperationSpecializer();
+
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    if (receiver.isStringOrNull(closedWorld)) {
+      // String.xxx does not have any side effect (other than throwing), and it
+      // can be GVN'ed.
+      clearAllSideEffects(instruction);
+    }
+    return null;
+  }
+}
+
+class SubstringSpecializer extends IdempotentStringOperationSpecializer {
+  const SubstringSpecializer();
+}
+
+class TrimSpecializer extends IdempotentStringOperationSpecializer {
+  const TrimSpecializer();
+}
+
+class PatternMatchSpecializer extends InvokeDynamicSpecializer {
+  const PatternMatchSpecializer();
+
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    HInstruction pattern = instruction.inputs[2];
+    if (receiver.isStringOrNull(closedWorld) &&
+        pattern.isStringOrNull(closedWorld)) {
+      // String.contains(String s) does not have any side effect (other than
+      // throwing), and it can be GVN'ed.
       clearAllSideEffects(instruction);
     }
     return null;
