@@ -681,7 +681,7 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   static const intptr_t kDefaultCapacity = 8192;
 
   explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
-  ~TimelineEventFixedBufferRecorder();
+  virtual ~TimelineEventFixedBufferRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
@@ -708,7 +708,7 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
  public:
   explicit TimelineEventRingRecorder(intptr_t capacity = kDefaultCapacity)
       : TimelineEventFixedBufferRecorder(capacity) {}
-  ~TimelineEventRingRecorder() {}
+  virtual ~TimelineEventRingRecorder() {}
 
   const char* name() const { return "Ring"; }
 
@@ -723,8 +723,7 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
 class TimelineEventSystraceRecorder : public TimelineEventFixedBufferRecorder {
  public:
   explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
-
-  ~TimelineEventSystraceRecorder();
+  virtual ~TimelineEventSystraceRecorder();
 
   const char* name() const { return "Systrace"; }
 
@@ -742,7 +741,7 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
  public:
   explicit TimelineEventStartupRecorder(intptr_t capacity = kDefaultCapacity)
       : TimelineEventFixedBufferRecorder(capacity) {}
-  ~TimelineEventStartupRecorder() {}
+  virtual ~TimelineEventStartupRecorder() {}
 
   const char* name() const { return "Startup"; }
 
@@ -756,7 +755,7 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
 class TimelineEventCallbackRecorder : public TimelineEventRecorder {
  public:
   TimelineEventCallbackRecorder();
-  ~TimelineEventCallbackRecorder();
+  virtual ~TimelineEventCallbackRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
@@ -782,6 +781,7 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
 class TimelineEventEndlessRecorder : public TimelineEventRecorder {
  public:
   TimelineEventEndlessRecorder();
+  virtual ~TimelineEventEndlessRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);

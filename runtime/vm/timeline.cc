@@ -1505,6 +1505,16 @@ void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL), block_index_(0) {}
 
+TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
+  TimelineEventBlock* current = head_;
+  head_ = NULL;
+
+  while (current != NULL) {
+    TimelineEventBlock* next = current->next();
+    delete current;
+    current = next;
+  }
+}
 
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
