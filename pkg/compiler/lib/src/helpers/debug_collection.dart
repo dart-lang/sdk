@@ -71,11 +71,11 @@ class DebugIterable<E> implements Iterable<E> {
 
   Iterator<E> get iterator => iterable.iterator;
 
-  Iterable map(f(E element)) => iterable.map(f);
+  Iterable<T> map<T>(T f(E element)) => iterable.map(f);
 
   Iterable<E> where(bool test(E element)) => iterable.where(test);
 
-  Iterable expand(Iterable f(E element)) => iterable.expand(f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) => iterable.expand(f);
 
   bool contains(Object element) => iterable.contains(element);
 
@@ -83,8 +83,7 @@ class DebugIterable<E> implements Iterable<E> {
 
   E reduce(E combine(E value, E element)) => iterable.reduce(combine);
 
-  dynamic fold(
-      var initialValue, dynamic combine(var previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     return iterable.fold(initialValue, combine);
   }
 
