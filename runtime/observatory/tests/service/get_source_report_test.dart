@@ -63,10 +63,10 @@ hasStoppedAtBreakpoint,
 
   var expectedRange = {
     'scriptIndex': 0,
-    'startPos': 38,
-    'endPos': 87,
+    'startPos': 39,
+    'endPos': 88,
     'compiled': true,
-    'coverage': {'hits': [53, 71, 81], 'misses': [59]}
+    'coverage': {'hits': [54, 72, 82], 'misses': [60]}
   };
 
   // Full script
