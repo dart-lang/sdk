@@ -15,8 +15,8 @@ class MapTypeMask extends ForwardingTypeMask {
   // The [Node] where this type mask was created.
   final Node allocationNode;
 
-  // The [Element] where this type mask was created.
-  final Element allocationElement;
+  // The [Entity] where this type mask was created.
+  final Entity allocationElement;
 
   // The value type of this map.
   final TypeMask valueType;

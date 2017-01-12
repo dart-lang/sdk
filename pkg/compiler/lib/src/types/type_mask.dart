@@ -12,7 +12,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   Set<TypeMask> _masks;
 
   @override
-  bool applies(MemberElement element, Selector selector, ClosedWorld world) {
+  bool applies(MemberEntity element, Selector selector, ClosedWorld world) {
     if (isAll) return true;
     if (_masks == null) return false;
     for (TypeMask mask in _masks) {
@@ -77,7 +77,7 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  */
 abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask(
-      Entity base, int kind, bool isNullable, ClosedWorld closedWorld) {
+      ClassEntity base, int kind, bool isNullable, ClosedWorld closedWorld) {
     return new FlatTypeMask.normalized(
         base, (kind << 1) | (isNullable ? 1 : 0), closedWorld);
   }
@@ -100,7 +100,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
-    Entity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
+    ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.empty();
     } else if (closedWorld.hasAnyStrictSubclass(topmost)) {
@@ -111,7 +111,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   }
 
   factory TypeMask.subtype(ClassEntity base, ClosedWorld closedWorld) {
-    Entity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
+    ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.empty();
     }
@@ -287,7 +287,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   bool containsOnlyNum(ClosedWorld closedWorld);
   bool containsOnlyBool(ClosedWorld closedWorld);
   bool containsOnlyString(ClosedWorld closedWorld);
-  bool containsOnly(Entity cls);
+  bool containsOnly(ClassEntity cls);
 
   /**
    * Compares two [TypeMask] objects for structural equality.
@@ -316,12 +316,12 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   /**
    * Returns whether this type mask is an instance of [cls].
    */
-  bool satisfies(Entity cls, ClosedWorld closedWorld);
+  bool satisfies(ClassEntity cls, ClosedWorld closedWorld);
 
   /**
    * Returns whether or not this type mask contains the given class [cls].
    */
-  bool contains(Entity cls, ClosedWorld closedWorld);
+  bool contains(ClassEntity cls, ClosedWorld closedWorld);
 
   /**
    * Returns whether or not this type mask contains all types.
