@@ -92,12 +92,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
 
   @failingTest
   @override
-  test_uriDoesNotExist_import_disappears_when_fixed() {
-    return super.test_uriDoesNotExist_import_disappears_when_fixed();
-  }
-
-  @failingTest
-  @override
   test_uriWithInterpolation_nonConstant() {
     return super.test_uriWithInterpolation_nonConstant();
   }
