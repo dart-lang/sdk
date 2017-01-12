@@ -54,7 +54,29 @@ redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
 
 # Doesn't yet implement `covariant` keyword.
-covariant_test/none: Fail # Issue 28166
+covariant_test/06: Fail # Issue 28166
+covariant_test/06b: Fail # Issue 28166
+covariant_test/07: Fail # Issue 28166
+covariant_test/08: Fail # Issue 28166
+covariant_test/11: Fail # Issue 28166
+covariant_test/15: Fail # Issue 28166
+covariant_test/26: Fail # Issue 28166
+covariant_test/26b: Fail # Issue 28166
+covariant_test/27: Fail # Issue 28166
+covariant_test/28: Fail # Issue 28166
+covariant_test/31: Fail # Issue 28166
+covariant_test/35: Fail # Issue 28166
+covariant_test/40: Fail # Issue 28166
+covariant_test/40b: Fail # Issue 28166
+covariant_test/42: Fail # Issue 28166
+covariant_test/46: Fail # Issue 28166
+covariant_test/46b: Fail # Issue 28166
+covariant_test/47: Fail # Issue 28166
+covariant_test/51: Fail # Issue 28166
+covariant_test/52: Fail # Issue 28166
+covariant_test/54: Fail # Issue 28166
+covariant_test/55: Fail # Issue 28166
+covariant_test/56: Fail # Issue 28166
 covariant_override_test: Fail # Issue 28166
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
