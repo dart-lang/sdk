@@ -3993,10 +3993,10 @@ class SsaBuilder extends ast.Visitor
       bool isLength = selector.isGetter && selector.name == "length";
       if (isLength || selector.isIndex) {
         return closedWorld.isSubtypeOf(
-            element.enclosingClass.declaration, helpers.jsIndexableClass);
+            element.enclosingClass, helpers.jsIndexableClass);
       } else if (selector.isIndexSet) {
-        return closedWorld.isSubtypeOf(element.enclosingClass.declaration,
-            helpers.jsMutableIndexableClass);
+        return closedWorld.isSubtypeOf(
+            element.enclosingClass, helpers.jsMutableIndexableClass);
       } else {
         return false;
       }

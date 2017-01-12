@@ -522,7 +522,7 @@ class FlatTypeMask implements TypeMask {
           backendClasses.nullImplementation, selector, element);
     }
 
-    ClassEntity other = element.enclosingClass.declaration;
+    ClassEntity other = element.enclosingClass;
     if (other == backendClasses.nullImplementation) {
       return isNullable;
     } else if (isExact) {
@@ -573,7 +573,7 @@ class FlatTypeMask implements TypeMask {
         closedWorld.allFunctions.filter(selector, this);
     if (targets.length != 1) return null;
     Element result = targets.first;
-    ClassElement enclosing = result.enclosingClass.declaration;
+    ClassElement enclosing = result.enclosingClass;
     // We only return the found element if it is guaranteed to be implemented on
     // all classes in the receiver type [this]. It could be found only in a
     // subclass or in an inheritance-wise unrelated class in case of subtype

@@ -834,7 +834,7 @@ class InferrerEngine {
     // If this class has a 'call' method then we have essentially created a
     // closure here. Register it as such so that it is traced.
     if (selector != null && selector.isCall && callee.isConstructor) {
-      ClassElement cls = callee.enclosingClass.declaration;
+      ClassElement cls = callee.enclosingClass;
       if (cls.callType != null) {
         types.allocatedClosures.add(info);
       }

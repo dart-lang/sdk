@@ -1171,8 +1171,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   bool isThisOrSuper(ast.Node node) => node.isThis() || node.isSuper();
 
   bool isInClassOrSubclass(Element element) {
-    ClassElement cls = outermostElement.enclosingClass.declaration;
-    ClassElement enclosing = element.enclosingClass.declaration;
+    ClassElement cls = outermostElement.enclosingClass;
+    ClassElement enclosing = element.enclosingClass;
     return closedWorld.isSubclassOf(enclosing, cls);
   }
 
@@ -2028,7 +2028,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       TypeMask mask, ArgumentsTypes arguments) {
     // Ensure we create a node, to make explicit the call to the
     // `noSuchMethod` handler.
-    ClassElement cls = outermostElement.enclosingClass.declaration;
+    ClassElement cls = outermostElement.enclosingClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
       element = compiler.commonElements.objectClass

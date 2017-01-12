@@ -2309,7 +2309,7 @@ class JavaScriptBackend extends Backend {
 
       StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
           ? constantImpactsForResolution
-          : constantImpactsForResolution;
+          : constantImpactsForCodegen;
       if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
         /// Register the constant value of [metadata] as live in resolution.
         void registerMetadataConstant(MetadataAnnotation metadata) {
@@ -2360,8 +2360,10 @@ class JavaScriptBackend extends Backend {
             parameter.metadata.forEach(onMetadata);
           }
         }
-        if (element.enclosingClass != null) {
-          processElementMetadata(element.enclosingClass);
+        if (element.enclosingElement is ClassElement) {
+          // Use [enclosingElement] instead of [enclosingClass] to ensure that
+          // we process patch class metadata for patch and injected members.
+          processElementMetadata(element.enclosingElement);
         } else {
           processLibraryMetadata(element.library);
         }

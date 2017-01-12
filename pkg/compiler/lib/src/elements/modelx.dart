@@ -163,7 +163,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   ClassElement get enclosingClass {
     for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClass) return e;
+      if (e.isClass) return e.declaration;
     }
     return null;
   }
@@ -2357,7 +2357,7 @@ abstract class ConstructorElementX extends FunctionElementX
 
   ConstructorElement get definingConstructor => null;
 
-  ClassElement get enclosingClass => enclosingElement;
+  ClassElement get enclosingClass => enclosingElement.declaration;
 }
 
 class DeferredLoaderGetterElementX extends GetterElementX
