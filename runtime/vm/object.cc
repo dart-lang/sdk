@@ -5222,7 +5222,8 @@ bool Function::HasBreakpoint() const {
 void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // We may not have previous code if FLAG_precompile is set.
-  if (!is_osr && HasCode()) {
+  // Hot-reload may have already disabled the current code.
+  if (!is_osr && HasCode() && !Code::Handle(CurrentCode()).IsDisabled()) {
     Code::Handle(CurrentCode()).DisableDartCode();
   }
   AttachCode(code);
