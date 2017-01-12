@@ -2378,6 +2378,11 @@ enum UnlinkedExprOperation {
    * and only include a marker that an error was detected.
    */
   pushError,
+
+  /**
+   * Push `this` expression onto the stack.
+   */
+  pushThis,
 }
 
 /**

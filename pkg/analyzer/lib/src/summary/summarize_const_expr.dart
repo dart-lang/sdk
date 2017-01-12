@@ -380,6 +380,8 @@ abstract class AbstractConstExprSerializer {
       _serialize(expr.expression);
       references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedExprOperation.typeCheck);
+    } else if (expr is ThisExpression) {
+      operations.add(UnlinkedExprOperation.pushThis);
     } else if (expr is ThrowExpression) {
       isValidConst = false;
       _serialize(expr.expression);

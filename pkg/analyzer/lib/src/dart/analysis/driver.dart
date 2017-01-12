@@ -73,7 +73,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 10;
+  static const int DATA_VERSION = 11;
 
   /**
    * The name of the driver, e.g. the name of the folder.

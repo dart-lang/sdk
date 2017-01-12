@@ -437,6 +437,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         checkElidablePrefix(oTarget.prefix);
         checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
+      } else if (o is ThisExpression && r is ThisExpression) {
+        // Nothing to compare.
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
@@ -4635,6 +4637,19 @@ typedef F();''');
 
   test_typedefs() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_unresolved_annotation_instanceCreation_argument_this() {
+    checkLibrary(
+        '''
+class A {
+  const A(_);
+}
+
+@A(this)
+class C {}
+''',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() {
