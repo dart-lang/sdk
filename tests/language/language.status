@@ -71,7 +71,6 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
-try_catch_optimized1_test: Skip # Srdjan investigating
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
@@ -170,7 +169,6 @@ stack_trace_test: Pass, RuntimeError
 stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
-regress_26948_test: Skip # Crashes, regis investigating
 vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
 
 
