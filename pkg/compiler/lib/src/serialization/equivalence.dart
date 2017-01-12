@@ -151,9 +151,11 @@ bool areSelectorsEquivalent(Selector a, Selector b) {
 
 /// Returns `true` if the names [a] and [b] are equivalent.
 bool areNamesEquivalent(Name a, Name b) {
+  LibraryElement library1 = a.library;
+  LibraryElement library2 = b.library;
   return a.text == b.text &&
       a.isSetter == b.isSetter &&
-      areElementsEquivalent(a.library, b.library);
+      areElementsEquivalent(library1, library2);
 }
 
 /// Returns `true` if the dynamic uses [a] and [b] are equivalent.

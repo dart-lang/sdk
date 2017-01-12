@@ -297,8 +297,7 @@ class KernelVisitor extends Object
 
   // TODO(ahe): Hack. Fix dart2js instead.
   ir.Name nameToIrName(Name name) {
-    assert(!name.isPrivate ||
-        name.library.implementation == currentElement.library.implementation);
+    assert(!name.isPrivate || name.library == currentElement.library);
     return kernel.irName(name.text, currentElement);
   }
 

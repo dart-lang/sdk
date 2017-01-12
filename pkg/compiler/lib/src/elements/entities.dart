@@ -6,6 +6,14 @@ library entities;
 
 import 'elements.dart' show Entity;
 
+/// Stripped down super interface for library like entities.
+///
+/// Currently only [LibraryElement] but later also kernel based Dart classes
+/// and/or Dart-in-JS classes.
+abstract class LibraryEntity extends Entity {
+  String get libraryName;
+}
+
 /// Stripped down super interface for class like entities.
 ///
 /// Currently only [ClassElement] but later also kernel based Dart classes

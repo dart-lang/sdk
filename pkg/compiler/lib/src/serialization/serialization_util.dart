@@ -23,7 +23,8 @@ void serializeName(Name name, ObjectEncoder encoder) {
   encoder.setString(Key.NAME, name.text);
   encoder.setBool(Key.IS_SETTER, name.isSetter);
   if (name.library != null) {
-    encoder.setElement(Key.LIBRARY, name.library);
+    LibraryElement library = name.library;
+    encoder.setElement(Key.LIBRARY, library);
   }
 }
 

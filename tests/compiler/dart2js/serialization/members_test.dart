@@ -87,12 +87,13 @@ void checkMembers(Compiler compiler1, ClassMemberMixin class1,
 
 Name convertName(Name name, Compiler compiler) {
   if (name.isPrivate) {
-    LibraryElement library =
-        compiler.libraryLoader.lookupLibrary(name.library.canonicalUri);
-    if (!areElementsEquivalent(name.library, library)) {
-      throw 'Libraries ${name.library} and ${library} are not equivalent';
+    LibraryElement library1 = name.library;
+    LibraryElement library2 =
+        compiler.libraryLoader.lookupLibrary(library1.canonicalUri);
+    if (!areElementsEquivalent(library1, library2)) {
+      throw 'Libraries ${library1} and ${library2} are not equivalent';
     }
-    name = new Name(name.text, library, isSetter: name.isSetter);
+    name = new Name(name.text, library2, isSetter: name.isSetter);
   }
   return name;
 }
