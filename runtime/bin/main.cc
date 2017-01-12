@@ -1480,13 +1480,13 @@ static void GeneratePrecompiledSnapshot() {
   intptr_t rodata_blob_size = 0;
   Dart_Handle result;
   if (use_blobs) {
-    result = Dart_CreatePrecompiledSnapshotBlob(
+    result = Dart_CreateAppAOTSnapshotAsBlobs(
         &vm_isolate_buffer, &vm_isolate_size, &isolate_buffer, &isolate_size,
         &instructions_blob_buffer, &instructions_blob_size, &rodata_blob_buffer,
         &rodata_blob_size);
   } else {
-    result = Dart_CreatePrecompiledSnapshotAssembly(&assembly_buffer,
-                                                    &assembly_size);
+    result =
+        Dart_CreateAppAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
   }
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
@@ -1502,8 +1502,8 @@ static void GeneratePrecompiledSnapshot() {
 }
 
 
-#if defined(TARGET_ARCH_X64)
 static void GenerateAppJITSnapshot() {
+#if defined(TARGET_ARCH_X64)
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
@@ -1512,7 +1512,7 @@ static void GenerateAppJITSnapshot() {
   intptr_t instructions_blob_size = 0;
   uint8_t* rodata_blob_buffer = NULL;
   intptr_t rodata_blob_size = 0;
-  Dart_Handle result = Dart_CreateAppJITSnapshot(
+  Dart_Handle result = Dart_CreateAppJITSnapshotAsBlobs(
       &isolate_buffer, &isolate_size, &instructions_blob_buffer,
       &instructions_blob_size, &rodata_blob_buffer, &rodata_blob_size);
   if (Dart_IsError(result)) {
@@ -1522,27 +1522,14 @@ static void GenerateAppJITSnapshot() {
                    isolate_buffer, isolate_size, instructions_blob_buffer,
                    instructions_blob_size, rodata_blob_buffer,
                    rodata_blob_size);
-}
-#endif  // defined(TARGET_ARCH_X64)
-
-
-static void GenerateAppSnapshot() {
-  Dart_Handle result;
-#if defined(TARGET_ARCH_X64)
-  result = Dart_PrecompileJIT();
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-  GenerateAppJITSnapshot();
 #else
-  // Create an application snapshot of the script.
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
 
-  result = Dart_CreateSnapshot(&vm_isolate_buffer, &vm_isolate_size,
-                               &isolate_buffer, &isolate_size);
+  Dart_Handle result = Dart_CreateSnapshot(&vm_isolate_buffer, &vm_isolate_size,
+                                           &isolate_buffer, &isolate_size);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
@@ -1576,7 +1563,7 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Platform::Exit(kErrorExitCode);
   }
   if (exit_code == 0) {
-    GenerateAppSnapshot();
+    GenerateAppJITSnapshot();
   }
 }
 
@@ -1750,7 +1737,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       if (gen_snapshot_kind == kAppJIT) {
         if (!Dart_IsCompilationError(result) &&
             !Dart_IsVMRestartRequest(result)) {
-          GenerateAppSnapshot();
+          GenerateAppJITSnapshot();
         }
       }
       CHECK_RESULT(result);

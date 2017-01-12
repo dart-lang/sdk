@@ -6604,8 +6604,8 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
 
 
 DART_EXPORT Dart_Handle
-Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
-                                       intptr_t* assembly_size) {
+Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
+                                    intptr_t* assembly_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6649,14 +6649,14 @@ Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
 
 
 DART_EXPORT Dart_Handle
-Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
-                                   intptr_t* vm_isolate_snapshot_size,
-                                   uint8_t** isolate_snapshot_buffer,
-                                   intptr_t* isolate_snapshot_size,
-                                   uint8_t** instructions_blob_buffer,
-                                   intptr_t* instructions_blob_size,
-                                   uint8_t** rodata_blob_buffer,
-                                   intptr_t* rodata_blob_size) {
+Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_isolate_snapshot_buffer,
+                                 intptr_t* vm_isolate_snapshot_size,
+                                 uint8_t** isolate_snapshot_buffer,
+                                 intptr_t* isolate_snapshot_size,
+                                 uint8_t** instructions_blob_buffer,
+                                 intptr_t* instructions_blob_size,
+                                 uint8_t** rodata_blob_buffer,
+                                 intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6719,49 +6719,19 @@ Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
 }
 
 
-DART_EXPORT Dart_Handle Dart_PrecompileJIT() {
-  API_TIMELINE_BEGIN_END;
-  DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(result)) {
-    return result;
-  }
-  CHECK_CALLBACK_STATE(T);
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(Z, I->object_store()->libraries());
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Error& error = Error::Handle(Z);
-  for (intptr_t i = 0; i < libraries.Length(); i++) {
-    lib ^= libraries.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      error = cls.EnsureIsFinalized(T);
-      if (!error.IsNull()) {
-        return Api::NewHandle(T, error.raw());
-      }
-    }
-  }
-  return Api::Success();
-}
-
-
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshot(uint8_t** isolate_snapshot_buffer,
-                          intptr_t* isolate_snapshot_size,
-                          uint8_t** instructions_blob_buffer,
-                          intptr_t* instructions_blob_size,
-                          uint8_t** rodata_blob_buffer,
-                          intptr_t* rodata_blob_size) {
+Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_buffer,
+                                 intptr_t* isolate_snapshot_size,
+                                 uint8_t** instructions_blob_buffer,
+                                 intptr_t* instructions_blob_size,
+                                 uint8_t** rodata_blob_buffer,
+                                 intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("Snapshots with code are not supported on DBC.");
+#elif defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
