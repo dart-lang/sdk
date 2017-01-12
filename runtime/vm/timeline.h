@@ -461,7 +461,7 @@ class TimelineDurationScope : public TimelineEventScope {
                         TimelineStream* stream,
                         const char* label);
 
-  ~TimelineDurationScope();
+  virtual ~TimelineDurationScope();
 
  private:
   int64_t timestamp_;
@@ -479,7 +479,7 @@ class TimelineBeginEndScope : public TimelineEventScope {
                         TimelineStream* stream,
                         const char* label);
 
-  ~TimelineBeginEndScope();
+  virtual ~TimelineBeginEndScope();
 
  private:
   void EmitBegin();
