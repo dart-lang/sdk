@@ -1358,8 +1358,7 @@ class SsaBuilder extends ast.Visitor
       List bodyCallInputs = <HInstruction>[];
       if (isNativeUpgradeFactory) {
         if (interceptor == null) {
-          ConstantValue constant =
-              new InterceptorConstantValue(classElement.thisType);
+          ConstantValue constant = new InterceptorConstantValue(classElement);
           interceptor = graph.addConstant(constant, closedWorld);
         }
         bodyCallInputs.add(interceptor);
@@ -2902,9 +2901,10 @@ class SsaBuilder extends ast.Visitor
       HInstruction argumentInstruction = pop();
       if (argumentInstruction is HConstant) {
         ConstantValue argumentConstant = argumentInstruction.constant;
-        if (argumentConstant is TypeConstantValue) {
-          ConstantValue constant =
-              new InterceptorConstantValue(argumentConstant.representedType);
+        if (argumentConstant is TypeConstantValue &&
+            argumentConstant.representedType is ResolutionInterfaceType) {
+          ResolutionInterfaceType type = argumentConstant.representedType;
+          ConstantValue constant = new InterceptorConstantValue(type.element);
           HInstruction instruction = graph.addConstant(constant, closedWorld);
           stack.add(instruction);
           return;

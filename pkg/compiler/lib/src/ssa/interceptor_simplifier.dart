@@ -134,8 +134,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return graph.thisInstruction;
     }
 
-    ConstantValue constant =
-        new InterceptorConstantValue(constantInterceptor.thisType);
+    ConstantValue constant = new InterceptorConstantValue(constantInterceptor);
     return graph.addConstant(constant, closedWorld);
   }
 
@@ -319,8 +318,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
               receiver.instructionType.nonNullable(), interceptedClasses);
           if (interceptorClass != null) {
             HInstruction constantInstruction = graph.addConstant(
-                new InterceptorConstantValue(interceptorClass.thisType),
-                closedWorld);
+                new InterceptorConstantValue(interceptorClass), closedWorld);
             node.conditionalConstantInterceptor = constantInstruction;
             constantInstruction.usedBy.add(node);
             return false;

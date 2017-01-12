@@ -493,7 +493,8 @@ class DeferredLoadTask extends CompilerTask {
     if (constants.contains(constant)) return;
     constants.add(constant);
     if (constant is ConstructedConstantValue) {
-      _mapDependencies(element: constant.type.element, import: import);
+      ClassElement cls = constant.type.element;
+      _mapDependencies(element: cls, import: import);
     }
     constant.getDependencies().forEach((ConstantValue dependency) {
       _mapConstantDependencies(dependency, import);
@@ -798,7 +799,8 @@ class DeferredLoadTask extends CompilerTask {
               metadata.ensureResolved(compiler.resolution);
               ConstantValue value =
                   compiler.constants.getConstantValue(metadata.constant);
-              Element element = value.getType(compiler.commonElements).element;
+              ResolutionDartType type = value.getType(compiler.commonElements);
+              Element element = type.element;
               if (element == deferredLibraryClass) {
                 reporter.reportErrorMessage(
                     import, MessageKind.DEFERRED_OLD_SYNTAX);
@@ -1034,7 +1036,8 @@ class _DeclaredDeferredImport implements _DeferredImport {
         metadata.ensureResolved(compiler.resolution);
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
-        Element element = value.getType(compiler.commonElements).element;
+        ResolutionDartType type = value.getType(compiler.commonElements);
+        Element element = type.element;
         if (element == compiler.commonElements.deferredLibraryClass) {
           ConstructedConstantValue constant = value;
           StringConstantValue s = constant.fields.values.single;

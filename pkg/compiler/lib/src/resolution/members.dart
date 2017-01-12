@@ -4016,7 +4016,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     for (ConstantValue key in map.keys) {
       if (!key.isObject) continue;
       ObjectConstantValue objectConstant = key;
-      ResolutionDartType keyType = objectConstant.type;
+      ResolutionInterfaceType keyType = objectConstant.type;
       ClassElement cls = keyType.element;
       if (cls == commonElements.stringClass) continue;
       Element equals = cls.lookupMember('==');
@@ -4489,7 +4489,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (constant.isFunction) return commonElements.functionType;
     assert(constant.isObject);
     ObjectConstantValue objectConstant = constant;
-    return objectConstant.type;
+    ResolutionInterfaceType type = objectConstant.type;
+    return type;
   }
 
   bool overridesEquals(ResolutionDartType type) {

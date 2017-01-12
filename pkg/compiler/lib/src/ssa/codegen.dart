@@ -2070,7 +2070,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
       if (type.representedType.isInterfaceType) {
-        registry.registerTypeConstant(type.representedType.element);
+        InterfaceType representedType = type.representedType;
+        registry.registerTypeConstant(representedType.element);
       }
     }
     js.Expression expression = backend.emitter.constantReference(constant);

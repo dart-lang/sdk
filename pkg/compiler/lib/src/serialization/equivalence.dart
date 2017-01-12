@@ -866,8 +866,9 @@ class ConstantValueEquivalence
   @override
   bool visitConstructed(
       ConstructedConstantValue value1, ConstructedConstantValue value2) {
-    return strategy.testTypes(
-            value1, value2, 'type', value1.type, value2.type) &&
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
         strategy.testMaps(
             value1,
             value2,
@@ -889,16 +890,18 @@ class ConstantValueEquivalence
 
   @override
   bool visitList(ListConstantValue value1, ListConstantValue value2) {
-    return strategy.testTypes(
-            value1, value2, 'type', value1.type, value2.type) &&
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
         strategy.testConstantValueLists(
             value1, value2, 'entries', value1.entries, value2.entries);
   }
 
   @override
   bool visitMap(MapConstantValue value1, MapConstantValue value2) {
-    return strategy.testTypes(
-            value1, value2, 'type', value1.type, value2.type) &&
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
         strategy.testConstantValueLists(
             value1, value2, 'keys', value1.keys, value2.keys) &&
         strategy.testConstantValueLists(
@@ -907,7 +910,9 @@ class ConstantValueEquivalence
 
   @override
   bool visitType(TypeConstantValue value1, TypeConstantValue value2) {
-    return strategy.testTypes(value1, value2, 'type', value1.type, value2.type);
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2);
   }
 
   @override
@@ -965,8 +970,9 @@ class ConstantValueEquivalence
   @override
   bool visitInterceptor(
       InterceptorConstantValue value1, InterceptorConstantValue value2) {
-    return strategy.testTypes(value1, value2, 'dispatchedType',
-        value1.dispatchedType, value2.dispatchedType);
+    ClassElement cls1 = value1.cls;
+    ClassElement cls2 = value2.cls;
+    return strategy.testElements(value1, value2, 'cls', cls1, cls2);
   }
 }
 

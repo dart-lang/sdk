@@ -134,6 +134,9 @@ abstract class CommonElements {
   /// The 'filled' constructor of `List`.
   ConstructorElement get filledListConstructor;
 
+  /// The `dynamic` type.
+  ResolutionDynamicType get dynamicType;
+
   /// The `Object` type defined in 'dart:core'.
   ResolutionInterfaceType get objectType;
 

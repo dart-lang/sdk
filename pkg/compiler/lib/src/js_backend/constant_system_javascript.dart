@@ -320,10 +320,10 @@ class JavaScriptConstantSystem extends ConstantSystem {
 
   @override
   ConstantValue createType(Compiler compiler, ResolutionDartType type) {
-    return new TypeConstantValue(
-        type,
-        compiler.backend.backendClasses.typeImplementation
-            .computeType(compiler.resolution));
+    ResolutionInterfaceType instanceType = compiler
+        .backend.backendClasses.typeImplementation
+        .computeType(compiler.resolution);
+    return new TypeConstantValue(type, instanceType);
   }
 
   // Integer checks report true for -0.0, INFINITY, and -INFINITY.  At
@@ -382,7 +382,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     }
 
     bool hasProtoKey = (protoValue != null);
-    ResolutionDartType keysType;
+    ResolutionInterfaceType keysType;
     if (sourceType.treatAsRaw) {
       keysType = commonElements.listType();
     } else {

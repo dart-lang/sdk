@@ -277,7 +277,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
-    ClassElement interceptorClass = constant.dispatchedType.element;
+    ClassElement interceptorClass = constant.cls;
     return backend.emitter.interceptorPrototypeAccess(interceptorClass);
   }
 

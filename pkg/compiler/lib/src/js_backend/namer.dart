@@ -23,6 +23,7 @@ import '../js/js.dart' show js;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../util/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
@@ -404,6 +405,7 @@ class Namer {
 
   final JavaScriptBackend backend;
   final ClosedWorld closedWorld;
+  final CodegenWorldBuilder codegenWorldBuilder;
 
   /// Used disambiguated names in the global namespace, issued by
   /// [_disambiguateGlobal], and [_disambiguateInternalGlobal].
@@ -460,10 +462,12 @@ class Namer {
   final Map<LibraryElement, String> _libraryKeys =
       new HashMap<LibraryElement, String>();
 
-  Namer(JavaScriptBackend backend, this.closedWorld)
+  Namer(JavaScriptBackend backend, this.closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder)
       : this.backend = backend,
-        constantHasher =
-            new ConstantCanonicalHasher(backend.rtiEncoder, backend.reporter),
+        this.codegenWorldBuilder = codegenWorldBuilder,
+        constantHasher = new ConstantCanonicalHasher(
+            backend.rtiEncoder, backend.reporter, codegenWorldBuilder),
         functionTypeNamer = new FunctionTypeNamer(backend.rtiEncoder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
@@ -592,7 +596,7 @@ class Namer {
     String longName = constantLongNames[constant];
     if (longName == null) {
       longName = new ConstantNamingVisitor(
-              backend.rtiEncoder, reporter, constantHasher)
+              backend.rtiEncoder, reporter, codegenWorldBuilder, constantHasher)
           .getName(constant);
       constantLongNames[constant] = longName;
     }
@@ -1645,6 +1649,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   final RuntimeTypesEncoder rtiEncoder;
   final DiagnosticReporter reporter;
+  final CodegenWorldBuilder codegenWorldBuilder;
   final ConstantCanonicalHasher hasher;
 
   String root = null; // First word, usually a type name.
@@ -1652,7 +1657,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   List<String> fragments = <String>[];
   int length = 0;
 
-  ConstantNamingVisitor(this.rtiEncoder, this.reporter, this.hasher);
+  ConstantNamingVisitor(
+      this.rtiEncoder, this.reporter, this.codegenWorldBuilder, this.hasher);
 
   String getName(ConstantValue constant) {
     _visit(constant);
@@ -1781,10 +1787,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
-    constant.type.element.forEachInstanceField((_, FieldElement field) {
+    codegenWorldBuilder.forEachInstanceField(constant.type.element,
+        (_, FieldElement field) {
       if (failed) return;
       _visit(constant.fields[field]);
-    }, includeSuperAndInjectedMembers: true);
+    });
   }
 
   @override
@@ -1804,7 +1811,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitInterceptor(InterceptorConstantValue constant, [_]) {
-    addRoot(constant.dispatchedType.element.name);
+    addRoot(constant.cls.name);
     add('methods');
   }
 
@@ -1846,9 +1853,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   final DiagnosticReporter reporter;
   final RuntimeTypesEncoder rtiEncoder;
+  final CodegenWorldBuilder codegenWorldBuilder;
   final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
 
-  ConstantCanonicalHasher(this.rtiEncoder, this.reporter);
+  ConstantCanonicalHasher(
+      this.rtiEncoder, this.reporter, this.codegenWorldBuilder);
 
   int getHash(ConstantValue constant) => _visit(constant);
 
@@ -1906,9 +1915,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
-    constant.type.element.forEachInstanceField((_, FieldElement field) {
+    codegenWorldBuilder.forEachInstanceField(constant.type.element,
+        (_, FieldElement field) {
       hash = _combine(hash, _visit(constant.fields[field]));
-    }, includeSuperAndInjectedMembers: true);
+    });
     return hash;
   }
 
@@ -1922,7 +1932,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
-    String typeName = constant.dispatchedType.element.name;
+    String typeName = constant.cls.name;
     return _hashString(5, typeName);
   }
 

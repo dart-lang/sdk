@@ -1313,6 +1313,9 @@ class _CompilerCommonElements implements CommonElements {
       _nativeAnnotationClass ??= _findRequired(jsHelperLibrary, 'Native');
 
   @override
+  ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
+
+  @override
   ResolutionInterfaceType get objectType {
     objectClass.ensureResolved(resolution);
     return objectClass.rawType;

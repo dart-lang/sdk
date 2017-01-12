@@ -57,7 +57,7 @@ class Collector {
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
-        classes.add(interceptorConstant.dispatchedType.element);
+        classes.add(interceptorConstant.cls);
       }
     }
     return classes;

@@ -643,12 +643,13 @@ class JavaScriptBackend extends Backend {
         library == helpers.jsHelperLibrary;
   }
 
-  Namer determineNamer(ClosedWorld closedWorld) {
+  Namer determineNamer(
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(this, closedWorld)
-            : new MinifyNamer(this, closedWorld)
-        : new Namer(this, closedWorld);
+            ? new FrequencyBasedNamer(this, closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(this, closedWorld, codegenWorldBuilder)
+        : new Namer(this, closedWorld, codegenWorldBuilder);
   }
 
   /// The backend must *always* call this method when enqueuing an
@@ -1081,8 +1082,8 @@ class JavaScriptBackend extends Backend {
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
-      computeImpactForInstantiatedConstantType(
-          interceptor.dispatchedType, impactBuilder);
+      ClassElement cls = interceptor.cls;
+      computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
     } else if (constant.isType) {
       if (isForResolution) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
@@ -2393,7 +2394,7 @@ class JavaScriptBackend extends Backend {
 
   WorldImpact onCodegenStart(ClosedWorld closedWorld) {
     _closedWorld = closedWorld;
-    _namer = determineNamer(_closedWorld);
+    _namer = determineNamer(_closedWorld, compiler.codegenWorld);
     tracer = new Tracer(_closedWorld, namer, compiler.outputProvider);
     emitter.createEmitter(_namer, _closedWorld);
     lookupMapAnalysis.onCodegenStart();

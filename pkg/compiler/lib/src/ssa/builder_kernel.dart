@@ -1884,10 +1884,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction argumentInstruction = pop();
     if (argumentInstruction is HConstant) {
       ConstantValue argumentConstant = argumentInstruction.constant;
-      if (argumentConstant is TypeConstantValue) {
+      if (argumentConstant is TypeConstantValue &&
+          argumentConstant.representedType is ResolutionInterfaceType) {
+        ResolutionInterfaceType type = argumentConstant.representedType;
         // TODO(sra): Check that type is a subclass of [Interceptor].
-        ConstantValue constant =
-            new InterceptorConstantValue(argumentConstant.representedType);
+        ConstantValue constant = new InterceptorConstantValue(type.element);
         HInstruction instruction = graph.addConstant(constant, closedWorld);
         stack.add(instruction);
         return;

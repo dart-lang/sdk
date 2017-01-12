@@ -105,7 +105,9 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
   int visitList(ListConstantValue a, ListConstantValue b) {
     int r = compareLists(compareValues, a.entries, b.entries);
     if (r != 0) return r;
-    return compareDartTypes(a.type, b.type);
+    ResolutionInterfaceType type1 = a.type;
+    ResolutionInterfaceType type2 = b.type;
+    return compareDartTypes(type1, type2);
   }
 
   int visitMap(MapConstantValue a, MapConstantValue b) {
@@ -113,11 +115,15 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     if (r != 0) return r;
     r = compareLists(compareValues, a.values, b.values);
     if (r != 0) return r;
-    return compareDartTypes(a.type, b.type);
+    ResolutionInterfaceType type1 = a.type;
+    ResolutionInterfaceType type2 = b.type;
+    return compareDartTypes(type1, type2);
   }
 
   int visitConstructed(ConstructedConstantValue a, ConstructedConstantValue b) {
-    int r = compareDartTypes(a.type, b.type);
+    ResolutionInterfaceType type1 = a.type;
+    ResolutionInterfaceType type2 = b.type;
+    int r = compareDartTypes(type1, type2);
     if (r != 0) return r;
 
     List<FieldEntity> aFields = a.fields.keys.toList()..sort(compareElements);
@@ -135,11 +141,13 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
   int visitType(TypeConstantValue a, TypeConstantValue b) {
     int r = compareDartTypes(a.representedType, b.representedType);
     if (r != 0) return r;
-    return compareDartTypes(a.type, b.type);
+    ResolutionInterfaceType type1 = a.type;
+    ResolutionInterfaceType type2 = b.type;
+    return compareDartTypes(type1, type2);
   }
 
   int visitInterceptor(InterceptorConstantValue a, InterceptorConstantValue b) {
-    return compareDartTypes(a.dispatchedType, b.dispatchedType);
+    return compareElements(a.cls, b.cls);
   }
 
   int visitSynthetic(SyntheticConstantValue a, SyntheticConstantValue b) {
