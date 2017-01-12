@@ -54,8 +54,49 @@ redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
 
 # Doesn't yet implement `covariant` keyword.
-covariant_test/none: Fail # Issue 28166
+covariant_test/06: Fail # Issue 28166
+covariant_test/06b: Fail # Issue 28166
+covariant_test/07: Fail # Issue 28166
+covariant_test/08: Fail # Issue 28166
+covariant_test/11: Fail # Issue 28166
+covariant_test/15: Fail # Issue 28166
+covariant_test/26: Fail # Issue 28166
+covariant_test/26b: Fail # Issue 28166
+covariant_test/27: Fail # Issue 28166
+covariant_test/28: Fail # Issue 28166
+covariant_test/31: Fail # Issue 28166
+covariant_test/35: Fail # Issue 28166
+covariant_test/40: Fail # Issue 28166
+covariant_test/40b: Fail # Issue 28166
+covariant_test/42: Fail # Issue 28166
+covariant_test/46: Fail # Issue 28166
+covariant_test/46b: Fail # Issue 28166
+covariant_test/47: Fail # Issue 28166
+covariant_test/51: Fail # Issue 28166
+covariant_test/52: Fail # Issue 28166
+covariant_test/54: Fail # Issue 28166
+covariant_test/55: Fail # Issue 28166
+covariant_test/56: Fail # Issue 28166
 covariant_override_test: Fail # Issue 28166
+
+[ $compiler == none && ($runtime == dartium || $runtime == drt) && $checked ]
+covariant_test/06: Pass # Fails at runtime instead of at compile time
+covariant_test/06b: Pass # Fails at runtime instead of at compile time
+covariant_test/07: Pass # Fails at runtime instead of at compile time
+covariant_test/08: Pass # Fails at runtime instead of at compile time
+covariant_test/11: Pass # Fails at runtime instead of at compile time
+covariant_test/15: Pass # Fails at runtime instead of at compile time
+covariant_test/26: Pass # Fails at runtime instead of at compile time
+covariant_test/26b: Pass # Fails at runtime instead of at compile time
+covariant_test/27: Pass # Fails at runtime instead of at compile time
+covariant_test/28: Pass # Fails at runtime instead of at compile time
+covariant_test/31: Pass # Fails at runtime instead of at compile time
+covariant_test/35: Pass # Fails at runtime instead of at compile time
+covariant_test/46: Pass # Fails at runtime instead of at compile time
+covariant_test/46b: Pass # Fails at runtime instead of at compile time
+covariant_test/47: Pass # Fails at runtime instead of at compile time
+covariant_test/51: Pass # Fails at runtime instead of at compile time
+covariant_test/55: Pass # Fails at runtime instead of at compile time
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,
@@ -66,6 +107,8 @@ generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
+
+covariant_test/48: Fail # Issue 28166
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
