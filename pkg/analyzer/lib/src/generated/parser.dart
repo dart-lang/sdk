@@ -2755,7 +2755,7 @@ class Parser {
    *       | type
    */
   FinalConstVarOrType parseFinalConstVarOrType(bool optional,
-      {bool inFunctionType = false}) {
+      {bool inFunctionType: false}) {
     Token keywordToken = null;
     TypeName type = null;
     Keyword keyword = _currentToken.keyword;
@@ -2804,7 +2804,7 @@ class Parser {
    *         normalFormalParameter (':' expression)?
    */
   FormalParameter parseFormalParameter(ParameterKind kind,
-      {bool inFunctionType = false}) {
+      {bool inFunctionType: false}) {
     NormalFormalParameter parameter =
         parseNormalFormalParameter(inFunctionType: inFunctionType);
     TokenType type = _currentToken.type;
@@ -2884,7 +2884,7 @@ class Parser {
    *     namedFormalParameters ::=
    *         '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    */
-  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
+  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
     if (_matches(TokenType.OPEN_PAREN)) {
       return _parseFormalParameterListUnchecked(inFunctionType: inFunctionType);
     }
@@ -4103,7 +4103,7 @@ class Parser {
    *       | metadata identifier
    */
   NormalFormalParameter parseNormalFormalParameter(
-      {bool inFunctionType = false}) {
+      {bool inFunctionType: false}) {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
         inFunctionType: inFunctionType);
@@ -6470,7 +6470,7 @@ class Parser {
    * [leftParenthesis]. Return the formal parameters that were parsed.
    */
   FormalParameterList _parseFormalParameterListAfterParen(Token leftParenthesis,
-      {bool inFunctionType = false}) {
+      {bool inFunctionType: false}) {
     if (_matches(TokenType.CLOSE_PAREN)) {
       return astFactory.formalParameterList(
           leftParenthesis, null, null, null, getAndAdvance());
@@ -6634,7 +6634,7 @@ class Parser {
    * This method assumes that the current token matches `TokenType.OPEN_PAREN`.
    */
   FormalParameterList _parseFormalParameterListUnchecked(
-      {bool inFunctionType = false}) {
+      {bool inFunctionType: false}) {
     return _parseFormalParameterListAfterParen(getAndAdvance(),
         inFunctionType: inFunctionType);
   }
