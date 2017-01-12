@@ -101,8 +101,8 @@ class SsaOptimizerTask extends CompilerTask {
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(
-          new SsaSimplifyInterceptors(compiler, closedWorld, work.element));
+      runPhase(new SsaSimplifyInterceptors(
+          compiler, closedWorld, work.element.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
@@ -115,7 +115,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(backend, closedWorld, this, registry),
           new SsaCheckInserter(
               trustPrimitives, backend, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(compiler, closedWorld, work.element),
+          new SsaSimplifyInterceptors(
+              compiler, closedWorld, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {

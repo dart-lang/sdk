@@ -6,7 +6,7 @@ import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -39,10 +39,10 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   final String name = "SsaSimplifyInterceptors";
   final ClosedWorld closedWorld;
   final Compiler compiler;
-  final Element element;
+  final ClassEntity enclosingClass;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.compiler, this.closedWorld, this.element);
+  SsaSimplifyInterceptors(this.compiler, this.closedWorld, this.enclosingClass);
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -95,7 +95,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   }
 
   bool canUseSelfForInterceptor(
-      HInstruction receiver, Set<ClassElement> interceptedClasses) {
+      HInstruction receiver, Set<ClassEntity> interceptedClasses) {
     if (receiver.canBePrimitive(closedWorld)) {
       // Primitives always need interceptors.
       return false;
@@ -114,7 +114,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   }
 
   HInstruction tryComputeConstantInterceptor(
-      HInstruction input, Set<ClassElement> interceptedClasses) {
+      HInstruction input, Set<ClassEntity> interceptedClasses) {
     if (input == graph.explicitReceiverParameter) {
       // If `explicitReceiverParameter` is set it means the current method is an
       // interceptor method, and `this` is the interceptor.  The caller just did
@@ -122,14 +122,14 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return graph.thisInstruction;
     }
 
-    ClassElement constantInterceptor = tryComputeConstantInterceptorFromType(
+    ClassEntity constantInterceptor = tryComputeConstantInterceptorFromType(
         input.instructionType, interceptedClasses);
 
     if (constantInterceptor == null) return null;
 
     // If we just happen to be in an instance method of the constant
     // interceptor, `this` is a shorter alias.
-    if (constantInterceptor == element.enclosingClass &&
+    if (constantInterceptor == enclosingClass &&
         graph.thisInstruction != null) {
       return graph.thisInstruction;
     }
@@ -138,8 +138,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return graph.addConstant(constant, closedWorld);
   }
 
-  ClassElement tryComputeConstantInterceptorFromType(
-      TypeMask type, Set<ClassElement> interceptedClasses) {
+  ClassEntity tryComputeConstantInterceptorFromType(
+      TypeMask type, Set<ClassEntity> interceptedClasses) {
     if (type.isNullable) {
       if (type.isNull) {
         return backendClasses.nullImplementation;
@@ -173,7 +173,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // for a subclass or call methods defined on a subclass.  Provided the
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
-      ClassElement element = type.singleClass(closedWorld);
+      ClassEntity element = type.singleClass(closedWorld);
       if (element != null && backendClasses.isNativeClass(element)) {
         return element;
       }
@@ -216,7 +216,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     int useCount(HInstruction user, HInstruction used) =>
         user.inputs.where((input) => input == used).length;
 
-    Set<ClassElement> interceptedClasses;
+    Set<ClassEntity> interceptedClasses;
     HInstruction dominator = findDominator(node.usedBy);
     // If there is a call that dominates all other uses, we can use just the
     // selector of that instruction.
@@ -232,17 +232,21 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (interceptedClasses.contains(backendClasses.numImplementation) &&
           !(interceptedClasses.contains(backendClasses.doubleImplementation) ||
               interceptedClasses.contains(backendClasses.intImplementation))) {
-        Set<ClassElement> required;
+        Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
-          Set<ClassElement> intercepted =
+          Set<ClassEntity> intercepted =
               backend.getInterceptedClassesOn(user.selector.name);
           if (intercepted.contains(backendClasses.intImplementation)) {
-            required ??= new Set<ClassElement>();
+            // TODO(johnniwinther): Use type argument when all uses of
+            // intercepted classes expect entities instead of elements.
+            required ??= new Set/*<ClassEntity>*/();
             required.add(backendClasses.intImplementation);
           }
           if (intercepted.contains(backendClasses.doubleImplementation)) {
-            required ??= new Set<ClassElement>();
+            // TODO(johnniwinther): Use type argument when all uses of
+            // intercepted classes expect entities instead of elements.
+            required ??= new Set/*<ClassEntity>*/();
             required.add(backendClasses.doubleImplementation);
           }
         }
@@ -252,7 +256,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         }
       }
     } else {
-      interceptedClasses = new Set<ClassElement>();
+      // TODO(johnniwinther): Use type argument when all uses of intercepted
+      // classes expect entities instead of elements.
+      interceptedClasses = new Set/*<ClassEntity>*/();
       for (HInstruction user in node.usedBy) {
         if (user is HInvokeDynamic &&
             user.isCallOnInterceptor(closedWorld) &&
@@ -314,7 +320,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         if (!(receiver.canBePrimitiveNumber(closedWorld) ||
             receiver.canBePrimitiveBoolean(closedWorld) ||
             receiver.canBePrimitiveString(closedWorld))) {
-          ClassElement interceptorClass = tryComputeConstantInterceptorFromType(
+          ClassEntity interceptorClass = tryComputeConstantInterceptorFromType(
               receiver.instructionType.nonNullable(), interceptedClasses);
           if (interceptorClass != null) {
             HInstruction constantInstruction = graph.addConstant(

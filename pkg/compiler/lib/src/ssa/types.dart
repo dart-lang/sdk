@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../native/native.dart' as native;
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;

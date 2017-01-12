@@ -5,7 +5,8 @@
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
+import '../elements/elements.dart' show Name;
+import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -397,7 +398,6 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
 
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
-    JavaScriptBackend backend = compiler.backend;
     return new HRemainder(
         instruction.inputs[1],
         instruction.inputs[2],
@@ -758,7 +758,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     if (right.isConstantNull() || left.isPrimitiveOrNull(closedWorld)) {
       return newBuiltinVariant(instruction, closedWorld);
     }
-    Iterable<Element> matches =
+    Iterable<MemberEntity> matches =
         closedWorld.allFunctions.filter(instruction.selector, instructionType);
     // This test relies the on `Object.==` and `Interceptor.==` always being
     // implemented because if the selector matches by subtype, it still will be
