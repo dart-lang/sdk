@@ -1535,32 +1535,6 @@ class Parser {
   }
 
   /**
-   * Parse a class type alias. The [commentAndMetadata] is the metadata to be
-   * associated with the member. The [abstractKeyword] is the token representing
-   * the 'abstract' keyword. The [classKeyword] is the token representing the
-   * 'class' keyword. Return the class type alias that was parsed.
-   *
-   * This method assumes that the current token matches an identifier.
-   *
-   *     classTypeAlias ::=
-   *         identifier typeParameters? '=' 'abstract'? mixinApplication
-   *
-   *     mixinApplication ::=
-   *         type withClause implementsClause? ';'
-   */
-  ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata,
-      Token abstractKeyword, Token classKeyword) {
-    SimpleIdentifier className =
-        _parseSimpleIdentifierUnchecked(isDeclaration: true);
-    TypeParameterList typeParameters = null;
-    if (_matches(TokenType.LT)) {
-      typeParameters = parseTypeParameterList();
-    }
-    return _parseClassTypeAliasAfterName(commentAndMetadata, abstractKeyword,
-        classKeyword, className, typeParameters);
-  }
-
-  /**
    * Parse a single combinator. Return the combinator that was parsed, or `null`
    * if no combinator is found.
    *
@@ -2780,7 +2754,8 @@ class Parser {
    *       | 'var'
    *       | type
    */
-  FinalConstVarOrType parseFinalConstVarOrType(bool optional) {
+  FinalConstVarOrType parseFinalConstVarOrType(bool optional,
+      {bool inFunctionType = false}) {
     Token keywordToken = null;
     TypeName type = null;
     Keyword keyword = _currentToken.keyword;
@@ -2802,6 +2777,8 @@ class Parser {
       }
     } else if (_isTypedIdentifier(_currentToken)) {
       type = parseReturnType();
+    } else if (inFunctionType && _matchesIdentifier()) {
+      type = parseTypeAnnotation();
     } else if (!optional) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
@@ -2826,34 +2803,60 @@ class Parser {
    *         normalFormalParameter ('=' expression)?
    *         normalFormalParameter (':' expression)?
    */
-  FormalParameter parseFormalParameter(ParameterKind kind) {
-    NormalFormalParameter parameter = parseNormalFormalParameter();
+  FormalParameter parseFormalParameter(ParameterKind kind,
+      {bool inFunctionType = false}) {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter(inFunctionType: inFunctionType);
     TokenType type = _currentToken.type;
     if (type == TokenType.EQ) {
+      if (inFunctionType) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE);
+      }
       Token separator = getAndAdvance();
       Expression defaultValue = parseExpression2();
       if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
         kind = ParameterKind.POSITIONAL;
+      } else if (kind == ParameterKind.NAMED &&
+          inFunctionType &&
+          parameter.identifier == null) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER);
       }
       return astFactory.defaultFormalParameter(
           parameter, kind, separator, defaultValue);
     } else if (type == TokenType.COLON) {
+      if (inFunctionType) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE);
+      }
       Token separator = getAndAdvance();
       Expression defaultValue = parseExpression2();
-      if (kind == ParameterKind.POSITIONAL) {
-        _reportErrorForToken(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            separator);
-      } else if (kind == ParameterKind.REQUIRED) {
+      if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
         kind = ParameterKind.NAMED;
+      } else if (kind == ParameterKind.POSITIONAL) {
+        _reportErrorForToken(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+            separator);
+      } else if (kind == ParameterKind.NAMED &&
+          inFunctionType &&
+          parameter.identifier == null) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER);
       }
       return astFactory.defaultFormalParameter(
           parameter, kind, separator, defaultValue);
     } else if (kind != ParameterKind.REQUIRED) {
+      if (kind == ParameterKind.NAMED &&
+          inFunctionType &&
+          parameter.identifier == null) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER);
+      }
       return astFactory.defaultFormalParameter(parameter, kind, null, null);
     }
     return parameter;
@@ -2881,9 +2884,9 @@ class Parser {
    *     namedFormalParameters ::=
    *         '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    */
-  FormalParameterList parseFormalParameterList() {
+  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
     if (_matches(TokenType.OPEN_PAREN)) {
-      return _parseFormalParameterListUnchecked();
+      return _parseFormalParameterListUnchecked(inFunctionType: inFunctionType);
     }
     // TODO(brianwilkerson) Improve the error message.
     _reportErrorForCurrentToken(
@@ -3264,6 +3267,90 @@ class Parser {
     FunctionBody body =
         parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
     return astFactory.functionExpression(typeParameters, parameters, body);
+  }
+
+  /**
+   * Parse the portion of a generic function type following the [returnType].
+   *
+   *     functionType ::=
+   *         returnType? 'Function' typeParameters? parameterTypeList
+   *     parameterTypeList ::=
+   *         '(' ')' |
+   *       | '(' normalParameterTypes ','? ')' |
+   *       | '(' normalParameterTypes ',' optionalParameterTypes ')' |
+   *       | '(' optionalParameterTypes ')'
+   *     normalParameterTypes ::=
+   *     normalParameterType (',' normalParameterType)*
+   *     normalParameterType ::=
+   *         type | typedIdentifier
+   *     optionalParameterTypes ::=
+   *         optionalPositionalParameterTypes | namedParameterTypes
+   *     optionalPositionalParameterTypes ::=
+   *         '[' normalParameterTypes ','? ']'
+   *     namedParameterTypes ::=
+   *         '{' typedIdentifier (',' typedIdentifier)* ','? '}'
+   *     typedIdentifier ::=
+   *         type identifier
+   */
+  GenericFunctionType parseGenericFunctionTypeAfterReturnType(
+      TypeAnnotation returnType) {
+    Token functionKeyword = null;
+    if (_matchesString('Function')) {
+      functionKeyword = getAndAdvance();
+    } else if (_matchesIdentifier()) {
+      _reportErrorForCurrentToken(ParserErrorCode.NAMED_FUNCTION_TYPE);
+    } else {
+      _reportErrorForCurrentToken(ParserErrorCode.MISSING_FUNCTION_KEYWORD);
+    }
+    TypeParameterList typeParameters = null;
+    if (_matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
+    FormalParameterList parameters =
+        parseFormalParameterList(inFunctionType: true);
+    return astFactory.genericFunctionType(
+        returnType, functionKeyword, typeParameters, parameters);
+  }
+
+  /**
+   * Parse a generic function type alias.
+   *
+   * This method assumes that the current token is an identifier.
+   *
+   *     genericTypeAlias ::=
+   *         'typedef' identifier typeParameterList? '=' functionType ';'
+   */
+  GenericTypeAlias parseGenericTypeAlias(
+      CommentAndMetadata commentAndMetadata, Token keyword) {
+    Identifier name = _parseSimpleIdentifierUnchecked(isDeclaration: true);
+    TypeParameterList typeParameters = null;
+    if (_matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
+    Token equals = _expect(TokenType.EQ);
+    TypeAnnotation functionType = parseTypeAnnotation();
+    Token semicolon = _expect(TokenType.SEMICOLON);
+    if (functionType is! GenericFunctionType) {
+      // TODO(brianwilkerson) Generate an error and recover (better than this).
+      return astFactory.genericTypeAlias(
+          commentAndMetadata.comment,
+          commentAndMetadata.metadata,
+          keyword,
+          name,
+          typeParameters,
+          equals,
+          null,
+          semicolon);
+    }
+    return astFactory.genericTypeAlias(
+        commentAndMetadata.comment,
+        commentAndMetadata.metadata,
+        keyword,
+        name,
+        typeParameters,
+        equals,
+        functionType,
+        semicolon);
   }
 
   /**
@@ -4015,14 +4102,20 @@ class Parser {
    *         declaredIdentifier
    *       | metadata identifier
    */
-  NormalFormalParameter parseNormalFormalParameter() {
+  NormalFormalParameter parseNormalFormalParameter(
+      {bool inFunctionType = false}) {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    FinalConstVarOrType holder = parseFinalConstVarOrType(true);
+    FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
+        inFunctionType: inFunctionType);
     Token thisKeyword = null;
     Token period = null;
     if (_matchesKeyword(Keyword.THIS)) {
       thisKeyword = getAndAdvance();
       period = _expect(TokenType.PERIOD);
+    }
+    if (!_matchesIdentifier() && inFunctionType) {
+      return astFactory.simpleFormalParameter(commentAndMetadata.comment,
+          commentAndMetadata.metadata, holder.keyword, holder.type, null);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
@@ -4860,16 +4953,10 @@ class Parser {
    *
    *     typeAlias ::=
    *         'typedef' typeAliasBody
+   *       | genericTypeAlias
    *
    *     typeAliasBody ::=
-   *         classTypeAlias
-   *       | functionTypeAlias
-   *
-   *     classTypeAlias ::=
-   *         identifier typeParameters? '=' 'abstract'? mixinApplication
-   *
-   *     mixinApplication ::=
-   *         qualified withClause implementsClause? ';'
+   *         functionTypeAlias
    *
    *     functionTypeAlias ::=
    *         functionPrefix typeParameterList? formalParameterList ';'
@@ -4885,20 +4972,35 @@ class Parser {
         next = _skipTypeParameterList(next);
         if (next != null && _tokenMatches(next, TokenType.EQ)) {
           TypeAlias typeAlias =
-              parseClassTypeAlias(commentAndMetadata, null, keyword);
-          _reportErrorForToken(
-              ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
+              parseGenericTypeAlias(commentAndMetadata, keyword);
           return typeAlias;
         }
       } else if (_tokenMatches(next, TokenType.EQ)) {
         TypeAlias typeAlias =
-            parseClassTypeAlias(commentAndMetadata, null, keyword);
-        _reportErrorForToken(
-            ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
+            parseGenericTypeAlias(commentAndMetadata, keyword);
         return typeAlias;
       }
     }
     return _parseFunctionTypeAlias(commentAndMetadata, keyword);
+  }
+
+  /**
+   * Parse a type.
+   *
+   *     type ::=
+   *         typeWithoutFunction
+   *       | functionType
+   */
+  TypeAnnotation parseTypeAnnotation() {
+    if (_matchesString('Function')) {
+      // Generic function type with no return type.
+      return parseGenericFunctionTypeAfterReturnType(null);
+    }
+    TypeAnnotation type = parseReturnType();
+    while (_matchesString('Function')) {
+      type = parseGenericFunctionTypeAfterReturnType(type);
+    }
+    return type;
   }
 
   /**
@@ -6367,8 +6469,8 @@ class Parser {
    * Parse a list of formal parameters given that the list starts with the given
    * [leftParenthesis]. Return the formal parameters that were parsed.
    */
-  FormalParameterList _parseFormalParameterListAfterParen(
-      Token leftParenthesis) {
+  FormalParameterList _parseFormalParameterListAfterParen(Token leftParenthesis,
+      {bool inFunctionType = false}) {
     if (_matches(TokenType.CLOSE_PAREN)) {
       return astFactory.formalParameterList(
           leftParenthesis, null, null, null, getAndAdvance());
@@ -6441,7 +6543,8 @@ class Parser {
       //
       // Parse and record the parameter.
       //
-      FormalParameter parameter = parseFormalParameter(kind);
+      FormalParameter parameter =
+          parseFormalParameter(kind, inFunctionType: inFunctionType);
       parameters.add(parameter);
       if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
         _reportErrorForNode(
@@ -6530,8 +6633,10 @@ class Parser {
    *
    * This method assumes that the current token matches `TokenType.OPEN_PAREN`.
    */
-  FormalParameterList _parseFormalParameterListUnchecked() {
-    return _parseFormalParameterListAfterParen(getAndAdvance());
+  FormalParameterList _parseFormalParameterListUnchecked(
+      {bool inFunctionType = false}) {
+    return _parseFormalParameterListAfterParen(getAndAdvance(),
+        inFunctionType: inFunctionType);
   }
 
   /**

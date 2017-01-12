@@ -14,6 +14,9 @@ covariant_override_test: CompileTimeError # Issue 28167
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
+# No longer support the old use of typedef to define a mixin
+mixin_illegal_syntax_test/00: Crash
+
 deep_nesting1_negative_test: Crash # Issue 25558
 deep_nesting2_negative_test: Crash # Issue 25558
 

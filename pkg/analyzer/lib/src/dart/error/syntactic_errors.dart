@@ -142,11 +142,11 @@ class ParserErrorCode extends ErrorCode {
       "A continue statement in a switch statement must have a label as a target.",
       "Try adding a label associated with one of the case clauses to the continue statement.");
 
-  static const ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS =
+  static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE =
       const ParserErrorCode(
-          'DEPRECATED_CLASS_TYPE_ALIAS',
-          "The 'typedef' mixin application was replaced with 'class'.",
-          "Try re-writing the typedef as 'class C = S with M'.");
+          'DEFAULT_VALUE_IN_FUNCTION_TYPE',
+          "Parameters in a function type cannot have default values",
+          "Try removing the default value.");
 
   static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION =
       const ParserErrorCode(
@@ -523,16 +523,15 @@ class ParserErrorCode extends ErrorCode {
       "A function body must be provided.",
       "Try adding a function body.");
 
+  static const ParserErrorCode MISSING_FUNCTION_KEYWORD = const ParserErrorCode(
+      'MISSING_FUNCTION_KEYWORD',
+      "Function types must have the keyword 'Function' before the parameter list.",
+      "Try adding the keyword 'Function'.");
+
   static const ParserErrorCode MISSING_FUNCTION_PARAMETERS =
       const ParserErrorCode(
           'MISSING_FUNCTION_PARAMETERS',
           "Functions must have an explicit list of parameters.",
-          "Try adding a parameter list.");
-
-  static const ParserErrorCode MISSING_METHOD_PARAMETERS =
-      const ParserErrorCode(
-          'MISSING_METHOD_PARAMETERS',
-          "Methods must have an explicit list of parameters.",
           "Try adding a parameter list.");
 
   static const ParserErrorCode MISSING_GET = const ParserErrorCode(
@@ -550,6 +549,18 @@ class ParserErrorCode extends ErrorCode {
       'MISSING_KEYWORD_OPERATOR',
       "Operator declarations must be preceeded by the keyword 'operator'.",
       "Try adding the keyword 'operator'.");
+
+  static const ParserErrorCode MISSING_METHOD_PARAMETERS =
+      const ParserErrorCode(
+          'MISSING_METHOD_PARAMETERS',
+          "Methods must have an explicit list of parameters.",
+          "Try adding a parameter list.");
+
+  static const ParserErrorCode MISSING_NAME_FOR_NAMED_PARAMETER =
+      const ParserErrorCode(
+          'MISSING_NAME_FOR_NAMED_PARAMETER',
+          "Named parameters in a function type must have a name",
+          "Try providing a name for the parameter or removing the curly braces.");
 
   static const ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE =
       const ParserErrorCode(
@@ -660,6 +671,11 @@ class ParserErrorCode extends ErrorCode {
       "Function expressions can't be named.",
       "Try removing the name, or "
       "moving the function expression to a function declaration statement.");
+
+  static const ParserErrorCode NAMED_FUNCTION_TYPE = const ParserErrorCode(
+      'NAMED_FUNCTION_TYPE',
+      "Function types can't be named.",
+      "Try replacing the name with the keyword 'Function'.");
 
   static const ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP =
       const ParserErrorCode(
