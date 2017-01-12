@@ -497,12 +497,33 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     push(trap);
   }
 
-  /// Returns the current source element.
+  /// Returns the current source element. This is used by the type builder.
   ///
   /// The returned element is a declaration element.
   // TODO(efortuna): Update this when we implement inlining.
+  // TODO(sra): Re-implement type builder using Kernel types and the
+  // `target` for context.
   @override
-  Element get sourceElement => astAdapter.getElement(target);
+  Element get sourceElement => _sourceElementForTarget(target);
+
+  Element _sourceElementForTarget(ir.Node target) {
+    // For closure-converted (i.e. local functions) the source element is the
+    // 'call' method of the class that represents the closure.
+    if (target is ir.FunctionExpression) {
+      LocalFunctionElement element = astAdapter.getElement(target);
+      ClosureClassMap classMap = compiler.closureToClassMapper
+          .getClosureToClassMapping(element.resolvedAst);
+      return classMap.callElement;
+    }
+    if (target is ir.FunctionDeclaration) {
+      LocalFunctionElement element = astAdapter.getElement(target);
+      ClosureClassMap classMap = compiler.closureToClassMapper
+          .getClosureToClassMapping(element.resolvedAst);
+      return classMap.callElement;
+    }
+    Element element = astAdapter.getElement(target);
+    return element;
+  }
 
   @override
   void visitBlock(ir.Block block) {
