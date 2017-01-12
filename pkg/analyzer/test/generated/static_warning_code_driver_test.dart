@@ -22,10 +22,4 @@ class StaticWarningCodeTest_Driver extends StaticWarningCodeTest {
   test_argumentTypeNotAssignable_ambiguousClassName() {
     return super.test_argumentTypeNotAssignable_ambiguousClassName();
   }
-
-  @failingTest
-  @override
-  test_importOfNonLibrary() {
-    return super.test_importOfNonLibrary();
-  }
 }

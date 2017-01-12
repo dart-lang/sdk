@@ -116,7 +116,7 @@ const ResultCachingPolicy<UsedLocalElements> USED_LOCAL_ELEMENTS_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
- * The errors produced while resolving a library directives.
+ * The errors produced while building a library's directives.
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *
@@ -125,7 +125,6 @@ const ResultCachingPolicy<UsedLocalElements> USED_LOCAL_ELEMENTS_POLICY =
 final ListResultDescriptor<AnalysisError> BUILD_DIRECTIVES_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'BUILD_DIRECTIVES_ERRORS', AnalysisError.NO_ERRORS);
-
 /**
  * The errors produced while building a library element.
  *
@@ -352,6 +351,7 @@ final List<ListResultDescriptor<AnalysisError>> ERROR_UNIT_RESULTS =
   HINTS,
   LIBRARY_UNIT_ERRORS,
   LINTS,
+  RESOLVE_DIRECTIVES_ERRORS,
   RESOLVE_TYPE_BOUNDS_ERRORS,
   RESOLVE_TYPE_NAMES_ERRORS,
   RESOLVE_UNIT_ERRORS,
@@ -703,6 +703,17 @@ final ListResultDescriptor<Source> REFERENCED_SOURCES =
 final ListResultDescriptor<ConstantEvaluationTarget> REQUIRED_CONSTANTS =
     new ListResultDescriptor<ConstantEvaluationTarget>(
         'REQUIRED_CONSTANTS', const <ConstantEvaluationTarget>[]);
+
+/**
+ * The errors produced while resolving a library's directives.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ListResultDescriptor<AnalysisError> RESOLVE_DIRECTIVES_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'RESOLVE_DIRECTIVES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The errors produced while resolving bounds of type parameters of classes,
@@ -1232,8 +1243,10 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       libraryElement.invalidateLibraryCycles();
       errors = builder.errors;
     } else {
-      DirectiveResolver resolver = new DirectiveResolver();
+      DirectiveResolver resolver = new DirectiveResolver(
+          sourceModificationTimeMap, importSourceKindMap, exportSourceKindMap);
       libraryUnit.accept(resolver);
+      errors = resolver.errors;
     }
     //
     // Record outputs.
@@ -3868,6 +3881,12 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       'STATIC_VARIABLE_RESOLUTION_ERRORS_INPUT';
 
   /**
+   * The name of the [RESOLVE_DIRECTIVES_ERRORS] input.
+   */
+  static const String RESOLVE_DIRECTIVES_ERRORS_INPUT =
+      'RESOLVE_DIRECTIVES_ERRORS';
+
+  /**
    * The name of the [STRONG_MODE_ERRORS] input.
    */
   static const String STRONG_MODE_ERRORS_INPUT = 'STRONG_MODE_ERRORS';
@@ -3925,6 +3944,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     errorLists.add(getRequiredInput(BUILD_LIBRARY_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(LINTS_INPUT));
+    errorLists.add(getRequiredInput(RESOLVE_DIRECTIVES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS2_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_UNIT_ERRORS_INPUT));
@@ -3948,6 +3968,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     Map<String, TaskInput> inputs = <String, TaskInput>{
       HINTS_INPUT: HINTS.of(unit),
       LINTS_INPUT: LINTS.of(unit),
+      RESOLVE_DIRECTIVES_ERRORS_INPUT: RESOLVE_DIRECTIVES_ERRORS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS2_INPUT: RESOLVE_TYPE_BOUNDS_ERRORS.of(unit),
       RESOLVE_UNIT_ERRORS_INPUT: RESOLVE_UNIT_ERRORS.of(unit),
@@ -5017,14 +5038,22 @@ class ResolveDirectiveElementsTask extends SourceBasedAnalysisTask {
    */
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
+  static const String SOURCES_MODIFICATION_TIME_INPUT =
+      'SOURCES_MODIFICATION_TIME_INPUT';
+  static const String IMPORTS_SOURCE_KIND_INPUT = 'IMPORTS_SOURCE_KIND_INPUT';
+  static const String EXPORTS_SOURCE_KIND_INPUT = 'EXPORTS_SOURCE_KIND_INPUT';
+
   /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveDirectiveElementsTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[CREATED_RESOLVED_UNIT2, RESOLVED_UNIT2]);
+      buildInputs, <ResultDescriptor>[
+    CREATED_RESOLVED_UNIT2,
+    RESOLVED_UNIT2,
+    RESOLVE_DIRECTIVES_ERRORS
+  ]);
 
   ResolveDirectiveElementsTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -5040,18 +5069,28 @@ class ResolveDirectiveElementsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    Map<Source, int> sourceModificationTimeMap =
+        getRequiredInput(SOURCES_MODIFICATION_TIME_INPUT);
+    Map<Source, SourceKind> importSourceKindMap =
+        getRequiredInput(IMPORTS_SOURCE_KIND_INPUT);
+    Map<Source, SourceKind> exportSourceKindMap =
+        getRequiredInput(EXPORTS_SOURCE_KIND_INPUT);
     //
     // Resolve directive AST nodes to elements.
     //
+    List<AnalysisError> errors = const <AnalysisError>[];
     if (targetUnit.unit == targetUnit.library) {
-      DirectiveResolver resolver = new DirectiveResolver();
+      DirectiveResolver resolver = new DirectiveResolver(
+          sourceModificationTimeMap, importSourceKindMap, exportSourceKindMap);
       unit.accept(resolver);
+      errors = resolver.errors;
     }
     //
     // Record outputs.
     //
     outputs[CREATED_RESOLVED_UNIT2] = true;
     outputs[RESOLVED_UNIT2] = unit;
+    outputs[RESOLVE_DIRECTIVES_ERRORS] = errors;
   }
 
   /**
@@ -5063,7 +5102,13 @@ class ResolveDirectiveElementsTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT2.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT1.of(unit)
+      UNIT_INPUT: RESOLVED_UNIT1.of(unit),
+      SOURCES_MODIFICATION_TIME_INPUT:
+          REFERENCED_SOURCES.of(unit.library).toMapOf(MODIFICATION_TIME),
+      IMPORTS_SOURCE_KIND_INPUT:
+          IMPORTED_LIBRARIES.of(unit.library).toMapOf(SOURCE_KIND),
+      EXPORTS_SOURCE_KIND_INPUT:
+          EXPORTED_LIBRARIES.of(unit.library).toMapOf(SOURCE_KIND)
     };
   }
 

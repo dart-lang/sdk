@@ -19,12 +19,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
 
   @failingTest
   @override
-  test_exportOfNonLibrary() {
-    return super.test_exportOfNonLibrary();
-  }
-
-  @failingTest
-  @override
   test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() {
     return super
         .test_fieldInitializerOutsideConstructor_inFunctionTypeParameter();
@@ -34,12 +28,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   @override
   test_fromEnvironment_bool_badDefault_whenDefined() {
     return super.test_fromEnvironment_bool_badDefault_whenDefined();
-  }
-
-  @failingTest
-  @override
-  test_importOfNonLibrary() {
-    return super.test_importOfNonLibrary();
   }
 
   @failingTest
