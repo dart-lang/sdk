@@ -28,34 +28,28 @@ class PhysicalFileSystem implements FileSystem {
     if (uri.scheme != 'file' && uri.scheme != '') {
       throw new ArgumentError('File URI expected');
     }
-    // Note: we don't have to verify that the URI's path is absolute, because
-    // URIs with non-empty schemes always have absolute paths.
-    var path = context.fromUri(uri);
-    return new _PhysicalFileSystemEntity(
-        context.normalize(context.absolute(path)));
+    return new _PhysicalFileSystemEntity(Uri.base.resolveUri(uri));
   }
 }
 
 /// Concrete implementation of [FileSystemEntity] for use by
 /// [PhysicalFileSystem].
 class _PhysicalFileSystemEntity implements FileSystemEntity {
-  final String _path;
+  @override
+  final Uri uri;
 
-  _PhysicalFileSystemEntity(this._path);
+  _PhysicalFileSystemEntity(this.uri);
 
   @override
-  int get hashCode => _path.hashCode;
-
-  @override
-  Uri get uri => p.toUri(_path);
+  int get hashCode => uri.hashCode;
 
   @override
   bool operator ==(Object other) =>
-      other is _PhysicalFileSystemEntity && other._path == _path;
+      other is _PhysicalFileSystemEntity && other.uri == uri;
 
   @override
-  Future<List<int>> readAsBytes() => new io.File(_path).readAsBytes();
+  Future<List<int>> readAsBytes() => new io.File.fromUri(uri).readAsBytes();
 
   @override
-  Future<String> readAsString() => new io.File(_path).readAsString();
+  Future<String> readAsString() => new io.File.fromUri(uri).readAsString();
 }
