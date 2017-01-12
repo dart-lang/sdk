@@ -218,14 +218,12 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
             result as ResultDescriptor<int>, 0, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
-        if (_dataStore.linkedMap.containsKey(uriString)) {
-          entry.setValue(result as ResultDescriptor<SourceKind>,
-              SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        if (_dataStore.unlinkedMap.containsKey(uriString)) {
-          entry.setValue(result as ResultDescriptor<SourceKind>,
-              SourceKind.PART, TargetedResult.EMPTY_LIST);
+        UnlinkedUnit unlinked = _dataStore.unlinkedMap[uriString];
+        if (unlinked != null) {
+          entry.setValue(
+              result as ResultDescriptor<SourceKind>,
+              unlinked.isPartOf ? SourceKind.PART : SourceKind.LIBRARY,
+              TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
