@@ -210,7 +210,7 @@ analyzer/test/src/task/strong/inferred_type_test: Crash # Issue 24485
 analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
 analyzer/test/src/task/yaml_test: Crash # Issue 24485
 
-[ $noopt || $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
