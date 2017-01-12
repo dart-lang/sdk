@@ -61,6 +61,7 @@ class ProcessInfo {
     if (closed != 0) {
       FATAL("Failed to close process exit code pipe");
     }
+    mx_handle_close(process_);
   }
   mx_handle_t process() const { return process_; }
   intptr_t exit_pipe_fd() const { return exit_pipe_fd_; }
@@ -87,7 +88,6 @@ class ProcessInfoList {
     active_processes_ = info;
   }
 
-
   static intptr_t LookupProcessExitFd(mx_handle_t process) {
     MutexLocker locker(mutex_);
     ProcessInfo* current = active_processes_;
@@ -100,6 +100,9 @@ class ProcessInfoList {
     return 0;
   }
 
+  static bool Exists(mx_handle_t process) {
+    return LookupProcessExitFd(process) != 0;
+  }
 
   static void RemoveProcess(mx_handle_t process) {
     MutexLocker locker(mutex_);
@@ -305,8 +308,8 @@ class ExitCodeHandler {
              return_code, exit_code_fd);
     if (exit_code_fd != 0) {
       int exit_message[2];
-      exit_message[0] = return_code;
-      exit_message[1] = 0;  // Do not negate return_code.
+      exit_message[0] = abs(return_code);
+      exit_message[1] = return_code >= 0 ? 0 : 1;
       intptr_t result = FDUtils::WriteToBlocking(exit_code_fd, &exit_message,
                                                  sizeof(exit_message));
       ASSERT((result == -1) || (result == sizeof(exit_code_fd)));
@@ -551,13 +554,37 @@ bool Process::Wait(intptr_t pid,
   }
   result->set_exit_code(exit_code);
 
+  // Close the process handle.
+  mx_handle_t process = static_cast<mx_handle_t>(pid);
+  mx_handle_close(process);
   return true;
 }
 
 
 bool Process::Kill(intptr_t id, int signal) {
-  errno = ENOSYS;
-  return false;
+  LOG_INFO("Sending signal %d to process with id %ld\n", signal, id);
+  // mx_task_kill is definitely going to kill the process.
+  if ((signal != SIGTERM) && (signal != SIGKILL)) {
+    LOG_ERR("Signal %d not supported\n", signal);
+    errno = ENOSYS;
+    return false;
+  }
+  // We can only use mx_task_kill if we know id is a process handle, and we only
+  // know that for sure if it's in our list.
+  mx_handle_t process = static_cast<mx_handle_t>(id);
+  if (!ProcessInfoList::Exists(process)) {
+    LOG_ERR("Process %ld wasn't in the ProcessInfoList\n", id);
+    errno = ESRCH;  // No such process.
+    return false;
+  }
+  mx_status_t status = mx_task_kill(process);
+  if (status != NO_ERROR) {
+    LOG_ERR("mx_task_kill failed: %s\n", mx_status_get_string(status));
+    errno = EPERM;  // TODO(zra): Figure out what it really should be.
+    return false;
+  }
+  LOG_INFO("Signal %d sent successfully to process %ld\n", signal, id);
+  return true;
 }
 
 
@@ -708,7 +735,12 @@ class ProcessStarter {
     launchpad_t* lp;
     mx_status_t status;
 
-    status = launchpad_create(0, program_arguments_[0], &lp);
+    mx_handle_t job = MX_HANDLE_INVALID;
+    status = mx_handle_duplicate(launchpad_get_mxio_job(), MX_RIGHT_SAME_RIGHTS,
+                                 &job);
+    CHECK_FOR_ERROR(status, "mx_handle_duplicate");
+
+    status = launchpad_create(job, program_arguments_[0], &lp);
     CHECK_FOR_ERROR(status, "launchpad_create");
     launchpad_ = lp;
 

@@ -245,6 +245,7 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
 
   if (!type.IsInstantiated()) return false;
   if (type.IsFunctionType()) return false;
+  if (type.IsDartFunctionType()) return false;
 
   Zone* zone = thread_->zone();
   const TypeArguments& type_arguments =
@@ -271,6 +272,11 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
   Class& cls = Class::Handle(zone);
   AbstractType& cls_type = AbstractType::Handle(zone);
   for (intptr_t cid = kInstanceCid; cid < table->NumCids(); cid++) {
+    // Create local zone because deep hierarchies may allocate lots of handles
+    // within one iteration of this loop.
+    StackZone stack_zone(thread_);
+    HANDLESCOPE(thread_);
+
     if (!table->HasValidClassAt(cid)) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
@@ -281,7 +287,7 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
     if (cls.IsTopLevel()) continue;
 
     cls_type = cls.RareType();
-    if (cls_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
+    if (cls_type.IsSubtypeOf(type, NULL, NULL, Heap::kNew)) {
       last_matching_cid = cid;
       if (*lower_limit == -1) {
         // Found beginning of range.

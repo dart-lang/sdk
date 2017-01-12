@@ -477,17 +477,18 @@ class _ConstExprBuilder {
           _pushList(null);
           break;
         case UnlinkedExprOperation.makeTypedList:
-          TypeName itemType = _newTypeName();
-          _pushList(AstTestFactory.typeArgumentList(<TypeName>[itemType]));
+          TypeAnnotation itemType = _newTypeName();
+          _pushList(
+              AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
           break;
         case UnlinkedExprOperation.makeUntypedMap:
           _pushMap(null);
           break;
         case UnlinkedExprOperation.makeTypedMap:
-          TypeName keyType = _newTypeName();
-          TypeName valueType = _newTypeName();
-          _pushMap(
-              AstTestFactory.typeArgumentList(<TypeName>[keyType, valueType]));
+          TypeAnnotation keyType = _newTypeName();
+          TypeAnnotation valueType = _newTypeName();
+          _pushMap(AstTestFactory
+              .typeArgumentList(<TypeAnnotation>[keyType, valueType]));
           break;
         case UnlinkedExprOperation.pushReference:
           _pushReference();
@@ -579,8 +580,8 @@ class _ConstExprBuilder {
     return AstTestFactory.propertyAccess(enclosing, property);
   }
 
-  TypeName _buildTypeAst(DartType type) {
-    List<TypeName> argumentNodes;
+  TypeAnnotation _buildTypeAst(DartType type) {
+    List<TypeAnnotation> argumentNodes;
     if (type is ParameterizedType) {
       if (!resynthesizer.libraryResynthesizer.typesWithImplicitTypeArguments
           .contains(type)) {
@@ -614,7 +615,7 @@ class _ConstExprBuilder {
    * Convert the next reference to the [DartType] and return the AST
    * corresponding to this type.
    */
-  TypeName _newTypeName() {
+  TypeAnnotation _newTypeName() {
     EntityRef typeRef = uc.references[refPtr++];
     DartType type =
         resynthesizer.buildType(typeRef, context?.typeParameterContext);
@@ -724,7 +725,8 @@ class _ConstExprBuilder {
     TypeArgumentList typeArguments;
     int numTypeArguments = uc.ints[intPtr++];
     if (numTypeArguments > 0) {
-      List<TypeName> typeNames = new List<TypeName>(numTypeArguments);
+      List<TypeAnnotation> typeNames =
+          new List<TypeAnnotation>(numTypeArguments);
       for (int i = 0; i < numTypeArguments; i++) {
         typeNames[i] = _newTypeName();
       }
@@ -1309,7 +1311,7 @@ class _ReferenceInfo {
       // If type arguments are specified, use them.
       // Otherwise, delay until they are requested.
       if (numTypeParameters == 0) {
-        typeArguments = const <DartType>[];
+        return element.type;
       } else if (numTypeArguments == numTypeParameters) {
         typeArguments = new List<DartType>(numTypeParameters);
         for (int i = 0; i < numTypeParameters; i++) {

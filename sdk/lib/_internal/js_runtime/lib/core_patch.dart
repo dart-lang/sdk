@@ -706,6 +706,9 @@ class StackTrace {
 }
 
 // Called from kernel generated code.
+_malformedTypeError(message) => new RuntimeError(message);
+
+// Called from kernel generated code.
 _genericNoSuchMethod(receiver, memberName, positionalArguments, namedArguments,
     existingArguments) {
   return new NoSuchMethodError(
@@ -730,4 +733,67 @@ _unresolvedConstructorError(receiver, memberName, positionalArguments,
 }
 
 // Called from kernel generated code.
-_malformedTypeError(message) => new RuntimeError(message);
+_unresolvedStaticGetterError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate customized message.
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_unresolvedStaticSetterError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate customized message.
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_unresolvedStaticMethodError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate customized message.
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_unresolvedTopLevelGetterError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate customized message.
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_unresolvedTopLevelSetterError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate customized message.
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}
+
+// Called from kernel generated code.
+_unresolvedTopLevelMethodError(receiver, memberName, positionalArguments,
+    namedArguments, existingArguments) {
+  // TODO(sra): Generate customized message.
+  return new NoSuchMethodError(
+      receiver,
+      memberName,
+      positionalArguments,
+      namedArguments);
+}

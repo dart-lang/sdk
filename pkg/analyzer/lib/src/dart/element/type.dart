@@ -833,11 +833,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   bool isSubtypeOf(DartType type) {
+    var typeSystem = new TypeSystemImpl(null);
     return relate(
-        this,
-        type,
+        typeSystem.instantiateToBounds(this),
+        typeSystem.instantiateToBounds(type),
         (DartType t, DartType s, _, __) => t.isAssignableTo(s),
-        new TypeSystemImpl(null).instantiateToBounds);
+        typeSystem.instantiateToBounds);
   }
 
   @override

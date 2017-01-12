@@ -5,7 +5,7 @@
 /// This library adapts ES6 generators to implement Dart's async/await.
 /// It's designed to interact with Dart's Future/Stream and follow Dart
 /// async/await semantics.
-/// See https://github.com/dart-lang/dev_compiler/issues/245 for ideas on
+/// See https://github.com/dart-lang/sdk/issues/27315 for ideas on
 /// reconciling Dart's Future and ES6 Promise.
 /// Inspired by `co`: https://github.com/tj/co/blob/master/index.js, which is a
 /// stepping stone for proposed ES7 async/await, and uses ES6 Promises.

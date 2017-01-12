@@ -350,6 +350,7 @@ class _YieldFinder extends BaseVisitor {
   @override
   visitYield(Yield node) {
     if (!_nestedFunction) hasYield = true;
+    super.visitYield(node);
   }
 
   @override

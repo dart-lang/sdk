@@ -939,10 +939,14 @@ class Emitter implements js_emitter.Emitter {
 
             prototype[getterName] = function () {
               var result = this[fieldName];
+              if (result == sentinelInProgress) {
+                // In minified mode, static name is not provided, so fall back
+                // to the minified fieldName.
+                #cyclicThrow(staticName || fieldName);
+              }
               try {
                 if (result === sentinelUndefined) {
                   this[fieldName] = sentinelInProgress;
-
                   try {
                     result = this[fieldName] = lazyValue();
                   } finally {
@@ -951,13 +955,7 @@ class Emitter implements js_emitter.Emitter {
                     if (result === sentinelUndefined)
                       this[fieldName] = null;
                   }
-                } else {
-                  if (result === sentinelInProgress)
-                    // In minified mode, static name is not provided, so fall
-                    // back to the minified fieldName.
-                    #cyclicThrow(staticName || fieldName);
                 }
-
                 return result;
               } finally {
                 this[getterName] = function() { return this[fieldName]; };

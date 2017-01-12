@@ -504,7 +504,25 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+    // The Dart VM reuses type argument lists across instances in order
+    // to reduce memory footprint, this can sometimes lead to a type from
+    // such a shared type argument list being sent over to another isolate.
+    // In such scenarios where it is not appropriate to send the types
+    // across (isolates spawned using spawnURI) we send them as dynamic.
+    if (!writer->can_send_any_object()) {
+      // Lookup the type class.
+      RawType* raw_type = Type::RawCast(ptr()->types()[i]);
+      RawSmi* raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id_);
+      RawClass* type_class =
+          writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
+      if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library_)) {
+        writer->WriteVMIsolateObject(kDynamicType);
+      } else {
+        writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+      }
+    } else {
+      writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+    }
   }
 }
 

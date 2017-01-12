@@ -11,5 +11,5 @@ class C {
 }
 
 main() async {
-  Expect.equals(await new C().m(), 42);
+  Expect.equals((await new C().m()).first, 42);
 }

@@ -73,7 +73,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 9;
+  static const int DATA_VERSION = 10;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -295,6 +295,11 @@ class AnalysisDriver {
    * not been processed yet, it might be missing.
    */
   Set<String> get knownFiles => _fsState.knownFilePaths;
+
+  /**
+   * Return the number of files scheduled for analysis.
+   */
+  int get numberOfFilesToAnalyze => _filesToAnalyze.length;
 
   /**
    * Return the list of files that the driver should try to analyze sooner.

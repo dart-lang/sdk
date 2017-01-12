@@ -238,6 +238,7 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   visitVariableGet(VariableGet node) {
     checkVariableInScope(node.variable, node);
+    visitChildren(node);
   }
 
   visitVariableSet(VariableSet node) {

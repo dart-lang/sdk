@@ -638,17 +638,26 @@ class BackendHelpers {
     return _findHelper('throwNoSuchMethod');
   }
 
-  Element get genericNoSuchMethod =>
-      _genericNoSuchMethod ??= findCoreHelper('_genericNoSuchMethod');
-  MethodElement _genericNoSuchMethod;
+  Element get malformedTypeError => _cachedCoreHelper('_malformedTypeError');
+  Element get genericNoSuchMethod => _cachedCoreHelper('_genericNoSuchMethod');
+  Element get unresolvedConstructorError =>
+      _cachedCoreHelper('_unresolvedConstructorError');
+  Element get unresolvedStaticGetterError =>
+      _cachedCoreHelper('_unresolvedStaticGetterError');
+  Element get unresolvedStaticSetterError =>
+      _cachedCoreHelper('_unresolvedStaticSetterError');
+  Element get unresolvedStaticMethodError =>
+      _cachedCoreHelper('_unresolvedStaticMethodError');
+  Element get unresolvedTopLevelGetterError =>
+      _cachedCoreHelper('_unresolvedTopLevelGetterError');
+  Element get unresolvedTopLevelSetterError =>
+      _cachedCoreHelper('_unresolvedTopLevelSetterError');
+  Element get unresolvedTopLevelMethodError =>
+      _cachedCoreHelper('_unresolvedTopLevelMethodError');
 
-  Element get unresolvedConstructorError => _unresolvedConstructorError ??=
-      findCoreHelper('_unresolvedConstructorError');
-  MethodElement _unresolvedConstructorError;
-
-  Element get malformedTypeError =>
-      _malformedTypeError ??= findCoreHelper('_malformedTypeError');
-  MethodElement _malformedTypeError;
+  Map<String, Element> _cachedCoreHelpers = <String, Element>{};
+  Element _cachedCoreHelper(String name) =>
+      _cachedCoreHelpers[name] ??= findCoreHelper(name);
 
   Element get createRuntimeType {
     return _findHelper('createRuntimeType');

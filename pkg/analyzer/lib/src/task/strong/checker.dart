@@ -217,8 +217,8 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  DartType getType(TypeName name) {
-    return (name == null) ? DynamicTypeImpl.instance : name.type;
+  DartType getType(TypeAnnotation type) {
+    return type?.type ?? DynamicTypeImpl.instance;
   }
 
   void reset() {
@@ -492,7 +492,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitListLiteral(ListLiteral node) {
     DartType type = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
-      NodeList<TypeName> targs = node.typeArguments.arguments;
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
       if (targs.length > 0) {
         type = targs[0].type;
       }
@@ -517,7 +517,7 @@ class CodeChecker extends RecursiveAstVisitor {
     DartType ktype = DynamicTypeImpl.instance;
     DartType vtype = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
-      NodeList<TypeName> targs = node.typeArguments.arguments;
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
       if (targs.length > 0) {
         ktype = targs[0].type;
       }
@@ -657,7 +657,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    TypeName type = node.type;
+    TypeAnnotation type = node.type;
     if (type == null) {
       // No checks are needed when the type is var. Although internally the
       // typing rules may have inferred a more precise type for the variable
@@ -876,8 +876,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expression != null) checkAssignment(expression, type);
   }
 
-  void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
-    var type = getType(typeName);
+  void _checkRuntimeTypeCheck(AstNode node, TypeAnnotation annotation) {
+    var type = getType(annotation);
     if (!rules.isGroundType(type)) {
       _recordMessage(node, StrongModeCode.NON_GROUND_TYPE_CHECK_INFO, [type]);
     }

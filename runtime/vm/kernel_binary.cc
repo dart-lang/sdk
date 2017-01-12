@@ -94,7 +94,6 @@ enum Tag {
   kAwaitExpression = 51,
   kFunctionExpression = 52,
   kLet = 53,
-  kBlockExpression = 54,
 
   kPositiveIntLiteral = 55,
   kNegativeIntLiteral = 56,
@@ -919,6 +918,7 @@ void Library::WriteTo(Writer* writer) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
+  position_ = reader->ReadPosition();
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
@@ -930,6 +930,7 @@ Class* Class::ReadFrom(Reader* reader) {
 
 void Class::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
+  writer->WritePosition(position_);
   writer->WriteBool(is_abstract_);
   name_->WriteTo(writer);
   writer->WriteUInt(source_uri_index_);
@@ -1167,6 +1168,7 @@ Field* Field::ReadFrom(Reader* reader) {
   ASSERT(tag == kField);
 
   position_ = reader->ReadPosition();
+  end_position_ = reader->ReadPosition();
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
@@ -1182,6 +1184,7 @@ void Field::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kField);
   writer->WritePosition(position_);
+  writer->WritePosition(end_position_);
   writer->WriteFlags(flags_);
   name_->WriteTo(writer);
   writer->WriteUInt(source_uri_index_);
@@ -1198,6 +1201,8 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
   ASSERT(tag == kConstructor);
 
   VariableScope<ReaderHelper> parameters(reader->helper());
+  position_ = reader->ReadPosition();
+  end_position_ = reader->ReadPosition();
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   annotations_.ReadFromStatic<Expression>(reader);
@@ -1211,6 +1216,8 @@ void Constructor::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kConstructor);
 
+  writer->WritePosition(position_);
+  writer->WritePosition(end_position_);
   VariableScope<WriterHelper> parameters(writer->helper());
   writer->WriteFlags(flags_);
   name_->WriteTo(writer);
@@ -1226,6 +1233,8 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   ASSERT(tag == kProcedure);
 
   VariableScope<ReaderHelper> parameters(reader->helper());
+  position_ = reader->ReadPosition();
+  end_position_ = reader->ReadPosition();
   kind_ = static_cast<ProcedureKind>(reader->ReadByte());
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
@@ -1240,6 +1249,8 @@ void Procedure::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kProcedure);
 
+  writer->WritePosition(position_);
+  writer->WritePosition(end_position_);
   VariableScope<WriterHelper> parameters(writer->helper());
   writer->WriteByte(kind_);
   writer->WriteFlags(flags_);
@@ -1424,8 +1435,6 @@ Expression* Expression::ReadFrom(Reader* reader) {
       return FunctionExpression::ReadFrom(reader);
     case kLet:
       return Let::ReadFrom(reader);
-    case kBlockExpression:
-      return BlockExpression::ReadFrom(reader);
     case kBigIntLiteral:
       return BigintLiteral::ReadFrom(reader);
     case kStringLiteral:
@@ -1466,6 +1475,7 @@ void InvalidExpression::WriteTo(Writer* writer) {
 VariableGet* VariableGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableGet* get = new VariableGet();
+  get->position_ = reader->ReadPosition();
   get->variable_ = reader->helper()->variables().Lookup(reader->ReadUInt());
   reader->ReadOptional<DartType>();  // Unused promoted type.
   return get;
@@ -1475,6 +1485,7 @@ VariableGet* VariableGet::ReadFrom(Reader* reader) {
 VariableGet* VariableGet::ReadFrom(Reader* reader, uint8_t payload) {
   TRACE_READ_OFFSET();
   VariableGet* get = new VariableGet();
+  get->position_ = reader->ReadPosition();
   get->variable_ = reader->helper()->variables().Lookup(payload);
   return get;
 }
@@ -1485,8 +1496,10 @@ void VariableGet::WriteTo(Writer* writer) {
   int index = writer->helper()->variables().Lookup(variable_);
   if ((index & kSpecializedPayloadMask) == index) {
     writer->WriteTag(kSpecializedVariableGet, static_cast<uint8_t>(index));
+    writer->WritePosition(position_);
   } else {
     writer->WriteTag(kVariableGet);
+    writer->WritePosition(position_);
     writer->WriteUInt(index);
     writer->WriteOptional<DartType>(NULL);
   }
@@ -1496,6 +1509,7 @@ void VariableGet::WriteTo(Writer* writer) {
 VariableSet* VariableSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableSet* set = new VariableSet();
+  set->position_ = reader->ReadPosition();
   set->variable_ = reader->helper()->variables().Lookup(reader->ReadUInt());
   set->expression_ = Expression::ReadFrom(reader);
   return set;
@@ -1506,6 +1520,7 @@ VariableSet* VariableSet::ReadFrom(Reader* reader, uint8_t payload) {
   TRACE_READ_OFFSET();
   VariableSet* set = new VariableSet();
   set->variable_ = reader->helper()->variables().Lookup(payload);
+  set->position_ = reader->ReadPosition();
   set->expression_ = Expression::ReadFrom(reader);
   return set;
 }
@@ -1516,8 +1531,10 @@ void VariableSet::WriteTo(Writer* writer) {
   int index = writer->helper()->variables().Lookup(variable_);
   if ((index & kSpecializedPayloadMask) == index) {
     writer->WriteTag(kSpecializedVariableSet, static_cast<uint8_t>(index));
+    writer->WritePosition(position_);
   } else {
     writer->WriteTag(kVariableSet);
+    writer->WritePosition(position_);
     writer->WriteUInt(index);
   }
   expression_->WriteTo(writer);
@@ -1813,6 +1830,7 @@ void ConditionalExpression::WriteTo(Writer* writer) {
 StringConcatenation* StringConcatenation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StringConcatenation* concat = new StringConcatenation();
+  concat->position_ = reader->ReadPosition();
   concat->expressions_.ReadFromStatic<Expression>(reader);
   return concat;
 }
@@ -1821,6 +1839,7 @@ StringConcatenation* StringConcatenation::ReadFrom(Reader* reader) {
 void StringConcatenation::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kStringConcatenation);
+  writer->WritePosition(position_);
   expressions_.WriteTo(writer);
 }
 
@@ -1828,6 +1847,7 @@ void StringConcatenation::WriteTo(Writer* writer) {
 IsExpression* IsExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   IsExpression* expr = new IsExpression();
+  expr->position_ = reader->ReadPosition();
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
   return expr;
@@ -1837,6 +1857,7 @@ IsExpression* IsExpression::ReadFrom(Reader* reader) {
 void IsExpression::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kIsExpression);
+  writer->WritePosition(position_);
   operand_->WriteTo(writer);
   type_->WriteTo(writer);
 }
@@ -2048,6 +2069,7 @@ MapLiteral* MapLiteral::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   MapLiteral* literal = new MapLiteral();
   literal->is_const_ = is_const;
+  literal->position_ = reader->ReadPosition();
   literal->key_type_ = DartType::ReadFrom(reader);
   literal->value_type_ = DartType::ReadFrom(reader);
   literal->entries_.ReadFromStatic<MapEntry>(reader);
@@ -2058,6 +2080,7 @@ MapLiteral* MapLiteral::ReadFrom(Reader* reader, bool is_const) {
 void MapLiteral::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(is_const_ ? kConstMapLiteral : kMapLiteral);
+  writer->WritePosition(position_);
   key_type_->WriteTo(writer);
   value_type_->WriteTo(writer);
   entries_.WriteTo(writer);
@@ -2127,23 +2150,6 @@ void Let::WriteTo(Writer* writer) {
   writer->WriteTag(kLet);
   variable_->WriteToImpl(writer);
   body_->WriteTo(writer);
-}
-
-
-BlockExpression* BlockExpression::ReadFrom(Reader* reader) {
-  TRACE_READ_OFFSET();
-  BlockExpression* be = new BlockExpression();
-  be->body_ = Block::ReadFromImpl(reader);
-  be->value_ = Expression::ReadFrom(reader);
-  return be;
-}
-
-
-void BlockExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kBlockExpression);
-  body_->WriteToImpl(writer);
-  value_->WriteTo(writer);
 }
 
 
@@ -2476,6 +2482,7 @@ void IfStatement::WriteTo(Writer* writer) {
 ReturnStatement* ReturnStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   ReturnStatement* ret = new ReturnStatement();
+  ret->position_ = reader->ReadPosition();
   ret->expression_ = reader->ReadOptional<Expression>();
   return ret;
 }
@@ -2484,6 +2491,7 @@ ReturnStatement* ReturnStatement::ReadFrom(Reader* reader) {
 void ReturnStatement::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kReturnStatement);
+  writer->WritePosition(position_);
   writer->WriteOptional<Expression>(expression_);
 }
 
@@ -2551,6 +2559,7 @@ void TryFinally::WriteTo(Writer* writer) {
 YieldStatement* YieldStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   YieldStatement* stmt = new YieldStatement();
+  stmt->position_ = reader->ReadPosition();
   stmt->flags_ = reader->ReadByte();
   stmt->expression_ = Expression::ReadFrom(reader);
   return stmt;
@@ -2560,6 +2569,7 @@ YieldStatement* YieldStatement::ReadFrom(Reader* reader) {
 void YieldStatement::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kYieldStatement);
+  writer->WritePosition(position_);
   writer->WriteByte(flags_);
   expression_->WriteTo(writer);
 }
@@ -2576,6 +2586,7 @@ VariableDeclaration* VariableDeclaration::ReadFrom(Reader* reader) {
 VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableDeclaration* decl = new VariableDeclaration();
+  decl->position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
   decl->name_ = Reference::ReadStringFrom(reader);
   decl->type_ = DartType::ReadFrom(reader);
@@ -2595,6 +2606,7 @@ void VariableDeclaration::WriteTo(Writer* writer) {
 
 void VariableDeclaration::WriteToImpl(Writer* writer) {
   TRACE_WRITE_OFFSET();
+  writer->WritePosition(position_);
   writer->WriteFlags(flags_);
   name_->WriteTo(writer);
   type_->WriteTo(writer);
@@ -2607,6 +2619,7 @@ void VariableDeclaration::WriteToImpl(Writer* writer) {
 FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   FunctionDeclaration* decl = new FunctionDeclaration();
+  decl->position_ = reader->ReadPosition();
   decl->variable_ = VariableDeclaration::ReadFromImpl(reader);
   VariableScope<ReaderHelper> parameters(reader->helper());
   decl->function_ = FunctionNode::ReadFrom(reader);
@@ -2617,6 +2630,7 @@ FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
 void FunctionDeclaration::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   writer->WriteTag(kFunctionDeclaration);
+  writer->WritePosition(position_);
   variable_->WriteToImpl(writer);
   VariableScope<WriterHelper> parameters(writer->helper());
   function_->WriteTo(writer);
@@ -2869,8 +2883,11 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   TypeParameterScope<ReaderHelper> scope(reader->helper());
 
   FunctionNode* function = new FunctionNode();
+  function->position_ = reader->ReadPosition();
+  function->end_position_ = reader->ReadPosition();
   function->async_marker_ =
       static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
+  function->debuggable_ = reader->ReadByte() == 1 ? true : false;
   function->type_parameters().ReadFrom(reader);
   function->required_parameter_count_ = reader->ReadUInt();
   function->positional_parameters().ReadFromStatic<VariableDeclarationImpl>(
@@ -2891,7 +2908,10 @@ void FunctionNode::WriteTo(Writer* writer) {
   TRACE_WRITE_OFFSET();
   TypeParameterScope<WriterHelper> scope(writer->helper());
 
+  writer->WritePosition(position_);
+  writer->WritePosition(end_position_);
   writer->WriteByte(static_cast<uint8_t>(async_marker_));
+  writer->WriteByte(debuggable_ ? 1 : 0);
   type_parameters().WriteTo(writer);
   writer->WriteUInt(required_parameter_count());
   positional_parameters().WriteToStatic<VariableDeclarationImpl>(writer);

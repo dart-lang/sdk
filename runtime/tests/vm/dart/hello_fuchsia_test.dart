@@ -397,6 +397,17 @@ void testProcessRunSync() {
   print("$exe --version had stderr = '${result.stderr}'");
 }
 
+Future testKill() async {
+  String exe = Platform.resolvedExecutable;
+  String script = Platform.script.path;
+  print("Running $exe $script");
+  Process p = await Process.start(exe, [script, "infinite-loop"]);
+  await new Future.delayed(const Duration(seconds: 1));
+  p.kill();
+  int code = await p.exitCode;
+  print("$exe $script exited with code $code");
+}
+
 Future testLs(String path) async {
   Stream<FileSystemEntity> stream = (new Directory(path)).list();
   await for (FileSystemEntity fse in stream) {
@@ -431,7 +442,35 @@ Future testCopy() async {
   await tmp.delete();
 }
 
-main() async {
+Future testRecursiveDelete() async {
+  Directory tmp0 = await Directory.systemTemp.createTemp("testRD");
+  Directory tmp1 = await tmp0.createTemp("testRD");
+  Directory tmp2 = await tmp1.createTemp("testRD");
+  File file0 = new File("${tmp0.path}/file");
+  File file1 = new File("${tmp1.path}/file");
+  File file2 = new File("${tmp2.path}/file");
+  List<int> data = new List<int>.generate(10 * 1024, (int i) => i & 0xff);
+  await file0.writeAsBytes(data);
+  await file1.writeAsBytes(data);
+  await file2.writeAsBytes(data);
+
+  await tmp0.delete(recursive: true);
+
+  assert(!await file2.exists());
+  assert(!await file1.exists());
+  assert(!await file0.exists());
+  assert(!await tmp2.exists());
+  assert(!await tmp1.exists());
+  assert(!await tmp0.exists());
+}
+
+main(List<String> args) async {
+  if (args.length >= 1) {
+    if (args[0] == "infinite-loop") {
+      while (true);
+    }
+  }
+
   print("Hello, Fuchsia!");
 
   print("testAddressParse");
@@ -478,9 +517,17 @@ main() async {
   testProcessRunSync();
   print("testProcessRunSync done");
 
+  print("testKill");
+  await testKill();
+  print("testKill done");
+
   print("testCopy");
   await testCopy();
   print("testCopy done");
+
+  print("testRecursiveDelete");
+  await testRecursiveDelete();
+  print("testRecursiveDelete done");
 
   print("Goodbyte, Fuchsia!");
 }

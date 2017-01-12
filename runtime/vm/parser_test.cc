@@ -179,7 +179,7 @@ TEST_CASE(Parser_TopLevel) {
 #ifndef PRODUCT
 
 
-static const char* saved_vars = NULL;
+static char* saved_vars = NULL;
 
 
 static char* SkipIndex(const char* input) {
@@ -218,7 +218,7 @@ static void SaveVars(Dart_IsolateId isolate_id,
   DebuggerStackTrace* stack = Isolate::Current()->debugger()->StackTrace();
   intptr_t num_frames = stack->Length();
   const int kBufferLen = 2048;
-  char* buffer = new char[kBufferLen];
+  char* buffer = reinterpret_cast<char*>(malloc(kBufferLen));
   char* pos = buffer;
   LocalVarDescriptors& var_desc = LocalVarDescriptors::Handle();
   for (intptr_t i = 0; i < num_frames; i++) {
@@ -233,15 +233,16 @@ static void SaveVars(Dart_IsolateId isolate_id,
     delete[] var_str;
   }
   pos[0] = '\0';
+  if (saved_vars != NULL) {
+    free(saved_vars);
+  }
   saved_vars = buffer;
 }
 
 
 // Uses the debugger to pause the program and capture the variable
 // descriptors for all frames on the stack.
-static const char* CaptureVarsAtLine(Dart_Handle lib,
-                                     const char* entry,
-                                     int line) {
+static char* CaptureVarsAtLine(Dart_Handle lib, const char* entry, int line) {
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   bool saved_flag = FLAG_show_invisible_frames;
   FLAG_show_invisible_frames = true;
@@ -249,7 +250,7 @@ static const char* CaptureVarsAtLine(Dart_Handle lib,
   EXPECT_VALID(Dart_SetBreakpoint(NewString(TestCase::url()), line));
   saved_vars = NULL;
   EXPECT_VALID(Dart_Invoke(lib, NewString(entry), 0, NULL));
-  const char* tmp = saved_vars;
+  char* tmp = saved_vars;
   saved_vars = NULL;
   FLAG_show_invisible_frames = saved_flag;
   return tmp;
@@ -267,6 +268,7 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
+  char* vars = CaptureVarsAtLine(lib, "main", 4);
   EXPECT_STREQ(
       // function f uses one ctx var at (0); doesn't save ctx.
       "main.f\n"
@@ -288,7 +290,8 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
       " 1 ContextLevel  level=1   scope=2   begin=4   end=37\n"
       " 2 ContextVar    level=1   begin=10  end=37  name=value\n"
       " 3 StackVar      scope=2   begin=12  end=37  name=f\n",
-      CaptureVarsAtLine(lib, "main", 4));
+      vars);
+  free(vars);
 }
 
 
@@ -306,6 +309,7 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
+  char* vars = CaptureVarsAtLine(lib, "a", 5);
   EXPECT_STREQ(
       // Innermost function uses captured variable 'value' from middle
       // function.
@@ -343,7 +347,8 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
       " 1 StackVar      scope=2   begin=6   end=46  name=b\n",
-      CaptureVarsAtLine(lib, "a", 5));
+      vars);
+  free(vars);
 }
 
 
@@ -366,6 +371,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
+  char* vars = CaptureVarsAtLine(lib, "a", 7);
   EXPECT_STREQ(
       // bb captures only value2 from aa.  No others.
       "a.b.aa.bb\n"
@@ -415,7 +421,8 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 1 ContextLevel  level=1   scope=2   begin=4   end=70\n"
       " 2 ContextVar    level=1   begin=10  end=70  name=value1\n"
       " 3 StackVar      scope=2   begin=12  end=70  name=b\n",
-      CaptureVarsAtLine(lib, "a", 7));
+      vars);
+  free(vars);
 }
 
 
@@ -447,6 +454,7 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
+  char* vars = CaptureVarsAtLine(lib, "doIt", 12);
   EXPECT_STREQ(
       // This frame saves the entry context instead of chaining.  Good.
       "doIt.<anonymous closure>\n"
@@ -471,7 +479,8 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
       " 1 StackVar      scope=2   begin=35  end=77  name=x\n",
-      CaptureVarsAtLine(lib, "doIt", 12));
+      vars);
+  free(vars);
 }
 
 
@@ -493,6 +502,7 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
+  char* vars = CaptureVarsAtLine(lib, "outer", 5);
   EXPECT_STREQ(
       // inner function captures variable value.  That's fine.
       "outer.inner\n"
@@ -515,7 +525,8 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       " 2 ContextLevel  level=1   scope=4   begin=20  end=50\n"
       " 3 ContextVar    level=1   begin=28  end=50  name=value\n"
       " 4 StackVar      scope=4   begin=30  end=50  name=inner\n",
-      CaptureVarsAtLine(lib, "outer", 5));
+      vars);
+  free(vars);
 }
 
 TEST_CASE(Parser_AllocateVariables_MiddleChain) {
@@ -537,6 +548,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
+  char* vars = CaptureVarsAtLine(lib, "a", 10);
   EXPECT_STREQ(
       "a.b.c\n"
       " 0 ContextVar    level=0   begin=50  end=62  name=x\n"
@@ -568,7 +580,8 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 1 ContextLevel  level=1   scope=2   begin=3   end=79\n"
       " 2 ContextVar    level=1   begin=9   end=79  name=x\n"
       " 3 StackVar      scope=2   begin=11  end=79  name=b\n",
-      CaptureVarsAtLine(lib, "a", 10));
+      vars);
+  free(vars);
 }
 
 #endif  // !PRODUCT

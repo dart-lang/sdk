@@ -307,6 +307,11 @@ class TypeScope extends ReferenceScope {
 
   ast.DartType get defaultTypeParameterBound => getRootClassReference().rawType;
 
+  ast.TypeParameter tryGetTypeParameterReference(TypeParameterElement element) {
+    return localTypeParameters[element] ??
+        loader.tryGetClassTypeParameter(element);
+  }
+
   ast.TypeParameter getTypeParameterReference(TypeParameterElement element) {
     return localTypeParameters[element] ??
         loader.tryGetClassTypeParameter(element) ??
@@ -385,7 +390,8 @@ class TypeScope extends ReferenceScope {
             .toList();
       }
       return new List<ast.DartType>.filled(
-          genericFunctionType.typeParameters.length, const ast.DynamicType());
+          genericFunctionType.typeParameters.length, const ast.DynamicType(),
+          growable: true);
     } else {
       return <ast.DartType>[];
     }
@@ -472,7 +478,7 @@ class TypeScope extends ReferenceScope {
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: requiredParameterCount,
-        returnType: returnType);
+        returnType: returnType)..fileOffset = element.nameOffset;
   }
 }
 
@@ -566,6 +572,8 @@ class ExpressionScope extends TypeScope {
           break;
       }
     }
+    int offset = formalParameters?.offset ?? body.offset;
+    int endOffset = body.endToken.offset;
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,
         positionalParameters: positional,
@@ -575,7 +583,9 @@ class ExpressionScope extends TypeScope {
             inferredReturnType ??
             const ast.DynamicType(),
         asyncMarker: getAsyncMarker(
-            isAsync: body.isAsynchronous, isStar: body.isGenerator));
+            isAsync: body.isAsynchronous, isStar: body.isGenerator))
+      ..fileOffset = offset
+      ..fileEndOffset = endOffset;
   }
 
   ast.Expression buildOptionalTopLevelExpression(Expression node) {
@@ -636,7 +646,8 @@ class ExpressionScope extends TypeScope {
   ast.VariableDeclaration getVariableReference(LocalElement element) {
     return localVariables.putIfAbsent(element, () {
       return new ast.VariableDeclaration(element.name,
-          isFinal: isFinal(element), isConst: isConst(element));
+          isFinal: isFinal(element),
+          isConst: isConst(element))..fileOffset = element.nameOffset;
     });
   }
 
@@ -900,11 +911,19 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
   StatementBuilder(this.scope, [this.breakStack, this.continueStack]);
 
   ast.Statement build(Statement node) {
-    return node.accept(this);
+    ast.Statement result = node.accept(this);
+    result.fileOffset = _getOffset(node);
+    return result;
   }
 
   ast.Statement buildOptional(Statement node) {
-    return node?.accept(this);
+    ast.Statement result = node?.accept(this);
+    result?.fileOffset = _getOffset(node);
+    return result;
+  }
+
+  int _getOffset(AstNode node) {
+    return node.offset;
   }
 
   ast.Statement buildInScope(
@@ -1171,6 +1190,28 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     return loop;
   }
 
+  DartType iterableElementType(DartType iterable) {
+    if (iterable is InterfaceType) {
+      var iterator = iterable.lookUpInheritedGetter('iterator')?.returnType;
+      if (iterator is InterfaceType) {
+        return iterator.lookUpInheritedGetter('current')?.returnType;
+      }
+    }
+    return null;
+  }
+
+  DartType streamElementType(DartType stream) {
+    if (stream is InterfaceType) {
+      var class_ = stream.element;
+      if (class_.library.isDartAsync &&
+          class_.name == 'Stream' &&
+          stream.typeArguments.length == 1) {
+        return stream.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
   ast.Statement visitForEachStatement(ForEachStatement node) {
     ast.VariableDeclaration variable;
     Accessor leftHand;
@@ -1180,8 +1221,16 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
           type: scope.buildOptionalTypeAnnotation(loopVariable.type));
     } else if (node.identifier != null) {
       leftHand = scope.buildLeftHandValue(node.identifier);
-      // TODO: In strong mode, set variable type based on iterable type.
       variable = new ast.VariableDeclaration(null, isFinal: true);
+      if (scope.strongMode) {
+        var containerType = node.iterable.staticType;
+        DartType elementType = node.awaitKeyword != null
+            ? streamElementType(containerType)
+            : iterableElementType(containerType);
+        if (elementType != null) {
+          variable.type = scope.buildType(elementType);
+        }
+      }
     }
     var breakNode = new LabelStack.unlabeled(breakStack);
     var continueNode = new LabelStack.unlabeled(continueStack);
@@ -1208,7 +1257,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         variable,
         scope.buildExpression(node.iterable),
         makeBreakTarget(body, continueNode),
-        isAsync: node.awaitKeyword != null);
+        isAsync: node.awaitKeyword != null)..fileOffset = node.offset;
     return makeBreakTarget(loop, breakNode);
   }
 
@@ -1279,14 +1328,14 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     var declaration = node.functionDeclaration;
     var expression = declaration.functionExpression;
     LocalElement element = declaration.element as dynamic; // Cross cast.
-    // TODO: Set a function type on the variable.
     return new ast.FunctionDeclaration(
-        scope.makeVariableDeclaration(element),
+        scope.makeVariableDeclaration(element,
+            type: scope.buildType(declaration.element.type)),
         scope.buildFunctionNode(expression.parameters, expression.body,
             typeParameters: scope.buildOptionalTypeParameterList(
                 expression.typeParameters,
                 strongModeOnly: true),
-            returnType: declaration.returnType));
+            returnType: declaration.returnType))..fileOffset = node.offset;
   }
 
   @override
@@ -1320,6 +1369,14 @@ class ExpressionBuilder
       return node.identifier.offset;
     } else if (node is AssignmentExpression) {
       return _getOffset(node.leftHandSide);
+    } else if (node is PropertyAccess) {
+      return node.propertyName.offset;
+    } else if (node is IsExpression) {
+      return node.isOperator.offset;
+    } else if (node is StringLiteral) {
+      // Use a catch-all for StringInterpolation and AdjacentStrings:
+      // the debugger stops at the end.
+      return node.end;
     }
     return node.offset;
   }
@@ -1353,6 +1410,7 @@ class ExpressionBuilder
       // Cut off the trailing '='.
       var name = new ast.Name(operator.substring(0, operator.length - 1));
       return leftHand.buildCompoundAssignment(name, rightHand,
+          offset: node.offset,
           voidContext: voidContext,
           interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
     }
@@ -1376,7 +1434,7 @@ class ExpressionBuilder
       ast.Expression leftOperand = build(node.leftOperand);
       if (leftOperand is ast.VariableGet) {
         return new ast.ConditionalExpression(
-            buildIsNull(leftOperand),
+            buildIsNull(leftOperand, offset: node.leftOperand.offset),
             build(node.rightOperand),
             new ast.VariableGet(leftOperand.variable),
             scope.getInferredType(node));
@@ -1385,7 +1443,8 @@ class ExpressionBuilder
         return new ast.Let(
             variable,
             new ast.ConditionalExpression(
-                buildIsNull(new ast.VariableGet(variable)),
+                buildIsNull(new ast.VariableGet(variable),
+                    offset: leftOperand.fileOffset),
                 build(node.rightOperand),
                 new ast.VariableGet(variable),
                 scope.getInferredType(node)));
@@ -1894,7 +1953,7 @@ class ExpressionBuilder
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
                   buildArgumentsForInvocation(node),
-                  element),
+                  element)..fileOffset = node.methodName.offset,
               scope.buildType(node.staticType)));
     } else {
       return buildDecomposableMethodInvocation(
@@ -1929,6 +1988,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPostfixIncrement(binaryOperator,
+            offset: node.offset,
             voidContext: isInVoidContext(node),
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
@@ -1962,6 +2022,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPrefixIncrement(binaryOperator,
+            offset: node.offset,
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
       default:
@@ -2125,7 +2186,15 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
         return const ast.DynamicType();
       }
       if (boundVariables == null || boundVariables.contains(type)) {
-        var typeParameter = scope.getTypeParameterReference(type.element);
+        var typeParameter = scope.tryGetTypeParameterReference(type.element);
+        if (typeParameter == null) {
+          // The analyzer sometimes gives us a type parameter that was not
+          // bound anywhere.  Make sure we do not emit a dangling reference.
+          if (type.element.bound != null) {
+            return convertType(type.element.bound, []);
+          }
+          return const ast.DynamicType();
+        }
         if (!scope.allowClassTypeParameters &&
             typeParameter.parent is ast.Class) {
           return const ast.InvalidType();
@@ -2353,7 +2422,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     currentClass.name = element.name;
     currentClass.supertype = scope.getRootClassReference().asRawSupertype;
     currentClass.constructors.add(
-        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement())));
+        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement()))
+          ..fileOffset = element.nameOffset);
   }
 
   void addAnnotations(List<Annotation> annotations) {
@@ -2487,35 +2557,55 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
+
     var intType = scope.loader.getCoreClassReference('int').rawType;
     var indexFieldElement = element.fields.firstWhere(_isIndexField);
     ast.Field indexField = scope.getMemberReference(indexFieldElement);
     indexField.type = intType;
     classNode.addMember(indexField);
-    var parameter = new ast.VariableDeclaration('index', type: intType);
+
+    var stringType = scope.loader.getCoreClassReference('String').rawType;
+    ast.Field nameField = new ast.Field(
+        new ast.Name('_name', scope.currentLibrary),
+        type: stringType,
+        isFinal: true,
+        fileUri: classNode.fileUri);
+    classNode.addMember(nameField);
+
+    var indexParameter = new ast.VariableDeclaration('index', type: intType);
+    var nameParameter = new ast.VariableDeclaration('name', type: stringType);
     var function = new ast.FunctionNode(new ast.EmptyStatement(),
-        positionalParameters: [parameter]);
+        positionalParameters: [indexParameter, nameParameter]);
     var superConstructor = scope.loader.getRootClassConstructorReference();
     var constructor = new ast.Constructor(function,
         name: new ast.Name(''),
         isConst: true,
         initializers: [
-          new ast.FieldInitializer(indexField, new ast.VariableGet(parameter)),
+          new ast.FieldInitializer(
+              indexField, new ast.VariableGet(indexParameter)),
+          new ast.FieldInitializer(
+              nameField, new ast.VariableGet(nameParameter)),
           new ast.SuperInitializer(superConstructor, new ast.Arguments.empty())
-        ]);
+        ])..fileOffset = element.nameOffset;
     classNode.addMember(constructor);
+
     int index = 0;
     var enumConstantFields = <ast.Field>[];
     for (var constant in node.constants) {
       ast.Field field = scope.getMemberReference(constant.element);
       field.initializer = new ast.ConstructorInvocation(
-          constructor, new ast.Arguments([new ast.IntLiteral(index)]),
+          constructor,
+          new ast.Arguments([
+            new ast.IntLiteral(index),
+            new ast.StringLiteral('${classNode.name}.${field.name.name}')
+          ]),
           isConst: true)..parent = field;
       field.type = classNode.rawType;
       classNode.addMember(field);
       ++index;
       enumConstantFields.add(field);
     }
+
     // Add the 'values' field.
     var valuesFieldElement = element.fields.firstWhere(_isValuesField);
     ast.Field valuesField = scope.getMemberReference(valuesFieldElement);
@@ -2527,7 +2617,15 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         isConst: true,
         typeArgument: enumType)..parent = valuesField;
     classNode.addMember(valuesField);
-    // TODO: Add the toString method.
+
+    // Add the 'toString()' method.
+    var body = new ast.ReturnStatement(
+        new ast.DirectPropertyGet(new ast.ThisExpression(), nameField));
+    var toStringFunction = new ast.FunctionNode(body, returnType: stringType);
+    var toStringMethod = new ast.Procedure(
+        new ast.Name('toString'), ast.ProcedureKind.Method, toStringFunction,
+        fileUri: classNode.fileUri);
+    classNode.addMember(toStringMethod);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
@@ -2578,6 +2676,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   void build(AstNode node) {
     if (node != null) {
+      currentMember.fileEndOffset = node.endToken.offset;
       node.accept(this);
     } else {
       buildBrokenMember();

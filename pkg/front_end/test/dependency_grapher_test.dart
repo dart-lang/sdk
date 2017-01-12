@@ -35,15 +35,17 @@ class DependencyGrapherTest {
     // If no starting points given, assume the first entry in [contents] is the
     // single starting point.
     startingPoints ??= [contents.keys.first];
-    var fileSystem = new MemoryFileSystem(pathos.posix, '/');
+    var fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
     contents.forEach((path, text) {
-      fileSystem.entityForPath(path).writeAsStringSync(text);
+      fileSystem.entityForUri(pathos.posix.toUri(path)).writeAsStringSync(text);
     });
     // TODO(paulberry): implement and test other option possibilities.
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
       ..chaseDependencies = true
-      ..packagesFilePath = packagesFilePath;
+      ..packagesFileUri = packagesFilePath == ''
+          ? new Uri()
+          : pathos.posix.toUri(packagesFilePath);
     var graph = await graphForProgram(
         startingPoints.map(pathos.posix.toUri).toList(), options);
     return graph.topologicallySortedCycles;

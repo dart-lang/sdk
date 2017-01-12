@@ -161,7 +161,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      TypeName typeName = declaration.returnType;
+      TypeAnnotation typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -172,7 +172,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      TypeName typeName = declaration.returnType;
+      TypeAnnotation typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -189,7 +189,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
     if (name.name == targetName) {
       typeFound = name.bestType;
       finished();
@@ -199,7 +199,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredMethod(MethodDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      TypeName typeName = declaration.returnType;
+      TypeAnnotation typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -208,7 +208,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeName type) {
+  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {
     if (name.name == targetName) {
       // Type provided by the element in computeFull above
       finished();

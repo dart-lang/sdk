@@ -116,7 +116,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
         (librariesWithUsage != null && librariesWithUsage.contains(library));
   }
 
-  /// Call-back from the resolver to analyze MirorsUsed annotations. The result
+  /// Call-back from the resolver to analyze MirrorsUsed annotations. The result
   /// is stored in [analyzer] and later used to compute
   /// [:analyzer.mergedMirrorUsage:].
   void validate(NewExpression node, TreeElements mapping) {
@@ -260,7 +260,7 @@ class MirrorUsageAnalyzer {
     return result;
   }
 
-  /// Merge all [MirrorUsage] instances accross all libraries.
+  /// Merge all [MirrorUsage] instances across all libraries.
   MirrorUsage mergeUsages(Map<LibraryElement, List<MirrorUsage>> usageMap) {
     Set<MirrorUsage> usagesToMerge = new Set<MirrorUsage>();
     usageMap.forEach((LibraryElement library, List<MirrorUsage> usages) {

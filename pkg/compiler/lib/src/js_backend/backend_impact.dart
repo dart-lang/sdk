@@ -170,6 +170,12 @@ class BackendImpacts {
             ? [
                 helpers.genericNoSuchMethod,
                 helpers.unresolvedConstructorError,
+                helpers.unresolvedStaticMethodError,
+                helpers.unresolvedStaticGetterError,
+                helpers.unresolvedStaticSetterError,
+                helpers.unresolvedTopLevelMethodError,
+                helpers.unresolvedTopLevelGetterError,
+                helpers.unresolvedTopLevelSetterError,
                 commonElements.symbolConstructor.declaration,
               ]
             : [

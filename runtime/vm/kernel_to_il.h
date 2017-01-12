@@ -188,12 +188,12 @@ class ActiveFunctionScope {
 
 class TranslationHelper {
  public:
-  TranslationHelper(dart::Thread* thread, dart::Zone* zone, Isolate* isolate)
+  explicit TranslationHelper(dart::Thread* thread)
       : thread_(thread),
-        zone_(zone),
-        isolate_(isolate),
-        allocation_space_(thread_->IsMutatorThread() ? Heap::kNew
-                                                     : Heap::kOld) {}
+        zone_(thread->zone()),
+        isolate_(thread->isolate()),
+        allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld) {
+  }
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -414,6 +414,7 @@ class ConstantEvaluator : public ExpressionVisitor {
   virtual void VisitConditionalExpression(ConditionalExpression* node);
   virtual void VisitLogicalExpression(LogicalExpression* node);
   virtual void VisitNot(Not* node);
+  virtual void VisitPropertyGet(PropertyGet* node);
 
  private:
   // This will translate type arguments form [kernel_arguments].  If no type
@@ -519,8 +520,8 @@ class ScopeBuilder : public RecursiveVisitor {
       : result_(NULL),
         parsed_function_(parsed_function),
         node_(node),
-        zone_(Thread::Current()->zone()),
-        translation_helper_(Thread::Current(), zone_, Isolate::Current()),
+        translation_helper_(Thread::Current()),
+        zone_(translation_helper_.zone()),
         type_translator_(&translation_helper_,
                          &active_class_,
                          /*finalize=*/true),
@@ -615,8 +616,8 @@ class ScopeBuilder : public RecursiveVisitor {
 
   ActiveClass active_class_;
 
-  Zone* zone_;
   TranslationHelper translation_helper_;
+  Zone* zone_;
   DartTypeTranslator type_translator_;
 
   FunctionNode* current_function_node_;
@@ -628,7 +629,7 @@ class ScopeBuilder : public RecursiveVisitor {
 };
 
 
-class FlowGraphBuilder : public TreeVisitor {
+class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
  public:
   FlowGraphBuilder(TreeNode* node,
                    ParsedFunction* parsed_function,
@@ -640,7 +641,8 @@ class FlowGraphBuilder : public TreeVisitor {
 
   FlowGraph* BuildGraph();
 
-  virtual void VisitDefaultTreeNode(TreeNode* node) { UNREACHABLE(); }
+  virtual void VisitDefaultExpression(Expression* node) { UNREACHABLE(); }
+  virtual void VisitDefaultStatement(Statement* node) { UNREACHABLE(); }
 
   virtual void VisitInvalidExpression(InvalidExpression* node);
   virtual void VisitNullLiteral(NullLiteral* node);
@@ -676,7 +678,6 @@ class FlowGraphBuilder : public TreeVisitor {
   virtual void VisitLet(Let* node);
   virtual void VisitThrow(Throw* node);
   virtual void VisitRethrow(Rethrow* node);
-  virtual void VisitBlockExpression(BlockExpression* node);
 
   virtual void VisitInvalidStatement(InvalidStatement* node);
   virtual void VisitEmptyStatement(EmptyStatement* node);
@@ -744,6 +745,7 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment PopContext();
 
   Fragment LoadInstantiatorTypeArguments();
+  Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
@@ -854,8 +856,8 @@ class FlowGraphBuilder : public TreeVisitor {
 
   void InlineBailout(const char* reason);
 
-  Zone* zone_;
   TranslationHelper translation_helper_;
+  Zone* zone_;
 
   // The node we are currently compiling (e.g. FunctionNode, Constructor,
   // Field)

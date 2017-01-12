@@ -181,6 +181,7 @@ class Printer extends Visitor<Null> {
   int indentation = 0;
   int column = 0;
   bool showExternal;
+  bool showOffsets;
 
   static int SPACE = 0;
   static int WORD = 1;
@@ -190,6 +191,7 @@ class Printer extends Visitor<Null> {
   Printer(this.sink,
       {NameSystem syntheticNames,
       this.showExternal,
+      this.showOffsets: false,
       this.importTable,
       this.annotator: const InferredValueAnnotator()})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
@@ -198,7 +200,8 @@ class Printer extends Visitor<Null> {
       : sink = parent.sink,
         syntheticNames = parent.syntheticNames,
         annotator = parent.annotator,
-        showExternal = parent.showExternal;
+        showExternal = parent.showExternal,
+        showOffsets = parent.showOffsets;
 
   String getLibraryName(Library node) {
     return node.name ?? syntheticNames.nameLibrary(node);
@@ -393,6 +396,9 @@ class Printer extends Visitor<Null> {
   }
 
   void writeNode(Node node) {
+    if (showOffsets && node is TreeNode) {
+      writeWord("[${node.fileOffset}]");
+    }
     node.accept(this);
   }
 
@@ -486,6 +492,7 @@ class Printer extends Visitor<Null> {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
+    if (!function.debuggable) writeSpaced("/* not debuggable */");
     if (function.body != null) {
       writeFunctionBody(function.body, terminateLine: terminateLine);
     } else if (terminateLine) {
@@ -626,6 +633,7 @@ class Printer extends Visitor<Null> {
   }
 
   void writeExpression(Expression node, [int minimumPrecedence]) {
+    if (showOffsets) writeWord("[${node.fileOffset}]");
     bool needsParenteses = false;
     if (minimumPrecedence != null && getPrecedence(node) < minimumPrecedence) {
       needsParenteses = true;
@@ -983,6 +991,12 @@ class Printer extends Visitor<Null> {
 
   visitVariableGet(VariableGet node) {
     writeVariableReference(node.variable);
+    if (node.promotedType != null) {
+      writeSymbol('{');
+      writeNode(node.promotedType);
+      writeSymbol('}');
+      state = WORD;
+    }
   }
 
   visitVariableSet(VariableSet node) {
@@ -1287,6 +1301,7 @@ class Printer extends Visitor<Null> {
 
   void writeVariableDeclaration(VariableDeclaration node,
       {bool useVarKeyword: false}) {
+    if (showOffsets) writeWord("[${node.fileOffset}]");
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {
@@ -1380,6 +1395,9 @@ class Printer extends Visitor<Null> {
   }
 
   visitFunctionType(FunctionType node) {
+    if (state == WORD) {
+      ensureSpace();
+    }
     writeTypeParameterList(node.typeParameters);
     writeSymbol('(');
     var positional = node.positionalParameters;

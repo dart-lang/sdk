@@ -5,10 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-# Other issues:
-generic_methods_type_expression_test: RuntimeError # Issue 25869
-
+# These test entries will be valid for vm/dartium (with and without kernel).
+[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+async_star_cancel_while_paused_test: RuntimeError
 # This is OK for now, but we may want to change the semantics to match the test.
 async_star_pause_test: Fail, OK
 
@@ -22,6 +21,8 @@ mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 constructor5_test: Fail # Issue 6422
 constructor6_test: Fail # Issue 6422
 
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
+
 # Failures related to super call in ctor initializer list
 super_test: Fail, OK
 final_field_initialization_order_test: Fail, OK
@@ -30,14 +31,8 @@ example_constructor_test: Fail, OK
 constructor3_test: Fail, OK
 constructor2_test: Fail, OK
 
-dynamic_prefix_core_test/01: RuntimeError # Issue 12478
-multiline_strings_test: Fail # Issue 23020
-
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
-
-deferred_redirecting_factory_test: Fail # Issue 23408
-redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
@@ -45,11 +40,22 @@ cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
-async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
-async_star_cancel_while_paused_test: RuntimeError
 
-# Fails because `as T` is an error rather than being treated like `as dynamic`.
-generic_methods_type_expression_test: RuntimeError # Issue 27460
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+
+enum_test: RuntimeError # Issue 28341
+
+dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+multiline_strings_test: Fail # Issue 23020
+
+deferred_redirecting_factory_test: Fail # Issue 23408
+redirecting_constructor_initializer_test: RuntimeError # Issue 23488
+
+async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
+
+# Doesn't yet implement `covariant` keyword.
+covariant_test/none: Fail # Issue 28166
+covariant_override_test: Fail # Issue 28166
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,
@@ -65,7 +71,6 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
-try_catch_optimized1_test: Skip # Srdjan investigating
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
@@ -100,6 +105,7 @@ main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+vm/regress_28325_test: SkipByDesign  # Requires dart:io
 
 # These tests need the flag --initializing-formal-access to pass:
 initializing_formal_access_test: Skip
@@ -163,7 +169,8 @@ stack_trace_test: Pass, RuntimeError
 stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
-regress_26948_test: Skip # Crashes, regis investigating
+vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
+
 
 [ $noopt || $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
@@ -330,10 +337,3 @@ null_bottom_test/none: StaticWarning, CompileTimeError # Issue 28025
 null_bottom_test/01: Pass, CompileTimeError # Issue 28025
 null_bottom_test/02: Pass, CompileTimeError # Issue 28025
 null_bottom_test/03: Pass, CompileTimeError # Issue 28025
-
-# Issue #28236
-async_await_test: StaticWarning
-async_star_pause_test: StaticWarning
-async_star_test: StaticWarning
-regress_18535_test: StaticWarning
-

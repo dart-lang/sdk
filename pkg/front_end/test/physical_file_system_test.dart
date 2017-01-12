@@ -30,35 +30,19 @@ class FileTest extends _BaseTest {
   setUp() {
     super.setUp();
     path = p.join(tempPath, 'file.txt');
-    file = PhysicalFileSystem.instance.entityForPath(path);
+    file = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
   }
 
   test_equals_differentPaths() {
-    expect(
-        file ==
-            PhysicalFileSystem.instance
-                .entityForPath(p.join(tempPath, 'file2.txt')),
-        isFalse);
+    expect(file == entityForPath(p.join(tempPath, 'file2.txt')), isFalse);
   }
 
   test_equals_samePath() {
-    expect(
-        file ==
-            PhysicalFileSystem.instance
-                .entityForPath(p.join(tempPath, 'file.txt')),
-        isTrue);
+    expect(file == entityForPath(p.join(tempPath, 'file.txt')), isTrue);
   }
 
   test_hashCode_samePath() {
-    expect(
-        file.hashCode,
-        PhysicalFileSystem.instance
-            .entityForPath(p.join(tempPath, 'file.txt'))
-            .hashCode);
-  }
-
-  test_path() {
-    expect(file.path, path);
+    expect(file.hashCode, entityForPath(p.join(tempPath, 'file.txt')).hashCode);
   }
 
   test_readAsBytes_badUtf8() async {
@@ -98,6 +82,10 @@ class FileTest extends _BaseTest {
     new io.File(path).writeAsBytesSync(bytes);
     expect(await file.readAsString(), '\u20ac');
   }
+
+  test_uri() {
+    expect(file.uri, p.toUri(path));
+  }
 }
 
 @reflectiveTest
@@ -111,48 +99,35 @@ class PhysicalFileSystemTest extends _BaseTest {
 
   test_entityForPath() {
     var path = p.join(tempPath, 'file.txt');
-    expect(PhysicalFileSystem.instance.entityForPath(path).path, path);
+    expect(entityForPath(path).uri, p.toUri(path));
   }
 
   test_entityForPath_absolutize() {
-    expect(PhysicalFileSystem.instance.entityForPath('file.txt').path,
-        new io.File('file.txt').absolute.path);
+    expect(entityForPath('file.txt').uri,
+        p.toUri(new io.File('file.txt').absolute.path));
   }
 
   test_entityForPath_normalize_dot() {
-    expect(
-        PhysicalFileSystem.instance
-            .entityForPath(p.join(tempPath, '.', 'file.txt'))
-            .path,
-        p.join(tempPath, 'file.txt'));
+    expect(entityForPath(p.join(tempPath, '.', 'file.txt')).uri,
+        p.toUri(p.join(tempPath, 'file.txt')));
   }
 
   test_entityForPath_normalize_dotDot() {
-    expect(
-        PhysicalFileSystem.instance
-            .entityForPath(p.join(tempPath, 'foo', '..', 'file.txt'))
-            .path,
-        p.join(tempPath, 'file.txt'));
+    expect(entityForPath(p.join(tempPath, 'foo', '..', 'file.txt')).uri,
+        p.toUri(p.join(tempPath, 'file.txt')));
   }
 
   test_entityForUri() {
     expect(
         PhysicalFileSystem.instance
             .entityForUri(Uri.parse('$tempUri/file.txt'))
-            .path,
-        p.join(tempPath, 'file.txt'));
+            .uri,
+        p.toUri(p.join(tempPath, 'file.txt')));
   }
 
   test_entityForUri_bareUri_absolute() {
-    expect(
-        () => PhysicalFileSystem.instance.entityForUri(Uri.parse('/file.txt')),
-        throwsA(new isInstanceOf<Error>()));
-  }
-
-  test_entityForUri_bareUri_relative() {
-    expect(
-        () => PhysicalFileSystem.instance.entityForUri(Uri.parse('file.txt')),
-        throwsA(new isInstanceOf<Error>()));
+    expect(PhysicalFileSystem.instance.entityForUri(Uri.parse('/file.txt')).uri,
+        p.toUri(p.fromUri('/file.txt')));
   }
 
   test_entityForUri_fileUri_relative() {
@@ -185,22 +160,25 @@ class PhysicalFileSystemTest extends _BaseTest {
     expect(
         PhysicalFileSystem.instance
             .entityForUri(Uri.parse('$tempUri/./file.txt'))
-            .path,
-        p.join(tempPath, 'file.txt'));
+            .uri,
+        p.toUri(p.join(tempPath, 'file.txt')));
   }
 
   test_entityForUri_normalize_dotDot() {
     expect(
         PhysicalFileSystem.instance
             .entityForUri(Uri.parse('$tempUri/foo/../file.txt'))
-            .path,
-        p.join(tempPath, 'file.txt'));
+            .uri,
+        p.toUri(p.join(tempPath, 'file.txt')));
   }
 }
 
 class _BaseTest {
   io.Directory tempDirectory;
   String tempPath;
+
+  FileSystemEntity entityForPath(String path) =>
+      PhysicalFileSystem.instance.entityForUri(p.toUri(path));
 
   setUp() {
     tempDirectory = io.Directory.systemTemp.createTempSync('test_file_system');

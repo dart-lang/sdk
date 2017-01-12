@@ -56,7 +56,10 @@ class VariableNameContributor extends DartCompletionContributor {
           strName = _getStringName(node.expression as Identifier);
         }
       } else if (node is VariableDeclarationList) {
-        strName = _getStringName(node.type.name);
+        TypeAnnotation typeAnnotation = node.type;
+        if (typeAnnotation is TypeName) {
+          strName = _getStringName(typeAnnotation.name);
+        }
       } else if (node is TopLevelVariableDeclaration) {
         // The parser parses 'Foo ' and 'Foo ;' differently, resulting in the
         // following.
@@ -64,8 +67,11 @@ class VariableNameContributor extends DartCompletionContributor {
         // 'Foo ;': TopLevelVariableDeclaration with type null, and a first
         // variable of 'Foo'
         VariableDeclarationList varDeclarationList = node.variables;
-        if (varDeclarationList.type != null) {
-          strName = _getStringName(varDeclarationList.type.name);
+        TypeAnnotation typeAnnotation = varDeclarationList.type;
+        if (typeAnnotation != null) {
+          if (typeAnnotation is TypeName) {
+            strName = _getStringName(typeAnnotation.name);
+          }
         } else {
           NodeList<VariableDeclaration> varDeclarations =
               varDeclarationList.variables;

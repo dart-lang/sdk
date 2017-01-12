@@ -163,7 +163,7 @@ config("dart_config") {
     ]
 
     if (dart_debug) {
-      cflags += [ "-O1" ]
+      cflags += [ "-O2" ]
     } else {
       cflags += [ "-O3" ]
     }

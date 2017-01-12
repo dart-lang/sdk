@@ -154,42 +154,11 @@ pause_test: RuntimeError, OK  # Uses Isolate.spawn.
 simple_message_test/none: RuntimeError, OK  # Uses Isolate.spawn.
 start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
 message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
-browser/package_*: Skip # Issue 25594 (missing implementation in Dartium).
+browser/package_resolve_browser_hook*: Skip # Tests that use defaultPackagesBase (not supported in Dartium).
 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
-
-# Issue #28236
-browser/compute_this_script_browser_test: StaticWarning
-browser/package_resolve_browser_hook2_test: StaticWarning
-browser/package_resolve_browser_hook_test: StaticWarning
-browser/package_resolve_browser_test: StaticWarning
-count_test: StaticWarning
-cross_isolate_message_test: StaticWarning
-deferred_in_isolate2_test: StaticWarning
-illegal_msg_function_test: StaticWarning
-illegal_msg_mirror_test: StaticWarning
-isolate_complex_messages_test: StaticWarning
-mandel_isolate_test: StaticWarning
-message2_test: StaticWarning
-message_test: StaticWarning
-nested_spawn2_test: StaticWarning
-nested_spawn_test: StaticWarning
-raw_port_test: StaticWarning
-request_reply_test: StaticWarning
-spawn_function_custom_class_test: StaticWarning
-spawn_function_test: StaticWarning
-spawn_uri_multi_test/01: StaticWarning
-spawn_uri_multi_test/none: StaticWarning
-spawn_uri_nested_vm_test: StaticWarning
-spawn_uri_test: StaticWarning
-spawn_uri_vm_test: StaticWarning
-stacktrace_message_test: StaticWarning
-static_function_test: StaticWarning
-timer_isolate_test: StaticWarning
-unresolved_ports_test: StaticWarning
-
 
 [ $compiler == none && $runtime == vm ]
 scenarios/short_package/short_package_test: Fail, OK  # We do not plan to support the tested behavior anyway.
@@ -268,3 +237,8 @@ deferred_in_isolate_test: Crash # Requires deferred libraries
 deferred_in_isolate2_test: Crash # Requires deferred libraries
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
+
+[ $builder_tag == asan && $arch == x64 ]
+function_send_test: Fail # Issue 28351
+function_send1_test: Fail # Issue 28351
+issue_21398_parent_isolate_test: Fail # Issue 28351

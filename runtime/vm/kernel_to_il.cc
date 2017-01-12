@@ -1319,7 +1319,7 @@ Object& ConstantEvaluator::EvaluateExpressionSafe(Expression* expression) {
   if (setjmp(*jump.Set()) == 0) {
     return EvaluateExpression(expression);
   } else {
-    Thread* thread = Thread::Current();
+    Thread* thread = H.thread();
     Error& error = Error::Handle(Z);
     error = thread->sticky_error();
     thread->clear_sticky_error();
@@ -1770,6 +1770,28 @@ void ConstantEvaluator::VisitNot(Not* node) {
 }
 
 
+void ConstantEvaluator::VisitPropertyGet(PropertyGet* node) {
+  const size_t kLengthLen = strlen("length");
+
+  String* string = node->name()->string();
+  if (string->size() == kLengthLen &&
+      memcmp(string->buffer(), "length", kLengthLen) == 0) {
+    node->receiver()->AcceptExpressionVisitor(this);
+    if (result_.IsString()) {
+      const dart::String& str =
+          dart::String::Handle(Z, dart::String::RawCast(result_.raw()));
+      result_ = Integer::New(str.Length());
+    } else {
+      H.ReportError(
+          "Constant expressions can only call "
+          "'length' on string constants.");
+    }
+  } else {
+    VisitDefaultExpression(node);
+  }
+}
+
+
 const TypeArguments* ConstantEvaluator::TranslateTypeArguments(
     const Function& target,
     dart::Class* target_klass,
@@ -1850,10 +1872,8 @@ FlowGraphBuilder::FlowGraphBuilder(
     InlineExitCollector* exit_collector,
     intptr_t osr_id,
     intptr_t first_block_id)
-    : zone_(Thread::Current()->zone()),
-      translation_helper_(Thread::Current(),
-                          zone_,
-                          Thread::Current()->isolate()),
+    : translation_helper_(Thread::Current()),
+      zone_(translation_helper_.zone()),
       node_(node),
       parsed_function_(parsed_function),
       osr_id_(osr_id),
@@ -2048,6 +2068,14 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 }
 
 
+Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
+  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
+      TokenPosition::kNoSource, type, *active_class_.klass, Pop());
+  Push(instr);
+  return Fragment(instr);
+}
+
+
 Fragment FlowGraphBuilder::InstantiateTypeArguments(
     const TypeArguments& type_arguments) {
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
@@ -2192,7 +2220,7 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
-      /* needs_stacktrace = */ true, Thread::Current()->GetNextDeoptId(),
+      /* needs_stacktrace = */ true, H.thread()->GetNextDeoptId(),
       should_restore_closure_context);
   graph_entry_->AddCatchEntry(entry);
   Fragment instructions(entry);
@@ -2562,11 +2590,9 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
   if (FLAG_use_field_guards) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
-    instructions +=
-        GuardFieldClass(field_clone, Thread::Current()->GetNextDeoptId());
+    instructions += GuardFieldClass(field_clone, H.thread()->GetNextDeoptId());
     instructions += LoadLocal(store_expression);
-    instructions +=
-        GuardFieldLength(field_clone, Thread::Current()->GetNextDeoptId());
+    instructions += GuardFieldLength(field_clone, H.thread()->GetNextDeoptId());
   }
   instructions += StoreInstanceField(field_clone);
   return instructions;
@@ -4208,7 +4234,14 @@ void FlowGraphBuilder::VisitTypeLiteral(TypeLiteral* node) {
   const AbstractType& type = T.TranslateType(node->type());
   if (type.IsMalformed()) H.ReportError("Malformed type literal");
 
-  fragment_ = Constant(type);
+  Fragment instructions;
+  if (type.IsInstantiated()) {
+    instructions += Constant(type);
+  } else {
+    instructions += LoadInstantiatorTypeArguments();
+    instructions += InstantiateType(type);
+  }
+  fragment_ = instructions;
 }
 
 
@@ -4253,12 +4286,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
       fragment_ = StaticCall(node->position(), target, 0);
     } else if (procedure->kind() == Procedure::kMethod) {
       ASSERT(procedure->IsStatic());
-      Function& closure_function =
-          Function::ZoneHandle(Z, target.ImplicitClosureFunction());
-      closure_function.set_kernel_function(target.kernel_function());
-      const Instance& closure =
-          Instance::ZoneHandle(Z, closure_function.ImplicitStaticClosure());
-      fragment_ = Constant(closure);
+      fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
     } else {
       UNIMPLEMENTED();
     }
@@ -4548,26 +4576,21 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
     const TypeArguments& type_arguments = T.TranslateInstantiatedTypeArguments(
         klass, kernel_type_arguments.raw_array(),
         kernel_type_arguments.length());
+    if (!klass.IsGeneric()) {
+      Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
 
-    if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
-      instructions += TranslateInstantiatedTypeArguments(type_arguments);
+      // TODO(27590): Can we move this code into [ReceiverType]?
+      type ^= ClassFinalizer::FinalizeType(*active_class_.klass, type,
+                                           ClassFinalizer::kFinalize);
+      ASSERT(!type.IsMalformedOrMalbounded());
+
+      TypeArguments& canonicalized_type_arguments =
+          TypeArguments::ZoneHandle(Z, type.arguments());
+      canonicalized_type_arguments =
+          canonicalized_type_arguments.Canonicalize();
+      instructions += Constant(canonicalized_type_arguments);
     } else {
-      if (!klass.IsGeneric()) {
-        Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
-
-        // TODO(27590): Can we move this code into [ReceiverType]?
-        type ^= ClassFinalizer::FinalizeType(*active_class_.klass, type,
-                                             ClassFinalizer::kFinalize);
-        ASSERT(!type.IsMalformedOrMalbounded());
-
-        TypeArguments& canonicalized_type_arguments =
-            TypeArguments::ZoneHandle(Z, type.arguments());
-        canonicalized_type_arguments =
-            canonicalized_type_arguments.Canonicalize();
-        instructions += Constant(canonicalized_type_arguments);
-      } else {
-        instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      }
+      instructions += TranslateInstantiatedTypeArguments(type_arguments);
     }
 
     instructions += PushArgument();
@@ -4692,12 +4715,13 @@ void FlowGraphBuilder::VisitConditionalExpression(ConditionalExpression* node) {
   then_fragment += TranslateExpression(node->then());
   then_fragment += StoreLocal(parsed_function_->expression_temp_var());
   then_fragment += Drop();
-
   ASSERT(stack_ == top);
+
   Fragment otherwise_fragment(otherwise_entry);
   otherwise_fragment += TranslateExpression(node->otherwise());
   otherwise_fragment += StoreLocal(parsed_function_->expression_temp_var());
   otherwise_fragment += Drop();
+  ASSERT(stack_ == top);
 
   JoinEntryInstr* join = BuildJoinEntry();
   then_fragment += Goto(join);
@@ -4906,13 +4930,6 @@ void FlowGraphBuilder::VisitRethrow(Rethrow* node) {
   instructions += PushArgument();
   instructions += RethrowException(catch_block_->catch_try_index());
 
-  fragment_ = instructions;
-}
-
-
-void FlowGraphBuilder::VisitBlockExpression(BlockExpression* node) {
-  Fragment instructions = TranslateStatement(node->body());
-  instructions += TranslateExpression(node->value());
   fragment_ = instructions;
 }
 

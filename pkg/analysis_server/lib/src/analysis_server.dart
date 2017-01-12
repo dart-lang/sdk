@@ -242,7 +242,7 @@ class AnalysisServer {
   /**
    * The controller that is notified when analysis is started.
    */
-  StreamController<AnalysisContext> _onAnalysisStartedController;
+  StreamController<bool> _onAnalysisStartedController;
 
   /**
    * The controller that is notified when a single file has been analyzed.
@@ -492,9 +492,9 @@ class AnalysisServer {
   }
 
   /**
-   * The stream that is notified when analysis of a context is started.
+   * The stream that is notified with `true` when analysis is started.
    */
-  Stream<AnalysisContext> get onAnalysisStarted {
+  Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
   }
 
@@ -1084,7 +1084,7 @@ class AnalysisServer {
    * Schedules analysis of the given context.
    */
   void schedulePerformAnalysisOperation(AnalysisContext context) {
-    _onAnalysisStartedController.add(context);
+    _onAnalysisStartedController.add(true);
     scheduleOperation(new PerformAnalysisOperation(context, false));
   }
 
@@ -1168,6 +1168,9 @@ class AnalysisServer {
    * the [status] information.
    */
   void sendStatusNotificationNew(nd.AnalysisStatus status) {
+    if (status.isAnalyzing) {
+      _onAnalysisStartedController.add(true);
+    }
     if (_onAnalysisCompleteCompleter != null && !status.isAnalyzing) {
       _onAnalysisCompleteCompleter.complete();
       _onAnalysisCompleteCompleter = null;
@@ -1832,7 +1835,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         analysisServer.fileContentOverlay,
         sourceFactory,
         analysisOptions);
-    analysisDriver.name = folder.shortName;
+    analysisDriver.name = folder.path;
     analysisDriver.status.listen((status) {
       // TODO(scheglov) send server status
     });

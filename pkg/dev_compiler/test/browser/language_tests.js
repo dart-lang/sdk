@@ -9,6 +9,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   async_helper = async_helper.async_helper;
   let minitest = expect.minitest;
 
+  dart_sdk.dart.trapRuntimeErrors(false);
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   let html_config = unittest.html_config;
   // Test attributes are a list of strings, or a string for a single
@@ -51,7 +52,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'assertion_test': skip_fail,
       'async_await_test_none_multi': 'unittest',
       'async_await_test_02_multi': 'unittest',
-      'async_await_test_03_multi': skip_fail,  // Flaky on travis (#634)
+
+      // Flaky on travis (https://github.com/dart-lang/sdk/issues/27224)
+      'async_await_test_03_multi': skip_fail,
+
       'async_star_await_pauses_test': skip_fail,
 
       // TODO(jmesserly): figure out why this test is hanging.
@@ -60,8 +64,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'async_star_cancel_while_paused_test': skip_fail,
       'async_star_regression_fisk_test': skip_fail,
 
-      // TODO(vsm): Re-enable.
-      // See https://github.com/dart-lang/dev_compiler/issues/456
+      // TODO(vsm): Re-enable (https://github.com/dart-lang/sdk/issues/28319)
       'async_star_test_none_multi': ['unittest', 'skip', 'fail'],
       'async_star_test_01_multi': ['unittest', 'skip', 'fail'],
       'async_star_test_02_multi': ['unittest', 'skip', 'fail'],
@@ -94,9 +97,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'cha_deopt1_test': skip_fail,
       'cha_deopt2_test': skip_fail,
       'cha_deopt3_test': skip_fail,
-
-      // interpolation does not call Dart's toString:
-      // https://github.com/dart-lang/dev_compiler/issues/470
       'class_syntax2_test': skip_fail,
       'classes_static_method_clash_test': skip_fail,
       'closure_call_wrong_argument_count_negative_test': skip_fail,
@@ -117,6 +117,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'const_switch_test_04_multi': skip_fail,
       'constructor11_test': skip_fail,
       'constructor12_test': skip_fail,
+      'custom_await_stack_trace_test': skip_fail,
       'cyclic_type2_test': skip_fail,
       'cyclic_type_test_00_multi': skip_fail,
       'cyclic_type_test_01_multi': skip_fail,
@@ -151,6 +152,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'field_optimization3_test': skip_fail,
       'final_syntax_test_08_multi': skip_fail,
       'first_class_types_test': skip_fail,
+      'flatten_test_01_multi': skip_fail,
+      'flatten_test_04_multi': skip_fail,
       'for_in2_test': skip_fail,
       'for_variable_capture_test': skip_fail,
       'function_subtype0_test': skip_fail,
@@ -223,6 +226,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'issue13179_test': skip_fail,
       'issue21079_test': skip_fail,
       'issue21957_test': skip_fail,
+      'issue23244_test': skip_fail,
       'issue_1751477_test': skip_fail,
       'issue_22780_test_01_multi': skip_fail,
       'issue_23914_test': skip_fail,
@@ -241,6 +245,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mixin_forwarding_constructor3_test': skip_fail,
       'mixin_generic_test': skip_fail,
       'mixin_implements_test': skip_fail,
+      'mixin_invalid_inheritance1_test_none_multi': skip_fail,
       'mixin_issue10216_2_test': skip_fail,
       'mixin_mixin2_test': skip_fail,
       'mixin_mixin3_test': skip_fail,
@@ -406,10 +411,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'lib/convert': {
       'encoding_test': skip_timeout,
 
-      // TODO(jmesserly): this is in an inconsistent state between our old and
-      // newer SDKs.
-      'html_escape_test': ['skip'],
-
       'json_utf8_chunk_test': skip_timeout,
       'latin1_test': skip_timeout,
 
@@ -424,7 +425,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'lib/html': {
       'async_spawnuri_test': async_unittest,
       'async_test': async_unittest,
-      'audiocontext_test': is.chrome('<=54') ? fail : pass, // was sdk#27578, needs triage
+
+       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'audiocontext_test': is.chrome('<=54') ? fail : pass,
+
       'canvas_test': ['unittest'],
       'canvasrenderingcontext2d_test': ['unittest'],
       'cross_domain_iframe_test': async_unittest,
@@ -434,17 +438,24 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // This is failing with a range error, I'm guessing because it's looking
       // for a stylesheet and the page has none.
       'css_rule_list_test': 'fail',
+
       'custom_element_method_clash_test': async_unittest,
       'custom_element_name_clash_test': async_unittest,
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
-      'dom_constructors_test': 'fail', // was sdk#27578, needs triage
+
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'dom_constructors_test': 'fail',
+
       'element_animate_test': async_unittest,
-      'element_classes_test': 'fail', // sdk#27579.
-      'element_classes_svg_test': 'fail', // sdk#27579.
+
+      // https://github.com/dart-lang/sdk/issues/27579.
+      'element_classes_test': 'fail',
+      'element_classes_svg_test': 'fail',
 
       // Failure: 'Expected 56 to be in the inclusive range [111, 160].'.
       'element_offset_test': 'fail',
+
       'element_test': async_unittest,
       'element_types_test': firefox_fail,
       'event_customevent_test': async_unittest,
@@ -453,12 +464,14 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // Failure: "Failed to execute 'dispatchEvent' on 'EventTarget': parameter
       // 1 is not of type 'Event'."
       'event_test': 'fail',
+
       'fileapi_test': async_unittest,
       'filereader_test': async_unittest,
       'fontface_loaded_test': async_unittest,
 
       // Failed because it's expecting "Ahem" but getting null. Maybe sdk#27579?
       'fontface_test': 'fail',
+
       'form_data_test': async_unittest,
       'history_test': async_unittest,
       'indexeddb_1_test': async_unittest,
@@ -466,7 +479,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'indexeddb_3_test': async_unittest,
       'indexeddb_4_test': async_unittest,
       'indexeddb_5_test': async_unittest,
-      'input_element_test': 'fail', // was sdk#27578, needs triage
+
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'input_element_test': 'fail',
+
       'interactive_test': async_unittest,
       'isolates_test': async_unittest,
 
@@ -479,29 +495,41 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'js_util_test': 'fail',
       'keyboard_event_test': async_unittest,
 
-      'mediasource_test': 'fail', // was sdk#27578, needs triage
-      'media_stream_test': 'fail', // was sdk#27578, needs triage
-      'messageevent_test': 'fail', // was sdk#27578, needs triage
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'mediasource_test': 'fail',
+      'media_stream_test': 'fail',
+      'messageevent_test': 'fail',
 
       // Should throw but does not.
       'mirrors_js_typed_interop_test': 'fail',
 
       'mutationobserver_test': async_unittest,
       'native_gc_test': async_unittest,
-      'notification_test': 'fail', // was sdk#27578, needs triage
+
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'notification_test': 'fail',
+
       'postmessage_structured_test': async_unittest,
       'queryall_test': ['slow'], // see sdk #27794
       'request_animation_frame_test': async_unittest,
       'resource_http_test': async_unittest,
-      'rtc_test': is.chrome('<=55') ? fail : pass, // was sdk#27578, needs triage
+
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'rtc_test': is.chrome('<=55') ? fail : pass,
 
       // Expected 1, got null.
       'serialized_script_value_test': 'fail',
+
       'shadow_dom_test': firefox_fail,
-      'speechrecognition_test': 'fail', // was sdk#27578, needs triage
-      'svgelement_test': chrome_fail, // was sdk#27578, needs triage
+
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'speechrecognition_test': 'fail',
+      'svgelement_test': chrome_fail,
       'text_event_test': firefox_fail,
-      'touchevent_test': 'fail', // was sdk#27578, needs triage
+
+      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
+      'touchevent_test': 'fail',
+
       'transferables_test': async_unittest,
       'transition_event_test': async_unittest,
       'url_test': async_unittest,
@@ -666,6 +694,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'relation_assignable_test': fail,
       'relation_subtype_test': fail,
       'set_field_with_final_test': fail,
+      'spawn_function_root_library_test': skip_fail,
       'symbol_validation_test_01_multi': fail,
       'symbol_validation_test_none_multi': fail,
       'to_string_test': fail,
@@ -748,6 +777,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         async_helper.asyncTestInitialize(done);
         console.debug('Running test:  ' + name);
 
+        var result = null;
         let mainLibrary = require(module)[libraryName(name)];
         let negative = /negative_test/.test(name);
         if (has('slow')) this.timeout(10000);
@@ -769,7 +799,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
             if (negative) {
               assert.throws(mainLibrary.main);
             } else {
-              mainLibrary.main();
+              result = mainLibrary.main();
             }
           } finally {
             minitest.finishTests();
@@ -781,7 +811,13 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         document.body.innerHTML = '';
         console.log("cleared");
 
-        if (!async_helper.asyncTestStarted) done();
+        if (!async_helper.asyncTestStarted) {
+          if (!result) {
+            done();
+          } else {
+            result.then(dart_sdk.dart.dynamic)(() => done());
+          }
+        }
       });
     }
   }

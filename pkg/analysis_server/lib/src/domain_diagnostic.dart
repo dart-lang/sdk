@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -38,15 +39,19 @@ class DiagnosticDomainHandler implements RequestHandler {
 
   /// Answer the `diagnostic.diagnostics` request.
   Response computeDiagnostics(Request request) {
-    List<ContextData> infos = <ContextData>[];
-    for (AnalysisContext context in server.analysisContexts) {
-      infos.add(extractData(context));
+    List<ContextData> contexts = <ContextData>[];
+    if (server.options.enableNewAnalysisDriver) {
+      contexts = server.driverMap.values.map(extractDataFromDriver).toList();
+    } else {
+      for (AnalysisContext context in server.analysisContexts) {
+        contexts.add(extractDataFromContext(context));
+      }
     }
-    return new DiagnosticGetDiagnosticsResult(infos).toResponse(request.id);
+    return new DiagnosticGetDiagnosticsResult(contexts).toResponse(request.id);
   }
 
   /// Extract context data from the given [context].
-  ContextData extractData(AnalysisContext context) {
+  ContextData extractDataFromContext(AnalysisContext context) {
     int explicitFiles = 0;
     int implicitFiles = 0;
     int workItems = 0;
@@ -82,6 +87,14 @@ class DiagnosticDomainHandler implements RequestHandler {
     }
     return new ContextData(context.name, explicitFiles, implicitFiles,
         workItems, exceptions.toList());
+  }
+
+  /// Extract context data from the given [driver].
+  ContextData extractDataFromDriver(nd.AnalysisDriver driver) {
+    int explicitFileCount = driver.addedFiles.length;
+    int knownFileCount = driver.knownFiles.length;
+    return new ContextData(driver.name, explicitFileCount,
+        knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
   }
 
   @override

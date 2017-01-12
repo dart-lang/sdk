@@ -160,6 +160,7 @@ regexp/*: Skip
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
+regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 
 [ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).

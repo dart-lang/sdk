@@ -50,7 +50,7 @@ import 'package:analyzer/dart/ast/ast.dart';
  *
  *     visitor.visitAllNodes(rootNode);
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /**
@@ -147,7 +147,7 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
  * do so will cause the visit methods for superclasses of the node to not be
  * invoked and will cause the children of the visited node to not be visited.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
@@ -334,6 +334,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       visitNormalFormalParameter(node);
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) =>
+      visitTypeAnnotation(node);
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
 
   @override
   R visitHideCombinator(HideCombinator node) => visitCombinator(node);
@@ -528,6 +535,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   R visitTypeAlias(TypeAlias node) => visitNamedCompilationUnitMember(node);
 
+  R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
+
   @override
   R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
 
@@ -576,7 +585,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
  * Failure to do so will cause the children of the visited node to not be
  * visited.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
   @override
@@ -875,6 +884,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
@@ -1241,7 +1262,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
  * dispatch mechanism (and hence don't need to recursively visit a whole
  * structure) and that only need to visit a small number of node types.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
@@ -1396,6 +1417,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       null;
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) => null;
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => null;
 
   @override
   R visitHideCombinator(HideCombinator node) => null;
@@ -1579,7 +1606,366 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 }
 
 /**
- * An AST Visitor that captures visit call timings.
+ * An AST visitor that will throw an exception if any of the visit methods that
+ * are invoked have not been overridden. It is intended to be a superclass for
+ * classes that implement the visitor pattern and need to (a) override all of
+ * the visit methods or (b) need to override a subset of the visit method and
+ * want to catch when any other visit methods have been invoked.
+ *
+ * Clients may extend this class.
+ */
+class ThrowingAstVisitor<R> implements AstVisitor<R> {
+  @override
+  R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
+
+  @override
+  R visitAnnotation(Annotation node) => _throw(node);
+
+  @override
+  R visitArgumentList(ArgumentList node) => _throw(node);
+
+  @override
+  R visitAsExpression(AsExpression node) => _throw(node);
+
+  @override
+  R visitAssertInitializer(AssertInitializer node) => _throw(node);
+
+  @override
+  R visitAssertStatement(AssertStatement node) => _throw(node);
+
+  @override
+  R visitAssignmentExpression(AssignmentExpression node) => _throw(node);
+
+  @override
+  R visitAwaitExpression(AwaitExpression node) => _throw(node);
+
+  @override
+  R visitBinaryExpression(BinaryExpression node) => _throw(node);
+
+  @override
+  R visitBlock(Block node) => _throw(node);
+
+  @override
+  R visitBlockFunctionBody(BlockFunctionBody node) => _throw(node);
+
+  @override
+  R visitBooleanLiteral(BooleanLiteral node) => _throw(node);
+
+  @override
+  R visitBreakStatement(BreakStatement node) => _throw(node);
+
+  @override
+  R visitCascadeExpression(CascadeExpression node) => _throw(node);
+
+  @override
+  R visitCatchClause(CatchClause node) => _throw(node);
+
+  @override
+  R visitClassDeclaration(ClassDeclaration node) => _throw(node);
+
+  @override
+  R visitClassTypeAlias(ClassTypeAlias node) => _throw(node);
+
+  @override
+  R visitComment(Comment node) => _throw(node);
+
+  @override
+  R visitCommentReference(CommentReference node) => _throw(node);
+
+  @override
+  R visitCompilationUnit(CompilationUnit node) => _throw(node);
+
+  @override
+  R visitConditionalExpression(ConditionalExpression node) => _throw(node);
+
+  @override
+  R visitConfiguration(Configuration node) => _throw(node);
+
+  @override
+  R visitConstructorDeclaration(ConstructorDeclaration node) => _throw(node);
+
+  @override
+  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
+      _throw(node);
+
+  @override
+  R visitConstructorName(ConstructorName node) => _throw(node);
+
+  @override
+  R visitContinueStatement(ContinueStatement node) => _throw(node);
+
+  @override
+  R visitDeclaredIdentifier(DeclaredIdentifier node) => _throw(node);
+
+  @override
+  R visitDefaultFormalParameter(DefaultFormalParameter node) => _throw(node);
+
+  @override
+  R visitDoStatement(DoStatement node) => _throw(node);
+
+  @override
+  R visitDottedName(DottedName node) => _throw(node);
+
+  @override
+  R visitDoubleLiteral(DoubleLiteral node) => _throw(node);
+
+  @override
+  R visitEmptyFunctionBody(EmptyFunctionBody node) => _throw(node);
+
+  @override
+  R visitEmptyStatement(EmptyStatement node) => _throw(node);
+
+  @override
+  R visitEnumConstantDeclaration(EnumConstantDeclaration node) => _throw(node);
+
+  @override
+  R visitEnumDeclaration(EnumDeclaration node) => _throw(node);
+
+  @override
+  R visitExportDirective(ExportDirective node) => _throw(node);
+
+  @override
+  R visitExpressionFunctionBody(ExpressionFunctionBody node) => _throw(node);
+
+  @override
+  R visitExpressionStatement(ExpressionStatement node) => _throw(node);
+
+  @override
+  R visitExtendsClause(ExtendsClause node) => _throw(node);
+
+  @override
+  R visitFieldDeclaration(FieldDeclaration node) => _throw(node);
+
+  @override
+  R visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
+
+  @override
+  R visitForEachStatement(ForEachStatement node) => _throw(node);
+
+  @override
+  R visitFormalParameterList(FormalParameterList node) => _throw(node);
+
+  @override
+  R visitForStatement(ForStatement node) => _throw(node);
+
+  @override
+  R visitFunctionDeclaration(FunctionDeclaration node) => _throw(node);
+
+  @override
+  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+      _throw(node);
+
+  @override
+  R visitFunctionExpression(FunctionExpression node) => _throw(node);
+
+  @override
+  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
+      _throw(node);
+
+  @override
+  R visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
+
+  @override
+  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+      _throw(node);
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) => _throw(node);
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+
+  @override
+  R visitHideCombinator(HideCombinator node) => _throw(node);
+
+  @override
+  R visitIfStatement(IfStatement node) => _throw(node);
+
+  @override
+  R visitImplementsClause(ImplementsClause node) => _throw(node);
+
+  @override
+  R visitImportDirective(ImportDirective node) => _throw(node);
+
+  @override
+  R visitIndexExpression(IndexExpression node) => _throw(node);
+
+  @override
+  R visitInstanceCreationExpression(InstanceCreationExpression node) =>
+      _throw(node);
+
+  @override
+  R visitIntegerLiteral(IntegerLiteral node) => _throw(node);
+
+  @override
+  R visitInterpolationExpression(InterpolationExpression node) => _throw(node);
+
+  @override
+  R visitInterpolationString(InterpolationString node) => _throw(node);
+
+  @override
+  R visitIsExpression(IsExpression node) => _throw(node);
+
+  @override
+  R visitLabel(Label node) => _throw(node);
+
+  @override
+  R visitLabeledStatement(LabeledStatement node) => _throw(node);
+
+  @override
+  R visitLibraryDirective(LibraryDirective node) => _throw(node);
+
+  @override
+  R visitLibraryIdentifier(LibraryIdentifier node) => _throw(node);
+
+  @override
+  R visitListLiteral(ListLiteral node) => _throw(node);
+
+  @override
+  R visitMapLiteral(MapLiteral node) => _throw(node);
+
+  @override
+  R visitMapLiteralEntry(MapLiteralEntry node) => _throw(node);
+
+  @override
+  R visitMethodDeclaration(MethodDeclaration node) => _throw(node);
+
+  @override
+  R visitMethodInvocation(MethodInvocation node) => _throw(node);
+
+  @override
+  R visitNamedExpression(NamedExpression node) => _throw(node);
+
+  @override
+  R visitNativeClause(NativeClause node) => _throw(node);
+
+  @override
+  R visitNativeFunctionBody(NativeFunctionBody node) => _throw(node);
+
+  @override
+  R visitNullLiteral(NullLiteral node) => _throw(node);
+
+  @override
+  R visitParenthesizedExpression(ParenthesizedExpression node) => _throw(node);
+
+  @override
+  R visitPartDirective(PartDirective node) => _throw(node);
+
+  @override
+  R visitPartOfDirective(PartOfDirective node) => _throw(node);
+
+  @override
+  R visitPostfixExpression(PostfixExpression node) => _throw(node);
+
+  @override
+  R visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
+
+  @override
+  R visitPrefixExpression(PrefixExpression node) => _throw(node);
+
+  @override
+  R visitPropertyAccess(PropertyAccess node) => _throw(node);
+
+  @override
+  R visitRedirectingConstructorInvocation(
+          RedirectingConstructorInvocation node) =>
+      _throw(node);
+
+  @override
+  R visitRethrowExpression(RethrowExpression node) => _throw(node);
+
+  @override
+  R visitReturnStatement(ReturnStatement node) => _throw(node);
+
+  @override
+  R visitScriptTag(ScriptTag node) => _throw(node);
+
+  @override
+  R visitShowCombinator(ShowCombinator node) => _throw(node);
+
+  @override
+  R visitSimpleFormalParameter(SimpleFormalParameter node) => _throw(node);
+
+  @override
+  R visitSimpleIdentifier(SimpleIdentifier node) => _throw(node);
+
+  @override
+  R visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
+
+  @override
+  R visitStringInterpolation(StringInterpolation node) => _throw(node);
+
+  @override
+  R visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
+      _throw(node);
+
+  @override
+  R visitSuperExpression(SuperExpression node) => _throw(node);
+
+  @override
+  R visitSwitchCase(SwitchCase node) => _throw(node);
+
+  @override
+  R visitSwitchDefault(SwitchDefault node) => _throw(node);
+
+  @override
+  R visitSwitchStatement(SwitchStatement node) => _throw(node);
+
+  @override
+  R visitSymbolLiteral(SymbolLiteral node) => _throw(node);
+
+  @override
+  R visitThisExpression(ThisExpression node) => _throw(node);
+
+  @override
+  R visitThrowExpression(ThrowExpression node) => _throw(node);
+
+  @override
+  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+      _throw(node);
+
+  @override
+  R visitTryStatement(TryStatement node) => _throw(node);
+
+  @override
+  R visitTypeArgumentList(TypeArgumentList node) => _throw(node);
+
+  @override
+  R visitTypeName(TypeName node) => _throw(node);
+
+  @override
+  R visitTypeParameter(TypeParameter node) => _throw(node);
+
+  @override
+  R visitTypeParameterList(TypeParameterList node) => _throw(node);
+
+  @override
+  R visitVariableDeclaration(VariableDeclaration node) => _throw(node);
+
+  @override
+  R visitVariableDeclarationList(VariableDeclarationList node) => _throw(node);
+
+  @override
+  R visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+      _throw(node);
+
+  @override
+  R visitWhileStatement(WhileStatement node) => _throw(node);
+
+  @override
+  R visitWithClause(WithClause node) => _throw(node);
+  @override
+  R visitYieldStatement(YieldStatement node) => _throw(node);
+
+  R _throw(AstNode node) {
+    throw new Exception('Missing implementation of visit${node.runtimeType}');
+  }
+}
+
+/**
+ * An AST visitor that captures visit call timings.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class TimedAstVisitor<T> implements AstVisitor<T> {
   /**
@@ -1995,6 +2381,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     stopwatch.start();
     T result = _baseVisitor.visitFunctionTypedFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitGenericFunctionType(GenericFunctionType node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitGenericFunctionType(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitGenericTypeAlias(GenericTypeAlias node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitGenericTypeAlias(node);
     stopwatch.stop();
     return result;
   }
@@ -2483,7 +2885,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
  * Failure to do so will cause the children of the visited node to not be
  * visited.
  *
- * Clients may extend or implement this class.
+ * Clients may extend this class.
  */
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
@@ -2640,6 +3042,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       visitNode(node);
+
+  @override
+  R visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
+
+  @override
+  R visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
 
   @override
   R visitHideCombinator(HideCombinator node) => visitNode(node);

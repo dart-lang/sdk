@@ -1984,7 +1984,7 @@ class JavaScriptBackend extends Backend {
   /**
    * Returns true if the element has to be resolved due to a mirrorsUsed
    * annotation. If we have insufficient mirrors used annotations, we only
-   * keep additonal elements if treeshaking has been disabled.
+   * keep additional elements if treeshaking has been disabled.
    */
   bool requiredByMirrorSystem(Element element) {
     return hasInsufficientMirrorsUsed && isTreeShakingDisabled ||

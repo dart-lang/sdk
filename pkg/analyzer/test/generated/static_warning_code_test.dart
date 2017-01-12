@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class StaticWarningCodeTest extends ResolverTestCase {
-  void fail_argumentTypeNotAssignable_tearOff_required() {
+  fail_argumentTypeNotAssignable_tearOff_required() async {
     Source source = addSource(r'''
 class C {
   Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
@@ -31,43 +31,43 @@ g(C c) {
   print(h('s'));
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void fail_undefinedGetter() {
+  fail_undefinedGetter() async {
     Source source = addSource(r'''
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_GETTER]);
     verify([source]);
   }
 
-  void fail_undefinedIdentifier_commentReference() {
+  fail_undefinedIdentifier_commentReference() async {
     Source source = addSource(r'''
 /** [m] xxx [new B.c] */
 class A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.UNDEFINED_IDENTIFIER,
       StaticWarningCode.UNDEFINED_IDENTIFIER
     ]);
   }
 
-  void fail_undefinedSetter() {
+  fail_undefinedSetter() async {
     Source source = addSource(r'''
 class C {}
 f(var p) {
   C.m = 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_SETTER]);
     verify([source]);
   }
 
-  void test_ambiguousImport_as() {
+  test_ambiguousImport_as() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -82,11 +82,11 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_extends() {
+  test_ambiguousImport_extends() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -101,14 +101,14 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       CompileTimeErrorCode.EXTENDS_NON_CLASS
     ]);
   }
 
-  void test_ambiguousImport_implements() {
+  test_ambiguousImport_implements() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -123,14 +123,14 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       CompileTimeErrorCode.IMPLEMENTS_NON_CLASS
     ]);
   }
 
-  void test_ambiguousImport_inPart() {
+  test_ambiguousImport_inPart() async {
     Source source = addSource(r'''
 library lib;
 import 'lib1.dart';
@@ -151,14 +151,16 @@ class N {}''');
         r'''
 part of lib;
 class A extends N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(partSource);
+    assertNoErrors(source);
     assertErrors(partSource, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       CompileTimeErrorCode.EXTENDS_NON_CLASS
     ]);
   }
 
-  void test_ambiguousImport_instanceCreation() {
+  test_ambiguousImport_instanceCreation() async {
     Source source = addSource(r'''
 library L;
 import 'lib1.dart';
@@ -174,11 +176,11 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_is() {
+  test_ambiguousImport_is() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -193,11 +195,11 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_qualifier() {
+  test_ambiguousImport_qualifier() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -212,11 +214,11 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_typeAnnotation() {
+  test_ambiguousImport_typeAnnotation() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -239,7 +241,7 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.AMBIGUOUS_IMPORT,
       StaticWarningCode.AMBIGUOUS_IMPORT,
@@ -251,7 +253,7 @@ class N {}''');
     ]);
   }
 
-  void test_ambiguousImport_typeArgument_annotation() {
+  test_ambiguousImport_typeArgument_annotation() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -267,11 +269,11 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_typeArgument_instanceCreation() {
+  test_ambiguousImport_typeArgument_instanceCreation() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -287,11 +289,11 @@ class N {}''');
         r'''
 library lib2;
 class N {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_varRead() {
+  test_ambiguousImport_varRead() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -307,11 +309,11 @@ var v;''');
         r'''
 library lib2;
 var v;''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_varWrite() {
+  test_ambiguousImport_varWrite() async {
     Source source = addSource(r'''
 import 'lib1.dart';
 import 'lib2.dart';
@@ -326,11 +328,11 @@ var v;''');
         r'''
 library lib2;
 var v;''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_ambiguousImport_withPrefix() {
+  test_ambiguousImport_withPrefix() async {
     Source source = addSource(r'''
 library test;
 import 'lib1.dart' as p;
@@ -348,11 +350,11 @@ f() {}''');
         r'''
 library lib2;
 f() {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
-  void test_argumentTypeNotAssignable_ambiguousClassName() {
+  test_argumentTypeNotAssignable_ambiguousClassName() async {
     // See dartbug.com/19624
     Source source = addNamedSource(
         "/lib1.dart",
@@ -369,7 +371,6 @@ f() {
 library lib2;
 class _A {}
 g(h(_A a)) {}''');
-    computeLibrarySourceErrors(source);
     // The name _A is private to the library it's defined in, so this is a type
     // mismatch. Furthermore, the error message should mention both _A and the
     // filenames so the user can figure out what's going on.
@@ -383,7 +384,7 @@ g(h(_A a)) {}''');
     expect(message.indexOf("lib2.dart") != -1, isTrue);
   }
 
-  void test_argumentTypeNotAssignable_annotation_namedConstructor() {
+  test_argumentTypeNotAssignable_annotation_namedConstructor() async {
     Source source = addSource(r'''
 class A {
   const A.fromInt(int p);
@@ -391,12 +392,12 @@ class A {
 @A.fromInt('0')
 main() {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_annotation_unnamedConstructor() {
+  test_argumentTypeNotAssignable_annotation_unnamedConstructor() async {
     Source source = addSource(r'''
 class A {
   const A(int p);
@@ -404,12 +405,12 @@ class A {
 @A('0')
 main() {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_binary() {
+  test_argumentTypeNotAssignable_binary() async {
     Source source = addSource(r'''
 class A {
   operator +(int p) {}
@@ -417,12 +418,12 @@ class A {
 f(A a) {
   a + '0';
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_cascadeSecond() {
+  test_argumentTypeNotAssignable_cascadeSecond() async {
     Source source = addSource(r'''
 // filler filler filler filler filler filler filler filler filler filler
 class A {
@@ -436,12 +437,12 @@ main() {
   A a = new A();
   a..  ma().mb(0);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_const() {
+  test_argumentTypeNotAssignable_const() async {
     Source source = addSource(r'''
 class A {
   const A(String p);
@@ -449,7 +450,7 @@ class A {
 main() {
   const A(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -457,7 +458,7 @@ main() {
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_const_super() {
+  test_argumentTypeNotAssignable_const_super() async {
     Source source = addSource(r'''
 class A {
   const A(String p);
@@ -465,22 +466,22 @@ class A {
 class B extends A {
   const B() : super(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_functionExpressionInvocation_required() {
+  test_argumentTypeNotAssignable_functionExpressionInvocation_required() async {
     Source source = addSource(r'''
 main() {
   (int x) {} ('');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_index() {
+  test_argumentTypeNotAssignable_index() async {
     Source source = addSource(r'''
 class A {
   operator [](int index) {}
@@ -488,12 +489,12 @@ class A {
 f(A a) {
   a['0'];
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_callParameter() {
+  test_argumentTypeNotAssignable_invocation_callParameter() async {
     Source source = addSource(r'''
 class A {
   call(int p) {}
@@ -501,12 +502,12 @@ class A {
 f(A a) {
   a('0');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_callVariable() {
+  test_argumentTypeNotAssignable_invocation_callVariable() async {
     Source source = addSource(r'''
 class A {
   call(int p) {}
@@ -515,46 +516,46 @@ main() {
   A a = new A();
   a('0');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_functionParameter() {
+  test_argumentTypeNotAssignable_invocation_functionParameter() async {
     Source source = addSource(r'''
 a(b(int p)) {
   b('0');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_functionParameter_generic() {
+  test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
     Source source = addSource(r'''
 class A<K, V> {
   m(f(K k), V v) {
     f(v);
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_functionTypes_optional() {
+  test_argumentTypeNotAssignable_invocation_functionTypes_optional() async {
     Source source = addSource(r'''
 void acceptFunNumOptBool(void funNumOptBool([bool b])) {}
 void funNumBool(bool b) {}
 main() {
   acceptFunNumOptBool(funNumBool);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_generic() {
+  test_argumentTypeNotAssignable_invocation_generic() async {
     Source source = addSource(r'''
 class A<T> {
   m(T t) {}
@@ -562,56 +563,56 @@ class A<T> {
 f(A<String> a) {
   a.m(1);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_named() {
+  test_argumentTypeNotAssignable_invocation_named() async {
     Source source = addSource(r'''
 f({String p}) {}
 main() {
   f(p: 42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_optional() {
+  test_argumentTypeNotAssignable_invocation_optional() async {
     Source source = addSource(r'''
 f([String p]) {}
 main() {
   f(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_required() {
+  test_argumentTypeNotAssignable_invocation_required() async {
     Source source = addSource(r'''
 f(String p) {}
 main() {
   f(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_typedef_generic() {
+  test_argumentTypeNotAssignable_invocation_typedef_generic() async {
     Source source = addSource(r'''
 typedef A<T>(T p);
 f(A<int> a) {
   a('1');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_typedef_local() {
+  test_argumentTypeNotAssignable_invocation_typedef_local() async {
     Source source = addSource(r'''
 typedef A(int p);
 A getA() => null;
@@ -619,23 +620,23 @@ main() {
   A a = getA();
   a('1');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_invocation_typedef_parameter() {
+  test_argumentTypeNotAssignable_invocation_typedef_parameter() async {
     Source source = addSource(r'''
 typedef A(int p);
 f(A a) {
   a('1');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_new_generic() {
+  test_argumentTypeNotAssignable_new_generic() async {
     Source source = addSource(r'''
 class A<T> {
   A(T p) {}
@@ -643,12 +644,12 @@ class A<T> {
 main() {
   new A<String>(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_new_optional() {
+  test_argumentTypeNotAssignable_new_optional() async {
     Source source = addSource(r'''
 class A {
   A([String p]) {}
@@ -656,12 +657,12 @@ class A {
 main() {
   new A(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_argumentTypeNotAssignable_new_required() {
+  test_argumentTypeNotAssignable_new_required() async {
     Source source = addSource(r'''
 class A {
   A(String p) {}
@@ -669,23 +670,23 @@ class A {
 main() {
   new A(42);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_assignmentToClass() {
+  test_assignmentToClass() async {
     Source source = addSource('''
 class C {}
 main() {
   C = null;
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
-  void test_assignmentToConst_instanceVariable() {
+  test_assignmentToConst_instanceVariable() async {
     Source source = addSource(r'''
 class A {
   static const v = 0;
@@ -693,12 +694,12 @@ class A {
 f() {
   A.v = 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
-  void test_assignmentToConst_instanceVariable_plusEq() {
+  test_assignmentToConst_instanceVariable_plusEq() async {
     Source source = addSource(r'''
 class A {
   static const v = 0;
@@ -706,45 +707,45 @@ class A {
 f() {
   A.v += 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
-  void test_assignmentToConst_localVariable() {
+  test_assignmentToConst_localVariable() async {
     Source source = addSource(r'''
 f() {
   const x = 0;
   x = 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
-  void test_assignmentToConst_localVariable_plusEq() {
+  test_assignmentToConst_localVariable_plusEq() async {
     Source source = addSource(r'''
 f() {
   const x = 0;
   x += 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_CONST]);
     verify([source]);
   }
 
-  void test_assignmentToEnumType() {
+  test_assignmentToEnumType() async {
     Source source = addSource('''
 enum E { e }
 main() {
   E = null;
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
-  void test_assignmentToFinal_instanceVariable() {
+  test_assignmentToFinal_instanceVariable() async {
     Source source = addSource(r'''
 class A {
   final v = 0;
@@ -753,12 +754,12 @@ f() {
   A a = new A();
   a.v = 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_instanceVariable_plusEq() {
+  test_assignmentToFinal_instanceVariable_plusEq() async {
     Source source = addSource(r'''
 class A {
   final v = 0;
@@ -767,109 +768,109 @@ f() {
   A a = new A();
   a.v += 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_localVariable() {
+  test_assignmentToFinal_localVariable() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x = 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_localVariable_plusEq() {
+  test_assignmentToFinal_localVariable_plusEq() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x += 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_postfixMinusMinus() {
+  test_assignmentToFinal_postfixMinusMinus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x--;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_postfixPlusPlus() {
+  test_assignmentToFinal_postfixPlusPlus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x++;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_prefixMinusMinus() {
+  test_assignmentToFinal_prefixMinusMinus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   --x;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_prefixPlusPlus() {
+  test_assignmentToFinal_prefixPlusPlus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   ++x;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_suffixMinusMinus() {
+  test_assignmentToFinal_suffixMinusMinus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x--;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_suffixPlusPlus() {
+  test_assignmentToFinal_suffixPlusPlus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x++;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinal_topLevelVariable() {
+  test_assignmentToFinal_topLevelVariable() async {
     Source source = addSource(r'''
 final x = 0;
 f() { x = 1; }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
   }
 
-  void test_assignmentToFinalNoSetter_prefixedIdentifier() {
+  test_assignmentToFinalNoSetter_prefixedIdentifier() async {
     Source source = addSource(r'''
 class A {
   int get x => 0;
@@ -878,12 +879,12 @@ main() {
   A a = new A();
   a.x = 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
     verify([source]);
   }
 
-  void test_assignmentToFinalNoSetter_propertyAccess() {
+  test_assignmentToFinalNoSetter_propertyAccess() async {
     Source source = addSource(r'''
 class A {
   int get x => 0;
@@ -894,23 +895,23 @@ class B {
 main() {
   B.a.x = 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
     verify([source]);
   }
 
-  void test_assignmentToFunction() {
+  test_assignmentToFunction() async {
     Source source = addSource(r'''
 f() {}
 main() {
   f = null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FUNCTION]);
     verify([source]);
   }
 
-  void test_assignmentToMethod() {
+  test_assignmentToMethod() async {
     Source source = addSource(r'''
 class A {
   m() {}
@@ -918,23 +919,23 @@ class A {
 f(A a) {
   a.m = () {};
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_METHOD]);
     verify([source]);
   }
 
-  void test_assignmentToTypedef() {
+  test_assignmentToTypedef() async {
     Source source = addSource('''
 typedef void F();
 main() {
   F = null;
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
-  void test_assignmentToTypeParameter() {
+  test_assignmentToTypeParameter() async {
     Source source = addSource('''
 class C<T> {
   f() {
@@ -942,11 +943,11 @@ class C<T> {
   }
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_TYPE]);
   }
 
-  void test_caseBlockNotTerminated() {
+  test_caseBlockNotTerminated() async {
     Source source = addSource(r'''
 f(int p) {
   switch (p) {
@@ -956,32 +957,32 @@ f(int p) {
       break;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
     verify([source]);
   }
 
-  void test_castToNonType() {
+  test_castToNonType() async {
     Source source = addSource(r'''
 var A = 0;
 f(String s) { var x = s as A; }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.CAST_TO_NON_TYPE]);
     verify([source]);
   }
 
-  void test_concreteClassWithAbstractMember() {
+  test_concreteClassWithAbstractMember() async {
     Source source = addSource(r'''
 class A {
   m();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
     verify([source]);
   }
 
-  void test_concreteClassWithAbstractMember_noSuchMethod_interface() {
+  test_concreteClassWithAbstractMember_noSuchMethod_interface() async {
     Source source = addSource(r'''
 class I {
   noSuchMethod(v) => '';
@@ -989,13 +990,13 @@ class I {
 class A implements I {
   m();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingDartImport() {
+  test_conflictingDartImport() async {
     Source source = addSource(r'''
 import 'lib.dart';
 import 'dart:async';
@@ -1006,12 +1007,11 @@ Stream s;''');
         r'''
 library lib;
 class Future {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.CONFLICTING_DART_IMPORT]);
   }
 
-  void
-      test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() {
+  test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() async {
     Source source = addSource(r'''
 class A {
   static set v(x) {}
@@ -1019,14 +1019,13 @@ class A {
 class B extends A {
   var v;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void
-      test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_getter() {
+  test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_getter() async {
     Source source = addSource(r'''
 class A {
   static get v => 0;
@@ -1034,14 +1033,13 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void
-      test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_method() {
+  test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_method() async {
     Source source = addSource(r'''
 class A {
   static v() {}
@@ -1049,14 +1047,13 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void
-      test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_setter() {
+  test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_setter() async {
     Source source = addSource(r'''
 class A {
   static set v(x) {}
@@ -1064,13 +1061,13 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_declGetter_indirect() {
+  test_conflictingInstanceGetterAndSuperclassMember_declGetter_indirect() async {
     Source source = addSource(r'''
 class A {
   static int v;
@@ -1079,13 +1076,13 @@ class B extends A {}
 class C extends B {
   get v => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_declGetter_mixin() {
+  test_conflictingInstanceGetterAndSuperclassMember_declGetter_mixin() async {
     Source source = addSource(r'''
 class M {
   static int v;
@@ -1093,13 +1090,13 @@ class M {
 class B extends Object with M {
   get v => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceGetterAndSuperclassMember_direct_field() {
+  test_conflictingInstanceGetterAndSuperclassMember_direct_field() async {
     Source source = addSource(r'''
 class A {
   static int v;
@@ -1107,37 +1104,37 @@ class A {
 class B extends A {
   get v => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceMethodSetter2() {
+  test_conflictingInstanceMethodSetter2() async {
     Source source = addSource(r'''
 class A {
   foo() {}
   set foo(a) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2]);
     verify([source]);
   }
 
-  void test_conflictingInstanceMethodSetter_sameClass() {
+  test_conflictingInstanceMethodSetter_sameClass() async {
     Source source = addSource(r'''
 class A {
   set foo(a) {}
   foo() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceMethodSetter_setterInInterface() {
+  test_conflictingInstanceMethodSetter_setterInInterface() async {
     Source source = addSource(r'''
 abstract class A {
   set foo(a);
@@ -1145,13 +1142,13 @@ abstract class A {
 abstract class B implements A {
   foo() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceMethodSetter_setterInSuper() {
+  test_conflictingInstanceMethodSetter_setterInSuper() async {
     Source source = addSource(r'''
 class A {
   set foo(a) {}
@@ -1159,13 +1156,13 @@ class A {
 class B extends A {
   foo() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
     verify([source]);
   }
 
-  void test_conflictingInstanceSetterAndSuperclassMember() {
+  test_conflictingInstanceSetterAndSuperclassMember() async {
     Source source = addSource(r'''
 class A {
   static int v;
@@ -1173,13 +1170,13 @@ class A {
 class B extends A {
   set v(x) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingStaticGetterAndInstanceSetter_mixin() {
+  test_conflictingStaticGetterAndInstanceSetter_mixin() async {
     Source source = addSource(r'''
 class A {
   set x(int p) {}
@@ -1187,13 +1184,13 @@ class A {
 class B extends Object with A {
   static get x => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER]);
     verify([source]);
   }
 
-  void test_conflictingStaticGetterAndInstanceSetter_superClass() {
+  test_conflictingStaticGetterAndInstanceSetter_superClass() async {
     Source source = addSource(r'''
 class A {
   set x(int p) {}
@@ -1201,49 +1198,49 @@ class A {
 class B extends A {
   static get x => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER]);
     verify([source]);
   }
 
-  void test_conflictingStaticGetterAndInstanceSetter_thisClass() {
+  test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
     Source source = addSource(r'''
 class A {
   static get x => 0;
   set x(int p) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER]);
     verify([source]);
   }
 
-  void test_conflictingStaticSetterAndInstanceMember_thisClass_getter() {
+  test_conflictingStaticSetterAndInstanceMember_thisClass_getter() async {
     Source source = addSource(r'''
 class A {
   get x => 0;
   static set x(int p) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_conflictingStaticSetterAndInstanceMember_thisClass_method() {
+  test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
     Source source = addSource(r'''
 class A {
   x() {}
   static set x(int p) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_constWithAbstractClass() {
+  test_constWithAbstractClass() async {
     Source source = addSource(r'''
 abstract class A {
   const A();
@@ -1251,30 +1248,30 @@ abstract class A {
 void f() {
   A a = const A();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
     verify([source]);
   }
 
-  void test_equalKeysInMap() {
+  test_equalKeysInMap() async {
     Source source = addSource("var m = {'a' : 0, 'b' : 1, 'a' : 2};");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
     verify([source]);
   }
 
-  void test_equalKeysInMap_withEqualTypeParams() {
+  test_equalKeysInMap_withEqualTypeParams() async {
     Source source = addSource(r'''
 class A<T> {
   const A();
 }
 var m = {const A<int>(): 0, const A<int>(): 1};''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
     verify([source]);
   }
 
-  void test_equalKeysInMap_withUnequalTypeParams() {
+  test_equalKeysInMap_withUnequalTypeParams() async {
     // No error should be produced because A<int> and A<num> are different
     // types.
     Source source = addSource(r'''
@@ -1282,74 +1279,74 @@ class A<T> {
   const A();
 }
 var m = {const A<int>(): 0, const A<num>(): 1};''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_exportDuplicatedLibraryNamed() {
+  test_exportDuplicatedLibraryNamed() async {
     Source source = addSource(r'''
 library test;
 export 'lib1.dart';
 export 'lib2.dart';''');
     addNamedSource("/lib1.dart", "library lib;");
     addNamedSource("/lib2.dart", "library lib;");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED]);
     verify([source]);
   }
 
-  void test_extraPositionalArguments() {
+  test_extraPositionalArguments() async {
     Source source = addSource(r'''
 f() {}
 main() {
   f(0, 1, '2');
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS]);
     verify([source]);
   }
 
-  void test_extraPositionalArguments_functionExpression() {
+  test_extraPositionalArguments_functionExpression() async {
     Source source = addSource(r'''
 main() {
   (int x) {} (0, 1);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS]);
     verify([source]);
   }
 
-  void test_fieldInitializedInInitializerAndDeclaration_final() {
+  test_fieldInitializedInInitializerAndDeclaration_final() async {
     Source source = addSource(r'''
 class A {
   final int x = 0;
   A() : x = 1 {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
     verify([source]);
   }
 
-  void test_fieldInitializerNotAssignable() {
+  test_fieldInitializerNotAssignable() async {
     Source source = addSource(r'''
 class A {
   int x;
   A() : x = '';
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_fieldInitializingFormalNotAssignable() {
+  test_fieldInitializingFormalNotAssignable() async {
     Source source = addSource(r'''
 class A {
   int x;
   A(String this.x) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
     verify([source]);
@@ -1364,56 +1361,56 @@ class A {
    * FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, since it more specific, we use it instead of
    * the broader code
    */
-  void test_finalInitializedInDeclarationAndConstructor_initializers() {
+  test_finalInitializedInDeclarationAndConstructor_initializers() async {
     Source source = addSource(r'''
 class A {
   final x = 0;
   A() : x = 0 {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
     verify([source]);
   }
 
-  void test_finalInitializedInDeclarationAndConstructor_initializingFormal() {
+  test_finalInitializedInDeclarationAndConstructor_initializingFormal() async {
     Source source = addSource(r'''
 class A {
   final x = 0;
   A(this.x) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_inConstructor_1() {
+  test_finalNotInitialized_inConstructor_1() async {
     Source source = addSource(r'''
 class A {
   final int x;
   A() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_inConstructor_2() {
+  test_finalNotInitialized_inConstructor_2() async {
     Source source = addSource(r'''
 class A {
   final int a;
   final int b;
   A() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_inConstructor_3() {
+  test_finalNotInitialized_inConstructor_3() async {
     Source source = addSource(r'''
 class A {
   final int a;
@@ -1421,88 +1418,88 @@ class A {
   final int c;
   A() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_instanceField_final() {
+  test_finalNotInitialized_instanceField_final() async {
     Source source = addSource(r'''
 class A {
   final F;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_instanceField_final_static() {
+  test_finalNotInitialized_instanceField_final_static() async {
     Source source = addSource(r'''
 class A {
   static final F;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_library_final() {
+  test_finalNotInitialized_library_final() async {
     Source source = addSource("final F;");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
-  void test_finalNotInitialized_local_final() {
+  test_finalNotInitialized_local_final() async {
     Source source = addSource(r'''
 f() {
   final int x;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
 
-  void test_functionWithoutCall_direct() {
+  test_functionWithoutCall_direct() async {
     Source source = addSource(r'''
 class A implements Function {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
   }
 
-  void test_functionWithoutCall_indirect_extends() {
+  test_functionWithoutCall_indirect_extends() async {
     Source source = addSource(r'''
 abstract class A implements Function {
 }
 class B extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
   }
 
-  void test_functionWithoutCall_indirect_implements() {
+  test_functionWithoutCall_indirect_implements() async {
     Source source = addSource(r'''
 abstract class A implements Function {
 }
 class B implements A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
   }
 
-  void test_importDuplicatedLibraryNamed() {
+  test_importDuplicatedLibraryNamed() async {
     Source source = addSource(r'''
 library test;
 import 'lib1.dart';
 import 'lib2.dart';''');
     addNamedSource("/lib1.dart", "library lib;");
     addNamedSource("/lib2.dart", "library lib;");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
       HintCode.UNUSED_IMPORT,
@@ -1511,8 +1508,8 @@ import 'lib2.dart';''');
     verify([source]);
   }
 
-  void test_importOfNonLibrary() {
-    resolveWithErrors(<String>[
+  test_importOfNonLibrary() async {
+    await resolveWithErrors(<String>[
       r'''
 part of lib;
 class A {}''',
@@ -1525,7 +1522,7 @@ var a = new p.A();'''
     ]);
   }
 
-  void test_inconsistentMethodInheritanceGetterAndMethod() {
+  test_inconsistentMethodInheritanceGetterAndMethod() async {
     Source source = addSource(r'''
 abstract class A {
   int x();
@@ -1535,13 +1532,13 @@ abstract class B {
 }
 class C implements A, B {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_field() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_field() async {
     Source source = addSource(r'''
 class A {
   static var n;
@@ -1549,14 +1546,14 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_field2() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_field2() async {
     Source source = addSource(r'''
 class A {
   static var n;
@@ -1566,14 +1563,14 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_getter() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_getter() async {
     Source source = addSource(r'''
 class A {
   static get n {return 0;}
@@ -1581,14 +1578,14 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_getter2() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_getter2() async {
     Source source = addSource(r'''
 class A {
   static get n {return 0;}
@@ -1598,14 +1595,14 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_interface() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_interface() async {
     Source source = addSource(r'''
 class Base {
   static foo() {}
@@ -1617,14 +1614,14 @@ class C extends Base implements Ifc {
   foo() {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_method() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
     Source source = addSource(r'''
 class A {
   static n () {}
@@ -1632,14 +1629,14 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_method2() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_method2() async {
     Source source = addSource(r'''
 class A {
   static n () {}
@@ -1649,14 +1646,14 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_setter() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_setter() async {
     Source source = addSource(r'''
 class A {
   static set n(int x) {}
@@ -1664,14 +1661,14 @@ class A {
 class B extends A {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_instanceMethodNameCollidesWithSuperclassStatic_setter2() {
+  test_instanceMethodNameCollidesWithSuperclassStatic_setter2() async {
     Source source = addSource(r'''
 class A {
   static set n(int x) {}
@@ -1681,14 +1678,14 @@ class B extends A {
 class C extends B {
   void n() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     ]);
     verify([source]);
   }
 
-  void test_invalidGetterOverrideReturnType() {
+  test_invalidGetterOverrideReturnType() async {
     Source source = addSource(r'''
 class A {
   int get g { return 0; }
@@ -1696,13 +1693,13 @@ class A {
 class B extends A {
   String get g { return 'a'; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidGetterOverrideReturnType_implicit() {
+  test_invalidGetterOverrideReturnType_implicit() async {
     Source source = addSource(r'''
 class A {
   String f;
@@ -1710,7 +1707,7 @@ class A {
 class B extends A {
   int f;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
       StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
@@ -1718,7 +1715,7 @@ class B extends A {
     verify([source]);
   }
 
-  void test_invalidGetterOverrideReturnType_twoInterfaces() {
+  test_invalidGetterOverrideReturnType_twoInterfaces() async {
     // test from language/override_inheritance_field_test_11.dart
     Source source = addSource(r'''
 abstract class I {
@@ -1731,13 +1728,13 @@ abstract class A implements I, J {}
 class B extends A {
   String get getter => null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidGetterOverrideReturnType_twoInterfaces_conflicting() {
+  test_invalidGetterOverrideReturnType_twoInterfaces_conflicting() async {
     Source source = addSource(r'''
 abstract class I<U> {
   U get g => null;
@@ -1748,13 +1745,13 @@ abstract class J<V> {
 class B implements I<int>, J<String> {
   double get g => null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNamedParamType() {
+  test_invalidMethodOverrideNamedParamType() async {
     Source source = addSource(r'''
 class A {
   m({int a}) {}
@@ -1762,13 +1759,13 @@ class A {
 class B implements A {
   m({String a}) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNormalParamType_interface() {
+  test_invalidMethodOverrideNormalParamType_interface() async {
     Source source = addSource(r'''
 class A {
   m(int a) {}
@@ -1776,13 +1773,13 @@ class A {
 class B implements A {
   m(String a) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNormalParamType_superclass() {
+  test_invalidMethodOverrideNormalParamType_superclass() async {
     Source source = addSource(r'''
 class A {
   m(int a) {}
@@ -1790,13 +1787,13 @@ class A {
 class B extends A {
   m(String a) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNormalParamType_superclass_interface() {
+  test_invalidMethodOverrideNormalParamType_superclass_interface() async {
     Source source = addSource(r'''
 abstract class I<U> {
   m(U u) => null;
@@ -1807,13 +1804,13 @@ abstract class J<V> {
 class B extends I<int> implements J<String> {
   m(double d) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNormalParamType_twoInterfaces() {
+  test_invalidMethodOverrideNormalParamType_twoInterfaces() async {
     Source source = addSource(r'''
 abstract class I {
   m(int n);
@@ -1825,13 +1822,13 @@ abstract class A implements I, J {}
 class B extends A {
   m(String n) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() {
+  test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() async {
     // language/override_inheritance_generic_test/08
     Source source = addSource(r'''
 abstract class I<U> {
@@ -1843,13 +1840,13 @@ abstract class J<V> {
 class B implements I<int>, J<String> {
   m(double d) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideOptionalParamType() {
+  test_invalidMethodOverrideOptionalParamType() async {
     Source source = addSource(r'''
 class A {
   m([int a]) {}
@@ -1857,13 +1854,13 @@ class A {
 class B implements A {
   m([String a]) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideOptionalParamType_twoInterfaces() {
+  test_invalidMethodOverrideOptionalParamType_twoInterfaces() async {
     Source source = addSource(r'''
 abstract class I {
   m([int n]);
@@ -1875,13 +1872,13 @@ abstract class A implements I, J {}
 class B extends A {
   m([String n]) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_interface() {
+  test_invalidMethodOverrideReturnType_interface() async {
     Source source = addSource(r'''
 class A {
   int m() { return 0; }
@@ -1889,13 +1886,13 @@ class A {
 class B implements A {
   String m() { return 'a'; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_interface_grandparent() {
+  test_invalidMethodOverrideReturnType_interface_grandparent() async {
     Source source = addSource(r'''
 abstract class A {
   int m();
@@ -1905,13 +1902,13 @@ abstract class B implements A {
 class C implements B {
   String m() { return 'a'; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_mixin() {
+  test_invalidMethodOverrideReturnType_mixin() async {
     Source source = addSource(r'''
 class A {
   int m() { return 0; }
@@ -1919,13 +1916,13 @@ class A {
 class B extends Object with A {
   String m() { return 'a'; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_superclass() {
+  test_invalidMethodOverrideReturnType_superclass() async {
     Source source = addSource(r'''
 class A {
   int m() { return 0; }
@@ -1933,13 +1930,13 @@ class A {
 class B extends A {
   String m() { return 'a'; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_superclass_grandparent() {
+  test_invalidMethodOverrideReturnType_superclass_grandparent() async {
     Source source = addSource(r'''
 class A {
   int m() { return 0; }
@@ -1949,13 +1946,13 @@ class B extends A {
 class C extends B {
   String m() { return 'a'; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_twoInterfaces() {
+  test_invalidMethodOverrideReturnType_twoInterfaces() async {
     Source source = addSource(r'''
 abstract class I {
   int m();
@@ -1967,13 +1964,13 @@ abstract class A implements I, J {}
 class B extends A {
   String m() => '';
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidMethodOverrideReturnType_void() {
+  test_invalidMethodOverrideReturnType_void() async {
     Source source = addSource(r'''
 class A {
   int m() { return 0; }
@@ -1981,13 +1978,13 @@ class A {
 class B extends A {
   void m() {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_invalidOverride_defaultOverridesNonDefault() {
+  test_invalidOverride_defaultOverridesNonDefault() async {
     // If the base class provided an explicit value for a default parameter,
     // then it is a static warning for the derived class to provide a different
     // value, even if implicitly.
@@ -1999,14 +1996,14 @@ class B extends A {
   foo([x]) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
     ]);
     verify([source]);
   }
 
-  void test_invalidOverride_defaultOverridesNonDefault_named() {
+  test_invalidOverride_defaultOverridesNonDefault_named() async {
     // If the base class provided an explicit value for a default parameter,
     // then it is a static warning for the derived class to provide a different
     // value, even if implicitly.
@@ -2018,13 +2015,13 @@ class B extends A {
   foo({x}) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
     verify([source]);
   }
 
-  void test_invalidOverride_defaultOverridesNonDefaultNull() {
+  test_invalidOverride_defaultOverridesNonDefaultNull() async {
     // If the base class provided an explicit null value for a default
     // parameter, then it is ok for the derived class to let the default value
     // be implicit, because the implicit default value of null matches the
@@ -2037,12 +2034,12 @@ class B extends A {
   foo([x]) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_invalidOverride_defaultOverridesNonDefaultNull_named() {
+  test_invalidOverride_defaultOverridesNonDefaultNull_named() async {
     // If the base class provided an explicit null value for a default
     // parameter, then it is ok for the derived class to let the default value
     // be implicit, because the implicit default value of null matches the
@@ -2055,12 +2052,12 @@ class B extends A {
   foo({x}) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_invalidOverride_nonDefaultOverridesDefault() {
+  test_invalidOverride_nonDefaultOverridesDefault() async {
     // If the base class lets the default parameter be implicit, then it is ok
     // for the derived class to provide an explicit default value, even if it's
     // not null.
@@ -2072,12 +2069,12 @@ class B extends A {
   foo([x = 1]) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_invalidOverride_nonDefaultOverridesDefault_named() {
+  test_invalidOverride_nonDefaultOverridesDefault_named() async {
     // If the base class lets the default parameter be implicit, then it is ok
     // for the derived class to provide an explicit default value, even if it's
     // not null.
@@ -2089,12 +2086,12 @@ class B extends A {
   foo({x: 1}) {}
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_invalidOverrideDifferentDefaultValues_named() {
+  test_invalidOverrideDifferentDefaultValues_named() async {
     Source source = addSource(r'''
 class A {
   m({int p : 0}) {}
@@ -2102,13 +2099,13 @@ class A {
 class B extends A {
   m({int p : 1}) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED]);
     verify([source]);
   }
 
-  void test_invalidOverrideDifferentDefaultValues_positional() {
+  test_invalidOverrideDifferentDefaultValues_positional() async {
     Source source = addSource(r'''
 class A {
   m([int p = 0]) {}
@@ -2116,14 +2113,14 @@ class A {
 class B extends A {
   m([int p = 1]) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL
     ]);
     verify([source]);
   }
 
-  void test_invalidOverrideNamed_fewerNamedParameters() {
+  test_invalidOverrideNamed_fewerNamedParameters() async {
     Source source = addSource(r'''
 class A {
   m({a, b}) {}
@@ -2131,12 +2128,12 @@ class A {
 class B extends A {
   m({a}) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
     verify([source]);
   }
 
-  void test_invalidOverrideNamed_missingNamedParameter() {
+  test_invalidOverrideNamed_missingNamedParameter() async {
     Source source = addSource(r'''
 class A {
   m({a, b}) {}
@@ -2144,12 +2141,12 @@ class A {
 class B extends A {
   m({a, c}) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_NAMED]);
     verify([source]);
   }
 
-  void test_invalidOverridePositional_optional() {
+  test_invalidOverridePositional_optional() async {
     Source source = addSource(r'''
 class A {
   m([a, b]) {}
@@ -2157,12 +2154,12 @@ class A {
 class B extends A {
   m([a]) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
     verify([source]);
   }
 
-  void test_invalidOverridePositional_optionalAndRequired() {
+  test_invalidOverridePositional_optionalAndRequired() async {
     Source source = addSource(r'''
 class A {
   m(a, b, [c, d]) {}
@@ -2170,12 +2167,12 @@ class A {
 class B extends A {
   m(a, b, [c]) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
     verify([source]);
   }
 
-  void test_invalidOverridePositional_optionalAndRequired2() {
+  test_invalidOverridePositional_optionalAndRequired2() async {
     Source source = addSource(r'''
 class A {
   m(a, b, [c, d]) {}
@@ -2183,12 +2180,12 @@ class A {
 class B extends A {
   m(a, [c, d]) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_POSITIONAL]);
     verify([source]);
   }
 
-  void test_invalidOverrideRequired() {
+  test_invalidOverrideRequired() async {
     Source source = addSource(r'''
 class A {
   m(a) {}
@@ -2196,12 +2193,12 @@ class A {
 class B extends A {
   m(a, b) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.INVALID_OVERRIDE_REQUIRED]);
     verify([source]);
   }
 
-  void test_invalidSetterOverrideNormalParamType() {
+  test_invalidSetterOverrideNormalParamType() async {
     Source source = addSource(r'''
 class A {
   void set s(int v) {}
@@ -2209,13 +2206,13 @@ class A {
 class B extends A {
   void set s(String v) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidSetterOverrideNormalParamType_superclass_interface() {
+  test_invalidSetterOverrideNormalParamType_superclass_interface() async {
     Source source = addSource(r'''
 abstract class I {
   set setter14(int _) => null;
@@ -2227,13 +2224,13 @@ abstract class A extends I implements J {}
 class B extends A {
   set setter14(String _) => null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidSetterOverrideNormalParamType_twoInterfaces() {
+  test_invalidSetterOverrideNormalParamType_twoInterfaces() async {
     // test from language/override_inheritance_field_test_34.dart
     Source source = addSource(r'''
 abstract class I {
@@ -2246,13 +2243,13 @@ abstract class A implements I, J {}
 class B extends A {
   set setter14(String _) => null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting() {
+  test_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting() async {
     Source source = addSource(r'''
 abstract class I<U> {
   set s(U u) {}
@@ -2263,46 +2260,46 @@ abstract class J<V> {
 class B implements I<int>, J<String> {
   set s(double d) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
     verify([source]);
   }
 
-  void test_listElementTypeNotAssignable() {
+  test_listElementTypeNotAssignable() async {
     Source source = addSource("var v = <String> [42];");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_mapKeyTypeNotAssignable() {
+  test_mapKeyTypeNotAssignable() async {
     Source source = addSource("var v = <String, int > {1 : 2};");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_mapValueTypeNotAssignable() {
+  test_mapValueTypeNotAssignable() async {
     Source source = addSource("var v = <String, String> {'a' : 2};");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_mismatchedAccessorTypes_class() {
+  test_mismatchedAccessorTypes_class() async {
     Source source = addSource(r'''
 class A {
   int get g { return 0; }
   set g(String v) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
   }
 
-  void test_mismatchedAccessorTypes_getterAndSuperSetter() {
+  test_mismatchedAccessorTypes_getterAndSuperSetter() async {
     Source source = addSource(r'''
 class A {
   int get g { return 0; }
@@ -2310,13 +2307,13 @@ class A {
 class B extends A {
   set g(String v) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE]);
     verify([source]);
   }
 
-  void test_mismatchedAccessorTypes_setterAndSuperGetter() {
+  test_mismatchedAccessorTypes_setterAndSuperGetter() async {
     Source source = addSource(r'''
 class A {
   set g(int v) {}
@@ -2324,23 +2321,23 @@ class A {
 class B extends A {
   String get g { return ''; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE]);
     verify([source]);
   }
 
-  void test_mismatchedAccessorTypes_topLevel() {
+  test_mismatchedAccessorTypes_topLevel() async {
     Source source = addSource(r'''
 int get g { return 0; }
 set g(String v) {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
   }
 
-  void test_missingEnumConstantInSwitch() {
+  test_missingEnumConstantInSwitch() async {
     Source source = addSource(r'''
 enum E { ONE, TWO, THREE, FOUR }
 bool odd(E e) {
@@ -2350,7 +2347,7 @@ bool odd(E e) {
   }
   return false;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
       StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
@@ -2358,7 +2355,7 @@ bool odd(E e) {
     verify([source]);
   }
 
-  void test_mixedReturnTypes_localFunction() {
+  test_mixedReturnTypes_localFunction() async {
     Source source = addSource(r'''
 class C {
   m(int x) {
@@ -2370,7 +2367,7 @@ class C {
     };
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.MIXED_RETURN_TYPES,
       StaticWarningCode.MIXED_RETURN_TYPES
@@ -2378,7 +2375,7 @@ class C {
     verify([source]);
   }
 
-  void test_mixedReturnTypes_method() {
+  test_mixedReturnTypes_method() async {
     Source source = addSource(r'''
 class C {
   m(int x) {
@@ -2388,7 +2385,7 @@ class C {
     return 0;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.MIXED_RETURN_TYPES,
       StaticWarningCode.MIXED_RETURN_TYPES
@@ -2396,7 +2393,7 @@ class C {
     verify([source]);
   }
 
-  void test_mixedReturnTypes_topLevelFunction() {
+  test_mixedReturnTypes_topLevelFunction() async {
     Source source = addSource(r'''
 f(int x) {
   if (x < 0) {
@@ -2404,7 +2401,7 @@ f(int x) {
   }
   return 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.MIXED_RETURN_TYPES,
       StaticWarningCode.MIXED_RETURN_TYPES
@@ -2412,62 +2409,62 @@ f(int x) {
     verify([source]);
   }
 
-  void test_newWithAbstractClass() {
+  test_newWithAbstractClass() async {
     Source source = addSource(r'''
 abstract class A {}
 void f() {
   A a = new A();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS]);
     verify([source]);
   }
 
-  void test_newWithInvalidTypeParameters() {
+  test_newWithInvalidTypeParameters() async {
     Source source = addSource(r'''
 class A {}
 f() { return new A<A>(); }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
-  void test_newWithInvalidTypeParameters_tooFew() {
+  test_newWithInvalidTypeParameters_tooFew() async {
     Source source = addSource(r'''
 class A {}
 class C<K, V> {}
 f(p) {
   return new C<A>();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
-  void test_newWithInvalidTypeParameters_tooMany() {
+  test_newWithInvalidTypeParameters_tooMany() async {
     Source source = addSource(r'''
 class A {}
 class C<E> {}
 f(p) {
   return new C<A, A>();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS]);
     verify([source]);
   }
 
-  void test_newWithNonType() {
+  test_newWithNonType() async {
     Source source = addSource(r'''
 var A = 0;
 void f() {
   var a = new A();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_NON_TYPE]);
     verify([source]);
   }
 
-  void test_newWithNonType_fromLibrary() {
+  test_newWithNonType_fromLibrary() async {
     Source source1 = addNamedSource("/lib.dart", "class B {}");
     Source source2 = addNamedSource(
         "/lib2.dart",
@@ -2477,13 +2474,13 @@ void f() {
   var a = new lib.A();
 }
 lib.B b;''');
-    computeLibrarySourceErrors(source1);
-    computeLibrarySourceErrors(source2);
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
     assertErrors(source2, [StaticWarningCode.NEW_WITH_NON_TYPE]);
     verify([source1]);
   }
 
-  void test_newWithUndefinedConstructor() {
+  test_newWithUndefinedConstructor() async {
     Source source = addSource(r'''
 class A {
   A() {}
@@ -2491,12 +2488,12 @@ class A {
 f() {
   new A.name();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR]);
     // no verify(), 'name' is not resolved
   }
 
-  void test_newWithUndefinedConstructorDefault() {
+  test_newWithUndefinedConstructorDefault() async {
     Source source = addSource(r'''
 class A {
   A.name() {}
@@ -2504,13 +2501,13 @@ class A {
 f() {
   new A();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberFivePlus() {
+  test_nonAbstractClassInheritsAbstractMemberFivePlus() async {
     Source source = addSource(r'''
 abstract class A {
   m();
@@ -2521,14 +2518,14 @@ abstract class A {
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [
       StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS
     ]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberFour() {
+  test_nonAbstractClassInheritsAbstractMemberFour() async {
     Source source = addSource(r'''
 abstract class A {
   m();
@@ -2538,14 +2535,13 @@ abstract class A {
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+  test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() async {
     // 15979
     Source source = addSource(r'''
 abstract class M {}
@@ -2554,13 +2550,13 @@ abstract class I {
   m();
 }
 class B = A with M implements I;''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin() {
+  test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin() async {
     // 15979
     Source source = addSource(r'''
 abstract class M {
@@ -2568,14 +2564,13 @@ abstract class M {
 }
 abstract class A {}
 class B = A with M;''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+  test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() async {
     // 15979
     Source source = addSource(r'''
 class M {}
@@ -2583,14 +2578,13 @@ abstract class A {
   m();
 }
 class B = A with M;''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() {
+  test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() async {
     // 15028
     Source source = addSource(r'''
 class C {
@@ -2600,66 +2594,65 @@ abstract class D {
   foo(x, [y]);
 }
 class E extends C implements D {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_getter_fromInterface() {
+  test_nonAbstractClassInheritsAbstractMemberOne_getter_fromInterface() async {
     Source source = addSource(r'''
 class I {
   int get g {return 1;}
 }
 class C implements I {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_getter_fromSuperclass() {
+  test_nonAbstractClassInheritsAbstractMemberOne_getter_fromSuperclass() async {
     Source source = addSource(r'''
 abstract class A {
   int get g;
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface() {
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface() async {
     Source source = addSource(r'''
 class I {
   m(p) {}
 }
 class C implements I {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_method_fromSuperclass() {
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromSuperclass() async {
     Source source = addSource(r'''
 abstract class A {
   m(p);
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount() {
+  test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount() async {
     // 7640
     Source source = addSource(r'''
 abstract class A {
@@ -2670,46 +2663,46 @@ abstract class B {
 }
 class C implements A, B {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter() {
+  test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter() async {
     // 15001
     Source source = addSource(r'''
 abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method() {
+  test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method() async {
     // 15001
     Source source = addSource(r'''
 abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter() {
+  test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter() async {
     // 15001
     Source source = addSource(r'''
 abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_interface() {
+  test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_interface() async {
     // 15979
     Source source = addSource(r'''
 class I {
@@ -2720,14 +2713,13 @@ abstract class A {
 }
 class B extends A implements I {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {
+  test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() async {
     // test from language/override_inheritance_abstract_test_14.dart
     Source source = addSource(r'''
 abstract class A {
@@ -2739,39 +2731,39 @@ abstract class I {
 class B extends A implements I {
   get field => 0;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface() {
+  test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface() async {
     Source source = addSource(r'''
 class I {
   set s(int i) {}
 }
 class C implements I {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_setter_fromSuperclass() {
+  test_nonAbstractClassInheritsAbstractMemberOne_setter_fromSuperclass() async {
     Source source = addSource(r'''
 abstract class A {
   set s(int i);
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_superclasses_interface() {
+  test_nonAbstractClassInheritsAbstractMemberOne_superclasses_interface() async {
     // bug 11154
     Source source = addSource(r'''
 class A {
@@ -2782,14 +2774,13 @@ abstract class B implements A {
 }
 class C extends B {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingGetter() {
+  test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingGetter() async {
     // 16133
     Source source = addSource(r'''
 class I {
@@ -2798,14 +2789,13 @@ class I {
 class C implements I {
   set v(_) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingSetter() {
+  test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingSetter() async {
     // 16133
     Source source = addSource(r'''
 class I {
@@ -2814,13 +2804,13 @@ class I {
 class C implements I {
   get v => 1;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberThree() {
+  test_nonAbstractClassInheritsAbstractMemberThree() async {
     Source source = addSource(r'''
 abstract class A {
   m();
@@ -2829,13 +2819,13 @@ abstract class A {
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE]);
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberTwo() {
+  test_nonAbstractClassInheritsAbstractMemberTwo() async {
     Source source = addSource(r'''
 abstract class A {
   m();
@@ -2843,14 +2833,13 @@ abstract class A {
 }
 class C extends A {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromInterface_missingBoth() {
+  test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromInterface_missingBoth() async {
     // 16133
     Source source = addSource(r'''
 class I {
@@ -2858,16 +2847,15 @@ class I {
 }
 class C implements I {
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
     verify([source]);
   }
 
-  void
-      test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromMixin_missingBoth() {
+  test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromMixin_missingBoth() async {
     // 26411
-    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class A {
   int f;
@@ -2875,25 +2863,25 @@ class A {
 class B extends A {}
 class C extends Object with B {}
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
     verify([source]);
   }
 
-  void test_nonTypeInCatchClause_noElement() {
+  test_nonTypeInCatchClause_noElement() async {
     Source source = addSource(r'''
 f() {
   try {
   } on T catch (e) {
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE]);
     verify([source]);
   }
 
-  void test_nonTypeInCatchClause_notType() {
+  test_nonTypeInCatchClause_notType() async {
     Source source = addSource(r'''
 var T = 0;
 f() {
@@ -2901,98 +2889,98 @@ f() {
   } on T catch (e) {
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE]);
     verify([source]);
   }
 
-  void test_nonVoidReturnForOperator() {
+  test_nonVoidReturnForOperator() async {
     Source source = addSource(r'''
 class A {
   int operator []=(a, b) { return a; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR]);
     verify([source]);
   }
 
-  void test_nonVoidReturnForSetter_function() {
+  test_nonVoidReturnForSetter_function() async {
     Source source = addSource(r'''
 int set x(int v) {
   return 42;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
     verify([source]);
   }
 
-  void test_nonVoidReturnForSetter_method() {
+  test_nonVoidReturnForSetter_method() async {
     Source source = addSource(r'''
 class A {
   int set x(int v) {
     return 42;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
     verify([source]);
   }
 
-  void test_notAType() {
+  test_notAType() async {
     Source source = addSource(r'''
 f() {}
 main() {
   f v = null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NOT_A_TYPE]);
     verify([source]);
   }
 
-  void test_notEnoughRequiredArguments() {
+  test_notEnoughRequiredArguments() async {
     Source source = addSource(r'''
 f(int a, String b) {}
 main() {
   f();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
     verify([source]);
   }
 
-  void test_notEnoughRequiredArguments_functionExpression() {
+  test_notEnoughRequiredArguments_functionExpression() async {
     Source source = addSource(r'''
 main() {
   (int x) {} ();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
     verify([source]);
   }
 
-  void test_notEnoughRequiredArguments_getterReturningFunction() {
+  test_notEnoughRequiredArguments_getterReturningFunction() async {
     Source source = addSource(r'''
 typedef Getter(self);
 Getter getter = (x) => x;
 main() {
   getter();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
     verify([source]);
   }
 
-  void test_partOfDifferentLibrary() {
+  test_partOfDifferentLibrary() async {
     Source source = addSource(r'''
 library lib;
 part 'part.dart';''');
     addNamedSource("/part.dart", "part of lub;");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.PART_OF_DIFFERENT_LIBRARY]);
     verify([source]);
   }
 
-  void test_redirectToInvalidFunctionType() {
+  test_redirectToInvalidFunctionType() async {
     Source source = addSource(r'''
 class A implements B {
   A(int p) {}
@@ -3000,12 +2988,12 @@ class A implements B {
 class B {
   factory B() = A;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE]);
     verify([source]);
   }
 
-  void test_redirectToInvalidReturnType() {
+  test_redirectToInvalidReturnType() async {
     Source source = addSource(r'''
 class A {
   A() {}
@@ -3013,12 +3001,12 @@ class A {
 class B {
   factory B() = A;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE]);
     verify([source]);
   }
 
-  void test_redirectToMissingConstructor_named() {
+  test_redirectToMissingConstructor_named() async {
     Source source = addSource(r'''
 class A implements B{
   A() {}
@@ -3026,11 +3014,11 @@ class A implements B{
 class B {
   factory B() = A.name;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
-  void test_redirectToMissingConstructor_unnamed() {
+  test_redirectToMissingConstructor_unnamed() async {
     Source source = addSource(r'''
 class A implements B{
   A.name() {}
@@ -3038,65 +3026,65 @@ class A implements B{
 class B {
   factory B() = A;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
-  void test_redirectToNonClass_notAType() {
+  test_redirectToNonClass_notAType() async {
     Source source = addSource(r'''
 class B {
   int A;
   factory B() = A;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.REDIRECT_TO_NON_CLASS]);
     verify([source]);
   }
 
-  void test_redirectToNonClass_undefinedIdentifier() {
+  test_redirectToNonClass_undefinedIdentifier() async {
     Source source = addSource(r'''
 class B {
   factory B() = A;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.REDIRECT_TO_NON_CLASS]);
     verify([source]);
   }
 
-  void test_returnWithoutValue_async() {
+  test_returnWithoutValue_async() async {
     Source source = addSource('''
 import 'dart:async';
 Future<int> f() async {
   return;
 }
 ''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
-  void test_returnWithoutValue_factoryConstructor() {
+  test_returnWithoutValue_factoryConstructor() async {
     Source source = addSource("class A { factory A() { return; } }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
-  void test_returnWithoutValue_function() {
+  test_returnWithoutValue_function() async {
     Source source = addSource("int f() { return; }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
-  void test_returnWithoutValue_method() {
+  test_returnWithoutValue_method() async {
     Source source = addSource("class A { int m() { return; } }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
-  void test_returnWithoutValue_mixedReturnTypes_function() {
+  test_returnWithoutValue_mixedReturnTypes_function() async {
     // Tests that only the RETURN_WITHOUT_VALUE warning is created, and no
     // MIXED_RETURN_TYPES are created.
     Source source = addSource(r'''
@@ -3106,12 +3094,12 @@ int f(int x) {
   }
   return;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
   }
 
-  void test_staticAccessToInstanceMember_method_invocation() {
+  test_staticAccessToInstanceMember_method_invocation() async {
     Source source = addSource(r'''
 class A {
   m() {}
@@ -3119,12 +3107,12 @@ class A {
 main() {
   A.m();
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_staticAccessToInstanceMember_method_reference() {
+  test_staticAccessToInstanceMember_method_reference() async {
     Source source = addSource(r'''
 class A {
   m() {}
@@ -3132,12 +3120,12 @@ class A {
 main() {
   A.m;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_staticAccessToInstanceMember_propertyAccess_field() {
+  test_staticAccessToInstanceMember_propertyAccess_field() async {
     Source source = addSource(r'''
 class A {
   var f;
@@ -3145,12 +3133,12 @@ class A {
 main() {
   A.f;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_staticAccessToInstanceMember_propertyAccess_getter() {
+  test_staticAccessToInstanceMember_propertyAccess_getter() async {
     Source source = addSource(r'''
 class A {
   get f => 42;
@@ -3158,12 +3146,12 @@ class A {
 main() {
   A.f;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_staticAccessToInstanceMember_propertyAccess_setter() {
+  test_staticAccessToInstanceMember_propertyAccess_setter() async {
     Source source = addSource(r'''
 class A {
   set f(x) {}
@@ -3171,25 +3159,25 @@ class A {
 main() {
   A.f = 42;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER]);
     verify([source]);
   }
 
-  void test_switchExpressionNotAssignable() {
+  test_switchExpressionNotAssignable() async {
     Source source = addSource(r'''
 f(int p) {
   switch (p) {
     case 'a': break;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
-  void test_typeAnnotationDeferredClass_asExpression() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_asExpression() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3204,8 +3192,8 @@ f(var v) {
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_catchClause() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_catchClause() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3222,8 +3210,8 @@ f(var v) {
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_fieldFormalParameter() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_fieldFormalParameter() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3239,8 +3227,8 @@ class C {
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_functionDeclaration_returnType() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_functionDeclaration_returnType() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3253,9 +3241,8 @@ a.A f() { return null; }'''
     ]);
   }
 
-  void
-      test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3268,8 +3255,8 @@ f(a.A g()) {}'''
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_isExpression() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_isExpression() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3284,8 +3271,8 @@ f(var v) {
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_methodDeclaration_returnType() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_methodDeclaration_returnType() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3300,8 +3287,8 @@ class C {
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_simpleFormalParameter() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_simpleFormalParameter() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3314,8 +3301,8 @@ f(a.A v) {}'''
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_typeArgumentList() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_typeArgumentList() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3329,8 +3316,8 @@ C<a.A> c;'''
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_typeArgumentList2() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_typeArgumentList2() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3345,8 +3332,8 @@ C<a.A, a.A> c;'''
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_typeParameter_bound() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_typeParameter_bound() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3359,8 +3346,8 @@ class C<E extends a.A> {}'''
     ]);
   }
 
-  void test_typeAnnotationDeferredClass_variableDeclarationList() {
-    resolveWithErrors(<String>[
+  test_typeAnnotationDeferredClass_variableDeclarationList() async {
+    await resolveWithErrors(<String>[
       r'''
 library lib1;
 class A {}''',
@@ -3373,7 +3360,7 @@ a.A v;'''
     ]);
   }
 
-  void test_typeAnnotationGenericFunctionParameter_localFunction() {
+  test_typeAnnotationGenericFunctionParameter_localFunction() async {
     Source source = addSource(r'''
 class A {
   void method() {
@@ -3382,105 +3369,105 @@ class A {
     }
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
     verify([source]);
   }
 
-  void test_typeAnnotationGenericFunctionParameter_method() {
+  test_typeAnnotationGenericFunctionParameter_method() async {
     Source source = addSource(r'''
 class A {
   T method<T>(Object t) {
     return (t is T) ? t : null;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
     verify([source]);
   }
 
-  void test_typeAnnotationGenericFunctionParameter_topLevelFunction() {
+  test_typeAnnotationGenericFunctionParameter_topLevelFunction() async {
     Source source = addSource(r'''
 T function<T>(Object t) {
   return (t is T) ? t : null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
     verify([source]);
   }
 
-  void test_typeParameterReferencedByStatic_field() {
+  test_typeParameterReferencedByStatic_field() async {
     Source source = addSource(r'''
 class A<K> {
   static K k;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
-  void test_typeParameterReferencedByStatic_getter() {
+  test_typeParameterReferencedByStatic_getter() async {
     Source source = addSource(r'''
 class A<K> {
   static K get k => null;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
-  void test_typeParameterReferencedByStatic_methodBodyReference() {
+  test_typeParameterReferencedByStatic_methodBodyReference() async {
     Source source = addSource(r'''
 class A<K> {
   static m() {
     K k;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
-  void test_typeParameterReferencedByStatic_methodParameter() {
+  test_typeParameterReferencedByStatic_methodParameter() async {
     Source source = addSource(r'''
 class A<K> {
   static m(K k) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
-  void test_typeParameterReferencedByStatic_methodReturn() {
+  test_typeParameterReferencedByStatic_methodReturn() async {
     Source source = addSource(r'''
 class A<K> {
   static K m() { return null; }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
-  void test_typeParameterReferencedByStatic_setter() {
+  test_typeParameterReferencedByStatic_setter() async {
     Source source = addSource(r'''
 class A<K> {
   static set s(K k) {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
     verify([source]);
   }
 
-  void test_typePromotion_functionType_arg_InterToDyn() {
+  test_typePromotion_functionType_arg_InterToDyn() async {
     Source source = addSource(r'''
 typedef FuncDyn(x);
 typedef FuncA(A a);
@@ -3491,52 +3478,52 @@ main(FuncA f) {
     f(new B());
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
-  void test_typeTestNonType() {
+  test_typeTestNonType() async {
     Source source = addSource(r'''
 var A = 0;
 f(var p) {
   if (p is A) {
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_NON_TYPE]);
     verify([source]);
   }
 
-  void test_typeTestWithUndefinedName() {
+  test_typeTestWithUndefinedName() async {
     Source source = addSource(r'''
 f(var p) {
   if (p is A) {
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME]);
     verify([source]);
   }
 
-  void test_undefinedClass_instanceCreation() {
+  test_undefinedClass_instanceCreation() async {
     Source source = addSource("f() { new C(); }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
-  void test_undefinedClass_variableDeclaration() {
+  test_undefinedClass_variableDeclaration() async {
     Source source = addSource("f() { C c; }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
-  void test_undefinedClassBoolean_variableDeclaration() {
+  test_undefinedClassBoolean_variableDeclaration() async {
     Source source = addSource("f() { boolean v; }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
   }
 
-  void test_undefinedGetter_fromLibrary() {
+  test_undefinedGetter_fromLibrary() async {
     Source source1 = addNamedSource("/lib.dart", "");
     Source source2 = addNamedSource(
         "/lib2.dart",
@@ -3545,52 +3532,52 @@ import 'lib.dart' as lib;
 void f() {
   var g = lib.gg;
 }''');
-    computeLibrarySourceErrors(source1);
-    computeLibrarySourceErrors(source2);
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
     assertErrors(source2, [StaticWarningCode.UNDEFINED_GETTER]);
     verify([source1]);
   }
 
-  void test_undefinedIdentifier_for() {
+  test_undefinedIdentifier_for() async {
     Source source = addSource(r'''
 f(var l) {
   for (e in l) {
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_function() {
+  test_undefinedIdentifier_function() async {
     Source source = addSource("int a() => b;");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_importCore_withShow() {
+  test_undefinedIdentifier_importCore_withShow() async {
     Source source = addSource(r'''
 import 'dart:core' show List;
 main() {
   List;
   String;
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_initializer() {
+  test_undefinedIdentifier_initializer() async {
     Source source = addSource("var a = b;");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_methodInvocation() {
+  test_undefinedIdentifier_methodInvocation() async {
     Source source = addSource("f() { C.m(); }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_private_getter() {
+  test_undefinedIdentifier_private_getter() async {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -3605,11 +3592,11 @@ class B extends A {
     var v = _foo;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_private_setter() {
+  test_undefinedIdentifier_private_setter() async {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -3624,29 +3611,29 @@ class B extends A {
     _foo = 42;
   }
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifierAwait_function() {
+  test_undefinedIdentifierAwait_function() async {
     Source source = addSource("void a() { await; }");
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
   }
 
-  void test_undefinedNamedParameter() {
+  test_undefinedNamedParameter() async {
     Source source = addSource(r'''
 f({a, b}) {}
 main() {
   f(c: 1);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_NAMED_PARAMETER]);
     // no verify(), 'c' is not resolved
   }
 
-  void test_undefinedSetter() {
-    Source source1 = addNamedSource("/lib.dart", "");
+  test_undefinedSetter() async {
+    addNamedSource("/lib.dart", "");
     Source source2 = addNamedSource(
         "/lib2.dart",
         r'''
@@ -3654,22 +3641,21 @@ import 'lib.dart' as lib;
 void f() {
   lib.gg = null;
 }''');
-    computeLibrarySourceErrors(source1);
-    computeLibrarySourceErrors(source2);
+    await computeAnalysisResult(source2);
     assertErrors(source2, [StaticWarningCode.UNDEFINED_SETTER]);
   }
 
-  void test_undefinedStaticMethodOrGetter_getter() {
+  test_undefinedStaticMethodOrGetter_getter() async {
     Source source = addSource(r'''
 class C {}
 f(var p) {
   f(C.m);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedStaticMethodOrGetter_getter_inSuperclass() {
+  test_undefinedStaticMethodOrGetter_getter_inSuperclass() async {
     Source source = addSource(r'''
 class S {
   static int get g => 0;
@@ -3678,21 +3664,21 @@ class C extends S {}
 f(var p) {
   f(C.g);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedStaticMethodOrGetter_method() {
+  test_undefinedStaticMethodOrGetter_method() async {
     Source source = addSource(r'''
 class C {}
 f(var p) {
   f(C.m());
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedStaticMethodOrGetter_method_inSuperclass() {
+  test_undefinedStaticMethodOrGetter_method_inSuperclass() async {
     Source source = addSource(r'''
 class S {
   static m() {}
@@ -3701,11 +3687,11 @@ class C extends S {}
 f(var p) {
   f(C.m());
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedStaticMethodOrGetter_setter_inSuperclass() {
+  test_undefinedStaticMethodOrGetter_setter_inSuperclass() async {
     Source source = addSource(r'''
 class S {
   static set s(int i) {}
@@ -3714,16 +3700,16 @@ class C extends S {}
 f(var p) {
   f(C.s = 1);
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
-  void test_voidReturnForGetter() {
+  test_voidReturnForGetter() async {
     Source source = addSource(r'''
 class S {
   void get value {}
 }''');
-    computeLibrarySourceErrors(source);
+    await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
   }
 }

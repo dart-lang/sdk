@@ -19,11 +19,8 @@ class KernelReader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelReader* reader,
-                            dart::Thread* thread,
-                            dart::Zone* zone,
-                            Isolate* isolate)
-      : TranslationHelper(thread, zone, isolate), reader_(reader) {}
+  BuildingTranslationHelper(KernelReader* reader, dart::Thread* thread)
+      : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);

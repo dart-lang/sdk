@@ -327,7 +327,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
           delete di;
         }
 
-        DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+        bool success = DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+        if (!success) {
+          LOG_ERR("Failed to post destroy event to port %ld", port);
+        }
       } else if (IS_COMMAND(msg[i].data, kReturnTokenCommand)) {
         int count = TOKEN_COUNT(msg[i].data);
         intptr_t old_mask = di->Mask();
@@ -404,7 +407,8 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
         if (!success) {
           // This can happen if e.g. the isolate that owns the port has died
           // for some reason.
-          FATAL2("Failed to post event for fd %ld to port %ld", di->fd(), port);
+          LOG_ERR("Failed to post event for fd %ld to port %ld", di->fd(),
+                  port);
         }
       }
     }

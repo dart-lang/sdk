@@ -24,8 +24,8 @@ void defineProperty(var obj, String property, var value) {
 }
 
 // Warning: calls to these methods need to be removed before custom elements
-// and cross-frame dom objects behave correctly in ddc.
-// See https://github.com/dart-lang/dev_compiler/issues/517
+// and cross-frame dom objects behave correctly in ddc
+// https://github.com/dart-lang/sdk/issues/28326
 setNativeSubclassDispatchRecord(proto, interceptor) { }
 findDispatchTagForInterceptorClass(interceptorClassConstructor) {}
 makeLeafDispatchRecord(interceptor) {}

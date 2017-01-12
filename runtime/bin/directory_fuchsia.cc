@@ -126,91 +126,61 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
       done_ = true;
       return kListError;
     }
-    switch (entry->d_type) {
-      case DT_DIR:
+    // TODO(MG-450): When entry->d_type is filled out correctly, we can avoid
+    // this call to stat().
+    struct stat64 entry_info;
+    int stat_success;
+    stat_success = NO_RETRY_EXPECTED(
+        lstat64(listing->path_buffer().AsString(), &entry_info));
+    if (stat_success == -1) {
+      perror("lstat64 failed: ");
+      return kListError;
+    }
+    if (listing->follow_links() && S_ISLNK(entry_info.st_mode)) {
+      // Check to see if we are in a loop created by a symbolic link.
+      LinkList current_link = {entry_info.st_dev, entry_info.st_ino, link_};
+      LinkList* previous = link_;
+      while (previous != NULL) {
+        if ((previous->dev == current_link.dev) &&
+            (previous->ino == current_link.ino)) {
+          // Report the looping link as a link, rather than following it.
+          return kListLink;
+        }
+        previous = previous->next;
+      }
+      stat_success = NO_RETRY_EXPECTED(
+          stat64(listing->path_buffer().AsString(), &entry_info));
+      if (stat_success == -1) {
+        perror("lstat64 failed");
+        // Report a broken link as a link, even if follow_links is true.
+        return kListLink;
+      }
+      if (S_ISDIR(entry_info.st_mode)) {
+        // Recurse into the subdirectory with current_link added to the
+        // linked list of seen file system links.
+        link_ = new LinkList(current_link);
         if ((strcmp(entry->d_name, ".") == 0) ||
             (strcmp(entry->d_name, "..") == 0)) {
           return Next(listing);
         }
         return kListDirectory;
-      case DT_BLK:
-      case DT_CHR:
-      case DT_FIFO:
-      case DT_SOCK:
-      case DT_REG:
-        return kListFile;
-      case DT_LNK:
-        if (!listing->follow_links()) {
-          return kListLink;
-        }
-      // Else fall through to next case.
-      // Fall through.
-      case DT_UNKNOWN: {
-        // On some file systems the entry type is not determined by
-        // readdir. For those and for links we use stat to determine
-        // the actual entry type. Notice that stat returns the type of
-        // the file pointed to.
-        struct stat64 entry_info;
-        int stat_success;
-        stat_success = NO_RETRY_EXPECTED(
-            lstat64(listing->path_buffer().AsString(), &entry_info));
-        if (stat_success == -1) {
-          perror("lstat64 failed: ");
-          return kListError;
-        }
-        if (listing->follow_links() && S_ISLNK(entry_info.st_mode)) {
-          // Check to see if we are in a loop created by a symbolic link.
-          LinkList current_link = {entry_info.st_dev, entry_info.st_ino, link_};
-          LinkList* previous = link_;
-          while (previous != NULL) {
-            if ((previous->dev == current_link.dev) &&
-                (previous->ino == current_link.ino)) {
-              // Report the looping link as a link, rather than following it.
-              return kListLink;
-            }
-            previous = previous->next;
-          }
-          stat_success = NO_RETRY_EXPECTED(
-              stat64(listing->path_buffer().AsString(), &entry_info));
-          if (stat_success == -1) {
-            perror("lstat64 failed");
-            // Report a broken link as a link, even if follow_links is true.
-            return kListLink;
-          }
-          if (S_ISDIR(entry_info.st_mode)) {
-            // Recurse into the subdirectory with current_link added to the
-            // linked list of seen file system links.
-            link_ = new LinkList(current_link);
-            if ((strcmp(entry->d_name, ".") == 0) ||
-                (strcmp(entry->d_name, "..") == 0)) {
-              return Next(listing);
-            }
-            return kListDirectory;
-          }
-        }
-        if (S_ISDIR(entry_info.st_mode)) {
-          if ((strcmp(entry->d_name, ".") == 0) ||
-              (strcmp(entry->d_name, "..") == 0)) {
-            return Next(listing);
-          }
-          return kListDirectory;
-        } else if (S_ISREG(entry_info.st_mode) || S_ISCHR(entry_info.st_mode) ||
-                   S_ISBLK(entry_info.st_mode) ||
-                   S_ISFIFO(entry_info.st_mode) ||
-                   S_ISSOCK(entry_info.st_mode)) {
-          return kListFile;
-        } else if (S_ISLNK(entry_info.st_mode)) {
-          return kListLink;
-        } else {
-          FATAL1("Unexpected st_mode: %d\n", entry_info.st_mode);
-          return kListError;
-        }
       }
-
-      default:
-        // We should have covered all the bases. If not, let's get an error.
-        FATAL1("Unexpected d_type: %d\n", entry->d_type);
-        return kListError;
+    }
+    if (S_ISDIR(entry_info.st_mode)) {
+      if ((strcmp(entry->d_name, ".") == 0) ||
+          (strcmp(entry->d_name, "..") == 0)) {
+        return Next(listing);
+      }
+      return kListDirectory;
+    } else if (S_ISREG(entry_info.st_mode) || S_ISCHR(entry_info.st_mode) ||
+               S_ISBLK(entry_info.st_mode) || S_ISFIFO(entry_info.st_mode) ||
+               S_ISSOCK(entry_info.st_mode)) {
+      return kListFile;
+    } else if (S_ISLNK(entry_info.st_mode)) {
+      return kListLink;
+    } else {
+      FATAL1("Unexpected st_mode: %d\n", entry_info.st_mode);
+      return kListError;
     }
   }
   done_ = true;
@@ -336,14 +306,103 @@ const char* Directory::CreateTemp(const char* prefix) {
     // Pattern has overflowed.
     return NULL;
   }
-  char* result;
-  do {
-    result = mkdtemp(path.AsString());
-  } while ((result == NULL) && (errno == EINTR));
+  char* result = mkdtemp(path.AsString());
   if (result == NULL) {
     return NULL;
   }
   return path.AsScopedString();
+}
+
+
+static bool DeleteRecursively(PathBuffer* path);
+
+
+static bool DeleteFile(char* file_name, PathBuffer* path) {
+  return path->Add(file_name) &&
+         (NO_RETRY_EXPECTED(unlink(path->AsString())) == 0);
+}
+
+
+static bool DeleteDir(char* dir_name, PathBuffer* path) {
+  if ((strcmp(dir_name, ".") == 0) || (strcmp(dir_name, "..") == 0)) {
+    return true;
+  }
+  return path->Add(dir_name) && DeleteRecursively(path);
+}
+
+
+static bool DeleteRecursively(PathBuffer* path) {
+  // Do not recurse into links for deletion. Instead delete the link.
+  // If it's a file, delete it.
+  struct stat64 st;
+  if (NO_RETRY_EXPECTED(lstat64(path->AsString(), &st)) == -1) {
+    return false;
+  } else if (!S_ISDIR(st.st_mode)) {
+    return NO_RETRY_EXPECTED(unlink(path->AsString())) == 0;
+  }
+
+  if (!path->Add(File::PathSeparator())) {
+    return false;
+  }
+
+  // Not a link. Attempt to open as a directory and recurse into the
+  // directory.
+  DIR* dir_pointer = opendir(path->AsString());
+  if (dir_pointer == NULL) {
+    return false;
+  }
+
+  // Iterate the directory and delete all files and directories.
+  int path_length = path->length();
+  while (true) {
+    // In case `readdir()` returns `NULL` we distinguish between end-of-stream
+    // and error by looking if `errno` was updated.
+    errno = 0;
+    // In glibc 2.24+, readdir_r is deprecated.
+    // According to the man page for readdir:
+    // "readdir(3) is not required to be thread-safe. However, in modern
+    // implementations (including the glibc implementation), concurrent calls to
+    // readdir(3) that specify different directory streams are thread-safe."
+    dirent* entry = readdir(dir_pointer);
+    if (entry == NULL) {
+      // Failed to read next directory entry.
+      if (errno != 0) {
+        break;
+      }
+      // End of directory.
+      return (NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0) &&
+             (NO_RETRY_EXPECTED(remove(path->AsString())) == 0);
+    }
+    bool ok = false;
+    if (!path->Add(entry->d_name)) {
+      break;
+    }
+    // TODO(MG-450): When entry->d_type is filled out correctly, we can avoid
+    // this call to stat().
+    struct stat64 entry_info;
+    if (NO_RETRY_EXPECTED(lstat64(path->AsString(), &entry_info)) == -1) {
+      break;
+    }
+    path->Reset(path_length);
+    if (S_ISDIR(entry_info.st_mode)) {
+      ok = DeleteDir(entry->d_name, path);
+    } else {
+      // Treat links as files. This will delete the link which is
+      // what we want no matter if the link target is a file or a
+      // directory.
+      ok = DeleteFile(entry->d_name, path);
+    }
+    if (!ok) {
+      break;
+    }
+    path->Reset(path_length);
+  }
+  // Only happens if there was an error.
+  ASSERT(errno != 0);
+  int err = errno;
+  VOID_NO_RETRY_EXPECTED(closedir(dir_pointer));
+  errno = err;
+  return false;
 }
 
 
@@ -355,10 +414,11 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     }
     return NO_RETRY_EXPECTED(rmdir(dir_name)) == 0;
   } else {
-    // TODO(MG-416): After the issue is addressed, this can use the same code
-    // as on Linux, etc.
-    UNIMPLEMENTED();
-    return false;
+    PathBuffer path;
+    if (!path.Add(dir_name)) {
+      return false;
+    }
+    return DeleteRecursively(&path);
   }
 }
 

@@ -1685,36 +1685,47 @@ dart.isGroundType = function(type) {
   }
   return true;
 };
+dart.trapRuntimeErrors = function(flag) {
+  dart._trapRuntimeErrors = flag;
+};
 dart.throwCastError = function(object, actual, type) {
-  debugger;
-  dart.throw(new _js_helper.CastErrorImplementation(object, dart.typeName(actual), dart.typeName(type)));
+  var found = dart.typeName(actual);
+  var expected = dart.typeName(type);
+  if (dart._trapRuntimeErrors) debugger;
+  dart.throw(new _js_helper.CastErrorImplementation(object, found, expected));
 };
 dart.throwTypeError = function(object, actual, type) {
-  debugger;
-  dart.throw(new _js_helper.TypeErrorImplementation(object, dart.typeName(actual), dart.typeName(type)));
+  var found = dart.typeName(actual);
+  var expected = dart.typeName(type);
+  if (dart._trapRuntimeErrors) debugger;
+  dart.throw(new _js_helper.TypeErrorImplementation(object, found, expected));
 };
 dart.throwStrongModeCastError = function(object, actual, type) {
-  debugger;
-  dart.throw(new _js_helper.StrongModeCastError(object, dart.typeName(actual), dart.typeName(type)));
+  var found = dart.typeName(actual);
+  var expected = dart.typeName(type);
+  if (dart._trapRuntimeErrors) debugger;
+  dart.throw(new _js_helper.StrongModeCastError(object, found, expected));
 };
 dart.throwStrongModeTypeError = function(object, actual, type) {
-  debugger;
-  dart.throw(new _js_helper.StrongModeTypeError(object, dart.typeName(actual), dart.typeName(type)));
+  var found = dart.typeName(actual);
+  var expected = dart.typeName(type);
+  if (dart._trapRuntimeErrors) debugger;
+  dart.throw(new _js_helper.StrongModeTypeError(object, found, expected));
 };
 dart.throwUnimplementedError = function(message) {
-  debugger;
+  if (dart._trapRuntimeErrors) debugger;
   dart.throw(new core.UnimplementedError(message));
 };
 dart.throwAssertionError = function(message) {
   if (message === void 0) message = null;
   return (() => {
-    debugger;
+    if (dart._trapRuntimeErrors) debugger;
     let error = message != null ? new _js_helper.AssertionErrorWithMessage(message()) : new core.AssertionError();
     dart.throw(error);
   })();
 };
 dart.throwNullValueError = function() {
-  debugger;
+  if (dart._trapRuntimeErrors) debugger;
   dart.throw(new core.NoSuchMethodError(null, new core.Symbol('<Unexpected Null Value>'), null, null, null));
 };
 dart.syncStar = function(gen, E, ...args) {
@@ -2246,11 +2257,11 @@ dart.getOwnPropertySymbols = function(obj) {
   return Object.getOwnPropertySymbols(obj);
 };
 dart.throwStrongModeError = function(message) {
-  debugger;
+  if (dart.test(dart._trapRuntimeErrors)) debugger;
   throw new _js_helper.StrongModeErrorImplementation(message);
 };
 dart.throwInternalError = function(message) {
-  debugger;
+  if (dart.test(dart._trapRuntimeErrors)) debugger;
   throw Error(message);
 };
 dart.getOwnNamesAndSymbols = function(obj) {
@@ -2661,6 +2672,7 @@ dart.Typedef = class Typedef extends dart.AbstractFunctionType {
 };
 dart._typeFormalCount = Symbol("_typeFormalCount");
 dart.isSubtype = dart._subtypeMemo((t1, t2) => t1 === t2 || dart._isSubtype(t1, t2, true));
+dart._trapRuntimeErrors = true;
 dart._jsIterator = Symbol("_jsIterator");
 dart._current = Symbol("_current");
 dart._AsyncStarStreamController = class _AsyncStarStreamController {
@@ -45194,7 +45206,7 @@ io._HttpConnection = class _HttpConnection extends dart.mixin(collection.LinkedL
     return r;
   }
 };
-dart.setBaseClass(io._HttpConnection, collection.LinkedListEntry$(io._HttpConnection));
+dart.setBaseClass(io._HttpConnection, dart.mixin(collection.LinkedListEntry$(io._HttpConnection), io._ServiceObject));
 dart.addSimpleTypeTests(io._HttpConnection);
 dart.setSignature(io._HttpConnection, {
   constructors: () => ({new: dart.definiteFunctionType(io._HttpConnection, [dart.dynamic, io._HttpServer])}),

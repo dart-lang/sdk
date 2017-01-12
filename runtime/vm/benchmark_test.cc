@@ -96,9 +96,8 @@ void Benchmark::RunAll(const char* executable) {
 
 
 Dart_Isolate Benchmark::CreateIsolate(const uint8_t* buffer) {
-  bin::IsolateData* isolate_data = new bin::IsolateData(NULL, NULL, NULL);
   char* err = NULL;
-  isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, isolate_data, &err);
+  isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, NULL, &err);
   EXPECT(isolate_ != NULL);
   free(err);
   return isolate_;
@@ -520,6 +519,9 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
+
+  free(vm_isolate_snapshot_buffer);
+  free(isolate_snapshot_buffer);
 }
 
 
@@ -554,6 +556,9 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
+
+  free(vm_isolate_snapshot_buffer);
+  free(isolate_snapshot_buffer);
 }
 
 

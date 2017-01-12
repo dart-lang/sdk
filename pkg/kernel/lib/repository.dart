@@ -20,7 +20,7 @@ class Repository {
 
   Library _buildLibraryReference(Uri uri) {
     assert(uri.hasScheme);
-    var library = new Library(uri, isExternal: true);
+    var library = new Library(uri, isExternal: true)..fileUri = '$uri';
     libraries.add(library);
     return library;
   }

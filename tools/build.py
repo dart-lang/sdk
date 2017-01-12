@@ -427,6 +427,38 @@ def UseGoma(out_dir):
   return 'use_goma = true' in open(args_gn, 'r').read()
 
 
+# Try to start goma, but don't bail out if we can't. Instead print an error
+# message, and let the build fail with its own error messages as well.
+def EnsureGomaStarted(out_dir):
+  args_gn_path = os.path.join(out_dir, 'args.gn')
+  goma_dir = None
+  with open(args_gn_path, 'r') as fp:
+    for line in fp:
+      if 'goma_dir' in line:
+        words = line.split()
+        goma_dir = words[2][1:-1]  # goma_dir = "/path/to/goma"
+  if not goma_dir:
+    print 'Could not find goma for ' + out_dir
+    return False
+  if not os.path.exists(goma_dir) or not os.path.isdir(goma_dir):
+    print 'Could not find goma at ' + goma_dir
+    return False
+  goma_ctl = os.path.join(goma_dir, 'goma_ctl.py')
+  goma_ctl_command = [
+    'python',
+    goma_ctl,
+    'ensure_start',
+  ]
+  process = subprocess.Popen(goma_ctl_command)
+  process.wait()
+  if process.returncode != 0:
+    print ("Tried to run goma_ctl.py, but it failed. Try running it manually: "
+           + "\n\t" + ' '.join(goma_ctl_command))
+    return False
+  return True
+
+
+
 def BuildNinjaCommand(options, target, target_os, mode, arch):
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
   if ShouldRunGN(out_dir):
@@ -435,7 +467,12 @@ def BuildNinjaCommand(options, target, target_os, mode, arch):
   if options.verbose:
     command += ['-v']
   if UseGoma(out_dir):
-    command += ['-j1000']
+    if EnsureGomaStarted(out_dir):
+      command += ['-j1000']
+    else:
+      # If we couldn't ensure that goma is started, let the build start, but
+      # slowly so we can see any helpful error messages that pop out.
+      command += ['-j1']
   command += [target]
   return command
 

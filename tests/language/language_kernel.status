@@ -3,10 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # These tests currently take too long. Remove when they are fixed.
-[ $compiler == dartk ]
-large_class_declaration_test: Skip
-large_implicit_getter_test: Skip
-larger_implicit_getter_test: Skip
+[ $compiler == dartk || $compiler == dartkp ]
+large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 
 ###############################################################################
 # Dartk Entries
@@ -34,47 +32,6 @@ final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
 main_not_a_function_test/01: DartkCrash
 metadata_test: DartkCompileTimeError
-mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/02: MissingCompileTimeError
-mixin_illegal_super_use_test/03: MissingCompileTimeError
-mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/05: MissingCompileTimeError
-mixin_illegal_super_use_test/06: MissingCompileTimeError
-mixin_illegal_super_use_test/07: MissingCompileTimeError
-mixin_illegal_super_use_test/08: MissingCompileTimeError
-mixin_illegal_super_use_test/09: MissingCompileTimeError
-mixin_illegal_super_use_test/10: MissingCompileTimeError
-mixin_illegal_super_use_test/11: MissingCompileTimeError
-mixin_illegal_superclass_test/01: MissingCompileTimeError
-mixin_illegal_superclass_test/02: MissingCompileTimeError
-mixin_illegal_superclass_test/03: MissingCompileTimeError
-mixin_illegal_superclass_test/04: MissingCompileTimeError
-mixin_illegal_superclass_test/05: MissingCompileTimeError
-mixin_illegal_superclass_test/06: MissingCompileTimeError
-mixin_illegal_superclass_test/07: MissingCompileTimeError
-mixin_illegal_superclass_test/08: MissingCompileTimeError
-mixin_illegal_superclass_test/09: MissingCompileTimeError
-mixin_illegal_superclass_test/10: MissingCompileTimeError
-mixin_illegal_superclass_test/11: MissingCompileTimeError
-mixin_illegal_superclass_test/12: MissingCompileTimeError
-mixin_illegal_superclass_test/13: MissingCompileTimeError
-mixin_illegal_superclass_test/14: MissingCompileTimeError
-mixin_illegal_superclass_test/15: MissingCompileTimeError
-mixin_illegal_superclass_test/16: MissingCompileTimeError
-mixin_illegal_superclass_test/17: MissingCompileTimeError
-mixin_illegal_superclass_test/18: MissingCompileTimeError
-mixin_illegal_superclass_test/19: MissingCompileTimeError
-mixin_illegal_superclass_test/20: MissingCompileTimeError
-mixin_illegal_superclass_test/21: MissingCompileTimeError
-mixin_illegal_superclass_test/22: MissingCompileTimeError
-mixin_illegal_superclass_test/23: MissingCompileTimeError
-mixin_illegal_superclass_test/24: MissingCompileTimeError
-mixin_illegal_superclass_test/25: MissingCompileTimeError
-mixin_illegal_superclass_test/26: MissingCompileTimeError
-mixin_illegal_superclass_test/27: MissingCompileTimeError
-mixin_illegal_superclass_test/28: MissingCompileTimeError
-mixin_illegal_superclass_test/29: MissingCompileTimeError
-mixin_illegal_superclass_test/30: MissingCompileTimeError
 multiline_newline_test/01: DartkCompileTimeError
 multiline_newline_test/02: DartkCompileTimeError
 multiline_newline_test/03: DartkCompileTimeError
@@ -90,6 +47,9 @@ vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
 vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
 vm/reflect_core_vm_test: DartkCompileTimeError
 vm/regress_27201_test: DartkCompileTimeError
+vm/regress_28325_test: RuntimeError  # Issue 28055.
+covariant_test/none: CompileTimeError # Issue 28166
+covariant_override_test: DartkCrash # Issue 28166
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -118,24 +78,10 @@ accessor_conflict_import_prefixed2_test: RuntimeError
 accessor_conflict_import_prefixed_test: RuntimeError
 accessor_conflict_import_test: RuntimeError
 assertion_test: RuntimeError
-async_await_test: Crash, RuntimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
-async_star_cancel_while_paused_test: RuntimeError
-async_star_pause_test: Crash, RuntimeError
-async_star_regression_fisk_test: Timeout
-async_star_stream_take_test: Timeout
-async_star_take_reyield_test: Timeout
-async_star_test: Crash, Timeout
-asyncstar_throw_in_catch_test: Timeout
-asyncstar_yield_test: Timeout
-asyncstar_yieldstar_test: Timeout
 bad_raw_string_negative_test: Fail
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
-closure_type_variable_test: RuntimeError
-closures_initializer_test: RuntimeError
-compile_time_constant12_test: Crash
+cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
+cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
+cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
 compile_time_constant_k_test/01: RuntimeError
 compile_time_constant_k_test/02: RuntimeError
 compile_time_constant_k_test/03: RuntimeError
@@ -146,19 +92,12 @@ const_dynamic_type_literal_test/02: RuntimeError
 const_error_multiply_initialized_test/02: RuntimeError
 const_error_multiply_initialized_test/04: RuntimeError
 const_nested_test: RuntimeError
-constructor2_test: RuntimeError
-constructor3_test: RuntimeError
-constructor5_test: RuntimeError
-constructor6_test: RuntimeError
 constructor_duplicate_final_test/01: MissingRuntimeError
 constructor_duplicate_final_test/02: MissingRuntimeError
 custom_await_stack_trace_test: RuntimeError
-cyclic_type2_test: CompileTimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
-cyclic_type_test/02: CompileTimeError
 cyclic_type_test/03: RuntimeError
-cyclic_type_test/04: CompileTimeError
 cyclic_type_variable_test/01: Crash
 cyclic_type_variable_test/02: Crash
 cyclic_type_variable_test/03: Crash
@@ -209,32 +148,10 @@ deferred_type_dependency_test/as: RuntimeError
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
-duplicate_export_negative_test: Fail
-enum_duplicate_test/01: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_mirror_test: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
 evaluation_redirecting_constructor_test: RuntimeError
-example_constructor_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-f_bounded_equality_test: RuntimeError
-field_initialization_order_test: RuntimeError
-final_field_initialization_order_test: RuntimeError
-fixed_type_variable2_test/02: RuntimeError
-fixed_type_variable2_test/04: RuntimeError
-fixed_type_variable2_test/06: RuntimeError
-fixed_type_variable_test/01: RuntimeError
-fixed_type_variable_test/02: RuntimeError
-fixed_type_variable_test/03: RuntimeError
-fixed_type_variable_test/04: RuntimeError
-fixed_type_variable_test/05: RuntimeError
-fixed_type_variable_test/06: RuntimeError
 for2_test: RuntimeError
 for_variable_capture_test: RuntimeError
 function_subtype2_test: RuntimeError
@@ -248,15 +165,9 @@ function_subtype_not1_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
-generic2_test: RuntimeError
 generic_closure_test: RuntimeError
-generic_creation_test: RuntimeError
-generic_field_mixin2_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
-generic_field_mixin5_test: RuntimeError
-generic_inheritance_test: RuntimeError
 generic_method_types_test: Pass, RuntimeError
-generic_methods_type_expression_test: RuntimeError
 generic_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError
 getter_setter_in_lib_test: RuntimeError
@@ -265,72 +176,41 @@ initializing_formal_final_test: RuntimeError
 is_not_class2_test: RuntimeError
 issue13474_test: RuntimeError
 issue_1751477_test: RuntimeError
-least_upper_bound_expansive_test/01: CompileTimeError
-least_upper_bound_expansive_test/02: CompileTimeError
-least_upper_bound_expansive_test/03: CompileTimeError
-least_upper_bound_expansive_test/04: CompileTimeError
-least_upper_bound_expansive_test/05: CompileTimeError
-least_upper_bound_expansive_test/06: CompileTimeError
-least_upper_bound_expansive_test/07: CompileTimeError
-least_upper_bound_expansive_test/08: CompileTimeError
-least_upper_bound_expansive_test/09: CompileTimeError
-least_upper_bound_expansive_test/10: CompileTimeError
-least_upper_bound_expansive_test/11: CompileTimeError
-least_upper_bound_expansive_test/12: CompileTimeError
-least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
 malformed_test/none: RuntimeError
 map_literal3_test: RuntimeError
-map_literal4_test: RuntimeError
+map_literal4_test: RuntimeError  # Checked Mode Issue
 map_literal6_test: RuntimeError
 method_override_test: RuntimeError
-mixin_generic_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
-mixin_super_test: RuntimeError
-mixin_type_parameters_simple_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 multiline_newline_test/none: RuntimeError
 named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
-not_enough_positional_arguments_test/02: MissingRuntimeError
-not_enough_positional_arguments_test/05: MissingRuntimeError
-null_test/none: RuntimeError
+not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
+not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
 number_identifier_test/05: RuntimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError
 redirecting_constructor_initializer_test: RuntimeError
-regress_18713_test: RuntimeError
-regress_22443_test: RuntimeError
-regress_22700_test: RuntimeError
-regress_23408_test: RuntimeError
-regress_27164_test: CompileTimeError
-regress_r24720_test: RuntimeError
-regress_28278_test: RuntimeError
-reify_typevar_test: RuntimeError
+regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
+regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
+regress_28278_test: RuntimeError  # Mirrors Issue
 script1_negative_test: Fail
 script2_negative_test: Fail
 setter_no_getter_call_test/none: RuntimeError
 static_setter_get_test/01: RuntimeError
-super_test: RuntimeError
 switch7_negative_test: Fail
 switch_try_catch_test: RuntimeError
-sync_generator3_test/test2: RuntimeError
 try_catch_on_syntax_test/10: MissingRuntimeError
 try_catch_on_syntax_test/11: MissingRuntimeError
 try_finally_regress_25654_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError
-type_parameter_literal_test: RuntimeError
 type_variable_function_type_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
@@ -339,28 +219,23 @@ vm/type_vm_test: RuntimeError
 [ $compiler == dartk && $runtime == vm ]
 const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
-constructor_named_arguments_test/01: Crash
-const_string_test: RuntimeError
+constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
+const_string_test: RuntimeError  # Dartk Issue 28306
 instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
-async_star_regression_fisk_test: Crash  # Stack mismatch during expression translation.
-async_star_test: Crash  # Stack mismatch during expression translation.
-issue23244_test: Crash  # Class finalization issue
-not_enough_positional_arguments_test/02: Crash
-not_enough_positional_arguments_test/05: Crash
-vm/optimized_guarded_field_isolates_test: Crash  # Class finalization issue
+not_enough_positional_arguments_test/02: Crash  # Dartk Issue 28301
+not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-if_null_assignment_static_test/35: Crash
-large_class_declaration_test: Pass, Timeout
-string_interpolation7_test: RuntimeError
+if_null_assignment_static_test/35: Crash  # Dartk Issue 28302
+string_interpolation7_test: RuntimeError  # Dartk Issue 28306
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
-constructor_named_arguments_test/01: Crash
-not_enough_positional_arguments_test/05: Crash
+constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
+not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301

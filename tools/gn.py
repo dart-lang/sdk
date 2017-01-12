@@ -16,6 +16,41 @@ HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 
+# Environment variables for default settings.
+DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
+DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
+DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
+DART_USE_WHEEZY = "DART_USE_WHEEZY"  # Use instread of --wheezy
+DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
+DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
+
+def use_asan():
+  return DART_USE_ASAN in os.environ
+
+
+def use_msan():
+  return DART_USE_MSAN in os.environ
+
+
+def use_tsan():
+  return DART_USE_TSAN in os.environ
+
+
+def use_wheezy():
+  return DART_USE_WHEEZY in os.environ
+
+
+def toolchain_prefix(args):
+  if args.toolchain_prefix:
+    return args.toolchain_prefix
+  return os.environ.get(DART_USE_TOOLCHAIN)
+
+
+def target_sysroot(args):
+  if args.target_sysroot:
+    return args.target_sysroot
+  return os.environ.get(DART_USE_SYSROOT)
+
 
 def get_out_dir(mode, arch, target_os):
   return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
@@ -62,6 +97,16 @@ def host_os_for_gn(host_os):
   if host_os.startswith('win'):
     return 'win'
   return host_os
+
+
+# Where string_map is formatted as X1=Y1,X2=Y2 etc.
+# If key is X1, returns Y1.
+def parse_string_map(key, string_map):
+  for m in string_map.split(','):
+    l = m.split('=')
+    if l[0] == key:
+      return l[1]
+  return None
 
 
 def to_gn_args(args, mode, arch, target_os):
@@ -137,11 +182,13 @@ def to_gn_args(args, mode, arch, target_os):
   if gn_args['target_os'] == 'linux' and args.wheezy:
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
-    if args.target_sysroot:
-      gn_args['target_sysroot'] = args.target_sysroot
+    sysroot = target_sysroot(args)
+    if sysroot:
+      gn_args['target_sysroot'] = parse_string_map(arch, sysroot)
 
-    if args.toolchain_prefix:
-      gn_args['toolchain_prefix'] = args.toolchain_prefix
+    toolchain = toolchain_prefix(args)
+    if toolchain:
+      gn_args['toolchain_prefix'] = parse_string_map(arch, toolchain)
 
   goma_dir = os.environ.get('GOMA_DIR')
   goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
@@ -219,25 +266,6 @@ def ide_switch(host_os):
     return '--ide=json'
 
 
-# Environment variables for default settings.
-DART_USE_ASAN = "DART_USE_ASAN"
-DART_USE_MSAN = "DART_USE_MSAN"
-DART_USE_TSAN = "DART_USE_TSAN"
-DART_USE_WHEEZY = "DART_USE_WHEEZY"
-
-def use_asan():
-  return DART_USE_ASAN in os.environ
-
-def use_msan():
-  return DART_USE_MSAN in os.environ
-
-def use_tsan():
-  return DART_USE_TSAN in os.environ
-
-def use_wheezy():
-  return DART_USE_WHEEZY in os.environ
-
-
 def parse_args(args):
   args = args[1:]
   parser = argparse.ArgumentParser(
@@ -304,10 +332,10 @@ def parse_args(args):
       action='store_false')
   other_group.add_argument('--target-sysroot', '-s',
       type=str,
-      help='Path to the toolchain sysroot')
+      help='Comma-separated list of arch=/path/to/sysroot mappings')
   other_group.add_argument('--toolchain-prefix', '-t',
       type=str,
-      help='Path to the toolchain prefix')
+      help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
   other_group.add_argument('--tsan',
       help='Build with TSAN',
       default=use_tsan(),

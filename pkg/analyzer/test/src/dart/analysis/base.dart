@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
-import '../../context/mock_sdk.dart';
+import 'physical_sdk.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -44,8 +44,6 @@ typedef bool Predicate<E>(E argument);
 typedef void _ElementVisitorFunction(Element element);
 
 class BaseAnalysisDriverTest {
-  static final MockSdk sdk = new MockSdk();
-
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
@@ -102,7 +100,6 @@ class BaseAnalysisDriverTest {
   }
 
   void setUp() {
-    new MockSdk();
     testProject = _p('/test/lib');
     testFile = _p('/test/lib/test.dart');
     logger = new PerformanceLog(logBuffer);

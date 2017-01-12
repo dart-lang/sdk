@@ -139,6 +139,8 @@ static void CheckEncodeDecodeMessage(Dart_CObject* root) {
 
   // Check that the two messages are the same.
   CompareDartCObjects(root, new_root);
+
+  free(buffer);
 }
 
 
@@ -147,6 +149,7 @@ static void ExpectEncodeFail(Dart_CObject* root) {
   ApiMessageWriter writer(&buffer, &malloc_allocator);
   const bool result = writer.WriteCMessage(root);
   EXPECT_EQ(false, result);
+  free(buffer);
 }
 
 
@@ -1653,6 +1656,7 @@ UNIT_TEST_CASE(MismatchedSnapshotKinds) {
     EXPECT(isolate == NULL);
     EXPECT(error != NULL);
     EXPECT_SUBSTRING("got 'script', expected 'core'", error);
+    free(error);
   }
 
   {

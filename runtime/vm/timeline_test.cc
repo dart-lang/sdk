@@ -91,7 +91,7 @@ class TimelineTestHelper : public AllStatic {
     event->Complete();
   }
 
-  static void Clear(TimelineEventEndlessRecorder* recorder) {
+  static void Clear(TimelineEventRecorder* recorder) {
     ASSERT(recorder != NULL);
     recorder->Clear();
   }
@@ -343,6 +343,8 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   EXPECT_EQ(0, recorder->CountFor(TimelineEvent::kAsyncEnd));
   event->Complete();
   EXPECT_EQ(1, recorder->CountFor(TimelineEvent::kAsyncEnd));
+
+  delete recorder;
 }
 
 
@@ -466,6 +468,9 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
     EXPECT(LabelMatch(it.Next(), "F"));
     EXPECT(!it.HasNext());
   }
+
+  TimelineTestHelper::Clear(recorder);
+  delete recorder;
 }
 
 
@@ -502,6 +507,9 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   const char* alpha = strstr(js.ToCString(), "Alpha");
   const char* beta = strstr(js.ToCString(), "Beta");
   EXPECT(alpha < beta);
+
+  TimelineTestHelper::Clear(recorder);
+  delete recorder;
 }
 
 
@@ -674,6 +682,8 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(8, pauses.MaxExclusiveTime("a"));
   }
   TimelineTestHelper::Clear(recorder);
+
+  delete recorder;
 }
 
 
@@ -884,6 +894,8 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT(pauses.has_error());
   }
   TimelineTestHelper::Clear(recorder);
+
+  delete recorder;
 }
 
 #endif  // !PRODUCT

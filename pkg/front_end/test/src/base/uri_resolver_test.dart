@@ -21,7 +21,7 @@ abstract class UriResolverTest {
   p.Context get pathContext;
 
   void test_badScheme() {
-    _expectResolution('foo:bar/baz.dart', null);
+    _expectResolutionUri('foo:bar/baz.dart', Uri.parse('foo:bar/baz.dart'));
   }
 
   void test_dart() {
@@ -46,19 +46,19 @@ abstract class UriResolverTest {
   }
 
   void test_file() {
-    _expectResolution('file:///foo.dart', _p('foo.dart'));
+    _expectResolution(_fileUri('foo.dart'), _p('foo.dart'));
   }
 
   void test_fileLongPath() {
-    _expectResolution('file:///foo/bar.dart', _p('foo/bar.dart'));
+    _expectResolution(_fileUri('foo/bar.dart'), _p('foo/bar.dart'));
   }
 
   void test_noSchemeAbsolute() {
-    _expectResolution('/foo.dart', null);
+    _expectResolutionUri('/foo.dart', Uri.parse('/foo.dart'));
   }
 
   void test_noSchemeRelative() {
-    _expectResolution('foo.dart', null);
+    _expectResolution('foo.dart', 'foo.dart');
   }
 
   void test_package() {
@@ -102,6 +102,13 @@ abstract class UriResolverTest {
   /// Verifies that the resolution of [uriString] produces the path
   /// [expectedResult].
   void _expectResolution(String uriString, String expectedResult) {
+    _expectResolutionUri(uriString,
+        expectedResult == null ? null : pathContext.toUri(expectedResult));
+  }
+
+  /// Verifies that the resolution of [uriString] produces the URI
+  /// [expectedResult].
+  void _expectResolutionUri(String uriString, Uri expectedResult) {
     var packages = {
       'foo': _u('packages/foo/lib/'),
       'bar': _u('packages/bar/lib/')
@@ -110,18 +117,31 @@ abstract class UriResolverTest {
       'core': _u('sdk/lib/core/core.dart'),
       'async': _u('sdk/lib/async/async.dart')
     };
-    var uriResolver = new UriResolver(packages, sdkLibraries, pathContext);
+    var uriResolver = new UriResolver(packages, sdkLibraries);
     expect(uriResolver.resolve(Uri.parse(uriString)), expectedResult);
+  }
+
+  /// Prepends "file:///", plus a Windows drive letter if applicable, to the
+  /// given path.
+  String _fileUri(String pathPart) {
+    if (pathContext.separator == '/') {
+      return 'file:///$pathPart';
+    } else {
+      return 'file:///C:/$pathPart';
+    }
   }
 
   /// Converts a posix style path into a path appropriate for the current path
   /// context.
   String _p(String posixPath) {
-    return pathContext.fromUri(_u(posixPath));
+    if (!posixPath.startsWith('/')) posixPath = '/$posixPath';
+    if (pathContext.separator == '/') return posixPath;
+    // Windows
+    return 'C:${posixPath.replaceAll('/', pathContext.separator)}';
   }
 
   /// Converts a posix style path into a file URI.
-  Uri _u(String posixPath) => Uri.parse('file:///$posixPath');
+  Uri _u(String posixPath) => pathContext.toUri(_p(posixPath));
 }
 
 /// Override of [UriResolverTest] which uses the native path context for the

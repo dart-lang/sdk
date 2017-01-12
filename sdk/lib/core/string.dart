@@ -360,7 +360,7 @@ abstract class String implements Comparable<String>, Pattern {
   String operator *(int times);
 
   /**
-   * Pads this string on the left if it is shorther than [width].
+   * Pads this string on the left if it is shorter than [width].
    *
    * Return a new string that prepends [padding] onto this string
    * one time for each position the length is less than [width].
@@ -378,7 +378,7 @@ abstract class String implements Comparable<String>, Pattern {
   String padLeft(int width, [String padding = ' ']);
 
   /**
-   * Pads this string on the right if it is shorther than [width].
+   * Pads this string on the right if it is shorter than [width].
    *
    * Return a new string that appends [padding] after this string
    * one time for each position the length is less than [width].

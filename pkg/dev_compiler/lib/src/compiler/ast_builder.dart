@@ -35,7 +35,7 @@ class AstBuilder {
     return RawAstBuilder.typeParameterList(params);
   }
 
-  static TypeArgumentList typeArgumentList(List<TypeName> args) {
+  static TypeArgumentList typeArgumentList(List<TypeAnnotation> args) {
     return RawAstBuilder.typeArgumentList(args);
   }
 
@@ -43,7 +43,7 @@ class AstBuilder {
     return RawAstBuilder.argumentList(args);
   }
 
-  static TypeName typeName(Identifier id, List<TypeName> args) {
+  static TypeName typeName(Identifier id, List<TypeAnnotation> args) {
     TypeArgumentList argList = null;
     if (args != null && args.length > 0) argList = typeArgumentList(args);
     return RawAstBuilder.typeName(id, argList);
@@ -411,7 +411,7 @@ class RawAstBuilder {
     return astFactory.typeParameterList(lb, params, rb);
   }
 
-  static TypeArgumentList typeArgumentList(List<TypeName> args) {
+  static TypeArgumentList typeArgumentList(List<TypeAnnotation> args) {
     Token lb = new Token(TokenType.LT, 0);
     Token rb = new Token(TokenType.GT, 0);
     return astFactory.typeArgumentList(lb, args, rb);

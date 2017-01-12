@@ -189,12 +189,6 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
-Language/Types/Interface_Types/subtype_t28: Pass, Slow
-Language/Types/Interface_Types/subtype_t27: Pass, Slow
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
-
-[ ($runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Issue 27201
 
 [ ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129

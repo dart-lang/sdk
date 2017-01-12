@@ -4541,7 +4541,10 @@ typedef F<T extends String>();
 
   void _assertTypeParameterBound(TypeParameter typeParameter,
       String expectedBoundTypeString, String expectedBoundElementName) {
-    TypeName boundNode = typeParameter.bound;
+    TypeAnnotation bound = typeParameter.bound;
+    // TODO(brianwilkerson) Extend this to support function types as bounds.
+    expect(bound, new isInstanceOf<TypeName>());
+    TypeName boundNode = bound;
     Identifier boundName = boundNode.name;
     expect(boundNode.type.toString(), expectedBoundTypeString);
     expect(boundName.staticType.toString(), expectedBoundTypeString);

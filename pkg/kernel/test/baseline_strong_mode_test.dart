@@ -4,6 +4,8 @@
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/transformations/insert_covariance_checks.dart';
+import 'package:kernel/transformations/insert_type_checks.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
 import 'package:kernel/type_checker.dart';
 import 'package:path/path.dart' as pathlib;
@@ -24,6 +26,8 @@ class StrongModeTest extends TestTarget {
   List<String> transformProgram(Program program) {
     List<String> errors = <String>[];
     new MixinFullResolution().transform(program);
+    new InsertTypeChecks().transformProgram(program);
+    new InsertCovarianceChecks().transformProgram(program);
     new TestTypeChecker(
             errors, new CoreTypes(program), new ClassHierarchy(program))
         .checkProgram(program);

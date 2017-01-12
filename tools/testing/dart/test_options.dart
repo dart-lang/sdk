@@ -23,7 +23,6 @@ const List<String> defaultTestSelectors = const [
   'benchmark_smoke',
   'utils',
   'lib',
-  'pkg',
   'analyze_library',
   'service',
   'kernel',
@@ -485,7 +484,7 @@ Note: currently only implemented for dart2js.''',
           'Exclude suites from default selector, only works when no'
           ' selector has been specified on the command line',
           ['--exclude-suite'],
-          defaultTestSelectors,
+          [],
           null),
       new _TestOptionSpecification(
           'skip-compilation',
@@ -742,7 +741,7 @@ Note: currently only implemented for dart2js.''',
     }
     if (config['ie'] && Platform.operatingSystem != 'windows') {
       isValid = false;
-      print("Warning cannot run Internet Explorer on non-Windows operating"
+      print("Warning: cannot run Internet Explorer on non-Windows operating"
           " system.");
     }
     if (config['shard'] < 1 || config['shard'] > config['shards']) {
@@ -836,8 +835,7 @@ Note: currently only implemented for dart2js.''',
           if (selectors.contains(exclude)) {
             selectors.remove(exclude);
           } else {
-            print("Error: default selectors does not contain $exclude");
-            exit(1);
+            print("Warning: default selectors does not contain $exclude");
           }
         }
       }

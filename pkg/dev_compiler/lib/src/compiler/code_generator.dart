@@ -1248,24 +1248,25 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     _loader.startTopLevel(element);
 
-    // Find the super type
-    JS.Expression heritage;
-    var supertype = type.superclass;
-    if (_deferIfNeeded(supertype, element)) {
-      // Fall back to raw type.
-      supertype = fillDynamicTypeArgs(supertype.element.type);
+    // List of "direct" supertypes (supertype + mixins)
+    var basetypes = [type.superclass]..addAll(type.mixins);
+
+    // If any of these are recursive (via type parameter), defer setting
+    // the real superclass.
+    if (basetypes.any((t) => _deferIfNeeded(t, element))) {
+      // Fall back to raw type
+      basetypes =
+          basetypes.map((t) => fillDynamicTypeArgs(t.element.type)).toList();
       _hasDeferredSupertype.add(element);
     }
-    // We could choose to name the superclasses, but it's
-    // not clear that there's much benefit
-    heritage = _emitType(supertype, nameType: false);
 
-    if (type.mixins.isNotEmpty) {
-      var mixins =
-          type.mixins.map((t) => _emitType(t, nameType: false)).toList();
-      mixins.insert(0, heritage);
-      heritage = _callHelper('mixin(#)', [mixins]);
-    }
+    // List of "direct" JS superclasses
+    var baseclasses =
+        basetypes.map((t) => _emitType(t, nameType: false)).toList();
+    assert(baseclasses.isNotEmpty);
+    var heritage = (baseclasses.length == 1)
+        ? baseclasses.first
+        : _callHelper('mixin(#)', [baseclasses]);
 
     _loader.finishTopLevel(element);
 
@@ -1331,7 +1332,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // bypass the ES6 restrictions.
       //
       // TODO(jmesserly): we'll need to rethink this.
-      // See <https://github.com/dart-lang/dev_compiler/issues/51>.
+      // See https://github.com/dart-lang/sdk/issues/28322.
       // This level of indirection will hurt performance.
       jsMethods.add(new JS.Method(
           _propertyName('constructor'),
@@ -1682,8 +1683,17 @@ class CodeGenerator extends GeneralizingAstVisitor
             'setExtensionBaseClass(#, #);', [className, newBaseClass]));
       }
     } else if (_hasDeferredSupertype.contains(classElem)) {
+      // TODO(vsm): consider just threading the deferred supertype through
+      // instead of recording classElem in a set on the class and recomputing
       var newBaseClass = _emitType(classElem.type.superclass,
           nameType: false, subClass: classElem, className: className);
+      if (classElem.type.mixins.isNotEmpty) {
+        var mixins = classElem.type.mixins
+            .map((t) => _emitType(t, nameType: false))
+            .toList();
+        mixins.insert(0, newBaseClass);
+        newBaseClass = _callHelper('mixin(#)', [mixins]);
+      }
       var deferredBaseClass = _callHelperStatement(
           'setBaseClass(#, #);', [className, newBaseClass]);
       if (typeFormals.isNotEmpty) return deferredBaseClass;
@@ -2293,7 +2303,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
 
       // TODO(jmesserly): various problems here, see:
-      // https://github.com/dart-lang/dev_compiler/issues/116
+      // https://github.com/dart-lang/sdk/issues/27259
       var paramType =
           resolutionMap.elementDeclaredByFormalParameter(param).type;
       if (node is MethodDeclaration &&
@@ -2648,8 +2658,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // are not mutated inside the generator.
     //
     // In the future, we might be able to simplify this, see:
-    // https://github.com/dart-lang/dev_compiler/issues/247.
-    //
+    // https://github.com/dart-lang/sdk/issues/28320
     // `async` works the same, but uses the `dart.async` helper.
     //
     // In the body of a `sync*` and `async`, `yield`/`await` are both generated
@@ -2956,8 +2965,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     var typeFormals = type.typeFormals;
     if (typeFormals.isNotEmpty && !lowerTypedef) {
       // TODO(jmesserly): this is a suboptimal representation for universal
-      // function types (as callable functions). See discussion at:
-      // https://github.com/dart-lang/dev_compiler/issues/526
+      // function types (as callable functions). See discussion at
+      // https://github.com/dart-lang/sdk/issues/27333
       var tf = _emitTypeFormals(typeFormals);
       var names = _typeTable.discharge(typeFormals);
       var parts = new JS.ArrayInitializer(typeParts);
@@ -3615,7 +3624,15 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else if (typeArgs != null) {
       // Dynamic calls may have type arguments, even though the function types
       // are not known.
-      return typeArgs.arguments.map(visitTypeName).toList(growable: false);
+      return typeArgs.arguments.map((argument) {
+        if (argument is TypeName) {
+          return visitTypeName(argument);
+        } else {
+          // TODO(brianwilkerson) Implement support for GenericFunctionType.
+          throw new StateError(
+              'Cannot compile type argument of kind ${argument.runtimeType}');
+        }
+      }).toList(growable: false);
     }
     return null;
   }
@@ -5643,7 +5660,6 @@ class CodeGenerator extends GeneralizingAstVisitor
         expectedType = types.streamType;
       } else {
         // Future<T> -> T
-        // TODO(vsm): Revisit with issue #228.
         expectedType = types.futureType;
       }
     } else {

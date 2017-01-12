@@ -7,6 +7,10 @@
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 
+# Doesn't yet implement `covariant` keyword.
+covariant_test/none: CompileTimeError # Issue 28167
+covariant_override_test: CompileTimeError # Issue 28167
+
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 

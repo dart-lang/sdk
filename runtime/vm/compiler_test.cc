@@ -102,10 +102,13 @@ VM_TEST_CASE(CompileFunctionOnHelperThread) {
   ASSERT(isolate->background_compiler() != NULL);
   isolate->background_compiler()->CompileOptimized(func);
   Monitor* m = new Monitor();
-  MonitorLocker ml(m);
-  while (!func.HasOptimizedCode()) {
-    ml.WaitWithSafepointCheck(thread, 1);
+  {
+    MonitorLocker ml(m);
+    while (!func.HasOptimizedCode()) {
+      ml.WaitWithSafepointCheck(thread, 1);
+    }
   }
+  delete m;
   BackgroundCompiler::Stop(isolate);
 }
 
