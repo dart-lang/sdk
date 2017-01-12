@@ -156,6 +156,9 @@ start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
 message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
 browser/package_resolve_browser_hook*: Skip # Tests that use defaultPackagesBase (not supported in Dartium).
 
+[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) && ($system == windows) ]
+browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL to fix under Windows.
+
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
