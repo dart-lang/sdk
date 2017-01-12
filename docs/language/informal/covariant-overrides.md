@@ -53,7 +53,7 @@ declaration: // CHANGED: last alternative
   ('external' 'static'?)? functionSignature |
   'static' ('final' | 'const') type? staticFinalDeclarationList |
   'final' type? initializedIdentifierList |
-  ('static'? | 'covariant'?)? ('var' | type) initializedIdentifierList
+  ('static' | 'covariant')? ('var' | type) initializedIdentifierList
 ```
 
 ### Standard mode
