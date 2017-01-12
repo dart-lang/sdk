@@ -375,7 +375,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
   EXPECT_STREQ(
       // bb captures only value2 from aa.  No others.
       "a.b.aa.bb\n"
-      " 0 ContextVar    level=0   begin=33  end=43  name=value2\n"
+      " 0 ContextVar    level=0   begin=34  end=44  name=value2\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
@@ -391,9 +391,9 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       "a.b.aa\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 ContextLevel  level=1   scope=2   begin=22  end=52\n"
-      " 2 ContextVar    level=1   begin=28  end=52  name=value2\n"
-      " 3 StackVar      scope=2   begin=30  end=52  name=bb\n"
+      " 1 ContextLevel  level=1   scope=2   begin=22  end=53\n"
+      " 2 ContextVar    level=1   begin=29  end=53  name=value2\n"
+      " 3 StackVar      scope=2   begin=31  end=53  name=bb\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
@@ -403,10 +403,10 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
 
       // b captures value1 from a.
       "a.b\n"
-      " 0 ContextVar    level=0   begin=14  end=62  name=value1\n"
+      " 0 ContextVar    level=0   begin=14  end=63  name=value1\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 StackVar      scope=2   begin=18  end=62  name=aa\n"
+      " 2 StackVar      scope=2   begin=18  end=63  name=aa\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
@@ -418,9 +418,9 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       "a\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 ContextLevel  level=1   scope=2   begin=4   end=70\n"
-      " 2 ContextVar    level=1   begin=10  end=70  name=value1\n"
-      " 3 StackVar      scope=2   begin=12  end=70  name=b\n",
+      " 1 ContextLevel  level=1   scope=2   begin=4   end=71\n"
+      " 2 ContextVar    level=1   begin=10  end=71  name=value1\n"
+      " 3 StackVar      scope=2   begin=12  end=71  name=b\n",
       vars);
   free(vars);
 }
@@ -458,8 +458,8 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
   EXPECT_STREQ(
       // This frame saves the entry context instead of chaining.  Good.
       "doIt.<anonymous closure>\n"
-      " 0 ContextLevel  level=1   scope=1   begin=41  end=62\n"
-      " 1 ContextVar    level=1   begin=42  end=62  name=y\n"
+      " 0 ContextLevel  level=1   scope=1   begin=41  end=65\n"
+      " 1 ContextVar    level=1   begin=42  end=65  name=y\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
@@ -478,7 +478,7 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       "doIt\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 StackVar      scope=2   begin=35  end=77  name=x\n",
+      " 1 StackVar      scope=2   begin=35  end=80  name=x\n",
       vars);
   free(vars);
 }
@@ -506,7 +506,7 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
   EXPECT_STREQ(
       // inner function captures variable value.  That's fine.
       "outer.inner\n"
-      " 0 ContextVar    level=0   begin=32  end=42  name=value\n"
+      " 0 ContextVar    level=0   begin=33  end=43  name=value\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
@@ -521,10 +521,10 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       "outer\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 StackVar      scope=3   begin=12  end=50  name=i\n"
-      " 2 ContextLevel  level=1   scope=4   begin=20  end=50\n"
-      " 3 ContextVar    level=1   begin=28  end=50  name=value\n"
-      " 4 StackVar      scope=4   begin=30  end=50  name=inner\n",
+      " 1 StackVar      scope=3   begin=12  end=52  name=i\n"
+      " 2 ContextLevel  level=1   scope=4   begin=20  end=52\n"
+      " 3 ContextVar    level=1   begin=28  end=52  name=value\n"
+      " 4 StackVar      scope=4   begin=30  end=52  name=inner\n",
       vars);
   free(vars);
 }
@@ -551,7 +551,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
   char* vars = CaptureVarsAtLine(lib, "a", 10);
   EXPECT_STREQ(
       "a.b.c\n"
-      " 0 ContextVar    level=0   begin=50  end=62  name=x\n"
+      " 0 ContextVar    level=0   begin=51  end=64  name=x\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
       "_Closure.call\n"
@@ -561,13 +561,13 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
 
       // Doesn't save the entry context.  Chains to parent instead.
       "a.b\n"
-      " 0 ContextVar    level=0   begin=12  end=71  name=x\n"
+      " 0 ContextVar    level=0   begin=12  end=73  name=x\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 StackVar      scope=2   begin=47  end=71  name=c\n"
-      " 3 ContextLevel  level=1   scope=3   begin=18  end=47\n"
-      " 4 ContextVar    level=1   begin=22  end=47  name=i\n"
-      " 5 StackVar      scope=4   begin=32  end=47  name=d\n"
+      " 2 StackVar      scope=2   begin=48  end=73  name=c\n"
+      " 3 ContextLevel  level=1   scope=3   begin=18  end=48\n"
+      " 4 ContextVar    level=1   begin=22  end=48  name=i\n"
+      " 5 StackVar      scope=4   begin=33  end=48  name=d\n"
 
       "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
@@ -577,9 +577,9 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       "a\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 ContextLevel  level=1   scope=2   begin=3   end=79\n"
-      " 2 ContextVar    level=1   begin=9   end=79  name=x\n"
-      " 3 StackVar      scope=2   begin=11  end=79  name=b\n",
+      " 1 ContextLevel  level=1   scope=2   begin=3   end=81\n"
+      " 2 ContextVar    level=1   begin=9   end=81  name=x\n"
+      " 3 StackVar      scope=2   begin=11  end=81  name=b\n",
       vars);
   free(vars);
 }
