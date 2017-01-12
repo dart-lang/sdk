@@ -48,29 +48,7 @@ vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
 vm/reflect_core_vm_test: DartkCompileTimeError
 vm/regress_27201_test: DartkCompileTimeError
 vm/regress_28325_test: RuntimeError  # Issue 28055.
-covariant_test/06: MissingCompileTimeError # 28166
-covariant_test/06b: MissingCompileTimeError # 28166
-covariant_test/07: MissingCompileTimeError # 28166
-covariant_test/08: MissingCompileTimeError # 28166
-covariant_test/11: MissingCompileTimeError # 28166
-covariant_test/15: MissingCompileTimeError # 28166
-covariant_test/26: MissingCompileTimeError # 28166
-covariant_test/26b: MissingCompileTimeError # 28166
-covariant_test/27: MissingCompileTimeError # 28166
-covariant_test/28: MissingCompileTimeError # 28166
-covariant_test/31: MissingCompileTimeError # 28166
-covariant_test/35: MissingCompileTimeError # 28166
-covariant_test/40: DartkCompileTimeError # 28166
-covariant_test/40b: DartkCompileTimeError # 28166
-covariant_test/42: DartkCompileTimeError # 28166
-covariant_test/46: MissingCompileTimeError # 28166
-covariant_test/46b: MissingCompileTimeError # 28166
-covariant_test/47: MissingCompileTimeError # 28166
-covariant_test/51: MissingCompileTimeError # 28166
-covariant_test/52: DartkCompileTimeError # 28166
-covariant_test/54: DartkCompileTimeError # 28166
-covariant_test/55: MissingCompileTimeError # 28166
-covariant_test/56: DartkCompileTimeError # 28166
+covariant_test/none: CompileTimeError # Issue 28166
 covariant_override_test: DartkCrash # Issue 28166
 
 # dartk: JIT failures
