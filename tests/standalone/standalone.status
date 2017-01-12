@@ -377,3 +377,15 @@ io/socket_info_ipv6_test: SkipByDesign
 io/directory_error_test: Fail # Issue 28350
 io/directory_fuzz_test: Fail # Issue 28350
 io/directory_list_nonexistent_test: Fail # Issue 28350
+
+io/stdout_bad_argument_test: Fail # Issue 28353
+io/file_blocking_lock_test: Fail # Issue 28353
+
+array_bounds_check_generalization_test: Fail # Issue 28354
+
+io/process_sync_test: RuntimeError
+io/signals_test: RuntimeError
+io/regress_7191_test: RuntimeError
+io/named_pipe_script_test: RuntimeError
+io/http_server_close_response_after_error_test: RuntimeError
+io/stdio_implicit_close_test: RuntimeError
