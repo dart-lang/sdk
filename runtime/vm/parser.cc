@@ -9918,7 +9918,7 @@ AstNode* Parser::ParseJump(String* label_name) {
       ReportError(jump_pos, "label '%s' not found", target_name.ToCString());
     }
   } else if (FLAG_enable_debug_break && (CurrentToken() == Token::kSTRING)) {
-    const char* message = strdup(CurrentLiteral()->ToCString());
+    const char* message = Z->MakeCopyOfString(CurrentLiteral()->ToCString());
     ConsumeToken();
     return new (Z) StopNode(jump_pos, message);
   } else {

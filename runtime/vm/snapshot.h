@@ -637,8 +637,13 @@ class BaseWriter : public StackResource {
   }
 
  protected:
-  BaseWriter(uint8_t** buffer, ReAlloc alloc, intptr_t initial_size)
-      : StackResource(Thread::Current()), stream_(buffer, alloc, initial_size) {
+  BaseWriter(uint8_t** buffer,
+             ReAlloc alloc,
+             DeAlloc dealloc,
+             intptr_t initial_size)
+      : StackResource(Thread::Current()),
+        stream_(buffer, alloc, initial_size),
+        dealloc_(dealloc) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -655,8 +660,11 @@ class BaseWriter : public StackResource {
     data[Snapshot::kSnapshotFlagIndex] = kind;
   }
 
+  void FreeBuffer() { dealloc_(stream_.buffer()); }
+
  private:
   WriteStream stream_;
+  DeAlloc dealloc_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseWriter);
 };
@@ -862,6 +870,7 @@ class SnapshotWriter : public BaseWriter {
                  Snapshot::Kind kind,
                  uint8_t** buffer,
                  ReAlloc alloc,
+                 DeAlloc dealloc,
                  intptr_t initial_size,
                  ForwardList* forward_list,
                  bool can_send_any_object);
@@ -992,7 +1001,10 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  MessageWriter(uint8_t** buffer, ReAlloc alloc, bool can_send_any_object);
+  MessageWriter(uint8_t** buffer,
+                ReAlloc alloc,
+                DeAlloc dealloc,
+                bool can_send_any_object);
   ~MessageWriter() {}
 
   void WriteMessage(const Object& obj);

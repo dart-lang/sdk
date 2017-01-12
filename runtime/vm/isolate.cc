@@ -100,9 +100,15 @@ class VerifyOriginId : public IsolateVisitor {
 #endif
 
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
 }
 
 
@@ -110,7 +116,8 @@ static void SerializeObject(const Instance& obj,
                             uint8_t** obj_data,
                             intptr_t* obj_len,
                             bool allow_any_object) {
-  MessageWriter writer(obj_data, &allocator, allow_any_object);
+  MessageWriter writer(obj_data, &malloc_allocator, &malloc_deallocator,
+                       allow_any_object);
   writer.WriteMessage(obj);
   *obj_len = writer.BytesWritten();
 }
@@ -193,7 +200,7 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   msg.SetAt(2, element);
 
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(msg);
 
   PortMap::PostMessage(new Message(main_port(), data, writer.BytesWritten(),
@@ -2556,7 +2563,7 @@ void Isolate::KillLocked(LibMsgId msg_id) {
 
   {
     uint8_t* buffer = NULL;
-    ApiMessageWriter writer(&buffer, allocator);
+    ApiMessageWriter writer(&buffer, &malloc_allocator);
     bool success = writer.WriteCMessage(&kill_msg);
     ASSERT(success);
 

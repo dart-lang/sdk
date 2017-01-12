@@ -1218,10 +1218,11 @@ SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
                                uint8_t** buffer,
                                ReAlloc alloc,
+                               DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(buffer, alloc, initial_size),
+    : BaseWriter(buffer, alloc, dealloc, initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -1883,6 +1884,7 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
                      Snapshot::kScript,
                      buffer,
                      alloc,
+                     NULL,
                      kInitialSize,
                      &forward_list_,
                      true /* can_send_any_object */),
@@ -1932,11 +1934,13 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
 
 MessageWriter::MessageWriter(uint8_t** buffer,
                              ReAlloc alloc,
+                             DeAlloc dealloc,
                              bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
                      buffer,
                      alloc,
+                     dealloc,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
@@ -1957,6 +1961,7 @@ void MessageWriter::WriteMessage(const Object& obj) {
     NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
   } else {
+    FreeBuffer();
     ThrowException(exception_type(), exception_msg());
   }
 }
