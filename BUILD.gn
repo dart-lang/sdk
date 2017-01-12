@@ -54,22 +54,6 @@ group("runtime_precompiled") {
   ]
 }
 
-group("runtime_and_noopt") {
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
-    testonly = true
-  }
-  deps = [
-    "runtime/bin:dart",
-    "runtime/bin:dart_bootstrap($host_toolchain)",
-    "runtime/bin:dart_noopt",
-    "runtime/bin:process_test",
-    "runtime/bin:run_vm_tests",
-    "runtime/bin:sample_extension",
-    "runtime/bin:test_extension",
-    "runtime/vm:patched_sdk",
-  ]
-}
-
 action("create_sdk") {
   deps = [
     "runtime/bin:dart",
@@ -86,7 +70,10 @@ action("create_sdk") {
   ]
 
   sdk_lib_files = exec_script("tools/list_dart_files.py",
-                              [ "absolute", rebase_path("sdk/lib") ],
+                              [
+                                "absolute",
+                                rebase_path("sdk/lib"),
+                              ],
                               "list lines")
 
   preamble_files =
@@ -106,8 +93,7 @@ action("create_sdk") {
                               ],
                               "list lines")
 
-  inputs = sdk_lib_files + preamble_files + sdk_bin_files +
-           [
+  inputs = sdk_lib_files + preamble_files + sdk_bin_files + [
              "sdk/lib/dart_client.platform",
              "sdk/lib/dart_server.platform",
              "sdk/lib/dart_shared.platform",

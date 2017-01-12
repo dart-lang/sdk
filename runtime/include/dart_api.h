@@ -3202,15 +3202,13 @@ typedef struct {
  * reset_fields is true when we are about to create a precompilated snapshot.
  * Some fields are already been initialized as part of the loading logic, and
  * we want them to be reinitialized in the new process that will load the
- * snapshot. reset_fields is false for --noopt, which will continue running in
- * the same process.
+ * snapshot.
  *
  * \return An error handle if a compilation error or runtime error running const
  * constructors was encountered.
  */
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                bool reset_fields,
                 uint8_t* jit_feedback,
                 intptr_t jit_feedback_length);
 

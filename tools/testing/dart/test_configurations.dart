@@ -107,7 +107,6 @@ Future testConfigurations(List<Map> configurations) async {
           .toList();
       if (conf['checked']) settings.add('checked');
       if (conf['strong']) settings.add('strong');
-      if (conf['noopt']) settings.add('noopt');
       output_words.add(settings.join('_'));
     }
     print(output_words.join(' '));

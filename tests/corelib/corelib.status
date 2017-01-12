@@ -188,15 +188,14 @@ core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 regexp/pcre_test: Crash # Stack Overflow
 collection_removes_test: Crash # Issue 25911
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler || $mode == product ]
+apply3_test: SkipByDesign # Imports dart:mirrors
+
+[ $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
 stacktrace_current_test: Pass, RuntimeError
 error_stack_trace1_test: Pass, RuntimeError
 
-[ $noopt || $compiler == precompiler || $mode == product ]
-apply3_test: SkipByDesign # Imports dart:mirrors
-
-[ $noopt || $compiler == precompiler ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify

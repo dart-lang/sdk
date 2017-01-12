@@ -6573,7 +6573,6 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                bool reset_fields,
                 uint8_t* jit_feedback,
                 intptr_t jit_feedback_length) {
 #if defined(TARGET_ARCH_IA32)
@@ -6594,8 +6593,8 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  const Error& error = Error::Handle(Precompiler::CompileAll(
-      entry_points, reset_fields, jit_feedback, jit_feedback_length));
+  const Error& error = Error::Handle(
+      Precompiler::CompileAll(entry_points, jit_feedback, jit_feedback_length));
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.raw());
   }

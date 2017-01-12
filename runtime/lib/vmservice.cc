@@ -130,15 +130,15 @@ DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
 
 
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
+#ifndef PRODUCT
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   if (FLAG_trace_service) {
     OS::Print("vm-service: Booting dart:vmservice library.\n");
   }
   // Boot the dart:vmservice library.
   ServiceIsolate::BootVmServiceLibrary();
-  if (!FLAG_support_service) {
-    return Object::null();
-  }
-#ifndef PRODUCT
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {

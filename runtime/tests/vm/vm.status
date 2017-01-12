@@ -243,16 +243,16 @@ cc/IsolateReload_TypeIdentity: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler || $mode == product ]
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
-[ $noopt || $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled ]
 # StackTraces in precompilation omit inlined frames.
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError

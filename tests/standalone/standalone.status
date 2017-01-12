@@ -222,11 +222,9 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
 assert_test: Pass, RuntimeError
-
-[ $noopt || $compiler == precompiler ]
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 

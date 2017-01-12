@@ -160,7 +160,7 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 
-[ $noopt || $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled ]
 # Stacktraces in precompilation omit inlined frames.
 full_stacktrace1_test: Pass, RuntimeError
 full_stacktrace2_test: Pass, RuntimeError
@@ -172,7 +172,7 @@ stacktrace_test: Pass, RuntimeError
 vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
 
 
-[ $noopt || $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign
@@ -196,18 +196,6 @@ super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 regress_28255_test: SkipByDesign
 
-[ $noopt ]
-# Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
-deferred_global_test: Fail
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
-deferred_load_constants_test/05: Fail
-regress_22443_test: Fail
-deferred_not_loaded_check_test: Fail
-vm/regress_27201_test: Fail
-
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 regress_23408_test: Fail
@@ -223,15 +211,13 @@ vm/regress_27201_test: Fail
 deferred_global_test: Fail
 vm/regress_27201_test: Fail
 
-[ $compiler == precompiler || $compiler == app_jit ]
-ct_const2_test: Skip # Incompatible flag: --compile_all
-hello_dart_test: Skip # Incompatible flag: --compile_all
-
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
-[ $noopt || $compiler == precompiler || $compiler == app_jit ]
+[ $compiler == precompiler || $compiler == app_jit ]
+ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
@@ -261,11 +247,11 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 
-[ ($compiler == none || $compiler == app_jit) && $noopt == false && $mode != product ]
+[ ($compiler == none || $compiler == app_jit) && $mode != product ]
 # The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-[ $noopt || $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled || $mode == product ]
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
 

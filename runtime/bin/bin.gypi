@@ -1167,63 +1167,6 @@
       },
     },
     {
-      # dart binary with a snapshot of corelibs built in and support for testing
-      # precompilation (aka --noopt)
-      'target_name': 'dart_noopt',
-      'type': 'executable',
-      'dependencies': [
-        'build_observatory#host',
-        'generate_observatory_assets_cc_file#host',
-        'generate_resources_cc_file#host',
-        'generate_snapshot_file#host',
-        'libdart_builtin',
-        'libdart_io',
-        'libdart_noopt',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'main.cc',
-        'builtin.h',
-        'builtin_common.cc',
-        'builtin_natives.cc',
-        'builtin_nolib.cc',
-        'io_natives.h',
-        'vmservice_impl.cc',
-        'vmservice_impl.h',
-        '<(observatory_assets_cc_file)',
-        '<(resources_cc_file)',
-        '<(snapshot_cc_file)',
-      ],
-      'defines': [
-        'DART_PRECOMPILER',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
-          },
-          # Generate an import library on Windows, by exporting a function.
-          # Extensions use this import library to link to the API in dart.exe.
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
-            },
-          },
-        }],
-      ],
-      'configurations': {
-        'Dart_Linux_Base': {
-          # Have the linker add all symbols to the dynamic symbol table
-          # so that extensions can look them up dynamically in the binary.
-          'ldflags': [
-            '-rdynamic',
-          ],
-        },
-      },
-    },
-    {
       # dart binary for running precompiled snapshots without the compiler.
       'target_name': 'dart_precompiled_runtime',
       'type': 'executable',
