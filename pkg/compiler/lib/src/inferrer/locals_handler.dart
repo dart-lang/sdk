@@ -2,27 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library inferrer_visitor;
+library locals_handler;
 
 import 'dart:collection' show IterableMixin;
 
-import '../common.dart';
 import '../options.dart' show CompilerOptions;
-import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart';
-import '../constants/expressions.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../resolution/operators.dart';
-import '../resolution/semantic_visitor.dart';
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart';
-import '../types/constants.dart' show computeTypeMask;
-import '../types/types.dart' show TypeMask;
-import '../universe/call_structure.dart' show CallStructure;
-import '../universe/selector.dart' show Selector;
 import '../util/util.dart';
-import '../world.dart' show ClosedWorld;
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';

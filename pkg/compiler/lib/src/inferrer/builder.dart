@@ -28,11 +28,11 @@ import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Link, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'inferrer_engine.dart';
-import 'inferrer_visitor.dart';
+import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 
-/// [SimpleTypeInferrerVisitor] can be thought of as a type-inference graph
+/// [ElementGraphBuilder] can be thought of as a type-inference graph
 /// builder for a single element.
 ///
 /// Calling [run] will start the work of visiting the body of the code to
@@ -41,7 +41,7 @@ import 'type_system.dart';
 ///
 /// This visitor is parameterized by an [InferenceEngine], which internally
 /// decides how to represent inference nodes.
-class SimpleTypeInferrerVisitor extends ast.Visitor<TypeInformation>
+class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     with
         SemanticSendResolvedMixin<TypeInformation, dynamic>,
         CompoundBulkMixin<TypeInformation, dynamic>,
@@ -74,7 +74,7 @@ class SimpleTypeInferrerVisitor extends ast.Visitor<TypeInformation>
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
   final GlobalTypeInferenceElementData inTreeData;
 
-  SimpleTypeInferrerVisitor.internal(
+  ElementGraphBuilder.internal(
       AstElement analyzedElement,
       this.resolvedAst,
       this.outermostElement,
@@ -99,7 +99,7 @@ class SimpleTypeInferrerVisitor extends ast.Visitor<TypeInformation>
         new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
   }
 
-  SimpleTypeInferrerVisitor(Element element, ResolvedAst resolvedAst,
+  ElementGraphBuilder(Element element, ResolvedAst resolvedAst,
       Compiler compiler, InferrerEngine inferrer, [LocalsHandler handler])
       : this.internal(
             element,
@@ -923,10 +923,10 @@ class SimpleTypeInferrerVisitor extends ast.Visitor<TypeInformation>
       // a mixin application), we have to start a new inferrer visitor
       // with the correct context.
       // TODO(johnniwinther): Remove once function signatures are fixed.
-      SimpleTypeInferrerVisitor visitor = this;
+      ElementGraphBuilder visitor = this;
       if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
       if (element.functionDeclaration != analyzedElement) {
-        visitor = new SimpleTypeInferrerVisitor(element.functionDeclaration,
+        visitor = new ElementGraphBuilder(element.functionDeclaration,
             element.functionDeclaration.resolvedAst, compiler, inferrer);
       }
       TypeInformation type =
@@ -1075,7 +1075,7 @@ class SimpleTypeInferrerVisitor extends ast.Visitor<TypeInformation>
     // method, like for example the types of local variables.
     LocalsHandler closureLocals =
         new LocalsHandler.from(locals, node, useOtherTryBlock: false);
-    SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor(
+    ElementGraphBuilder visitor = new ElementGraphBuilder(
         element, element.resolvedAst, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);

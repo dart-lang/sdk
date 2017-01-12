@@ -32,7 +32,7 @@ import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show ImmutableEmptySet, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'debug.dart' as debug;
-import 'inferrer_visitor.dart' show ArgumentsTypes;
+import 'locals_handler.dart' show ArgumentsTypes;
 import 'inferrer_engine.dart';
 import 'type_system.dart';
 
