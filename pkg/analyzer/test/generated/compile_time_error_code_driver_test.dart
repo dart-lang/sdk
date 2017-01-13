@@ -65,10 +65,4 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   test_uriDoesNotExist_import_appears_after_deleting_target() {
     return super.test_uriDoesNotExist_import_appears_after_deleting_target();
   }
-
-  @failingTest
-  @override
-  test_uriWithInterpolation_nonConstant() {
-    return super.test_uriWithInterpolation_nonConstant();
-  }
 }

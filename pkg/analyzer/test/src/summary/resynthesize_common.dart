@@ -4345,6 +4345,15 @@ void named({x: 1}) {}
     checkLibrary('library my.lib; part "foo/";');
   }
 
+  test_parts_invalidUri_nullStringValue() {
+    allowMissingFiles = true;
+    addSource('/foo/bar.dart', 'part of my.lib;');
+    checkLibrary(r'''
+library my.lib;
+part "${foo}/bar.dart";
+''');
+  }
+
   test_propagated_type_refers_to_closure() {
     checkLibrary('''
 void f() {

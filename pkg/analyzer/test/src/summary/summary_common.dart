@@ -6471,6 +6471,17 @@ class B extends A {}
     expect(unlinkedExports[0].configurations, isEmpty);
   }
 
+  test_export_uri_nullStringValue() {
+    String libraryText = r'''
+export "${'a'}.dart";
+''';
+    serializeLibraryText(libraryText);
+    var unlinkedExports = unlinkedUnits[0].publicNamespace.exports;
+    expect(unlinkedExports, hasLength(1));
+    expect(unlinkedExports[0].uri, '');
+    expect(unlinkedExports[0].configurations, isEmpty);
+  }
+
   test_export_variable() {
     addNamedSource('/a.dart', 'var v;');
     serializeLibraryText('export "a.dart";');
@@ -8346,6 +8357,16 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_import_uri_nullStringValue() {
+    String libraryText = r'''
+import "${'a'}.dart";
+''';
+    serializeLibraryText(libraryText);
+    // Second import is the implicit import of dart:core
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, '');
+  }
+
   test_inferred_function_type_parameter_type_with_unrelated_type_param() {
     if (!strongMode || skipFullyLinkedData) {
       return;
@@ -9472,6 +9493,20 @@ f(x) => 42;
     expect(unlinkedUnits[0].publicNamespace.parts[0], 'a.dart');
     expect(unlinkedUnits[0].parts, hasLength(1));
     expect(unlinkedUnits[0].parts[0].uriOffset, text.indexOf('"a.dart"'));
+    expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
+  }
+
+  test_part_declaration_invalidUri_nullStringValue() {
+    addNamedSource('/a.dart', 'part of my.lib;');
+    String text = r'''
+library my.lib;
+part "${'a'}.dart"; // <-part
+''';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], '');
+    expect(unlinkedUnits[0].parts, hasLength(1));
+    expect(unlinkedUnits[0].parts[0].uriOffset, text.indexOf(r'"${'));
     expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
   }
 
