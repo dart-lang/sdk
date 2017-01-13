@@ -59,44 +59,36 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     expectSource('$foxLib/deep/directory/part.dart', 'dart:deep/part.dart');
   }
 
-  void test_getLinkedBundle_hasBundle() {
-    pathTranslator.newFileWithBytes(
-        '$foxPath/sdk.ds', new PackageBundleAssembler().assemble().toBuffer());
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(foxLib)]
-    });
-    // No bundle for spec mode.
-    {
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, locator.embedderYamls);
-      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
-      sdk.useSummary = true;
-      expect(sdk.getLinkedBundle(), isNull);
-    }
-    // Has bundle for strong mode.
-    {
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, locator.embedderYamls);
-      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
-      sdk.useSummary = true;
-      expect(sdk.getLinkedBundle(), isNotNull);
-    }
-    // Don't use bundle if not enabled.
-    {
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, locator.embedderYamls);
-      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
-      sdk.useSummary = false;
-      expect(sdk.getLinkedBundle(), isNull);
-    }
-  }
-
   void test_getLinkedBundle_noBundle() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
     expect(sdk.getLinkedBundle(), isNull);
+  }
+
+  void test_getLinkedBundle_spec() {
+    pathTranslator.newFileWithBytes('$foxPath/spec.sum',
+        new PackageBundleAssembler().assemble().toBuffer());
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
+    sdk.useSummary = true;
+    expect(sdk.getLinkedBundle(), isNotNull);
+  }
+
+  void test_getLinkedBundle_strong() {
+    pathTranslator.newFileWithBytes('$foxPath/strong.sum',
+        new PackageBundleAssembler().assemble().toBuffer());
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+    sdk.useSummary = true;
+    expect(sdk.getLinkedBundle(), isNotNull);
   }
 
   void test_getSdkLibrary() {
