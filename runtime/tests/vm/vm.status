@@ -168,16 +168,6 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == asan && $arch == x64 ]
-cc/Service_Profile: Fail # Issue 28342
-cc/Service_PersistentHandles: Fail # Issue 28342
-cc/Service_EmbedderIsolateHandler: Fail # Issue 28342
-cc/Service_LocalVarDescriptors: Fail # Issue 28342
-cc/Service_Code: Fail # Issue 28342
-cc/Service_EmbedderRootHandler: Fail # Issue 28342
-cc/Service_TokenStream: Fail # Issue 28342
-cc/Service_PcDescriptors: Fail # Issue 28342
-cc/Service_Address: Fail # Issue 28342
-
 cc/EmbeddedScript: Fail # Issue 28345
 
 cc/Log_Basic: Fail # Issue 28347
