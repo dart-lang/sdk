@@ -72,6 +72,9 @@ covariant_test/54: DartkCompileTimeError # 28166
 covariant_test/55: MissingCompileTimeError # 28166
 covariant_test/56: DartkCompileTimeError # 28166
 covariant_override_test: DartkCrash # Issue 28166
+generalized_function_type_test: DartkCrash # Issue 27966
+generic_function_typedef2_test: DartkCrash # Issue 27966
+generic_function_typedef_test: DartkCrash # Issue 27966
 
 # dartk: temporary failure
 mixin_illegal_syntax_test/00: DartkCrash

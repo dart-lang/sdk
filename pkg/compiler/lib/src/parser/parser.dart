@@ -362,12 +362,21 @@ class Parser {
 
   Token parseTypedef(Token token) {
     Token typedefKeyword = token;
-    listener.beginFunctionTypeAlias(token);
-    token = parseReturnTypeOpt(token.next);
-    token = parseIdentifier(token);
-    token = parseTypeVariablesOpt(token);
-    token = parseFormalParameters(token);
-    listener.endFunctionTypeAlias(typedefKeyword, token);
+    listener.beginTypedef(token);
+    Token equals;
+    if (optional('=', peekAfterNominalType(token.next))) {
+      token = parseIdentifier(token.next);
+      token = parseTypeVariablesOpt(token);
+      equals = token;
+      token = expect('=', token);
+      token = parseType(token);
+    } else {
+      token = parseReturnTypeOpt(token.next);
+      token = parseIdentifier(token);
+      token = parseTypeVariablesOpt(token);
+      token = parseFormalParameters(token);
+    }
+    listener.endTypedef(typedefKeyword, equals, token);
     return expect(';', token);
   }
 
@@ -398,7 +407,11 @@ class Parser {
     }
   }
 
-  Token parseFormalParameters(Token token) {
+  /// Parses the formal parameter list of a function.
+  ///
+  /// If [inFunctionType] is true, then the names may be omitted (except for
+  /// named arguments). If it is false, then the types may be omitted.
+  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
     Token begin = token;
     listener.beginFormalParameters(begin);
     expect('(', token);
@@ -411,19 +424,23 @@ class Parser {
       ++parameterCount;
       String value = token.stringValue;
       if (identical(value, '[')) {
-        token = parseOptionalFormalParameters(token, false);
+        token = parseOptionalFormalParameters(
+            token, false, inFunctionType: inFunctionType);
         break;
       } else if (identical(value, '{')) {
-        token = parseOptionalFormalParameters(token, true);
+        token = parseOptionalFormalParameters(
+            token, true, inFunctionType: inFunctionType);
         break;
       }
-      token = parseFormalParameter(token, FormalParameterType.REQUIRED);
+      token = parseFormalParameter(token, FormalParameterType.REQUIRED,
+          inFunctionType: inFunctionType);
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token);
     return expect(')', token);
   }
 
-  Token parseFormalParameter(Token token, FormalParameterType type) {
+  Token parseFormalParameter(Token token, FormalParameterType type,
+      {bool inFunctionType}) {
     token = parseMetadataStar(token, forParameter: true);
     listener.beginFormalParameter(token);
 
@@ -436,24 +453,41 @@ class Parser {
       token = token.next;
     }
     token = parseModifiers(token);
-    // TODO(ahe): Validate that there are formal parameters if void.
-    token = parseReturnTypeOpt(token);
+    bool isNamedParameter = type == FormalParameterType.NAMED;
+
     Token thisKeyword = null;
-    if (optional('this', token)) {
-      thisKeyword = token;
-      // TODO(ahe): Validate field initializers are only used in
-      // constructors, and not for function-typed arguments.
-      token = expect('.', token.next);
+    if (inFunctionType && isNamedParameter) {
+      token = parseType(token);
+      token = parseIdentifier(token);
+    } else if (inFunctionType) {
+      token = parseType(token);
+      if (token.isIdentifier()) {
+        token = parseIdentifier(token);
+      } else {
+        listener.handleNoName(token);
+      }
+    } else {
+      token = parseReturnTypeOpt(token);
+      if (optional('this', token)) {
+        thisKeyword = token;
+        token = expect('.', token.next);
+      }
+      token = parseIdentifier(token);
     }
-    token = parseIdentifier(token);
-    if (optional('(', token)) {
-      listener.handleNoTypeVariables(token);
-      token = parseFormalParameters(token);
-      listener.handleFunctionTypedFormalParameter(token);
-    } else if (optional('<', token)) {
-      token = parseTypeVariablesOpt(token);
-      token = parseFormalParameters(token);
-      listener.handleFunctionTypedFormalParameter(token);
+
+    // Generalized function types don't allow inline function types.
+    // The following isn't allowed:
+    //    int Function(int bar(String x)).
+    if (!inFunctionType) {
+      if (optional('(', token)) {
+        listener.handleNoTypeVariables(token);
+        token = parseFormalParameters(token);
+        listener.handleFunctionTypedFormalParameter(token);
+      } else if (optional('<', token)) {
+        token = parseTypeVariablesOpt(token);
+        token = parseFormalParameters(token);
+        listener.handleFunctionTypedFormalParameter(token);
+      }
     }
     String value = token.stringValue;
     if ((identical('=', value)) || (identical(':', value))) {
@@ -473,7 +507,8 @@ class Parser {
     return token;
   }
 
-  Token parseOptionalFormalParameters(Token token, bool isNamed) {
+  Token parseOptionalFormalParameters(Token token, bool isNamed,
+      {bool inFunctionType}) {
     Token begin = token;
     listener.beginOptionalFormalParameters(begin);
     assert((isNamed && optional('{', token)) || optional('[', token));
@@ -487,7 +522,8 @@ class Parser {
       }
       var type =
           isNamed ? FormalParameterType.NAMED : FormalParameterType.POSITIONAL;
-      token = parseFormalParameter(token, type);
+      token =
+          parseFormalParameter(token, type, inFunctionType: inFunctionType);
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
@@ -506,6 +542,10 @@ class Parser {
   }
 
   Token parseTypeOpt(Token token) {
+    if (isGeneralizedFunctionType(token)) {
+      // Function type without return type.
+      return parseType(token);
+    }
     Token peek = peekAfterIfType(token);
     if (peek != null && (peek.isIdentifier() || optional('this', peek))) {
       return parseType(token);
@@ -670,7 +710,7 @@ class Parser {
       token = token.next;
     }
     Token classKeyword = token;
-    var isMixinApplication = optional('=', peekAfterType(token.next));
+    var isMixinApplication = optional('=', peekAfterNominalType(token.next));
     if (isMixinApplication) {
       listener.beginNamedMixinApplication(begin);
     } else {
@@ -711,7 +751,7 @@ class Parser {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
-      if (optional('with', peekAfterType(token.next))) {
+      if (optional('with', peekAfterNominalType(token.next))) {
         token = parseMixinApplication(token.next);
       } else {
         token = parseType(token.next);
@@ -809,16 +849,53 @@ class Parser {
         !identical(value, token.stringValue);
   }
 
+  bool isGeneralizedFunctionType(Token token) {
+    // TODO(floitsch): don't use string comparison, but the keyword-state
+    // table is currently not set up to deal with upper-case characters.
+    return (optional('<', token.next) || optional('(', token.next)) &&
+        token.value == "Function";
+  }
+
   Token parseType(Token token) {
     Token begin = token;
-    if (isValidTypeReference(token)) {
-      token = parseIdentifier(token);
-      token = parseQualifiedRestOpt(token);
+    if (isGeneralizedFunctionType(token)) {
+      // A function type without return type.
+      // Push the non-existing return type first. The loop below will
+      // generate the full type.
+      listener.handleNoType(token);
     } else {
-      token = listener.expectedType(token);
+      if (isValidTypeReference(token)) {
+        token = parseIdentifier(token);
+        token = parseQualifiedRestOpt(token);
+      } else {
+        token = listener.expectedType(token);
+      }
+      token = parseTypeArgumentsOpt(token);
+      listener.endType(begin, token);
     }
-    token = parseTypeArgumentsOpt(token);
-    listener.endType(begin, token);
+
+    // While we see a `Function(` treat the pushed type as return type.
+    // For example: `int Function() Function(int) Function(String x)`.
+    while (isGeneralizedFunctionType(token)) {
+      token = parseFunctionType(token);
+    }
+    return token;
+  }
+
+  /// Parses a generalized function type.
+  ///
+  /// The return type must already be pushed.
+  Token parseFunctionType(Token token) {
+    // TODO(floitsch): don't use string comparison, but the keyword-state
+    // table is currently not set up to deal with upper-case characters.
+    if (token.value != "Function") {
+      return listener.expected("Function", token);
+    }
+    Token functionToken = token;
+    token = token.next;
+    token = parseTypeVariablesOpt(token);
+    token = parseFormalParameters(token, inFunctionType: true);
+    listener.endFunctionType(functionToken, token);
     return token;
   }
 
@@ -1175,26 +1252,55 @@ class Parser {
         hasName = true;
       }
       identifiers = identifiers.prepend(token);
-      if (isValidTypeReference(token)) {
-        // type ...
-        if (optional('.', token.next)) {
-          // type '.' ...
-          if (token.next.next.isIdentifier()) {
-            // type '.' identifier
-            token = token.next.next;
+
+      if (!isGeneralizedFunctionType(token)) {
+        // Read a potential return type.
+        if (isValidTypeReference(token)) {
+          // type ...
+          if (optional('.', token.next)) {
+            // type '.' ...
+            if (token.next.next.isIdentifier()) {
+              // type '.' identifier
+              token = token.next.next;
+            }
+          }
+          if (optional('<', token.next)) {
+            if (token.next is BeginGroupToken) {
+              BeginGroupToken beginGroup = token.next;
+              if (beginGroup.endGroup == null) {
+                listener.unmatched(beginGroup);
+              }
+              token = beginGroup.endGroup;
+            }
           }
         }
-        if (optional('<', token.next)) {
-          if (token.next is BeginGroupToken) {
-            BeginGroupToken beginGroup = token.next;
+        token = token.next;
+      }
+      while (isGeneralizedFunctionType(token)) {
+        token = token.next;
+        if (optional('<', token)) {
+          if (token is BeginGroupToken) {
+            BeginGroupToken beginGroup = token;
             if (beginGroup.endGroup == null) {
               listener.unmatched(beginGroup);
             }
-            token = beginGroup.endGroup;
+            token = beginGroup.endGroup.next;
           }
         }
+        if (!optional('(', token)) {
+          if (optional(';', token)) {
+            listener.recoverableError(token, "expected '('");
+          }
+          token = listener.unexpected(token);
+        }
+        if (token is BeginGroupToken) {
+          BeginGroupToken beginGroup = token;
+          if (beginGroup.endGroup == null) {
+            listener.unmatched(beginGroup);
+          }
+          token = beginGroup.endGroup.next;
+        }
       }
-      token = token.next;
     }
     return const Link<Token>();
   }
@@ -1292,11 +1398,31 @@ class Parser {
 
   /**
    * Returns the first token after the type starting at [token].
+   *
    * This method assumes that [token] is an identifier (or void).
    * Use [peekAfterIfType] if [token] isn't known to be an identifier.
    */
   Token peekAfterType(Token token) {
     // We are looking at "identifier ...".
+    Token peek = token;
+    if (!isGeneralizedFunctionType(token)) {
+      peek = peekAfterNominalType(token);
+    }
+
+    // We might have just skipped over the return value of the function type.
+    // Check again, if we are now at a function type position.
+    while (isGeneralizedFunctionType(peek)) {
+      peek = peekAfterFunctionType(peek);
+    }
+    return peek;
+  }
+
+  /**
+   * Returns the first token after the nominal type starting at [token].
+   *
+   * This method assumes that [token] is an identifier (or void).
+   */
+  Token peekAfterNominalType(Token token) {
     Token peek = token.next;
     if (identical(peek.kind, PERIOD_TOKEN)) {
       if (peek.next.isIdentifier()) {
@@ -1312,9 +1438,53 @@ class Parser {
       Token gtToken = beginGroupToken.endGroup;
       if (gtToken != null) {
         // We are looking at "qualified '<' ... '>' ...".
-        return gtToken.next;
+        peek = gtToken.next;
       }
     }
+    return peek;
+  }
+
+  /**
+   * Returns the first token after the function type starting at [token].
+   *
+   * The token must be at the `Function` token position. That is, the return
+   * type must have already been skipped.
+   *
+   * This function only skips over one function type syntax.
+   * If necessary, this function must be called multiple times.
+   *
+   * Example:
+   * ```
+   * int Function() Function<T>(int)
+   *     ^          ^
+   * A call to this function must be at one of the `Function` tokens.
+   * If `token` pointed to the first `Function` token, then the returned
+   * token points to the second `Function` token.
+   */
+  Token peekAfterFunctionType(Token token) {
+    // Possible inputs are:
+    //    Function( ... )
+    //    Function< ... >( ... )
+
+    Token peek = token.next;  // Skip over the Function token.
+    // If there is a generic argument to the function, skip over that one first.
+    if (identical(peek.kind, LT_TOKEN)) {
+      BeginGroupToken beginGroupToken = peek;
+      Token closeToken = beginGroupToken.endGroup;
+      if (closeToken != null) {
+        peek = closeToken.next;
+      }
+    }
+
+    // Now we just need to skip over the formals.
+    expect('(', peek);
+
+    BeginGroupToken beginGroupToken = peek;
+    Token closeToken = beginGroupToken.endGroup;
+    if (closeToken != null) {
+      peek = closeToken.next;
+    }
+
     return peek;
   }
 

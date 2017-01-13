@@ -153,6 +153,14 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     closeNode();
   }
 
+  visitFunctionTypeAnnotation(FunctionTypeAnnotation node) {
+    openNode(node, "FunctionTypeAnnotation");
+    visitChildNode(node.returnType, "returnType");
+    visitChildNode(node.typeParameters, "typeParameters");
+    visitChildNode(node.formals, "formals");
+    closeNode();
+  }
+
   visitIdentifier(Identifier node) {
     openAndCloseNode(node, "Identifier", {"token": node.token});
   }
@@ -242,6 +250,13 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
       node.visitChildren(this);
       closeNode();
     }
+  }
+
+  visitNominalTypeAnnotation(NominalTypeAnnotation node) {
+    openNode(node, "NominalTypeAnnotation");
+    visitChildNode(node.typeName, "typeName");
+    visitChildNode(node.typeArguments, "typeArguments");
+    closeNode();
   }
 
   visitOperator(Operator node) {
@@ -343,13 +358,6 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
 
   visitTryStatement(TryStatement node) {
     visitNodeWithChildren(node, "TryStatement");
-  }
-
-  visitTypeAnnotation(TypeAnnotation node) {
-    openNode(node, "TypeAnnotation");
-    visitChildNode(node.typeName, "typeName");
-    visitChildNode(node.typeArguments, "typeArguments");
-    closeNode();
   }
 
   visitTypedef(Typedef node) {
@@ -469,6 +477,10 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
   }
 
   visitGotoStatement(GotoStatement node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitTypeAnnotation(TypeAnnotation node) {
     unimplemented('visitNode', node: node);
   }
 

@@ -39,6 +39,12 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
 bad_typedef_test/00: Crash # Issue 28214
+generic_function_typedef2_test/00: Crash # Issue 28214
+generic_function_typedef2_test/01: Crash # Issue 28214
+generic_function_typedef2_test/02: Crash # Issue 28214
+generic_function_typedef2_test/03: Crash # Issue 28214
+generic_function_typedef2_test/05: Crash # Issue 28214
+generic_function_typedef2_test/06: Crash # Issue 28214
 
 covariant_test/02: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
 covariant_test/08: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.

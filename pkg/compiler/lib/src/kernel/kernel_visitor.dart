@@ -104,6 +104,7 @@ import '../tree/tree.dart'
         ForIn,
         FunctionDeclaration,
         FunctionExpression,
+        FunctionTypeAnnotation,
         Identifier,
         If,
         Label,
@@ -122,6 +123,7 @@ import '../tree/tree.dart'
         NewExpression,
         Node,
         NodeList,
+        NominalTypeAnnotation,
         Operator,
         ParenthesizedExpression,
         RedirectingFactoryBody,
@@ -1087,14 +1089,28 @@ class KernelVisitor extends Object
 
   @override
   visitTypeAnnotation(TypeAnnotation node) {
-    // Shouldn't be called, as the resolver have already resolved types and
+    // Shouldn't be called, as the resolver has already resolved types and
     // created [DartType] objects.
     return internalError(node, "TypeAnnotation");
   }
 
   @override
+  visitNominalTypeAnnotation(NominalTypeAnnotation node) {
+    // Shouldn't be called, as the resolver has already resolved types and
+    // created [DartType] objects.
+    return internalError(node, "NominalTypeAnnotation");
+  }
+
+  @override
+  visitFunctionTypeAnnotation(FunctionTypeAnnotation node) {
+    // Shouldn't be called, as the resolver has already resolved types and
+    // created [DartType] objects.
+    return internalError(node, "FunctionTypeAnnotation");
+  }
+
+  @override
   visitTypeVariable(TypeVariable node) {
-    // Shouldn't be called, as the resolver have already resolved types and
+    // Shouldn't be called, as the resolver has already resolved types and
     // created [DartType] objects.
     return internalError(node, "TypeVariable");
   }

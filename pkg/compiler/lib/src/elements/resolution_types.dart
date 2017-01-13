@@ -642,6 +642,16 @@ class ResolutionFunctionType extends ResolutionDartType
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
+  factory ResolutionFunctionType.generalized(
+      ResolutionDartType returnType,
+      List<ResolutionDartType> parameterTypes,
+      List<ResolutionDartType> optionalParameterTypes,
+      List<String> namedParameters,
+      List<ResolutionDartType> namedParameterTypes) {
+    return new ResolutionFunctionType.internal(null, returnType, parameterTypes,
+        optionalParameterTypes, namedParameters, namedParameterTypes);
+  }
+
   ResolutionFunctionType.internal(FunctionTypedElement this.element,
       [ResolutionDartType returnType = const ResolutionDynamicType(),
       List<ResolutionDartType> parameterTypes = const <ResolutionDartType>[],
