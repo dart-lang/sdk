@@ -574,29 +574,20 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   }
 
   void _writeHeader() {
-    Uint8List buffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
-    int offset = 0;
-
-    void write(List<int> bytes) {
-      int len = bytes.length;
-      for (int i = 0; i < len; i++) {
-        buffer[offset + i] = bytes[i];
-      }
-      offset += len;
-    }
+    BytesBuilder buffer = new _CopyingBytesBuilder(_OUTGOING_BUFFER_SIZE);
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      write(_Const.HTTP11);
+      buffer.add(_Const.HTTP11);
     } else {
-      write(_Const.HTTP10);
+      buffer.add(_Const.HTTP10);
     }
-    buffer[offset++] = _CharCode.SP;
-    write(statusCode.toString().codeUnits);
-    buffer[offset++] = _CharCode.SP;
-    write(reasonPhrase.codeUnits);
-    buffer[offset++] = _CharCode.CR;
-    buffer[offset++] = _CharCode.LF;
+    buffer.addByte(_CharCode.SP);
+    buffer.add(statusCode.toString().codeUnits);
+    buffer.addByte(_CharCode.SP);
+    buffer.add(reasonPhrase.codeUnits);
+    buffer.addByte(_CharCode.CR);
+    buffer.addByte(_CharCode.LF);
 
     var session = _httpRequest._session;
     if (session != null && !session._destroyed) {
@@ -630,10 +621,11 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     headers._finalize();
 
     // Write headers.
-    offset = headers._write(buffer, offset);
-    buffer[offset++] = _CharCode.CR;
-    buffer[offset++] = _CharCode.LF;
-    _outgoing.setHeader(buffer, offset);
+    headers._build(buffer);
+    buffer.addByte(_CharCode.CR);
+    buffer.addByte(_CharCode.LF);
+    Uint8List headerBytes = buffer.takeBytes();
+    _outgoing.setHeader(headerBytes, headerBytes.length);
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -821,27 +813,18 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   }
 
   void _writeHeader() {
-    Uint8List buffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
-    int offset = 0;
-
-    void write(List<int> bytes) {
-      int len = bytes.length;
-      for (int i = 0; i < len; i++) {
-        buffer[offset + i] = bytes[i];
-      }
-      offset += len;
-    }
+    BytesBuilder buffer = new _CopyingBytesBuilder(_OUTGOING_BUFFER_SIZE);
 
     // Write the request method.
-    write(method.codeUnits);
-    buffer[offset++] = _CharCode.SP;
+    buffer.add(method.codeUnits);
+    buffer.addByte(_CharCode.SP);
     // Write the request URI.
-    write(_requestUri().codeUnits);
-    buffer[offset++] = _CharCode.SP;
+    buffer.add(_requestUri().codeUnits);
+    buffer.addByte(_CharCode.SP);
     // Write HTTP/1.1.
-    write(_Const.HTTP11);
-    buffer[offset++] = _CharCode.CR;
-    buffer[offset++] = _CharCode.LF;
+    buffer.add(_Const.HTTP11);
+    buffer.addByte(_CharCode.CR);
+    buffer.addByte(_CharCode.LF);
 
     // Add the cookies to the headers.
     if (!cookies.isEmpty) {
@@ -856,10 +839,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     headers._finalize();
 
     // Write headers.
-    offset = headers._write(buffer, offset);
-    buffer[offset++] = _CharCode.CR;
-    buffer[offset++] = _CharCode.LF;
-    _outgoing.setHeader(buffer, offset);
+    headers._build(buffer);
+    buffer.addByte(_CharCode.CR);
+    buffer.addByte(_CharCode.LF);
+    Uint8List headerBytes = buffer.takeBytes();
+    _outgoing.setHeader(headerBytes, headerBytes.length);
   }
 }
 
@@ -935,18 +919,6 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
   // Returns either a future or 'null', if it was able to write headers
   // immediately.
   Future writeHeaders({bool drainRequest: true, bool setOutgoing: true}) {
-    Future write() {
-      try {
-        outbound._writeHeader();
-      } catch (_) {
-        // Headers too large.
-        return new Future.error(new HttpException(
-            "Headers size exceeded the of '$_OUTGOING_BUFFER_SIZE'"
-            " bytes"));
-      }
-      return null;
-    }
-
     if (headersWritten) return null;
     headersWritten = true;
     Future drainFuture;
@@ -975,22 +947,22 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     } else {
       drainRequest = false;
     }
-    if (ignoreBody) {
-      return write();
-    }
-    if (setOutgoing) {
-      int contentLength = outbound.headers.contentLength;
-      if (outbound.headers.chunkedTransferEncoding) {
-        chunked = true;
-        if (gzip) this.gzip = true;
-      } else if (contentLength >= 0) {
-        this.contentLength = contentLength;
+    if (!ignoreBody) {
+      if (setOutgoing) {
+        int contentLength = outbound.headers.contentLength;
+        if (outbound.headers.chunkedTransferEncoding) {
+          chunked = true;
+          if (gzip) this.gzip = true;
+        } else if (contentLength >= 0) {
+          this.contentLength = contentLength;
+        }
+      }
+      if (drainFuture != null) {
+        return drainFuture.then((_) => outbound._writeHeader());
       }
     }
-    if (drainFuture != null) {
-      return drainFuture.then((_) => write());
-    }
-    return write();
+    outbound._writeHeader();
+    return null;
   }
 
 
@@ -1160,7 +1132,6 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
 
   void setHeader(List<int> data, int length) {
     assert(_length == 0);
-    assert(data.length == _OUTGOING_BUFFER_SIZE);
     _buffer = data;
     _length = length;
   }
