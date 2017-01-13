@@ -50,8 +50,8 @@ class SubpackageRules {
 }
 
 class _SubpackageRelationshipsTest {
-  /// File uri of the root of the front_end package.
-  final frontEndRootUri = Platform.script.resolve('..');
+  /// File uri of the front_end package's "lib" directory.
+  final frontEndLibUri = Platform.script.resolve('../lib/');
 
   /// Indicates whether any problems have been reported yet.
   bool problemsReported = false;
@@ -88,18 +88,15 @@ class _SubpackageRelationshipsTest {
 
   /// Finds all files in the front_end's "lib" directory and returns their Uris
   /// (as "package:" URIs).
-  Future<List<Uri>> findFrontEndUris() async {
+  List<Uri> findFrontEndUris() {
     var frontEndUris = <Uri>[];
-    var frontEndRootPath = pathos.fromUri(frontEndRootUri);
-    await for (var entity in new Directory(frontEndRootPath)
-        .list(recursive: true, followLinks: false)) {
+    var frontEndLibPath = pathos.fromUri(frontEndLibUri);
+    for (var entity in new Directory(frontEndLibPath)
+        .listSync(recursive: true, followLinks: false)) {
       if (entity is File && entity.path.endsWith('.dart')) {
-        var posixRelativePath = pathos
-            .relative(entity.path, from: frontEndRootPath)
-            .replaceAll(pathos.separator, '/');
-        if (!posixRelativePath.startsWith('lib/')) continue;
-        frontEndUris.add(Uri.parse(
-            posixRelativePath.replaceFirst('lib/', 'package:front_end/')));
+        var posixRelativePath = pathos.url.joinAll(
+            pathos.split(pathos.relative(entity.path, from: frontEndLibPath)));
+        frontEndUris.add(Uri.parse('package:front_end/$posixRelativePath'));
       }
     }
     return frontEndUris;
@@ -115,7 +112,7 @@ class _SubpackageRelationshipsTest {
   /// appropriate exit code.
   Future<int> run() async {
     var frontEndUris = await findFrontEndUris();
-    var packagesFileUri = frontEndRootUri.resolve('../../.packages');
+    var packagesFileUri = frontEndLibUri.resolve('../../../.packages');
     var graph = await graphForProgram(
         frontEndUris,
         new CompilerOptions()
