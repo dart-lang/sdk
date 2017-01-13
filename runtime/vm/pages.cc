@@ -600,6 +600,17 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
 }
 
 
+bool PageSpace::DataContains(uword addr) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if ((it.page()->type() != HeapPage::kExecutable) &&
+        it.page()->Contains(addr)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {

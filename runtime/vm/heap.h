@@ -88,6 +88,7 @@ class Heap {
   bool NewContains(uword addr) const;
   bool OldContains(uword addr) const;
   bool CodeContains(uword addr) const;
+  bool DataContains(uword addr) const;
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;

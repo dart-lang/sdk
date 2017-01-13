@@ -139,6 +139,14 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return strdup("VM already initialized or flags not initialized.");
   }
+#if defined(DEBUG)
+  // Turn on verify_gc_contains if any of the other GC verification flag
+  // is turned on.
+  if (FLAG_verify_before_gc || FLAG_verify_after_gc ||
+      FLAG_verify_on_transition) {
+    FLAG_verify_gc_contains = true;
+  }
+#endif
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);

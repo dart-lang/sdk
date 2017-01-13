@@ -162,6 +162,8 @@
     "Enables heap verification after GC.")                                     \
   R(verify_before_gc, false, bool, false,                                      \
     "Enables heap verification before GC.")                                    \
+  D(verify_gc_contains, bool, false,                                           \
+    "Enables verification of address contains during GC.")                     \
   D(verify_on_transition, bool, false, "Verify on dart <==> VM.")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

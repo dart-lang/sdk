@@ -1730,7 +1730,7 @@ void Isolate::Shutdown() {
   StopBackgroundCompiler();
 
 #if defined(DEBUG)
-  if (heap_ != NULL) {
+  if (heap_ != NULL && FLAG_verify_on_transition) {
     // The VM isolate keeps all objects marked.
     heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }

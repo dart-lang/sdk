@@ -178,6 +178,11 @@ bool Heap::CodeContains(uword addr) const {
 }
 
 
+bool Heap::DataContains(uword addr) const {
+  return old_space_.DataContains(addr);
+}
+
+
 void Heap::VisitObjects(ObjectVisitor* visitor) const {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjects(visitor);

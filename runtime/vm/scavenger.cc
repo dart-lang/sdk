@@ -79,9 +79,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         visiting_old_object_(NULL) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
-    ASSERT((visiting_old_object_ != NULL) ||
-           scavenger_->Contains(reinterpret_cast<uword>(first)) ||
-           !heap_->Contains(reinterpret_cast<uword>(first)));
+    if (FLAG_verify_gc_contains) {
+      ASSERT((visiting_old_object_ != NULL) ||
+             scavenger_->Contains(reinterpret_cast<uword>(first)) ||
+             !heap_->Contains(reinterpret_cast<uword>(first)));
+    }
     for (RawObject** current = first; current <= last; current++) {
       ScavengePointer(current);
     }
@@ -96,11 +98,12 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
-    uword ptr = reinterpret_cast<uword>(p);
     ASSERT(obj->IsHeapObject());
-    ASSERT(!scavenger_->Contains(ptr));
-    ASSERT(!heap_->CodeContains(ptr));
-    ASSERT(heap_->Contains(ptr));
+    if (FLAG_verify_gc_contains) {
+      uword ptr = reinterpret_cast<uword>(p);
+      ASSERT(!scavenger_->Contains(ptr));
+      ASSERT(heap_->DataContains(ptr));
+    }
     // If the newly written object is not a new object, drop it immediately.
     if (!obj->IsNewObject() || visiting_old_object_->IsRemembered()) {
       return;
