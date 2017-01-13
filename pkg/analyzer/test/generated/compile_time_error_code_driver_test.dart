@@ -32,18 +32,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
 
   @failingTest
   @override
-  test_nonConstValueInInitializer_assert_condition() {
-    return super.test_nonConstValueInInitializer_assert_condition();
-  }
-
-  @failingTest
-  @override
-  test_nonConstValueInInitializer_assert_message() {
-    return super.test_nonConstValueInInitializer_assert_message();
-  }
-
-  @failingTest
-  @override
   test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
     return super.test_prefixCollidesWithTopLevelMembers_functionTypeAlias();
   }
