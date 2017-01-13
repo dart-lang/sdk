@@ -73,6 +73,7 @@ front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
+front_end/test/subpackage_relationships_test: SkipByDesign # Uses dart:io
 
 [ $compiler == dart2js && $fast_startup ]
 front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
