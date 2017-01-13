@@ -257,7 +257,7 @@ class NativeBehavior {
   ///    Each tag kind (including the 'type-tag's) can only occur once in the
   ///    sequence.
   ///
-  /// [specString] is the specification string, [resolveType] resolves named
+  /// [specString] is the specification string, [lookupType] resolves named
   /// types into type values, [typesReturned] and [typesInstantiated] collects
   /// the types defined by the specification string, and [objectType] and
   /// [nullType] define the types for `Object` and `Null`, respectively. The

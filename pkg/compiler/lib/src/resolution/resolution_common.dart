@@ -56,6 +56,10 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
 
   /// Add [element] to the current scope and check for duplicate definitions.
   void addToScope(Element element) {
+    if (element is FormalElement && element.isUnnamed) {
+      // No duplicate names possible.
+      return;
+    }
     Element existing = scope.add(element);
     if (existing != element) {
       reportDuplicateDefinition(element.name, element, existing);

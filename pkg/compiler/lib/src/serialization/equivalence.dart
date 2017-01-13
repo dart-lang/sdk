@@ -1965,11 +1965,22 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTypeAnnotation(TypeAnnotation node1, TypeAnnotation node2) {
+  bool visitNominalTypeAnnotation(
+      NominalTypeAnnotation node1, NominalTypeAnnotation node2) {
     return testNodes(
             node1, node2, 'typeName', node1.typeName, node2.typeName) &&
         testNodes(node1, node2, 'typeArguments', node1.typeArguments,
             node2.typeArguments);
+  }
+
+  @override
+  bool visitFunctionTypeAnnotation(
+      FunctionTypeAnnotation node1, FunctionTypeAnnotation node2) {
+    return testNodes(
+        node1, node2, 'returnType', node1.returnType, node2.returnType) &&
+        testNodes(node1, node2, 'formals', node1.formals, node2.formals) &&
+            testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+                node2.typeParameters);
   }
 
   @override
@@ -1986,8 +1997,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
         testNodes(
             node1, node2, 'returnType', node1.returnType, node2.returnType) &&
         testNodes(node1, node2, 'name', node1.name, node2.name) &&
-        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
-            node2.typeParameters) &&
+        testNodes(node1, node2, 'typeParameters', node1.templateParameters,
+            node2.templateParameters) &&
         testNodes(node1, node2, 'formals', node1.formals, node2.formals);
   }
 
