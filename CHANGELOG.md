@@ -1,3 +1,9 @@
+## 1.21.1 - 2017-01-13
+
+Patch release, resolves one issue:
+
+* Dart VM: Snapshots of generic functions fail. [Issue 28072](https://github.com/dart-lang/sdk/issues/28072)
+
 ## 1.21.0 - 2016-12-07
 
 ### Language

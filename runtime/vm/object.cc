@@ -17608,7 +17608,7 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
 
 void TypeParameter::set_parameterized_class(const Class& value) const {
   // Set value may be null.
-  classid_t cid = kIllegalCid;
+  classid_t cid = kFunctionCid;  // Denotes a function type parameter.
   if (!value.IsNull()) {
     cid = value.id();
   }
@@ -17623,7 +17623,7 @@ classid_t TypeParameter::parameterized_class_id() const {
 
 RawClass* TypeParameter::parameterized_class() const {
   classid_t cid = parameterized_class_id();
-  if (cid == kIllegalCid) {
+  if (cid == kFunctionCid) {
     return Class::null();
   }
   return Isolate::Current()->class_table()->At(cid);
