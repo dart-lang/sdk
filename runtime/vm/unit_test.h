@@ -247,7 +247,7 @@ extern const uint8_t* vm_isolate_snapshot_buffer;
 
 // isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
 // snapshot otherwise it is initialized to NULL.
-extern const uint8_t* isolate_snapshot_buffer;
+extern const uint8_t* const core_isolate_snapshot_buffer;
 }
 
 
@@ -295,7 +295,7 @@ class TestCase : TestCaseBase {
     return CreateIsolate(buffer, name);
   }
   static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
-    return CreateIsolate(bin::isolate_snapshot_buffer, name);
+    return CreateIsolate(bin::core_isolate_snapshot_buffer, name);
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,

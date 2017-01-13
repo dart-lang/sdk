@@ -26,7 +26,7 @@ extern const uint8_t* vm_isolate_snapshot_buffer;
 
 // isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
 // snapshot otherwise it is initialized to NULL.
-extern const uint8_t* isolate_snapshot_buffer;
+extern const uint8_t* const core_isolate_snapshot_buffer;
 }
 
 // The BENCHMARK macros are used for benchmarking a specific functionality
@@ -110,7 +110,7 @@ class Benchmark {
 class BenchmarkIsolateScope {
  public:
   explicit BenchmarkIsolateScope(Benchmark* benchmark) : benchmark_(benchmark) {
-    benchmark_->CreateIsolate(bin::isolate_snapshot_buffer);
+    benchmark_->CreateIsolate(bin::core_isolate_snapshot_buffer);
     Dart_EnterScope();  // Create a Dart API scope for unit benchmarks.
   }
   ~BenchmarkIsolateScope() {

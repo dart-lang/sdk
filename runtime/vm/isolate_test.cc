@@ -15,7 +15,7 @@ namespace dart {
 
 UNIT_TEST_CASE(IsolateCurrent) {
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+      NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL, NULL);
   EXPECT_EQ(isolate, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
   EXPECT_EQ(reinterpret_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
