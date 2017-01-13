@@ -755,6 +755,25 @@ void testReplace() {
   Expect.equals("s://:1/b/c?d#e", uri.replace(host: "").toString());
 }
 
+void testRegression28359() {
+  var uri = new Uri(path: "//");
+  // This is an invalid path for a URI reference with no authority
+  // since it looks like an authority.
+  // Normalized to have an authority.
+  Expect.equals("////", "$uri");
+  Expect.equals("//", uri.path);
+  Expect.isTrue(uri.hasAuthority, "$uri has authority");
+
+  uri = new Uri(path: "file:///wat");
+  // This is an invalid pat for a URI reference with no authority or scheme
+  // since the path looks like it starts with a scheme.
+  // Normalized by escaping the ":".
+  Expect.equals("file%3A///wat", uri.path);
+  Expect.equals("file%3A///wat", "$uri");
+  Expect.isFalse(uri.hasAuthority);
+  Expect.isFalse(uri.hasScheme);
+}
+
 main() {
   testUri("http:", true);
   testUri("file:///", true);
@@ -921,6 +940,7 @@ main() {
   testInvalidUrls();
   testNormalization();
   testReplace();
+  testRegression28359();
 }
 
 String dump(Uri uri) {

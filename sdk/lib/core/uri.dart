@@ -1470,9 +1470,12 @@ class _Uri implements Uri {
     path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                      scheme, hasAuthority);
     if (scheme.isEmpty && host == null && !path.startsWith('/')) {
-      path = _normalizeRelativePath(path);
+      path = _normalizeRelativePath(path, scheme.isNotEmpty || host != null);
     } else {
       path = _removeDotSegments(path);
+    }
+    if (host == null && path.startsWith("//")) {
+      host = "";
     }
     return new _Uri._internal(scheme, userInfo, host, port,
                               path, query, fragment);
@@ -2058,7 +2061,7 @@ class _Uri implements Uri {
   /// Otherwise it follows the RFC 3986 "remove dot segments" algorithm.
   static String _normalizePath(String path, String scheme, bool hasAuthority) {
     if (scheme.isEmpty && !hasAuthority && !path.startsWith('/')) {
-      return _normalizeRelativePath(path);
+      return _normalizeRelativePath(path, scheme.isNotEmpty || hasAuthority);
     }
     return _removeDotSegments(path);
   }
@@ -2354,15 +2357,21 @@ class _Uri implements Uri {
 
   /// Removes all `.` segments and any non-leading `..` segments.
   ///
+  /// If the path starts with something that looks like a scheme,
+  /// and [allowScheme] is false, the colon is escaped.
+  ///
   /// Removing the ".." from a "bar/foo/.." sequence results in "bar/"
   /// (trailing "/"). If the entire path is removed (because it contains as
   /// many ".." segments as real segments), the result is "./".
   /// This is different from an empty string, which represents "no path",
   /// when you resolve it against a base URI with a path with a non-empty
   /// final segment.
-  static String _normalizeRelativePath(String path) {
+  static String _normalizeRelativePath(String path, bool allowScheme) {
     assert(!path.startsWith('/'));  // Only get called for relative paths.
-    if (!_mayContainDotSegments(path)) return path;
+    if (!_mayContainDotSegments(path)) {
+      if (!allowScheme) path = _escapeScheme(path);
+      return path;
+    }
     assert(path.isNotEmpty);  // An empty path would not have dot segments.
     List<String> output = [];
     bool appendSlash = false;
@@ -2385,7 +2394,25 @@ class _Uri implements Uri {
       return "./";
     }
     if (appendSlash || output.last == '..') output.add("");
+    if (!allowScheme) output[0] = _escapeScheme(output[0]);
     return output.join("/");
+  }
+
+  /// If [path] starts with a valid scheme, escape the percent.
+  static String _escapeScheme(String path) {
+    if (path.length >= 2 && _isAlphabeticCharacter(path.codeUnitAt(0))) {
+      for (int i = 1; i < path.length; i++) {
+        int char = path.codeUnitAt(i);
+        if (char == _COLON) {
+          return "${path.substring(0, i)}%3A${path.substring(i + 1)}";
+        }
+        if (char > 127 ||
+            ((_schemeTable[char >> 4] & (1 << (char & 0x0f))) == 0)) {
+          break;
+        }
+      }
+    }
+    return path;
   }
 
   Uri resolve(String reference) {
@@ -2459,7 +2486,8 @@ class _Uri implements Uri {
                 // If both base and reference are relative paths,
                 // allow the merged path to start with "..".
                 // The RFC only specifies the case where the base has a scheme.
-                targetPath = _normalizeRelativePath(mergedPath);
+                targetPath = _normalizeRelativePath(mergedPath,
+                  this.hasScheme || this.hasAuthority);
               }
             }
           }
@@ -2596,7 +2624,7 @@ class _Uri implements Uri {
     assert(_text == null);
     StringBuffer sb = new StringBuffer();
     if (scheme.isNotEmpty) sb..write(scheme)..write(":");
-    if (hasAuthority || path.startsWith("//") || (scheme == "file")) {
+    if (hasAuthority || (scheme == "file")) {
       // File URIS always have the authority, even if it is empty.
       // The empty URI means "localhost".
       sb.write("//");
