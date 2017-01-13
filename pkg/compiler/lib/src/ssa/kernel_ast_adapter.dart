@@ -424,12 +424,15 @@ class KernelAstAdapter {
   ir.Procedure get checkSubtypeOfRuntimeType =>
       kernel.functions[_backend.helpers.checkSubtypeOfRuntimeType];
 
-  ir.Procedure get assertHelper =>
-      kernel.functions[_backend.helpers.assertHelper];
+  ir.Procedure get throwTypeError =>
+      kernel.functions[_backend.helpers.throwTypeError];
 
   TypeMask get throwTypeErrorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.throwTypeError, _globalInferenceResults);
+
+  ir.Procedure get assertHelper =>
+      kernel.functions[_backend.helpers.assertHelper];
 
   TypeMask get assertHelperReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
@@ -507,7 +510,12 @@ class KernelAstAdapter {
   }
 
   ResolutionDartType getDartType(ir.DartType type) {
-    return type.accept(_typeConverter);
+    return _typeConverter.convert(type);
+  }
+
+  ResolutionDartType getDartTypeIfValid(ir.DartType type) {
+    if (type is ir.InvalidType) return null;
+    return _typeConverter.convert(type);
   }
 
   List<ResolutionDartType> getDartTypes(List<ir.DartType> types) {
@@ -530,6 +538,7 @@ class KernelAstAdapter {
   }
 
   ResolutionDartType getFunctionReturnType(ir.FunctionNode node) {
+    if (node.returnType is ir.InvalidType) return const ResolutionDynamicType();
     return getDartType(node.returnType);
   }
 
@@ -780,12 +789,23 @@ enum ForeignKind {
 /// Visitor that converts kernel dart types into [ResolutionDartType].
 class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   final KernelAstAdapter astAdapter;
+  bool topLevel = true;
 
   DartTypeConverter(this.astAdapter);
 
-  ResolutionDartType visitType(ir.DartType type) => type.accept(this);
+  ResolutionDartType convert(ir.DartType type) {
+    topLevel = true;
+    return type.accept(this);
+  }
+
+  /// Visit a inner type.
+  ResolutionDartType visitType(ir.DartType type) {
+    topLevel = false;
+    return type.accept(this);
+  }
 
   List<ResolutionDartType> visitTypes(List<ir.DartType> types) {
+    topLevel = false;
     return new List.generate(
         types.length, (int index) => types[index].accept(this));
   }
@@ -844,7 +864,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
 
   @override
   ResolutionDartType visitInvalidType(ir.InvalidType node) {
-    throw new UnimplementedError("Invalid types not currently supported");
+    if (topLevel) {
+      throw new UnimplementedError(
+          "Outermost invalid types not currently supported");
+    }
+    // Nested invalid types are treated as `dynamic`.
+    return const ResolutionDynamicType();
   }
 }
 

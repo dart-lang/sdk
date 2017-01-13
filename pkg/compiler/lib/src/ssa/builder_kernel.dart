@@ -198,7 +198,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       field.initializer.accept(this);
       HInstruction fieldValue = pop();
       HInstruction checkInstruction = typeBuilder.potentiallyCheckOrTrustType(
-          fieldValue, astAdapter.getDartType(field.type));
+          fieldValue, astAdapter.getDartTypeIfValid(field.type));
       stack.add(checkInstruction);
     } else {
       stack.add(graph.addConstantNull(closedWorld));
@@ -962,6 +962,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitAsExpression(ir.AsExpression asExpression) {
     asExpression.operand.accept(this);
     HInstruction expressionInstruction = pop();
+
+    if (asExpression.type is ir.InvalidType) {
+      generateTypeError(asExpression, 'invalid type');
+      stack.add(expressionInstruction);
+      return;
+    }
+
     ResolutionDartType type = astAdapter.getDartType(asExpression.type);
     if (type.isMalformed) {
       if (type is MalformedType) {
@@ -983,14 +990,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
   }
 
-  void generateError(ir.Node node, String message, TypeMask typeMask) {
+  void generateError(
+      ir.Node node, ir.Procedure procedure, String message, TypeMask typeMask) {
     HInstruction errorMessage =
         graph.addConstantString(new DartString.literal(message), closedWorld);
-    _pushStaticInvocation(node, [errorMessage], typeMask);
+    // TODO(sra): Assocate source info from [node].
+    _pushStaticInvocation(procedure, [errorMessage], typeMask);
   }
 
   void generateTypeError(ir.Node node, String message) {
-    generateError(node, message, astAdapter.throwTypeErrorType);
+    generateError(node, astAdapter.throwTypeError, message,
+        astAdapter.throwTypeErrorType);
   }
 
   @override
@@ -1321,7 +1331,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       add(new HStaticStore(
           astAdapter.getMember(staticTarget),
           typeBuilder.potentiallyCheckOrTrustType(
-              value, astAdapter.getDartType(staticTarget.setterType))));
+              value, astAdapter.getDartTypeIfValid(staticTarget.setterType))));
     }
     stack.add(value);
   }
@@ -1400,7 +1410,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     localsHandler.updateLocal(
         local,
         typeBuilder.potentiallyCheckOrTrustType(
-            value, astAdapter.getDartType(variable.type)));
+            value, astAdapter.getDartTypeIfValid(variable.type)));
   }
 
   @override
@@ -2134,30 +2144,38 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitIsExpression(ir.IsExpression isExpression) {
     isExpression.operand.accept(this);
     HInstruction expression = pop();
-    push(buildIsNode(isExpression, isExpression.type, expression));
+    pushIsTest(isExpression, isExpression.type, expression);
   }
 
-  HInstruction buildIsNode(
-      ir.Node node, ir.DartType type, HInstruction expression) {
+  void pushIsTest(ir.Node node, ir.DartType type, HInstruction expression) {
     // Note: The call to "unalias" this type like in the original SSA builder is
     // unnecessary in kernel because Kernel has no notion of typedef.
     // TODO(efortuna): Add test for this.
-    ResolutionDartType typeValue =
-        localsHandler.substInContext(astAdapter.getDartType(type));
+
     if (type is ir.InvalidType) {
-      generateTypeError(node, (typeValue.element as ErroneousElement).message);
-      return new HIs.compound(
-          typeValue, expression, pop(), commonMasks.boolType);
+      // TODO(sra): Make InvalidType carry a message.
+      generateTypeError(node, 'invalid type');
+      pop();
+      stack.add(graph.addConstantBool(true, closedWorld));
+      return;
     }
 
+    if (type is ir.DynamicType) {
+      stack.add(graph.addConstantBool(true, closedWorld));
+      return;
+    }
+
+    ResolutionDartType typeValue =
+        localsHandler.substInContext(astAdapter.getDartType(type));
     if (type is ir.FunctionType) {
       List arguments = [buildFunctionType(typeValue), expression];
       _pushDynamicInvocation(node, null, arguments,
           selector: new Selector.call(
               new PrivateName('_isTest', backend.helpers.jsHelperLibrary),
               CallStructure.ONE_ARG));
-      return new HIs.compound(
-          typeValue, expression, pop(), commonMasks.boolType);
+      push(
+          new HIs.compound(typeValue, expression, pop(), commonMasks.boolType));
+      return;
     }
 
     if (type is ir.TypeParameterType) {
@@ -2165,8 +2183,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           typeBuilder.addTypeVariableReference(typeValue, sourceElement);
       _pushStaticInvocation(astAdapter.checkSubtypeOfRuntimeType,
           <HInstruction>[expression, runtimeType], commonMasks.boolType);
-      return new HIs.variable(
-          typeValue, expression, pop(), commonMasks.boolType);
+      push(
+          new HIs.variable(typeValue, expression, pop(), commonMasks.boolType));
+      return;
     }
 
     if (_isInterfaceWithNoDynamicTypes(type)) {
@@ -2189,17 +2208,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ];
       _pushStaticInvocation(
           astAdapter.checkSubtype, inputs, commonMasks.boolType);
-      return new HIs.compound(
-          typeValue, expression, pop(), commonMasks.boolType);
+      push(
+          new HIs.compound(typeValue, expression, pop(), commonMasks.boolType));
+      return;
     }
 
     if (backend.hasDirectCheckFor(typeValue)) {
-      return new HIs.direct(typeValue, expression, commonMasks.boolType);
+      push(new HIs.direct(typeValue, expression, commonMasks.boolType));
+      return;
     }
     // The interceptor is not always needed.  It is removed by optimization
     // when the receiver type or tested type permit.
-    return new HIs.raw(typeValue, expression, _interceptorFor(expression),
-        commonMasks.boolType);
+    push(new HIs.raw(typeValue, expression, _interceptorFor(expression),
+        commonMasks.boolType));
+    return;
   }
 
   bool _isInterfaceWithNoDynamicTypes(ir.DartType type) {
@@ -2445,14 +2467,9 @@ class TryCatchFinallyBuilder {
     int catchesIndex = 0;
 
     void pushCondition(ir.Catch catchBlock) {
-      if (catchBlock.guard is! ir.DynamicType) {
-        HInstruction condition = kernelBuilder.buildIsNode(
-            catchBlock.exception, catchBlock.guard, unwrappedException);
-        kernelBuilder.push(condition);
-      } else {
-        kernelBuilder.stack.add(kernelBuilder.graph
-            .addConstantBool(true, kernelBuilder.closedWorld));
-      }
+      // `guard` is often `dynamic`, which generates `true`.
+      kernelBuilder.pushIsTest(
+          catchBlock.exception, catchBlock.guard, unwrappedException);
     }
 
     void visitThen() {
