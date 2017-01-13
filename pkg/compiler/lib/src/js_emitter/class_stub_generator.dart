@@ -7,12 +7,12 @@ part of dart2js.js_emitter;
 class ClassStubGenerator {
   final Namer namer;
   final JavaScriptBackend backend;
-  final CodegenWorldBuilder codegenWorld;
+  final CodegenWorldBuilder worldBuilder;
   final ClosedWorld closedWorld;
   final bool enableMinification;
 
   ClassStubGenerator(
-      this.namer, this.backend, this.codegenWorld, this.closedWorld,
+      this.namer, this.backend, this.worldBuilder, this.closedWorld,
       {this.enableMinification});
 
   jsAst.Expression generateClassConstructor(ClassElement classElement,
@@ -130,7 +130,7 @@ class ClassStubGenerator {
     Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
 
     // Do not generate no such method handlers if there is no class.
-    if (codegenWorld.directlyInstantiatedClasses.isEmpty) {
+    if (worldBuilder.directlyInstantiatedClasses.isEmpty) {
       return jsNames;
     }
 
@@ -145,9 +145,9 @@ class ClassStubGenerator {
       }
     }
 
-    codegenWorld.forEachInvokedName(addNoSuchMethodHandlers);
-    codegenWorld.forEachInvokedGetter(addNoSuchMethodHandlers);
-    codegenWorld.forEachInvokedSetter(addNoSuchMethodHandlers);
+    worldBuilder.forEachInvokedName(addNoSuchMethodHandlers);
+    worldBuilder.forEachInvokedGetter(addNoSuchMethodHandlers);
+    worldBuilder.forEachInvokedSetter(addNoSuchMethodHandlers);
     return jsNames;
   }
 

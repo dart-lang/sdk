@@ -39,11 +39,8 @@ import 'mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractContextManagerTest);
-    defineReflectiveTests(AbstractContextManagerTest_Driver);
     defineReflectiveTests(ContextManagerWithNewOptionsTest);
-    defineReflectiveTests(ContextManagerWithNewOptionsTest_Driver);
     defineReflectiveTests(ContextManagerWithOldOptionsTest);
-    defineReflectiveTests(ContextManagerWithOldOptionsTest_Driver);
   });
 }
 
@@ -1711,39 +1708,6 @@ test_pack:lib/''');
   }
 }
 
-@reflectiveTest
-class AbstractContextManagerTest_Driver extends AbstractContextManagerTest {
-  bool get enableAnalysisDriver => true;
-
-  @failingTest
-  test_embedder_added() {
-    // NoSuchMethodError: The getter 'apiSignature' was called on null.
-    // Receiver: null
-    // Tried calling: apiSignature
-    // dart:core                                                          Object.noSuchMethod
-    // package:analyzer/src/dart/analysis/driver.dart 460:20              AnalysisDriver.configure
-    // package:analysis_server/src/context_manager.dart 1043:16           ContextManagerImpl._checkForPackagespecUpdate
-    // package:analysis_server/src/context_manager.dart 1553:5            ContextManagerImpl._handleWatchEvent
-    //return super.test_embedder_added();
-    fail('NoSuchMethodError');
-  }
-
-  @failingTest
-  test_embedder_packagespec() async {
-    // NoSuchMethodError: The getter 'apiSignature' was called on null.
-    // Receiver: null
-    // Tried calling: apiSignature
-    // dart:core                                                          Object.noSuchMethod
-    // package:analyzer/src/dart/analysis/driver.dart 248:20              AnalysisDriver.AnalysisDriver
-    // test/context_manager_test.dart 2698:25                             TestContextManagerCallbacks.addAnalysisDriver
-    // package:analysis_server/src/context_manager.dart 1186:39           ContextManagerImpl._createContext
-    // package:analysis_server/src/context_manager.dart 1247:16           ContextManagerImpl._createContexts
-    // package:analysis_server/src/context_manager.dart 886:9             ContextManagerImpl.setRoots
-    // test/context_manager_test.dart 154:13                              AbstractContextManagerTest.test_embedder_packagespec.<async>
-    return super.test_embedder_packagespec();
-  }
-}
-
 abstract class ContextManagerTest {
   /**
    * The name of the 'bin' directory.
@@ -1928,80 +1892,8 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 }
 
 @reflectiveTest
-class ContextManagerWithNewOptionsTest_Driver
-    extends ContextManagerWithNewOptionsTest {
-  bool get enableAnalysisDriver => true;
-
-  @failingTest
-  test_analysis_options_file_delete_with_embedder() async {
-    // This fails because the ContextBuilder doesn't pick up the strongMode
-    // flag from the embedder.yaml file.
-    return super.test_analysis_options_file_delete_with_embedder();
-  }
-
-  @failingTest
-  test_embedder_options() async {
-    // This fails because the ContextBuilder doesn't pick up the strongMode
-    // flag from the embedder.yaml file.
-    return super.test_embedder_options();
-  }
-
-  @failingTest
-  test_optionsFile_update_strongMode() async {
-    // It appears that this fails because we are not correctly updating the
-    // analysis options in the driver when the file is modified.
-    //return super.test_optionsFile_update_strongMode();
-    // After a few other changes, the test now times out on my machine, so I'm
-    // disabling it in order to prevent it from being flaky.
-    fail('Test times out');
-  }
-
-  @failingTest
-  test_path_filter_analysis_option() async {
-    // This fails because we're not analyzing the analyis options file.
-    return super.test_path_filter_analysis_option();
-  }
-}
-
-@reflectiveTest
 class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-}
-
-@reflectiveTest
-class ContextManagerWithOldOptionsTest_Driver
-    extends ContextManagerWithOldOptionsTest {
-  bool get enableAnalysisDriver => true;
-
-  @failingTest
-  test_analysis_options_file_delete_with_embedder() async {
-    // This fails because the ContextBuilder doesn't pick up the strongMode
-    // flag from the embedder.yaml file.
-    return super.test_analysis_options_file_delete_with_embedder();
-  }
-
-  @failingTest
-  test_embedder_options() async {
-    // This fails because the ContextBuilder doesn't pick up the strongMode
-    // flag from the embedder.yaml file.
-    return super.test_embedder_options();
-  }
-
-  @failingTest
-  test_optionsFile_update_strongMode() async {
-    // It appears that this fails because we are not correctly updating the
-    // analysis options in the driver when the file is modified.
-    //return super.test_optionsFile_update_strongMode();
-    // After a few other changes, the test now times out on my machine, so I'm
-    // disabling it in order to prevent it from being flaky.
-    fail('Test times out');
-  }
-
-  @failingTest
-  test_path_filter_analysis_option() async {
-    // This fails because we're not analyzing the analyis options file.
-    return super.test_path_filter_analysis_option();
-  }
 }
 
 abstract class ContextManagerWithOptionsTest extends ContextManagerTest {

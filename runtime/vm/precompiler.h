@@ -386,7 +386,6 @@ class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
       Dart_QualifiedFunctionName embedder_entry_points[],
-      bool reset_fields,
       uint8_t* jit_feedback,
       intptr_t jit_feedback_length);
 
@@ -419,7 +418,7 @@ class Precompiler : public ValueObject {
   void TryApplyFeedback(ParsedJSONArray* js_icdatas, const ICData& ic);
 
  private:
-  Precompiler(Thread* thread, bool reset_fields);
+  explicit Precompiler(Thread* thread);
 
   void LoadFeedback(uint8_t* jit_feedback, intptr_t jit_feedback_length);
   ParsedJSONObject* LookupFeedback(const Function& function);
@@ -485,8 +484,6 @@ class Precompiler : public ValueObject {
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
-
-  const bool reset_fields_;
 
   ParsedJSONObject* jit_feedback_;
 

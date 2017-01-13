@@ -166,8 +166,7 @@ class SerializerUtil {
   static void serializeParentRelation(Element element, ObjectEncoder encoder) {
     if (element.enclosingClass != null) {
       encoder.setElement(Key.CLASS, element.enclosingClass);
-      if (element.enclosingClass.declaration.compilationUnit !=
-          element.compilationUnit) {
+      if (element.enclosingClass.compilationUnit != element.compilationUnit) {
         encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
       }
     } else {

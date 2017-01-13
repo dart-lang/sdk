@@ -283,11 +283,11 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompile
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
 Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
 
-[ $noopt || $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 
-[ $noopt || $compiler == precompiler || $compiler == app_jit || $mode == product ]
+[ $compiler == precompiler || $compiler == app_jit || $mode == product ]
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
@@ -296,13 +296,13 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager lo
 [ $runtime == dart_precompiled || $compiler == app_jit ]
 LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 
-[ $noopt || $compiler == precompiler || $compiler == app_jit ]
+[ $compiler == precompiler || $compiler == app_jit ]
 Language/Mixins/Mixin_Application/error_t01: Pass
 Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass

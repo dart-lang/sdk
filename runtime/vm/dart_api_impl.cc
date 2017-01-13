@@ -1780,9 +1780,16 @@ DART_EXPORT bool Dart_HasLivePorts() {
 }
 
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
 }
 
 
@@ -1803,7 +1810,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
 
   const Object& object = Object::Handle(Z, raw_obj);
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(object);
   intptr_t len = writer.BytesWritten();
   return PortMap::PostMessage(
@@ -6566,7 +6573,6 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                bool reset_fields,
                 uint8_t* jit_feedback,
                 intptr_t jit_feedback_length) {
 #if defined(TARGET_ARCH_IA32)
@@ -6587,8 +6593,8 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  const Error& error = Error::Handle(Precompiler::CompileAll(
-      entry_points, reset_fields, jit_feedback, jit_feedback_length));
+  const Error& error = Error::Handle(
+      Precompiler::CompileAll(entry_points, jit_feedback, jit_feedback_length));
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.raw());
   }
@@ -6598,8 +6604,8 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
 
 
 DART_EXPORT Dart_Handle
-Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
-                                       intptr_t* assembly_size) {
+Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
+                                    intptr_t* assembly_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6643,14 +6649,14 @@ Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
 
 
 DART_EXPORT Dart_Handle
-Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
-                                   intptr_t* vm_isolate_snapshot_size,
-                                   uint8_t** isolate_snapshot_buffer,
-                                   intptr_t* isolate_snapshot_size,
-                                   uint8_t** instructions_blob_buffer,
-                                   intptr_t* instructions_blob_size,
-                                   uint8_t** rodata_blob_buffer,
-                                   intptr_t* rodata_blob_size) {
+Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_isolate_snapshot_buffer,
+                                 intptr_t* vm_isolate_snapshot_size,
+                                 uint8_t** isolate_snapshot_buffer,
+                                 intptr_t* isolate_snapshot_size,
+                                 uint8_t** instructions_blob_buffer,
+                                 intptr_t* instructions_blob_size,
+                                 uint8_t** rodata_blob_buffer,
+                                 intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6713,49 +6719,19 @@ Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
 }
 
 
-DART_EXPORT Dart_Handle Dart_PrecompileJIT() {
-  API_TIMELINE_BEGIN_END;
-  DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(result)) {
-    return result;
-  }
-  CHECK_CALLBACK_STATE(T);
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(Z, I->object_store()->libraries());
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Error& error = Error::Handle(Z);
-  for (intptr_t i = 0; i < libraries.Length(); i++) {
-    lib ^= libraries.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      error = cls.EnsureIsFinalized(T);
-      if (!error.IsNull()) {
-        return Api::NewHandle(T, error.raw());
-      }
-    }
-  }
-  return Api::Success();
-}
-
-
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshot(uint8_t** isolate_snapshot_buffer,
-                          intptr_t* isolate_snapshot_size,
-                          uint8_t** instructions_blob_buffer,
-                          intptr_t* instructions_blob_size,
-                          uint8_t** rodata_blob_buffer,
-                          intptr_t* rodata_blob_size) {
+Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_buffer,
+                                 intptr_t* isolate_snapshot_size,
+                                 uint8_t** instructions_blob_buffer,
+                                 intptr_t* instructions_blob_size,
+                                 uint8_t** rodata_blob_buffer,
+                                 intptr_t* rodata_blob_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("Snapshots with code are not supported on DBC.");
+#elif defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());

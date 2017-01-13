@@ -669,7 +669,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var result =
         nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
     if (result is OSError) {
-      scheduleMicrotask(() => reportError(result, "Write failed"));
+      OSError osError = result;
+      scheduleMicrotask(() => reportError(osError, "Write failed"));
       result = 0;
     }
     // The result may be negative, if we forced a short write for testing
@@ -699,7 +700,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         bufferAndStart.buffer, bufferAndStart.start, bytes,
         address._in_addr, port);
     if (result is OSError) {
-      scheduleMicrotask(() => reportError(result, "Send failed"));
+      OSError osError = result;
+      scheduleMicrotask(() => reportError(osError, "Send failed"));
       result = 0;
     }
     // TODO(ricow): Remove when we track internal and pipe uses.

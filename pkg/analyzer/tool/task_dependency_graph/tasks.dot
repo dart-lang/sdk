@@ -85,6 +85,7 @@ digraph G {
   EXPORTED_LIBRARIES -> ReadyLibraryElement2Task
   EXPORTED_LIBRARIES -> ReadyLibraryElement5Task
   EXPORTED_LIBRARIES -> ReadyLibraryElement7Task
+  EXPORTED_LIBRARIES -> ResolveDirectiveElementsTask
   EXPORTED_LIBRARIES -> ResolveTopLevelLibraryTypeBoundsTask
   EXPORTED_LIBRARIES [shape=box]
   EXPORT_SOURCE_CLOSURE -> BuildExportNamespaceTask
@@ -104,6 +105,7 @@ digraph G {
   IMPORTED_LIBRARIES -> ReadyLibraryElement2Task
   IMPORTED_LIBRARIES -> ReadyLibraryElement5Task
   IMPORTED_LIBRARIES -> ReadyLibraryElement7Task
+  IMPORTED_LIBRARIES -> ResolveDirectiveElementsTask
   IMPORTED_LIBRARIES -> ResolveTopLevelLibraryTypeBoundsTask
   IMPORTED_LIBRARIES -> ResolveTopLevelUnitTypeBoundsTask
   IMPORTED_LIBRARIES [shape=box]
@@ -189,6 +191,7 @@ digraph G {
   MODIFICATION_TIME -> BuildDirectiveElementsTask
   MODIFICATION_TIME -> BuildLibraryElementTask
   MODIFICATION_TIME -> ParseDartTask
+  MODIFICATION_TIME -> ResolveDirectiveElementsTask
   MODIFICATION_TIME -> ScanDartTask
   MODIFICATION_TIME -> VerifyUnitTask
   MODIFICATION_TIME [shape=box]
@@ -226,6 +229,7 @@ digraph G {
   READY_RESOLVED_UNIT [shape=box]
   REFERENCED_NAMES [shape=box]
   REFERENCED_SOURCES -> BuildDirectiveElementsTask
+  REFERENCED_SOURCES -> ResolveDirectiveElementsTask
   REFERENCED_SOURCES -> VerifyUnitTask
   REFERENCED_SOURCES [shape=box]
   REQUIRED_CONSTANTS -> VerifyUnitTask
@@ -270,6 +274,8 @@ digraph G {
   RESOLVED_UNIT8 [shape=box]
   RESOLVED_UNIT9 -> InferInstanceMembersInUnitTask
   RESOLVED_UNIT9 [shape=box]
+  RESOLVE_DIRECTIVES_ERRORS -> LibraryUnitErrorsTask
+  RESOLVE_DIRECTIVES_ERRORS [shape=box]
   RESOLVE_TYPE_BOUNDS_ERRORS -> LibraryUnitErrorsTask
   RESOLVE_TYPE_BOUNDS_ERRORS [shape=box]
   RESOLVE_TYPE_NAMES_ERRORS -> LibraryUnitErrorsTask
@@ -283,6 +289,7 @@ digraph G {
   ResolveConstantExpressionTask -> CONSTANT_EXPRESSION_RESOLVED
   ResolveDirectiveElementsTask -> CREATED_RESOLVED_UNIT2
   ResolveDirectiveElementsTask -> RESOLVED_UNIT2
+  ResolveDirectiveElementsTask -> RESOLVE_DIRECTIVES_ERRORS
   ResolveInstanceFieldsInUnitTask -> CREATED_RESOLVED_UNIT9
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT9
   ResolveLibraryReferencesTask -> LIBRARY_ELEMENT9
@@ -307,6 +314,7 @@ digraph G {
   SCAN_ERRORS -> dartErrorsForSource
   SCAN_ERRORS [shape=box]
   SOURCE_KIND -> BuildDirectiveElementsTask
+  SOURCE_KIND -> ResolveDirectiveElementsTask
   SOURCE_KIND [shape=box]
   STATIC_VARIABLE_RESOLUTION_ERRORS -> InferStaticVariableTypesInUnitTask
   STATIC_VARIABLE_RESOLUTION_ERRORS [shape=box]

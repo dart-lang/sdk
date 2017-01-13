@@ -94,6 +94,8 @@ class TypeEnvironment {
     return element;
   }
 
+  ClassElement getClass(String name) => getElement(name);
+
   ResolutionDartType getElementType(String name) {
     var element = getElement(name);
     return element.computeType(compiler.resolution);
@@ -145,6 +147,6 @@ class TypeEnvironment {
   }
 
   ClosedWorld get closedWorld {
-    return compiler.resolverWorld.closedWorldForTesting;
+    return compiler.resolutionWorldBuilder.closedWorldForTesting;
   }
 }

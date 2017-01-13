@@ -11,7 +11,6 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    defineReflectiveTests(UpdateContentTest_Driver);
   });
 }
 
@@ -110,9 +109,3 @@ void main() {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractUpdateContentTest {}
-
-@reflectiveTest
-class UpdateContentTest_Driver extends AbstractUpdateContentTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}

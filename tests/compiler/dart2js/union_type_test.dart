@@ -24,8 +24,8 @@ main() {
         useMockCompiler: false);
     env.compiler.closeResolution();
     ClosedWorld world = env.closedWorld;
-    FlatTypeMask mask1 = new FlatTypeMask.exact(env.getElement('A'));
-    FlatTypeMask mask2 = new FlatTypeMask.exact(env.getElement('B'));
+    FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'));
+    FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'));
     UnionTypeMask union1 = mask1.nonNullable().union(mask2, world);
     UnionTypeMask union2 = mask2.nonNullable().union(mask1, world);
     Expect.equals(union1, union2);

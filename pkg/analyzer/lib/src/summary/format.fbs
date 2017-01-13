@@ -226,7 +226,12 @@ enum UnlinkedConstructorInitializerKind : byte {
   /**
    * Invocation of a superclass' constructor.
    */
-  superInvocation
+  superInvocation,
+
+  /**
+   * Invocation of `assert`.
+   */
+  assertInvocation
 }
 
 /**
@@ -802,7 +807,12 @@ enum UnlinkedExprOperation : byte {
    * a constant has an error, we can omit the subexpression containing the error
    * and only include a marker that an error was detected.
    */
-  pushError
+  pushError,
+
+  /**
+   * Push `this` expression onto the stack.
+   */
+  pushThis
 }
 
 /**

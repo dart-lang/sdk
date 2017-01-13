@@ -178,7 +178,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    parts.add(node.uri.stringValue);
+    parts.add(node.uri.stringValue ?? '');
   }
 
   @override

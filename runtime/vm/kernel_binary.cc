@@ -16,19 +16,11 @@
   do {                                                                         \
     if (FLAG_trace_kernel_binary) reader->DumpOffset(DART_PRETTY_FUNCTION);    \
   } while (0)
-#define TRACE_WRITE_OFFSET()                                                   \
-  do {                                                                         \
-    if (FLAG_trace_kernel_binary) writer->DumpOffset(DART_PRETTY_FUNCTION);    \
-  } while (0)
 #else
 #define TRACE_READ_OFFSET()
-#define TRACE_WRITE_OFFSET()
 #endif
 
 namespace dart {
-
-
-ByteWriter::~ByteWriter() {}
 
 
 namespace kernel {
@@ -372,11 +364,22 @@ class Reader {
     }
   }
 
+  /**
+   * Read and return a TokenPosition from this reader.
+   */
   TokenPosition ReadPosition() {
-    intptr_t value = ReadUInt();
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
-    return TokenPosition(value - 1);
+    intptr_t value = ReadUInt() - 1;
+    TokenPosition result = TokenPosition(value);
+    max_position_ = Utils::Maximum(max_position_, result);
+    if (min_position_.IsNoSource()) {
+      min_position_ = result;
+    } else if (result.IsReal()) {
+      min_position_ = Utils::Minimum(min_position_, result);
+    }
+
+    return result;
   }
 
   intptr_t ReadListLength() { return ReadUInt(); }
@@ -420,6 +423,22 @@ class Reader {
     OS::PrintErr("@%" Pd64 " %s\n", offset_, str);
   }
 
+  // The largest position read yet (since last reset).
+  // This is automatically updated when calling ReadPosition,
+  // but can be overwritten (e.g. via the PositionScope class).
+  TokenPosition max_position() { return max_position_; }
+  // The smallest position read yet (since last reset).
+  // This is automatically updated when calling ReadPosition,
+  // but can be overwritten (e.g. via the PositionScope class).
+  TokenPosition min_position() { return min_position_; }
+  // The current script id for what we are currently processing.
+  // Note though that this is only a convenience helper and has to be set
+  // manually.
+  intptr_t current_script_id() { return current_script_id_; }
+  void set_current_script_id(intptr_t script_id) {
+    current_script_id_ = script_id;
+  }
+
   template <typename T, typename RT>
   T* ReadOptional() {
     Tag tag = ReadTag();
@@ -442,184 +461,42 @@ class Reader {
   int64_t size_;
   int64_t offset_;
   ReaderHelper builder_;
+  TokenPosition max_position_;
+  TokenPosition min_position_;
+  intptr_t current_script_id_;
+
+  friend class PositionScope;
 };
 
 
-class WriterHelper {
+// A helper class that resets the readers min and max positions both upon
+// initialization and upon destruction, i.e. when created the min an max
+// positions will be reset to "noSource", when destructing the min and max will
+// be reset to have they value they would have had, if they hadn't been reset in
+// the first place.
+class PositionScope {
  public:
-  WriterHelper() : labels_(NULL) {}
-
-  void SetProgram(Program* program) {
-    program_ = program;
-    for (int i = 0; i < program->libraries().length(); i++) {
-      Library* lib = program->libraries()[i];
-      libraries_.Set(lib, i);
-
-      for (int j = 0; j < lib->classes().length(); j++) {
-        Class* klass = lib->classes()[j];
-        classes_.Set(klass, j);
-
-        for (int k = 0; k < klass->fields().length(); k++) {
-          Field* field = klass->fields()[k];
-          fields_.Set(field, k);
-        }
-        for (int k = 0; k < klass->constructors().length(); k++) {
-          Constructor* constructor = klass->constructors()[k];
-          constructors_.Set(constructor, k);
-        }
-        for (int k = 0; k < klass->procedures().length(); k++) {
-          Procedure* procedure = klass->procedures()[k];
-          procedures_.Set(procedure, k);
-        }
-      }
-
-      for (int k = 0; k < lib->fields().length(); k++) {
-        Field* field = lib->fields()[k];
-        fields_.Set(field, k);
-      }
-
-      for (int k = 0; k < lib->procedures().length(); k++) {
-        Procedure* procedure = lib->procedures()[k];
-        procedures_.Set(procedure, k);
-      }
-    }
+  explicit PositionScope(Reader* reader)
+      : reader_(reader),
+        min_(reader->min_position_),
+        max_(reader->max_position_) {
+    reader->min_position_ = reader->max_position_ = TokenPosition::kNoSource;
   }
 
-  Program* program() { return program_; }
-
-  BlockMap<String>& strings() { return strings_; }
-  BlockMap<Library>& libraries() { return libraries_; }
-  BlockMap<Class>& classes() { return classes_; }
-  BlockMap<Field>& fields() { return fields_; }
-  BlockMap<Procedure>& procedures() { return procedures_; }
-  BlockMap<Constructor>& constructors() { return constructors_; }
-
-  BlockMap<VariableDeclaration>& variables() { return scope_; }
-  BlockMap<TypeParameter>& type_parameters() { return type_parameters_; }
-  BlockMap<SwitchCase>& switch_cases() { return switch_cases_; }
-
-  BlockMap<LabeledStatement>* labels() { return labels_; }
-  void set_labels(BlockMap<LabeledStatement>* labels) { labels_ = labels; }
+  ~PositionScope() {
+    if (reader_->min_position_.IsNoSource()) {
+      reader_->min_position_ = min_;
+    } else if (min_.IsReal()) {
+      reader_->min_position_ = Utils::Minimum(reader_->min_position_, min_);
+    }
+    reader_->max_position_ = Utils::Maximum(reader_->max_position_, max_);
+  }
 
  private:
-  Program* program_;
-
-  BlockMap<String> strings_;
-  BlockMap<Library> libraries_;
-  BlockMap<Class> classes_;
-  BlockMap<Field> fields_;
-  BlockMap<Procedure> procedures_;
-  BlockMap<Constructor> constructors_;
-
-  BlockMap<VariableDeclaration> scope_;
-  BlockMap<TypeParameter> type_parameters_;
-  BlockMap<SwitchCase> switch_cases_;
-  BlockMap<LabeledStatement>* labels_;
+  Reader* reader_;
+  TokenPosition min_;
+  TokenPosition max_;
 };
-
-
-class Writer {
- public:
-  explicit Writer(ByteWriter* writer) : out_(writer), offset_(0) {}
-
-  void WriteUInt32(uint32_t value) {
-    uint8_t buffer[4] = {
-        static_cast<uint8_t>((value >> 24) & 0xff),
-        static_cast<uint8_t>((value >> 16) & 0xff),
-        static_cast<uint8_t>((value >> 8) & 0xff),
-        static_cast<uint8_t>((value >> 0) & 0xff),
-    };
-    WriteBytes(buffer, 4);
-  }
-
-  void WriteUInt(uint32_t value) {
-    if (value < 0x80) {
-      // 0...
-      WriteByte(static_cast<uint8_t>(value));
-    } else if (value < 0x4000) {
-      // 10...
-      WriteByte(static_cast<uint8_t>(((value >> 8) & 0x3f) | 0x80));
-      WriteByte(static_cast<uint8_t>(value & 0xff));
-    } else {
-      // 11...
-      // Ensure the highest 2 bits is not used for anything (we use it to for
-      // encoding).
-      ASSERT(static_cast<uint8_t>((value >> 24) & 0xc0) == 0);
-      uint8_t buffer[4] = {
-          static_cast<uint8_t>(((value >> 24) & 0x7f) | 0xc0),
-          static_cast<uint8_t>((value >> 16) & 0xff),
-          static_cast<uint8_t>((value >> 8) & 0xff),
-          static_cast<uint8_t>((value >> 0) & 0xff),
-      };
-      WriteBytes(buffer, 4);
-    }
-  }
-
-  void WriteListLength(intptr_t value) { return WriteUInt(value); }
-
-  void WriteByte(uint8_t value) {
-    out_->WriteByte(value);
-    offset_++;
-  }
-
-  void WriteBool(bool value) { WriteByte(value ? 1 : 0); }
-
-  void WriteFlags(uint8_t value) { WriteByte(value); }
-
-  void WriteTag(Tag tag) { WriteByte(static_cast<uint8_t>(tag)); }
-
-  void WriteTag(Tag tag, uint8_t payload) {
-    ASSERT((payload & ~kSpecializedPayloadMask) == 0);
-    WriteByte(kSpecializedTagHighBit | static_cast<uint8_t>(tag) | payload);
-  }
-
-  void WriteBytes(uint8_t* bytes, int length) {
-    out_->WriteBytes(bytes, length);
-    offset_ += length;
-  }
-
-  void WritePosition(TokenPosition position) {
-    intptr_t value = position.value() + 1;
-    WriteUInt(value);
-  }
-
-  template <typename T>
-  void WriteOptional(T* object) {
-    if (object == NULL) {
-      WriteTag(kNothing);
-    } else {
-      WriteTag(kSomething);
-      object->WriteTo(this);
-    }
-  }
-
-  template <typename T, typename WT>
-  void WriteOptionalStatic(T* object) {
-    if (object == NULL) {
-      WriteTag(kNothing);
-    } else {
-      WriteTag(kSomething);
-      WT::WriteTo(this, object);
-    }
-  }
-
-  template <typename T>
-  void WriteOptionalStatic(T* object) {
-    return WriteOptionalStatic<T, T>(object);
-  }
-
-  void DumpOffset(const char* str) {
-    OS::PrintErr("@%" Pd64 " %s\n", offset_, str);
-  }
-
-  WriterHelper* helper() { return &helper_; }
-
- private:
-  ByteWriter* out_;
-  WriterHelper helper_;
-  int64_t offset_;
-};
-
 
 template <typename T>
 template <typename IT>
@@ -662,36 +539,6 @@ void List<T>::ReadFromStatic(Reader* reader) {
   }
 }
 
-
-template <typename T>
-void List<T>::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-
-  // NOTE: We only support dense lists.
-  writer->WriteListLength(length_);
-  for (int i = 0; i < length_; i++) {
-    T* object = array_[i];
-    ASSERT(object != NULL);
-    object->WriteTo(writer);
-  }
-}
-
-
-template <typename T>
-template <typename IT>
-void List<T>::WriteToStatic(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-
-  // NOTE: We only support dense lists.
-  writer->WriteListLength(length_);
-  for (int i = 0; i < length_; i++) {
-    T* object = array_[i];
-    ASSERT(object != NULL);
-    IT::WriteTo(writer, object);
-  }
-}
-
-
 void TypeParameterList::ReadFrom(Reader* reader) {
   // It is possible for the bound of the first type parameter to refer to
   // the second type parameter. This means we need to create [TypeParameter]
@@ -712,37 +559,12 @@ void TypeParameterList::ReadFrom(Reader* reader) {
 }
 
 
-void TypeParameterList::WriteTo(Writer* writer) {
-  writer->WriteListLength(length());
-
-  // Make all [TypeParameter]s available in scope.
-  for (int i = 0; i < length(); i++) {
-    TypeParameter* parameter = (*this)[i];
-    writer->helper()->type_parameters().Push(parameter);
-  }
-
-  // Write all [TypeParameter]s and their bounds.
-  for (int i = 0; i < length(); i++) {
-    TypeParameter* parameter = (*this)[i];
-    parameter->WriteTo(writer);
-  }
-}
-
-
 template <typename A, typename B>
 Tuple<A, B>* Tuple<A, B>::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   A* first = A::ReadFrom(reader);
   B* second = B::ReadFrom(reader);
   return new Tuple<A, B>(first, second);
-}
-
-
-template <typename A, typename B>
-void Tuple<A, B>::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  first_->WriteTo(writer);
-  second_->WriteTo(writer);
 }
 
 
@@ -762,11 +584,6 @@ class StringImpl {
     TRACE_READ_OFFSET();
     return String::ReadFromImpl(reader);
   }
-
-  static void WriteTo(Writer* writer, String* string) {
-    TRACE_WRITE_OFFSET();
-    string->WriteToImpl(writer);
-  }
 };
 
 
@@ -775,11 +592,6 @@ class VariableDeclarationImpl {
   static VariableDeclaration* ReadFrom(Reader* reader) {
     TRACE_READ_OFFSET();
     return VariableDeclaration::ReadFromImpl(reader);
-  }
-
-  static void WriteTo(Writer* writer, VariableDeclaration* d) {
-    TRACE_WRITE_OFFSET();
-    d->WriteToImpl(writer);
   }
 };
 
@@ -797,33 +609,8 @@ String* String::ReadFromImpl(Reader* reader) {
   return string;
 }
 
-
-void String::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  Reference::WriteStringTo(writer, this);
-}
-
-
-void String::WriteToImpl(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteUInt(size_);
-  writer->WriteBytes(buffer_, size_);
-}
-
-
 void StringTable::ReadFrom(Reader* reader) {
   strings_.ReadFromStatic<StringImpl>(reader);
-}
-
-
-void StringTable::WriteTo(Writer* writer) {
-  strings_.WriteToStatic<StringImpl>(writer);
-
-  // Build up the "String* -> index" table.
-  WriterHelper* helper = writer->helper();
-  for (int i = 0; i < strings_.length(); i++) {
-    helper->strings().Push(strings_[i]);
-  }
 }
 
 
@@ -848,23 +635,6 @@ void SourceTable::ReadFrom(Reader* reader) {
 }
 
 
-void SourceTable::WriteTo(Writer* writer) {
-  for (intptr_t i = 0; i < size_; ++i) {
-    StringImpl::WriteTo(writer, source_code_[i]);
-    intptr_t* line_starts = line_starts_[i];
-    intptr_t line_count = line_count_[i];
-    writer->WriteUInt(line_count);
-
-    intptr_t previous_line_start = 0;
-    for (intptr_t j = 0; j < line_count; ++j) {
-      intptr_t line_start = line_starts[j];
-      writer->WriteUInt(line_start - previous_line_start);
-      previous_line_start = line_start;
-    }
-  }
-}
-
-
 Library* Library::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   int flags = reader->ReadFlags();
@@ -872,6 +642,7 @@ Library* Library::ReadFrom(Reader* reader) {
   name_ = Reference::ReadStringFrom(reader);
   import_uri_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
 
   int num_classes = reader->ReadUInt();
   classes().EnsureInitialized(num_classes);
@@ -893,28 +664,6 @@ Library* Library::ReadFrom(Reader* reader) {
 }
 
 
-void Library::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  name_->WriteTo(writer);
-  import_uri_->WriteTo(writer);
-  writer->WriteUInt(source_uri_index_);
-
-  writer->WriteUInt(classes_.length());
-  for (int i = 0; i < classes_.length(); i++) {
-    Class* klass = classes_[i];
-    if (klass->IsNormalClass()) {
-      writer->WriteTag(kNormalClass);
-      NormalClass::Cast(klass)->WriteTo(writer);
-    } else {
-      writer->WriteTag(kMixinClass);
-      MixinClass::Cast(klass)->WriteTo(writer);
-    }
-  }
-  fields().WriteTo(writer);
-  procedures().WriteTo(writer);
-}
-
-
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
@@ -922,19 +671,10 @@ Class* Class::ReadFrom(Reader* reader) {
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
   annotations_.ReadFromStatic<Expression>(reader);
 
   return this;
-}
-
-
-void Class::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WritePosition(position_);
-  writer->WriteBool(is_abstract_);
-  name_->WriteTo(writer);
-  writer->WriteUInt(source_uri_index_);
-  annotations_.WriteTo(writer);
 }
 
 
@@ -957,20 +697,6 @@ NormalClass* NormalClass::ReadFrom(Reader* reader) {
 }
 
 
-void NormalClass::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  Class::WriteTo(writer);
-  TypeParameterScope<WriterHelper> scope(writer->helper());
-
-  type_parameters().WriteTo(writer);
-  writer->WriteOptional<DartType>(super_class_);
-  implemented_classes().WriteTo(writer);
-  fields_.WriteTo(writer);
-  constructors_.WriteTo(writer);
-  procedures_.WriteTo(writer);
-}
-
-
 MixinClass* MixinClass::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   TypeParameterScope<ReaderHelper> scope(reader->helper());
@@ -983,19 +709,6 @@ MixinClass* MixinClass::ReadFrom(Reader* reader) {
       reader);
   constructors_.ReadFrom<Constructor>(reader, this);
   return this;
-}
-
-
-void MixinClass::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  TypeParameterScope<WriterHelper> scope(writer->helper());
-
-  Class::WriteTo(writer);
-  type_parameters_.WriteTo(writer);
-  first_->WriteTo(writer);
-  second_->WriteTo(writer);
-  implemented_classes_.WriteTo(writer);
-  constructors_.WriteTo(writer);
 }
 
 
@@ -1051,56 +764,6 @@ Member* Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
 }
 
 
-void Reference::WriteMemberTo(Writer* writer, Member* member, bool allow_null) {
-  TRACE_WRITE_OFFSET();
-  if (member == NULL) {
-    if (allow_null) {
-      writer->WriteTag(kNullReference);
-      return;
-    } else {
-      FATAL("Expected a valid member reference but got `null`");
-    }
-  }
-  TreeNode* node = member->parent();
-
-  WriterHelper* helper = writer->helper();
-
-  if (node->IsLibrary()) {
-    Library* library = Library::Cast(node);
-    if (member->IsField()) {
-      Field* field = Field::Cast(member);
-      writer->WriteTag(kLibraryFieldReference);
-      writer->WriteUInt(helper->libraries().Lookup(library));
-      writer->WriteUInt(helper->fields().Lookup(field));
-    } else {
-      Procedure* procedure = Procedure::Cast(member);
-      writer->WriteTag(kLibraryProcedureReference);
-      writer->WriteUInt(helper->libraries().Lookup(library));
-      writer->WriteUInt(helper->procedures().Lookup(procedure));
-    }
-  } else {
-    Class* klass = Class::Cast(node);
-
-    if (member->IsField()) {
-      Field* field = Field::Cast(member);
-      writer->WriteTag(kClassFieldReference);
-      Reference::WriteClassTo(writer, klass);
-      writer->WriteUInt(helper->fields().Lookup(field));
-    } else if (member->IsConstructor()) {
-      Constructor* constructor = Constructor::Cast(member);
-      writer->WriteTag(kClassConstructorReference);
-      Reference::WriteClassTo(writer, klass);
-      writer->WriteUInt(helper->constructors().Lookup(constructor));
-    } else {
-      Procedure* procedure = Procedure::Cast(member);
-      writer->WriteTag(kClassProcedureReference);
-      Reference::WriteClassTo(writer, klass);
-      writer->WriteUInt(helper->procedures().Lookup(procedure));
-    }
-  }
-}
-
-
 Class* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
   Program* program = reader->helper()->program();
@@ -1128,37 +791,9 @@ Class* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
 }
 
 
-void Reference::WriteClassTo(Writer* writer, Class* klass, bool allow_null) {
-  TRACE_WRITE_OFFSET();
-  if (klass == NULL) {
-    if (allow_null) {
-      writer->WriteTag(kNullReference);
-      return;
-    } else {
-      FATAL("Expected a valid class reference but got `null`.");
-    }
-  }
-  if (klass->IsNormalClass()) {
-    writer->WriteTag(kNormalClassReference);
-  } else {
-    ASSERT(klass->IsMixinClass());
-    writer->WriteTag(kMixinClassReference);
-  }
-
-  writer->WriteUInt(writer->helper()->libraries().Lookup(klass->parent()));
-  writer->WriteUInt(writer->helper()->classes().Lookup(klass));
-}
-
-
 String* Reference::ReadStringFrom(Reader* reader) {
   int index = reader->ReadUInt();
   return reader->helper()->program()->string_table().strings()[index];
-}
-
-
-void Reference::WriteStringTo(Writer* writer, String* string) {
-  int index = writer->helper()->strings().Lookup(string);
-  writer->WriteUInt(index);
 }
 
 
@@ -1172,26 +807,12 @@ Field* Field::ReadFrom(Reader* reader) {
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
   annotations_.ReadFromStatic<Expression>(reader);
   type_ = DartType::ReadFrom(reader);
   inferred_value_ = reader->ReadOptional<InferredValue>();
   initializer_ = reader->ReadOptional<Expression>();
   return this;
-}
-
-
-void Field::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kField);
-  writer->WritePosition(position_);
-  writer->WritePosition(end_position_);
-  writer->WriteFlags(flags_);
-  name_->WriteTo(writer);
-  writer->WriteUInt(source_uri_index_);
-  annotations_.WriteTo(writer);
-  type_->WriteTo(writer);
-  writer->WriteOptional<InferredValue>(inferred_value_);
-  writer->WriteOptional<Expression>(initializer_);
 }
 
 
@@ -1212,21 +833,6 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
 }
 
 
-void Constructor::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kConstructor);
-
-  writer->WritePosition(position_);
-  writer->WritePosition(end_position_);
-  VariableScope<WriterHelper> parameters(writer->helper());
-  writer->WriteFlags(flags_);
-  name_->WriteTo(writer);
-  annotations_.WriteTo(writer);
-  function_->WriteTo(writer);
-  initializers_.WriteTo(writer);
-}
-
-
 Procedure* Procedure::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Tag tag = reader->ReadTag();
@@ -1239,25 +845,10 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = reader->ReadOptional<FunctionNode>();
   return this;
-}
-
-
-void Procedure::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kProcedure);
-
-  writer->WritePosition(position_);
-  writer->WritePosition(end_position_);
-  VariableScope<WriterHelper> parameters(writer->helper());
-  writer->WriteByte(kind_);
-  writer->WriteFlags(flags_);
-  name_->WriteTo(writer);
-  writer->WriteUInt(source_uri_index_);
-  annotations_.WriteTo(writer);
-  writer->WriteOptional<FunctionNode>(function_);
 }
 
 
@@ -1288,26 +879,12 @@ InvalidInitializer* InvalidInitializer::ReadFromImpl(Reader* reader) {
 }
 
 
-void InvalidInitializer::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kInvalidInitializer);
-}
-
-
 FieldInitializer* FieldInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   FieldInitializer* initializer = new FieldInitializer();
   initializer->field_ = Field::Cast(Reference::ReadMemberFrom(reader));
   initializer->value_ = Expression::ReadFrom(reader);
   return initializer;
-}
-
-
-void FieldInitializer::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kFieldInitializer);
-  Reference::WriteMemberTo(writer, field_);
-  value_->WriteTo(writer);
 }
 
 
@@ -1320,14 +897,6 @@ SuperInitializer* SuperInitializer::ReadFromImpl(Reader* reader) {
 }
 
 
-void SuperInitializer::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kSuperInitializer);
-  Reference::WriteMemberTo(writer, target_);
-  arguments_->WriteTo(writer);
-}
-
-
 RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   RedirectingInitializer* init = new RedirectingInitializer();
@@ -1337,26 +906,11 @@ RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
 }
 
 
-void RedirectingInitializer::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kRedirectingInitializer);
-  Reference::WriteMemberTo(writer, target_);
-  arguments_->WriteTo(writer);
-}
-
-
 LocalInitializer* LocalInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   LocalInitializer* init = new LocalInitializer();
   init->variable_ = VariableDeclaration::ReadFromImpl(reader);
   return init;
-}
-
-
-void LocalInitializer::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kLocalInitializer);
-  variable_->WriteToImpl(writer);
 }
 
 
@@ -1466,12 +1020,6 @@ InvalidExpression* InvalidExpression::ReadFrom(Reader* reader) {
 }
 
 
-void InvalidExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kInvalidExpression);
-}
-
-
 VariableGet* VariableGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableGet* get = new VariableGet();
@@ -1488,21 +1036,6 @@ VariableGet* VariableGet::ReadFrom(Reader* reader, uint8_t payload) {
   get->position_ = reader->ReadPosition();
   get->variable_ = reader->helper()->variables().Lookup(payload);
   return get;
-}
-
-
-void VariableGet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  int index = writer->helper()->variables().Lookup(variable_);
-  if ((index & kSpecializedPayloadMask) == index) {
-    writer->WriteTag(kSpecializedVariableGet, static_cast<uint8_t>(index));
-    writer->WritePosition(position_);
-  } else {
-    writer->WriteTag(kVariableGet);
-    writer->WritePosition(position_);
-    writer->WriteUInt(index);
-    writer->WriteOptional<DartType>(NULL);
-  }
 }
 
 
@@ -1526,21 +1059,6 @@ VariableSet* VariableSet::ReadFrom(Reader* reader, uint8_t payload) {
 }
 
 
-void VariableSet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  int index = writer->helper()->variables().Lookup(variable_);
-  if ((index & kSpecializedPayloadMask) == index) {
-    writer->WriteTag(kSpecializedVariableSet, static_cast<uint8_t>(index));
-    writer->WritePosition(position_);
-  } else {
-    writer->WriteTag(kVariableSet);
-    writer->WritePosition(position_);
-    writer->WriteUInt(index);
-  }
-  expression_->WriteTo(writer);
-}
-
-
 PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   PropertyGet* get = new PropertyGet();
@@ -1549,16 +1067,6 @@ PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
   get->name_ = Name::ReadFrom(reader);
   get->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
   return get;
-}
-
-
-void PropertyGet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kPropertyGet);
-  writer->WritePosition(position_);
-  receiver_->WriteTo(writer);
-  name_->WriteTo(writer);
-  Reference::WriteMemberTo(writer, interfaceTarget_, true);
 }
 
 
@@ -1574,31 +1082,12 @@ PropertySet* PropertySet::ReadFrom(Reader* reader) {
 }
 
 
-void PropertySet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kPropertySet);
-  writer->WritePosition(position_);
-  receiver_->WriteTo(writer);
-  name_->WriteTo(writer);
-  value_->WriteTo(writer);
-  Reference::WriteMemberTo(writer, interfaceTarget_, true);
-}
-
-
 DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertyGet* get = new DirectPropertyGet();
   get->receiver_ = Expression::ReadFrom(reader);
   get->target_ = Reference::ReadMemberFrom(reader);
   return get;
-}
-
-
-void DirectPropertyGet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kDirectPropertyGet);
-  receiver_->WriteTo(writer);
-  Reference::WriteMemberTo(writer, target_);
 }
 
 
@@ -1612,15 +1101,6 @@ DirectPropertySet* DirectPropertySet::ReadFrom(Reader* reader) {
 }
 
 
-void DirectPropertySet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kDirectPropertySet);
-  receiver_->WriteTo(writer);
-  Reference::WriteMemberTo(writer, target_);
-  value_->WriteTo(writer);
-}
-
-
 StaticGet* StaticGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticGet* get = new StaticGet();
@@ -1630,28 +1110,12 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
 }
 
 
-void StaticGet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kStaticGet);
-  writer->WritePosition(position_);
-  Reference::WriteMemberTo(writer, target_);
-}
-
-
 StaticSet* StaticSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticSet* set = new StaticSet();
   set->target_ = Reference::ReadMemberFrom(reader);
   set->expression_ = Expression::ReadFrom(reader);
   return set;
-}
-
-
-void StaticSet::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kStaticSet);
-  Reference::WriteMemberTo(writer, target_);
-  expression_->WriteTo(writer);
 }
 
 
@@ -1665,26 +1129,11 @@ Arguments* Arguments::ReadFrom(Reader* reader) {
 }
 
 
-void Arguments::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  types().WriteTo(writer);
-  positional().WriteTo(writer);
-  named().WriteTo(writer);
-}
-
-
 NamedExpression* NamedExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   String* name = Reference::ReadStringFrom(reader);
   Expression* expression = Expression::ReadFrom(reader);
   return new NamedExpression(name, expression);
-}
-
-
-void NamedExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  name_->WriteTo(writer);
-  expression_->WriteTo(writer);
 }
 
 
@@ -1700,17 +1149,6 @@ MethodInvocation* MethodInvocation::ReadFrom(Reader* reader) {
 }
 
 
-void MethodInvocation::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kMethodInvocation);
-  writer->WritePosition(position_);
-  receiver_->WriteTo(writer);
-  name_->WriteTo(writer);
-  arguments_->WriteTo(writer);
-  Reference::WriteMemberTo(writer, interfaceTarget_, true);
-}
-
-
 DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectMethodInvocation* invocation = new DirectMethodInvocation();
@@ -1718,15 +1156,6 @@ DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
   invocation->target_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
-}
-
-
-void DirectMethodInvocation::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kDirectMethodInvocation);
-  receiver_->WriteTo(writer);
-  Reference::WriteMemberTo(writer, target_);
-  arguments_->WriteTo(writer);
 }
 
 
@@ -1738,15 +1167,6 @@ StaticInvocation* StaticInvocation::ReadFrom(Reader* reader, bool is_const) {
   invocation->procedure_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
-}
-
-
-void StaticInvocation::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(is_const_ ? kConstStaticInvocation : kStaticInvocation);
-  writer->WritePosition(position_);
-  Reference::WriteMemberTo(writer, procedure_);
-  arguments_->WriteTo(writer);
 }
 
 
@@ -1762,28 +1182,11 @@ ConstructorInvocation* ConstructorInvocation::ReadFrom(Reader* reader,
 }
 
 
-void ConstructorInvocation::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(is_const_ ? kConstConstructorInvocation
-                             : kConstructorInvocation);
-  writer->WritePosition(position_);
-  Reference::WriteMemberTo(writer, target_);
-  arguments_->WriteTo(writer);
-}
-
-
 Not* Not::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Not* n = new Not();
   n->expression_ = Expression::ReadFrom(reader);
   return n;
-}
-
-
-void Not::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kNot);
-  expression_->WriteTo(writer);
 }
 
 
@@ -1794,15 +1197,6 @@ LogicalExpression* LogicalExpression::ReadFrom(Reader* reader) {
   expr->operator_ = static_cast<Operator>(reader->ReadByte());
   expr->right_ = Expression::ReadFrom(reader);
   return expr;
-}
-
-
-void LogicalExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kLogicalExpression);
-  left_->WriteTo(writer);
-  writer->WriteByte(operator_);
-  right_->WriteTo(writer);
 }
 
 
@@ -1817,30 +1211,12 @@ ConditionalExpression* ConditionalExpression::ReadFrom(Reader* reader) {
 }
 
 
-void ConditionalExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kConditionalExpression);
-  condition_->WriteTo(writer);
-  then_->WriteTo(writer);
-  otherwise_->WriteTo(writer);
-  writer->WriteOptional<DartType>(NULL);  // Unused static type.
-}
-
-
 StringConcatenation* StringConcatenation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StringConcatenation* concat = new StringConcatenation();
   concat->position_ = reader->ReadPosition();
   concat->expressions_.ReadFromStatic<Expression>(reader);
   return concat;
-}
-
-
-void StringConcatenation::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kStringConcatenation);
-  writer->WritePosition(position_);
-  expressions_.WriteTo(writer);
 }
 
 
@@ -1854,15 +1230,6 @@ IsExpression* IsExpression::ReadFrom(Reader* reader) {
 }
 
 
-void IsExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kIsExpression);
-  writer->WritePosition(position_);
-  operand_->WriteTo(writer);
-  type_->WriteTo(writer);
-}
-
-
 AsExpression* AsExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AsExpression* expr = new AsExpression();
@@ -1872,37 +1239,15 @@ AsExpression* AsExpression::ReadFrom(Reader* reader) {
 }
 
 
-void AsExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kAsExpression);
-  operand_->WriteTo(writer);
-  type_->WriteTo(writer);
-}
-
-
 StringLiteral* StringLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new StringLiteral(Reference::ReadStringFrom(reader));
 }
 
 
-void StringLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kStringLiteral);
-  value_->WriteTo(writer);
-}
-
-
 BigintLiteral* BigintLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new BigintLiteral(Reference::ReadStringFrom(reader));
-}
-
-
-void BigintLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kBigIntLiteral);
-  value_->WriteTo(writer);
 }
 
 
@@ -1923,30 +1268,11 @@ IntLiteral* IntLiteral::ReadFrom(Reader* reader, uint8_t payload) {
 }
 
 
-void IntLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  int64_t payload = value_ + SpecializedIntLiteralBias;
-  if ((payload & kSpecializedPayloadMask) == payload) {
-    writer->WriteTag(kSpecialIntLiteral, static_cast<uint8_t>(payload));
-  } else {
-    writer->WriteTag(value_ < 0 ? kNegativeIntLiteral : kPositiveIntLiteral);
-    writer->WriteUInt(static_cast<uint32_t>(value_ < 0 ? -value_ : value_));
-  }
-}
-
-
 DoubleLiteral* DoubleLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DoubleLiteral* literal = new DoubleLiteral();
   literal->value_ = Reference::ReadStringFrom(reader);
   return literal;
-}
-
-
-void DoubleLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kDoubleLiteral);
-  value_->WriteTo(writer);
 }
 
 
@@ -1958,21 +1284,9 @@ BoolLiteral* BoolLiteral::ReadFrom(Reader* reader, bool value) {
 }
 
 
-void BoolLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(value_ ? kTrueLiteral : kFalseLiteral);
-}
-
-
 NullLiteral* NullLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new NullLiteral();
-}
-
-
-void NullLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kNullLiteral);
 }
 
 
@@ -1984,25 +1298,11 @@ SymbolLiteral* SymbolLiteral::ReadFrom(Reader* reader) {
 }
 
 
-void SymbolLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kSymbolLiteral);
-  value_->WriteTo(writer);
-}
-
-
 TypeLiteral* TypeLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   TypeLiteral* literal = new TypeLiteral();
   literal->type_ = DartType::ReadFrom(reader);
   return literal;
-}
-
-
-void TypeLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kTypeLiteral);
-  type_->WriteTo(writer);
 }
 
 
@@ -2012,21 +1312,9 @@ ThisExpression* ThisExpression::ReadFrom(Reader* reader) {
 }
 
 
-void ThisExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kThisExpression);
-}
-
-
 Rethrow* Rethrow::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new Rethrow();
-}
-
-
-void Rethrow::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kRethrow);
 }
 
 
@@ -2039,14 +1327,6 @@ Throw* Throw::ReadFrom(Reader* reader) {
 }
 
 
-void Throw::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kThrow);
-  writer->WritePosition(position_);
-  expression_->WriteTo(writer);
-}
-
-
 ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   ListLiteral* literal = new ListLiteral();
@@ -2054,14 +1334,6 @@ ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
   literal->type_ = DartType::ReadFrom(reader);
   literal->expressions_.ReadFromStatic<Expression>(reader);
   return literal;
-}
-
-
-void ListLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(is_const_ ? kConstListLiteral : kListLiteral);
-  type_->WriteTo(writer);
-  expressions_.WriteTo(writer);
 }
 
 
@@ -2077,16 +1349,6 @@ MapLiteral* MapLiteral::ReadFrom(Reader* reader, bool is_const) {
 }
 
 
-void MapLiteral::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(is_const_ ? kConstMapLiteral : kMapLiteral);
-  writer->WritePosition(position_);
-  key_type_->WriteTo(writer);
-  value_type_->WriteTo(writer);
-  entries_.WriteTo(writer);
-}
-
-
 MapEntry* MapEntry::ReadFrom(Reader* reader) {
   MapEntry* entry = new MapEntry();
   entry->key_ = Expression::ReadFrom(reader);
@@ -2095,25 +1357,11 @@ MapEntry* MapEntry::ReadFrom(Reader* reader) {
 }
 
 
-void MapEntry::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  key_->WriteTo(writer);
-  value_->WriteTo(writer);
-}
-
-
 AwaitExpression* AwaitExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AwaitExpression* await = new AwaitExpression();
   await->operand_ = Expression::ReadFrom(reader);
   return await;
-}
-
-
-void AwaitExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kAwaitExpression);
-  operand_->WriteTo(writer);
 }
 
 
@@ -2126,30 +1374,18 @@ FunctionExpression* FunctionExpression::ReadFrom(Reader* reader) {
 }
 
 
-void FunctionExpression::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  VariableScope<WriterHelper> parameters(writer->helper());
-  writer->WriteTag(kFunctionExpression);
-  function_->WriteTo(writer);
-}
-
-
 Let* Let::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   Let* let = new Let();
   let->variable_ = VariableDeclaration::ReadFromImpl(reader);
   let->body_ = Expression::ReadFrom(reader);
+  let->position_ = reader->min_position();
+  let->end_position_ = reader->max_position();
+
   return let;
-}
-
-
-void Let::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  VariableScope<WriterHelper> vars(writer->helper());
-  writer->WriteTag(kLet);
-  variable_->WriteToImpl(writer);
-  body_->WriteTo(writer);
 }
 
 
@@ -2212,44 +1448,23 @@ InvalidStatement* InvalidStatement::ReadFrom(Reader* reader) {
 }
 
 
-void InvalidStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kInvalidStatement);
-}
-
-
 ExpressionStatement* ExpressionStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new ExpressionStatement(Expression::ReadFrom(reader));
 }
 
 
-void ExpressionStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kExpressionStatement);
-  expression_->WriteTo(writer);
-}
-
-
 Block* Block::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
+  PositionScope scope(reader);
+
   VariableScope<ReaderHelper> vars(reader->helper());
   Block* block = new Block();
   block->statements().ReadFromStatic<Statement>(reader);
+  block->position_ = reader->min_position();
+  block->end_position_ = reader->max_position();
+
   return block;
-}
-
-
-void Block::WriteTo(Writer* writer) {
-  writer->WriteTag(kBlock);
-  WriteToImpl(writer);
-}
-
-
-void Block::WriteToImpl(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  VariableScope<WriterHelper> vars(writer->helper());
-  statements_.WriteTo(writer);
 }
 
 
@@ -2259,26 +1474,12 @@ EmptyStatement* EmptyStatement::ReadFrom(Reader* reader) {
 }
 
 
-void EmptyStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kEmptyStatement);
-}
-
-
 AssertStatement* AssertStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AssertStatement* stmt = new AssertStatement();
   stmt->condition_ = Expression::ReadFrom(reader);
   stmt->message_ = reader->ReadOptional<Expression>();
   return stmt;
-}
-
-
-void AssertStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kAssertStatement);
-  condition_->WriteTo(writer);
-  writer->WriteOptional<Expression>(message_);
 }
 
 
@@ -2292,27 +1493,11 @@ LabeledStatement* LabeledStatement::ReadFrom(Reader* reader) {
 }
 
 
-void LabeledStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kLabeledStatement);
-  writer->helper()->labels()->Push(this);
-  body_->WriteTo(writer);
-  writer->helper()->labels()->Pop(this);
-}
-
-
 BreakStatement* BreakStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   BreakStatement* stmt = new BreakStatement();
   stmt->target_ = reader->helper()->labels()->Lookup(reader->ReadUInt());
   return stmt;
-}
-
-
-void BreakStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kBreakStatement);
-  writer->WriteUInt(writer->helper()->labels()->Lookup(target_));
 }
 
 
@@ -2325,14 +1510,6 @@ WhileStatement* WhileStatement::ReadFrom(Reader* reader) {
 }
 
 
-void WhileStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kWhileStatement);
-  condition_->WriteTo(writer);
-  body_->WriteTo(writer);
-}
-
-
 DoStatement* DoStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DoStatement* dostmt = new DoStatement();
@@ -2342,56 +1519,37 @@ DoStatement* DoStatement::ReadFrom(Reader* reader) {
 }
 
 
-void DoStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kDoStatement);
-  body_->WriteTo(writer);
-  condition_->WriteTo(writer);
-}
-
-
 ForStatement* ForStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   ForStatement* forstmt = new ForStatement();
   forstmt->variables_.ReadFromStatic<VariableDeclarationImpl>(reader);
   forstmt->condition_ = reader->ReadOptional<Expression>();
   forstmt->updates_.ReadFromStatic<Expression>(reader);
   forstmt->body_ = Statement::ReadFrom(reader);
+  forstmt->end_position_ = reader->max_position();
+  forstmt->position_ = reader->min_position();
+
   return forstmt;
-}
-
-
-void ForStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kForStatement);
-  VariableScope<WriterHelper> vars(writer->helper());
-  variables_.WriteToStatic<VariableDeclarationImpl>(writer);
-  writer->WriteOptional<Expression>(condition_);
-  updates_.WriteTo(writer);
-  body_->WriteTo(writer);
 }
 
 
 ForInStatement* ForInStatement::ReadFrom(Reader* reader, bool is_async) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   ForInStatement* forinstmt = new ForInStatement();
   forinstmt->is_async_ = is_async;
   forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader);
   forinstmt->iterable_ = Expression::ReadFrom(reader);
   forinstmt->body_ = Statement::ReadFrom(reader);
+  forinstmt->end_position_ = reader->max_position();
+  forinstmt->position_ = reader->min_position();
+
   return forinstmt;
-}
-
-
-void ForInStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(is_async_ ? kAsyncForInStatement : kForInStatement);
-  VariableScope<WriterHelper> vars(writer->helper());
-  variable_->WriteToImpl(writer);
-  iterable_->WriteTo(writer);
-  body_->WriteTo(writer);
 }
 
 
@@ -2416,18 +1574,6 @@ SwitchStatement* SwitchStatement::ReadFrom(Reader* reader) {
 }
 
 
-void SwitchStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  SwitchCaseScope<WriterHelper> scope(writer->helper());
-  writer->WriteTag(kSwitchStatement);
-  condition_->WriteTo(writer);
-  for (int i = 0; i < cases_.length(); i++) {
-    writer->helper()->switch_cases().Push(cases_[i]);
-  }
-  cases_.WriteTo(writer);
-}
-
-
 SwitchCase* SwitchCase::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   expressions_.ReadFromStatic<Expression>(reader);
@@ -2437,26 +1583,11 @@ SwitchCase* SwitchCase::ReadFrom(Reader* reader) {
 }
 
 
-void SwitchCase::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  expressions_.WriteTo(writer);
-  writer->WriteBool(is_default_);
-  body_->WriteTo(writer);
-}
-
-
 ContinueSwitchStatement* ContinueSwitchStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   ContinueSwitchStatement* stmt = new ContinueSwitchStatement();
   stmt->target_ = reader->helper()->switch_cases().Lookup(reader->ReadUInt());
   return stmt;
-}
-
-
-void ContinueSwitchStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kContinueSwitchStatement);
-  writer->WriteUInt(writer->helper()->switch_cases().Lookup(target_));
 }
 
 
@@ -2470,15 +1601,6 @@ IfStatement* IfStatement::ReadFrom(Reader* reader) {
 }
 
 
-void IfStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kIfStatement);
-  condition_->WriteTo(writer);
-  then_->WriteTo(writer);
-  otherwise_->WriteTo(writer);
-}
-
-
 ReturnStatement* ReturnStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   ReturnStatement* ret = new ReturnStatement();
@@ -2488,34 +1610,24 @@ ReturnStatement* ReturnStatement::ReadFrom(Reader* reader) {
 }
 
 
-void ReturnStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kReturnStatement);
-  writer->WritePosition(position_);
-  writer->WriteOptional<Expression>(expression_);
-}
-
-
 TryCatch* TryCatch::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  PositionScope scope(reader);
+
   TryCatch* tc = new TryCatch();
   tc->body_ = Statement::ReadFrom(reader);
   tc->catches_.ReadFromStatic<Catch>(reader);
+  tc->position_ = reader->min_position();
+
   return tc;
-}
-
-
-void TryCatch::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kTryCatch);
-  body_->WriteTo(writer);
-  catches_.WriteTo(writer);
 }
 
 
 Catch* Catch::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   Catch* c = new Catch();
   c->guard_ = DartType::ReadFrom(reader);
   c->exception_ =
@@ -2523,19 +1635,10 @@ Catch* Catch::ReadFrom(Reader* reader) {
   c->stack_trace_ =
       reader->ReadOptional<VariableDeclaration, VariableDeclarationImpl>();
   c->body_ = Statement::ReadFrom(reader);
+  c->end_position_ = reader->max_position();
+  c->position_ = reader->min_position();
+
   return c;
-}
-
-
-void Catch::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  VariableScope<WriterHelper> vars(writer->helper());
-  guard_->WriteTo(writer);
-  writer->WriteOptionalStatic<VariableDeclaration, VariableDeclarationImpl>(
-      exception_);
-  writer->WriteOptionalStatic<VariableDeclaration, VariableDeclarationImpl>(
-      stack_trace_);
-  body_->WriteTo(writer);
 }
 
 
@@ -2545,14 +1648,6 @@ TryFinally* TryFinally::ReadFrom(Reader* reader) {
   tf->body_ = Statement::ReadFrom(reader);
   tf->finalizer_ = Statement::ReadFrom(reader);
   return tf;
-}
-
-
-void TryFinally::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kTryFinally);
-  body_->WriteTo(writer);
-  finalizer_->WriteTo(writer);
 }
 
 
@@ -2566,15 +1661,6 @@ YieldStatement* YieldStatement::ReadFrom(Reader* reader) {
 }
 
 
-void YieldStatement::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kYieldStatement);
-  writer->WritePosition(position_);
-  writer->WriteByte(flags_);
-  expression_->WriteTo(writer);
-}
-
-
 VariableDeclaration* VariableDeclaration::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Tag tag = reader->ReadTag();
@@ -2585,6 +1671,8 @@ VariableDeclaration* VariableDeclaration::ReadFrom(Reader* reader) {
 
 VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
+  PositionScope scope(reader);
+
   VariableDeclaration* decl = new VariableDeclaration();
   decl->position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
@@ -2592,27 +1680,15 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
   decl->type_ = DartType::ReadFrom(reader);
   decl->inferred_value_ = reader->ReadOptional<InferredValue>();
   decl->initializer_ = reader->ReadOptional<Expression>();
+
+  // Go to next token position so it ends *after* the last potentially
+  // debuggable position in the initializer.
+  TokenPosition position = reader->max_position();
+  if (position.IsReal()) position.Next();
+  decl->end_position_ = position;
   reader->helper()->variables().Push(decl);
+
   return decl;
-}
-
-
-void VariableDeclaration::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kVariableDeclaration);
-  WriteToImpl(writer);
-}
-
-
-void VariableDeclaration::WriteToImpl(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WritePosition(position_);
-  writer->WriteFlags(flags_);
-  name_->WriteTo(writer);
-  type_->WriteTo(writer);
-  writer->WriteOptional<InferredValue>(inferred_value_);
-  writer->WriteOptional<Expression>(initializer_);
-  writer->helper()->variables().Push(this);
 }
 
 
@@ -2624,16 +1700,6 @@ FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
   VariableScope<ReaderHelper> parameters(reader->helper());
   decl->function_ = FunctionNode::ReadFrom(reader);
   return decl;
-}
-
-
-void FunctionDeclaration::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kFunctionDeclaration);
-  writer->WritePosition(position_);
-  variable_->WriteToImpl(writer);
-  VariableScope<WriterHelper> parameters(writer->helper());
-  function_->WriteTo(writer);
 }
 
 
@@ -2651,30 +1717,12 @@ Name* Name::ReadFrom(Reader* reader) {
 }
 
 
-void Name::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  string_->WriteTo(writer);
-  Library* library = library_;
-  bool is_private = library != NULL;
-  if (is_private) {
-    writer->WriteUInt(writer->helper()->libraries().Lookup(library_));
-  }
-}
-
-
 InferredValue* InferredValue::ReadFrom(Reader* reader) {
   InferredValue* type = new InferredValue();
   type->klass_ = Reference::ReadClassFrom(reader, true);
   type->kind_ = static_cast<BaseClassKind>(reader->ReadByte());
   type->value_bits_ = reader->ReadByte();
   return type;
-}
-
-
-void InferredValue::WriteTo(Writer* writer) {
-  Reference::WriteClassTo(writer, klass_, true);
-  writer->WriteByte(static_cast<uint8_t>(kind_));
-  writer->WriteByte(value_bits_);
 }
 
 
@@ -2712,33 +1760,15 @@ InvalidType* InvalidType::ReadFrom(Reader* reader) {
 }
 
 
-void InvalidType::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kInvalidType);
-}
-
-
 DynamicType* DynamicType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new DynamicType();
 }
 
 
-void DynamicType::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kDynamicType);
-}
-
-
 VoidType* VoidType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new VoidType();
-}
-
-
-void VoidType::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kVoidType);
 }
 
 
@@ -2758,19 +1788,6 @@ InterfaceType* InterfaceType::ReadFrom(Reader* reader,
   InterfaceType* type = new InterfaceType(klass);
   ASSERT(_without_type_arguments_);
   return type;
-}
-
-
-void InterfaceType::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  if (type_arguments_.length() == 0) {
-    writer->WriteTag(kSimpleInterfaceType);
-    Reference::WriteClassTo(writer, klass_);
-  } else {
-    writer->WriteTag(kInterfaceType);
-    Reference::WriteClassTo(writer, klass_);
-    type_arguments_.WriteTo(writer);
-  }
 }
 
 
@@ -2798,41 +1815,12 @@ FunctionType* FunctionType::ReadFrom(Reader* reader, bool _is_simple_) {
 }
 
 
-void FunctionType::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-
-  bool is_simple =
-      positional_parameters_.length() == required_parameter_count_ &&
-      type_parameters_.length() == 0 && named_parameters_.length() == 0;
-  if (is_simple) {
-    writer->WriteTag(kSimpleFunctionType);
-    positional_parameters_.WriteTo(writer);
-    return_type_->WriteTo(writer);
-  } else {
-    TypeParameterScope<WriterHelper> scope(writer->helper());
-    writer->WriteTag(kFunctionType);
-    type_parameters_.WriteTo(writer);
-    writer->WriteUInt(required_parameter_count_);
-    positional_parameters_.WriteTo(writer);
-    named_parameters_.WriteTo(writer);
-    return_type_->WriteTo(writer);
-  }
-}
-
-
 TypeParameterType* TypeParameterType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   TypeParameterType* type = new TypeParameterType();
   type->parameter_ =
       reader->helper()->type_parameters().Lookup(reader->ReadUInt());
   return type;
-}
-
-
-void TypeParameterType::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  writer->WriteTag(kTypeParameterType);
-  writer->WriteUInt(writer->helper()->type_parameters().Lookup(parameter_));
 }
 
 
@@ -2857,24 +1845,6 @@ Program* Program::ReadFrom(Reader* reader) {
   program->main_method_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
 
   return program;
-}
-
-
-void Program::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-
-  writer->helper()->SetProgram(this);
-
-  writer->WriteUInt32(kMagicProgramFile);
-
-  // NOTE: Currently we don't GC strings and we require that all referenced
-  // strings in nodes are present in [string_table_].
-  string_table_.WriteTo(writer);
-  source_uri_table_.WriteTo(writer);
-  source_table_.WriteTo(writer);
-
-  libraries_.WriteTo(writer);
-  Reference::WriteMemberTo(writer, main_method_);
 }
 
 
@@ -2904,40 +1874,11 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
 }
 
 
-void FunctionNode::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  TypeParameterScope<WriterHelper> scope(writer->helper());
-
-  writer->WritePosition(position_);
-  writer->WritePosition(end_position_);
-  writer->WriteByte(static_cast<uint8_t>(async_marker_));
-  writer->WriteByte(debuggable_ ? 1 : 0);
-  type_parameters().WriteTo(writer);
-  writer->WriteUInt(required_parameter_count());
-  positional_parameters().WriteToStatic<VariableDeclarationImpl>(writer);
-  named_parameters().WriteToStatic<VariableDeclarationImpl>(writer);
-  return_type_->WriteTo(writer);
-  writer->WriteOptional<InferredValue>(inferred_return_value_);
-
-  LabelScope<WriterHelper, BlockMap<LabeledStatement> > labels(
-      writer->helper());
-  VariableScope<WriterHelper> vars(writer->helper());
-  writer->WriteOptional<Statement>(body_);
-}
-
-
 TypeParameter* TypeParameter::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   name_ = Reference::ReadStringFrom(reader);
   bound_ = DartType::ReadFrom(reader);
   return this;
-}
-
-
-void TypeParameter::WriteTo(Writer* writer) {
-  TRACE_WRITE_OFFSET();
-  name_->WriteTo(writer);
-  bound_->WriteTo(writer);
 }
 
 
@@ -2948,14 +1889,6 @@ kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length) {
   kernel::Reader reader(buffer, buffer_length);
   return kernel::Program::ReadFrom(&reader);
-}
-
-
-void WritePrecompiledKernel(ByteWriter* byte_writer, kernel::Program* program) {
-  ASSERT(byte_writer != NULL);
-
-  kernel::Writer writer(byte_writer);
-  program->WriteTo(&writer);
 }
 
 

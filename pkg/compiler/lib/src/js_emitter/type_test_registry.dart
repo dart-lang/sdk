@@ -28,7 +28,8 @@ class TypeTestRegistry {
 
   Iterable<ClassElement> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
-      cachedClassesUsingTypeVariableTests = compiler.codegenWorld.isChecks
+      cachedClassesUsingTypeVariableTests = compiler
+          .codegenWorldBuilder.isChecks
           .where((ResolutionDartType t) => t is ResolutionTypeVariableType)
           .map((ResolutionTypeVariableType v) => v.element.enclosingClass)
           .toList();
@@ -106,7 +107,8 @@ class TypeTestRegistry {
         return false;
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
-          return compiler.codegenWorld.hasInvokedGetter(function, closedWorld);
+          return compiler.codegenWorldBuilder
+              .hasInvokedGetter(function, closedWorld);
         }
       }
       return false;
@@ -144,11 +146,11 @@ class TypeTestRegistry {
     assert(checkedClasses == null && checkedFunctionTypes == null);
 
     backend.rti.addImplicitChecks(
-        compiler.codegenWorld, classesUsingTypeVariableTests);
+        compiler.codegenWorldBuilder, classesUsingTypeVariableTests);
 
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<ResolutionFunctionType>();
-    compiler.codegenWorld.isChecks.forEach((ResolutionDartType t) {
+    compiler.codegenWorldBuilder.isChecks.forEach((ResolutionDartType t) {
       if (t is ResolutionInterfaceType) {
         checkedClasses.add(t.element);
       } else if (t is ResolutionFunctionType) {

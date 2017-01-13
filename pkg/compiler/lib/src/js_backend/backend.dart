@@ -643,12 +643,13 @@ class JavaScriptBackend extends Backend {
         library == helpers.jsHelperLibrary;
   }
 
-  Namer determineNamer(ClosedWorld closedWorld) {
+  Namer determineNamer(
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(this, closedWorld)
-            : new MinifyNamer(this, closedWorld)
-        : new Namer(this, closedWorld);
+            ? new FrequencyBasedNamer(this, closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(this, closedWorld, codegenWorldBuilder)
+        : new Namer(this, closedWorld, codegenWorldBuilder);
   }
 
   /// The backend must *always* call this method when enqueuing an
@@ -1081,8 +1082,8 @@ class JavaScriptBackend extends Backend {
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
-      computeImpactForInstantiatedConstantType(
-          interceptor.dispatchedType, impactBuilder);
+      ClassElement cls = interceptor.cls;
+      computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
     } else if (constant.isType) {
       if (isForResolution) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
@@ -1291,7 +1292,7 @@ class JavaScriptBackend extends Backend {
     }
     computeMembersNeededForReflection(closedWorld);
     rti.computeClassesNeedingRti(
-        compiler.enqueuer.resolution.universe, closedWorld);
+        compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _registeredMetadata.clear();
   }
 
@@ -2048,13 +2049,15 @@ class JavaScriptBackend extends Backend {
     // can include the correct ones when including the class.
     Map<ClassElement, List<LocalFunctionElement>> closureMap =
         new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure in compiler.resolverWorld.allClosures) {
+    for (LocalFunctionElement closure
+        in compiler.resolutionWorldBuilder.allClosures) {
       closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
     }
     bool foundClosure = false;
     Set<Element> reflectableMembers = new Set<Element>();
     ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
-    for (ClassElement cls in resolution.universe.directlyInstantiatedClasses) {
+    for (ClassElement cls
+        in resolution.worldBuilder.directlyInstantiatedClasses) {
       // Do not process internal classes.
       if (cls.library.isInternalLibrary || cls.isInjected) continue;
       if (referencedFromMirrorSystem(cls)) {
@@ -2157,7 +2160,8 @@ class JavaScriptBackend extends Backend {
     if (foundClosure) {
       reflectableMembers.add(helpers.closureClass);
     }
-    Set<Element> closurizedMembers = compiler.resolverWorld.closurizedMembers;
+    Set<Element> closurizedMembers =
+        compiler.resolutionWorldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
       reflectableMembers.add(helpers.boundClosureClass);
     }
@@ -2309,7 +2313,7 @@ class JavaScriptBackend extends Backend {
 
       StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
           ? constantImpactsForResolution
-          : constantImpactsForResolution;
+          : constantImpactsForCodegen;
       if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
         /// Register the constant value of [metadata] as live in resolution.
         void registerMetadataConstant(MetadataAnnotation metadata) {
@@ -2361,7 +2365,15 @@ class JavaScriptBackend extends Backend {
           }
         }
         if (element.enclosingClass != null) {
-          processElementMetadata(element.enclosingClass);
+          // Only process library of top level fields/methods
+          // (and not for classes).
+          // TODO(johnniwinther): Fix this: We are missing some metadata on
+          // libraries (example: in co19/Language/Metadata/before_export_t01).
+          if (element.enclosingElement is ClassElement) {
+            // Use [enclosingElement] instead of [enclosingClass] to ensure that
+            // we process patch class metadata for patch and injected members.
+            processElementMetadata(element.enclosingElement);
+          }
         } else {
           processLibraryMetadata(element.library);
         }
@@ -2391,7 +2403,7 @@ class JavaScriptBackend extends Backend {
 
   WorldImpact onCodegenStart(ClosedWorld closedWorld) {
     _closedWorld = closedWorld;
-    _namer = determineNamer(_closedWorld);
+    _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
     tracer = new Tracer(_closedWorld, namer, compiler.outputProvider);
     emitter.createEmitter(_namer, _closedWorld);
     lookupMapAnalysis.onCodegenStart();
@@ -3258,7 +3270,7 @@ class JavaScriptBackendClasses implements BackendClasses {
       helpers.jsIndexingBehaviorInterface;
   ClassElement get interceptorImplementation => helpers.jsInterceptorClass;
 
-  bool isDefaultEqualityImplementation(Element element) {
+  bool isDefaultEqualityImplementation(MemberElement element) {
     assert(element.name == '==');
     ClassElement classElement = element.enclosingClass;
     return classElement == helpers.commonElements.objectClass ||

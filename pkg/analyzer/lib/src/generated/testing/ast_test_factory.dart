@@ -50,6 +50,16 @@ class AstTestFactory {
       astFactory.asExpression(
           expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
 
+  static AssertInitializer assertInitializer(
+          Expression condition, Expression message) =>
+      astFactory.assertInitializer(
+          TokenFactory.tokenFromKeyword(Keyword.ASSERT),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          condition,
+          TokenFactory.tokenFromType(TokenType.COMMA),
+          message,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+
   static AssertStatement assertStatement(Expression condition,
           [Expression message]) =>
       astFactory.assertStatement(

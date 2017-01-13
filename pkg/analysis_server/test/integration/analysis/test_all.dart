@@ -7,6 +7,7 @@ library test.integration.analysis.all;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options_test.dart' as analysis_options_test;
+import 'error_driver_test.dart' as error_driver_test;
 import 'error_test.dart' as error_test;
 import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
 import 'get_errors_before_analysis_test.dart'
@@ -15,6 +16,7 @@ import 'get_errors_nonStandard_sdk.dart' as get_errors_nonStandard_sdk;
 import 'get_hover_test.dart' as get_hover_test;
 import 'highlights_test.dart' as highlights_test;
 import 'highlights_test2.dart' as highlights_test2;
+import 'lint_driver_test.dart' as lint_driver_test;
 import 'lint_test.dart' as lint_test;
 import 'navigation_test.dart' as navigation_test;
 import 'occurrences_test.dart' as occurrences_test;
@@ -23,6 +25,7 @@ import 'overrides_test.dart' as overrides_test;
 import 'package_root_test.dart' as package_root_test;
 import 'reanalyze_concurrent_test.dart' as reanalyze_concurrent_test;
 import 'reanalyze_test.dart' as reanalyze_test;
+import 'update_content_driver_test.dart' as update_content_driver_test;
 import 'update_content_list_test.dart' as update_content_list_test;
 import 'update_content_test.dart' as update_content_test;
 
@@ -32,6 +35,7 @@ import 'update_content_test.dart' as update_content_test;
 main() {
   defineReflectiveSuite(() {
     analysis_options_test.main();
+    error_driver_test.main();
     error_test.main();
     get_errors_after_analysis_test.main();
     get_errors_before_analysis_test.main();
@@ -39,6 +43,7 @@ main() {
     get_hover_test.main();
     highlights_test.main();
     highlights_test2.main();
+    lint_driver_test.main();
     lint_test.main();
     navigation_test.main();
     occurrences_test.main();
@@ -47,6 +52,7 @@ main() {
     package_root_test.main();
     reanalyze_concurrent_test.main();
     reanalyze_test.main();
+    update_content_driver_test.main();
     update_content_test.main();
     update_content_list_test.main();
   }, name: 'analysis');

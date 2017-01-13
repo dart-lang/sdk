@@ -78,7 +78,8 @@ class RelatedTypesChecker
       : this.resolvedAst = resolvedAst,
         super(resolvedAst.elements);
 
-  ClosedWorld get world => compiler.resolverWorld.closedWorldForTesting;
+  ClosedWorld get world =>
+      compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   CommonElements get commonElements => compiler.commonElements;
 

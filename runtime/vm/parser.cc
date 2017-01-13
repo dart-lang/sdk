@@ -673,7 +673,8 @@ struct ParamDesc {
         var(NULL),
         is_final(false),
         is_field_initializer(false),
-        has_explicit_type(false) {}
+        has_explicit_type(false),
+        is_covariant(false) {}
   const AbstractType* type;
   TokenPosition name_pos;
   const String* name;
@@ -683,6 +684,7 @@ struct ParamDesc {
   bool is_final;
   bool is_field_initializer;
   bool has_explicit_type;
+  bool is_covariant;
 };
 
 
@@ -696,6 +698,7 @@ struct ParamList {
     has_optional_named_parameters = false;
     has_explicit_default_values = false;
     has_field_initializer = false;
+    has_covariant = false;
     implicitly_final = false;
     skipped = false;
     this->parameters = new ZoneGrowableArray<ParamDesc>();
@@ -757,6 +760,7 @@ struct ParamList {
   bool has_optional_named_parameters;
   bool has_explicit_default_values;
   bool has_field_initializer;
+  bool has_covariant;
   bool implicitly_final;
   bool skipped;
   ZoneGrowableArray<ParamDesc>* parameters;
@@ -769,6 +773,7 @@ struct MemberDesc {
   void Clear() {
     has_abstract = false;
     has_external = false;
+    has_covariant = false;
     has_final = false;
     has_const = false;
     has_static = false;
@@ -816,6 +821,7 @@ struct MemberDesc {
   String* DictName() const { return (dict_name != NULL) ? dict_name : name; }
   bool has_abstract;
   bool has_external;
+  bool has_covariant;
   bool has_final;
   bool has_const;
   bool has_static;
@@ -1946,6 +1952,12 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     SkipMetadata();
   }
 
+  if (CurrentToken() == Token::kCOVARIANT &&
+      (LookaheadToken(1) == Token::kFINAL || LookaheadToken(1) == Token::kVAR ||
+       Token::IsIdentifier(LookaheadToken(1)))) {
+    parameter.is_covariant = true;
+    ConsumeToken();
+  }
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
     final_seen = true;
@@ -2163,6 +2175,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     parameter.is_final = true;
   }
   params->parameters->Add(parameter);
+  if (parameter.is_covariant) {
+    params->has_covariant = true;
+  }
 }
 
 
@@ -3674,6 +3689,10 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   ASSERT(method->type != NULL);  // May still be unresolved.
   ASSERT(current_member_ == method);
 
+  if (method->has_covariant) {
+    ReportError(method->name_pos,
+                "methods and constructors cannot be declared covariant");
+  }
   if (method->has_var) {
     ReportError(method->name_pos, "keyword var not allowed for methods");
   }
@@ -4041,6 +4060,13 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   // All const fields are also final.
   ASSERT(!field->has_const || field->has_final);
 
+  if (field->has_covariant) {
+    if (field->has_static) {
+      ReportError("static fields cannot be declared covariant");
+    } else if (field->has_final) {
+      ReportError("final fields cannot be declared covariant");
+    }
+  }
   if (field->has_abstract) {
     ReportError("keyword 'abstract' not allowed in field declaration");
   }
@@ -4251,6 +4277,10 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
       (LookaheadToken(1) != Token::kLPAREN)) {
     ConsumeToken();
     member.has_static = true;
+  }
+  if (CurrentToken() == Token::kCOVARIANT) {
+    ConsumeToken();
+    member.has_covariant = true;
   }
   if (CurrentToken() == Token::kCONST) {
     ConsumeToken();
@@ -7313,6 +7343,13 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
                   "only generative constructors may have "
                   "initializing formal parameters");
     }
+    if (param_desc.is_covariant) {
+      if (!func.IsDynamicFunction(true)) {
+        ReportError(param_desc.name_pos,
+                    "only instance functions may have "
+                    "covariant parameters");
+      }
+    }
   }
 }
 
@@ -9918,7 +9955,7 @@ AstNode* Parser::ParseJump(String* label_name) {
       ReportError(jump_pos, "label '%s' not found", target_name.ToCString());
     }
   } else if (FLAG_enable_debug_break && (CurrentToken() == Token::kSTRING)) {
-    const char* message = strdup(CurrentLiteral()->ToCString());
+    const char* message = Z->MakeCopyOfString(CurrentLiteral()->ToCString());
     ConsumeToken();
     return new (Z) StopNode(jump_pos, message);
   } else {

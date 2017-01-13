@@ -1358,8 +1358,7 @@ class SsaBuilder extends ast.Visitor
       List bodyCallInputs = <HInstruction>[];
       if (isNativeUpgradeFactory) {
         if (interceptor == null) {
-          ConstantValue constant =
-              new InterceptorConstantValue(classElement.thisType);
+          ConstantValue constant = new InterceptorConstantValue(classElement);
           interceptor = graph.addConstant(constant, closedWorld);
         }
         bodyCallInputs.add(interceptor);
@@ -2902,9 +2901,10 @@ class SsaBuilder extends ast.Visitor
       HInstruction argumentInstruction = pop();
       if (argumentInstruction is HConstant) {
         ConstantValue argumentConstant = argumentInstruction.constant;
-        if (argumentConstant is TypeConstantValue) {
-          ConstantValue constant =
-              new InterceptorConstantValue(argumentConstant.representedType);
+        if (argumentConstant is TypeConstantValue &&
+            argumentConstant.representedType is ResolutionInterfaceType) {
+          ResolutionInterfaceType type = argumentConstant.representedType;
+          ConstantValue constant = new InterceptorConstantValue(type.element);
           HInstruction instruction = graph.addConstant(constant, closedWorld);
           stack.add(instruction);
           return;
@@ -3464,6 +3464,7 @@ class SsaBuilder extends ast.Visitor
       }
       js.Template code = js.js.parseForeignJS('new Array(#)');
       var behavior = new native.NativeBehavior();
+      behavior.typesInstantiated.add(expectedType);
       behavior.typesReturned.add(expectedType);
       // The allocation can throw only if the given length is a double or
       // outside the unsigned 32 bit range.
@@ -3993,10 +3994,10 @@ class SsaBuilder extends ast.Visitor
       bool isLength = selector.isGetter && selector.name == "length";
       if (isLength || selector.isIndex) {
         return closedWorld.isSubtypeOf(
-            element.enclosingClass.declaration, helpers.jsIndexableClass);
+            element.enclosingClass, helpers.jsIndexableClass);
       } else if (selector.isIndexSet) {
-        return closedWorld.isSubtypeOf(element.enclosingClass.declaration,
-            helpers.jsMutableIndexableClass);
+        return closedWorld.isSubtypeOf(
+            element.enclosingClass, helpers.jsMutableIndexableClass);
       } else {
         return false;
       }

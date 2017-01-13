@@ -181,7 +181,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
-Language/Expressions/Shift/syntax_t15: Crash  # Invalid class id during isolate shutdown Heap::VerifyGC
 Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash  # !main_obj.IsNull()
 
 # dartk: precompilation failures

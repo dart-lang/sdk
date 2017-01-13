@@ -158,19 +158,29 @@ main(List<String> arguments) {
       if (analyzerOptions.declaredVariables.isNotEmpty) {
         compiler = new ModuleCompiler(analyzerOptions);
       }
-      var module = compiler.compile(unit, options);
+      JSModuleFile module = null;
+      try {
+        module = compiler.compile(unit, options);
+      } catch (e) {}
 
       bool notStrong = notYetStrongTests.contains(name);
-      if (module.isValid) {
+      bool crashing = _crashingTests.contains(name);
+
+      if (module == null) {
+        expect(crashing, isTrue,
+            reason: "test $name crashes during compilation.");
+      } else if (module.isValid) {
         _writeModule(
             path.join(codegenOutputDir, name),
             isTopLevelTest ? path.join(codegenExpectDir, name) : null,
             moduleFormat,
             module);
 
+        expect(crashing, isFalse, reason: "test $name no longer crashes.");
         expect(notStrong, isFalse,
             reason: "test $name expected strong mode errors, but compiled.");
       } else {
+        expect(crashing, isFalse, reason: "test $name no longer crashes.");
         expect(notStrong, isTrue,
             reason: "test $name failed to compile due to strong mode errors:"
                 "\n\n${module.errors.join('\n')}.");
@@ -365,3 +375,21 @@ String _resolveDirective(UriBasedDirective directive) {
       ? uriContent
       : null;
 }
+
+final _crashingTests = new Set<String>.from([
+  'language/mixin_illegal_syntax_test_none_multi',
+  'language/mixin_illegal_syntax_test_01_multi',
+  'language/mixin_illegal_syntax_test_02_multi',
+  'language/mixin_illegal_syntax_test_03_multi',
+  'language/mixin_illegal_syntax_test_04_multi',
+  'language/mixin_illegal_syntax_test_05_multi',
+  'language/mixin_illegal_syntax_test_06_multi',
+  'language/mixin_illegal_syntax_test_07_multi',
+  'language/mixin_illegal_syntax_test_08_multi',
+  'language/mixin_illegal_syntax_test_09_multi',
+  'language/mixin_illegal_syntax_test_10_multi',
+  'language/mixin_illegal_syntax_test_11_multi',
+  'language/mixin_illegal_syntax_test_12_multi',
+  'language/mixin_illegal_syntax_test_13_multi',
+  'language/mixin_illegal_syntax_test_14_multi'
+]);

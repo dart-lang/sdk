@@ -117,7 +117,10 @@ class JsInteropAnalysis {
 
       // Skip classes that are completely unreachable. This should only happen
       // when all of jsinterop types are unreachable from main.
-      if (!backend.compiler.resolverWorld.isImplemented(classElement)) return;
+      if (!backend.compiler.resolutionWorldBuilder
+          .isImplemented(classElement)) {
+        return;
+      }
 
       if (!classElement.implementsInterface(helpers.jsJavaScriptObjectClass)) {
         backend.reporter.reportErrorMessage(classElement,
@@ -166,7 +169,7 @@ class JsInteropAnalysis {
   jsAst.Statement buildJsInteropBootstrap() {
     if (!enabledJsInterop) return null;
     List<jsAst.Statement> statements = <jsAst.Statement>[];
-    backend.compiler.codegenWorld.forEachInvokedName(
+    backend.compiler.codegenWorldBuilder.forEachInvokedName(
         (String name, Map<Selector, SelectorConstraints> selectors) {
       selectors.forEach((Selector selector, SelectorConstraints constraints) {
         if (selector.isClosureCall) {
@@ -189,7 +192,7 @@ class JsInteropAnalysis {
   }
 
   ResolutionFunctionType buildJsFunctionType() {
-    // TODO(jacobr): consider using codegenWorld.isChecks to determine the
+    // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
     // range of positional arguments that need to be supported by JavaScript
     // function types.
     return new ResolutionFunctionType.synthesized(

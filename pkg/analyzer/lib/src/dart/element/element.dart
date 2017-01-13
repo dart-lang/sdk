@@ -2239,6 +2239,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
                     .buildExpression(this, serialized.expression));
         initializer.fieldName.staticElement = enclosingElement.getField(name);
         return initializer;
+      case UnlinkedConstructorInitializerKind.assertInvocation:
+        return AstTestFactory.assertInitializer(
+            arguments[0], arguments.length > 1 ? arguments[1] : null);
       case UnlinkedConstructorInitializerKind.superInvocation:
         SuperConstructorInvocation initializer =
             AstTestFactory.superConstructorInvocation2(

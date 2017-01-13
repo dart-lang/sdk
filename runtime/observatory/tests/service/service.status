@@ -46,7 +46,7 @@ get_isolate_after_language_error_test: SkipByDesign
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
-[ ($noopt || $compiler == precompiler) ]
+[ $compiler == precompiler ]
 *: Skip # Issue 24651
 
 [ $runtime == vm ]

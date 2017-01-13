@@ -565,7 +565,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = "$buildDir/dart_bootstrap";
+    var exec;
+    if (isAndroid && arch == 'arm') {
+      exec = "$buildDir/clang_x86/dart_bootstrap";
+    } else {
+      exec = "$buildDir/dart_bootstrap";
+    }
     var args = new List();
     args.add("--snapshot-kind=app-aot");
     if (useBlobs) {

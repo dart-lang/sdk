@@ -108,25 +108,8 @@ void testBadResponseClose() {
 }
 
 
-void testBadHeaders() {
-  asyncStart();
-  testClientRequest((request) {
-    var value = "a";
-    for (int i = 0; i < 8 * 1024; i++) {
-      value += 'a';
-    }
-    request.headers.set('name', value);
-    request.done.catchError((error) {
-      asyncEnd();
-    }, test: (e) => e is HttpException);
-    return request.close();
-  });
-}
-
-
 void main() {
   testResponseDone();
   testBadResponseAdd();
   testBadResponseClose();
-  testBadHeaders();
 }

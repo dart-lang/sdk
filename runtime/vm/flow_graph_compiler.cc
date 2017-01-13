@@ -90,7 +90,8 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_unbox_numeric_fields = false;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    // Set flags affecting runtime accordingly for dart_noopt.
+    // Set flags affecting runtime accordingly for dart_bootstrap.
+    // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_collect_code = false;
     FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.

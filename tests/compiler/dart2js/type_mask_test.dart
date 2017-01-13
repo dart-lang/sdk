@@ -22,7 +22,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(CODE, uri);
   compiler.closeResolution();
-  var closedWorld = compiler.resolverWorld.closedWorldForTesting;
+  var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   asyncTest(() => compiler.run(uri).then((_) {
         var classA = findElement(compiler, 'A');

@@ -1347,7 +1347,12 @@ enum UnlinkedConstructorInitializerKind {
   /**
    * Invocation of a superclass' constructor.
    */
-  superInvocation
+  superInvocation,
+
+  /**
+   * Invocation of `assert`.
+   */
+  assertInvocation
 }
 
 /**
@@ -2378,6 +2383,11 @@ enum UnlinkedExprOperation {
    * and only include a marker that an error was detected.
    */
   pushError,
+
+  /**
+   * Push `this` expression onto the stack.
+   */
+  pushThis,
 }
 
 /**

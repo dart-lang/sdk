@@ -36,7 +36,7 @@ abstract class RuntimeTypes {
   Set<ClassElement> getClassesUsedInSubstitutions(
       JavaScriptBackend backend, TypeChecks checks);
   void computeClassesNeedingRti(
-      ResolutionWorldBuilder resolverWorld, ClosedWorld closedWorld);
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld);
 
   /// Compute the required type checkes and substitutions for the given
   /// instantitated and checked classes.
@@ -48,7 +48,7 @@ abstract class RuntimeTypes {
   ///
   /// This function must be called after all is-checks have been registered.
   void addImplicitChecks(
-      WorldBuilder universe, Iterable<ClassElement> classesUsingChecks);
+      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks);
 
   /// Return all classes that are referenced in the type of the function, i.e.,
   /// in the return type or the argument types.
@@ -173,18 +173,18 @@ class _RuntimeTypes implements RuntimeTypes {
    */
   @override
   void addImplicitChecks(
-      WorldBuilder universe, Iterable<ClassElement> classesUsingChecks) {
+      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    Set<ResolutionDartType> instantiatedTypes = universe.instantiatedTypes;
+    Set<ResolutionDartType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
       for (ResolutionDartType type in instantiatedTypes) {
         if (type.kind != ResolutionTypeKind.INTERFACE) continue;
         ResolutionInterfaceType interface = type;
         do {
           for (ResolutionDartType argument in interface.typeArguments) {
-            universe.registerIsCheck(argument);
+            worldBuilder.registerIsCheck(argument);
           }
           interface = interface.element.supertype;
         } while (interface != null && !instantiatedTypes.contains(interface));
@@ -207,7 +207,7 @@ class _RuntimeTypes implements RuntimeTypes {
             ResolutionInterfaceType instance = current.asInstanceOf(cls);
             if (instance == null) break;
             for (ResolutionDartType argument in instance.typeArguments) {
-              universe.registerIsCheck(argument);
+              worldBuilder.registerIsCheck(argument);
             }
             current = current.element.supertype;
           } while (current != null && !instantiatedTypes.contains(current));
@@ -218,7 +218,7 @@ class _RuntimeTypes implements RuntimeTypes {
 
   @override
   void computeClassesNeedingRti(
-      ResolutionWorldBuilder resolverWorld, ClosedWorld closedWorld) {
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld) {
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
@@ -244,7 +244,7 @@ class _RuntimeTypes implements RuntimeTypes {
     }
 
     Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
-    resolverWorld.isChecks.forEach((ResolutionDartType type) {
+    resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         // GENERIC_METHODS: When generic method support is complete enough to
@@ -256,7 +256,8 @@ class _RuntimeTypes implements RuntimeTypes {
       }
     });
     // Add is-checks that result from classes using type variables in checks.
-    addImplicitChecks(compiler.resolverWorld, classesUsingTypeVariableTests);
+    addImplicitChecks(
+        compiler.resolutionWorldBuilder, classesUsingTypeVariableTests);
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to
@@ -269,7 +270,7 @@ class _RuntimeTypes implements RuntimeTypes {
     }
     // Compute the set of all classes and methods that need runtime type
     // information.
-    compiler.resolverWorld.isChecks.forEach((ResolutionDartType type) {
+    compiler.resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
       if (type.isInterfaceType) {
         ResolutionInterfaceType itf = type;
         if (!itf.treatAsRaw) {
@@ -294,9 +295,9 @@ class _RuntimeTypes implements RuntimeTypes {
             }
           }
 
-          compiler.resolverWorld.closuresWithFreeTypeVariables
+          compiler.resolutionWorldBuilder.closuresWithFreeTypeVariables
               .forEach(analyzeMethod);
-          compiler.resolverWorld.callMethodsWithFreeTypeVariables
+          compiler.resolutionWorldBuilder.callMethodsWithFreeTypeVariables
               .forEach(analyzeMethod);
         }
       }
@@ -311,9 +312,9 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
 
-      compiler.resolverWorld.closuresWithFreeTypeVariables
+      compiler.resolutionWorldBuilder.closuresWithFreeTypeVariables
           .forEach(analyzeMethod);
-      compiler.resolverWorld.callMethodsWithFreeTypeVariables
+      compiler.resolutionWorldBuilder.callMethodsWithFreeTypeVariables
           .forEach(analyzeMethod);
     }
     // Add the classes that need RTI because they use a type variable as
@@ -358,10 +359,10 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   void computeRequiredChecks() {
-    Set<ResolutionDartType> isChecks = compiler.codegenWorld.isChecks;
+    Set<ResolutionDartType> isChecks = compiler.codegenWorldBuilder.isChecks;
     // These types are needed for is-checks against function types.
     Set<ResolutionDartType> instantiatedTypesAndClosures =
-        computeInstantiatedTypesAndClosures(compiler.codegenWorld);
+        computeInstantiatedTypesAndClosures(compiler.codegenWorldBuilder);
     computeInstantiatedArguments(instantiatedTypesAndClosures, isChecks);
     computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
     cachedRequiredChecks =
@@ -369,10 +370,11 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   Set<ResolutionDartType> computeInstantiatedTypesAndClosures(
-      CodegenWorldBuilder universe) {
+      CodegenWorldBuilder worldBuilder) {
     Set<ResolutionDartType> instantiatedTypes =
-        new Set<ResolutionDartType>.from(universe.instantiatedTypes);
-    for (ResolutionDartType instantiatedType in universe.instantiatedTypes) {
+        new Set<ResolutionDartType>.from(worldBuilder.instantiatedTypes);
+    for (ResolutionDartType instantiatedType
+        in worldBuilder.instantiatedTypes) {
       if (instantiatedType.isInterfaceType) {
         ResolutionInterfaceType interface = instantiatedType;
         ResolutionFunctionType callType = interface.callType;
@@ -381,14 +383,15 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
     }
-    for (FunctionElement element in universe.staticFunctionsNeedingGetter) {
+    for (FunctionElement element in worldBuilder.staticFunctionsNeedingGetter) {
       instantiatedTypes.add(element.type);
     }
     // TODO(johnniwinther): We should get this information through the
     // [neededClasses] computed in the emitter instead of storing it and pulling
     // it from resolution, but currently it would introduce a cyclic dependency
     // between [computeRequiredChecks] and [computeNeededClasses].
-    for (TypedElement element in compiler.resolverWorld.closurizedMembers) {
+    for (TypedElement element
+        in compiler.resolutionWorldBuilder.closurizedMembers) {
       instantiatedTypes.add(element.type);
     }
     return instantiatedTypes;

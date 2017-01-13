@@ -216,21 +216,6 @@ abstract class TestSuite {
     return flutterExecutable;
   }
 
-  String get dartVmNooptBinaryFileName {
-    // Controlled by user with the option "--dart".
-    String dartExecutable = configuration['dart'];
-
-    if (dartExecutable == '') {
-      String suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart_noopt$suffix'
-          : '$buildDir/dart_noopt$suffix';
-    }
-
-    TestUtils.ensureExists(dartExecutable, configuration);
-    return dartExecutable;
-  }
-
   String get dartPrecompiledBinaryFileName {
     // Controlled by user with the option "--dart_precompiled".
     String dartExecutable = configuration['dart_precompiled'];

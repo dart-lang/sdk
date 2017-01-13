@@ -1889,7 +1889,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       // specific to the class. For now, not supported for native classes and
       // native elements.
       ClassElement cls = element.enclosingClassOrCompilationUnit.declaration;
-      if (compiler.codegenWorld.directlyInstantiatedClasses.contains(cls) &&
+      if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
+              .contains(cls) &&
           !backend.isNative(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
               compiler.deferredLoadTask.outputUnitForElement(cls)) {

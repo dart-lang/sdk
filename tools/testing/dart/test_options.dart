@@ -207,9 +207,6 @@ class TestOptionsParser {
           false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
-          type: 'bool'),
-      new _TestOptionSpecification(
           'fast_startup',
           'Pass the --fast-startup flag to dart2js',
           ['--fast-startup'],

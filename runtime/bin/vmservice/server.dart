@@ -166,7 +166,7 @@ class Server {
   }
 
   bool _originCheck(HttpRequest request) {
-    if (_originCheckDisabled) {
+    if (_originCheckDisabled || Platform.isFuchsia) {
       // Always allow.
       return true;
     }
@@ -306,12 +306,16 @@ class Server {
 
     // Startup HTTP server.
     try {
-      var addresses = await InternetAddress.lookup(_ip);
       var address;
-      // Prefer IPv4 addresses.
-      for (var i = 0; i < addresses.length; i++) {
-        address = addresses[i];
-        if (address.type == InternetAddressType.IP_V4) break;
+      if (Platform.isFuchsia) {
+        address = InternetAddress.ANY_IP_V6;
+      } else {
+        var addresses = await InternetAddress.lookup(_ip);
+        // Prefer IPv4 addresses.
+        for (var i = 0; i < addresses.length; i++) {
+          address = addresses[i];
+          if (address.type == InternetAddressType.IP_V4) break;
+        }
       }
       _server = await HttpServer.bind(address, _port);
       _server.listen(_requestHandler, cancelOnError: true);

@@ -52,8 +52,6 @@ main() {
     defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
-    defineReflectiveTests(StrictModeTest_Driver);
-    defineReflectiveTests(TypePropagationTest_Driver);
   });
 }
 
@@ -779,12 +777,6 @@ int f() {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
-}
-
-@reflectiveTest
-class StrictModeTest_Driver extends StrictModeTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 @reflectiveTest
@@ -2390,18 +2382,6 @@ main() {
       verify([source]);
     }
     return analysisResult.unit;
-  }
-}
-
-@reflectiveTest
-class TypePropagationTest_Driver extends TypePropagationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_query() {
-    return super.test_query();
   }
 }
 

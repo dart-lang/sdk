@@ -7,7 +7,7 @@ library masks;
 import '../common.dart';
 import '../common/backend_api.dart' show BackendClasses;
 import '../constants/values.dart' show PrimitiveConstantValue;
-import '../elements/elements.dart';
+import '../elements/elements.dart' show Entity;
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
@@ -173,7 +173,7 @@ class CommonMasks {
     // Just checking for [:TypedData:] is not sufficient, as it is an
     // abstract class any user-defined class can implement. So we also
     // check for the interface [JavaScriptIndexingBehavior].
-    ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
+    ClassEntity typedDataClass = closedWorld.commonElements.typedDataClass;
     return typedDataClass != null &&
         closedWorld.isInstantiated(typedDataClass) &&
         mask.satisfies(typedDataClass, closedWorld) &&
@@ -187,7 +187,7 @@ class CommonMasks {
         !type1.intersection(type2, closedWorld).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
-    ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
+    ClassEntity typedDataClass = closedWorld.commonElements.typedDataClass;
     return typedDataClass != null &&
         closedWorld.isInstantiated(typedDataClass) &&
         intersects(mask, new TypeMask.subtype(typedDataClass, closedWorld)) &&
@@ -198,11 +198,11 @@ class CommonMasks {
                 closedWorld));
   }
 
-  TypeMask createNonNullExact(ClassElement cls) {
-    return new TypeMask.nonNullExact(cls.declaration, closedWorld);
+  TypeMask createNonNullExact(ClassEntity cls) {
+    return new TypeMask.nonNullExact(cls, closedWorld);
   }
 
-  TypeMask createNonNullSubtype(ClassElement cls) {
-    return new TypeMask.nonNullSubtype(cls.declaration, closedWorld);
+  TypeMask createNonNullSubtype(ClassEntity cls) {
+    return new TypeMask.nonNullSubtype(cls, closedWorld);
   }
 }

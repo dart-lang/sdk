@@ -682,7 +682,10 @@ class ProcessStarter {
                                strlen(os_error_message) + 1);
     }
     VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
-    exit(1);
+
+    // We avoid running through registered atexit() handlers because that is
+    // unnecessary work.
+    _exit(1);
   }
 
 

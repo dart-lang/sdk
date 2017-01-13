@@ -181,7 +181,7 @@ static int CountLeadingZeros(uint64_t value, int width) {
 
 static int CountOneBits(uint64_t value, int width) {
   // Mask out unused bits to ensure that they are not counted.
-  value &= (0xffffffffffffffffUL >> (64 - width));
+  value &= (0xffffffffffffffffULL >> (64 - width));
 
   value = ((value >> 1) & 0x5555555555555555) + (value & 0x5555555555555555);
   value = ((value >> 2) & 0x3333333333333333) + (value & 0x3333333333333333);
@@ -282,7 +282,7 @@ bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
     // 5. If the most-significant half of the bitwise value is equal to the
     //    least-significant half, return to step 2 using the least-significant
     //    half of the value.
-    uint64_t mask = (1UL << (width >> 1)) - 1;
+    uint64_t mask = (1ULL << (width >> 1)) - 1;
     if ((value & mask) == ((value >> (width >> 1)) & mask)) {
       width >>= 1;
       set_bits >>= 1;

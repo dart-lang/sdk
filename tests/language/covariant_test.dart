@@ -16,6 +16,10 @@ import 'package:expect/expect.dart';
 covariant  /// 00: compile-time error
 int x0;
 
+covariant int covariant;  /// 00b: compile-time error
+
+int covariant;  /// 00c: ok
+
 // Getters may never have `covariant`. (Neither on the top-level nor as members)
 covariant  /// 01: compile-time error
 int get x1 => 499;
@@ -47,6 +51,8 @@ void set x5(
 
 // Since `covariant` is a built-in identifier, it is not allowed here.
 covariant x6;  /// 06: compile-time error
+
+covariant covariant;  /// 06b: compile-time error
 
 // Getters may never have `covariant`.
 covariant  /// 07: compile-time error
@@ -112,6 +118,8 @@ int f17(
 // On its own, `covariant` is just a parameter name.
 int f18(covariant) => covariant;
 
+covariant;  /// 19: compile-time error
+
 // All of the above as statics in a class.
 class A {
   // Static fields may not have a covariant.
@@ -119,6 +127,10 @@ class A {
   static
   covariant  /// 20: compile-time error
   int x20;
+
+  static covariant int covariant  /// 20b: compile-time error
+
+  static int covariant;  /// 20c: ok
 
   // Getters may never have `covariant`.
   static
@@ -154,6 +166,7 @@ class A {
 
   // Since `covariant` is a built-in identifier, it is not allowed here.
   static covariant x26; /// 26: compile-time error
+  static covariant covariant; /// 26b: compile-time error
 
   // Getters may never have `covariant`.
   static
@@ -233,17 +246,27 @@ class A {
 
   // `Covariant` on its own is just a parameter name.
   static int f38(covariant) => covariant;
+
+  static covariant;  /// 39: compile-time error
+
 }
 
 // All of the above as instance members in a class.
 class B {
-  covariant int x40;
+  covariant  /// 40: ok
+  int x40;
+
+  covariant int covariant;  /// 40b: ok
+
+  int covariant;            /// 40c: ok
 
   // Getters may never have `covariant`.
   covariant  /// 41: compile-time error
   int get x41 => 499;
 
-  void set x42(covariant int val) {}
+  void set x42(
+      covariant  /// 42: ok
+      int val) {}
 
   // `covariant` in the wrong position.
   int
@@ -262,12 +285,15 @@ class B {
 
   // Since `covariant` is a built-in identifier, it is not allowed here.
   covariant x46; /// 46: compile-time error
+  covariant covariant; /// 46b: compile-time error
 
   // Getters may never have `covariant`.
   covariant  /// 47: compile-time error
   get x47 => 499;
 
-  void set x48(covariant val) {}
+  void set x48(
+      covariant  /// 48: ok
+      val) {}
 
   // If there is no type, then `covariant` is simply the parameter name:
   void set x49(covariant) {}
@@ -280,7 +306,9 @@ class B {
   covariant  /// 51: compile-time error
   f51() => 499;
 
-  int f52(covariant int x) => 499;
+  int f52(
+      covariant  /// 52: ok
+      int x) => 499;
 
   // `Covariant` must be in front of the types.
   int f53(
@@ -288,7 +316,9 @@ class B {
       covariant /// 53: compile-time error
       x) => 499;
 
-  int f54(covariant final x) => 499;
+  int f54(
+      covariant  /// 54: ok
+      final x) => 499;
 
   // `Covariant` must be in front of modifiers.
   int f55(
@@ -296,7 +326,9 @@ class B {
       covariant /// 55: compile-time error
       x) => 499;
 
-  int f56(covariant final int x) => 499;
+  int f56(
+      covariant  /// 56: ok
+      final int x) => 499;
 
   // `Covariant` must be in front of modifiers.
   int f57(
@@ -307,18 +339,23 @@ class B {
 
   // `Covariant` on its own is just a parameter name.
   int f58(covariant) => covariant;
+
+  covariant;  /// 59: compile-time error
 }
 
 void use(x) {}
 
 main() {
   x0 = 0;
+  covariant = 0;  /// 00b: continued
+  covariant = 0;  /// 00c: continued
   use(x1);
   x2 = 499;
   use(x3);
   use(x4);
   x5 = 42;
   x6 = 0; /// 06: continued
+  covariant = 0; /// 06b: continued
   use(x7);
   x8 = 11;
   x9 = 12;
@@ -331,8 +368,11 @@ main() {
   use(f16(3));
   use(f17(3));
   Expect.equals(123, f18(123));
+  use(covariant);  /// 19: continued
 
   A.x20 = 0;
+  A.covariant = 0;  /// 20b: continued
+  A.covariant = 0;  /// 20c: continued
   use(A.x21);
   use(A.x21b);
   A.x22 = 499;
@@ -340,6 +380,7 @@ main() {
   use(A.x24);
   A.x25 = 42;
   A.x26 = 0; /// 26: continued
+  A.covariant = 0; /// 26b: continued
   use(A.x27);
   use(A.x27b);
   A.x28 = 11;
@@ -354,15 +395,19 @@ main() {
   use(A.f36(3));
   use(A.f37(3));
   Expect.equals(1234, A.f38(1234));
+  use(A.covariant);  /// 39: continued
 
   var b = new B();
   b.x40 = 0;
+  b.covariant = 0;  /// 40b: continued
+  b.covariant = 0;  /// 40c: continued
   use(b.x41);
   b.x42 = 499;
   use(b.x43);
   use(b.x44);
   b.x45 = 42;
   b.x46 = 0; /// 46: continued
+  b.covariant = 0; /// 46b: continued
   use(b.x47);
   b.x48 = 11;
   b.x49 = 12;
@@ -375,4 +420,5 @@ main() {
   use(b.f56(3));
   use(b.f57(3));
   Expect.equals(12345, b.f58(12345));
+  use(B.covariant);  /// 59: continued
 }

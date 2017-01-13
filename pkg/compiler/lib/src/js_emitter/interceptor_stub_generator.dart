@@ -169,7 +169,7 @@ class InterceptorStubGenerator {
           ]));
     } else {
       ClassElement jsUnknown = helpers.jsUnknownJavaScriptObjectClass;
-      if (compiler.codegenWorld.directlyInstantiatedClasses
+      if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
           .contains(jsUnknown)) {
         statements.add(js.statement('if (!(receiver instanceof #)) return #;', [
           backend.emitter
@@ -361,9 +361,10 @@ class InterceptorStubGenerator {
     List<ConstantValue> constants =
         handler.getConstantsForEmission(emitter.compareConstants);
     for (ConstantValue constant in constants) {
-      if (constant is TypeConstantValue) {
-        TypeConstantValue typeConstant = constant;
-        Element element = typeConstant.representedType.element;
+      if (constant is TypeConstantValue &&
+          constant.representedType is ResolutionInterfaceType) {
+        ResolutionInterfaceType type = constant.representedType;
+        Element element = type.element;
         if (element is ClassElement) {
           ClassElement classElement = element;
           if (!analysis.needsClass(classElement)) continue;

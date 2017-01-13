@@ -120,14 +120,14 @@ class PhysicalFileSystemTest extends _BaseTest {
   test_entityForUri() {
     expect(
         PhysicalFileSystem.instance
-            .entityForUri(Uri.parse('$tempUri/file.txt'))
+            .entityForUri(Uri.parse('${tempUri}file.txt'))
             .uri,
         p.toUri(p.join(tempPath, 'file.txt')));
   }
 
   test_entityForUri_bareUri_absolute() {
     expect(PhysicalFileSystem.instance.entityForUri(Uri.parse('/file.txt')).uri,
-        p.toUri(p.fromUri('/file.txt')));
+        Uri.parse('file:///file.txt'));
   }
 
   test_entityForUri_fileUri_relative() {
@@ -159,7 +159,7 @@ class PhysicalFileSystemTest extends _BaseTest {
   test_entityForUri_normalize_dot() {
     expect(
         PhysicalFileSystem.instance
-            .entityForUri(Uri.parse('$tempUri/./file.txt'))
+            .entityForUri(Uri.parse('${tempUri}./file.txt'))
             .uri,
         p.toUri(p.join(tempPath, 'file.txt')));
   }
@@ -167,7 +167,7 @@ class PhysicalFileSystemTest extends _BaseTest {
   test_entityForUri_normalize_dotDot() {
     expect(
         PhysicalFileSystem.instance
-            .entityForUri(Uri.parse('$tempUri/foo/../file.txt'))
+            .entityForUri(Uri.parse('${tempUri}foo/../file.txt'))
             .uri,
         p.toUri(p.join(tempPath, 'file.txt')));
   }

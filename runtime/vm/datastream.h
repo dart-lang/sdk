@@ -23,6 +23,7 @@ static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
 static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
 
 typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
+typedef void (*DeAlloc)(uint8_t* ptr);
 
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {

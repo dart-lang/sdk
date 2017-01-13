@@ -201,10 +201,13 @@ class LookupMapAnalysis {
   }
 
   /// Whether [constant] is an instance of a `LookupMap`.
-  bool isLookupMap(ConstantValue constant) =>
-      _isEnabled &&
-      constant is ConstructedConstantValue &&
-      constant.type.asRaw().element.isSubclassOf(typeLookupMapClass);
+  bool isLookupMap(ConstantValue constant) {
+    if (_isEnabled && constant is ConstructedConstantValue) {
+      ResolutionInterfaceType type = constant.type;
+      return type.element.isSubclassOf(typeLookupMapClass);
+    }
+    return false;
+  }
 
   /// Registers an instance of a lookup-map with the analysis.
   void registerLookupMapReference(ConstantValue lookupMap) {
@@ -246,13 +249,12 @@ class LookupMapAnalysis {
 
   /// If [key] is a type, cache it in [_typeConstants].
   _registerTypeKey(ConstantValue key) {
-    if (key is TypeConstantValue) {
-      ClassElement cls = key.representedType.element;
-      if (cls == null || !cls.isClass) {
-        // TODO(sigmund): report error?
-        return;
-      }
-      _typeConstants[cls] = key;
+    if (key is TypeConstantValue &&
+        key.representedType is ResolutionInterfaceType) {
+      ResolutionInterfaceType type = key.representedType;
+      _typeConstants[type.element] = key;
+    } else {
+      // TODO(sigmund): report error?
     }
   }
 
@@ -431,7 +433,7 @@ class _LookupMapInfo {
   /// Restores [original] to contain all of the entries marked as possibly used.
   void _prepareForEmission() {
     ListConstantValue originalEntries = original.fields[analysis.entriesField];
-    ResolutionDartType listType = originalEntries.type;
+    ResolutionInterfaceType listType = originalEntries.type;
     List<ConstantValue> keyValuePairs = <ConstantValue>[];
     usedEntries.forEach((key, value) {
       keyValuePairs.add(key);

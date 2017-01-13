@@ -159,8 +159,8 @@ abstract class WorldBuilder {
   /// All types that are checked either through is, as or checked mode checks.
   Iterable<ResolutionDartType> get isChecks;
 
-  /// Registers that [type] is checked in this universe. The unaliased type is
-  /// returned.
+  /// Registers that [type] is checked in this world builder. The unaliased type
+  /// is returned.
   ResolutionDartType registerIsCheck(ResolutionDartType type);
 
   /// All directly instantiated types, that is, the types of the directly
@@ -1069,7 +1069,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return _closedWorldCache = new ClosedWorldImpl(
         backend: _backend,
         commonElements: commonElements,
-        resolverWorld: this,
+        resolutionWorldBuilder: this,
         functionSetBuilder: _allFunctions,
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,

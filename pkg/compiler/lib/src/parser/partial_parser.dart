@@ -156,7 +156,8 @@ class PartialParser extends Parser {
     return token;
   }
 
-  Token parseFormalParameters(Token token) => skipFormals(token);
+  Token parseFormalParameters(Token token, {bool inFunctionType: false})
+      => skipFormals(token);
 
   Token skipFormals(Token token) {
     listener.beginOptionalFormalParameters(token);

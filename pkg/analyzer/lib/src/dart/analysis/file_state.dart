@@ -340,6 +340,7 @@ class FileState {
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     Parser parser = new Parser(source, errorListener);
+    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
     parser.parseGenericMethodComments = analysisOptions.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

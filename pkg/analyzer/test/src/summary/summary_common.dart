@@ -140,6 +140,13 @@ abstract class SummaryTest {
   LinkedUnit get definingUnit => linked.units[0];
 
   /**
+   * Whether the parts of the IDL marked `@informative` are expected to be
+   * included in the generated summary; if `false`, these parts of the IDL won't
+   * be checked.
+   */
+  bool get includeInformative => true;
+
+  /**
    * Get access to the linked summary that results from serializing and
    * then deserializing the library under test.
    */
@@ -163,13 +170,6 @@ abstract class SummaryTest {
   bool get strongMode;
 
   /**
-   * Whether the parts of the IDL marked `@informative` are expected to be
-   * included in the generated summary; if `false`, these parts of the IDL won't
-   * be checked.
-   */
-  bool get includeInformative => true;
-
-  /**
    * Get access to the unlinked compilation unit summaries that result from
    * serializing and deserializing the library under test.
    */
@@ -180,6 +180,32 @@ abstract class SummaryTest {
    * test.
    */
   Source addNamedSource(String filePath, String contents);
+
+  /**
+   * TODO(scheglov) rename "Const" to "Expr" everywhere
+   */
+  void assertUnlinkedConst(UnlinkedExpr constExpr,
+      {bool isValidConst: true,
+      List<UnlinkedExprOperation> operators: const <UnlinkedExprOperation>[],
+      List<UnlinkedExprAssignOperator> assignmentOperators:
+          const <UnlinkedExprAssignOperator>[],
+      List<int> ints: const <int>[],
+      List<double> doubles: const <double>[],
+      List<String> strings: const <String>[],
+      List<_EntityRefValidator> referenceValidators:
+          const <_EntityRefValidator>[]}) {
+    expect(constExpr, isNotNull);
+    expect(constExpr.isValidConst, isValidConst);
+    expect(constExpr.operations, operators);
+    expect(constExpr.ints, ints);
+    expect(constExpr.doubles, doubles);
+    expect(constExpr.strings, strings);
+    expect(constExpr.assignmentOperators, assignmentOperators);
+    expect(constExpr.references, hasLength(referenceValidators.length));
+    for (int i = 0; i < referenceValidators.length; i++) {
+      referenceValidators[i](constExpr.references[i]);
+    }
+  }
 
   /**
    * Check that [annotations] contains a single entry which is a reference to
@@ -3563,6 +3589,63 @@ class C {
     expect(executable, isNull);
   }
 
+  test_constructor_initializers_assertInvocation() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  const C(int x) : assert(x >= 42);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.assertInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(1));
+    assertUnlinkedConst(initializer.arguments[0], operators: [
+      UnlinkedExprOperation.pushParameter,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.greaterEqual
+    ], ints: [
+      42
+    ], strings: [
+      'x'
+    ]);
+  }
+
+  test_constructor_initializers_assertInvocation_message() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  const C(int x) : assert(x >= 42, 'foo');
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.assertInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(2));
+    assertUnlinkedConst(initializer.arguments[0], operators: [
+      UnlinkedExprOperation.pushParameter,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.greaterEqual
+    ], ints: [
+      42
+    ], strings: [
+      'x',
+    ]);
+    assertUnlinkedConst(initializer.arguments[1], operators: [
+      UnlinkedExprOperation.pushString,
+    ], strings: [
+      'foo'
+    ]);
+  }
+
   test_constructor_initializers_field() {
     UnlinkedExecutable executable =
         findExecutable('', executables: serializeClassText(r'''
@@ -6388,6 +6471,17 @@ class B extends A {}
     expect(unlinkedExports[0].configurations, isEmpty);
   }
 
+  test_export_uri_nullStringValue() {
+    String libraryText = r'''
+export "${'a'}.dart";
+''';
+    serializeLibraryText(libraryText);
+    var unlinkedExports = unlinkedUnits[0].publicNamespace.exports;
+    expect(unlinkedExports, hasLength(1));
+    expect(unlinkedExports[0].uri, '');
+    expect(unlinkedExports[0].configurations, isEmpty);
+  }
+
   test_export_variable() {
     addNamedSource('/a.dart', 'var v;');
     serializeLibraryText('export "a.dart";');
@@ -8263,6 +8357,16 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_import_uri_nullStringValue() {
+    String libraryText = r'''
+import "${'a'}.dart";
+''';
+    serializeLibraryText(libraryText);
+    // Second import is the implicit import of dart:core
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, '');
+  }
+
   test_inferred_function_type_parameter_type_with_unrelated_type_param() {
     if (!strongMode || skipFullyLinkedData) {
       return;
@@ -9073,6 +9177,28 @@ D d;''');
     checkAnnotationA(unlinkedUnits[0].imports[0].annotations);
   }
 
+  test_metadata_invalid_instanceCreation_argument_this() {
+    List<UnlinkedExpr> annotations = serializeClassText('''
+class A {
+  const A(_);
+}
+
+@A(this)
+class C {}
+''').annotations;
+    expect(annotations, hasLength(1));
+    assertUnlinkedConst(annotations[0], operators: [
+      UnlinkedExprOperation.pushThis,
+      UnlinkedExprOperation.invokeConstructor,
+    ], ints: [
+      0,
+      1
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
   test_metadata_libraryDirective() {
     serializeLibraryText('@a library L; const a = null;');
     checkAnnotationA(unlinkedUnits[0].libraryAnnotations);
@@ -9367,6 +9493,20 @@ f(x) => 42;
     expect(unlinkedUnits[0].publicNamespace.parts[0], 'a.dart');
     expect(unlinkedUnits[0].parts, hasLength(1));
     expect(unlinkedUnits[0].parts[0].uriOffset, text.indexOf('"a.dart"'));
+    expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
+  }
+
+  test_part_declaration_invalidUri_nullStringValue() {
+    addNamedSource('/a.dart', 'part of my.lib;');
+    String text = r'''
+library my.lib;
+part "${'a'}.dart"; // <-part
+''';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], '');
+    expect(unlinkedUnits[0].parts, hasLength(1));
+    expect(unlinkedUnits[0].parts[0].uriOffset, text.indexOf(r'"${'));
     expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
   }
 
@@ -10454,32 +10594,6 @@ final v = $expr;
           (EntityRef r) => checkTypeRef(r, null, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
         ]);
-  }
-
-  /**
-   * TODO(scheglov) rename "Const" to "Expr" everywhere
-   */
-  void assertUnlinkedConst(UnlinkedExpr constExpr,
-      {bool isValidConst: true,
-      List<UnlinkedExprOperation> operators: const <UnlinkedExprOperation>[],
-      List<UnlinkedExprAssignOperator> assignmentOperators:
-          const <UnlinkedExprAssignOperator>[],
-      List<int> ints: const <int>[],
-      List<double> doubles: const <double>[],
-      List<String> strings: const <String>[],
-      List<_EntityRefValidator> referenceValidators:
-          const <_EntityRefValidator>[]}) {
-    expect(constExpr, isNotNull);
-    expect(constExpr.isValidConst, isValidConst);
-    expect(constExpr.operations, operators);
-    expect(constExpr.ints, ints);
-    expect(constExpr.doubles, doubles);
-    expect(constExpr.strings, strings);
-    expect(constExpr.assignmentOperators, assignmentOperators);
-    expect(constExpr.references, hasLength(referenceValidators.length));
-    for (int i = 0; i < referenceValidators.length; i++) {
-      referenceValidators[i](constExpr.references[i]);
-    }
   }
 
   void _assertVariableVisible(

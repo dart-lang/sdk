@@ -273,15 +273,14 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
   final Map<String, String> _urlMappings = new HashMap<String, String>();
 
-  PackageBundle _embedderBundle;
+  Folder _embedderYamlLibFolder;
 
   EmbedderSdk(
       ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
     this.resourceProvider = resourceProvider;
     embedderYamls?.forEach(_processEmbedderYaml);
     if (embedderYamls?.length == 1) {
-      Folder libFolder = embedderYamls.keys.first;
-      _loadEmbedderBundle(libFolder);
+      _embedderYamlLibFolder = embedderYamls.keys.first;
     }
   }
 
@@ -299,8 +298,17 @@ class EmbedderSdk extends AbstractDartSdk {
 
   @override
   PackageBundle getSummarySdkBundle(bool strongMode) {
-    if (strongMode) {
-      return _embedderBundle;
+    String name = strongMode ? 'strong.sum' : 'spec.sum';
+    File file = _embedderYamlLibFolder.parent.getChildAssumingFile(name);
+    try {
+      if (file.exists) {
+        List<int> bytes = file.readAsBytesSync();
+        return new PackageBundle.fromBuffer(bytes);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Failed to load SDK analysis summary from $file',
+          new CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -342,16 +350,6 @@ class EmbedderSdk extends AbstractDartSdk {
       return file.createSource(Uri.parse(dartUri));
     } on FormatException {
       return null;
-    }
-  }
-
-  void _loadEmbedderBundle(Folder libFolder) {
-    File bundleFile = libFolder.parent.getChildAssumingFile('sdk.ds');
-    if (bundleFile.exists) {
-      try {
-        List<int> bytes = bundleFile.readAsBytesSync();
-        _embedderBundle = new PackageBundle.fromBuffer(bytes);
-      } on FileSystemException {}
     }
   }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -276,13 +276,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
-      Iterable<Element> targets = closedWorld.allFunctions
+      Iterable<MemberEntity> targets = closedWorld.allFunctions
           .filter(instruction.selector, instruction.mask);
       if (targets.length == 1) {
-        MemberElement target = targets.first;
-        ClassElement cls = target.enclosingClass;
-        TypeMask type =
-            new TypeMask.nonNullSubclass(cls.declaration, closedWorld);
+        MemberEntity target = targets.first;
+        ClassEntity cls = target.enclosingClass;
+        TypeMask type = new TypeMask.nonNullSubclass(cls, closedWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
         if (!type.satisfies(backend.helpers.jsIndexableClass, closedWorld) &&

@@ -4,8 +4,9 @@
 
 /* This file defines the module loader for the dart runtime.
 */
-
-var dart_library =
+var dart_library;
+if (!dart_library) {
+dart_library =
   typeof module != "undefined" && module.exports || {};
 
 (function (dart_library) {
@@ -93,7 +94,12 @@ var dart_library =
   };
 
   function library(name, defaultValue, imports, loader) {
-    let result = new LibraryLoader(name, defaultValue, imports, loader);
+    let result = libraries.get(name);
+    if (result) {
+      console.warn('Already loaded ' + name);
+      return result;
+    }
+    result = new LibraryLoader(name, defaultValue, imports, loader);
     libraries.set(name, result);
     return result;
   }
@@ -109,11 +115,20 @@ var dart_library =
   }
   dart_library.import = import_;
 
+  var _currentIsolate = false;
+
   function start(moduleName, libraryName) {
     if (libraryName == null) libraryName = moduleName;
     let library = import_(moduleName)[libraryName];
     let dart_sdk = import_('dart_sdk');
-    dart_sdk._isolate_helper.startRootIsolate(library.main, []);
+    if (!_currentIsolate) {
+      // Create isolate and run main.
+      _currentIsolate = true;
+      dart_sdk._isolate_helper.startRootIsolate(library.main, []);
+    } else {
+      // Main isolate is already initialized - just run main.
+      library.main();
+    }
   }
   dart_library.start = start;
 
@@ -179,3 +194,4 @@ var dart_library =
   }
 
 })(dart_library);
+}

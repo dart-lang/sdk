@@ -418,7 +418,7 @@ abstract class BackendClasses {
   ClassElement get indexingBehaviorImplementation;
   ClassElement get interceptorImplementation;
 
-  bool isDefaultEqualityImplementation(Element element);
+  bool isDefaultEqualityImplementation(MemberElement element);
   bool isInterceptorClass(ClassElement cls);
   bool isNativeClass(ClassElement element);
   bool isNativeMember(MemberElement element);

@@ -84,7 +84,7 @@ class ProgramBuilder {
 
   JavaScriptBackend get backend => _compiler.backend;
   BackendHelpers get helpers => backend.helpers;
-  CodegenWorldBuilder get universe => _compiler.codegenWorld;
+  CodegenWorldBuilder get worldBuilder => _compiler.codegenWorldBuilder;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -354,8 +354,7 @@ class ProgramBuilder {
                 backend.nativeData.getUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
-              var selectors =
-                  _compiler.codegenWorld.getterInvocationsByName(member.name);
+              var selectors = worldBuilder.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 for (var selector in selectors.keys) {
                   var stubName = namer.invocationName(selector);
@@ -369,8 +368,7 @@ class ProgramBuilder {
             }
 
             if (member.isSetter || (member.isField && !member.isConst)) {
-              var selectors =
-                  _compiler.codegenWorld.setterInvocationsByName(member.name);
+              var selectors = worldBuilder.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = namer.setterForElement(member);
                 if (stubNames.add(stubName.key)) {
@@ -423,8 +421,7 @@ class ProgramBuilder {
                 minArgs = 0;
                 maxArgs = 32767;
               }
-              var selectors =
-                  _compiler.codegenWorld.invocationsByName(member.name);
+              var selectors = worldBuilder.invocationsByName(member.name);
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
@@ -522,7 +519,7 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        namer, backend, universe, closedWorld,
+        namer, backend, worldBuilder, closedWorld,
         enableMinification: _compiler.options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator =
         new RuntimeTypeGenerator(_compiler, _task, namer);
@@ -538,7 +535,7 @@ class ProgramBuilder {
       }
       if (member.isGetter || member.isField) {
         Map<Selector, SelectorConstraints> selectors =
-            _compiler.codegenWorld.invocationsByName(member.name);
+            worldBuilder.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
           Map<js.Name, js.Expression> callStubsForMember =
               classStubGenerator.generateCallStubsForGetter(member, selectors);
@@ -624,7 +621,7 @@ class ProgramBuilder {
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated = !backend.isJsInterop(element) &&
-        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+        worldBuilder.directlyInstantiatedClasses.contains(element);
 
     Class result;
     if (element.isMixinApplication && !onlyForRti) {
@@ -741,10 +738,10 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = universe.hasInvokedGetter(element, closedWorld) ||
+        canTearOff = worldBuilder.hasInvokedGetter(element, closedWorld) ||
             (canBeReflected && !element.isOperator);
         assert(canTearOff ||
-            !universe.methodsNeedingSuperGetter.contains(element));
+            !worldBuilder.methodsNeedingSuperGetter.contains(element));
         tearOffName = namer.getterForElement(element);
       }
     }
@@ -935,7 +932,7 @@ class ProgramBuilder {
 
     bool needsTearOff = isApplyTarget &&
         (canBeReflected ||
-            universe.staticFunctionsNeedingGetter.contains(element));
+            worldBuilder.staticFunctionsNeedingGetter.contains(element));
 
     js.Name tearOffName =
         needsTearOff ? namer.staticClosureName(element) : null;

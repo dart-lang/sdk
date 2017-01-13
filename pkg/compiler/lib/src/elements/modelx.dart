@@ -163,7 +163,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   ClassElement get enclosingClass {
     for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClass) return e;
+      if (e.isClass) return e.declaration;
     }
     return null;
   }
@@ -1345,7 +1345,7 @@ class TypedefElementX extends ElementX
   ResolutionTypedefType computeType(Resolution resolution) {
     if (thisTypeCache != null) return thisTypeCache;
     Typedef node = parseNode(resolution.parsingContext);
-    setThisAndRawTypes(createTypeVariables(node.typeParameters));
+    setThisAndRawTypes(createTypeVariables(node.templateParameters));
     ensureResolved(resolution);
     return thisTypeCache;
   }
@@ -1742,6 +1742,15 @@ class FormalElementX extends ElementX
       this.definitions, Identifier identifier)
       : this.identifier = identifier,
         super(identifier.source, elementKind, enclosingElement);
+
+  FormalElementX.unnamed(ElementKind elementKind,
+      FunctionTypedElement enclosingElement,
+      this.definitions)
+      : this.identifier = null,
+        super("<unnamed>", elementKind, enclosingElement);
+
+  /// Whether this is an unnamed parameter in a Function type.
+  bool get isUnnamed => identifier == null;
 
   FunctionTypedElement get functionDeclaration => enclosingElement;
 
@@ -2357,7 +2366,7 @@ abstract class ConstructorElementX extends FunctionElementX
 
   ConstructorElement get definingConstructor => null;
 
-  ClassElement get enclosingClass => enclosingElement;
+  ClassElement get enclosingClass => enclosingElement.declaration;
 }
 
 class DeferredLoaderGetterElementX extends GetterElementX

@@ -346,6 +346,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         } else {
           compareConstAsts(rItem.expression, oItem.expression, desc);
         }
+      } else if (oItem is AssertInitializer && rItem is AssertInitializer) {
+        compareConstAsts(rItem.condition, oItem.condition, '$desc condition');
+        compareConstAsts(rItem.message, oItem.message, '$desc message');
       } else if (oItem is SuperConstructorInvocation &&
           rItem is SuperConstructorInvocation) {
         compareElements(rItem.staticElement, oItem.staticElement, desc);
@@ -437,6 +440,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         checkElidablePrefix(oTarget.prefix);
         checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
+      } else if (o is ThisExpression && r is ThisExpression) {
+        // Nothing to compare.
       } else if (o is NullLiteral) {
         expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
@@ -1120,7 +1125,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   /**
    * Determine the analysis options that should be used for this test.
    */
-  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl();
+  AnalysisOptionsImpl createOptions() =>
+      new AnalysisOptionsImpl()..enableAssertInitializer = true;
 
   ElementImpl getActualElement(Element element, String desc) {
     if (element == null) {
@@ -2422,6 +2428,22 @@ class C {
    */
   C();
 }''');
+  }
+
+  test_constructor_initializers_assertInvocation() {
+    checkLibrary('''
+class C {
+  const C(int x) : assert(x >= 42);
+}
+''');
+  }
+
+  test_constructor_initializers_assertInvocation_message() {
+    checkLibrary('''
+class C {
+  const C(int x) : assert(x >= 42, 'foo');
+}
+''');
   }
 
   test_constructor_initializers_field() {
@@ -4323,6 +4345,15 @@ void named({x: 1}) {}
     checkLibrary('library my.lib; part "foo/";');
   }
 
+  test_parts_invalidUri_nullStringValue() {
+    allowMissingFiles = true;
+    addSource('/foo/bar.dart', 'part of my.lib;');
+    checkLibrary(r'''
+library my.lib;
+part "${foo}/bar.dart";
+''');
+  }
+
   test_propagated_type_refers_to_closure() {
     checkLibrary('''
 void f() {
@@ -4635,6 +4666,19 @@ typedef F();''');
 
   test_typedefs() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_unresolved_annotation_instanceCreation_argument_this() {
+    checkLibrary(
+        '''
+class A {
+  const A(_);
+}
+
+@A(this)
+class C {}
+''',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() {

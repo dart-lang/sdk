@@ -73,6 +73,7 @@ front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
+front_end/test/subpackage_relationships_test: SkipByDesign # Uses dart:io
 
 [ $compiler == dart2js && $fast_startup ]
 front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
@@ -210,7 +211,7 @@ analyzer/test/src/task/strong/inferred_type_test: Crash # Issue 24485
 analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
 analyzer/test/src/task/yaml_test: Crash # Issue 24485
 
-[ $noopt || $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
 
 [ $compiler == dart2js && $cps_ir && $checked ]

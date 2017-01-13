@@ -12,7 +12,6 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
-    defineReflectiveTests(LintIntegrationTest_Driver);
   });
 }
 
@@ -95,9 +94,3 @@ class a { // lint: not CamelCase
 
 @reflectiveTest
 class LintIntegrationTest extends AbstractLintIntegrationTest {}
-
-@reflectiveTest
-class LintIntegrationTest_Driver extends AbstractLintIntegrationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}

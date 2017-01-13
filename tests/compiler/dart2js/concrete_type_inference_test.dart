@@ -20,7 +20,7 @@ void checkPrintType(String expression, checkType(closedWorld, type)) {
   asyncTest(() => compileAndFind('main() { print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        checkType(compiler.resolverWorld.closedWorldForTesting,
+        checkType(compiler.resolutionWorldBuilder.closedWorldForTesting,
             _typeOf(compiler, parameter));
       }));
 
@@ -28,7 +28,7 @@ void checkPrintType(String expression, checkType(closedWorld, type)) {
       compileAndFind('main() { var x = print; print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        checkType(compiler.resolverWorld.closedWorldForTesting,
+        checkType(compiler.resolutionWorldBuilder.closedWorldForTesting,
             _typeOf(compiler, parameter));
       }));
 
@@ -36,7 +36,7 @@ void checkPrintType(String expression, checkType(closedWorld, type)) {
           'main() { print($expression); print($expression); }', 'print',
           (compiler, printElement) {
         var parameter = printElement.functionSignature.requiredParameters.first;
-        checkType(compiler.resolverWorld.closedWorldForTesting,
+        checkType(compiler.resolutionWorldBuilder.closedWorldForTesting,
             _typeOf(compiler, parameter));
       }));
 }
@@ -71,7 +71,8 @@ void testOptionalParameters() {
     var firstParameter = fiskElement.functionSignature.requiredParameters[0];
     var secondParameter = fiskElement.functionSignature.optionalParameters[0];
     var thirdParameter = fiskElement.functionSignature.optionalParameters[1];
-    var commonMasks = compiler.resolverWorld.closedWorldForTesting.commonMasks;
+    var commonMasks =
+        compiler.resolutionWorldBuilder.closedWorldForTesting.commonMasks;
     Expect.identical(commonMasks.uint31Type, _typeOf(compiler, firstParameter));
     Expect.identical(commonMasks.nullType, _typeOf(compiler, secondParameter));
     Expect.identical(commonMasks.nullType, _typeOf(compiler, thirdParameter));

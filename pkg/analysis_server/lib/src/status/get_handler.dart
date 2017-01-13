@@ -552,6 +552,7 @@ class GetHandler implements AbstractGetHandler {
       results.add(LINTS);
       results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
       results.add(LIBRARY_UNIT_ERRORS);
+      results.add(RESOLVE_DIRECTIVES_ERRORS);
       results.add(RESOLVE_TYPE_NAMES_ERRORS);
       results.add(RESOLVE_TYPE_BOUNDS_ERRORS);
       results.add(RESOLVE_UNIT_ERRORS);

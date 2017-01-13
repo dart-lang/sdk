@@ -620,16 +620,6 @@ dart_executable("dart") {
   extra_sources = [ "builtin_nolib.cc" ]
 }
 
-dart_executable("dart_noopt") {
-  extra_configs = [ "..:dart_precompiler_config" ]
-  extra_deps = [
-    "..:libdart_noopt",
-    ":dart_snapshot_cc",
-    "../observatory:standalone_observatory_archive",
-  ]
-  extra_sources = [ "builtin_nolib.cc" ]
-}
-
 dart_executable("dart_precompiled_runtime") {
   extra_configs = [ "..:dart_precompiled_runtime_config" ]
   extra_deps = [

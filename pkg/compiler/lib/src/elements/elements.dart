@@ -904,7 +904,7 @@ abstract class ExportElement extends Element {
 }
 
 abstract class LibraryElement extends Element
-    implements ScopeContainerElement, AnalyzableElement {
+    implements ScopeContainerElement, AnalyzableElement, LibraryEntity {
   /**
    * The canonical uri for this library.
    *
@@ -1113,6 +1113,9 @@ abstract class FormalElement extends Element
   FunctionTypedElement get functionDeclaration;
 
   VariableDefinitions get node;
+
+  /// Whether the parameter is unnamed in a function type.
+  bool get isUnnamed;
 }
 
 /// A formal parameter of a function or constructor.

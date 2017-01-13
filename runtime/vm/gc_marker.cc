@@ -305,7 +305,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
  private:
   void PushMarked(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
-    ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc)
+    ASSERT((FLAG_verify_gc_contains)
                ? page_space_->Contains(RawObject::ToAddr(raw_obj))
                : true);
 

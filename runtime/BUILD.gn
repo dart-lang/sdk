@@ -226,17 +226,6 @@ libdart_library("libdart") {
   ]
 }
 
-libdart_library("libdart_noopt") {
-  extra_configs = [
-    ":dart_maybe_precompiled_runtime_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib",
-    "vm:libdart_vm_noopt",
-  ]
-}
-
 libdart_library("libdart_precompiled_runtime") {
   extra_configs = [ ":dart_precompiled_runtime_config" ]
   extra_deps = [

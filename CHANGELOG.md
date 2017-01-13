@@ -22,7 +22,7 @@
 
     ```
     Unhandled exception:
-    'file:///Users/mit/tmp/tool/bin/main.dart': Failed assertion: line 9 pos 10: 
+    'file:///Users/mit/tmp/tool/bin/main.dart': Failed assertion: line 9 pos 10:
     'configFile != null': Tool config missing. Please see https://goo.gl/k8iAi for details.
     #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:33)
     #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:29)
@@ -43,7 +43,7 @@
     globally-activated executables to consistently use the
     `Isolate.resolvePackageUri()` API.
 
-  * On POSIX systems, always ignore packages' original file owners and
+  * On Linux systems, always ignore packages' original file owners and
     permissions when extracting those packages. This was already the default
     under most circumstances.
 
@@ -54,6 +54,8 @@
     pubspec can't be parsed will now be ignored by `pub get --offline` and
     deleted by `pub cache repair`.
 
+  * Make `pub run` run executables in spawned isolates. This lets them handle
+    signals and use standard IO reliably.
 
 ## 1.21.0 - 2016-12-07
 

@@ -79,11 +79,12 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(this.typeProvider, this.inheritanceManager,
+  InstanceMemberInferrer(TypeProvider typeProvider, this.inheritanceManager,
       {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null)
             ? typeSystem
-            : new TypeSystemImpl(typeProvider);
+            : new TypeSystemImpl(typeProvider),
+        this.typeProvider = typeProvider;
 
   /**
    * Infer type information for all of the instance members in the given

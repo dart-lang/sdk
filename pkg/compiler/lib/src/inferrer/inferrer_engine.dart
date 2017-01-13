@@ -22,10 +22,10 @@ import '../util/util.dart';
 import '../world.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
-import 'inferrer_visitor.dart';
+import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
-import 'simple_types_inferrer.dart';
+import 'builder.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -464,8 +464,8 @@ class InferrerEngine {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(element, resolvedAst, compiler, this);
+    ElementGraphBuilder visitor =
+        new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
       type = visitor.run();
@@ -788,7 +788,7 @@ class InferrerEngine {
 
   /**
    * Notifies to the inferrer that [analyzedElement] can have return
-   * type [newType]. [currentType] is the type the [InferrerVisitor]
+   * type [newType]. [currentType] is the type the [ElementGraphBuilder]
    * currently found.
    *
    * Returns the new type for [analyzedElement].
@@ -834,7 +834,7 @@ class InferrerEngine {
     // If this class has a 'call' method then we have essentially created a
     // closure here. Register it as such so that it is traced.
     if (selector != null && selector.isCall && callee.isConstructor) {
-      ClassElement cls = callee.enclosingClass.declaration;
+      ClassElement cls = callee.enclosingClass;
       if (cls.callType != null) {
         types.allocatedClosures.add(info);
       }

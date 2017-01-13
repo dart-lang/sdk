@@ -8,7 +8,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
   async_helper = async_helper.async_helper;
   let minitest = expect.minitest;
-
+  let mochaOnError = window.onerror;
   dart_sdk.dart.trapRuntimeErrors(false);
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   let html_config = unittest.html_config;
@@ -26,7 +26,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // Common combinations:
   const pass = 'pass';
   const fail = 'fail';
-  const skip_fail = ['skip', 'fail'];
   const skip_timeout = ['skip', 'timeout'];
 
   // Browsers
@@ -48,126 +47,103 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
     'language': {
-      'assert_with_type_test_or_cast_test': skip_fail,
-      'assertion_test': skip_fail,
+      'assertion_test': fail,
       'async_await_test_none_multi': 'unittest',
       'async_await_test_02_multi': 'unittest',
 
       // Flaky on travis (https://github.com/dart-lang/sdk/issues/27224)
-      'async_await_test_03_multi': skip_fail,
+      'async_await_test_03_multi': async_unittest,
 
-      'async_star_await_pauses_test': skip_fail,
+      'async_star_await_pauses_test': skip_timeout,
 
       // TODO(jmesserly): figure out why this test is hanging.
       'async_star_cancel_and_throw_in_finally_test': skip_timeout,
 
-      'async_star_cancel_while_paused_test': skip_fail,
-      'async_star_regression_fisk_test': skip_fail,
+      'async_star_cancel_while_paused_test': fail,
 
       // TODO(vsm): Re-enable (https://github.com/dart-lang/sdk/issues/28319)
-      'async_star_test_none_multi': ['unittest', 'skip', 'fail'],
-      'async_star_test_01_multi': ['unittest', 'skip', 'fail'],
-      'async_star_test_02_multi': ['unittest', 'skip', 'fail'],
-      'async_star_test_03_multi': ['unittest', 'skip', 'fail'],
-      'async_star_test_04_multi': ['unittest', 'skip', 'fail'],
-      'async_star_test_05_multi': ['unittest', 'skip', 'fail'],
+      'async_star_test_none_multi': async_unittest,
+      'async_star_test_01_multi': async_unittest,
+      'async_star_test_02_multi': async_unittest,
+      'async_star_test_03_multi': async_unittest,
+      'async_star_test_04_multi': async_unittest,
+      'async_star_test_05_multi': async_unittest,
 
-      'async_switch_test': skip_fail,
-      'asyncstar_throw_in_catch_test': skip_fail,
-      'await_future_test': skip_fail,
-      'bit_operations_test_none_multi': skip_fail,  // DDC/dart2js canonicalize bitop results to unsigned
-      'bool_test': skip_fail,
-      'branch_canonicalization_test': skip_fail,  // JS bit operations truncate to 32 bits.
+      'async_switch_test': fail,
+      'asyncstar_throw_in_catch_test': fail,
+      'await_future_test': skip_timeout,
+      'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
+      'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
       'call_closurization_test': fail, // Functions do not expose a "call" method.
       'call_function_apply_test': fail, // Function.apply not really implemented.
       'call_through_null_getter_test': fail, // null errors are not converted to NoSuchMethodErrors.
       'call_with_no_such_method_test': fail, // Function.apply not really implemented.
-      'canonical_const2_test': skip_fail,
-      'canonical_const_test': skip_fail,
-      'cascade_precedence_test': skip_fail,
-      'cast_test_01_multi': skip_fail,
-      'cast_test_02_multi': skip_fail,
-      'cast_test_03_multi': skip_fail,
-      'cast_test_07_multi': skip_fail,
-      'cast_test_10_multi': skip_fail,
-      'cast_test_12_multi': skip_fail,
-      'cast_test_13_multi': skip_fail,
-      'cast_test_14_multi': skip_fail,
-      'cast_test_15_multi': skip_fail,
-      'cha_deopt1_test': skip_fail,
-      'cha_deopt2_test': skip_fail,
-      'cha_deopt3_test': skip_fail,
-      'class_syntax2_test': skip_fail,
-      'classes_static_method_clash_test': skip_fail,
-      'closure_call_wrong_argument_count_negative_test': skip_fail,
-      'closure_in_constructor_test': skip_fail,
-      'closures_initializer_test': skip_fail,
-      'code_after_try_is_executed_test_01_multi': skip_fail,
-      'compile_time_constant10_test_none_multi': skip_fail,
-      'compile_time_constant_a_test': skip_fail,
-      'compile_time_constant_b_test': skip_fail,
-      'compile_time_constant_d_test': skip_fail,
-      'compile_time_constant_i_test': skip_fail,
-      'compile_time_constant_k_test_none_multi': skip_fail,
-      'compile_time_constant_o_test_none_multi': skip_fail,
-      'const_constructor3_test_03_multi': skip_fail,
-      'const_escape_frog_test': skip_fail,
-      'const_evaluation_test_01_multi': skip_fail,
-      'const_switch_test_02_multi': skip_fail,
-      'const_switch_test_04_multi': skip_fail,
-      'constructor11_test': skip_fail,
-      'constructor12_test': skip_fail,
-      'custom_await_stack_trace_test': skip_fail,
-      'cyclic_type2_test': skip_fail,
-      'cyclic_type_test_00_multi': skip_fail,
-      'cyclic_type_test_01_multi': skip_fail,
-      'cyclic_type_test_02_multi': skip_fail,
-      'cyclic_type_test_03_multi': skip_fail,
-      'cyclic_type_test_04_multi': skip_fail,
-      'cyclic_type_variable_test_none_multi': skip_fail,
+      'canonical_const2_test': fail,
+      'canonical_const_test': fail,
+      'cast_test_01_multi': fail,
+      'cast_test_02_multi': fail,
+      'cast_test_03_multi': fail,
+      'cast_test_07_multi': fail,
+      'cast_test_10_multi': fail,
+      'cast_test_12_multi': fail,
+      'cast_test_13_multi': fail,
+      'cast_test_14_multi': fail,
+      'cast_test_15_multi': fail,
+      'classes_static_method_clash_test': fail,
+      'code_after_try_is_executed_test_01_multi': fail,
+      'compile_time_constant10_test_none_multi': fail,
+      'compile_time_constant_a_test': fail,
+      'compile_time_constant_b_test': fail,
+      'compile_time_constant_d_test': fail,
+      'compile_time_constant_k_test_none_multi': fail,
+      'compile_time_constant_o_test_none_multi': fail,
+      'const_evaluation_test_01_multi': fail,
+      'const_switch_test_02_multi': fail,
+      'const_switch_test_04_multi': fail,
+      'constructor12_test': fail,
+      'cyclic_type2_test': fail,
+      'cyclic_type_test_00_multi': fail,
+      'cyclic_type_test_01_multi': fail,
+      'cyclic_type_test_02_multi': fail,
+      'cyclic_type_test_03_multi': fail,
+      'cyclic_type_test_04_multi': fail,
 
       // Deferred libraries are not actually deferred. These tests all test
       // that synchronous access to the library fails.
-      'deferred_call_empty_before_load_test': skip_fail,
-      'deferred_not_loaded_check_test': skip_fail,
-      'deferred_redirecting_factory_test': skip_fail,
-      'deferred_static_seperate_test': skip_fail,
+      'deferred_call_empty_before_load_test': fail,
+      'deferred_not_loaded_check_test': fail,
+      'deferred_redirecting_factory_test': fail,
+      'deferred_static_seperate_test': fail,
 
-      'deferred_regression_22995_test': skip_fail, // Strong mode "is" rejects some type tests.
-      'double_int_to_string_test': skip_fail,
-      'double_to_string_test': skip_fail,
-      'dynamic_test': skip_fail,
-      'enum_mirror_test': skip_fail,
+      'deferred_regression_22995_test': fail, // Strong mode "is" rejects some type tests.
+      'double_int_to_string_test': fail,
+      'dynamic_test': fail,
       'exception_test': fail,
-      'execute_finally6_test': skip_fail,
-      'expect_test': skip_fail,
-      'extends_test_lib': skip_fail,
-      'external_test_10_multi': skip_fail,
-      'external_test_13_multi': skip_fail,
-      'external_test_20_multi': skip_fail,
-      'f_bounded_quantification3_test': skip_fail,
-      'factory_type_parameter_test': skip_fail,
-      'fast_method_extraction_test': skip_fail,
+      'execute_finally6_test': fail,
+      'expect_test': fail,
+      'extends_test_lib': fail,
+      'external_test_10_multi': fail,
+      'external_test_13_multi': fail,
+      'external_test_20_multi': fail,
+      'f_bounded_quantification3_test': fail,
+      'fast_method_extraction_test': fail,
       'field_increment_bailout_test': fail,
-      'field_optimization3_test': skip_fail,
-      'final_syntax_test_08_multi': skip_fail,
-      'first_class_types_test': skip_fail,
-      'flatten_test_01_multi': skip_fail,
-      'flatten_test_04_multi': skip_fail,
-      'for_in2_test': skip_fail,
-      'for_variable_capture_test': skip_fail,
-      'function_subtype0_test': skip_fail,
-      'function_subtype1_test': skip_fail,
-      'function_subtype2_test': skip_fail,
-      'function_subtype3_test': skip_fail,
-      'function_subtype_bound_closure0_test': skip_fail,
-      'function_subtype_bound_closure1_test': skip_fail,
-      'function_subtype_bound_closure2_test': skip_fail,
-      'function_subtype_bound_closure3_test': skip_fail,
-      'function_subtype_bound_closure4_test': skip_fail,
-      'function_subtype_bound_closure5_test': skip_fail,
-      'function_subtype_bound_closure5a_test': skip_fail,
-      'function_subtype_bound_closure6_test': skip_fail,
+      'field_optimization3_test': fail,
+      'final_syntax_test_08_multi': fail,
+      'first_class_types_test': fail,
+      'for_variable_capture_test': chrome_fail,
+      'function_subtype0_test': fail,
+      'function_subtype1_test': fail,
+      'function_subtype2_test': fail,
+      'function_subtype3_test': fail,
+      'function_subtype_bound_closure0_test': fail,
+      'function_subtype_bound_closure1_test': fail,
+      'function_subtype_bound_closure2_test': fail,
+      'function_subtype_bound_closure3_test': fail,
+      'function_subtype_bound_closure4_test': fail,
+      'function_subtype_bound_closure5_test': fail,
+      'function_subtype_bound_closure5a_test': fail,
+      'function_subtype_bound_closure6_test': fail,
       'function_subtype_call0_test': fail, // Strong mode "is" rejects some type tests.
       'function_subtype_call1_test': fail,
       'function_subtype_call2_test': fail,
@@ -175,157 +151,118 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'function_subtype_cast1_test': fail,
       'function_subtype_cast2_test': fail,
       'function_subtype_cast3_test': fail,
-      'function_subtype_factory0_test': skip_fail,
-      'function_subtype_inline0_test': skip_fail,
-      'function_subtype_local0_test': skip_fail,
-      'function_subtype_local1_test': skip_fail,
-      'function_subtype_local2_test': skip_fail,
-      'function_subtype_local3_test': skip_fail,
-      'function_subtype_local4_test': skip_fail,
-      'function_subtype_local5_test': skip_fail,
-      'function_subtype_named1_test': skip_fail,
-      'function_subtype_named2_test': skip_fail,
-      'function_subtype_not0_test': skip_fail,
-      'function_subtype_not1_test': skip_fail,
-      'function_subtype_not2_test': skip_fail,
-      'function_subtype_not3_test': skip_fail,
-      'function_subtype_optional1_test': skip_fail,
-      'function_subtype_optional2_test': skip_fail,
-      'function_subtype_top_level0_test': skip_fail,
-      'function_subtype_top_level1_test': skip_fail,
-      'function_subtype_typearg0_test': skip_fail,
-      'function_subtype_typearg2_test': skip_fail,
-      'function_subtype_typearg4_test': skip_fail,
-      'function_type_alias2_test': skip_fail,
-      'function_type_alias3_test': skip_fail,
-      'function_type_alias4_test': skip_fail,
-      'function_type_alias6_test_none_multi': skip_fail,
-      'gc_test': skip_fail,
-      'generic_field_mixin2_test': skip_fail,
-      'generic_field_mixin3_test': skip_fail,
-      'generic_field_mixin4_test': skip_fail,
-      'generic_field_mixin5_test': skip_fail,
-      'generic_field_mixin_test': skip_fail,
+      'function_subtype_factory0_test': fail,
+      'function_subtype_inline0_test': fail,
+      'function_subtype_local0_test': fail,
+      'function_subtype_local1_test': fail,
+      'function_subtype_local2_test': fail,
+      'function_subtype_local3_test': fail,
+      'function_subtype_local4_test': fail,
+      'function_subtype_local5_test': fail,
+      'function_subtype_named1_test': fail,
+      'function_subtype_named2_test': fail,
+      'function_subtype_not0_test': fail,
+      'function_subtype_not1_test': fail,
+      'function_subtype_not2_test': fail,
+      'function_subtype_not3_test': fail,
+      'function_subtype_optional1_test': fail,
+      'function_subtype_optional2_test': fail,
+      'function_subtype_top_level0_test': fail,
+      'function_subtype_top_level1_test': fail,
+      'function_subtype_typearg2_test': fail,
+      'function_subtype_typearg4_test': fail,
+      'function_type_alias2_test': fail,
+      'function_type_alias3_test': fail,
+      'function_type_alias4_test': fail,
+      'function_type_alias6_test_none_multi': fail,
       'generic_instanceof_test': fail, // runtime strong mode reject
-      'generic_instanceof2_test': skip_fail,
-      'generic_is_check_test': skip_fail,
-      'getter_closure_execution_order_test': skip_fail,
-      'hash_code_mangling_test': skip_fail,
-      'identical_closure2_test': skip_fail,
-      'infinite_switch_label_test': skip_fail,
-      'infinity_test': skip_fail,
-      'initializing_formal_final_test': skip_fail,
-      'instance_creation_in_function_annotation_test': skip_fail,
+      'generic_instanceof2_test': fail,
+      'generic_is_check_test': fail,
+      'getter_closure_execution_order_test': fail,
+      'hash_code_mangling_test': fail,
+      'identical_closure2_test': fail,
+      'infinite_switch_label_test': fail,
+      'infinity_test': fail,
+      'initializing_formal_final_test': fail,
+      'instance_creation_in_function_annotation_test': fail,
       'instanceof2_test': fail,
       'instanceof4_test_01_multi': fail,
       'instanceof4_test_none_multi': fail,
-      'instanceof_optimized_test': skip_fail,
+      'instanceof_optimized_test': fail,
       'integer_division_by_zero_test': fail,
       'is_nan_test': fail,
-      'issue10747_test': skip_fail,
-      'issue13179_test': skip_fail,
-      'issue21079_test': skip_fail,
-      'issue21957_test': skip_fail,
-      'issue23244_test': skip_fail,
-      'issue_1751477_test': skip_fail,
-      'issue_22780_test_01_multi': skip_fail,
-      'issue_23914_test': skip_fail,
-      'js_properties_test': skip_fail,
-      'lazy_static3_test': skip_fail,
-      'least_upper_bound_expansive_test_none_multi': skip_fail,
-      'left_shift_test': skip_fail,
-      'list_is_test': skip_fail,
-      'list_literal3_test': skip_fail,
-      'many_generic_instanceof_test': skip_fail,
-      'map_literal10_test': skip_fail,
-      'map_literal7_test': skip_fail,
-      'memory_swap_test': skip_fail,
-      'method_invocation_test': skip_fail,
-      'mint_arithmetic_test': skip_fail,
-      'mixin_forwarding_constructor3_test': skip_fail,
-      'mixin_generic_test': skip_fail,
-      'mixin_implements_test': skip_fail,
-      'mixin_invalid_inheritance1_test_none_multi': skip_fail,
-      'mixin_issue10216_2_test': skip_fail,
-      'mixin_mixin2_test': skip_fail,
-      'mixin_mixin3_test': skip_fail,
-      'mixin_mixin4_test': skip_fail,
-      'mixin_mixin5_test': skip_fail,
-      'mixin_mixin6_test': skip_fail,
-      'mixin_mixin7_test': skip_fail,
-      'mixin_mixin_bound2_test': skip_fail,
-      'mixin_mixin_bound_test': skip_fail,
-      'mixin_mixin_test': skip_fail,
-      'mixin_regress_13688_test': skip_fail,
-      'mixin_type_parameter1_test': skip_fail,
-      'mixin_type_parameter2_test': skip_fail,
-      'mixin_type_parameter3_test': skip_fail,
+      'issue_22780_test_01_multi': fail,
+      'lazy_static3_test': fail,
+      'least_upper_bound_expansive_test_none_multi': fail,
+      'left_shift_test': fail,
+      'list_is_test': fail,
+      'list_literal3_test': fail,
+      'many_generic_instanceof_test': fail,
+      'map_literal10_test': fail,
+      'map_literal7_test': fail,
+      'method_invocation_test': fail,
+      'mint_arithmetic_test': fail,
+      'mixin_forwarding_constructor3_test': fail,
+      'mixin_implements_test': fail,
+      'mixin_issue10216_2_test': fail,
+      'mixin_mixin2_test': fail,
+      'mixin_mixin3_test': fail,
+      'mixin_mixin4_test': fail,
+      'mixin_mixin5_test': fail,
+      'mixin_mixin6_test': fail,
+      'mixin_mixin7_test': fail,
+      'mixin_mixin_bound2_test': fail,
+      'mixin_mixin_bound_test': fail,
+      'mixin_mixin_test': fail,
+      'mixin_regress_13688_test': fail,
       'modulo_test': fail,
-      'named_parameter_clash_test': skip_fail,
+      'named_parameter_clash_test': fail,
       'named_parameters_passing_falsy_test': firefox_fail,
-      'nan_identical_test': skip_fail,
-      'nested_switch_label_test': skip_fail,
-      'number_identifier_test_05_multi': skip_fail,
-      'number_identity2_test': skip_fail,
-      'numbers_test': skip_fail,
-      'optimized_hoisting_checked_mode_assert_test': skip_fail,
-      'redirecting_factory_reflection_test': skip_fail,
-      'regress_13462_0_test': skip_fail,
-      'regress_13462_1_test': skip_fail,
-      'regress_14105_test': skip_fail,
-      'regress_16640_test': skip_fail,
+      'nan_identical_test': fail,
+      'nested_switch_label_test': fail,
+      'number_identifier_test_05_multi': fail,
+      'number_identity2_test': fail,
+      'numbers_test': fail,
+      'redirecting_factory_reflection_test': fail,
+      'regress_16640_test': fail,
       'regress_18535_test': fail,
-      'regress_21795_test': skip_fail,
-      'regress_22443_test': skip_fail,
-      'regress_22666_test': skip_fail,
-      'setter_no_getter_test_01_multi': skip_fail,
-      'stack_overflow_stacktrace_test': skip_fail,
-      'stack_overflow_test': skip_fail,
-      'stacktrace_rethrow_error_test_none_multi': skip_fail,
-      'stacktrace_rethrow_error_test_withtraceparameter_multi': skip_fail,
-      'stacktrace_test': skip_fail,
-      'string_interpolate_null_test': skip_fail,
-      'super_operator_index3_test': skip_fail,
-      'super_operator_index4_test': skip_fail,
-      'switch_label2_test': skip_fail,
-      'switch_label_test': skip_fail,
-      'switch_try_catch_test': skip_fail,
-      'sync_generator1_test_none_multi': skip_fail,
-      'throwing_lazy_variable_test': skip_fail,
-      'top_level_non_prefixed_library_test': skip_fail,
+      'regress_22666_test': fail,
+      'regress_22777_test': fail,
+      'setter_no_getter_test_01_multi': fail,
+      'stack_overflow_stacktrace_test': fail,
+      'stack_overflow_test': fail,
+      'stacktrace_rethrow_error_test_none_multi': fail,
+      'stacktrace_rethrow_error_test_withtraceparameter_multi': fail,
+      'stacktrace_test': chrome_fail,
+      'string_interpolate_null_test': fail,
+      'switch_label2_test': fail,
+      'switch_label_test': fail,
+      'switch_try_catch_test': fail,
+      'throwing_lazy_variable_test': fail,
       'truncdiv_test': fail,  // did not throw
-      'type_variable_nested_test': skip_fail,  // unsound is-check
-      'type_variable_typedef_test': skip_fail,  // unsound is-check
+      'type_variable_nested_test': fail,  // unsound is-check
+      'type_variable_typedef_test': fail,  // unsound is-check
 
-      'bit_operations_test_01_multi': skip_fail,
-      'bit_operations_test_02_multi': skip_fail,
-      'bit_operations_test_03_multi': skip_fail,
-      'bit_operations_test_04_multi': skip_fail,
-      'bool_condition_check_test_01_multi': skip_fail,
-      'deferred_constraints_constants_test_none_multi': skip_fail,
-      'deferred_constraints_constants_test_reference_after_load_multi': skip_fail,
-      'deferred_constraints_type_annotation_test_new_generic1_multi': skip_fail,
-      'deferred_constraints_type_annotation_test_new_multi': skip_fail,
-      'deferred_constraints_type_annotation_test_none_multi': skip_fail,
-      'deferred_constraints_type_annotation_test_static_method_multi': skip_fail,
-      'deferred_constraints_type_annotation_test_type_annotation_non_deferred_multi': skip_fail,
-      'deferred_load_constants_test_none_multi': skip_fail,
-      'deferred_load_library_wrong_args_test_01_multi': skip_fail,
-      'deferred_load_library_wrong_args_test_none_multi': skip_fail,
-      'external_test_21_multi': skip_fail,
-      'external_test_24_multi': skip_fail,
-      'main_not_a_function_test_01_multi': skip_fail,
-      'multiline_newline_test_04_multi': skip_fail,
-      'multiline_newline_test_05_multi': skip_fail,
-      'multiline_newline_test_06_multi': skip_fail,
-      'multiline_newline_test_none_multi': skip_fail,
-      'no_main_test_01_multi': skip_fail,
+      'bit_operations_test_01_multi': fail,
+      'bit_operations_test_02_multi': fail,
+      'bit_operations_test_03_multi': fail,
+      'bit_operations_test_04_multi': fail,
+      'bool_condition_check_test_01_multi': fail,
+      'deferred_load_constants_test_none_multi': fail,
+      'external_test_21_multi': fail,
+      'external_test_24_multi': fail,
+      'main_not_a_function_test_01_multi': fail,
+      'multiline_newline_test_04_multi': fail,
+      'multiline_newline_test_05_multi': fail,
+      'multiline_newline_test_06_multi': fail,
+      'multiline_newline_test_none_multi': fail,
+      'no_main_test_01_multi': fail,
 
       // https://github.com/dart-lang/sdk/issues/26123
-      'bad_raw_string_negative_test': skip_fail,
+      'bad_raw_string_negative_test': fail,
 
       // https://github.com/dart-lang/sdk/issues/26124
-      'prefix10_negative_test': skip_fail,
+      'prefix10_negative_test': fail,
 
       'library_prefixes_test1': 'helper',
       'library_prefixes_test2': 'helper',
@@ -558,19 +495,17 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
     'lib/math': {
       // TODO(het): triage
-      'double_pow_test': skip_fail,
-      'low_test': skip_fail,
-      'math_test': skip_fail,
-      'math2_test': skip_fail,
+      'double_pow_test': fail,
+      'low_test': fail,
       'pi_test': skip_timeout,
-      'random_big_test': skip_fail,
+      'random_big_test': fail,
     },
 
     'lib/typed_data': {
       // No bigint or int64 support
-      'int32x4_bigint_test': skip_fail,
-      'int64_list_load_store_test': skip_fail,
-      'typed_data_hierarchy_int64_test': skip_fail,
+      'int32x4_bigint_test': fail,
+      'int64_list_load_store_test': fail,
+      'typed_data_hierarchy_int64_test': fail,
       'typed_data_list_test': fail,
     },
 
@@ -694,7 +629,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'relation_assignable_test': fail,
       'relation_subtype_test': fail,
       'set_field_with_final_test': fail,
-      'spawn_function_root_library_test': skip_fail,
       'symbol_validation_test_01_multi': fail,
       'symbol_validation_test_none_multi': fail,
       'to_string_test': fail,
@@ -702,7 +636,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'type_variable_is_static_test': fail,
       'type_variable_owner_test_01_multi': fail,
       'type_variable_owner_test_none_multi': fail,
-      'typedef_deferred_library_test': skip_fail,  // Isolate spawn not support
+      'typedef_deferred_library_test': fail,  // Isolate spawn not support
       'typedef_library_test': fail,
       'typedef_metadata_test': fail,
       'typedef_test': fail,
@@ -721,6 +655,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   }
 
   let unittest_tests = [];
+  let unittestAccidentallyInitialized = false;
 
   let languageTestPattern =
       new RegExp('gen/codegen_output/(.*)/([^/]*_test[^/]*)');
@@ -766,63 +701,125 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
       let protect = (f) => {  // Returns the exception, or `null`.
         try {
-          f();
-          return null;
+          return f();
         } catch (e) {
           return e;
         }
       };
 
       test(name, function(done) { // 'function' to allow `this.timeout`.
-        async_helper.asyncTestInitialize(done);
         console.debug('Running test:  ' + name);
 
-        var result = null;
+        // Many tests are async.  Currently, tests can indicate this in
+        // two different ways.  First, `main` can call (in Dart)
+        // `async_helper.asyncStart`.  We can check if this happened by
+        // querying `async_helper.asyncTestStarted` afterward and waiting for
+        // the callback if so.  Second, `main` can return a `Future`.  If so,
+        // we wait for that to complete.  If neither is true, we assume the
+        // test is synchronous.
+        //
+        // A 'failing' test will throw an exception.  This exception may be
+        // synchronous (i.e., during `main`) or asynchronous (after `main` in
+        // lieu of the callback/future).  The latter exceptions are not
+        // directly caught.  Instead, we intercept `window.onerror` to detect
+        // them.
+        //
+        // Note, if the test is marked 'negative' or 'fail', than pass and fail
+        // are effectively inverted: only a success is reported.
+        //
+        // In all cases, we funnel test completion through the `finish` handler
+        // below to handle reporting (based on status) and cleanup state.
+        //
+        // A test can finish in one of several ways:
+        // 1. Synchronous without an error.  In this case, `main` returns
+        //    null and did not set `async_helper`.  `finish` is invoked
+        //    immediately.
+        // 2. Synchronous error.  `main` throws an error.  `finish`
+        //    is invoked immediately with the error.
+        // 3. `Future` without an error.  In this case, the future completes
+        //    and asynchronously invokes `finish`.
+        // 4. Via `async_helper` without an error.  In this case, the
+        //    `async_helper` library triggers `finish` via its callback.
+        // 5. Asynchronously with an error.  In this case, `window.onerror`
+        //    triggers `finish` with the error.
+        // 6. Hangs.  In this case, we rely on the underlying mocha framework
+        //    timeout.
+        //
+        // TODO(vsm): This currently doesn't handle tests that trigger multiple
+        // asynchronous exceptions.
+
         let mainLibrary = require(module)[libraryName(name)];
         let negative = /negative_test/.test(name);
-        if (has('slow')) this.timeout(10000);
-        if (has('fail')) {
-          let e = protect(mainLibrary.main);
-          if (negative) {
-            if (e != null) {
-              throw new Error(
-                  "negative test marked as 'fail' " +
-                  "but passed by throwing:\n" + e);
-            }
-          } else {
-            if (e == null) {
-              throw new Error("test marked as 'fail' but passed");
-            }
-          }
-        } else {
-          try {
+        let fail = has('fail');
+
+        function finish(error) {
+          // If the test left any lingering detritus in the DOM, blow it away
+          // so it doesn't interfere with later tests.
+          if (fail) {
             if (negative) {
-              assert.throws(mainLibrary.main);
+              if (error) {
+                error = new Error(
+                  "negative test marked as 'fail' " +
+                  "but passed by throwing:\n" + error);
+              }
+            } else if (error) {
+              error = null
             } else {
-              result = mainLibrary.main();
+              error = new Error("test marked as 'fail' but passed");
             }
-          } finally {
-            minitest.finishTests();
+          } else if (negative) {
+            if (!error) {
+              error = new Error("test marked as 'negative' but did not throw");
+            } else {
+              error = null;
+            }
           }
+          minitest.finishTests();
+          document.body.innerHTML = '';
+          console.log("cleared");
+          if (error && !(error instanceof Error)) error = new Error(error);
+          done(error);
         }
 
-        // If the test left any lingering detritus in the DOM, blow it away
-        // so it doesn't interfere with later tests.
-        document.body.innerHTML = '';
-        console.log("cleared");
+        // Intercept uncaught exceptions
+        window.onerror = function(message, url, line, column, error) {
+          console.warn('Asynchronous error in ' + name + ': ' + message);
+          if (!error) {
+            error = new Error(message);
+          }
+          finish(error);
+        };
 
-        if (!async_helper.asyncTestStarted) {
+        async_helper.asyncTestInitialize(finish);
+        if (has('slow')) this.timeout(10000);
+ 
+        var result;
+        try {
+          var result = mainLibrary.main();
+          if (result && !(result instanceof dart_sdk.async.Future)) {
+            result = null;
+          }
+        } catch (e) {
+          finish(e);
+        }
+
+        // Ensure this isn't a unittest
+        if (!unittestAccidentallyInitialized &&
+            unittest.src__test_environment.environment.initialized) {
+          // This suppresses duplicate messages for later tests
+          unittestAccidentallyInitialized = true;
+          finish(new Error('Test ' + name + ' must be marked as a unittest'));
+        } else if (!async_helper.asyncTestStarted) {
           if (!result) {
-            done();
+            finish();
           } else {
-            result.then(dart_sdk.dart.dynamic)(() => done());
+            result.then(dart_sdk.dart.dynamic)(() => finish());
           }
         }
       });
     }
   }
 
-  let mochaOnError;
   // We run these tests in a mocha test wrapper to avoid the confusing failure
   // case of dart unittests being interleaved with mocha tests.
   // In practice we are really just suppressing all mocha test behavior while
@@ -847,7 +844,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     this.timeout(100000000);
     this.enableTimeouts(false);
     // Suppress mocha on-error handling because it will mess up unittests.
-    mochaOnError = window.onerror;
     window.onerror = function(err, url, line) {
       console.error(err, url, line);
     };

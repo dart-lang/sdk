@@ -76,11 +76,11 @@ main(List<String> args) {
           Flags.enableAssertMessage
         ]);
     ResolutionWorldBuilderImpl worldBuilder =
-        compiler.enqueuer.resolution.universe;
+        compiler.enqueuer.resolution.worldBuilder;
     worldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.resolverWorld.closeWorld(compiler.reporter);
+    compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
 
     JavaScriptBackend backend = compiler.backend;
     // Create a new resolution enqueuer and feed it with the [WorldImpact]s
@@ -114,7 +114,8 @@ main(List<String> args) {
           .transformResolutionImpact(enqueuer, resolutionImpact);
       enqueuer.applyImpact(worldImpact, impactSource: element);
     });
-    ClosedWorld closedWorld = enqueuer.universe.closeWorld(compiler.reporter);
+    ClosedWorld closedWorld =
+        enqueuer.worldBuilder.closeWorld(compiler.reporter);
 
     checkResolutionEnqueuers(compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
@@ -135,7 +136,8 @@ main(List<String> args) {
       }
       return true;
     }, verbose: arguments.verbose);
-    checkClosedWorlds(compiler.resolverWorld.closedWorldForTesting, closedWorld,
+    checkClosedWorlds(
+        compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);
   });
 }

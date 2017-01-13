@@ -2283,7 +2283,15 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
  * by a [DirectiveElementBuilder].
  */
 class DirectiveResolver extends SimpleAstVisitor {
+  final Map<Source, int> sourceModificationTimeMap;
+  final Map<Source, SourceKind> importSourceKindMap;
+  final Map<Source, SourceKind> exportSourceKindMap;
+  final List<AnalysisError> errors = <AnalysisError>[];
+
   LibraryElement _enclosingLibrary;
+
+  DirectiveResolver(this.sourceModificationTimeMap, this.importSourceKindMap,
+      this.exportSourceKindMap);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -2301,6 +2309,19 @@ class DirectiveResolver extends SimpleAstVisitor {
     for (ExportElement element in _enclosingLibrary.exports) {
       if (element.nameOffset == nodeOffset) {
         node.element = element;
+        // Verify the exported source kind.
+        Source exportedSource = element.exportedLibrary.source;
+        int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
+        if (exportedTime >= 0 &&
+            exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+          StringLiteral uriLiteral = node.uri;
+          errors.add(new AnalysisError(
+              _enclosingLibrary.source,
+              uriLiteral.offset,
+              uriLiteral.length,
+              CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+              [uriLiteral.toSource()]));
+        }
         break;
       }
     }
@@ -2313,6 +2334,22 @@ class DirectiveResolver extends SimpleAstVisitor {
     for (ImportElement element in _enclosingLibrary.imports) {
       if (element.nameOffset == nodeOffset) {
         node.element = element;
+        // Verify the imported source kind.
+        Source importedSource = element.importedLibrary.source;
+        int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
+        if (importedTime >= 0 &&
+            importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+          StringLiteral uriLiteral = node.uri;
+          ErrorCode errorCode = element.isDeferred
+              ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+              : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+          errors.add(new AnalysisError(
+              _enclosingLibrary.source,
+              uriLiteral.offset,
+              uriLiteral.length,
+              errorCode,
+              [uriLiteral.toSource()]));
+        }
         break;
       }
     }

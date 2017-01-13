@@ -3474,12 +3474,28 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
+
   Zone* zone = Thread::Current()->zone();
   const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
 
   if (scr.kind() == RawScript::kKernelTag) {
-    return TokenPosition::kMinSource;
+    TokenPosition largest_seen = token_pos();
+
+    // Walk through all functions and get their end_tokens to find the classes
+    // "end token".
+    // TODO(jensj): Should probably walk though all fields as well.
+    Function& function = Function::Handle(zone);
+    const Array& arr = Array::Handle(functions());
+    for (int i = 0; i < arr.Length(); i++) {
+      function ^= arr.At(i);
+      if (function.script() == script()) {
+        if (largest_seen < function.end_token_pos()) {
+          largest_seen = function.end_token_pos();
+        }
+      }
+    }
+    return TokenPosition(largest_seen);
   }
 
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
@@ -5222,7 +5238,8 @@ bool Function::HasBreakpoint() const {
 void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // We may not have previous code if FLAG_precompile is set.
-  if (!is_osr && HasCode()) {
+  // Hot-reload may have already disabled the current code.
+  if (!is_osr && HasCode() && !Code::Handle(CurrentCode()).IsDisabled()) {
     Code::Handle(CurrentCode()).DisableDartCode();
   }
   AttachCode(code);

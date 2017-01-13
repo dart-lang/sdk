@@ -19,12 +19,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
 
   @failingTest
   @override
-  test_exportOfNonLibrary() {
-    return super.test_exportOfNonLibrary();
-  }
-
-  @failingTest
-  @override
   test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() {
     return super
         .test_fieldInitializerOutsideConstructor_inFunctionTypeParameter();
@@ -34,24 +28,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   @override
   test_fromEnvironment_bool_badDefault_whenDefined() {
     return super.test_fromEnvironment_bool_badDefault_whenDefined();
-  }
-
-  @failingTest
-  @override
-  test_importOfNonLibrary() {
-    return super.test_importOfNonLibrary();
-  }
-
-  @failingTest
-  @override
-  test_nonConstValueInInitializer_assert_condition() {
-    return super.test_nonConstValueInInitializer_assert_condition();
-  }
-
-  @failingTest
-  @override
-  test_nonConstValueInInitializer_assert_message() {
-    return super.test_nonConstValueInInitializer_assert_message();
   }
 
   @failingTest
@@ -88,17 +64,5 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   @override
   test_uriDoesNotExist_import_appears_after_deleting_target() {
     return super.test_uriDoesNotExist_import_appears_after_deleting_target();
-  }
-
-  @failingTest
-  @override
-  test_uriDoesNotExist_import_disappears_when_fixed() {
-    return super.test_uriDoesNotExist_import_disappears_when_fixed();
-  }
-
-  @failingTest
-  @override
-  test_uriWithInterpolation_nonConstant() {
-    return super.test_uriWithInterpolation_nonConstant();
   }
 }

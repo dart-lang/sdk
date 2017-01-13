@@ -30,9 +30,15 @@ DEFINE_FLAG(bool,
             false,
             "Block the parent thread when loading spawned isolates.");
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
 }
 
 
@@ -116,7 +122,8 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
         new Message(destination_port_id, obj.raw(), Message::kNormalPriority));
   } else {
     uint8_t* data = NULL;
-    MessageWriter writer(&data, &allocator, can_send_any_object);
+    MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator,
+                         can_send_any_object);
     writer.WriteMessage(obj);
 
     // TODO(turnidge): Throw an exception when the return value is false?
@@ -424,7 +431,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(msg);
 
   PortMap::PostMessage(new Message(port.Id(), data, writer.BytesWritten(),

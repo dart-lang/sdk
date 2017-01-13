@@ -8,6 +8,7 @@
 # prefix.
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
+io/http_close_test: Pass, RuntimeError # Issue 28380
 
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
@@ -21,7 +22,7 @@ package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTim
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
-[ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none)) ]
+[ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 env_test: Skip # This is testing a vm command line parsing scenario.
 
@@ -222,11 +223,9 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
 assert_test: Pass, RuntimeError
-
-[ $noopt || $compiler == precompiler ]
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 
@@ -280,6 +279,10 @@ verbose_gc_to_bmu_test: Skip
 
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
 io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory relative to the script.
+
+[ $runtime == vm && $system == windows && $mode == release ]
+io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
+io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
 [ $runtime == dart_precompiled || $mode == product ]
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
@@ -379,3 +382,12 @@ io/socket_info_ipv6_test: SkipByDesign
 io/directory_error_test: Fail # Issue 28350
 io/directory_fuzz_test: Fail # Issue 28350
 io/directory_list_nonexistent_test: Fail # Issue 28350
+
+io/stdout_bad_argument_test: Fail # Issue 28353
+io/file_blocking_lock_test: Fail # Issue 28353
+
+io/process_sync_test: RuntimeError
+io/signals_test: RuntimeError
+io/regress_7191_test: RuntimeError
+io/named_pipe_script_test: RuntimeError
+io/http_server_close_response_after_error_test: RuntimeError

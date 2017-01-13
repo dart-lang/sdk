@@ -156,6 +156,12 @@ start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
 message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
 browser/package_resolve_browser_hook*: Skip # Tests that use defaultPackagesBase (not supported in Dartium).
 
+[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) ]
+browser/package_resolve_browser_test: Fail # Issue 28382
+
+[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) && ($system == windows) ]
+browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL to fix under Windows.
+
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
@@ -170,7 +176,7 @@ package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 count_test: SkipByDesign
 cross_isolate_message_test: SkipByDesign

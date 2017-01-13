@@ -5,7 +5,6 @@
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../js_backend/js_backend.dart';
 import '../js_backend/backend_helpers.dart';
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';

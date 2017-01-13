@@ -295,7 +295,7 @@ class FullFunctionSetQuery implements FunctionSetQuery {
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(
         functions.expand((MemberElement element) {
-          ClassEntity cls = element.enclosingClass.declaration;
+          ClassEntity cls = element.enclosingClass;
           return [cls]..addAll(closedWorld.mixinUsesOf(cls));
         }).map((cls) {
           if (closedWorld.backendClasses.nullImplementation == cls) {

@@ -36,9 +36,15 @@ DEFINE_FLAG(bool,
             false,
             "Provide extra service tracing information.");
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
 }
 
 
@@ -106,7 +112,7 @@ void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
       sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */));
   ASSERT(!message.IsNull());
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(message);
   intptr_t len = writer.BytesWritten();
   PortMap::PostMessage(new Message(port_, data, len, Message::kNormalPriority));
@@ -118,7 +124,7 @@ void ServiceIsolate::ControlWebServer(const SendPort& sp, bool enable) {
       sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable));
   ASSERT(!message.IsNull());
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(message);
   intptr_t len = writer.BytesWritten();
   PortMap::PostMessage(new Message(port_, data, len, Message::kNormalPriority));
@@ -205,7 +211,7 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
       Dart_GetMainPortId(), VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID, name));
   ASSERT(!list.IsNull());
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
@@ -234,7 +240,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
       Dart_GetMainPortId(), VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID, name));
   ASSERT(!list.IsNull());
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
@@ -311,7 +317,8 @@ void ServiceIsolate::ConstructExitMessageAndCache(Isolate* I) {
   ASSERT(exit_message_length_ == 0);
   const Array& list = Array::Handle(Z, MakeServiceExitMessage());
   ASSERT(!list.IsNull());
-  MessageWriter writer(&exit_message_, &allocator, false);
+  MessageWriter writer(&exit_message_, &malloc_allocator, &malloc_deallocator,
+                       false);
   writer.WriteMessage(list);
   exit_message_length_ = writer.BytesWritten();
   ASSERT(exit_message_ != NULL);

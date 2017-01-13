@@ -515,6 +515,9 @@ class _ConstExprBuilder {
           Expression expression = _pop();
           _push(AstTestFactory.awaitExpression(expression));
           break;
+        case UnlinkedExprOperation.pushThis:
+          _push(AstTestFactory.thisExpression());
+          break;
         case UnlinkedExprOperation.assignToRef:
         case UnlinkedExprOperation.assignToProperty:
         case UnlinkedExprOperation.assignToIndex:

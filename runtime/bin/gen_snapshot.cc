@@ -1055,7 +1055,7 @@ static void CreateAndWritePrecompiledSnapshot(
   Dart_Handle result;
 
   // Precompile with specified embedder entry points
-  result = Dart_Precompile(standalone_entry_points, true, NULL, 0);
+  result = Dart_Precompile(standalone_entry_points, NULL, 0);
   CHECK_RESULT(result);
 
   // Create a precompiled snapshot.
@@ -1063,8 +1063,8 @@ static void CreateAndWritePrecompiledSnapshot(
   if (as_assembly) {
     uint8_t* assembly_buffer = NULL;
     intptr_t assembly_size = 0;
-    result = Dart_CreatePrecompiledSnapshotAssembly(&assembly_buffer,
-                                                    &assembly_size);
+    result =
+        Dart_CreateAppAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
     CHECK_RESULT(result);
     WriteSnapshotFile(assembly_filename, assembly_buffer, assembly_size);
   } else {
@@ -1076,7 +1076,7 @@ static void CreateAndWritePrecompiledSnapshot(
     intptr_t instructions_blob_size = 0;
     uint8_t* rodata_blob_buffer = NULL;
     intptr_t rodata_blob_size = 0;
-    result = Dart_CreatePrecompiledSnapshotBlob(
+    result = Dart_CreateAppAOTSnapshotAsBlobs(
         &vm_isolate_buffer, &vm_isolate_size, &isolate_buffer, &isolate_size,
         &instructions_blob_buffer, &instructions_blob_size, &rodata_blob_buffer,
         &rodata_blob_size);

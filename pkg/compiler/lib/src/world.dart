@@ -160,6 +160,27 @@ abstract class ClosedWorld implements World {
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
 
+  /// Returns an iterable of the classes that are contained in the
+  /// strict subclass/subtype sets of both [cls1] and [cls2].
+  ///
+  /// Classes that are implied by included superclasses/supertypes are not
+  /// returned.
+  ///
+  /// For instance for this hierarchy
+  ///
+  ///     class A {}
+  ///     class B {}
+  ///     class C implements A, B {}
+  ///     class D extends C {}
+  ///
+  /// the query
+  ///
+  ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
+  ///
+  /// return the set {C} because [D] is implied by [C].
+  Iterable<ClassEntity> commonSubclasses(ClassElement cls1, ClassQuery query1,
+      ClassElement cls2, ClassQuery query2);
+
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
 
@@ -403,7 +424,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   ClosedWorldImpl(
       {JavaScriptBackend backend,
       this.commonElements,
-      ResolutionWorldBuilder resolverWorld,
+      ResolutionWorldBuilder resolutionWorldBuilder,
       FunctionSetBuilder functionSetBuilder,
       Iterable<TypedefElement> allTypedefs,
       Map<ClassElement, Set<MixinApplicationElement>> mixinUses,
@@ -411,7 +432,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       Map<ClassElement, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassElement, ClassSet> classSets})
       : this._backend = backend,
-        this._resolverWorld = resolverWorld,
+        this._resolverWorld = resolutionWorldBuilder,
         this._allTypedefs = allTypedefs,
         this._mixinUses = mixinUses,
         this._typesImplementedBySubclasses = typesImplementedBySubclasses,
@@ -746,6 +767,58 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     }
     commonSupertypes.add(commonElements.objectClass);
     return commonSupertypes;
+  }
+
+  Iterable<ClassElement> commonSubclasses(ClassElement cls1, ClassQuery query1,
+      ClassElement cls2, ClassQuery query2) {
+    // TODO(johnniwinther): Use [ClassSet] to compute this.
+    // Compute the set of classes that are contained in both class subsets.
+    Set<ClassEntity> common =
+        _commonContainedClasses(cls1, query1, cls2, query2);
+    if (common == null || common.isEmpty) return const <ClassElement>[];
+    // Narrow down the candidates by only looking at common classes
+    // that do not have a superclass or supertype that will be a
+    // better candidate.
+    return common.where((ClassElement each) {
+      bool containsSuperclass = common.contains(each.supertype.element);
+      // If the superclass is also a candidate, then we don't want to
+      // deal with this class. If we're only looking for a subclass we
+      // know we don't have to look at the list of interfaces because
+      // they can never be in the common set.
+      if (containsSuperclass ||
+          query1 == ClassQuery.SUBCLASS ||
+          query2 == ClassQuery.SUBCLASS) {
+        return !containsSuperclass;
+      }
+      // Run through the direct supertypes of the class. If the common
+      // set contains the direct supertype of the class, we ignore the
+      // the class because the supertype is a better candidate.
+      for (Link link = each.interfaces; !link.isEmpty; link = link.tail) {
+        if (common.contains(link.head.element)) return false;
+      }
+      return true;
+    });
+  }
+
+  Set<ClassElement> _commonContainedClasses(ClassElement cls1,
+      ClassQuery query1, ClassElement cls2, ClassQuery query2) {
+    Iterable<ClassElement> xSubset = _containedSubset(cls1, query1);
+    if (xSubset == null) return null;
+    Iterable<ClassElement> ySubset = _containedSubset(cls2, query2);
+    if (ySubset == null) return null;
+    return xSubset.toSet().intersection(ySubset.toSet());
+  }
+
+  Iterable<ClassElement> _containedSubset(ClassElement cls, ClassQuery query) {
+    switch (query) {
+      case ClassQuery.EXACT:
+        return null;
+      case ClassQuery.SUBCLASS:
+        return strictSubclassesOf(cls);
+      case ClassQuery.SUBTYPE:
+        return strictSubtypesOf(cls);
+    }
+    throw new ArgumentError('Unexpected query: $query.');
   }
 
   /// Returns an iterable over the live mixin applications that mixin [cls].

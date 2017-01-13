@@ -220,12 +220,11 @@ TypeRangeCache::~TypeRangeCache() {
 
 RawError* Precompiler::CompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[],
-    bool reset_fields,
     uint8_t* jit_feedback,
     intptr_t jit_feedback_length) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Precompiler precompiler(Thread::Current(), reset_fields);
+    Precompiler precompiler(Thread::Current());
     precompiler.LoadFeedback(jit_feedback, jit_feedback_length);
     precompiler.DoCompileAll(embedder_entry_points);
     return Error::null();
@@ -332,11 +331,10 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
 }
 
 
-Precompiler::Precompiler(Thread* thread, bool reset_fields)
+Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
       zone_(NULL),
       isolate_(thread->isolate()),
-      reset_fields_(reset_fields),
       jit_feedback_(NULL),
       changed_(false),
       function_count_(0),
@@ -686,9 +684,9 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:typed_data", "ByteData", "ByteData."},
     {"dart:typed_data", "ByteData", "ByteData._view"},
     {"dart:typed_data", "_ByteBuffer", "_ByteBuffer._New"},
-    {"dart:_vmservice", "::", "_registerIsolate"},
     {"dart:_vmservice", "::", "boot"},
 #if !defined(PRODUCT)
+    {"dart:_vmservice", "::", "_registerIsolate"},
     {"dart:developer", "Metrics", "_printMetrics"},
     {"dart:developer", "::", "_runExtension"},
     {"dart:isolate", "::", "_runPendingImmediateCallback"},
@@ -1183,9 +1181,6 @@ void Precompiler::AddField(const Field& field) {
     if (field.has_initializer()) {
       // Should not be in the middle of initialization while precompiling.
       ASSERT(value.raw() != Object::transition_sentinel().raw());
-
-      const bool is_initialized = value.raw() != Object::sentinel().raw();
-      if (is_initialized && !reset_fields_) return;
 
       if (!field.HasPrecompiledInitializer() ||
           !Function::Handle(Z, field.PrecompiledInitializer()).HasCode()) {

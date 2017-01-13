@@ -462,8 +462,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     JavaScriptBackend backend = compiler.backend;
-    if (constant.getType(compiler.commonElements).element !=
-        backend.helpers.jsAnnotationClass) {
+    ResolutionDartType type = constant.getType(compiler.commonElements);
+    if (type.element != backend.helpers.jsAnnotationClass) {
       compiler.reporter
           .internalError(annotation, 'Invalid @JS(...) annotation.');
     }

@@ -36,6 +36,14 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
     }
   }
 
+  if (node is AssertInitializer) {
+    serializeArguments(node.message != null
+        ? [node.condition, node.message]
+        : [node.condition]);
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.assertInvocation,
+        arguments: arguments);
+  }
   if (node is RedirectingConstructorInvocation) {
     serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(
@@ -380,6 +388,8 @@ abstract class AbstractConstExprSerializer {
       _serialize(expr.expression);
       references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedExprOperation.typeCheck);
+    } else if (expr is ThisExpression) {
+      operations.add(UnlinkedExprOperation.pushThis);
     } else if (expr is ThrowExpression) {
       isValidConst = false;
       _serialize(expr.expression);

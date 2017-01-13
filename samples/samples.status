@@ -25,3 +25,6 @@ sample_extension/test/*: Skip # These tests attempt to spawn another script usin
 
 [ $compiler == app_jit ]
 sample_extension/test/*: Skip # Shared use of a temp directory
+
+[ $builder_tag == asan && $arch == x64 ]
+sample_extension/test/sample_extension_app_snapshot_test: RuntimeError # Leak in subprocess

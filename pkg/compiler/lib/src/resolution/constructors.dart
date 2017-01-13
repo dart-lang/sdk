@@ -98,7 +98,10 @@ class InitializerResolver {
     Element target;
     FieldElement field;
     if (isFieldInitializer(init)) {
-      target = constructor.enclosingClass.lookupLocalMember(name);
+      // Use [enclosingElement] instead of [enclosingClass] to ensure lookup in
+      // patch class when necessary.
+      ClassElement cls = constructor.enclosingElement;
+      target = cls.lookupLocalMember(name);
       if (target == null) {
         reporter.reportErrorMessage(
             selector, MessageKind.CANNOT_RESOLVE, {'name': name});
@@ -616,7 +619,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     return result;
   }
 
-  ConstructorResult visitTypeAnnotation(TypeAnnotation node) {
+  ConstructorResult visitNominalTypeAnnotation(NominalTypeAnnotation node) {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
     ResolutionDartType type = resolver.resolveTypeAnnotation(node,

@@ -1247,6 +1247,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(HINTS, AnalysisError.NO_ERRORS);
       setValue(LINTS, AnalysisError.NO_ERRORS);
       setValue(LIBRARY_UNIT_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(RESOLVE_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(RESOLVE_TYPE_NAMES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(RESOLVE_UNIT_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);

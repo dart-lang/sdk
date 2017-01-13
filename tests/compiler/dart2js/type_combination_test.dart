@@ -102,7 +102,8 @@ class RuleSet {
 }
 
 void testUnion(MockCompiler compiler) {
-  ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
+  ClosedWorld closedWorld =
+      compiler.resolutionWorldBuilder.closedWorldForTesting;
   RuleSet ruleSet = new RuleSet(
       'union', (t1, t2) => simplify(t1.union(t2, closedWorld), closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
@@ -416,7 +417,8 @@ void testUnion(MockCompiler compiler) {
 void testIntersection(MockCompiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   BackendHelpers helpers = backend.helpers;
-  ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
+  ClosedWorld closedWorld =
+      compiler.resolutionWorldBuilder.closedWorldForTesting;
   RuleSet ruleSet =
       new RuleSet('intersection', (t1, t2) => t1.intersection(t2, closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
@@ -726,7 +728,8 @@ void testIntersection(MockCompiler compiler) {
 }
 
 void testRegressions(MockCompiler compiler) {
-  ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
+  ClosedWorld closedWorld =
+      compiler.resolutionWorldBuilder.closedWorldForTesting;
   TypeMask nonNullPotentialString =
       new TypeMask.nonNullSubtype(patternClass, closedWorld);
   Expect.equals(potentialString,
@@ -760,7 +763,8 @@ void main() {
         .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
     compiler.enqueuer.resolution.applyImpact(impactBuilder);
     compiler.closeResolution();
-    ClosedWorld closedWorld = compiler.resolverWorld.closedWorldForTesting;
+    ClosedWorld closedWorld =
+        compiler.resolutionWorldBuilder.closedWorldForTesting;
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.

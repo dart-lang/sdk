@@ -151,9 +151,11 @@ bool areSelectorsEquivalent(Selector a, Selector b) {
 
 /// Returns `true` if the names [a] and [b] are equivalent.
 bool areNamesEquivalent(Name a, Name b) {
+  LibraryElement library1 = a.library;
+  LibraryElement library2 = b.library;
   return a.text == b.text &&
       a.isSetter == b.isSetter &&
-      areElementsEquivalent(a.library, b.library);
+      areElementsEquivalent(library1, library2);
 }
 
 /// Returns `true` if the dynamic uses [a] and [b] are equivalent.
@@ -866,8 +868,9 @@ class ConstantValueEquivalence
   @override
   bool visitConstructed(
       ConstructedConstantValue value1, ConstructedConstantValue value2) {
-    return strategy.testTypes(
-            value1, value2, 'type', value1.type, value2.type) &&
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
         strategy.testMaps(
             value1,
             value2,
@@ -889,16 +892,18 @@ class ConstantValueEquivalence
 
   @override
   bool visitList(ListConstantValue value1, ListConstantValue value2) {
-    return strategy.testTypes(
-            value1, value2, 'type', value1.type, value2.type) &&
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
         strategy.testConstantValueLists(
             value1, value2, 'entries', value1.entries, value2.entries);
   }
 
   @override
   bool visitMap(MapConstantValue value1, MapConstantValue value2) {
-    return strategy.testTypes(
-            value1, value2, 'type', value1.type, value2.type) &&
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
         strategy.testConstantValueLists(
             value1, value2, 'keys', value1.keys, value2.keys) &&
         strategy.testConstantValueLists(
@@ -907,7 +912,9 @@ class ConstantValueEquivalence
 
   @override
   bool visitType(TypeConstantValue value1, TypeConstantValue value2) {
-    return strategy.testTypes(value1, value2, 'type', value1.type, value2.type);
+    ResolutionInterfaceType type1 = value1.type;
+    ResolutionInterfaceType type2 = value2.type;
+    return strategy.testTypes(value1, value2, 'type', type1, type2);
   }
 
   @override
@@ -965,8 +972,9 @@ class ConstantValueEquivalence
   @override
   bool visitInterceptor(
       InterceptorConstantValue value1, InterceptorConstantValue value2) {
-    return strategy.testTypes(value1, value2, 'dispatchedType',
-        value1.dispatchedType, value2.dispatchedType);
+    ClassElement cls1 = value1.cls;
+    ClassElement cls2 = value2.cls;
+    return strategy.testElements(value1, value2, 'cls', cls1, cls2);
   }
 }
 
@@ -1957,11 +1965,22 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTypeAnnotation(TypeAnnotation node1, TypeAnnotation node2) {
+  bool visitNominalTypeAnnotation(
+      NominalTypeAnnotation node1, NominalTypeAnnotation node2) {
     return testNodes(
             node1, node2, 'typeName', node1.typeName, node2.typeName) &&
         testNodes(node1, node2, 'typeArguments', node1.typeArguments,
             node2.typeArguments);
+  }
+
+  @override
+  bool visitFunctionTypeAnnotation(
+      FunctionTypeAnnotation node1, FunctionTypeAnnotation node2) {
+    return testNodes(
+        node1, node2, 'returnType', node1.returnType, node2.returnType) &&
+        testNodes(node1, node2, 'formals', node1.formals, node2.formals) &&
+            testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+                node2.typeParameters);
   }
 
   @override
@@ -1978,8 +1997,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
         testNodes(
             node1, node2, 'returnType', node1.returnType, node2.returnType) &&
         testNodes(node1, node2, 'name', node1.name, node2.name) &&
-        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
-            node2.typeParameters) &&
+        testNodes(node1, node2, 'typeParameters', node1.templateParameters,
+            node2.templateParameters) &&
         testNodes(node1, node2, 'formals', node1.formals, node2.formals);
   }
 

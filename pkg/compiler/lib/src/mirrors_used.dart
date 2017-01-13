@@ -252,7 +252,8 @@ class MirrorUsageAnalyzer {
       metadata.ensureResolved(compiler.resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
-      Element element = value.getType(compiler.commonElements).element;
+      ResolutionDartType type = value.getType(compiler.commonElements);
+      Element element = type.element;
       if (element == compiler.commonElements.mirrorsUsedClass) {
         result.add(buildUsage(value));
       }

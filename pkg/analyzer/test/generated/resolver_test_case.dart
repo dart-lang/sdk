@@ -335,7 +335,7 @@ class ResolverTestCase extends EngineTestCase {
   final Map<Source, TestAnalysisResult> analysisResults = {};
 
   StringBuffer _logBuffer = new StringBuffer();
-  FileContentOverlay _fileContentOverlay = new FileContentOverlay();
+  FileContentOverlay fileContentOverlay = new FileContentOverlay();
   AnalysisDriver driver;
 
   AnalysisContext get analysisContext => analysisContext2;
@@ -687,7 +687,7 @@ class ResolverTestCase extends EngineTestCase {
       PerformanceLog log = new PerformanceLog(_logBuffer);
       AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
       driver = new AnalysisDriver(scheduler, log, resourceProvider,
-          new MemoryByteStore(), _fileContentOverlay, sourceFactory, options);
+          new MemoryByteStore(), fileContentOverlay, sourceFactory, options);
       scheduler.start();
     } else {
       if (packages != null) {

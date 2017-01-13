@@ -46,23 +46,6 @@
         'runtime/dart-runtime.gyp:generate_patched_sdk#host',
       ],
     },
-    {
-      # This is the target that is built on the VM build bots.  It
-      # must depend on anything that is required by the VM test
-      # suites.
-      'target_name': 'runtime_and_noopt',
-      'type': 'none',
-      'dependencies': [
-        'runtime/dart-runtime.gyp:dart',
-        'runtime/dart-runtime.gyp:dart_noopt',
-        'runtime/dart-runtime.gyp:dart_bootstrap#host',
-        'runtime/dart-runtime.gyp:run_vm_tests',
-        'runtime/dart-runtime.gyp:process_test',
-        'runtime/dart-runtime.gyp:test_extension',
-        'runtime/dart-runtime.gyp:sample_extension',
-        'runtime/dart-runtime.gyp:generate_patched_sdk#host',
-      ],
-    },
 
     {
       'target_name': 'create_sdk',
