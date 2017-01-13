@@ -346,6 +346,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         } else {
           compareConstAsts(rItem.expression, oItem.expression, desc);
         }
+      } else if (oItem is AssertInitializer && rItem is AssertInitializer) {
+        compareConstAsts(rItem.condition, oItem.condition, '$desc condition');
+        compareConstAsts(rItem.message, oItem.message, '$desc message');
       } else if (oItem is SuperConstructorInvocation &&
           rItem is SuperConstructorInvocation) {
         compareElements(rItem.staticElement, oItem.staticElement, desc);
@@ -1122,7 +1125,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   /**
    * Determine the analysis options that should be used for this test.
    */
-  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl();
+  AnalysisOptionsImpl createOptions() =>
+      new AnalysisOptionsImpl()..enableAssertInitializer = true;
 
   ElementImpl getActualElement(Element element, String desc) {
     if (element == null) {
@@ -2424,6 +2428,22 @@ class C {
    */
   C();
 }''');
+  }
+
+  test_constructor_initializers_assertInvocation() {
+    checkLibrary('''
+class C {
+  const C(int x) : assert(x >= 42);
+}
+''');
+  }
+
+  test_constructor_initializers_assertInvocation_message() {
+    checkLibrary('''
+class C {
+  const C(int x) : assert(x >= 42, 'foo');
+}
+''');
   }
 
   test_constructor_initializers_field() {

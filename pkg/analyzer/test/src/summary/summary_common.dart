@@ -3589,6 +3589,63 @@ class C {
     expect(executable, isNull);
   }
 
+  test_constructor_initializers_assertInvocation() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  const C(int x) : assert(x >= 42);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.assertInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(1));
+    assertUnlinkedConst(initializer.arguments[0], operators: [
+      UnlinkedExprOperation.pushParameter,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.greaterEqual
+    ], ints: [
+      42
+    ], strings: [
+      'x'
+    ]);
+  }
+
+  test_constructor_initializers_assertInvocation_message() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  const C(int x) : assert(x >= 42, 'foo');
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.assertInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(2));
+    assertUnlinkedConst(initializer.arguments[0], operators: [
+      UnlinkedExprOperation.pushParameter,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.greaterEqual
+    ], ints: [
+      42
+    ], strings: [
+      'x',
+    ]);
+    assertUnlinkedConst(initializer.arguments[1], operators: [
+      UnlinkedExprOperation.pushString,
+    ], strings: [
+      'foo'
+    ]);
+  }
+
   test_constructor_initializers_field() {
     UnlinkedExecutable executable =
         findExecutable('', executables: serializeClassText(r'''

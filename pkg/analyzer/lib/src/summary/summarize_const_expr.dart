@@ -36,6 +36,14 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
     }
   }
 
+  if (node is AssertInitializer) {
+    serializeArguments(node.message != null
+        ? [node.condition, node.message]
+        : [node.condition]);
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.assertInvocation,
+        arguments: arguments);
+  }
   if (node is RedirectingConstructorInvocation) {
     serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(

@@ -1347,7 +1347,12 @@ enum UnlinkedConstructorInitializerKind {
   /**
    * Invocation of a superclass' constructor.
    */
-  superInvocation
+  superInvocation,
+
+  /**
+   * Invocation of `assert`.
+   */
+  assertInvocation
 }
 
 /**
