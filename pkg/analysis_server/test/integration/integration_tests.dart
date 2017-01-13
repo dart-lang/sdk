@@ -698,8 +698,8 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (!enableNewAnalysisDriver) {
-      arguments.add('--disable-new-analysis-driver');
+    if (enableNewAnalysisDriver) {
+      arguments.add('--enable-new-analysis-driver');
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');
