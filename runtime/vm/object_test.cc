@@ -2485,6 +2485,8 @@ VM_TEST_CASE(EmbeddedScript) {
   script.TokenRangeAtLine(1000, &first_idx, &last_idx);
   EXPECT_EQ(-1, first_idx.value());
   EXPECT_EQ(-1, last_idx.value());
+
+  free(src_chars);
 }
 
 

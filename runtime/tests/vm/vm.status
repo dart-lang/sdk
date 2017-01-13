@@ -168,8 +168,6 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == asan && $arch == x64 ]
-cc/EmbeddedScript: Fail # Issue 28345
-
 cc/Log_Basic: Fail # Issue 28347
 cc/Log_Block: Fail # Issue 28347
 cc/Log_Macro: Fail # Issue 28347
