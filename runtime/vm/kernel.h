@@ -135,7 +135,6 @@ namespace kernel {
 class Reader;
 class TreeNode;
 class TypeParameter;
-class Writer;
 
 // Boxes a value of type `T*` and `delete`s it on destruction.
 template <typename T>
@@ -199,11 +198,6 @@ class List {
   template <typename IT>
   void ReadFromStatic(Reader* reader);
 
-  void WriteTo(Writer* writer);
-
-  template <typename IT>
-  void WriteToStatic(Writer* writer);
-
   // Extends the array to at least be able to hold [length] elements.
   //
   // Free places will be filled with `NULL` values.
@@ -240,7 +234,6 @@ class List {
 class TypeParameterList : public List<TypeParameter> {
  public:
   void ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 };
 
 
@@ -248,7 +241,6 @@ template <typename A, typename B>
 class Tuple {
  public:
   static Tuple<A, B>* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   Tuple(A* a, B* b) : first_(a), second_(b) {}
 
@@ -269,8 +261,6 @@ class String {
  public:
   static String* ReadFrom(Reader* reader);
   static String* ReadFromImpl(Reader* reader);
-  void WriteTo(Writer* writer);
-  void WriteToImpl(Writer* writer);
 
   String(const uint8_t* utf8, int length) {
     buffer_ = new uint8_t[length];
@@ -295,7 +285,6 @@ class String {
 class StringTable {
  public:
   void ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   List<String>& strings() { return strings_; }
 
@@ -313,7 +302,6 @@ class StringTable {
 class SourceTable {
  public:
   void ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
   ~SourceTable() {
     for (intptr_t i = 0; i < size_; ++i) {
       delete source_code_[i];
@@ -415,7 +403,6 @@ class TreeNode : public Node {
 class Library : public TreeNode {
  public:
   Library* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Library();
 
@@ -473,7 +460,6 @@ class Library : public TreeNode {
 class Class : public TreeNode {
  public:
   Class* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Class();
 
@@ -517,7 +503,6 @@ class Class : public TreeNode {
 class NormalClass : public Class {
  public:
   NormalClass* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~NormalClass();
 
@@ -556,7 +541,6 @@ class NormalClass : public Class {
 class MixinClass : public Class {
  public:
   MixinClass* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~MixinClass();
 
@@ -640,7 +624,6 @@ class Field : public Member {
   };
 
   Field* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Field();
 
@@ -683,7 +666,6 @@ class Constructor : public Member {
   };
 
   Constructor* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Constructor();
 
@@ -734,7 +716,6 @@ class Procedure : public Member {
   };
 
   Procedure* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Procedure();
 
@@ -771,7 +752,6 @@ class Procedure : public Member {
 class Initializer : public TreeNode {
  public:
   static Initializer* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer) = 0;
 
   virtual ~Initializer();
 
@@ -791,7 +771,6 @@ class Initializer : public TreeNode {
 class InvalidInitializer : public Initializer {
  public:
   static InvalidInitializer* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~InvalidInitializer();
 
@@ -809,7 +788,6 @@ class InvalidInitializer : public Initializer {
 class FieldInitializer : public Initializer {
  public:
   static FieldInitializer* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~FieldInitializer();
 
@@ -834,7 +812,6 @@ class FieldInitializer : public Initializer {
 class SuperInitializer : public Initializer {
  public:
   static SuperInitializer* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~SuperInitializer();
 
@@ -859,7 +836,6 @@ class SuperInitializer : public Initializer {
 class RedirectingInitializer : public Initializer {
  public:
   static RedirectingInitializer* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~RedirectingInitializer();
 
@@ -884,7 +860,6 @@ class RedirectingInitializer : public Initializer {
 class LocalInitializer : public Initializer {
  public:
   static LocalInitializer* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~LocalInitializer();
 
@@ -915,7 +890,6 @@ class FunctionNode : public TreeNode {
   };
 
   static FunctionNode* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~FunctionNode();
 
@@ -962,7 +936,6 @@ class FunctionNode : public TreeNode {
 class Expression : public TreeNode {
  public:
   static Expression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer) = 0;
 
   virtual ~Expression();
 
@@ -984,7 +957,6 @@ class Expression : public TreeNode {
 class InvalidExpression : public Expression {
  public:
   static InvalidExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~InvalidExpression();
   virtual void VisitChildren(Visitor* visitor);
@@ -1004,7 +976,6 @@ class VariableGet : public Expression {
  public:
   static VariableGet* ReadFrom(Reader* reader);
   static VariableGet* ReadFrom(Reader* reader, uint8_t payload);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~VariableGet();
 
@@ -1028,7 +999,6 @@ class VariableSet : public Expression {
  public:
   static VariableSet* ReadFrom(Reader* reader);
   static VariableSet* ReadFrom(Reader* reader, uint8_t payload);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~VariableSet();
 
@@ -1053,7 +1023,6 @@ class VariableSet : public Expression {
 class PropertyGet : public Expression {
  public:
   static PropertyGet* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~PropertyGet();
 
@@ -1079,7 +1048,6 @@ class PropertyGet : public Expression {
 class PropertySet : public Expression {
  public:
   static PropertySet* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~PropertySet();
 
@@ -1107,7 +1075,6 @@ class PropertySet : public Expression {
 class DirectPropertyGet : public Expression {
  public:
   static DirectPropertyGet* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~DirectPropertyGet();
 
@@ -1132,7 +1099,6 @@ class DirectPropertyGet : public Expression {
 class DirectPropertySet : public Expression {
  public:
   static DirectPropertySet* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~DirectPropertySet();
 
@@ -1159,7 +1125,6 @@ class DirectPropertySet : public Expression {
 class StaticGet : public Expression {
  public:
   static StaticGet* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~StaticGet();
 
@@ -1182,7 +1147,6 @@ class StaticGet : public Expression {
 class StaticSet : public Expression {
  public:
   static StaticSet* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~StaticSet();
 
@@ -1207,7 +1171,6 @@ class StaticSet : public Expression {
 class Arguments : public TreeNode {
  public:
   static Arguments* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~Arguments();
 
@@ -1236,7 +1199,6 @@ class Arguments : public TreeNode {
 class NamedExpression : public TreeNode {
  public:
   static NamedExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   NamedExpression(String* name, Expression* expr)
       : name_(name), expression_(expr) {}
@@ -1263,7 +1225,6 @@ class NamedExpression : public TreeNode {
 class MethodInvocation : public Expression {
  public:
   static MethodInvocation* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~MethodInvocation();
 
@@ -1291,7 +1252,6 @@ class MethodInvocation : public Expression {
 class DirectMethodInvocation : public Expression {
  public:
   static DirectMethodInvocation* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~DirectMethodInvocation();
 
@@ -1318,7 +1278,6 @@ class DirectMethodInvocation : public Expression {
 class StaticInvocation : public Expression {
  public:
   static StaticInvocation* ReadFrom(Reader* reader, bool is_const);
-  virtual void WriteTo(Writer* writer);
   ~StaticInvocation();
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
@@ -1342,7 +1301,6 @@ class StaticInvocation : public Expression {
 class ConstructorInvocation : public Expression {
  public:
   static ConstructorInvocation* ReadFrom(Reader* reader, bool is_const);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ConstructorInvocation();
 
@@ -1369,7 +1327,6 @@ class ConstructorInvocation : public Expression {
 class Not : public Expression {
  public:
   static Not* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~Not();
 
@@ -1394,7 +1351,6 @@ class LogicalExpression : public Expression {
   enum Operator { kAnd, kOr };
 
   static LogicalExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~LogicalExpression();
 
@@ -1421,7 +1377,6 @@ class LogicalExpression : public Expression {
 class ConditionalExpression : public Expression {
  public:
   static ConditionalExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ConditionalExpression();
 
@@ -1448,7 +1403,6 @@ class ConditionalExpression : public Expression {
 class StringConcatenation : public Expression {
  public:
   static StringConcatenation* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~StringConcatenation();
 
@@ -1471,7 +1425,6 @@ class StringConcatenation : public Expression {
 class IsExpression : public Expression {
  public:
   static IsExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~IsExpression();
 
@@ -1496,7 +1449,6 @@ class IsExpression : public Expression {
 class AsExpression : public Expression {
  public:
   static AsExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~AsExpression();
 
@@ -1531,7 +1483,6 @@ class BasicLiteral : public Expression {
 class StringLiteral : public BasicLiteral {
  public:
   static StringLiteral* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
@@ -1555,7 +1506,6 @@ class StringLiteral : public BasicLiteral {
 class BigintLiteral : public StringLiteral {
  public:
   static BigintLiteral* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
@@ -1575,7 +1525,6 @@ class IntLiteral : public BasicLiteral {
  public:
   static IntLiteral* ReadFrom(Reader* reader, bool is_negative);
   static IntLiteral* ReadFrom(Reader* reader, uint8_t payload);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~IntLiteral();
 
@@ -1597,7 +1546,6 @@ class IntLiteral : public BasicLiteral {
 class DoubleLiteral : public BasicLiteral {
  public:
   static DoubleLiteral* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~DoubleLiteral();
 
@@ -1619,7 +1567,6 @@ class DoubleLiteral : public BasicLiteral {
 class BoolLiteral : public BasicLiteral {
  public:
   static BoolLiteral* ReadFrom(Reader* reader, bool value);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~BoolLiteral();
 
@@ -1641,7 +1588,6 @@ class BoolLiteral : public BasicLiteral {
 class NullLiteral : public BasicLiteral {
  public:
   static NullLiteral* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~NullLiteral();
 
@@ -1659,7 +1605,6 @@ class NullLiteral : public BasicLiteral {
 class SymbolLiteral : public Expression {
  public:
   static SymbolLiteral* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~SymbolLiteral();
 
@@ -1682,7 +1627,6 @@ class SymbolLiteral : public Expression {
 class TypeLiteral : public Expression {
  public:
   static TypeLiteral* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~TypeLiteral();
 
@@ -1705,7 +1649,6 @@ class TypeLiteral : public Expression {
 class ThisExpression : public Expression {
  public:
   static ThisExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ThisExpression();
 
@@ -1724,7 +1667,6 @@ class ThisExpression : public Expression {
 class Rethrow : public Expression {
  public:
   static Rethrow* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~Rethrow();
 
@@ -1743,7 +1685,6 @@ class Rethrow : public Expression {
 class Throw : public Expression {
  public:
   static Throw* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~Throw();
 
@@ -1766,7 +1707,6 @@ class Throw : public Expression {
 class ListLiteral : public Expression {
  public:
   static ListLiteral* ReadFrom(Reader* reader, bool is_const);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ListLiteral();
 
@@ -1793,7 +1733,6 @@ class ListLiteral : public Expression {
 class MapLiteral : public Expression {
  public:
   static MapLiteral* ReadFrom(Reader* reader, bool is_const);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~MapLiteral();
 
@@ -1822,7 +1761,6 @@ class MapLiteral : public Expression {
 class MapEntry : public TreeNode {
  public:
   static MapEntry* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~MapEntry();
 
@@ -1850,7 +1788,6 @@ class MapEntry : public TreeNode {
 class AwaitExpression : public Expression {
  public:
   static AwaitExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~AwaitExpression();
 
@@ -1873,7 +1810,6 @@ class AwaitExpression : public Expression {
 class FunctionExpression : public Expression {
  public:
   static FunctionExpression* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~FunctionExpression();
 
@@ -1896,7 +1832,6 @@ class FunctionExpression : public Expression {
 class Let : public Expression {
  public:
   static Let* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~Let();
 
@@ -1927,7 +1862,6 @@ class Let : public Expression {
 class Statement : public TreeNode {
  public:
   static Statement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer) = 0;
 
   virtual ~Statement();
 
@@ -1949,7 +1883,6 @@ class Statement : public TreeNode {
 class InvalidStatement : public Statement {
  public:
   static InvalidStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~InvalidStatement();
 
@@ -1968,7 +1901,6 @@ class InvalidStatement : public Statement {
 class ExpressionStatement : public Statement {
  public:
   static ExpressionStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   explicit ExpressionStatement(Expression* exp) : expression_(exp) {}
   virtual ~ExpressionStatement();
@@ -1992,8 +1924,6 @@ class ExpressionStatement : public Statement {
 class Block : public Statement {
  public:
   static Block* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
-  void WriteToImpl(Writer* writer);
 
   virtual ~Block();
 
@@ -2016,7 +1946,6 @@ class Block : public Statement {
 class EmptyStatement : public Statement {
  public:
   static EmptyStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~EmptyStatement();
 
@@ -2035,7 +1964,6 @@ class EmptyStatement : public Statement {
 class AssertStatement : public Statement {
  public:
   static AssertStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~AssertStatement();
 
@@ -2060,7 +1988,6 @@ class AssertStatement : public Statement {
 class LabeledStatement : public Statement {
  public:
   static LabeledStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~LabeledStatement();
 
@@ -2083,7 +2010,6 @@ class LabeledStatement : public Statement {
 class BreakStatement : public Statement {
  public:
   static BreakStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~BreakStatement();
 
@@ -2106,7 +2032,6 @@ class BreakStatement : public Statement {
 class WhileStatement : public Statement {
  public:
   static WhileStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~WhileStatement();
 
@@ -2131,7 +2056,6 @@ class WhileStatement : public Statement {
 class DoStatement : public Statement {
  public:
   static DoStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~DoStatement();
 
@@ -2156,7 +2080,6 @@ class DoStatement : public Statement {
 class ForStatement : public Statement {
  public:
   static ForStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ForStatement();
 
@@ -2185,7 +2108,6 @@ class ForStatement : public Statement {
 class ForInStatement : public Statement {
  public:
   static ForInStatement* ReadFrom(Reader* reader, bool is_async);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ForInStatement();
 
@@ -2214,7 +2136,6 @@ class ForInStatement : public Statement {
 class SwitchStatement : public Statement {
  public:
   static SwitchStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~SwitchStatement();
 
@@ -2239,7 +2160,6 @@ class SwitchStatement : public Statement {
 class SwitchCase : public TreeNode {
  public:
   SwitchCase* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~SwitchCase();
 
@@ -2269,7 +2189,6 @@ class SwitchCase : public TreeNode {
 class ContinueSwitchStatement : public Statement {
  public:
   static ContinueSwitchStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ContinueSwitchStatement();
 
@@ -2292,7 +2211,6 @@ class ContinueSwitchStatement : public Statement {
 class IfStatement : public Statement {
  public:
   static IfStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~IfStatement();
 
@@ -2319,7 +2237,6 @@ class IfStatement : public Statement {
 class ReturnStatement : public Statement {
  public:
   static ReturnStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~ReturnStatement();
 
@@ -2342,7 +2259,6 @@ class ReturnStatement : public Statement {
 class TryCatch : public Statement {
  public:
   static TryCatch* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~TryCatch();
 
@@ -2367,7 +2283,6 @@ class TryCatch : public Statement {
 class Catch : public TreeNode {
  public:
   static Catch* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Catch();
 
@@ -2399,7 +2314,6 @@ class Catch : public TreeNode {
 class TryFinally : public Statement {
  public:
   static TryFinally* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~TryFinally();
 
@@ -2428,7 +2342,6 @@ class YieldStatement : public Statement {
     kFlagNative = 1 << 1,
   };
   static YieldStatement* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~YieldStatement();
 
@@ -2460,8 +2373,6 @@ class VariableDeclaration : public Statement {
 
   static VariableDeclaration* ReadFrom(Reader* reader);
   static VariableDeclaration* ReadFromImpl(Reader* reader);
-  virtual void WriteTo(Writer* writer);
-  void WriteToImpl(Writer* writer);
 
   virtual ~VariableDeclaration();
 
@@ -2497,7 +2408,6 @@ class VariableDeclaration : public Statement {
 class FunctionDeclaration : public Statement {
  public:
   static FunctionDeclaration* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer);
 
   virtual ~FunctionDeclaration();
 
@@ -2522,7 +2432,6 @@ class FunctionDeclaration : public Statement {
 class Name : public Node {
  public:
   static Name* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Name();
 
@@ -2535,7 +2444,8 @@ class Name : public Node {
   Library* library() { return library_; }
 
  private:
-  Name(String* string, Library* library) : string_(string), library_(library) {}
+  Name(String* string, Library* library)
+      : string_(string), library_(library) {}  // NOLINT
 
   Ref<String> string_;
   Ref<Library> library_;
@@ -2560,7 +2470,6 @@ class InferredValue : public Node {
   };
 
   static InferredValue* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~InferredValue();
 
@@ -2601,7 +2510,6 @@ class InferredValue : public Node {
 class DartType : public Node {
  public:
   static DartType* ReadFrom(Reader* reader);
-  virtual void WriteTo(Writer* writer) = 0;
 
   virtual ~DartType();
 
@@ -2621,7 +2529,6 @@ class DartType : public Node {
 class InvalidType : public DartType {
  public:
   static InvalidType* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~InvalidType();
 
@@ -2640,7 +2547,6 @@ class InvalidType : public DartType {
 class DynamicType : public DartType {
  public:
   static DynamicType* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~DynamicType();
 
@@ -2659,7 +2565,6 @@ class DynamicType : public DartType {
 class VoidType : public DartType {
  public:
   static VoidType* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~VoidType();
 
@@ -2679,7 +2584,6 @@ class InterfaceType : public DartType {
  public:
   static InterfaceType* ReadFrom(Reader* reader);
   static InterfaceType* ReadFrom(Reader* reader, bool _without_type_arguments_);
-  void WriteTo(Writer* writer);
 
   explicit InterfaceType(Class* klass) : klass_(klass) {}
   virtual ~InterfaceType();
@@ -2706,7 +2610,6 @@ class FunctionType : public DartType {
  public:
   static FunctionType* ReadFrom(Reader* reader);
   static FunctionType* ReadFrom(Reader* reader, bool _without_type_arguments_);
-  void WriteTo(Writer* writer);
 
   virtual ~FunctionType();
 
@@ -2739,7 +2642,6 @@ class FunctionType : public DartType {
 class TypeParameterType : public DartType {
  public:
   static TypeParameterType* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~TypeParameterType();
 
@@ -2762,7 +2664,6 @@ class TypeParameterType : public DartType {
 class TypeParameter : public TreeNode {
  public:
   TypeParameter* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~TypeParameter();
 
@@ -2791,7 +2692,6 @@ class TypeParameter : public TreeNode {
 class Program : public TreeNode {
  public:
   static Program* ReadFrom(Reader* reader);
-  void WriteTo(Writer* writer);
 
   virtual ~Program();
 
@@ -2822,17 +2722,10 @@ class Program : public TreeNode {
 class Reference : public AllStatic {
  public:
   static Member* ReadMemberFrom(Reader* reader, bool allow_null = false);
-  static void WriteMemberTo(Writer* writer,
-                            Member* member,
-                            bool allow_null = false);
 
   static Class* ReadClassFrom(Reader* reader, bool allow_null = false);
-  static void WriteClassTo(Writer* writer,
-                           Class* klass,
-                           bool allow_null = false);
 
   static String* ReadStringFrom(Reader* reader);
-  static void WriteStringTo(Writer* writer, String* string);  // NOLINT
 };
 
 
@@ -3250,17 +3143,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length);
 
-class ByteWriter {
- public:
-  virtual ~ByteWriter();
-
-  virtual void WriteByte(uint8_t byte) = 0;
-
-  virtual void WriteBytes(uint8_t* buffer, int count) = 0;
-};
-
-
-void WritePrecompiledKernel(ByteWriter* out, kernel::Program* program);
 
 
 }  // namespace dart
