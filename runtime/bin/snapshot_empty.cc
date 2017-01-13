@@ -16,8 +16,8 @@ typedef unsigned __int8 uint8_t;
 namespace dart {
 namespace bin {
 
-extern const uint8_t* vm_isolate_snapshot_buffer = NULL;
-extern const uint8_t* const core_isolate_snapshot_buffer = NULL;
+const uint8_t* vm_isolate_snapshot_buffer = NULL;
+const uint8_t* isolate_snapshot_buffer = NULL;
 
 }  // namespace bin
 }  // namespace dart

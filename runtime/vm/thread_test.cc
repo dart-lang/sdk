@@ -15,7 +15,7 @@ namespace dart {
 
 UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
                      NULL);
 
   Mutex* mutex = new Mutex();
@@ -37,7 +37,7 @@ UNIT_TEST_CASE(Mutex) {
 
 UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   OSThread* thread = OSThread::Current();
   // Thread interrupter interferes with this test, disable interrupts.
@@ -389,13 +389,13 @@ TEST_CASE(ThreadRegistry) {
   char* orig_str = orig_zone->PrintToString("foo");
   Dart_ExitIsolate();
   // Create and enter a new isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   Zone* zone0 = Thread::Current()->zone();
   EXPECT(zone0 != orig_zone);
   Dart_ShutdownIsolate();
   // Create and enter yet another isolate.
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   {
     // Create a stack resource this time, and exercise it.
