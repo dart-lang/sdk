@@ -4,7 +4,7 @@
 
 import("../application_snapshot.gni")
 
-script_snapshot("pub") {
+application_snapshot("pub") {
   main_dart = "../../third_party/pkg/pub/bin/pub.dart"
   training_args = [ "--help" ]
   deps = [
