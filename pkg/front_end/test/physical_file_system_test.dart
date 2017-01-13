@@ -127,7 +127,7 @@ class PhysicalFileSystemTest extends _BaseTest {
 
   test_entityForUri_bareUri_absolute() {
     expect(PhysicalFileSystem.instance.entityForUri(Uri.parse('/file.txt')).uri,
-        p.toUri(p.fromUri('/file.txt')));
+        Uri.parse('file:///file.txt'));
   }
 
   test_entityForUri_fileUri_relative() {
