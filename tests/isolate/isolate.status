@@ -197,7 +197,7 @@ stacktrace_message_test: SkipByDesign
 static_function_test: SkipByDesign
 unresolved_ports_test: SkipByDesign
 
-[ $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled || $compiler == app_jit ]
 count_test: Skip # Isolate.spawnUri
 cross_isolate_message_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri

@@ -16,7 +16,7 @@ namespace dart {
 #ifndef PRODUCT
 
 UNIT_TEST_CASE(Metric_Simple) {
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   {
     Metric metric;
@@ -45,7 +45,7 @@ class MyMetric : public Metric {
 };
 
 UNIT_TEST_CASE(Metric_OnDemand) {
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   {
     Thread* thread = Thread::Current();

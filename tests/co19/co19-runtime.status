@@ -293,7 +293,7 @@ Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
 
-[ $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled || $compiler == app_jit ]
 LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
 
 [ $compiler == precompiler ]

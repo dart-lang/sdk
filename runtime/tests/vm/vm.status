@@ -244,9 +244,9 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 # StackTraces in precompilation omit inlined frames.
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
-dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $compiler == app_jit || $compiler == precompiler ]
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]

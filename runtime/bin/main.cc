@@ -40,8 +40,7 @@ extern const uint8_t* vm_isolate_snapshot_buffer;
 
 // isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
 // snapshot otherwise it is initialized to NULL.
-extern const uint8_t* core_isolate_snapshot_buffer;
-
+extern const uint8_t* isolate_snapshot_buffer;
 
 /**
  * Global state used to control and store generation of application snapshots
@@ -52,7 +51,7 @@ extern const uint8_t* core_isolate_snapshot_buffer;
  * To Run the application snapshot generated above, use :
  *   dart <app_snapshot_filename> [<script_options>]
  */
-static bool vm_run_app_snapshot = false;
+static bool run_app_snapshot = false;
 static const char* snapshot_filename = NULL;
 enum SnapshotKind {
   kNone,
@@ -107,10 +106,6 @@ extern const char* kPrecompiledDataSymbolName;
 // Global flag that is used to indicate that we want to trace resolution of
 // URIs and the loading of libraries, parts and scripts.
 static bool trace_loading = false;
-
-
-static char* app_script_uri = NULL;
-static const uint8_t* app_isolate_snapshot_buffer = NULL;
 
 
 static Dart_Isolate main_isolate = NULL;
@@ -728,7 +723,7 @@ static int ParseArguments(int argc,
     Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
     return -1;
   }
-  if ((gen_snapshot_kind != kNone) && vm_run_app_snapshot) {
+  if ((gen_snapshot_kind != kNone) && run_app_snapshot) {
     Log::PrintErr(
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
@@ -812,8 +807,7 @@ static void SnapshotOnExitHook(int64_t exit_code);
 
 
 // Returns true on success, false on failure.
-static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
-                                                const char* script_uri,
+static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
                                                 const char* package_root,
                                                 const char* packages_config,
@@ -832,29 +826,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     }
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: All isolates start from the app snapshot.
-  bool isolate_run_app_snapshot = true;
-  const uint8_t* isolate_snapshot_buffer = app_isolate_snapshot_buffer;
-#else
-  // JIT: Main isolate starts from the app snapshot, if any. Other use the
-  // core libraries snapshot.
-  bool isolate_run_app_snapshot = false;
-  const uint8_t* isolate_snapshot_buffer = core_isolate_snapshot_buffer;
-  if ((app_isolate_snapshot_buffer != NULL) &&
-      (is_main_isolate || ((app_script_uri != NULL) &&
-                           (strcmp(script_uri, app_script_uri) == 0)))) {
-    isolate_run_app_snapshot = true;
-    isolate_snapshot_buffer = app_isolate_snapshot_buffer;
-  }
-#endif
-
   // If the script is a Kernel binary, then we will try to bootstrap from the
   // script.
   const uint8_t* kernel_file = NULL;
   intptr_t kernel_length = -1;
   const bool is_kernel =
-      !isolate_run_app_snapshot &&
+      !run_app_snapshot &&
       TryReadKernel(script_uri, &kernel_file, &kernel_length);
 
   void* kernel_program = NULL;
@@ -890,14 +867,14 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
-  if (isolate_run_app_snapshot) {
+  if (run_app_snapshot) {
     Dart_Handle result = Loader::ReloadNativeExtensions();
     CHECK_RESULT(result);
   }
 
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
-    bool skip_library_load = isolate_run_app_snapshot;
+    bool skip_library_load = run_app_snapshot;
     if (!VmService::Setup(vm_service_server_ip, vm_service_server_port,
                           skip_library_load, vm_service_dev_mode)) {
       *error = strdup(VmService::GetErrorMessage());
@@ -946,23 +923,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     }
   }
 
-  if (isolate_run_app_snapshot) {
+  if (run_app_snapshot) {
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
     Loader::InitForSnapshot(script_uri);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    if (is_main_isolate) {
-      // Find the canonical uri of the app snapshot. We'll use this to decide if
-      // other isolates should use the app snapshot or the core snapshot.
-      const char* resolved_script_uri = NULL;
-      result = Dart_StringToCString(
-          DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri)),
-          &resolved_script_uri);
-      CHECK_RESULT(result);
-      ASSERT(app_script_uri == NULL);
-      app_script_uri = strdup(resolved_script_uri);
-    }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   } else {
     // Load the specified application script into the newly created isolate.
     Dart_Handle uri =
@@ -1015,11 +979,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     return NULL;
   }
 
-  bool is_main_isolate = false;
   int exit_code = 0;
-  return CreateIsolateAndSetupHelper(is_main_isolate, script_uri, main,
-                                     package_root, package_config, flags, error,
-                                     &exit_code);
+  return CreateIsolateAndSetupHelper(script_uri, main, package_root,
+                                     package_config, flags, error, &exit_code);
 }
 
 
@@ -1610,12 +1572,11 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
-  bool is_main_isolate = true;
   int exit_code = 0;
   char* isolate_name = BuildIsolateName(script_name, "main");
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(
-      is_main_isolate, script_name, "main", commandline_package_root,
-      commandline_packages_file, NULL, &error, &exit_code);
+      script_name, "main", commandline_package_root, commandline_packages_file,
+      NULL, &error, &exit_code);
   if (isolate == NULL) {
     delete[] isolate_name;
     if (exit_code == kRestartRequestExitCode) {
@@ -1941,15 +1902,16 @@ void main(int argc, char** argv) {
 
   const uint8_t* instructions_snapshot = NULL;
   const uint8_t* data_snapshot = NULL;
+
   if (ReadAppSnapshot(script_name, &vm_isolate_snapshot_buffer,
-                      &app_isolate_snapshot_buffer, &instructions_snapshot,
+                      &isolate_snapshot_buffer, &instructions_snapshot,
                       &data_snapshot)) {
-    vm_run_app_snapshot = true;
+    run_app_snapshot = true;
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
-  if ((gen_snapshot_kind != kNone) || vm_run_app_snapshot) {
+  if ((gen_snapshot_kind != kNone) || run_app_snapshot) {
     vm_options.AddArgument("--load_deferred_eagerly");
   }
 #endif
@@ -2020,8 +1982,6 @@ void main(int argc, char** argv) {
     free(error);
   }
   EventHandler::Stop();
-
-  free(app_script_uri);
 
   // Free copied argument strings if converted.
   if (argv_converted) {
