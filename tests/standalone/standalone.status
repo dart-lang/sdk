@@ -282,6 +282,7 @@ io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory 
 
 [ $runtime == vm && $system == windows && $mode == release ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
+io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
 [ $runtime == dart_precompiled || $mode == product ]
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
