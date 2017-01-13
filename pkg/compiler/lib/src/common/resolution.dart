@@ -6,6 +6,7 @@ library dart2js.common.resolution;
 
 import '../common.dart';
 import '../compile_time_constants.dart';
+import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../core_types.dart' show CommonElements;

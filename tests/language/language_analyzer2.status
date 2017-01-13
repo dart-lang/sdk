@@ -81,11 +81,6 @@ null_is_bottom_type_test/11: StaticWarning # Issue 28027
 null_is_bottom_type_test/14: StaticWarning # Issue 28027
 null_is_bottom_type_test/15: StaticWarning # Issue 28027
 
-generic_function_typedef_test: Fail # Issue 27969
-generic_function_typedef2_test/none: Fail # Issue 27969
-generic_function_typedef2_test/04: Fail # Issue 27969
-generalized_function_type_test: Fail # Issue 27969
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #

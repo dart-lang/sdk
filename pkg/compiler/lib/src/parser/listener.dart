@@ -130,9 +130,9 @@ class Listener {
 
   void endFunctionName(Token token) {}
 
-  void beginTypedef(Token token) {}
+  void beginFunctionTypeAlias(Token token) {}
 
-  void endTypedef(Token typedefKeyword, Token equals, Token endToken) {}
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {}
 
   void beginMixinApplication(Token token) {}
 
@@ -294,10 +294,6 @@ class Listener {
       int catchCount, Token tryKeyword, Token finallyKeyword) {}
 
   void endType(Token beginToken, Token endToken) {}
-
-  void handleNoName(Token token) {}
-
-  void endFunctionType(Token functionToken, Token endToken) {}
 
   void beginTypeArguments(Token token) {}
 

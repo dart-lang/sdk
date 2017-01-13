@@ -263,14 +263,6 @@ class ReifiedTypeRepresentationBuilder
       ResolutionTypeVariableType type, GraphBuilder builder) {
     ClassElement cls = builder.backend.helpers.RuntimeType;
     TypeMask instructionType = new TypeMask.subclass(cls, closedWorld);
-
-    // TODO(floitsch): this hack maps type variables of generic function
-    // typedefs to dynamic. For example: `typedef F = Function<T>(T)`.
-    if (type is MethodTypeVariableType) {
-      visitDynamicType(const ResolutionDynamicType(), builder);
-      return;
-    }
-
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();
