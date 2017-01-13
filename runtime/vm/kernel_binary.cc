@@ -364,11 +364,22 @@ class Reader {
     }
   }
 
+  /**
+   * Read and return a TokenPosition from this reader.
+   */
   TokenPosition ReadPosition() {
-    intptr_t value = ReadUInt();
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
-    return TokenPosition(value - 1);
+    intptr_t value = ReadUInt() - 1;
+    TokenPosition result = TokenPosition(value);
+    max_position_ = Utils::Maximum(max_position_, result);
+    if (min_position_.IsNoSource()) {
+      min_position_ = result;
+    } else if (result.IsReal()) {
+      min_position_ = Utils::Minimum(min_position_, result);
+    }
+
+    return result;
   }
 
   intptr_t ReadListLength() { return ReadUInt(); }
@@ -412,6 +423,22 @@ class Reader {
     OS::PrintErr("@%" Pd64 " %s\n", offset_, str);
   }
 
+  // The largest position read yet (since last reset).
+  // This is automatically updated when calling ReadPosition,
+  // but can be overwritten (e.g. via the PositionScope class).
+  TokenPosition max_position() { return max_position_; }
+  // The smallest position read yet (since last reset).
+  // This is automatically updated when calling ReadPosition,
+  // but can be overwritten (e.g. via the PositionScope class).
+  TokenPosition min_position() { return min_position_; }
+  // The current script id for what we are currently processing.
+  // Note though that this is only a convenience helper and has to be set
+  // manually.
+  intptr_t current_script_id() { return current_script_id_; }
+  void set_current_script_id(intptr_t script_id) {
+    current_script_id_ = script_id;
+  }
+
   template <typename T, typename RT>
   T* ReadOptional() {
     Tag tag = ReadTag();
@@ -434,8 +461,42 @@ class Reader {
   int64_t size_;
   int64_t offset_;
   ReaderHelper builder_;
+  TokenPosition max_position_;
+  TokenPosition min_position_;
+  intptr_t current_script_id_;
+
+  friend class PositionScope;
 };
 
+
+// A helper class that resets the readers min and max positions both upon
+// initialization and upon destruction, i.e. when created the min an max
+// positions will be reset to "noSource", when destructing the min and max will
+// be reset to have they value they would have had, if they hadn't been reset in
+// the first place.
+class PositionScope {
+ public:
+  explicit PositionScope(Reader* reader)
+      : reader_(reader),
+        min_(reader->min_position_),
+        max_(reader->max_position_) {
+    reader->min_position_ = reader->max_position_ = TokenPosition::kNoSource;
+  }
+
+  ~PositionScope() {
+    if (reader_->min_position_.IsNoSource()) {
+      reader_->min_position_ = min_;
+    } else if (min_.IsReal()) {
+      reader_->min_position_ = Utils::Minimum(reader_->min_position_, min_);
+    }
+    reader_->max_position_ = Utils::Maximum(reader_->max_position_, max_);
+  }
+
+ private:
+  Reader* reader_;
+  TokenPosition min_;
+  TokenPosition max_;
+};
 
 template <typename T>
 template <typename IT>
@@ -581,6 +642,7 @@ Library* Library::ReadFrom(Reader* reader) {
   name_ = Reference::ReadStringFrom(reader);
   import_uri_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
 
   int num_classes = reader->ReadUInt();
   classes().EnsureInitialized(num_classes);
@@ -609,6 +671,7 @@ Class* Class::ReadFrom(Reader* reader) {
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
   annotations_.ReadFromStatic<Expression>(reader);
 
   return this;
@@ -744,6 +807,7 @@ Field* Field::ReadFrom(Reader* reader) {
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
   annotations_.ReadFromStatic<Expression>(reader);
   type_ = DartType::ReadFrom(reader);
   inferred_value_ = reader->ReadOptional<InferredValue>();
@@ -781,6 +845,7 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
+  reader->set_current_script_id(source_uri_index_);
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = reader->ReadOptional<FunctionNode>();
   return this;
@@ -1312,9 +1377,14 @@ FunctionExpression* FunctionExpression::ReadFrom(Reader* reader) {
 Let* Let::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   Let* let = new Let();
   let->variable_ = VariableDeclaration::ReadFromImpl(reader);
   let->body_ = Expression::ReadFrom(reader);
+  let->position_ = reader->min_position();
+  let->end_position_ = reader->max_position();
+
   return let;
 }
 
@@ -1386,9 +1456,14 @@ ExpressionStatement* ExpressionStatement::ReadFrom(Reader* reader) {
 
 Block* Block::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
+  PositionScope scope(reader);
+
   VariableScope<ReaderHelper> vars(reader->helper());
   Block* block = new Block();
   block->statements().ReadFromStatic<Statement>(reader);
+  block->position_ = reader->min_position();
+  block->end_position_ = reader->max_position();
+
   return block;
 }
 
@@ -1447,11 +1522,16 @@ DoStatement* DoStatement::ReadFrom(Reader* reader) {
 ForStatement* ForStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   ForStatement* forstmt = new ForStatement();
   forstmt->variables_.ReadFromStatic<VariableDeclarationImpl>(reader);
   forstmt->condition_ = reader->ReadOptional<Expression>();
   forstmt->updates_.ReadFromStatic<Expression>(reader);
   forstmt->body_ = Statement::ReadFrom(reader);
+  forstmt->end_position_ = reader->max_position();
+  forstmt->position_ = reader->min_position();
+
   return forstmt;
 }
 
@@ -1459,11 +1539,16 @@ ForStatement* ForStatement::ReadFrom(Reader* reader) {
 ForInStatement* ForInStatement::ReadFrom(Reader* reader, bool is_async) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   ForInStatement* forinstmt = new ForInStatement();
   forinstmt->is_async_ = is_async;
   forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader);
   forinstmt->iterable_ = Expression::ReadFrom(reader);
   forinstmt->body_ = Statement::ReadFrom(reader);
+  forinstmt->end_position_ = reader->max_position();
+  forinstmt->position_ = reader->min_position();
+
   return forinstmt;
 }
 
@@ -1527,9 +1612,13 @@ ReturnStatement* ReturnStatement::ReadFrom(Reader* reader) {
 
 TryCatch* TryCatch::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  PositionScope scope(reader);
+
   TryCatch* tc = new TryCatch();
   tc->body_ = Statement::ReadFrom(reader);
   tc->catches_.ReadFromStatic<Catch>(reader);
+  tc->position_ = reader->min_position();
+
   return tc;
 }
 
@@ -1537,6 +1626,8 @@ TryCatch* TryCatch::ReadFrom(Reader* reader) {
 Catch* Catch::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> vars(reader->helper());
+  PositionScope scope(reader);
+
   Catch* c = new Catch();
   c->guard_ = DartType::ReadFrom(reader);
   c->exception_ =
@@ -1544,6 +1635,9 @@ Catch* Catch::ReadFrom(Reader* reader) {
   c->stack_trace_ =
       reader->ReadOptional<VariableDeclaration, VariableDeclarationImpl>();
   c->body_ = Statement::ReadFrom(reader);
+  c->end_position_ = reader->max_position();
+  c->position_ = reader->min_position();
+
   return c;
 }
 
@@ -1577,6 +1671,8 @@ VariableDeclaration* VariableDeclaration::ReadFrom(Reader* reader) {
 
 VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
+  PositionScope scope(reader);
+
   VariableDeclaration* decl = new VariableDeclaration();
   decl->position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
@@ -1584,7 +1680,14 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
   decl->type_ = DartType::ReadFrom(reader);
   decl->inferred_value_ = reader->ReadOptional<InferredValue>();
   decl->initializer_ = reader->ReadOptional<Expression>();
+
+  // Go to next token position so it ends *after* the last potentially
+  // debuggable position in the initializer.
+  TokenPosition position = reader->max_position();
+  if (position.IsReal()) position.Next();
+  decl->end_position_ = position;
   reader->helper()->variables().Push(decl);
+
   return decl;
 }
 

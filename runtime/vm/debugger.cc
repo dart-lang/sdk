@@ -1771,6 +1771,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // of the given token range.
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
+  intptr_t best_line = INT_MAX;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const TokenPosition pos = iter.TokenPos();
@@ -1781,8 +1782,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
     }
 
     intptr_t token_start_column = -1;
+    intptr_t token_line = -1;
     if (requested_column >= 0) {
-      intptr_t ignored = -1;
       intptr_t token_len = -1;
       // TODO(turnidge): GetTokenLocation is a very expensive
       // operation, and this code will blow up when we are setting
@@ -1790,7 +1791,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       // program.  Consider rewriting this code so that it only scans
       // the program code once and caches the token positions and
       // lengths.
-      script.GetTokenLocation(pos, &ignored, &token_start_column, &token_len);
+      script.GetTokenLocation(pos, &token_line, &token_start_column,
+                              &token_len);
       intptr_t token_end_column = token_start_column + token_len - 1;
       if ((token_end_column < requested_column) ||
           (token_start_column > best_column)) {
@@ -1803,6 +1805,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
     // Prefer the lowest (first) token pos.
     if (pos < best_fit_pos) {
       best_fit_pos = pos;
+      best_line = token_line;
       best_column = token_start_column;
     }
   }
@@ -1812,10 +1815,24 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // was specified) and has the lowest code address.
   if (best_fit_pos != TokenPosition::kMaxSource) {
     const Script& script = Script::Handle(zone, func.script());
-    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
     const TokenPosition begin_pos = best_fit_pos;
-    const TokenPosition end_of_line_pos =
-        LastTokenOnLine(zone, tokens, begin_pos);
+
+    TokenPosition end_of_line_pos;
+    if (script.kind() == RawScript::kKernelTag) {
+      if (best_line == -1) {
+        script.GetTokenLocation(begin_pos, &best_line, NULL);
+      }
+      ASSERT(best_line > 0);
+      TokenPosition ignored;
+      script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
+      if (end_of_line_pos < begin_pos) {
+        end_of_line_pos = begin_pos;
+      }
+    } else {
+      const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
+      end_of_line_pos = LastTokenOnLine(zone, tokens, begin_pos);
+    }
+
     uword lowest_pc_offset = kUwordMax;
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
@@ -2911,6 +2928,9 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
+    if (script.kind() == RawScript::kKernelTag) {
+      return false;
+    }
     const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
     TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
     if ((iter.CurrentTokenKind() == Token::kIDENT) &&

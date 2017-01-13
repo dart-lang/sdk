@@ -3474,12 +3474,28 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
+
   Zone* zone = Thread::Current()->zone();
   const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
 
   if (scr.kind() == RawScript::kKernelTag) {
-    return TokenPosition::kMinSource;
+    TokenPosition largest_seen = token_pos();
+
+    // Walk through all functions and get their end_tokens to find the classes
+    // "end token".
+    // TODO(jensj): Should probably walk though all fields as well.
+    Function& function = Function::Handle(zone);
+    const Array& arr = Array::Handle(functions());
+    for (int i = 0; i < arr.Length(); i++) {
+      function ^= arr.At(i);
+      if (function.script() == script()) {
+        if (largest_seen < function.end_token_pos()) {
+          largest_seen = function.end_token_pos();
+        }
+      }
+    }
+    return TokenPosition(largest_seen);
   }
 
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());

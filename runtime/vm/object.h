@@ -3548,7 +3548,10 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
+  RawTokenStream* tokens() const {
+    ASSERT(kind() != RawScript::kKernelTag);
+    return raw_ptr()->tokens_;
+  }
 
   void set_line_starts(const Array& value) const;
 

@@ -562,11 +562,13 @@ class ScopeBuilder : public RecursiveVisitor {
   virtual void VisitConstructor(Constructor* node);
 
  private:
-  void EnterScope(TreeNode* node);
-  void ExitScope();
+  void EnterScope(TreeNode* node, TokenPosition start_position);
+  void ExitScope(TokenPosition end_position);
 
   const Type& TranslateVariableType(VariableDeclaration* variable);
-  LocalVariable* MakeVariable(const dart::String& name,
+  LocalVariable* MakeVariable(TokenPosition declaration_pos,
+                              TokenPosition token_pos,
+                              const dart::String& name,
                               const AbstractType& type);
 
   void AddParameters(FunctionNode* function, intptr_t pos = 0);
@@ -804,7 +806,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment NullConstant();
   Fragment NativeCall(const dart::String* name, const Function* function);
   Fragment PushArgument();
-  Fragment Return();
+  Fragment Return(TokenPosition position);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count);
@@ -820,9 +822,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment StoreInstanceField(
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreLocal(LocalVariable* variable);
+  Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(const dart::Field& field);
-  Fragment StringInterpolate();
+  Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);

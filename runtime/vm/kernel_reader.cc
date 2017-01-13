@@ -325,8 +325,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                false,  // is_abstract
                                kernel_constructor->IsExternal(),
                                false,  // is_native
-                               klass, TokenPosition::kMinSource));
-    function.set_end_token_pos(TokenPosition::kMinSource);
+                               klass, kernel_constructor->position()));
+    function.set_end_token_pos(kernel_constructor->end_position());
     klass.AddFunction(function);
     function.set_kernel_function(kernel_constructor);
     function.set_result_type(T.ReceiverType(klass));
@@ -403,11 +403,11 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        false,       // is_const
                        is_abstract, is_external,
                        native_name != NULL,  // is_native
-                       script_class, TokenPosition::kMinSource));
-  function.set_end_token_pos(TokenPosition::kMinSource);
+                       script_class, kernel_procedure->position()));
+  function.set_end_token_pos(kernel_procedure->end_position());
   owner.AddFunction(function);
   function.set_kernel_function(kernel_procedure);
-  function.set_is_debuggable(false);
+  function.set_is_debuggable(kernel_procedure->function()->debuggable());
   if (native_name != NULL) {
     function.set_native_name(*native_name);
   }
@@ -504,6 +504,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_native
           script_class, kernel_field->position()));
   klass.AddFunction(getter);
+  getter.set_end_token_pos(kernel_field->end_position());
   getter.set_kernel_function(kernel_field);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
   getter.set_is_debuggable(false);
@@ -522,6 +523,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_native
                          script_class, kernel_field->position()));
     klass.AddFunction(setter);
+    setter.set_end_token_pos(kernel_field->end_position());
     setter.set_kernel_function(kernel_field);
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
@@ -639,6 +641,7 @@ dart::Library& KernelReader::LookupLibrary(Library* library) {
     if (handle->IsNull()) {
       *handle = dart::Library::New(url);
       handle->Register(thread_);
+      handle->SetName(H.DartSymbol(library->name()));
     }
     ASSERT(!handle->IsNull());
     libraries_.Insert(library, handle);
@@ -659,7 +662,7 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
       // optimized.
       Script& script = ScriptAt(klass->source_uri_index());
       handle = &dart::Class::Handle(
-          Z, dart::Class::New(library, name, script, TokenPosition::kNoSource));
+          Z, dart::Class::New(library, name, script, klass->position()));
       library.AddClass(*handle);
     } else if (handle->script() == Script::null()) {
       // When bootstrapping we can encounter classes that do not yet have a

@@ -1933,11 +1933,13 @@ class Block : public Statement {
   virtual void VisitChildren(Visitor* visitor);
 
   List<Statement>& statements() { return statements_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  Block() {}
+  Block() : end_position_(TokenPosition::kNoSource) {}
 
   List<Statement> statements_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(Block);
 };
@@ -2092,14 +2094,20 @@ class ForStatement : public Statement {
   Expression* condition() { return condition_; }
   List<Expression>& updates() { return updates_; }
   Statement* body() { return body_; }
+  TokenPosition position() { return position_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  ForStatement() {}
+  ForStatement()
+      : position_(TokenPosition::kNoSource),
+        end_position_(TokenPosition::kNoSource) {}
 
   List<VariableDeclaration> variables_;
   Child<Expression> condition_;
   List<Expression> updates_;
   Child<Statement> body_;
+  TokenPosition position_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(ForStatement);
 };
@@ -2120,14 +2128,20 @@ class ForInStatement : public Statement {
   Expression* iterable() { return iterable_; }
   Statement* body() { return body_; }
   bool is_async() { return is_async_; }
+  TokenPosition position() { return position_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  ForInStatement() {}
+  ForInStatement()
+      : position_(TokenPosition::kNoSource),
+        end_position_(TokenPosition::kNoSource) {}
 
   Child<VariableDeclaration> variable_;
   Child<Expression> iterable_;
   Child<Statement> body_;
   bool is_async_;
+  TokenPosition position_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(ForInStatement);
 };
@@ -2295,9 +2309,13 @@ class Catch : public TreeNode {
   VariableDeclaration* exception() { return exception_; }
   VariableDeclaration* stack_trace() { return stack_trace_; }
   Statement* body() { return body_; }
+  TokenPosition position() { return position_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  Catch() {}
+  Catch()
+      : position_(TokenPosition::kNoSource),
+        end_position_(TokenPosition::kNoSource) {}
 
   template <typename T>
   friend class List;
@@ -2306,6 +2324,8 @@ class Catch : public TreeNode {
   Child<VariableDeclaration> exception_;
   Child<VariableDeclaration> stack_trace_;
   Child<Statement> body_;
+  TokenPosition position_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(Catch);
 };
@@ -2388,9 +2408,10 @@ class VariableDeclaration : public Statement {
   DartType* type() { return type_; }
   InferredValue* inferred_value() { return inferred_value_; }
   Expression* initializer() { return initializer_; }
+  TokenPosition end_position() { return end_position_; }
 
  private:
-  VariableDeclaration() {}
+  VariableDeclaration() : end_position_(TokenPosition::kNoSource) {}
 
   template <typename T>
   friend class List;
@@ -2400,6 +2421,7 @@ class VariableDeclaration : public Statement {
   Child<DartType> type_;
   Child<InferredValue> inferred_value_;
   Child<Expression> initializer_;
+  TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableDeclaration);
 };
