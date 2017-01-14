@@ -37,7 +37,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [getVersion](#getversion)
 	- [getVM](#getvm)
 	- [pause](#pause)
-	- [reloadSources](#reloadSources)
+	- [reloadSources](#reloadsources)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
 	- [setExceptionPauseMode](#setexceptionpausemode)
