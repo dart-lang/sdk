@@ -1134,8 +1134,20 @@ class Foo {
         .parseStatement("do {} (x);", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_expectedTypeName_as() {
+    parseExpression("x as", [ParserErrorCode.EXPECTED_TYPE_NAME]);
+  }
+
+  void test_expectedTypeName_as_void() {
+    parseExpression("x as void)", [ParserErrorCode.EXPECTED_TYPE_NAME]);
+  }
+
   void test_expectedTypeName_is() {
     parseExpression("x is", [ParserErrorCode.EXPECTED_TYPE_NAME]);
+  }
+
+  void test_expectedTypeName_is_void() {
+    parseExpression("x is void)", [ParserErrorCode.EXPECTED_TYPE_NAME]);
   }
 
   void test_exportDirectiveAfterPartDirective() {
@@ -5993,6 +6005,24 @@ class SimpleParserTest extends ParserTestCase {
     expect(variable.name, isNotNull);
   }
 
+  void test_parseClassMember_getter_functionType() {
+    createParser('int Function(int) get g {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.body, isNotNull);
+    expect(method.parameters, isNull);
+  }
+
   void test_parseClassMember_getter_void() {
     createParser('void get g {}');
     ClassMember member = parser.parseClassMember('C');
@@ -6304,6 +6334,26 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_returnType_functionType() {
+    createParser('int Function(String) m() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.name.name, 'm');
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_returnType_parameterized() {
     createParser('p.A m() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -6396,6 +6446,29 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_operator_functionType() {
+    createParser('int Function() operator +(int Function() f) {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, new isInstanceOf<GenericFunctionType>());
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    NodeList<FormalParameter> parameters = method.parameters.parameters;
+    expect(parameters, hasLength(1));
+    expect((parameters[0] as SimpleFormalParameter).type,
+        new isInstanceOf<GenericFunctionType>());
     expect(method.body, isNotNull);
   }
 
@@ -8686,6 +8759,20 @@ void''');
     expect(defaultParameter.kind, kind);
   }
 
+  void test_parseFormalParameter_nonFinal_withType_function() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    createParser('String Function(int) a');
+    FormalParameter parameter = parser.parseFormalParameter(kind);
+    expectNotNullIfNoErrors(parameter);
+    listener.assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
+    expect(simpleParameter.kind, kind);
+  }
+
   void test_parseFormalParameter_nonFinal_withType_named() {
     ParameterKind kind = ParameterKind.NAMED;
     createParser('A a : null');
@@ -8904,6 +8991,18 @@ void''');
 
   void test_parseFormalParameterList_normal_single() {
     createParser('(A a)');
+    FormalParameterList list = parser.parseFormalParameterList();
+    expectNotNullIfNoErrors(list);
+    listener.assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_single_Function() {
+    createParser('(Function f)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     listener.assertNoErrors();
@@ -11687,8 +11786,8 @@ void''');
     expect(invocation.period, isNull);
   }
 
-  void test_parseRelationalExpression_as() {
-    createParser('x as Y');
+  void test_parseRelationalExpression_as_functionType_noReturnType() {
+    createParser('x as Function(int)');
     Expression expression = parser.parseRelationalExpression();
     expectNotNullIfNoErrors(expression);
     listener.assertNoErrors();
@@ -11696,7 +11795,31 @@ void''');
     AsExpression asExpression = expression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isNotNull);
+    expect(asExpression.type, new isInstanceOf<GenericFunctionType>());
+  }
+
+  void test_parseRelationalExpression_as_functionType_returnType() {
+    createParser('x as String Function(int)');
+    Expression expression = parser.parseRelationalExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<AsExpression>());
+    AsExpression asExpression = expression;
+    expect(asExpression.expression, isNotNull);
+    expect(asExpression.asOperator, isNotNull);
+    expect(asExpression.type, new isInstanceOf<GenericFunctionType>());
+  }
+
+  void test_parseRelationalExpression_as_generic() {
+    createParser('x as C<D>');
+    Expression expression = parser.parseRelationalExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<AsExpression>());
+    AsExpression asExpression = expression;
+    expect(asExpression.expression, isNotNull);
+    expect(asExpression.asOperator, isNotNull);
+    expect(asExpression.type, new isInstanceOf<TypeName>());
   }
 
   void test_parseRelationalExpression_as_nullable() {
@@ -11709,7 +11832,31 @@ void''');
     AsExpression asExpression = expression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isNotNull);
+    expect(asExpression.type, new isInstanceOf<TypeName>());
+  }
+
+  void test_parseRelationalExpression_as_simple() {
+    createParser('x as Y');
+    Expression expression = parser.parseRelationalExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<AsExpression>());
+    AsExpression asExpression = expression;
+    expect(asExpression.expression, isNotNull);
+    expect(asExpression.asOperator, isNotNull);
+    expect(asExpression.type, new isInstanceOf<TypeName>());
+  }
+
+  void test_parseRelationalExpression_as_simple_function() {
+    createParser('x as Function');
+    Expression expression = parser.parseRelationalExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<AsExpression>());
+    AsExpression asExpression = expression;
+    expect(asExpression.expression, isNotNull);
+    expect(asExpression.asOperator, isNotNull);
+    expect(asExpression.type, new isInstanceOf<TypeName>());
   }
 
   void test_parseRelationalExpression_is() {
@@ -11806,9 +11953,19 @@ void''');
     expect(statement.semicolon, isNotNull);
   }
 
-  void test_parseReturnType_nonVoid() {
+  void test_parseReturnType_function() {
+    createParser('A<B> Function<B>(B)');
+    GenericFunctionType type = parser.parseReturnType(false);
+    expectNotNullIfNoErrors(type);
+    listener.assertNoErrors();
+    expect(type.returnType, isNotNull);
+    expect(type.typeParameters, isNotNull);
+    expect(type.parameters, isNotNull);
+  }
+
+  void test_parseReturnType_named() {
     createParser('A<B>');
-    TypeName typeName = parser.parseReturnType();
+    TypeName typeName = parser.parseReturnType(false);
     expectNotNullIfNoErrors(typeName);
     listener.assertNoErrors();
     expect(typeName.name, isNotNull);
@@ -11817,7 +11974,7 @@ void''');
 
   void test_parseReturnType_void() {
     createParser('void');
-    TypeName typeName = parser.parseReturnType();
+    TypeName typeName = parser.parseReturnType(false);
     expectNotNullIfNoErrors(typeName);
     listener.assertNoErrors();
     expect(typeName.name, isNotNull);
@@ -12929,7 +13086,7 @@ void''');
 
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
     createParser('Function() v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNull);
@@ -12942,7 +13099,7 @@ void''');
 
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
     createParser('Function(int, int) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNull);
@@ -12968,7 +13125,7 @@ void''');
 
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
     createParser('Function<S, T>()');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNull);
@@ -12984,7 +13141,7 @@ void''');
   void
       test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
     createParser('Function<T>(String, {T t})');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNull);
@@ -12997,16 +13154,23 @@ void''');
     expect(parameterList.parameters, hasLength(2));
   }
 
+  void test_parseTypeAnnotation_function_returnType_classFunction() {
+    createParser('Function v');
+    TypeName functionType = parser.parseTypeAnnotation(false);
+    expectNotNullIfNoErrors(functionType);
+    listener.assertNoErrors();
+  }
+
   void test_parseTypeAnnotation_function_returnType_function() {
     createParser('A Function(B, C) Function(D) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
 
   void test_parseTypeAnnotation_function_returnType_noParameters() {
     createParser('List<int> Function()');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNotNull);
@@ -13019,7 +13183,7 @@ void''');
 
   void test_parseTypeAnnotation_function_returnType_parameters() {
     createParser('List<int> Function(String s, int i)');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNotNull);
@@ -13047,14 +13211,14 @@ void''');
 
   void test_parseTypeAnnotation_function_returnType_simple() {
     createParser('A Function(B, C) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
 
   void test_parseTypeAnnotation_function_returnType_typeParameters() {
     createParser('List<T> Function<T>()');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNotNull);
@@ -13070,7 +13234,7 @@ void''');
   void
       test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
     createParser('List<T> Function<T>(String s, [T])');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
     expect(functionType.returnType, isNotNull);
@@ -13085,14 +13249,14 @@ void''');
 
   void test_parseTypeAnnotation_function_returnType_withArguments() {
     createParser('A<B> Function(C) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation();
+    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
 
   void test_parseTypeAnnotation_named() {
     createParser('A<B> v');
-    TypeName typeName = parser.parseTypeAnnotation();
+    TypeName typeName = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(typeName);
     listener.assertNoErrors();
   }
@@ -13233,12 +13397,32 @@ void''');
     expect(typeName.question, isNotNull);
   }
 
-  void test_parseTypeParameter_bounded() {
-    createParser('A extends B');
+  void test_parseTypeParameter_bounded_functionType_noReturn() {
+    createParser('A extends Function(int)');
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
     listener.assertNoErrors();
-    expect(parameter.bound, isNotNull);
+    expect(parameter.bound, new isInstanceOf<GenericFunctionType>());
+    expect(parameter.extendsKeyword, isNotNull);
+    expect(parameter.name, isNotNull);
+  }
+
+  void test_parseTypeParameter_bounded_functionType_return() {
+    createParser('A extends String Function(int)');
+    TypeParameter parameter = parser.parseTypeParameter();
+    expectNotNullIfNoErrors(parameter);
+    listener.assertNoErrors();
+    expect(parameter.bound, new isInstanceOf<GenericFunctionType>());
+    expect(parameter.extendsKeyword, isNotNull);
+    expect(parameter.name, isNotNull);
+  }
+
+  void test_parseTypeParameter_bounded_generic() {
+    createParser('A extends B<C>');
+    TypeParameter parameter = parser.parseTypeParameter();
+    expectNotNullIfNoErrors(parameter);
+    listener.assertNoErrors();
+    expect(parameter.bound, new isInstanceOf<TypeName>());
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
   }
@@ -13249,12 +13433,22 @@ void''');
     TypeParameter parameter = parser.parseTypeParameter();
     expectNotNullIfNoErrors(parameter);
     listener.assertNoErrors();
-    expect(parameter.bound, isNotNull);
+    expect(parameter.bound, new isInstanceOf<TypeName>());
     expect(parameter.extendsKeyword, isNotNull);
     expect(parameter.name, isNotNull);
     TypeName bound = parameter.bound;
     expect(bound, isNotNull);
     expect(bound.question, isNotNull);
+  }
+
+  void test_parseTypeParameter_bounded_simple() {
+    createParser('A extends B');
+    TypeParameter parameter = parser.parseTypeParameter();
+    expectNotNullIfNoErrors(parameter);
+    listener.assertNoErrors();
+    expect(parameter.bound, new isInstanceOf<TypeName>());
+    expect(parameter.extendsKeyword, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_simple() {

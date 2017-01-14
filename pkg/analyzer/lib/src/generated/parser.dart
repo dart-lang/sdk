@@ -62,9 +62,9 @@ class FinalConstVarOrType {
   final Token keyword;
 
   /**
-   * The type, of `null` if no type was specified.
+   * The type, or `null` if no type was specified.
    */
-  final TypeName type;
+  final TypeAnnotation type;
 
   /**
    * Initialize a newly created holder with the given [keyword] and [type].
@@ -1435,7 +1435,7 @@ class Parser {
             modifiers.externalKeyword, modifiers.staticKeyword, null);
       }
     }
-    TypeName type = _parseTypeNameAfterIdentifier();
+    TypeAnnotation type = _parseTypeAnnotationAfterIdentifier();
     keyword = _currentToken.keyword;
     next = _peek();
     isFollowedByIdentifier = _tokenMatchesIdentifier(next);
@@ -2109,7 +2109,7 @@ class Parser {
               null, _validateModifiersForTopLevelVariable(modifiers), null),
           _expect(TokenType.SEMICOLON));
     }
-    TypeName returnType = parseReturnType();
+    TypeAnnotation returnType = parseReturnType(false);
     keyword = _currentToken.keyword;
     next = _peek();
     if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
@@ -2757,12 +2757,12 @@ class Parser {
   FinalConstVarOrType parseFinalConstVarOrType(bool optional,
       {bool inFunctionType: false}) {
     Token keywordToken = null;
-    TypeName type = null;
+    TypeAnnotation type = null;
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.FINAL || keyword == Keyword.CONST) {
       keywordToken = getAndAdvance();
       if (_isTypedIdentifier(_currentToken)) {
-        type = parseTypeName(false);
+        type = parseTypeAnnotation(false);
       } else {
         // Support `final/*=T*/ x;`
         type = _parseOptionalTypeNameComment();
@@ -2776,9 +2776,9 @@ class Parser {
         keywordToken = null;
       }
     } else if (_isTypedIdentifier(_currentToken)) {
-      type = parseReturnType();
+      type = parseReturnType(false);
     } else if (inFunctionType && _matchesIdentifier()) {
-      type = parseTypeAnnotation();
+      type = parseTypeAnnotation(false);
     } else if (!optional) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
@@ -2967,7 +2967,7 @@ class Parser {
                   ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
             }
             Token keyword = variableList.keyword;
-            TypeName type = variableList.type;
+            TypeAnnotation type = variableList.type;
             if (keyword != null || type != null) {
               loopVariable = astFactory.declaredIdentifier(
                   commentAndMetadata.comment,
@@ -3179,7 +3179,7 @@ class Parser {
   FunctionDeclaration parseFunctionDeclaration(
       CommentAndMetadata commentAndMetadata,
       Token externalKeyword,
-      TypeName returnType) {
+      TypeAnnotation returnType) {
     Token keywordToken = null;
     bool isGetter = false;
     Keyword keyword = _currentToken.keyword;
@@ -3328,7 +3328,7 @@ class Parser {
       typeParameters = parseTypeParameterList();
     }
     Token equals = _expect(TokenType.EQ);
-    TypeAnnotation functionType = parseTypeAnnotation();
+    TypeAnnotation functionType = parseTypeAnnotation(false);
     Token semicolon = _expect(TokenType.SEMICOLON);
     if (functionType is! GenericFunctionType) {
       // TODO(brianwilkerson) Generate an error and recover (better than this).
@@ -3370,7 +3370,7 @@ class Parser {
    *         'external'? 'static'? returnType? 'get' identifier
    */
   MethodDeclaration parseGetter(CommentAndMetadata commentAndMetadata,
-      Token externalKeyword, Token staticKeyword, TypeName returnType) {
+      Token externalKeyword, Token staticKeyword, TypeAnnotation returnType) {
     Token propertyKeyword = getAndAdvance();
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matches(TokenType.OPEN_PAREN) &&
@@ -3554,7 +3554,7 @@ class Parser {
       CommentAndMetadata commentAndMetadata,
       Token staticKeyword,
       Token keyword,
-      TypeName type) {
+      TypeAnnotation type) {
     VariableDeclarationList fieldList =
         parseVariableDeclarationListAfterType(null, keyword, type);
     return astFactory.fieldDeclaration(
@@ -4155,9 +4155,10 @@ class Parser {
       // parameter with no parameter list.
       //_reportErrorForToken(ParserErrorCode.MISSING_PARAMETERS, typeParameters.endToken);
     }
-    TypeName type = holder.type;
+    TypeAnnotation type = holder.type;
     if (type != null) {
-      if (_tokenMatchesKeyword(type.name.beginToken, Keyword.VOID)) {
+      if (type is TypeName &&
+          _tokenMatchesKeyword(type.name.beginToken, Keyword.VOID)) {
         _reportErrorForToken(
             ParserErrorCode.VOID_PARAMETER, type.name.beginToken);
       } else if (holder.keyword != null &&
@@ -4173,7 +4174,7 @@ class Parser {
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           holder.keyword,
-          holder.type,
+          type,
           thisKeyword,
           period,
           identifier,
@@ -4184,7 +4185,7 @@ class Parser {
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         holder.keyword,
-        holder.type,
+        type,
         astFactory.simpleIdentifier(identifier.token, isDeclaration: true));
   }
 
@@ -4490,15 +4491,15 @@ class Parser {
     if (keyword == Keyword.AS) {
       Token asOperator = getAndAdvance();
       return astFactory.asExpression(
-          expression, asOperator, parseTypeName(true));
+          expression, asOperator, parseTypeAnnotation(true));
     } else if (keyword == Keyword.IS) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;
       if (_matches(TokenType.BANG)) {
         notOperator = getAndAdvance();
       }
-      return astFactory.isExpression(
-          expression, isOperator, notOperator, parseTypeName(true));
+      TypeAnnotation type = parseTypeAnnotation(true);
+      return astFactory.isExpression(expression, isOperator, notOperator, type);
     } else if (_currentToken.type.isRelationalOperator) {
       Token operator = getAndAdvance();
       return astFactory.binaryExpression(
@@ -4543,12 +4544,12 @@ class Parser {
    *         'void'
    *       | type
    */
-  TypeName parseReturnType() {
+  TypeAnnotation parseReturnType(bool inExpression) {
     if (_currentToken.keyword == Keyword.VOID) {
       return astFactory.typeName(
           astFactory.simpleIdentifier(getAndAdvance()), null);
     } else {
-      return parseTypeName(false);
+      return parseTypeAnnotation(inExpression);
     }
   }
 
@@ -4569,7 +4570,7 @@ class Parser {
    *         'external'? 'static'? returnType? 'set' identifier formalParameterList
    */
   MethodDeclaration parseSetter(CommentAndMetadata commentAndMetadata,
-      Token externalKeyword, Token staticKeyword, TypeName returnType) {
+      Token externalKeyword, Token staticKeyword, TypeAnnotation returnType) {
     Token propertyKeyword = getAndAdvance();
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     FormalParameterList parameters = parseFormalParameterList();
@@ -4904,7 +4905,7 @@ class Parser {
       TypeName exceptionType = null;
       if (_matchesString(_ON)) {
         onKeyword = getAndAdvance();
-        exceptionType = parseTypeName(false);
+        exceptionType = parseTypeAnnotation(false);
       }
       Token catchKeyword = null;
       Token leftParenthesis = null;
@@ -4991,13 +4992,19 @@ class Parser {
    *         typeWithoutFunction
    *       | functionType
    */
-  TypeAnnotation parseTypeAnnotation() {
-    if (_matchesString('Function')) {
+  TypeAnnotation parseTypeAnnotation(bool inExpression) {
+    TypeAnnotation type = null;
+    if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
       // Generic function type with no return type.
-      return parseGenericFunctionTypeAfterReturnType(null);
+      type = parseGenericFunctionTypeAfterReturnType(null);
+    } else if (_currentToken.keyword == Keyword.VOID &&
+        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
+      type = astFactory.typeName(
+          astFactory.simpleIdentifier(getAndAdvance()), null);
+    } else {
+      type = parseTypeName(inExpression);
     }
-    TypeAnnotation type = parseReturnType();
-    while (_matchesString('Function')) {
+    while (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
       type = parseGenericFunctionTypeAfterReturnType(type);
     }
     return type;
@@ -5017,9 +5024,11 @@ class Parser {
    */
   TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = getAndAdvance();
-    List<TypeName> arguments = <TypeName>[parseTypeName(false)];
+    List<TypeAnnotation> arguments = <TypeAnnotation>[
+      parseTypeAnnotation(false)
+    ];
     while (_optional(TokenType.COMMA)) {
-      arguments.add(parseTypeName(false));
+      arguments.add(parseTypeAnnotation(false));
     }
     Token rightBracket = _expectGt();
     return astFactory.typeArgumentList(leftBracket, arguments, rightBracket);
@@ -5056,7 +5065,7 @@ class Parser {
     }
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
-      TypeName bound = parseTypeName(false);
+      TypeAnnotation bound = parseTypeAnnotation(false);
       return astFactory.typeParameter(commentAndMetadata.comment,
           commentAndMetadata.metadata, name, keyword, bound);
     }
@@ -5214,7 +5223,9 @@ class Parser {
    *         finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    */
   VariableDeclarationList parseVariableDeclarationListAfterType(
-      CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+      CommentAndMetadata commentAndMetadata,
+      Token keyword,
+      TypeAnnotation type) {
     if (type != null &&
         keyword != null &&
         _tokenMatchesKeyword(keyword, Keyword.VAR)) {
@@ -5317,6 +5328,39 @@ class Parser {
   }
 
   /**
+   * Parse a formal parameter list, starting at the [startToken], without
+   * actually creating a formal parameter list or changing the current token.
+   * Return the token following the parameter list that was parsed, or `null`
+   * if the given token is not the first token in a valid parameter list.
+   *
+   * This method must be kept in sync with [parseFormalParameterList].
+   */
+  Token skipFormalParameterList(Token startToken) {
+    if (!_tokenMatches(startToken, TokenType.OPEN_PAREN)) {
+      return null;
+    }
+    return (startToken as BeginToken).endToken;
+  }
+
+  /**
+   * Parse the portion of a generic function type after the return type,
+   * starting at the [startToken], without actually creating a generic function
+   * type or changing the current token. Return the token following the generic
+   * function type that was parsed, or `null` if the given token is not the
+   * first token in a valid generic function type.
+   *
+   * This method must be kept in sync with
+   * [parseGenericFunctionTypeAfterReturnType].
+   */
+  Token skipGenericFunctionTypeAfterReturnType(Token startToken) {
+    Token next = startToken.next; // Skip 'Function'
+    if (_tokenMatches(next, TokenType.LT)) {
+      next = skipTypeParameterList(next);
+    }
+    return skipFormalParameterList(next);
+  }
+
+  /**
    * Parse a prefixed identifier, starting at the [startToken], without actually
    * creating a prefixed identifier or changing the current token. Return the
    * token following the prefixed identifier that was parsed, or `null` if the
@@ -5364,7 +5408,7 @@ class Parser {
     if (_tokenMatchesKeyword(startToken, Keyword.VOID)) {
       return startToken.next;
     } else {
-      return skipTypeName(startToken);
+      return skipTypeAnnotation(startToken);
     }
   }
 
@@ -5413,6 +5457,30 @@ class Parser {
       return null;
     }
     return token;
+  }
+
+  /**
+   * Parse a type annotation, starting at the [startToken], without actually
+   * creating a type annotation or changing the current token. Return the token
+   * following the type annotation that was parsed, or `null` if the given token
+   * is not the first token in a valid type annotation.
+   *
+   * This method must be kept in sync with [parseTypeAnnotation].
+   */
+  Token skipTypeAnnotation(Token startToken) {
+    Token next = null;
+    if (_atGenericFunctionTypeAfterReturnType(startToken)) {
+      next = skipGenericFunctionTypeAfterReturnType(startToken);
+    } else if (_currentToken.keyword == Keyword.VOID &&
+        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
+      next = next.next;
+    } else {
+      next = skipTypeName(startToken);
+    }
+    while (next != null && _tokenMatchesString(next, 'Function')) {
+      next = skipGenericFunctionTypeAfterReturnType(next);
+    }
+    return next;
   }
 
   /**
@@ -5485,6 +5553,36 @@ class Parser {
   }
 
   /**
+   * Parse a type parameter list, starting at the [startToken], without actually
+   * creating a type parameter list or changing the current token. Return the
+   * token following the type parameter list that was parsed, or `null` if the
+   * given token is not the first token in a valid type parameter list.
+   *
+   * This method must be kept in sync with [parseTypeParameterList].
+   */
+  Token skipTypeParameterList(Token startToken) {
+    if (!_tokenMatches(startToken, TokenType.LT)) {
+      return null;
+    }
+    int depth = 1;
+    Token previous = startToken;
+    Token next = startToken.next;
+    while (next != previous) {
+      if (_tokenMatches(startToken, TokenType.LT)) {
+        depth++;
+      } else if (_tokenMatches(next, TokenType.GT)) {
+        depth--;
+        if (depth == 0) {
+          return next;
+        }
+      }
+      previous = next;
+      next = next.next;
+    }
+    return null;
+  }
+
+  /**
    * Advance to the next token in the token stream.
    */
   void _advance() {
@@ -5511,6 +5609,22 @@ class Parser {
     } else {
       buffer.write(Character.toChars(codePoint));
     }
+  }
+
+  /**
+   * Return `true` if we are positioned at the keyword 'Function' in a generic
+   * function type alias.
+   */
+  bool _atGenericFunctionTypeAfterReturnType(Token startToken) {
+    if (_tokenMatchesString(startToken, 'Function')) {
+      Token next = startToken.next;
+      if (next != null &&
+          (_tokenMatches(next, TokenType.OPEN_PAREN) ||
+              _tokenMatches(next, TokenType.LT))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -6649,7 +6763,7 @@ class Parser {
    *         functionSignature functionBody
    */
   Statement _parseFunctionDeclarationStatementAfterReturnType(
-      CommentAndMetadata commentAndMetadata, TypeName returnType) {
+      CommentAndMetadata commentAndMetadata, TypeAnnotation returnType) {
     FunctionDeclaration declaration =
         parseFunctionDeclaration(commentAndMetadata, null, returnType);
     Token propertyKeyword = declaration.propertyKeyword;
@@ -6678,9 +6792,9 @@ class Parser {
    */
   FunctionTypeAlias _parseFunctionTypeAlias(
       CommentAndMetadata commentAndMetadata, Token keyword) {
-    TypeName returnType = null;
+    TypeAnnotation returnType = null;
     if (hasReturnTypeInTypeAlias) {
-      returnType = parseReturnType();
+      returnType = parseReturnType(false);
     }
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
@@ -6813,7 +6927,7 @@ class Parser {
       CommentAndMetadata commentAndMetadata,
       Token externalKeyword,
       Token staticKeyword,
-      TypeName returnType,
+      TypeAnnotation returnType,
       SimpleIdentifier name,
       TypeParameterList typeParameters,
       FormalParameterList parameters) {
@@ -6860,7 +6974,7 @@ class Parser {
       CommentAndMetadata commentAndMetadata,
       Token externalKeyword,
       Token staticKeyword,
-      TypeName returnType) {
+      TypeAnnotation returnType) {
     SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters;
@@ -6922,7 +7036,7 @@ class Parser {
   MethodDeclaration _parseOperatorAfterKeyword(
       CommentAndMetadata commentAndMetadata,
       Token externalKeyword,
-      TypeName returnType,
+      TypeAnnotation returnType,
       Token operatorKeyword) {
     if (!_currentToken.isUserDefinableOperator) {
       _reportErrorForCurrentToken(
@@ -6965,7 +7079,7 @@ class Parser {
    * Parse a return type if one is given, otherwise return `null` without
    * advancing. Return the return type that was parsed.
    */
-  TypeName _parseOptionalReturnType() {
+  TypeAnnotation _parseOptionalReturnType() {
     TypeName typeComment = _parseOptionalTypeNameComment();
     if (typeComment != null) {
       return typeComment;
@@ -6989,7 +7103,7 @@ class Parser {
           // type.
           return null;
         }
-        return parseReturnType();
+        return parseReturnType(false);
       }
       Token next2 = next.next;
       Token next3 = next2.next;
@@ -6997,7 +7111,7 @@ class Parser {
           _tokenMatchesIdentifier(next2) &&
           (_tokenMatchesIdentifier(next3) ||
               _tokenMatches(next3, TokenType.LT))) {
-        return parseReturnType();
+        return parseReturnType(false);
       }
     }
     return null;
@@ -7234,6 +7348,23 @@ class Parser {
         : astFactory.adjacentStrings(strings);
   }
 
+  /**
+   * Parse a type annotation, possibly superseded by a type name in a comment.
+   * Return the type name that was parsed.
+   *
+   * This method assumes that the current token is an identifier.
+   *
+   *     type ::=
+   *         qualified typeArguments?
+   */
+  TypeAnnotation _parseTypeAnnotationAfterIdentifier() {
+    TypeAnnotation type = parseTypeAnnotation(false);
+    // If this is followed by a generic method type comment, allow the comment
+    // type to replace the real type name.
+    TypeName typeFromComment = _parseOptionalTypeNameComment();
+    return typeFromComment ?? type;
+  }
+
   TypeName _parseTypeName(bool inExpression) {
     Identifier typeName;
     if (_matchesIdentifier()) {
@@ -7253,25 +7384,6 @@ class Parser {
       }
     }
     return astFactory.typeName(typeName, typeArguments, question: question);
-  }
-
-  /**
-   * Parse a type name. Return the type name that was parsed.
-   *
-   * This method assumes that the current token is an identifier.
-   *
-   *     type ::=
-   *         qualified typeArguments?
-   */
-  TypeName _parseTypeNameAfterIdentifier() {
-    Identifier typeName = _parsePrefixedIdentifierUnchecked();
-    TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-    // If this is followed by a generic method type comment, allow the comment
-    // type to replace the real type name.
-    // TODO(jmesserly): this feels like a big hammer. Can we restrict it to
-    // only work inside generic methods?
-    TypeName typeFromComment = _parseOptionalTypeNameComment();
-    return typeFromComment ?? astFactory.typeName(typeName, typeArguments);
   }
 
   /**
