@@ -8,9 +8,17 @@ Status: Proposal
 ## Top level inference overview
 
 Top level inference has two phases:
-1. Method inference
-2. Static variable and field inference
 
+1. **Method override inference**
+    * If you omit a return type or parameter type from an overridden method,
+    inference will try to fill in the missing type using the signature of the
+    method you are overriding.
+2. **Static variable and field inference** 
+    * If you omit the type of a field, setter, or getter, which overrides a
+   corresponding member of a superclass, then inference will try to fill in the
+   missing type using the type of the corresponding member of the superclass.
+    * Otherwise, declarations of static variables and fields that omit a type
+   will be inferred from their initializer if present.
 
 All results from the first phase are available in the second phase.
 
@@ -24,8 +32,8 @@ fails are unspecified.
 The intuitive idea behind this proposal is that top level inference works by
 first inferring methods, and then doing inference for "field like things"
 (static variables, fields, setters, and getters), where we don't allow inference
-for "field like things" to depend on the results of inference for "field like
-things" except in cases where the dependencies are statically visible.
+for "field like things" to depend on the results of inference for other "field
+like things" except in cases where the dependencies are statically predictable.
 
 
 Some broad principles for type inference that the language team has agreed to,
@@ -33,8 +41,10 @@ and which this proposal is designed to satisfy:
 * Type inference should be free to fail with an error, rather than being
   required to always produce some answer
 * It should not be possible for a programmer to observe a declaration as having
-  two different types (e.g. dynamic for recursive uses, but subsequently int).
-  Some consistent answer (or an error) should always be produced.
+  two different types at difference points in the program (e.g. dynamic for
+  recursive uses, but subsequently int).  Some consistent answer (or an error)
+  should always be produced.  See the example below for an approach that
+  violates this principle.
 * The inference for local variables, toplevel variables, and fields, should
   either agree or error out.  The same expression should not be inferred
   differently at different syntactic positions.  It’s ok for an expression to be
@@ -62,15 +72,15 @@ var b = a.x;
 To ensure stability with respect to cycles and different orderings, current
 strong mode does inference in two passes: first on the static variables, and
 secondly on fields (method override based inference is mostly irrelevant for
-this discussion). The implementation ensures that inference is stable, but it
-has several unfortunate consequences, most notably the following.  Inference may
-result in the same variable being implicitly seen at two different types. In the
-example above, if all declarations are in the same library, then b will be
-inferred before x has been inferred, and so b will be inferred to have type
-dynamic.  The same declaration in a separate library will see the type of a.x
-after inference, and hence will be inferred to have type `int`.  This violates
-one of the principles above, and also means that changes to the library
-structure that introduce a cycle may change inference results.
+this discussion). This ensures that inference is stable, but it has several
+unfortunate consequences, most notably the following.  Inference may result in
+the same variable being implicitly seen at two different types. In the example
+above, if all declarations are in the same library, then b will be inferred
+before x has been inferred, and so b will be inferred to have type dynamic.  The
+same declaration in a separate library will see the type of a.x after inference,
+and hence will be inferred to have type `int`.  This violates one of the
+principles above, and also means that changes to the library structure that
+introduce a cycle may change inference results.
 
 
 ## Method inference
@@ -81,11 +91,6 @@ structure that introduce a cycle may change inference results.
 
 Method inference for a method m behaves as if all method inference for all of
 its supertypes has already been performed.
-
-
-If a method leaves a type off of its signature (parameter type or return type)
-and it does not override or implement anything from a super type, it is an
-error.
 
 
 If a method leaves a type off of its signature (parameter type or return type)
@@ -187,8 +192,8 @@ have the type taken from the overridden setter parameter type.
 
 A field which overrides/implements both a setter and a getter is inferred to
 have the type taken from the overridden setter parameter type if this type is
-the same as the return type of the overridden getter (if the types don’t match
-inference fails with an error).
+the same as the return type of the overridden getter (if the types are not the
+same then inference fails with an error).
 
 
 Note that overriding a field is addressed via the implicit induced getter/setter
@@ -239,12 +244,18 @@ inference relies.
    `List<T>` or `Map<K, V>` respectively, where `<T>` or `<K, V>` are the
    provided type arguments.
    * No inference dependencies
-* A list literal with no type arguments, and for which all of the elements are
-   IEs, has the type `List<T>` where `T` is the least upper bound of the
-   inferred types of the elements.
+* A non-empty list literal with no type arguments, and for which all of the
+   elements are IEs, has the type `List<T>` where `T` is the least upper bound
+   of the inferred types of the elements.
    * If the elements do not all have an inferred type, it is an error
    * The inference dependencies of the list literal are the collected
       dependencies of the elements.
+* An non-const empty list literal with no type arguments has the type
+  `List<dynamic>`.
+   * No inference dependencies.
+* A const empty list literal with no type arguments has the type
+  `List<bottom>`.
+   * No inference dependencies.
 * A map literal with no type arguments, and for which all of the keys and
    values are IEs, has the type `Map<K, V>` where `K` is the least upper bound of
    the inferred types of the provided keys, and `V` is the least upper bound of
@@ -252,11 +263,17 @@ inference relies.
    * If the keys and values do not all have an inferred type, it is an error.
    * The inference dependencies of the map literal are the collected
       dependencies of the keys and values.
+* An non-const empty map literal with no type arguments has the type
+  `Map<dynamic, dynamic>`.
+   * No inference dependencies.
+* A const empty map literal with no type arguments has the type `Map<bottom,
+  bottom>`.
+   * No inference dependencies.
 * A type literal has type `Type`
    * No inference dependencies
 * A function literal with an expression body for which all parameter types are
-   specified and for which the return expression is an IE and has an inferred
-   type, has the corresponding function type.
+   type annotated and for which the return expression is an IE and has an
+   inferred type, has the corresponding function type.
    * If the return expression has no inferred type it is an error.
    * The inference dependencies are the inference dependencies of the return
       expression.
@@ -265,13 +282,14 @@ inference relies.
    * No inference dependencies
 * An `as` expression has the cast to type
    * No inference dependencies
-* A simple or qualified identifier referring to a top level function, getter,
-   or a static class getter or method, has the inferred type of the identifier.
+* A simple or qualified identifier referring to a top level function, static
+   variable, field, getter; or a static class variable, static getter or method;
+   has the inferred type of the identifier.
    * If the identifier has no inferred type it is an error.
    * The inference dependency of the identifier is itself if the identifier is
       a candidate for inference.  Otherwise there are no inference dependencies.
-* A simple identifier denoting a formal parameter has the annotated type of the
-   variable
+* A simple identifier denoting a formal parameter has the type with which it was
+  annotated.
    * No inference dependencies.
 * A function (or function expression) invocation with no omitted generic
    arguments where the applicand is an IE that has an inferred type with a
