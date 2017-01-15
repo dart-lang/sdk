@@ -702,16 +702,6 @@ Future<Object> f() async {
     verify([source]);
   }
 
-  test_async_future_object_without_return() async {
-    Source source = addSource('''
-import 'dart:async';
-Future<Object> f() async {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_async_future_with_return() async {
     Source source = addSource('''
 import 'dart:async';

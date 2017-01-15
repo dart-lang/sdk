@@ -900,11 +900,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (returnTypeType == null || returnTypeType.isVoid) {
         return;
       }
-      // For async, give no hint if Future<Null> is assignable to the return
-      // type.
-      if (body.isAsynchronous &&
-          _typeSystem.isAssignableTo(_futureNullType, returnTypeType)) {
-        return;
+      // For async, give no hint if the return type does not matter, i.e.
+      // dynamic, Future<Null> or Future<dynamic>.
+      if (body.isAsynchronous) {
+        if (returnTypeType.isDynamic) {
+          return;
+        }
+        if (returnTypeType is InterfaceType &&
+            returnTypeType.isDartAsyncFuture) {
+          DartType futureArgument = returnTypeType.typeArguments[0];
+          if (futureArgument.isDynamic || futureArgument.isDartCoreNull) {
+            return;
+          }
+        }
       }
       // Check the block for a return statement, if not, create the hint
       if (!ExitDetector.exits(body)) {
