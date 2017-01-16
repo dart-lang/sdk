@@ -77,7 +77,7 @@ void logProgress(String message) {
 String formatProgress(int completed, int failed, int total) {
   Duration elapsed = wallclock.elapsed;
   String percent = pad((completed / total * 100.0).toStringAsFixed(1), 5);
-  String good = pad(completed, 5);
+  String good = pad(completed - failed, 5);
   String bad = pad(failed, 5);
   String minutes = pad(elapsed.inMinutes, 2, filler: "0");
   String seconds = pad(elapsed.inSeconds % 60, 2, filler: "0");

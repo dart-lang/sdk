@@ -13,6 +13,10 @@ class TestDescription implements Comparable<TestDescription> {
   final File file;
   final Uri output;
 
+  /// If non-null, this is a generated multitest, and the set contains the
+  /// expected outcomes.
+  Set<String> multitestExpectations;
+
   TestDescription(this.root, this.file, {this.output});
 
   Uri get uri => file.uri;

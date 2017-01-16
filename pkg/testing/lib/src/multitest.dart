@@ -18,17 +18,29 @@ import 'log.dart' show
 import 'test_description.dart' show
     TestDescription;
 
+bool isError(Set<String> expectations) {
+  if (expectations.contains("compile-time error")) return true;
+  if (expectations.contains("runtime error")) return true;
+  if (expectations.contains("dynamic type error")) return true;
+  return false;
+}
+
+bool isCheckedModeError(Set<String> expectations) {
+  if (expectations.contains("checked mode compile-time error")) return true;
+  return isError(expectations);
+}
+
 class MultitestTransformer
     implements StreamTransformer<TestDescription, TestDescription> {
   static const String multitestMarker = "///";
 
   static const List<String> validOutcomesList = const <String>[
-      'ok',
-      'compile-time error',
-      'runtime error',
-      'static type warning',
-      'dynamic type error',
-      'checked mode compile-time error',
+      "ok",
+      "compile-time error",
+      "runtime error",
+      "static type warning",
+      "dynamic type error",
+      "checked mode compile-time error",
     ];
 
   static final Set<String> validOutcomes =
@@ -113,6 +125,7 @@ class MultitestTransformer
         Uri uri = generated.uri.resolve("${name}_generated.dart");
         TestDescription subtest =
             new TestDescription(root, new File.fromUri(uri));
+        subtest.multitestExpectations = outcomes[name];
         await subtest.file.writeAsString(lines.join(""));
         yield subtest;
       }

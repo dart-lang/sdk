@@ -45,7 +45,8 @@ import 'log.dart' show
     splitLines;
 
 import 'multitest.dart' show
-    MultitestTransformer;
+    MultitestTransformer,
+    isError;
 
 typedef Future<ChainContext> CreateContext(
     Chain suite, Map<String, String> environment);
@@ -140,13 +141,15 @@ abstract class ChainContext {
           !selectors.contains(suite.name)) {
         continue;
       }
-      Set<Expectation> expectedOutcomes =
+      final Set<Expectation> expectedOutcomes =
           expectations.expectations(description.shortName);
+      final StringBuffer sb = new StringBuffer();
+      final Step lastStep = steps.isNotEmpty ? steps.last : null;
+      final Iterator<Step> iterator = steps.iterator;
+
       Result result;
-      StringBuffer sb = new StringBuffer();
       // Records the outcome of the last step that was run.
-      Step lastStep = null;
-      Iterator<Step> iterator = steps.iterator;
+      Step lastStepRun;
 
       /// Performs one step of [iterator].
       ///
@@ -167,7 +170,7 @@ abstract class ChainContext {
         bool isAsync = false;
         if (iterator.moveNext()) {
           Step step = iterator.current;
-          lastStep = step;
+          lastStepRun = step;
           isAsync = step.isAsync;
           logStepStart(completed, unexpectedResults.length, descriptions.length,
               suite, description, step);
@@ -184,14 +187,18 @@ abstract class ChainContext {
         future = future.then((Result currentResult) {
           if (currentResult != null) {
             logStepComplete(completed, unexpectedResults.length,
-                descriptions.length, suite, description, lastStep);
+                descriptions.length, suite, description, lastStepRun);
             result = currentResult;
             if (currentResult.outcome == Expectation.PASS) {
               // The input to the next step is the output of this step.
               return doStep(result.output);
             }
           }
-          if (steps.isNotEmpty && steps.last == lastStep &&
+          if (description.multitestExpectations != null) {
+            if (isError(description.multitestExpectations)) {
+              result = result.toNegativeTestResult();
+            }
+          } else if (lastStep == lastStepRun &&
               description.shortName.endsWith("negative_test")) {
             if (result.outcome == Expectation.PASS) {
               result.addLog("Negative test didn't report an error.\n");
@@ -261,6 +268,10 @@ abstract class Step<I, O, C extends ChainContext> {
   String get name;
 
   bool get isAsync => false;
+
+  bool get isCompiler => false;
+
+  bool get isRuntime => false;
 
   Future<Result<O>> run(I input, C context);
 
