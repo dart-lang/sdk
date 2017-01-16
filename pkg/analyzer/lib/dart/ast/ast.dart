@@ -5052,6 +5052,63 @@ abstract class NamedExpression extends Expression {
 }
 
 /**
+ * A named type, which can optionally include type arguments.
+ *
+ *    namedType ::=
+ *        [Identifier] typeArguments?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class NamedType extends TypeAnnotation {
+  /**
+   * Return `true` if this type is a deferred type.
+   *
+   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
+   * </i>p.T</i> where <i>p</i> is a deferred prefix.
+   */
+  bool get isDeferred;
+
+  /**
+   * Return the name of the type.
+   */
+  Identifier get name;
+
+  /**
+   * Set the name of the type to the given [identifier].
+   */
+  void set name(Identifier identifier);
+
+  /**
+   * Return the question mark marking this as a nullable type, or `null` if
+   * the type is non-nullable.
+   */
+  Token get question;
+
+  /**
+   * Return the question mark marking this as a nullable type to the given
+   * [question].
+   */
+  void set question(Token question);
+
+  /**
+   * Set the type being named to the given [type].
+   */
+  void set type(DartType type);
+
+  /**
+   * Return the type arguments associated with the type, or `null` if there are
+   * no type arguments.
+   */
+  TypeArgumentList get typeArguments;
+
+  /**
+   * Set the type arguments associated with the type to the given
+   * [typeArguments].
+   */
+  void set typeArguments(TypeArgumentList typeArguments);
+}
+
+/**
  * A node that represents a directive that impacts the namespace of a library.
  *
  *    directive ::=
