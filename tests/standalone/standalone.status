@@ -63,6 +63,9 @@ io/raw_server_socket_cancel_test: Skip # Issue 28182
 io/http_proxy_test: Skip
 io/secure_builtin_roots_test: Skip
 
+# This test might be slow on an opt counter threshold bot.
+io/http_basic_test: Pass, Slow
+
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
