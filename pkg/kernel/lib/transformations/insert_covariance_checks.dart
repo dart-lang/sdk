@@ -504,13 +504,21 @@ class _CallTransformer extends RecursiveVisitor {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    node.interfaceTarget = getChecked(node.receiver, node.interfaceTarget);
+    var target = getChecked(node.receiver, node.interfaceTarget);
+    if (target != null) {
+      node.interfaceTarget = target;
+      node.name = target.name;
+    }
     node.visitChildren(this);
   }
 
   @override
   visitPropertySet(PropertySet node) {
-    node.interfaceTarget = getChecked(node.receiver, node.interfaceTarget);
+    var target = getChecked(node.receiver, node.interfaceTarget);
+    if (target != null) {
+      node.interfaceTarget = target;
+      node.name = target.name;
+    }
     node.visitChildren(this);
   }
 }
