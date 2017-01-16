@@ -379,7 +379,7 @@ abstract class Uri {
   /**
    * Returns the port part of the authority component.
    *
-   * Returns the defualt port if there is no port number in the authority
+   * Returns the default port if there is no port number in the authority
    * component. That's 80 for http, 443 for https, and 0 for everything else.
    */
   int get port;
@@ -505,7 +505,8 @@ abstract class Uri {
    * Returns the origin of the URI in the form scheme://host:port for the
    * schemes http and https.
    *
-   * It is an error if the scheme is not "http" or "https".
+   * It is an error if the scheme is not "http" or "https", or if the host name
+   * is missing or empty.
    *
    * See: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
    */
@@ -1470,7 +1471,8 @@ class _Uri implements Uri {
     path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                      scheme, hasAuthority);
     if (scheme.isEmpty && host == null && !path.startsWith('/')) {
-      path = _normalizeRelativePath(path, scheme.isNotEmpty || host != null);
+      bool allowScheme = scheme.isNotEmpty || host != null;
+      path = _normalizeRelativePath(path, allowScheme);
     } else {
       path = _removeDotSegments(path);
     }
@@ -2520,12 +2522,16 @@ class _Uri implements Uri {
   bool get hasAbsolutePath => _path.startsWith('/');
 
   String get origin {
-    if (scheme == "" || _host == null || _host == "") {
+    if (scheme == "") {
       throw new StateError("Cannot use origin without a scheme: $this");
     }
     if (scheme != "http" && scheme != "https") {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
+    }
+    if (_host == null || _host == "") {
+      throw new StateError(
+          "A $scheme: URI should have a non-empty host name: $this");
     }
     if (_port == null) return "$scheme://$_host";
     return "$scheme://$_host:$_port";
@@ -4110,12 +4116,16 @@ class _SimpleUri implements Uri {
   String get origin {
     // Check original behavior - W3C spec is wonky!
     bool isHttp = _isHttp;
-    if (_schemeEnd < 0 || _hostStart == _portStart) {
+    if (_schemeEnd < 0) {
       throw new StateError("Cannot use origin without a scheme: $this");
     }
     if (!isHttp && !_isHttps) {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
+    }
+    if (_hostStart == _portStart) {
+      throw new StateError(
+          "A $scheme: URI should have a non-empty host name: $this");
     }
     if (_hostStart == _schemeEnd + 3) {
       return _uri.substring(0, _pathStart);
