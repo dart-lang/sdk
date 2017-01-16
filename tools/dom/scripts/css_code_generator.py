@@ -112,6 +112,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
     return style;
   }
 
+  /// Returns the value of the property if the provided *CSS* property
+  /// name is supported on this element and if the value is set. Otherwise
+  /// returns an empty string.
+  ///
+  /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValueHelper(propertyName);
     return propValue != null ? propValue : '';
