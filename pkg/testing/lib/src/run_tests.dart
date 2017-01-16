@@ -49,9 +49,10 @@ class CommandLine {
 
   bool get verbose => options.contains("--verbose") || options.contains("-v");
 
-  Set<String> get skip {
+  Set<String> get skip => commaSeparated("--skip=");
+
+  Set<String> commaSeparated(String prefix) {
     return options.expand((String s) {
-      const String prefix = "--skip=";
       if (!s.startsWith(prefix)) return const [];
       s = s.substring(prefix.length);
       return s.split(",");
