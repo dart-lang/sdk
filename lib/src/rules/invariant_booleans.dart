@@ -208,7 +208,7 @@ class InvariantBooleans extends LintRule {
             description: _desc,
             details: _details,
             group: Group.errors,
-            maturity: Maturity.experimental) {
+            maturity: Maturity.stable) {
     _visitor = new _Visitor(this);
   }
 
@@ -225,7 +225,7 @@ class _ContradictionReportRule extends LintRule {
             description: _desc + ' verify: ${comparisons.first}.',
             details: _details,
             group: Group.errors,
-            maturity: Maturity.experimental);
+            maturity: Maturity.stable);
 }
 
 class _Visitor extends SimpleAstVisitor {

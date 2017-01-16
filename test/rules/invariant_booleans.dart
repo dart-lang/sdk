@@ -188,3 +188,8 @@ class Foo {
     if (bar ?? false) print('hello');
   }
 }
+
+Iterable bug368(Iterable values) {
+  if (values?.isEmpty ?? true) return [];
+  return values.toList();
+}
