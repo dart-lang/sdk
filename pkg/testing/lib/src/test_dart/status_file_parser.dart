@@ -11,100 +11,9 @@ import "dart:io";
 import "path.dart";
 import "status_expression.dart";
 
-class Expectation {
-  // Possible outcomes of running a test.
-  static Expectation PASS = byName('Pass');
-  static Expectation CRASH = byName('Crash');
-  static Expectation TIMEOUT = byName('Timeout');
-  static Expectation FAIL = byName('Fail');
-
-  // Special 'FAIL' cases
-  static Expectation RUNTIME_ERROR = byName('RuntimeError');
-  static Expectation COMPILETIME_ERROR = byName('CompileTimeError');
-  static Expectation MISSING_RUNTIME_ERROR = byName('MissingRuntimeError');
-  static Expectation MISSING_COMPILETIME_ERROR =
-      byName('MissingCompileTimeError');
-  static Expectation STATIC_WARNING = byName('StaticWarning');
-  static Expectation MISSING_STATIC_WARNING = byName('MissingStaticWarning');
-  static Expectation PUB_GET_ERROR = byName('PubGetError');
-
-  // "meta expectations"
-  static Expectation OK = byName('Ok');
-  static Expectation SLOW = byName('Slow');
-  static Expectation SKIP = byName('Skip');
-  static Expectation SKIP_SLOW = byName('SkipSlow');
-  static Expectation SKIP_BY_DESIGN = byName('SkipByDesign');
-
-  static Expectation byName(String name) {
-    _initialize();
-    name = name.toLowerCase();
-    if (!_AllExpectations.containsKey(name)) {
-      throw new Exception("Expectation.byName(name='$name'): Invalid name.");
-    }
-    return _AllExpectations[name];
-  }
-
-  // Keep a map of all possible Expectation objects, initialized lazily.
-  static Map<String, Expectation> _AllExpectations;
-  static void _initialize() {
-    if (_AllExpectations == null) {
-      _AllExpectations = new Map<String, Expectation>();
-
-      Expectation build(prettyName, {group: null, isMetaExpectation: false}) {
-        var expectation = new Expectation._(prettyName,
-            group: group, isMetaExpectation: isMetaExpectation);
-        assert(!_AllExpectations.containsKey(expectation.name));
-        return _AllExpectations[expectation.name] = expectation;
-      }
-
-      var fail = build("Fail");
-      build("Pass");
-      build("Crash");
-      build("Timeout");
-
-      build("MissingCompileTimeError", group: fail);
-      build("MissingRuntimeError", group: fail);
-      build("CompileTimeError", group: fail);
-      build("RuntimeError", group: fail);
-
-      build("MissingStaticWarning", group: fail);
-      build("StaticWarning", group: fail);
-
-      build("PubGetError", group: fail);
-
-      var skip = build("Skip", isMetaExpectation: true);
-      build("SkipByDesign", isMetaExpectation: true);
-      build("SkipSlow", group: skip, isMetaExpectation: true);
-      build("Ok", isMetaExpectation: true);
-      build("Slow", isMetaExpectation: true);
-    }
-  }
-
-  final String prettyName;
-  final String name;
-  final Expectation group;
-  // Indicates whether this expectation cannot be a test outcome (i.e. it is a
-  // "meta marker").
-  final bool isMetaExpectation;
-
-  Expectation._(prettyName,
-      {Expectation this.group: null, bool this.isMetaExpectation: false})
-      : prettyName = prettyName,
-        name = prettyName.toLowerCase();
-
-  bool canBeOutcomeOf(Expectation expectation) {
-    Expectation outcome = this;
-    while (outcome != null) {
-      if (outcome == expectation) {
-        return true;
-      }
-      outcome = outcome.group;
-    }
-    return false;
-  }
-
-  String toString() => prettyName;
-}
+import '../expectation.dart' show
+    Expectation,
+    ExpectationSet;
 
 final RegExp SplitComment = new RegExp("^([^#]*)(#.*)?\$");
 final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
@@ -141,8 +50,9 @@ class Section {
 }
 
 Future<TestExpectations> ReadTestExpectations(
-    List<String> statusFilePaths, Map environment) {
-  var testExpectations = new TestExpectations();
+    List<String> statusFilePaths, Map environment,
+    ExpectationSet expectationSet) {
+  var testExpectations = new TestExpectations(expectationSet);
   return Future.wait(statusFilePaths.map((String statusFile) {
     return ReadTestExpectationsInto(testExpectations, statusFile, environment);
   })).then((_) => testExpectations);
@@ -247,6 +157,8 @@ class TestExpectations {
   // sets that only differ in their toString element order.
   static Map _cachedSets = new Map();
 
+  final ExpectationSet expectationSet;
+
   Map _map;
   bool _preprocessed = false;
   Map _regExpCache;
@@ -256,7 +168,7 @@ class TestExpectations {
    * Create a TestExpectations object. See the [expectations] method
    * for an explanation of matching.
    */
-  TestExpectations() : _map = new Map();
+  TestExpectations(this.expectationSet) : _map = new Map();
 
   /**
    * Add a rule to the expectations.
@@ -268,7 +180,7 @@ class TestExpectations {
       throw "TestExpectations.addRule: cannot add more rules";
     }
     var names = testRule.expression.evaluate(environment);
-    var expectations = names.map((name) => Expectation.byName(name));
+    var expectations = names.map((name) => expectationSet[name]);
     _map.putIfAbsent(testRule.name, () => new Set()).addAll(expectations);
   }
 
@@ -304,7 +216,7 @@ class TestExpectations {
     // If no expectations were found the expectation is that the test
     // passes.
     if (result.isEmpty) {
-      result.add(Expectation.PASS);
+      result.add(Expectation.Pass);
     }
     return _cachedSets.putIfAbsent(result.toString(), () => result);
   }

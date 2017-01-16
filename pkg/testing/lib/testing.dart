@@ -23,3 +23,7 @@ export 'src/stdio_process.dart' show
 export 'src/run.dart' show
     run,
     runMe;
+
+export 'src/expectation.dart' show
+    Expectation,
+    ExpectationSet;

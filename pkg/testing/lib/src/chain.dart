@@ -25,7 +25,6 @@ import '../testing.dart' show
     TestDescription;
 
 import 'test_dart/status_file_parser.dart' show
-    Expectation,
     ReadTestExpectations,
     TestExpectations;
 
@@ -47,6 +46,10 @@ import 'log.dart' show
 import 'multitest.dart' show
     MultitestTransformer,
     isError;
+
+import 'expectation.dart' show
+    Expectation,
+    ExpectationSet;
 
 typedef Future<ChainContext> CreateContext(
     Chain suite, Map<String, String> environment);
@@ -119,9 +122,11 @@ abstract class ChainContext {
 
   List<Step> get steps;
 
+  ExpectationSet get expectationSet => ExpectationSet.Default;
+
   Future<Null> run(Chain suite, Set<String> selectors) async {
     TestExpectations expectations = await ReadTestExpectations(
-        <String>[suite.statusFile.toFilePath()], {});
+        <String>[suite.statusFile.toFilePath()], {}, expectationSet);
     Stream<TestDescription> stream = list(suite);
     if (suite.processMultitests) {
       stream = stream.transform(new MultitestTransformer());
@@ -189,7 +194,7 @@ abstract class ChainContext {
             logStepComplete(completed, unexpectedResults.length,
                 descriptions.length, suite, description, lastStepRun);
             result = currentResult;
-            if (currentResult.outcome == Expectation.PASS) {
+            if (currentResult.outcome == Expectation.Pass) {
               // The input to the next step is the output of this step.
               return doStep(result.output);
             }
@@ -201,9 +206,9 @@ abstract class ChainContext {
             }
           } else if (lastStep == lastStepRun &&
               description.shortName.endsWith("negative_test")) {
-            if (result.outcome == Expectation.PASS) {
+            if (result.outcome == Expectation.Pass) {
               result.addLog("Negative test didn't report an error.\n");
-            } else if (result.outcome == Expectation.FAIL) {
+            } else if (result.outcome == Expectation.Fail) {
               result.addLog("Negative test reported an error as expeceted.\n");
             }
             result = toNegativeTestResult(result);
@@ -261,6 +266,25 @@ abstract class ChainContext {
       throw "${suite.uri} isn't a directory";
     }
   }
+
+  Result toNegativeTestResult(Result result, [Set<String> expectations]) {
+    Expectation outcome = result.outcome;
+    if (outcome == Expectation.Pass) {
+      if (expectations == null) {
+        outcome = Expectation.Fail;
+      } else if (expectations.contains("compile-time error")) {
+        outcome = expectationSet["MissingCompileTimeError"];
+      } else if (expectations.contains("runtime error") ||
+          expectations.contains("dynamic type error")) {
+        outcome = expectationSet["MissingRuntimeError"];
+      } else {
+        outcome = Expectation.Fail;
+      }
+    } else if (outcome == Expectation.Fail) {
+      outcome = Expectation.Pass;
+    }
+    return result.copyWithOutcome(outcome);
+  }
 }
 
 abstract class Step<I, O, C extends ChainContext> {
@@ -303,13 +327,13 @@ class Result<O> {
   Result(this.output, this.outcome, this.error, this.trace);
 
   Result.pass(O output)
-      : this(output, Expectation.PASS, null, null);
+      : this(output, Expectation.Pass, null, null);
 
   Result.crash(error, StackTrace trace)
-      : this(null, Expectation.CRASH, error, trace);
+      : this(null, Expectation.Crash, error, trace);
 
   Result.fail(O output, [error, StackTrace trace])
-      : this(output, Expectation.FAIL, error, trace);
+      : this(output, Expectation.Fail, error, trace);
 
   String get log => logs.join();
 
@@ -333,23 +357,4 @@ Future<Null> runChain(
     ChainContext context = await f(suite, environment);
     return context.run(suite, selectors);
   });
-}
-
-Result toNegativeTestResult(Result result, [Set<String> expectations]) {
-  Expectation outcome = result.outcome;
-  if (outcome == Expectation.PASS) {
-    if (expectations == null) {
-      outcome = Expectation.FAIL;
-    } else if (expectations.contains("compile-time error")) {
-      outcome = Expectation.MISSING_COMPILETIME_ERROR;
-    } else if (expectations.contains("runtime error") ||
-        expectations.contains("dynamic type error")) {
-      outcome = Expectation.MISSING_RUNTIME_ERROR;
-    } else {
-      outcome = Expectation.FAIL;
-    }
-  } else if (outcome == Expectation.FAIL) {
-    outcome = Expectation.PASS;
-  }
-  return result.copyWithOutcome(outcome);
 }

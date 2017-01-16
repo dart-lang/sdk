@@ -14,7 +14,7 @@ import 'suite.dart' show
 import 'test_description.dart' show
     TestDescription;
 
-import 'test_dart/status_file_parser.dart' show
+import 'expectation.dart' show
     Expectation;
 
 /// ANSI escape code for moving cursor one line up.
@@ -106,7 +106,7 @@ void logUnexpectedResult(Suite suite, TestDescription description,
   Uri statusFile = suite.statusFile;
   if (statusFile != null) {
     String path = statusFile.toFilePath();
-    if (result.outcome == Expectation.PASS) {
+    if (result.outcome == Expectation.Pass) {
       print("The test unexpectedly passed, please update $path.");
     } else {
       print("The test had the outcome ${result.outcome}, but the status file "
