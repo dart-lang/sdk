@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("" as core::String);
+  core::print(1 as core::int);
+  core::print(1.0 as core::double);
+  core::print("" is core::String);
+  core::print("" is core::int);
+  core::print("" is core::double);
+  core::print(1 is core::String);
+  core::print(1 is core::int);
+  core::print(1 is core::double);
+  core::print(1.0 is core::String);
+  core::print(1.0 is core::int);
+  core::print(1.0 is core::double);
+}
