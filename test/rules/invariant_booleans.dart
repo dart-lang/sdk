@@ -188,3 +188,9 @@ class Foo {
     if (bar ?? false) print('hello');
   }
 }
+
+bool bug371(dynamic other, dynamic productTypes) {
+  if (productTypes == null && other.productTypes == null) return true;
+  if (productTypes == null || other.productTypes == null) return false;
+  return true;
+}
