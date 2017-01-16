@@ -27,8 +27,6 @@ vars = {
   # Only use this temporarily while waiting for a mirror for a new package.
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
-  "github_testing": "https://github.com/peter-ahe-google/testing.git",
-
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
 
@@ -111,7 +109,6 @@ vars = {
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@1.0.0",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "testing_rev": "@2e196d51c147411a93a949109656be93626bda49",
   "test_reflective_loader_tag": "@0.1.0",
   "test_tag": "@0.12.15+6",
   "typed_data_tag": "@1.1.3",
@@ -318,8 +315,6 @@ deps = {
       Var("sunflower_rev"),
   Var("dart_root") + "/third_party/pkg/test":
       (Var("github_mirror") % "test") + Var("test_tag"),
-  Var("dart_root") + "/third_party/testing":
-      Var("github_testing") + Var("testing_rev"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
