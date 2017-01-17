@@ -363,7 +363,7 @@ List<FunctionType> buildFunctionTypes() {
 
   List<TypeLike> basicsPlusNull = [
     basicTypes,
-    [null]
+    <TypeLike>[null]
   ].expand((x) => x).toList();
 
   List<TypeLike> basicsPlusNullPlusB = [
@@ -698,10 +698,7 @@ void generateTests({bool typedefsOnly}) {
     Cls cls = classes[typeCounter % classes.length];
 
     String typeName = createTypeName(typeCounter);
-    String staticFunName = createStaticFunName(typeCounter);
-    String methodFunName = createMethodFunName(typeCounter);
     String fieldName = createFieldName(typeCounter);
-    String localName = createLocalName(typeCounter);
     String testName = createTestName(typeCounter);
 
     String typeCode = createTypeCode(type);
