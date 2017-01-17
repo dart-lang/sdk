@@ -2991,6 +2991,11 @@ abstract class ForEachStatement extends Statement {
  */
 abstract class FormalParameter extends AstNode {
   /**
+   * The 'covariant' keyword, or `null` if the keyword was not used.
+   */
+  Token get covariantKeyword;
+
+  /**
    * Return the element representing this parameter, or `null` if this parameter
    * has not been resolved.
    */

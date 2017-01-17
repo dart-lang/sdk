@@ -3446,6 +3446,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
       new ChildEntities()..add(_parameter)..add(separator)..add(_defaultValue);
 
   @override
+  Token get covariantKeyword => null;
+
+  @override
   Expression get defaultValue => _defaultValue;
 
   @override
@@ -8102,6 +8105,11 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   NodeList<Annotation> _metadata;
 
   /**
+   * The 'covariant' keyword, or `null` if the keyword was not used.
+   */
+  Token covariantKeyword;
+
+  /**
    * The name of the parameter being declared.
    */
   SimpleIdentifier _identifier;
@@ -8168,6 +8176,9 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
         ..addAll(_metadata);
     } else {
       result.addAll(sortedCommentAndAnnotations);
+    }
+    if (covariantKeyword != null) {
+      result.add(covariantKeyword);
     }
     return result;
   }
