@@ -361,6 +361,9 @@ io/raw_secure_socket_test: RuntimeError
 io/https_bad_certificate_test: RuntimeError
 io/secure_server_closing_test: RuntimeError
 
+[ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
+io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
+
 [ $runtime == vm || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
