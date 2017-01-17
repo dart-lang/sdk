@@ -13,12 +13,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       document._caretRangeFromPoint(point.x, point.y);
 $!MEMBERS
 
-$if DART2JS
-  @DomName('Range.toString')
-  @DocsEditable()
-  String toString() native;
-$endif
-
   /**
    * Checks if createContextualFragment is supported.
    *

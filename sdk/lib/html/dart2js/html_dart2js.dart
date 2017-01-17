@@ -27863,10 +27863,6 @@ class Range extends Interceptor {
   @DocsEditable()
   void surroundContents(Node newParent) native;
 
-  @DomName('Range.toString')
-  @DocsEditable()
-  String toString() native;
-
 
   /**
    * Checks if createContextualFragment is supported.
