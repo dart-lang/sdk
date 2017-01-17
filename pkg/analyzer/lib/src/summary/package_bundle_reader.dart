@@ -18,7 +18,7 @@ import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:front_end/src/base/source.dart';
 
 /**
  * The [ResultProvider] that provides results from input package summaries.
@@ -66,42 +66,22 @@ class InSummaryPackageUriResolver extends UriResolver {
  * are served from its summary.  This source uses its URI as [fullName] and has
  * empty contents.
  */
-class InSummarySource extends Source {
-  final Uri uri;
-
+class InSummarySource extends BasicSource {
   /**
    * The summary file where this source was defined.
    */
   final String summaryPath;
 
-  InSummarySource(this.uri, this.summaryPath);
+  InSummarySource(Uri uri, this.summaryPath) : super(uri);
 
   @override
   TimestampedData<String> get contents => new TimestampedData<String>(0, '');
 
   @override
-  String get encoding => uri.toString();
-
-  @override
-  String get fullName => encoding;
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  @override
-  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
-
-  @override
   int get modificationStamp => 0;
 
   @override
-  String get shortName => pathos.basename(fullName);
-
-  @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
-
-  @override
-  bool operator ==(Object object) => object is Source && object.uri == uri;
 
   @override
   bool exists() => true;

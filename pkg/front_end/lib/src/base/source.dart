@@ -5,6 +5,33 @@
 import 'package:front_end/src/base/analysis_target.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:front_end/src/base/uri_kind.dart';
+import 'package:path/path.dart' as pathos;
+
+/// Base class providing implementations for the methods in [Source] that don't
+/// require filesystem access.
+abstract class BasicSource extends Source {
+  final Uri uri;
+
+  BasicSource(this.uri);
+
+  @override
+  String get encoding => uri.toString();
+
+  @override
+  String get fullName => encoding;
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  bool get isInSystemLibrary => uri.scheme == 'dart';
+
+  @override
+  String get shortName => pathos.basename(fullName);
+
+  @override
+  bool operator ==(Object object) => object is Source && object.uri == uri;
+}
 
 /**
  * The interface `Source` defines the behavior of objects representing source code that can be
