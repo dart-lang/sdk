@@ -6,6 +6,7 @@ library kernel.target.targets;
 import '../ast.dart';
 
 import 'vm.dart';
+import 'vmcc.dart';
 import 'flutter.dart';
 
 final List<String> targetNames = targets.keys.toList();
@@ -20,6 +21,7 @@ typedef Target _TargetBuilder(TargetFlags flags);
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
   'vm': (TargetFlags flags) => new VmTarget(flags),
+  'vmcc': (TargetFlags flags) => new VmClosureConvertedTarget(flags),
   'flutter': (TargetFlags flags) => new FlutterTarget(flags),
 };
 
