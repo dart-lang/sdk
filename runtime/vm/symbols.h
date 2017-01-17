@@ -127,6 +127,7 @@ class ObjectPointerVisitor;
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \
+  V(FutureOr, "FutureOr")                                                      \
   V(FutureMicrotask, "Future.microtask")                                       \
   V(FutureValue, "Future.value")                                               \
   V(FutureThen, "then")                                                        \

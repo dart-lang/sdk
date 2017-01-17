@@ -12045,6 +12045,13 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
         parameterized_type.set_signature(
             Function::Handle(Z, resolved_type_class.signature_function()));
       }
+      // Replace FutureOr<T> type of async library with dynamic.
+      if ((resolved_type_class.library() == Library::AsyncLibrary()) &&
+          (resolved_type_class.Name() == Symbols::FutureOr().raw())) {
+        parameterized_type.set_type_class(
+            Class::Handle(Object::dynamic_class()));
+        parameterized_type.set_arguments(Object::null_type_arguments());
+      }
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
       ClassFinalizer::FinalizeMalformedType(
           Error::Handle(Z),  // No previous error.

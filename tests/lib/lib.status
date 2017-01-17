@@ -279,10 +279,6 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
-async/future_or_bad_type_test/00: RuntimeError # Issue 28010
-async/future_or_bad_type_test/01: RuntimeError # Issue 28010
-async/future_or_bad_type_test/implements: Fail # Issue 28010
-async/future_or_non_strong_test: RuntimeError # Issue 28010
 async/future_or_strong_test: RuntimeError, OK
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
