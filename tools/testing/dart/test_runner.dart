@@ -3139,7 +3139,7 @@ class ProcessQueue {
       });
 
       // Queue commands as they become "runnable"
-      var commandEnqueuer = new CommandEnqueuer(_graph);
+      new CommandEnqueuer(_graph);
 
       // CommandExecutor will execute commands
       var executor;
