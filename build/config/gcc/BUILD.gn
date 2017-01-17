@@ -31,6 +31,7 @@ config("executable_ldconfig") {
       # Want to pass "\$". GN will re-escape as required for ninja.
       "-Wl,-rpath=\$ORIGIN/",
       "-Wl,-rpath-link=",
+      "-Wl,-z,origin",
 
       # Newer binutils don't set DT_RPATH unless you disable "new" dtags
       # and the new DT_RUNPATH doesn't work without --no-as-needed flag.
