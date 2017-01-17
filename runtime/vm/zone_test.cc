@@ -14,7 +14,7 @@ UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
@@ -76,7 +76,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
@@ -100,7 +100,7 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
@@ -119,7 +119,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
@@ -175,7 +175,7 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL,
                      NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);

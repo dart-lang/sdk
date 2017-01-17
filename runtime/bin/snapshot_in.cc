@@ -32,10 +32,10 @@ const uint8_t* vm_isolate_snapshot_buffer = vm_isolate_snapshot_buffer_;
 // generated snapshot binary file for a regular dart isolate.
 // This string forms the content of a regular dart isolate snapshot which is
 // loaded into an isolate when it is created.
-static const uint8_t isolate_snapshot_buffer_[] = {
+static const uint8_t core_isolate_snapshot_buffer_[] = {
   %s
 };
-const uint8_t* isolate_snapshot_buffer = isolate_snapshot_buffer_;
+const uint8_t* core_isolate_snapshot_buffer = core_isolate_snapshot_buffer_;
 
 }  // namespace bin
 }  // namespace dart
