@@ -20,7 +20,7 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
     return new self::Closure#C#baz#function::•<self::C::T, self::C::S>(null);
   }
   static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
-    final() → dynamic local = new self::Closure#C#function#local::•<self::C::•::T, self::C::•::S>(null);
+    final () → dynamic local = new self::Closure#C#function#local::•<self::C::•::T, self::C::•::S>(null);
     return local.call();
   }
 }

@@ -23,7 +23,7 @@ static method main(dynamic arguments) → dynamic {
   final mock::Context #context = new mock::Context::•(1);
   #context.parent = null;
   #context.[]=(0, arguments);
-  final(dynamic) → dynamic g = new self::Closure#main#g::•(#context);
+  final (dynamic) → dynamic g = new self::Closure#main#g::•(#context);
   self::f = g;
   self::foo();
 }
