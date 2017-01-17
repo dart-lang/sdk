@@ -189,6 +189,11 @@ class Foo {
   }
 }
 
+Iterable bug368(Iterable values) {
+  if (values?.isEmpty ?? true) return [];
+  return values.toList();
+}
+
 bool bug371(dynamic other, dynamic productTypes) {
   if (productTypes == null && other.productTypes == null) return true;
   if (productTypes == null || other.productTypes == null) return false;
