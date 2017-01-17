@@ -2183,7 +2183,7 @@ An _Object_ is a  persistent object that is owned by some isolate.
 ```
 class ReloadReport extends Response {
   // Did the reload succeed or fail?
-  bool status;
+  bool success;
 }
 ```
 
