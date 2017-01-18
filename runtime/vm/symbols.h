@@ -142,6 +142,7 @@ class ObjectPointerVisitor;
   V(Native, "native")                                                          \
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
+  V(null, "null")                                                              \
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
