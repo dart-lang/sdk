@@ -243,6 +243,12 @@ class Parser {
   bool _inInitializer = false;
 
   /**
+   * A flag indicating whether the parser is to parse generic function type
+   * syntax.
+   */
+  bool parseGenericFunctionTypes = false;
+
+  /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
   @deprecated
@@ -4993,21 +4999,24 @@ class Parser {
    *       | functionType
    */
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    TypeAnnotation type = null;
-    if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
-      // Generic function type with no return type.
-      type = parseGenericFunctionTypeAfterReturnType(null);
-    } else if (_currentToken.keyword == Keyword.VOID &&
-        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
-      type = astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
-    } else {
-      type = parseTypeName(inExpression);
+    if (parseGenericFunctionTypes) {
+      TypeAnnotation type = null;
+      if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
+        // Generic function type with no return type.
+        type = parseGenericFunctionTypeAfterReturnType(null);
+      } else if (_currentToken.keyword == Keyword.VOID &&
+          _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
+        type = astFactory.typeName(
+            astFactory.simpleIdentifier(getAndAdvance()), null);
+      } else {
+        type = parseTypeName(inExpression);
+      }
+      while (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
+        type = parseGenericFunctionTypeAfterReturnType(type);
+      }
+      return type;
     }
-    while (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
-      type = parseGenericFunctionTypeAfterReturnType(type);
-    }
-    return type;
+    return parseTypeName(inExpression);
   }
 
   /**
@@ -5468,19 +5477,22 @@ class Parser {
    * This method must be kept in sync with [parseTypeAnnotation].
    */
   Token skipTypeAnnotation(Token startToken) {
-    Token next = null;
-    if (_atGenericFunctionTypeAfterReturnType(startToken)) {
-      next = skipGenericFunctionTypeAfterReturnType(startToken);
-    } else if (_currentToken.keyword == Keyword.VOID &&
-        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
-      next = next.next;
-    } else {
-      next = skipTypeName(startToken);
+    if (parseGenericFunctionTypes) {
+      Token next = null;
+      if (_atGenericFunctionTypeAfterReturnType(startToken)) {
+        next = skipGenericFunctionTypeAfterReturnType(startToken);
+      } else if (_currentToken.keyword == Keyword.VOID &&
+          _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
+        next = next.next;
+      } else {
+        next = skipTypeName(startToken);
+      }
+      while (next != null && _tokenMatchesString(next, 'Function')) {
+        next = skipGenericFunctionTypeAfterReturnType(next);
+      }
+      return next;
     }
-    while (next != null && _tokenMatchesString(next, 'Function')) {
-      next = skipGenericFunctionTypeAfterReturnType(next);
-    }
-    return next;
+    return skipTypeName(startToken);
   }
 
   /**
