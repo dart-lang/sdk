@@ -3236,6 +3236,11 @@ abstract class FieldDeclaration extends ClassMember {
           comment, metadata, staticKeyword, fieldList, semicolon);
 
   /**
+   * The 'covariant' keyword, or `null` if the keyword was not used.
+   */
+  Token get covariantKeyword;
+
+  /**
    * Return the fields being declared.
    */
   VariableDeclarationList get fields;

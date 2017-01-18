@@ -4282,6 +4282,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
       super._childEntities..add(staticKeyword)..add(_fieldList)..add(semicolon);
 
   @override
+  Token get covariantKeyword => null;
+
+  @override
   Element get element => null;
 
   @override
