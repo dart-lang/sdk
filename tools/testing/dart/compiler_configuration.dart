@@ -7,12 +7,19 @@ library compiler_configuration;
 import 'dart:io' show Platform;
 
 import 'runtime_configuration.dart' show RuntimeConfiguration;
-
+import 'runtime_configuration.dart' show DartPrecompiledAdbRuntimeConfiguration;
 import 'test_runner.dart' show Command, CommandBuilder, CompilationCommand;
-
 import 'test_suite.dart' show TestInformation, TestUtils;
 
-import 'runtime_configuration.dart' show DartPrecompiledAdbRuntimeConfiguration;
+List<String> replaceDartFileWith(List<String> list, String replacement) {
+  var copy = new List<String>.from(list);
+  for (var i = 0; i < copy.length; i++) {
+    if (copy[i].endsWith(".dart")) {
+      copy[i] = replacement;
+    }
+  }
+  return copy;
+}
 
 /// Grouping of a command with its expected result.
 class CommandArtifact {
@@ -284,12 +291,8 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_type_checks');
     }
 
-    var newOriginalArguments = new List<String>.from(originalArguments);
-    for (var i = 0; i < newOriginalArguments .length; i++) {
-      if (newOriginalArguments[i].endsWith(".dart")) {
-        newOriginalArguments[i] = artifact.filename;
-      }
-    }
+    var newOriginalArguments = replaceDartFileWith(
+        originalArguments, artifact.filename);
 
     return args
       ..addAll(vmOptions)
@@ -333,7 +336,7 @@ class PipelineCommand {
     return new PipelineCommand._(conf, (List<String> globalArguments,
                                         String previousOutput) {
       assert(previousOutput.endsWith('.dill'));
-      return []..addAll(globalArguments)..add(previousOutput);
+      return replaceDartFileWith(globalArguments, previousOutput);
     });
   }
 
@@ -734,22 +737,20 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-    var newOriginalArguments = new List<String>.from(originalArguments);
-    for (var i = 0; i < newOriginalArguments .length; i++) {
-      if (newOriginalArguments[i].endsWith(".dart")) {
-        var dir = artifact.filename;
-        if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
-          // On android the precompiled snapshot will be pushed to a different
-          // directory on the device, use that one instead.
-          dir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
-        }
-        newOriginalArguments[i] = "$dir/out.aotsnapshot";
-      }
+
+    var dir = artifact.filename;
+    if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
+      // On android the precompiled snapshot will be pushed to a different
+      // directory on the device, use that one instead.
+      dir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
     }
+    originalArguments = replaceDartFileWith(
+        originalArguments, "$dir/out.aotsnapshot");
+
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
-      ..addAll(newOriginalArguments);
+      ..addAll(originalArguments);
   }
 }
 
