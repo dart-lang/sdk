@@ -863,8 +863,7 @@ main() { .!1 }''',
         'testCommentSnippets083b',
         '''
 main() { null.!1 }''',
-        <String>["1+toString"],
-        failingTests: '1');
+        <String>["1+toString"]);
 
     buildTests(
         'testCommentSnippets085',
@@ -2648,8 +2647,7 @@ main() {
 }''',
         <String>["1+true", "1+truefalse", "1-falsetrue"]);
 
-    buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
-        failingTests: '1');
+    buildTests('test020', '''var x = null.!1''', <String>["1+toString"]);
 
     buildTests('test021', '''var x = .!1''', <String>["1-toString"]);
 

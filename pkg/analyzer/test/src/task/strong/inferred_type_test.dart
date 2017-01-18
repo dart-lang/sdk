@@ -459,7 +459,7 @@ var v = null;
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), 'dynamic');
-    expect(v.initializer.type.toString(), '() → <bottom>');
+    expect(v.initializer.type.toString(), '() → Null');
   }
 
   void test_bottom_inClosure() {

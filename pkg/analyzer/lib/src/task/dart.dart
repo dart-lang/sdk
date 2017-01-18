@@ -3745,7 +3745,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       // Record the type of the variable.
       //
       DartType newType = initializer.staticType;
-      if (newType == null || newType.isBottom) {
+      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
         newType = typeProvider.dynamicType;
       }
       setFieldType(variable, newType);

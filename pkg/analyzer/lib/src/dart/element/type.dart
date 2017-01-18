@@ -1598,6 +1598,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   bool isMoreSpecificThan(DartType type,
       [bool withDynamic = false, Set<Element> visitedElements]) {
     //
+    // T is Null and S is not Bottom.
+    //
+    if (isDartCoreNull && !type.isBottom) {
+      return true;
+    }
+
     // S is dynamic.
     // The test to determine whether S is dynamic is done here because dynamic
     // is not an instance of InterfaceType.

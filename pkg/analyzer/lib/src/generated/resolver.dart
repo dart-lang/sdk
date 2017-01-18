@@ -909,7 +909,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         if (returnTypeType is InterfaceType &&
             returnTypeType.isDartAsyncFuture) {
           DartType futureArgument = returnTypeType.typeArguments[0];
-          if (futureArgument.isDynamic || futureArgument.isDartCoreNull) {
+          if (futureArgument.isDynamic ||
+              futureArgument.isDartCoreNull ||
+              futureArgument.isObject) {
             return;
           }
         }
@@ -4187,7 +4189,7 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
-      if (inferred.isBottom) {
+      if (inferred.isBottom || inferred.isDartCoreNull) {
         return;
       }
 
@@ -5330,7 +5332,9 @@ class ResolverVisitor extends ScopedVisitor {
       return null;
     }
 
-    if (potentialType == null || potentialType.isBottom) {
+    if (potentialType == null ||
+        potentialType.isBottom ||
+        potentialType.isDartCoreNull) {
       return null;
     }
     DartType currentType = _overrideManager.getBestType(element);
@@ -5388,7 +5392,11 @@ class ResolverVisitor extends ScopedVisitor {
   void recordPropagatedTypeIfBetter(Expression expression, DartType type,
       [bool hasOldPropagatedType = false]) {
     // Ensure that propagated type invalid.
-    if (strongMode || type == null || type.isDynamic || type.isBottom) {
+    if (strongMode ||
+        type == null ||
+        type.isBottom ||
+        type.isDynamic ||
+        type.isDartCoreNull) {
       if (!hasOldPropagatedType) {
         expression.propagatedType = null;
       }

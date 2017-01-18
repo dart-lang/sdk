@@ -4116,6 +4116,24 @@ main() {
 ''');
   }
 
+  test_undefinedFunction_create_bottomArgument() async {
+    await resolveTestUnit('''
+main() {
+  test(throw 42);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FUNCTION,
+        '''
+main() {
+  test(throw 42);
+}
+
+void test(arg0) {
+}
+''');
+  }
+
   test_undefinedFunction_create_duplicateArgumentNames() async {
     await resolveTestUnit('''
 class C {

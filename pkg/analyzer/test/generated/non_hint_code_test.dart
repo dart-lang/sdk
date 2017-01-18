@@ -20,6 +20,16 @@ main() {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
+  test_async_future_object_without_return() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<Object> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_deadCode_afterTryCatch() async {
     Source source = addSource('''
 main() {

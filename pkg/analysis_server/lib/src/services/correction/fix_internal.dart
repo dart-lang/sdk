@@ -2402,8 +2402,11 @@ class FixProcessor {
 
   void _appendParameterForArgument(
       SourceBuilder sb, Set<String> excluded, int index, Expression argument) {
-    // append type name
     DartType type = argument.bestType;
+    if (type == null || type.isBottom || type.isDartCoreNull) {
+      type = DynamicTypeImpl.instance;
+    }
+    // append type name
     String typeSource = utils.getTypeSource(type, librariesToImport);
     if (typeSource != 'dynamic') {
       sb.startPosition('TYPE$index');

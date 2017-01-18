@@ -358,6 +358,15 @@ main(List<String> items) {
 ''');
   }
 
+  test_addTypeAnnotation_local_BAD_bottom() async {
+    await resolveTestUnit('''
+main() {
+  var v = throw 42;
+}
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
   test_addTypeAnnotation_local_BAD_hasTypeAnnotation() async {
     await resolveTestUnit('''
 main() {

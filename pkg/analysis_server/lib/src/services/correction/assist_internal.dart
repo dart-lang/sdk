@@ -338,7 +338,7 @@ class AssistProcessor {
     DartType type = initializer.bestType;
     // prepare type source
     String typeSource;
-    if (type is InterfaceType || type is FunctionType) {
+    if (type is InterfaceType && !type.isDartCoreNull || type is FunctionType) {
       _configureTargetLocation(node);
       Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);

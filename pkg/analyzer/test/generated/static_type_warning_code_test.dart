@@ -1066,17 +1066,6 @@ f(B<A> b) {}''',
         [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
-  test_returnOfInvalidType_async_future_int_mismatches_future_null() async {
-    await assertErrorsInCode(
-        '''
-import 'dart:async';
-Future<Null> f() async {
-  return 5;
-}
-''',
-        [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
-  }
-
   test_returnOfInvalidType_async_future_int_mismatches_future_string() async {
     await assertErrorsInCode(
         '''
@@ -1923,6 +1912,19 @@ class C {
         '''
 f(Object o) {
   o.call();
+}
+''',
+        [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  test_undefinedMethod_ofNull() async {
+    // TODO(scheglov) Track https://github.com/dart-lang/sdk/issues/28430 to
+    // decide whether a warning should be reported here.
+    await assertErrorsInCode(
+        r'''
+Null f(int x) => null;
+main() {
+  f(42).abs();
 }
 ''',
         [StaticTypeWarningCode.UNDEFINED_METHOD]);

@@ -1164,7 +1164,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitNullLiteral() {
     // null
     Expression node = AstTestFactory.nullLiteral();
-    expect(_analyze(node), same(_typeProvider.bottomType));
+    expect(_analyze(node), same(_typeProvider.nullType));
     _listener.assertNoErrors();
   }
 

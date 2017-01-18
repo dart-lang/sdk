@@ -4993,6 +4993,18 @@ class A {
     verify([source]);
   }
 
+  test_returnOfInvalidType_async_future_int_mismatches_future_null() async {
+    Source source = addSource(r'''
+import 'dart:async';
+Future<Null> f() async {
+  return 5;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_returnOfInvalidType_dynamic() async {
     Source source = addSource(r'''
 class TypeError {}
@@ -5071,6 +5083,7 @@ void f2() { return; }
 void f3() { return null; }
 void f4() { return g1(); }
 void f5() { return g2(); }
+void f6() => throw 42;
 g1() {}
 void g2() {}
 ''');

@@ -168,16 +168,6 @@ n(int i) {}''');
     verify([source]);
   }
 
-  test_async_future_object_without_return() async {
-    Source source = addSource('''
-import 'dart:async';
-Future<Object> f() async {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
   test_canBeNullAfterNullAware_false_methodInvocation() async {
     Source source = addSource(r'''
 m(x) {
