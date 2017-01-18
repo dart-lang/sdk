@@ -260,17 +260,10 @@ class ElementListener extends Listener {
     }
   }
 
-  void endTypedef(Token typedefKeyword, Token equals, Token endToken) {
-    Identifier name;
-    if (equals == null) {
-      popNode(); // TODO(karlklose): do not throw away typeVariables.
-      name = popNode();
-      popNode(); // returnType
-    } else {
-      popNode();  // Function type.
-      popNode();  // TODO(karlklose): do not throw away typeVariables.
-      name = popNode();
-    }
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+    popNode(); // TODO(karlklose): do not throw away typeVariables.
+    Identifier name = popNode();
+    popNode(); // returnType
     pushElement(new PartialTypedefElement(
         name.source, compilationUnitElement, typedefKeyword, endToken));
     rejectBuiltInIdentifier(name);
@@ -301,12 +294,12 @@ class ElementListener extends Listener {
 
   void endMixinApplication() {
     NodeList mixins = popNode();
-    NominalTypeAnnotation superclass = popNode();
+    TypeAnnotation superclass = popNode();
     pushNode(new MixinApplication(superclass, mixins));
   }
 
   void handleVoidKeyword(Token token) {
-    pushNode(new NominalTypeAnnotation(new Identifier(token), null));
+    pushNode(new TypeAnnotation(new Identifier(token), null));
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
@@ -373,7 +366,7 @@ class ElementListener extends Listener {
   }
 
   void endTypeVariable(Token token, Token extendsOrSuper) {
-    NominalTypeAnnotation bound = popNode();
+    TypeAnnotation bound = popNode();
     Identifier name = popNode();
     pushNode(new TypeVariable(name, extendsOrSuper, bound));
     rejectBuiltInIdentifier(name);
@@ -398,17 +391,7 @@ class ElementListener extends Listener {
   void endType(Token beginToken, Token endToken) {
     NodeList typeArguments = popNode();
     Expression typeName = popNode();
-    pushNode(new NominalTypeAnnotation(typeName, typeArguments));
-  }
-
-  void handleNoName(Token token) {
-    pushNode(null);
-  }
-
-  void endFunctionType(Token functionToken, Token endToken) {
-    popNode();  // Type parameters.
-    popNode();  // Return type.
-    pushNode(null);
+    pushNode(new TypeAnnotation(typeName, typeArguments));
   }
 
   void handleParenthesizedExpression(BeginGroupToken token) {

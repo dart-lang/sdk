@@ -120,7 +120,7 @@ class TokenPair implements Spannable {
 }
 
 /**
- * A [SymbolToken] represents the symbol in its precedence info.
+ * A [SymbolToken] represents the symbol in its precendence info.
  * Also used for end of file with EOF_INFO.
  */
 class SymbolToken extends Token {
