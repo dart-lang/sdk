@@ -949,8 +949,8 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   friend class TryFinallyBlock;
 };
 
-RawObject* EvaluateMetadata(TreeNode* kernel_node);
-RawObject* BuildParameterDescriptor(TreeNode* kernel_node);
+RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 
 }  // namespace kernel
@@ -964,8 +964,8 @@ RawObject* BuildParameterDescriptor(TreeNode* kernel_node);
 namespace dart {
 namespace kernel {
 
-RawObject* EvaluateMetadata(TreeNode* kernel_node);
-RawObject* BuildParameterDescriptor(TreeNode* kernel_node);
+RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 }  // namespace kernel
 }  // namespace dart

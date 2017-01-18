@@ -5926,7 +5926,7 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
 }
 
 
-RawObject* EvaluateMetadata(TreeNode* kernel_node) {
+RawObject* EvaluateMetadata(TreeNode* const kernel_node) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
@@ -5971,7 +5971,7 @@ RawObject* EvaluateMetadata(TreeNode* kernel_node) {
 }
 
 
-RawObject* BuildParameterDescriptor(TreeNode* kernel_node) {
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     FunctionNode* function_node = NULL;
