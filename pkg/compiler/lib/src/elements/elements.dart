@@ -17,6 +17,7 @@ import '../script.dart';
 import '../tokens/token.dart'
     show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart';
+import '../universe/call_structure.dart';
 import '../util/characters.dart' show $_;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
@@ -818,6 +819,131 @@ class Elements {
     // a break or continue for a different target. In that case, this
     // label is also always unused.
     return element == null || element.statement != body;
+  }
+
+  /**
+   * Returns a `List` with the evaluated arguments in the normalized order.
+   *
+   * [compileDefaultValue] is a function that returns a compiled constant
+   * of an optional argument that is not in [compiledArguments].
+   *
+   * Precondition: `callStructure.signatureApplies(element.type)`.
+   *
+   * Invariant: [element] must be the implementation element.
+   */
+  static List<T> makeArgumentsList<T>(
+      CallStructure callStructure,
+      Link<Node> arguments,
+      FunctionElement element,
+      T compileArgument(Node argument),
+      T compileDefaultValue(ParameterElement element)) {
+    assert(invariant(element, element.isImplementation));
+    List<T> result = <T>[];
+
+    FunctionSignature parameters = element.functionSignature;
+    parameters.forEachRequiredParameter((ParameterElement element) {
+      result.add(compileArgument(arguments.head));
+      arguments = arguments.tail;
+    });
+
+    if (!parameters.optionalParametersAreNamed) {
+      parameters.forEachOptionalParameter((ParameterElement element) {
+        if (!arguments.isEmpty) {
+          result.add(compileArgument(arguments.head));
+          arguments = arguments.tail;
+        } else {
+          result.add(compileDefaultValue(element));
+        }
+      });
+    } else {
+      // Visit named arguments and add them into a temporary list.
+      List compiledNamedArguments = [];
+      for (; !arguments.isEmpty; arguments = arguments.tail) {
+        NamedArgument namedArgument = arguments.head;
+        compiledNamedArguments.add(compileArgument(namedArgument.expression));
+      }
+      // Iterate over the optional parameters of the signature, and try to
+      // find them in [compiledNamedArguments]. If found, we use the
+      // value in the temporary list, otherwise the default value.
+      parameters.orderedOptionalParameters.forEach((ParameterElement element) {
+        int foundIndex = callStructure.namedArguments.indexOf(element.name);
+        if (foundIndex != -1) {
+          result.add(compiledNamedArguments[foundIndex]);
+        } else {
+          result.add(compileDefaultValue(element));
+        }
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Fills [list] with the arguments in the order expected by
+   * [callee], and where [caller] is a synthesized element
+   *
+   * [compileArgument] is a function that returns a compiled version
+   * of a parameter of [callee].
+   *
+   * [compileConstant] is a function that returns a compiled constant
+   * of an optional argument that is not in the parameters of [callee].
+   *
+   * Returns [:true:] if the signature of the [caller] matches the
+   * signature of the [callee], [:false:] otherwise.
+   */
+  static bool addForwardingElementArgumentsToList<T>(
+      ConstructorElement caller,
+      List<T> list,
+      ConstructorElement callee,
+      T compileArgument(ParameterElement element),
+      T compileConstant(ParameterElement element)) {
+    assert(invariant(caller, !callee.isMalformed,
+        message: "Cannot compute arguments to malformed constructor: "
+            "$caller calling $callee."));
+
+    FunctionSignature signature = caller.functionSignature;
+    Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
+
+    // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
+    // that we can call [addArgumentsToList].
+    Link<Node> computeCallNodesFromParameters() {
+      LinkBuilder<Node> builder = new LinkBuilder<Node>();
+      signature.forEachRequiredParameter((ParameterElement element) {
+        Node node = element.node;
+        mapping[node] = element;
+        builder.addLast(node);
+      });
+      if (signature.optionalParametersAreNamed) {
+        signature.forEachOptionalParameter((ParameterElement element) {
+          mapping[element.initializer] = element;
+          builder.addLast(new NamedArgument(null, null, element.initializer));
+        });
+      } else {
+        signature.forEachOptionalParameter((ParameterElement element) {
+          Node node = element.node;
+          mapping[node] = element;
+          builder.addLast(node);
+        });
+      }
+      return builder.toLink();
+    }
+
+    T internalCompileArgument(Node node) {
+      return compileArgument(mapping[node]);
+    }
+
+    Link<Node> nodes = computeCallNodesFromParameters();
+
+    // Synthesize a structure for the call.
+    // TODO(ngeoffray): Should the resolver do it instead?
+    CallStructure callStructure = new CallStructure(
+        signature.parameterCount, signature.type.namedParameters);
+    if (!callStructure.signatureApplies(signature.type)) {
+      return false;
+    }
+    list.addAll(makeArgumentsList<T>(callStructure, nodes, callee,
+        internalCompileArgument, compileConstant));
+
+    return true;
   }
 }
 

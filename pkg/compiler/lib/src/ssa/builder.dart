@@ -1070,7 +1070,7 @@ class SsaBuilder extends ast.Visitor
 
     ConstructorElement target = constructor.definingConstructor.implementation;
     bool match = !target.isMalformed &&
-        CallStructure.addForwardingElementArgumentsToList(
+        Elements.addForwardingElementArgumentsToList<HInstruction>(
             constructor,
             arguments,
             target,
@@ -1163,7 +1163,8 @@ class SsaBuilder extends ast.Visitor
           reporter.internalError(
               superClass, "No default constructor available.");
         }
-        List<HInstruction> arguments = CallStructure.NO_ARGS.makeArgumentsList(
+        List<HInstruction> arguments = Elements.makeArgumentsList<HInstruction>(
+            CallStructure.NO_ARGS,
             const Link<ast.Node>(),
             target.implementation,
             null,
@@ -2547,7 +2548,8 @@ class SsaBuilder extends ast.Visitor
       return pop();
     }
 
-    return callStructure.makeArgumentsList(
+    return Elements.makeArgumentsList<HInstruction>(
+        callStructure,
         arguments,
         element,
         compileArgument,
@@ -3435,8 +3437,7 @@ class SsaBuilder extends ast.Visitor
     // calling [makeStaticArgumentList].
     constructorImplementation = constructor.implementation;
     if (constructorImplementation.isMalformed ||
-        !callStructure
-            .signatureApplies(constructorImplementation.functionSignature)) {
+        !callStructure.signatureApplies(constructorImplementation.type)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }

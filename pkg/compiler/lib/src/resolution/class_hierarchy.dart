@@ -202,8 +202,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       } else {
         ConstructorElement superConstructor = superMember;
         superConstructor.computeType(resolution);
-        if (!CallStructure.NO_ARGS
-            .signatureApplies(superConstructor.functionSignature)) {
+        if (!CallStructure.NO_ARGS.signatureApplies(superConstructor.type)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
           reporter.reportErrorMessage(node, kind);
           superMember = new ErroneousElementX(kind, {}, '', element);

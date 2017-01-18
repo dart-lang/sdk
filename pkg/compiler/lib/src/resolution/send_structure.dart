@@ -2116,8 +2116,7 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
           ConstructorElement effectiveTarget = constructor.effectiveTarget;
           ResolutionInterfaceType effectiveTargetType =
               constructor.computeEffectiveTargetType(semantics.type);
-          if (callStructure
-              .signatureApplies(effectiveTarget.functionSignature)) {
+          if (callStructure.signatureApplies(effectiveTarget.type)) {
             return visitor.visitRedirectingFactoryConstructorInvoke(
                 node,
                 semantics.element,
@@ -2137,7 +2136,7 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
                 arg);
           }
         }
-        if (callStructure.signatureApplies(constructor.functionSignature)) {
+        if (callStructure.signatureApplies(constructor.type)) {
           return visitor.visitFactoryConstructorInvoke(node, constructor,
               semantics.type, node.send.argumentsNode, callStructure, arg);
         }

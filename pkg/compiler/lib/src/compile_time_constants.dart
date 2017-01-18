@@ -865,8 +865,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
     target.computeType(resolution);
 
-    FunctionSignature signature = target.functionSignature;
-    if (!callStructure.signatureApplies(signature)) {
+    if (!callStructure.signatureApplies(target.type)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
       reporter.reportErrorMessage(node,
@@ -876,8 +875,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           target.functionSignature.parameterCount,
           new ErroneousAstConstant(context, node));
     }
-    return callStructure.makeArgumentsList(
-        arguments, target, compileArgument, compileDefaultValue);
+    return Elements.makeArgumentsList<AstConstant>(
+        callStructure, arguments, target, compileArgument, compileDefaultValue);
   }
 
   AstConstant visitNewExpression(NewExpression node) {
@@ -1113,7 +1112,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
     assert(invariant(
         node,
-        callStructure.signatureApplies(constructor.functionSignature) ||
+        callStructure.signatureApplies(constructor.type) ||
             compiler.compilationFailed,
         message: "Call structure $callStructure does not apply to constructor "
             "$constructor."));
@@ -1295,10 +1294,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       Function compileArgument = (element) => definitions[element];
       Function compileConstant = handler.compileConstant;
       FunctionElement target = constructor.definingConstructor.implementation;
-      CallStructure.addForwardingElementArgumentsToList(constructor,
+      Elements.addForwardingElementArgumentsToList<AstConstant>(constructor,
           compiledArguments, target, compileArgument, compileConstant);
-      CallStructure callStructure =
-          new CallStructure.fromSignature(target.functionSignature);
+      CallStructure callStructure = new CallStructure(
+          target.functionSignature.parameterCount, target.type.namedParameters);
       evaluateSuperOrRedirectSend(compiledArguments, callStructure, target);
       return;
     }
