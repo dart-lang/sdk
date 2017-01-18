@@ -109,7 +109,8 @@ class DartLoader implements ReferenceLevelLoader {
 
   DartLoader(this.repository, DartOptions options, Packages packages,
       {DartSdk dartSdk, AnalysisContext context})
-      : this.context = context ?? createContext(options, packages, dartSdk: dartSdk),
+      : this.context =
+            context ?? createContext(options, packages, dartSdk: dartSdk),
         this.applicationRoot = options.applicationRoot;
 
   String getLibraryName(LibraryElement element) {
@@ -401,11 +402,13 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Member getMemberReference(Element element) {
+    assert(element != null);
     assert(element is! Member); // Use the "base element".
     return _members[element] ??= _buildMemberReference(element);
   }
 
   ast.Member _buildMemberReference(Element element) {
+    assert(element != null);
     var node = _buildOrphanedMemberReference(element);
     // Set the parent pointer and store it in the enclosing class or library.
     // If the enclosing library is being built from the AST, do not add the
@@ -428,6 +431,7 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Member _buildOrphanedMemberReference(Element element) {
+    assert(element != null);
     ClassElement classElement = element.enclosingElement is ClassElement
         ? element.enclosingElement
         : null;
@@ -685,15 +689,41 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
+  ast.Procedure _getMainMethod(Uri uri) {
+    Source source = context.sourceFactory.forUri2(uri);
+    LibraryElement library = context.computeLibraryElement(source);
+    var mainElement = library.entryPoint;
+    if (mainElement == null) return null;
+    var mainMember = getMemberReference(mainElement);
+    if (mainMember is ast.Procedure && !mainMember.isAccessor) {
+      return mainMember;
+    }
+    // Top-level 'main' getters are not supported at the moment.
+    return null;
+  }
+
+  ast.Procedure _makeMissingMainMethod(ast.Library library) {
+    var main = new ast.Procedure(
+        new ast.Name('main'),
+        ast.ProcedureKind.Method,
+        new ast.FunctionNode(new ast.ExpressionStatement(new ast.Throw(
+            new ast.StringLiteral('Program has no main method')))))
+      ..fileUri = library.fileUri;
+    library.addMember(main);
+    return main;
+  }
+
   ast.Program loadProgram(Uri mainLibrary, {Target target, bool compileSdk}) {
-    ast.Library library = repository
-        .getLibraryReference(applicationRoot.relativeUri(mainLibrary));
+    Uri uri = applicationRoot.relativeUri(mainLibrary);
+    ast.Library library = repository.getLibraryReference(uri);
     ensureLibraryIsLoaded(library);
+    var mainMethod = _getMainMethod(mainLibrary);
     loadEverything(target: target, compileSdk: compileSdk);
     var program = new ast.Program(repository.libraries);
-    program.mainMethod = library.procedures.firstWhere(
-        (member) => member.name?.name == 'main',
-        orElse: () => null);
+    if (mainMethod == null) {
+      mainMethod = _makeMissingMainMethod(library);
+    }
+    program.mainMethod = mainMethod;
     for (LibraryElement libraryElement in libraryElements) {
       for (CompilationUnitElement compilationUnitElement
           in libraryElement.units) {
