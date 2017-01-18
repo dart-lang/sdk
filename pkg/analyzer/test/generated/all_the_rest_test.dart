@@ -38,6 +38,7 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart' show TypedMock, when;
 
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
@@ -65,32 +66,6 @@ main() {
     defineReflectiveTests(SDKLibrariesReaderTest);
     defineReflectiveTests(UriKindTest);
   });
-}
-
-/**
- * Create a tiny mock SDK for use in URI resolution tests.
- */
-DartSdk _createSdk() {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-  String sdkFolderName =
-      resourceProvider.pathContext.separator == '/' ? '/sdk' : r'C:\sdk';
-  Folder sdkFolder = resourceProvider.newFolder(sdkFolderName);
-  expect(sdkFolder, isNotNull);
-  resourceProvider.newFile(
-      resourceProvider.pathContext.join(sdkFolderName, 'lib', '_internal',
-          'sdk_library_metadata', 'lib', 'libraries.dart'),
-      '''
-const Map<String, LibraryInfo> libraries = const {
-  "core": const LibraryInfo("core/core.dart")
-};
-''');
-  resourceProvider.newFile(
-      resourceProvider.pathContext
-          .join(sdkFolderName, 'lib', 'core', 'core.dart'),
-      '''
-library dart.core;
-''');
-  return new FolderBasedDartSdk(resourceProvider, sdkFolder);
 }
 
 @reflectiveTest
@@ -140,9 +115,16 @@ class CustomUriResolverTest {
 }
 
 @reflectiveTest
-class DartUriResolverTest {
+class DartUriResolverTest extends _SimpleDartSdkTest {
+  DartUriResolver resolver;
+
+  @override
+  setUp() {
+    super.setUp();
+    resolver = new DartUriResolver(sdk);
+  }
+
   void test_creation() {
-    DartSdk sdk = _createSdk();
     expect(new DartUriResolver(sdk), isNotNull);
   }
 
@@ -152,26 +134,41 @@ class DartUriResolverTest {
     expect(DartUriResolver.isDartUri(uri), isFalse);
   }
 
-  void test_resolve_dart() {
-    DartSdk sdk = _createSdk();
-    UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(Uri.parse("dart:core"));
-    expect(result, isNotNull);
+  void test_resolve_dart_library() {
+    Source source = resolver.resolveAbsolute(Uri.parse('dart:core'));
+    expect(source, isNotNull);
   }
 
   void test_resolve_dart_nonExistingLibrary() {
-    DartSdk sdk = _createSdk();
-    UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(Uri.parse("dart:cor"));
     expect(result, isNull);
   }
 
+  void test_resolve_dart_part() {
+    Source source = resolver.resolveAbsolute(Uri.parse('dart:core/int.dart'));
+    expect(source, isNotNull);
+  }
+
   void test_resolve_nonDart() {
-    DartSdk sdk = _createSdk();
-    UriResolver resolver = new DartUriResolver(sdk);
     Source result =
         resolver.resolveAbsolute(Uri.parse("package:some/file.dart"));
     expect(result, isNull);
+  }
+
+  void test_restoreAbsolute_library() {
+    Source source = new _SourceMock();
+    Uri fileUri = resourceProvider.pathContext.toUri(coreCorePath);
+    when(source.uri).thenReturn(fileUri);
+    Uri dartUri = resolver.restoreAbsolute(source);
+    expect(dartUri.toString(), 'dart:core');
+  }
+
+  void test_restoreAbsolute_part() {
+    Source source = new _SourceMock();
+    Uri fileUri = resourceProvider.pathContext.toUri(coreIntPath);
+    when(source.uri).thenReturn(fileUri);
+    Uri dartUri = resolver.restoreAbsolute(source);
+    expect(dartUri.toString(), 'dart:core/int.dart');
   }
 }
 
@@ -2053,7 +2050,7 @@ class FileBasedSourceTest {
   }
 
   test_isInSystemLibrary_contagious() async {
-    DartSdk sdk = _createSdk();
+    DartSdk sdk = (new _SimpleDartSdkTest()..setUp()).sdk;
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
@@ -2279,3 +2276,39 @@ class UriKindTest {
     expect(UriKind.PACKAGE_URI.encoding, 0x70);
   }
 }
+
+class _SimpleDartSdkTest {
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  String coreCorePath;
+  String coreIntPath;
+  DartSdk sdk;
+
+  void setUp() {
+    Folder sdkFolder =
+        resourceProvider.newFolder(resourceProvider.convertPath('/sdk'));
+    resourceProvider.newFile(
+        resourceProvider.convertPath(
+            '/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
+        '''
+const Map<String, LibraryInfo> libraries = const {
+  "core": const LibraryInfo("core/core.dart")
+};
+''');
+    coreCorePath = resourceProvider.convertPath('/sdk/lib/core/core.dart');
+    resourceProvider.newFile(
+        coreCorePath,
+        '''
+library dart.core;
+part 'int.dart';
+''');
+    coreIntPath = resourceProvider.convertPath('/sdk/lib/core/int.dart');
+    resourceProvider.newFile(
+        coreIntPath,
+        '''
+part of dart.core;
+''');
+    sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
+  }
+}
+
+class _SourceMock extends TypedMock implements Source {}
