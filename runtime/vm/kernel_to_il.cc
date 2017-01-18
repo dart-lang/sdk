@@ -756,7 +756,8 @@ class BreakableBlock {
         outer_(builder->breakable_block_),
         destination_(NULL),
         outer_finally_(builder->try_finally_block_),
-        context_depth_(builder->context_depth_) {
+        context_depth_(builder->context_depth_),
+        try_index_(builder->CurrentTryIndex()) {
     builder_->breakable_block_ = this;
   }
   ~BreakableBlock() { builder_->breakable_block_ = outer_; }
@@ -781,7 +782,7 @@ class BreakableBlock {
  private:
   JoinEntryInstr* EnsureDestination() {
     if (destination_ == NULL) {
-      destination_ = builder_->BuildJoinEntry();
+      destination_ = builder_->BuildJoinEntry(try_index_);
     }
     return destination_;
   }
@@ -792,6 +793,7 @@ class BreakableBlock {
   JoinEntryInstr* destination_;
   TryFinallyBlock* outer_finally_;
   intptr_t context_depth_;
+  intptr_t try_index_;
 };
 
 
@@ -802,7 +804,8 @@ class SwitchBlock {
         outer_(builder->switch_block_),
         outer_finally_(builder->try_finally_block_),
         switch_statement_(switch_stmt),
-        context_depth_(builder->context_depth_) {
+        context_depth_(builder->context_depth_),
+        try_index_(builder->CurrentTryIndex()) {
     builder_->switch_block_ = this;
   }
   ~SwitchBlock() { builder_->switch_block_ = outer_; }
@@ -838,7 +841,7 @@ class SwitchBlock {
   JoinEntryInstr* EnsureDestination(SwitchCase* switch_case) {
     JoinEntryInstr* cached_inst = destinations_.Lookup(switch_case);
     if (cached_inst == NULL) {
-      JoinEntryInstr* inst = builder_->BuildJoinEntry();
+      JoinEntryInstr* inst = builder_->BuildJoinEntry(try_index_);
       destinations_.Insert(switch_case, inst);
       return inst;
     }
@@ -867,6 +870,7 @@ class SwitchBlock {
   TryFinallyBlock* outer_finally_;
   SwitchStatement* switch_statement_;
   intptr_t context_depth_;
+  intptr_t try_index_;
 };
 
 
@@ -3761,6 +3765,11 @@ void FlowGraphBuilder::SetupDefaultParameterValues(FunctionNode* function) {
 
 TargetEntryInstr* FlowGraphBuilder::BuildTargetEntry() {
   return new (Z) TargetEntryInstr(AllocateBlockId(), CurrentTryIndex());
+}
+
+
+JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
+  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index);
 }
 
 

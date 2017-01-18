@@ -721,6 +721,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   TargetEntryInstr* BuildTargetEntry();
   JoinEntryInstr* BuildJoinEntry();
+  JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
   Fragment TranslateArguments(Arguments* node, Array* argument_names);
   ArgumentArray GetArguments(int count);

@@ -229,10 +229,8 @@ script2_negative_test: Fail
 setter_no_getter_call_test/none: RuntimeError
 static_setter_get_test/01: RuntimeError
 switch7_negative_test: Fail
-switch_try_catch_test: RuntimeError
-try_catch_on_syntax_test/10: MissingRuntimeError
-try_catch_on_syntax_test/11: MissingRuntimeError
-try_finally_regress_25654_test: RuntimeError
+try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
+try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 type_checks_in_factory_method_test: RuntimeError
 type_variable_function_type_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
