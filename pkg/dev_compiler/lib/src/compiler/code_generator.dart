@@ -5624,7 +5624,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// JSNumber is the type that actually "implements" all numbers, hence it's
   /// a subtype of int and double (and num). It's in our "dart:_interceptors".
-  bool _isNumberInJS(DartType t) => rules.isSubtypeOf(t, types.numType);
+  bool _isNumberInJS(DartType t) =>
+      rules.isSubtypeOf(t, types.numType) &&
+      !rules.isSubtypeOf(t, types.nullType);
 
   /// Return true if this is one of the methods/properties on all Dart Objects
   /// (toString, hashCode, noSuchMethod, runtimeType).
