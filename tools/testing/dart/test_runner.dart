@@ -22,14 +22,15 @@ import "dart:math" as math;
 import 'package:yaml/yaml.dart';
 
 import 'android.dart';
-import 'dependency_graph.dart' as dgraph;
 import "browser_controller.dart";
+import 'dependency_graph.dart' as dgraph;
 import "path.dart";
+import 'record_and_replay.dart';
+import "runtime_configuration.dart";
 import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
 import "utils.dart";
-import 'record_and_replay.dart';
 
 const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -2700,8 +2701,8 @@ class CommandExecutorImpl implements CommandExecutor {
     var processTest = command.processTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
-    var devicedir = '/data/local/tmp/precompilation-testing';
-    var deviceTestDir = '/data/local/tmp/precompilation-testing/test';
+    var devicedir = DartPrecompiledAdbRuntimeConfiguration.DeviceDir;
+    var deviceTestDir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
 
     // We copy all the files which the vm precompiler puts into the test
     // directory.

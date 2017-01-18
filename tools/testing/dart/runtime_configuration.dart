@@ -289,6 +289,11 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledAdbRuntimeConfiguration
       extends DartVmRuntimeConfiguration {
+  static const String DeviceDir =
+      '/data/local/tmp/precompilation-testing';
+  static const String DeviceTestDir =
+      '/data/local/tmp/precompilation-testing/test';
+
   final bool useBlobs;
   DartPrecompiledAdbRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
 

@@ -12,6 +12,8 @@ import 'test_runner.dart' show Command, CommandBuilder, CompilationCommand;
 
 import 'test_suite.dart' show TestInformation, TestUtils;
 
+import 'runtime_configuration.dart' show DartPrecompiledAdbRuntimeConfiguration;
+
 /// Grouping of a command with its expected result.
 class CommandArtifact {
   final List<Command> commands;
@@ -735,7 +737,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var newOriginalArguments = new List<String>.from(originalArguments);
     for (var i = 0; i < newOriginalArguments .length; i++) {
       if (newOriginalArguments[i].endsWith(".dart")) {
-        newOriginalArguments[i] = "${artifact.filename}/out.aotsnapshot";
+        var dir = artifact.filename;
+        if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
+          // On android the precompiled snapshot will be pushed to a different
+          // directory on the device, use that one instead.
+          dir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
+        }
+        newOriginalArguments[i] = "$dir/out.aotsnapshot";
       }
     }
     return args
