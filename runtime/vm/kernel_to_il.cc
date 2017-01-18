@@ -2597,6 +2597,7 @@ Fragment FlowGraphBuilder::StoreIndexed(intptr_t class_id) {
 
 Fragment FlowGraphBuilder::StoreInstanceField(
     const dart::Field& field,
+    bool is_initialization_store,
     StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
@@ -2605,11 +2606,14 @@ Fragment FlowGraphBuilder::StoreInstanceField(
   StoreInstanceFieldInstr* store = new (Z)
       StoreInstanceFieldInstr(MayCloneField(Z, field), Pop(), value,
                               emit_store_barrier, TokenPosition::kNoSource);
+  store->set_is_initialization(is_initialization_store);
   return Fragment(store);
 }
 
 
-Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
+Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
+    const dart::Field& field,
+    bool is_initialization_store) {
   Fragment instructions;
   const dart::Field& field_clone = MayCloneField(Z, field);
   if (FLAG_use_field_guards) {
@@ -2619,7 +2623,7 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldLength(field_clone, H.thread()->GetNextDeoptId());
   }
-  instructions += StoreInstanceField(field_clone);
+  instructions += StoreInstanceField(field_clone, is_initialization_store);
   return instructions;
 }
 
@@ -3351,7 +3355,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     if (is_method) {
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(setter_value);
-      body += StoreInstanceFieldGuarded(field);
+      body += StoreInstanceFieldGuarded(field, false);
     } else {
       body += LoadLocal(setter_value);
       body += StoreStaticField(field);
@@ -3779,7 +3783,7 @@ Fragment FlowGraphBuilder::TranslateInitializers(
       EnterScope(kernel_field);
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init);
-      instructions += StoreInstanceFieldGuarded(field);
+      instructions += StoreInstanceFieldGuarded(field, true);
       ExitScope(kernel_field);
     }
   }
@@ -3799,7 +3803,7 @@ Fragment FlowGraphBuilder::TranslateInitializers(
 
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init->value());
-      instructions += StoreInstanceFieldGuarded(field);
+      instructions += StoreInstanceFieldGuarded(field, true);
     } else if (initializer->IsSuperInitializer()) {
       SuperInitializer* init = SuperInitializer::Cast(initializer);
 

@@ -815,9 +815,11 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                       intptr_t argument_count,
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment StoreInstanceFieldGuarded(const dart::Field& field);
+  Fragment StoreInstanceFieldGuarded(const dart::Field& field,
+                                     bool is_initialization_store);
   Fragment StoreInstanceField(
       const dart::Field& field,
+      bool is_initialization_store,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       intptr_t offset,
