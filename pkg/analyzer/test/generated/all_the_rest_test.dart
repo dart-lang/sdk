@@ -33,7 +33,7 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' hide equals;
 import 'package:source_span/source_span.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -488,8 +488,9 @@ class C {
   void
       test_metadata_visitDefaultFormalParameter_functionTypedFormalParameter() {
     ParameterElement parameterElement =
-        buildElementsForText('f([@a g() = null]) {}').functions[0].parameters[
-            0];
+        buildElementsForText('f([@a g() = null]) {}')
+            .functions[0]
+            .parameters[0];
     checkMetadata(parameterElement);
   }
 

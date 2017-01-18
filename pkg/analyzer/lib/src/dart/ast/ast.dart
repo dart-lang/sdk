@@ -4630,6 +4630,9 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
+  Token get covariantKeyword => null;
+
+  @override
   ParameterElement get element {
     SimpleIdentifier identifier = this.identifier;
     if (identifier == null) {

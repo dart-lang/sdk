@@ -323,29 +323,21 @@ abstract class AsExpression extends Expression {
 }
 
 /**
- * An assert statement.
+ * An assert in the initializer list of a constructor.
  *
- *    assertStatement ::=
- *        'assert' '(' [Expression] ')' ';'
+ *    assertInitializer ::=
+ *        'assert' '(' [Expression] (',' [Expression])? ')'
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AssertStatement extends Statement {
-  /**
-   * Initialize a newly created assert statement. The [comma] and [message] can
-   * be `null` if there is no message.
-   */
-  factory AssertStatement(
-          Token assertKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token comma,
-          Expression message,
-          Token rightParenthesis,
-          Token semicolon) =>
-      new AssertStatementImpl(assertKeyword, leftParenthesis, condition, comma,
-          message, rightParenthesis, semicolon);
+abstract class AssertInitializer implements Assertion, ConstructorInitializer {}
 
+/**
+ * An assertion, either in a block or in the initializer list of a constructor.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class Assertion implements AstNode {
   /**
    * Return the token representing the 'assert' keyword.
    */
@@ -363,7 +355,8 @@ abstract class AssertStatement extends Statement {
   Token get comma;
 
   /**
-   * Set the comma between the [condition] and the [message] to the given [token].
+   * Set the comma between the [condition] and the [message] to the given
+   * [token].
    */
   void set comma(Token token);
 
@@ -409,6 +402,31 @@ abstract class AssertStatement extends Statement {
    *  Set the right parenthesis to the given [token].
    */
   void set rightParenthesis(Token token);
+}
+
+/**
+ * An assert statement.
+ *
+ *    assertStatement ::=
+ *        'assert' '(' [Expression] (',' [Expression])? ')' ';'
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class AssertStatement implements Assertion, Statement {
+  /**
+   * Initialize a newly created assert statement. The [comma] and [message] can
+   * be `null` if there is no message.
+   */
+  factory AssertStatement(
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message,
+          Token rightParenthesis,
+          Token semicolon) =>
+      new AssertStatementImpl(assertKeyword, leftParenthesis, condition, comma,
+          message, rightParenthesis, semicolon);
 
   /**
    * Return the semicolon terminating the statement.
@@ -3520,6 +3538,11 @@ abstract class ForEachStatement extends Statement {
  */
 abstract class FormalParameter extends AstNode {
   /**
+   * The 'covariant' keyword, or `null` if the keyword was not used.
+   */
+  Token get covariantKeyword;
+
+  /**
    * Return the element representing this parameter, or `null` if this parameter
    * has not been resolved.
    */
@@ -4255,6 +4278,128 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
 
   /**
    * Set the type parameters associated with this method to the given
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters);
+}
+
+/**
+ * An anonymous function type.
+ *
+ *    functionType ::=
+ *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
+ *
+ * where the FormalParameterList is being used to represent the following
+ * grammar, despite the fact that FormalParameterList can represent a much
+ * larger grammar than the one below. This is done in order to simplify the
+ * implementation.
+ *
+ *    parameterTypeList ::=
+ *        () |
+ *        ( normalParameterTypes ,? ) |
+ *        ( normalParameterTypes , optionalParameterTypes ) |
+ *        ( optionalParameterTypes )
+ *    namedParameterTypes ::=
+ *        { namedParameterType (, namedParameterType)* ,? }
+ *    namedParameterType ::=
+ *        [TypeAnnotation]? [SimpleIdentifier]
+ *    normalParameterTypes ::=
+ *        normalParameterType (, normalParameterType)*
+ *    normalParameterType ::=
+ *        [TypeAnnotation] [SimpleIdentifier]?
+ *    optionalParameterTypes ::=
+ *        optionalPositionalParameterTypes | namedParameterTypes
+ *    optionalPositionalParameterTypes ::=
+ *        [ normalParameterTypes ,? ]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class GenericFunctionType extends TypeAnnotation {
+  /**
+   * Return the keyword 'Function'.
+   */
+  Token get functionKeyword;
+
+  /**
+   * Set the keyword 'Function' to the given [token].
+   */
+  void set functionKeyword(Token token);
+
+  /**
+   * Return the parameters associated with the function type.
+   */
+  FormalParameterList get parameters;
+
+  /**
+   * Set the parameters associated with the function type to the given list of
+   * [parameters].
+   */
+  void set parameters(FormalParameterList parameters);
+
+  /**
+   * Return the return type of the function type being defined, or `null` if
+   * no return type was given.
+   */
+  TypeAnnotation get returnType;
+
+  /**
+   * Set the return type of the function type being defined to the given[type].
+   */
+  void set returnType(TypeAnnotation type);
+
+  /**
+   * Return the type parameters for the function type, or `null` if the function
+   * type does not have any type parameters.
+   */
+  TypeParameterList get typeParameters;
+
+  /**
+   * Set the type parameters for the function type to the given list of
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters);
+}
+
+/**
+ * A generic type alias.
+ *
+ *    functionTypeAlias ::=
+ *        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class GenericTypeAlias extends TypeAlias {
+  /**
+   * Return the equal sign separating the name being defined from the function
+   * type.
+   */
+  Token get equals;
+
+  /**
+   * Set the equal sign separating the name being defined from the function type
+   * to the given [token].
+   */
+  void set equals(Token token);
+
+  /**
+   * Return the type of function being defined by the alias.
+   */
+  GenericFunctionType get functionType;
+
+  /**
+   * Set the type of function being defined by the alias to the given
+   * [functionType].
+   */
+  void set functionType(GenericFunctionType functionType);
+
+  /**
+   * Return the type parameters for the function type, or `null` if the function
+   * type does not have any type parameters.
+   */
+  TypeParameterList get typeParameters;
+
+  /**
+   * Set the type parameters for the function type to the given list of
    * [typeParameters].
    */
   void set typeParameters(TypeParameterList typeParameters);
@@ -5799,6 +5944,63 @@ abstract class NamedExpression extends Expression {
    * Set the name associated with the expression to the given [identifier].
    */
   void set name(Label identifier);
+}
+
+/**
+ * A named type, which can optionally include type arguments.
+ *
+ *    namedType ::=
+ *        [Identifier] typeArguments?
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class NamedType extends TypeAnnotation {
+  /**
+   * Return `true` if this type is a deferred type.
+   *
+   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
+   * </i>p.T</i> where <i>p</i> is a deferred prefix.
+   */
+  bool get isDeferred;
+
+  /**
+   * Return the name of the type.
+   */
+  Identifier get name;
+
+  /**
+   * Set the name of the type to the given [identifier].
+   */
+  void set name(Identifier identifier);
+
+  /**
+   * Return the question mark marking this as a nullable type, or `null` if
+   * the type is non-nullable.
+   */
+  Token get question;
+
+  /**
+   * Return the question mark marking this as a nullable type to the given
+   * [question].
+   */
+  void set question(Token question);
+
+  /**
+   * Set the type being named to the given [type].
+   */
+  void set type(DartType type);
+
+  /**
+   * Return the type arguments associated with the type, or `null` if there are
+   * no type arguments.
+   */
+  TypeArgumentList get typeArguments;
+
+  /**
+   * Set the type arguments associated with the type to the given
+   * [typeArguments].
+   */
+  void set typeArguments(TypeArgumentList typeArguments);
 }
 
 /**
@@ -7441,6 +7643,23 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
 }
 
 /**
+ * A type annotation.
+ *
+ *    type ::=
+ *        [NamedType]
+ *      | [GenericFunctionType]
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class TypeAnnotation extends AstNode {
+  /**
+   * Return the type being named, or `null` if the AST structure has not been
+   * resolved.
+   */
+  DartType get type;
+}
+
+/**
  * A list of type arguments.
  *
  *    typeArguments ::=
@@ -7524,7 +7743,7 @@ abstract class TypedLiteral extends Literal {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TypeName extends AstNode {
+abstract class TypeName extends NamedType {
   /**
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
@@ -7532,59 +7751,6 @@ abstract class TypeName extends AstNode {
   factory TypeName(Identifier name, TypeArgumentList typeArguments,
           {Token question: null}) =>
       new TypeNameImpl(name, typeArguments, question);
-
-  /**
-   * Return `true` if this type is a deferred type.
-   *
-   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
-   * </i>p.T</i> where <i>p</i> is a deferred prefix.
-   */
-  bool get isDeferred;
-
-  /**
-   * Return the name of the type.
-   */
-  Identifier get name;
-
-  /**
-   * Set the name of the type to the given [identifier].
-   */
-  void set name(Identifier identifier);
-
-  /**
-   * Return the question mark marking this as a nullable type, or `null` if
-   * the type is non-nullable.
-   */
-  Token get question;
-
-  /**
-   * Return the question mark marking this as a nullable type to the given
-   * [question].
-   */
-  void set question(Token question);
-
-  /**
-   * Return the type being named, or `null` if the AST structure has not been
-   * resolved.
-   */
-  DartType get type;
-
-  /**
-   * Set the type being named to the given [type].
-   */
-  void set type(DartType type);
-
-  /**
-   * Return the type arguments associated with the type, or `null` if there are
-   * no type arguments.
-   */
-  TypeArgumentList get typeArguments;
-
-  /**
-   * Set the type arguments associated with the type to the given
-   * [typeArguments].
-   */
-  void set typeArguments(TypeArgumentList typeArguments);
 }
 
 /**
