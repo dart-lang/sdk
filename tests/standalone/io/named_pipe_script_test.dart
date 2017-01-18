@@ -14,6 +14,7 @@ main() async {
   // Reading a script from a named pipe is only supported on Linux and MacOS.
   if (!Platform.isLinux && !Platform.isMacOS) {
     print("This test is only supported on Linux and MacOS.");
+    asyncEnd();
     return;
   }
 
@@ -24,6 +25,7 @@ main() async {
   // test.
   if (!await (new File(stdinPipePath).exists())) {
     print("Couldn't find $stdinPipePath.");
+    asyncEnd();
     return;
   }
 
