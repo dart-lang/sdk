@@ -32,6 +32,8 @@ List<int> _readSdkSummary() {
   return resourceProvider.getFile(path).readAsBytesSync();
 }
 
+typedef void LibraryChecker(Library lib);
+
 @reflectiveTest
 class IncrementalKernelGeneratorTest {
   static final sdkSummaryUri = Uri.parse('special:sdk_summary');
@@ -41,6 +43,17 @@ class IncrementalKernelGeneratorTest {
 
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
+
+  void checkLibraries(
+      List<Library> libraries, Map<Uri, LibraryChecker> expected) {
+    expect(
+        libraries.map((lib) => lib.importUri), unorderedEquals(expected.keys));
+    var librariesMap = <Uri, Library>{};
+    for (var lib in libraries) {
+      librariesMap[lib.importUri] = lib;
+    }
+    expected.forEach((uri, checker) => checker(librariesMap[uri]));
+  }
 
   Future<Map<Uri, Program>> getInitialState(Uri startingUri) async {
     fileSystem.entityForUri(sdkSummaryUri).writeAsBytesSync(_sdkSummary);
@@ -54,22 +67,52 @@ class IncrementalKernelGeneratorTest {
     return (await incrementalKernelGenerator.computeDelta()).newState;
   }
 
-  test_emptyProgram() async {
-    writeFiles({'/foo.dart': 'main() {}'});
+  test_incrementalUpdate_referenceToCore() async {
+    // TODO(paulberry): test parts.
+    writeFiles({'/foo.dart': 'main() { print(1); }'});
     var fileUri = Uri.parse('file:///foo.dart');
     var initialState = await getInitialState(fileUri);
     expect(initialState.keys, unorderedEquals([fileUri]));
-    var program = initialState[fileUri];
-    expect(program.libraries, hasLength(1));
-    var library = program.libraries[0];
-    expect(library.importUri, fileUri);
-    expect(library.classes, isEmpty);
-    expect(library.procedures, hasLength(1));
-    expect(library.procedures[0].name.name, 'main');
-    var body = library.procedures[0].function.body;
-    expect(body, new isInstanceOf<Block>());
-    var block = body as Block;
-    expect(block.statements, isEmpty);
+    void _checkMain(List<Library> libraries, int expectedArgument) {
+      checkLibraries(libraries, {
+        fileUri: (library) {
+          expect(library.importUri, fileUri);
+          expect(library.classes, isEmpty);
+          expect(library.procedures, hasLength(1));
+          expect(library.procedures[0].name.name, 'main');
+          var body = library.procedures[0].function.body;
+          expect(body, new isInstanceOf<Block>());
+          var block = body as Block;
+          expect(block.statements, hasLength(1));
+          expect(block.statements[0], new isInstanceOf<ExpressionStatement>());
+          var expressionStatement = block.statements[0] as ExpressionStatement;
+          expect(expressionStatement.expression,
+              new isInstanceOf<StaticInvocation>());
+          var staticInvocation =
+              expressionStatement.expression as StaticInvocation;
+          expect(staticInvocation.target.name.name, 'print');
+          expect(staticInvocation.arguments.positional, hasLength(1));
+          expect(staticInvocation.arguments.positional[0],
+              new isInstanceOf<IntLiteral>());
+          var intLiteral =
+              staticInvocation.arguments.positional[0] as IntLiteral;
+          expect(intLiteral.value, expectedArgument);
+        },
+        Uri.parse('dart:core'): (library) {
+          // Should contain the procedure "print" but not its definition.
+          expect(library.procedures, hasLength(1));
+          expect(library.procedures[0].name.name, 'print');
+          expect(library.procedures[0].function.body, isNull);
+        }
+      });
+    }
+
+    _checkMain(initialState[fileUri].libraries, 1);
+    writeFiles({'/foo.dart': 'main() { print(2); }'});
+    incrementalKernelGenerator.invalidateAll();
+    var deltaProgram = await incrementalKernelGenerator.computeDelta();
+    expect(deltaProgram.newState.keys, unorderedEquals([fileUri]));
+    _checkMain(deltaProgram.newState[fileUri].libraries, 2);
   }
 
   /// Write the given file contents to the virtual filesystem.

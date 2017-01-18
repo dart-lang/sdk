@@ -51,6 +51,7 @@ class IncrementalResolvedAstGeneratorImpl
   bool _isInitialized = false;
   final ProcessedOptions _options;
   final Uri _source;
+  bool _schedulerStarted = false;
 
   IncrementalResolvedAstGeneratorImpl(this._source, this._options);
 
@@ -67,8 +68,10 @@ class IncrementalResolvedAstGeneratorImpl
     var libraries = <Uri, ResolvedLibrary>{};
     // TODO(paulberry): it should be possible to seed the driver using a URI,
     // not a file path.
-    // TODO(paulberry): only start the scheduler the first time.
-    _scheduler.start();
+    if (!_schedulerStarted) {
+      _scheduler.start();
+      _schedulerStarted = true;
+    }
     _driver.addFile(_source.path);
     for (var libraryCycle in graph.topologicallySortedCycles) {
       for (var uri in libraryCycle.libraries.keys) {
@@ -130,7 +133,11 @@ class IncrementalResolvedAstGeneratorImpl
 
   @override
   void invalidateAll() {
-    throw new UnimplementedError();
+    // TODO(paulberry): verify that this has an effect (requires a multi-file
+    // test).
+    if (_isInitialized) {
+      _driver.knownFiles.forEach(_driver.changeFile);
+    }
   }
 
   void _storeVirtualFile(Uri uri, String path, String contents) {
@@ -245,7 +252,8 @@ class _SourceFactoryProxy implements SourceFactory {
   _SourceFactoryProxy(this.dartSdk, this.pathToUriMap, this.uriToPathMap);
 
   @override
-  SourceFactory clone() => this;
+  SourceFactory clone() =>
+      new _SourceFactoryProxy(dartSdk, pathToUriMap, uriToPathMap);
 
   @override
   Source forUri(String absoluteUri) {
