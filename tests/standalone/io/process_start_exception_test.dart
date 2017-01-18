@@ -8,34 +8,24 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 
-// Constants from errno.h
+// ENOENT and ERROR_FILE_NOT_FOUND on Windows both have the same value.
+// Note: we are setting PATH to an empty string in tests below because on
+// POSIX systems if target binary name does not contain `/` then it is
+// searched through PATH and if it is not found anywhere in the PATH
+// but some folder in PATH is inaccessible then underlying execvp(...)
+// call will return EACCES (13) instead of ENOENT.
+// For example on some Android devices PATH would include /sbin with is
+// inaccessible - so this test will fail.
 const ENOENT = 2;
-const EACCES = 13;
-
-// TODO(http://dartbug.com/28299) This code is added in attempt to collect more
-// information about the flakyness this test experiences on Android bots:
-// sometimes the test fails because we get EACCES instead of ENOENT error
-// from the OS.
-checkForAccessError(error) {
-  if (error.errorCode == EACCES) {
-    report(obj) {
-      final stat = obj.statSync();
-      print("${obj} | ${stat.type} | ${stat.modeString()}");
-    }
-
-    report(Directory.current);
-    report(new File("__path_to_something_that_should_not_exist__"));
-  }
-}
 
 testStartError() {
   Future<Process> processFuture =
       Process.start("__path_to_something_that_should_not_exist__",
-                    const []);
+                    const [],
+                    environment: {"PATH": ""});
   processFuture.then((p) => Expect.fail('got process despite start error'))
   .catchError((error) {
     Expect.isTrue(error is ProcessException);
-    checkForAccessError(error);
     Expect.equals(ENOENT, error.errorCode, error.toString());
   });
 }
@@ -43,12 +33,12 @@ testStartError() {
 testRunError() {
   Future<ProcessResult> processFuture =
       Process.run("__path_to_something_that_should_not_exist__",
-                  const []);
+                  const [],
+                  environment: {"PATH": ""});
 
   processFuture.then((result) => Expect.fail("exit handler called"))
   .catchError((error) {
     Expect.isTrue(error is ProcessException);
-    checkForAccessError(error);
     Expect.equals(ENOENT, error.errorCode, error.toString());
   });
 }
