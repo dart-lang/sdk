@@ -267,6 +267,33 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
           CommandBuilder.instance, arguments, environmentOverrides)
     ], '$tempDir/out.dill', 'application/dart');
   }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    List<String> args = [];
+    if (isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+
+    var newOriginalArguments = new List<String>.from(originalArguments);
+    for (var i = 0; i < newOriginalArguments .length; i++) {
+      if (newOriginalArguments[i].endsWith(".dart")) {
+        newOriginalArguments[i] = artifact.filename;
+      }
+    }
+
+    return args
+      ..addAll(vmOptions)
+      ..addAll(sharedOptions)
+      ..addAll(newOriginalArguments);
+  }
 }
 
 typedef List<String> CompilerArgumentsFunction(
@@ -304,7 +331,7 @@ class PipelineCommand {
     return new PipelineCommand._(conf, (List<String> globalArguments,
                                         String previousOutput) {
       assert(previousOutput.endsWith('.dill'));
-      return [previousOutput];
+      return []..addAll(globalArguments)..add(previousOutput);
     });
   }
 
@@ -354,7 +381,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(vmOptions, sharedOptions, args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
-    return new List<String>.from(sharedOptions)..addAll(args);
+    return <String>[]..addAll(vmOptions)..addAll(sharedOptions)..addAll(args);
   }
 
   List<String> computeRuntimeArguments(

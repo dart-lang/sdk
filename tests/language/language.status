@@ -216,7 +216,7 @@ vm/regress_27201_test: Fail
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
-[ $compiler == precompiler || $compiler == app_jit ]
+[ $runtime == dart_precompiled || $compiler == app_jit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
 hello_dart_test: Skip # Incompatible flag: --compile_all
 vm/type_vm_test: RuntimeError # Expects line and column numbers

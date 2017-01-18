@@ -1829,7 +1829,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler', 'app_jit'];
+    var COMPILERS = const ['none', 'dartk', 'dartkp', 'precompiler', 'app_jit'];
     var RUNTIMES = const [
       'none',
       'dart_precompiled',
