@@ -98,18 +98,6 @@ void FlowGraphTypePropagator::Propagate() {
         if (use_defn != NULL) {
           AddToWorklist(use_defn);
         }
-
-        // If the value flow into a branch recompute type constrained by the
-        // branch (if any). This ensures that correct non-nullable type will
-        // flow downwards from the branch on the comparison with the null
-        // constant.
-        BranchInstr* branch = instr->AsBranch();
-        if (branch != NULL) {
-          ConstrainedCompileType* constrained_type = branch->constrained_type();
-          if (constrained_type != NULL) {
-            constrained_type->Update();
-          }
-        }
       }
     }
   }
@@ -196,19 +184,6 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   if (current->IsNone() || (current->ToCid() != cid)) {
     SetTypeOf(def, ZoneCompileType::Wrap(CompileType::FromCid(cid)));
   }
-}
-
-
-ConstrainedCompileType* FlowGraphTypePropagator::MarkNonNullable(
-    Definition* def) {
-  CompileType* current = TypeOf(def);
-  if (current->is_nullable() && (current->ToCid() != kNullCid)) {
-    ConstrainedCompileType* constrained_type =
-        new NotNullConstrainedCompileType(current);
-    SetTypeOf(def, constrained_type->ToCompileType());
-    return constrained_type;
-  }
-  return NULL;
 }
 
 

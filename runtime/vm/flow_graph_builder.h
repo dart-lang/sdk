@@ -544,7 +544,7 @@ class TestGraphVisitor : public ValueGraphVisitor {
   // or adds the definition to the graph and returns a use of its value.
   virtual void ReturnDefinition(Definition* definition);
 
-  void MergeBranchWithComparison(ComparisonInstr* comp);
+  void MergeBranchWithStrictCompare(StrictCompareInstr* comp);
   void MergeBranchWithNegate(BooleanNegateInstr* comp);
 
   BlockEntryInstr* CreateSuccessorFor(

@@ -46,8 +46,6 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   // Mark definition as having given class id in all dominated instructions.
   void SetCid(Definition* value, intptr_t cid);
 
-  ConstrainedCompileType* MarkNonNullable(Definition* value);
-
   void AddToWorklist(Definition* defn);
   Definition* RemoveLastFromWorklist();
 
