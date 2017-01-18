@@ -30,4 +30,4 @@ if __name__ == '__main__':
 
     # These mirror pkg/dev_compiler/tool/browser_test.sh.
     bot.RunProcess(['npm', 'install'])
-    bot.RunProcess(['npm', 'test'])
+    bot.RunProcess(['npm', 'test'], {'CHROME_BIN': 'chrome'})
