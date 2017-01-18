@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+# Status file for the kompile_test.dart (notice k, not c) test suite. This is
+# testing generating Analyzer ASTs, that is, code in
+# pkg/fasta/lib/src/analyzer/. Currently, this is behind direct-to-kernel, so
+# there are many crashes.
+
 accessors: Crash
 await: Fail
 classes: Crash
@@ -9,6 +14,7 @@ cycles: Crash
 default_values: Crash
 expressions: Crash
 fibonacci: Crash
+for_in_scope: Crash
 functions: Crash
 implicit_this: Crash
 invocations: Fail

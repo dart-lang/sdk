@@ -1678,6 +1678,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLoopOrSwitch(result);
   }
 
+  void beginForInExpression(Token token) {
+    enterLocalScope(scope.parent);
+  }
+
+  void endForInExpression(Token token) {
+    debugEvent("ForInExpression");
+    Expression expression = popForValue();
+    exitLocalScope();
+    push(expression ?? NullValue.Expression);
+  }
+
   void endForIn(
       Token awaitToken, Token forToken, Token inKeyword, Token endToken) {
     debugEvent("ForIn");

@@ -2,5 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+# Status file for the compile_test.dart (notice c, not k) test suite. This is
+# testing generating Kernel ASTs directly, that is, code in
+# pkg/fasta/lib/src/kernel/.
+
 await: Fail
 invocations: Fail
