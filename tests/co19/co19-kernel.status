@@ -202,7 +202,6 @@ Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash  # !main_obj.Is
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-LibTest/core/StringBuffer/write_A01_t02: RuntimeError
 Language/Expressions/Constants/exception_t01: Crash
 Language/Expressions/Constants/exception_t02: Crash
 
