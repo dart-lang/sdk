@@ -11,8 +11,8 @@ import 'package:analyzer/dart/ast/ast.dart'
         IsExpression,
         ListLiteral,
         MapLiteral,
+        NamedType,
         SimpleFormalParameter,
-        TypeName,
         TypedLiteral,
         VariableDeclarationList;
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -128,6 +128,18 @@ class Visitor extends SimpleAstVisitor {
     checkLiteral(literal);
   }
 
+  visitNamedType(NamedType namedType) {
+    DartType type = namedType.type;
+    if (type is ParameterizedType) {
+      if (type.typeParameters.isNotEmpty &&
+          namedType.typeArguments == null &&
+          namedType.parent is! IsExpression &&
+          !_isOptionallyParameterized(type)) {
+        rule.reportLint(namedType);
+      }
+    }
+  }
+
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null && !isJustUnderscores(param.identifier.name)) {
@@ -140,7 +152,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitTypeName(TypeName typeName) {
+  visitTypeName(NamedType typeName) {
     DartType type = typeName.type;
     if (type is ParameterizedType) {
       if (type.typeParameters.isNotEmpty &&

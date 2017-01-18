@@ -5,7 +5,7 @@
 library linter.src.rules.avoid_as;
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show AsExpression, AstNode, AstVisitor, TypeName;
+    show AsExpression, AstNode, AstVisitor, NamedType;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
@@ -82,7 +82,7 @@ class Visitor extends SimpleAstVisitor {
   visitAsExpression(AsExpression node) {
     // TODO(brianwilkerson) Use TypeAnnotation rather than AstNode below.
     AstNode typeAnnotation = node.type;
-    if (typeAnnotation is TypeName && typeAnnotation.name.name != 'dynamic') {
+    if (typeAnnotation is NamedType && typeAnnotation.name.name != 'dynamic') {
       rule.reportLint(node);
     }
   }
