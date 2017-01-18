@@ -21,12 +21,12 @@ import 'test_description.dart' show
 bool isError(Set<String> expectations) {
   if (expectations.contains("compile-time error")) return true;
   if (expectations.contains("runtime error")) return true;
-  if (expectations.contains("dynamic type error")) return true;
   return false;
 }
 
 bool isCheckedModeError(Set<String> expectations) {
   if (expectations.contains("checked mode compile-time error")) return true;
+  if (expectations.contains("dynamic type error")) return true;
   return isError(expectations);
 }
 
