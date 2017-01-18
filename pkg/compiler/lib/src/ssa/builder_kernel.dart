@@ -565,6 +565,26 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
   }
 
+  /// Returns true if the [type] is a valid return type for an asynchronous
+  /// function.
+  ///
+  /// Asynchronous functions return a `Future`, and a valid return is thus
+  /// either dynamic, Object, or Future.
+  ///
+  /// We do not accept the internal Future implementation class.
+  bool isValidAsyncReturnType(ir.DartType type) {
+    // TODO(sigurdm): In an internal library a function could be declared:
+    //
+    // _FutureImpl foo async => 1;
+    //
+    // This should be valid (because the actual value returned from an async
+    // function is a `_FutureImpl`), but currently false is returned in this
+    // case.
+    return type is ir.DynamicType ||
+        type == astAdapter.objectClass.thisType ||
+        (type is ir.InterfaceType && type == astAdapter.futureClass.thisType);
+  }
+
   @override
   void visitReturnStatement(ir.ReturnStatement returnStatement) {
     HInstruction value;
@@ -573,8 +593,22 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else {
       assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       returnStatement.expression.accept(this);
-      value = typeBuilder.potentiallyCheckOrTrustType(
-          pop(), astAdapter.getFunctionReturnType(_targetFunction));
+      value = pop();
+      if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
+        var returnType = astAdapter.getDartType(_targetFunction.returnType);
+        if (compiler.options.enableTypeAssertions &&
+            !isValidAsyncReturnType(_targetFunction.returnType)) {
+          generateTypeError(
+              returnStatement,
+              "Async function returned a Future,"
+              " was declared to return a ${_targetFunction.returnType}.");
+          pop();
+          return;
+        }
+      } else {
+        value = typeBuilder.potentiallyCheckOrTrustType(
+            value, astAdapter.getFunctionReturnType(_targetFunction));
+      }
     }
     // TODO(het): Add source information
     // TODO(het): Set a return value instead of closing the function when we
@@ -621,8 +655,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitForInStatement(ir.ForInStatement forInStatement) {
     if (forInStatement.isAsync) {
-      compiler.reporter.internalError(astAdapter.getNode(forInStatement),
-          "Cannot compile async for-in using kernel.");
+      _buildAsyncForIn(forInStatement);
     }
     // If the expression being iterated over is a JS indexable type, we can
     // generate an optimized version of for-in that uses indexing.
@@ -775,6 +808,57 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     loopHandler.handleLoop(
         forInStatement, buildInitializer, buildCondition, () {}, buildBody);
+  }
+
+  void _buildAsyncForIn(ir.ForInStatement forInStatement) {
+    // The async-for is implemented with a StreamIterator.
+    HInstruction streamIterator;
+
+    forInStatement.iterable.accept(this);
+    _pushStaticInvocation(
+        astAdapter.streamIteratorConstructor,
+        [pop(), graph.addConstantNull(closedWorld)],
+        astAdapter.streamIteratorConstructorType);
+    streamIterator = pop();
+
+    void buildInitializer() {}
+
+    HInstruction buildCondition() {
+      TypeMask mask = astAdapter.typeOfIteratorMoveNext(forInStatement);
+      _pushDynamicInvocation(forInStatement, mask, [streamIterator],
+          selector: Selectors.moveNext);
+      HInstruction future = pop();
+      push(new HAwait(future, astAdapter.makeSubtypeOfObject(closedWorld)));
+      return popBoolified();
+    }
+
+    void buildBody() {
+      TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
+      _pushDynamicInvocation(forInStatement, mask, [streamIterator],
+          selector: Selectors.current);
+      localsHandler.updateLocal(
+          astAdapter.getLocal(forInStatement.variable), pop());
+      forInStatement.body.accept(this);
+    }
+
+    void buildUpdate() {}
+
+    // Creates a synthetic try/finally block in case anything async goes amiss.
+    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
+    // Build fake try body:
+    loopHandler.handleLoop(forInStatement, buildInitializer, buildCondition,
+        buildUpdate, buildBody);
+
+    void finalizerFunction() {
+      _pushDynamicInvocation(forInStatement, null, [streamIterator],
+          selector: Selectors.cancel);
+      add(new HAwait(pop(), astAdapter.makeSubtypeOfObject(closedWorld)));
+    }
+
+    tryBuilder
+      ..closeTryBody()
+      ..buildFinallyBlock(finalizerFunction)
+      ..cleanUp();
   }
 
   HInstruction callSetRuntimeTypeInfo(
@@ -2257,6 +2341,19 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
   }
 
+  void visitYieldStatement(ir.YieldStatement yieldStatement) {
+    yieldStatement.expression.accept(this);
+    add(new HYield(pop(), yieldStatement.isYieldStar));
+  }
+
+  @override
+  void visitAwaitExpression(ir.AwaitExpression await) {
+    await.operand.accept(this);
+    HInstruction awaited = pop();
+    // TODO(herhut): Improve this type.
+    push(new HAwait(awaited, astAdapter.makeSubtypeOfObject(closedWorld)));
+  }
+
   @override
   void visitRethrow(ir.Rethrow rethrowNode) {
     HInstruction exception = rethrowableException;
@@ -2326,7 +2423,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     tryBuilder
-      ..buildFinallyBlock(tryFinally)
+      ..buildFinallyBlock(() {
+        tryFinally.finalizer.accept(this);
+      })
       ..cleanUp();
   }
 }
@@ -2423,11 +2522,11 @@ class TryCatchFinallyBuilder {
 
   /// Build the finally{} clause of a try/{catch}/finally statement. Note this
   /// does not examine the body of the try clause, only the finally portion.
-  void buildFinallyBlock(ir.TryFinally tryFinally) {
+  void buildFinallyBlock(void buildFinalizer()) {
     kernelBuilder.localsHandler = new LocalsHandler.from(originalSavedLocals);
     startFinallyBlock = kernelBuilder.graph.addNewBlock();
     kernelBuilder.open(startFinallyBlock);
-    tryFinally.finalizer.accept(kernelBuilder);
+    buildFinalizer();
     if (!kernelBuilder.isAborted()) {
       endFinallyBlock = kernelBuilder.close(new HGoto());
     }

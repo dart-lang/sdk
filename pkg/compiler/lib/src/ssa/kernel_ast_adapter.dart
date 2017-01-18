@@ -405,6 +405,13 @@ class KernelAstAdapter {
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.traceFromException, _globalInferenceResults);
 
+  ir.Procedure get streamIteratorConstructor =>
+      kernel.functions[_backend.helpers.streamIteratorConstructor];
+
+  TypeMask get streamIteratorConstructorType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.streamIteratorConstructor, _globalInferenceResults);
+
   ir.Procedure get mapLiteralUntypedMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
 
@@ -466,6 +473,12 @@ class KernelAstAdapter {
 
   ir.Class get objectClass =>
       kernel.classes[_compiler.commonElements.objectClass];
+
+  ir.Class get futureClass =>
+      kernel.classes[_compiler.commonElements.futureClass];
+
+  TypeMask makeSubtypeOfObject(ClosedWorld closedWorld) =>
+      new TypeMask.subclass(_compiler.commonElements.objectClass, closedWorld);
 
   ir.Procedure get currentIsolate =>
       kernel.functions[_backend.helpers.currentIsolate];

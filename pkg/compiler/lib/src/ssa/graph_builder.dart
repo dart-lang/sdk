@@ -35,11 +35,11 @@ abstract class GraphBuilder {
   /// A reference to the compiler.
   Compiler compiler;
 
-  /// The JavaScript backend we are targeting in this compilation.
-  JavaScriptBackend get backend;
-
   /// The tree elements for the element being built into an SSA graph.
   TreeElements get elements;
+
+  /// The JavaScript backend we are targeting in this compilation.
+  JavaScriptBackend get backend;
 
   CodegenRegistry get registry;
 
