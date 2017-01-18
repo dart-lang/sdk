@@ -4322,6 +4322,11 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
  */
 class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /**
+   * The 'covariant' keyword, or `null` if the keyword was not used.
+   */
+  Token covariantKeyword;
+
+  /**
    * The token representing the 'static' keyword, or `null` if the fields are
    * not static.
    */
@@ -4371,7 +4376,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (staticKeyword != null) {
+    if (covariantKeyword != null) {
+      return covariantKeyword;
+    } else if (staticKeyword != null) {
       return staticKeyword;
     }
     return _fieldList.beginToken;
@@ -4464,7 +4471,12 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    if (keyword != null) {
+    NodeList<Annotation> metadata = this.metadata;
+    if (!metadata.isEmpty) {
+      return metadata.beginToken;
+    } else if (covariantKeyword != null) {
+      return covariantKeyword;
+    } else if (keyword != null) {
       return keyword;
     } else if (_type != null) {
       return _type.beginToken;
@@ -5574,7 +5586,12 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    if (_returnType != null) {
+    NodeList<Annotation> metadata = this.metadata;
+    if (!metadata.isEmpty) {
+      return metadata.beginToken;
+    } else if (covariantKeyword != null) {
+      return covariantKeyword;
+    } else if (_returnType != null) {
       return _returnType.beginToken;
     }
     return identifier.beginToken;
@@ -9230,6 +9247,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     NodeList<Annotation> metadata = this.metadata;
     if (!metadata.isEmpty) {
       return metadata.beginToken;
+    } else if (covariantKeyword != null) {
+      return covariantKeyword;
     } else if (keyword != null) {
       return keyword;
     } else if (_type != null) {
