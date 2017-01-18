@@ -36,6 +36,12 @@ Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t01: DartkCrash
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t03: DartkCrash
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t04: DartkCrash
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t05: DartkCrash
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t06: DartkCrash
+Language/Classes/Constructors/Generative_Constructors/initializing_this_t02: DartkCrash
 Language/Classes/Getters/static_getter_t02: DartkCompileTimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
@@ -62,6 +68,8 @@ Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: DartkCompileTimeError
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: DartkCrash
+Language/Libraries_and_Scripts/Scripts/top_level_main_t02: DartkCrash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -118,7 +126,6 @@ Language/Variables/final_t07: MissingCompileTimeError
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError
 Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/evaluation_type_parameter_t02: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: RuntimeError
 Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
@@ -188,7 +195,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/04: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/05: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/06: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
