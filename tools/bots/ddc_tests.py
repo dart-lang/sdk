@@ -28,6 +28,7 @@ if __name__ == '__main__':
     bot.RunProcess([dart_exe, 'tool/build_pkgs.dart', 'test'])
     bot.RunProcess([dart_exe, 'test/all_tests.dart'])
 
+    # TODO(vsm): Our bots do not have node / npm installed.
     # These mirror pkg/dev_compiler/tool/browser_test.sh.
-    bot.RunProcess(['npm', 'install'])
-    bot.RunProcess(['npm', 'test'], {'CHROME_BIN': 'chrome'})
+    # bot.RunProcess(['npm', 'install'])
+    # bot.RunProcess(['npm', 'test'], {'CHROME_BIN': 'chrome'})
