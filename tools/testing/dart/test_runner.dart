@@ -2733,18 +2733,10 @@ class CommandExecutorImpl implements CommandExecutor {
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
-    var args = new List();
-    args.addAll(arguments);
-    for (var i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".dart")) {
-        args[i] = "$deviceTestDir/out.aotsnapshot";
-      }
-    }
-
     steps.add(() => device.runAdbShellCommand(
         [
           '$devicedir/dart_precompiled_runtime',
-        ]..addAll(args),
+        ]..addAll(arguments),
         timeout: timeoutDuration));
 
     var stopwatch = new Stopwatch()..start();
