@@ -5,9 +5,26 @@
 # Disable tests globally for kernel.
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
-Language/Metadata/*: Skip # No support for metadata ATM.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/isolate/*: Skip # No support for isolates ATM.
+
+Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_library_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t02: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t03: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t04: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t05: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t06: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t07: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t08: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_param_t09: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_type_param_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_typedef_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_variable_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+Language/Metadata/before_variable_t02: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
+
 
 # Override tests marked as failing elsewhere.
 [ $compiler == dartk || $compiler == dartkp ]

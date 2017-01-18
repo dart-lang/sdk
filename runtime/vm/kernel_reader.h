@@ -70,7 +70,9 @@ class KernelReader {
   friend class BuildingTranslationHelper;
 
   void ReadPreliminaryClass(dart::Class* klass, Class* kernel_klass);
-  dart::Class& ReadClass(const dart::Library& library, Class* kernel_klass);
+  dart::Class& ReadClass(const dart::Library& library,
+                         const dart::Class& toplevel_class,
+                         Class* kernel_klass);
   void ReadProcedure(const dart::Library& library,
                      const dart::Class& owner,
                      Procedure* procedure,

@@ -31,6 +31,7 @@ namespace dart {
 // Forward declarations.
 namespace kernel {
 class Program;
+class TreeNode;
 }
 
 #define DEFINE_FORWARD_DECLARATION(clazz) class clazz;
@@ -3762,9 +3763,14 @@ class Library : public Object {
 
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
-                        TokenPosition token_pos) const;
-  void AddFieldMetadata(const Field& field, TokenPosition token_pos) const;
-  void AddFunctionMetadata(const Function& func, TokenPosition token_pos) const;
+                        TokenPosition token_pos,
+                        kernel::TreeNode* kernel_node = NULL) const;
+  void AddFieldMetadata(const Field& field,
+                        TokenPosition token_pos,
+                        kernel::TreeNode* kernel_node = NULL) const;
+  void AddFunctionMetadata(const Function& func,
+                           TokenPosition token_pos,
+                           kernel::TreeNode* kernel_node = NULL) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
@@ -3931,7 +3937,8 @@ class Library : public Object {
   RawField* GetMetadataField(const String& metaname) const;
   void AddMetadata(const Object& owner,
                    const String& name,
-                   TokenPosition token_pos) const;
+                   TokenPosition token_pos,
+                   kernel::TreeNode* kernel_node = NULL) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 

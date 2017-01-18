@@ -11,6 +11,7 @@
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/kernel_to_il.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -150,8 +151,15 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // * The default value of a parameter.
     // * Whether a parameters has been declared as final.
     // * Any metadata associated with the parameter.
-    const Object& result =
-        Object::Handle(Parser::ParseFunctionParameters(func));
+    Object& result = Object::Handle();
+
+    kernel::TreeNode* kernel_node =
+        reinterpret_cast<kernel::TreeNode*>(func.kernel_function());
+    if (kernel_node != NULL) {
+      result = kernel::BuildParameterDescriptor(kernel_node);
+    } else {
+      result = Parser::ParseFunctionParameters(func);
+    }
     if (result.IsError()) {
       Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();

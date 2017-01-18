@@ -1319,10 +1319,11 @@ ConstantEvaluator::ConstantEvaluator(FlowGraphBuilder* builder,
       zone_(zone),
       translation_helper_(*h),
       type_translator_(*type_translator),
-      script_(dart::Script::Handle(
+      script_(Script::Handle(
           zone,
-          builder_->parsed_function_->function().script())),
-      result_(dart::Instance::Handle(zone)) {}
+          builder == NULL ? Script::null()
+                          : builder_->parsed_function_->function().script())),
+      result_(Instance::Handle(zone)) {}
 
 
 Instance& ConstantEvaluator::EvaluateExpression(Expression* expression) {
@@ -1468,6 +1469,8 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
 
 
 bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
+  if (builder_ == NULL) return false;
+
   const Function& function = builder_->parsed_function_->function();
   if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
     // Don't cache constants in initializer expressions. They get
@@ -1496,6 +1499,8 @@ bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
 void ConstantEvaluator::CacheConstantValue(TreeNode* node,
                                            const Instance& value) {
   ASSERT(Thread::Current()->IsMutatorThread());
+
+  if (builder_ == NULL) return;
 
   const Function& function = builder_->parsed_function_->function();
   if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
@@ -5921,6 +5926,116 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
 }
 
 
+RawObject* EvaluateMetadata(TreeNode* kernel_node) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    Zone* zone_ = thread->zone();
+
+    List<Expression>* metadata_expressions = NULL;
+    if (kernel_node->IsClass()) {
+      metadata_expressions = &Class::Cast(kernel_node)->annotations();
+    } else if (kernel_node->IsProcedure()) {
+      metadata_expressions = &Procedure::Cast(kernel_node)->annotations();
+    } else if (kernel_node->IsField()) {
+      metadata_expressions = &Field::Cast(kernel_node)->annotations();
+    } else if (kernel_node->IsConstructor()) {
+      metadata_expressions = &Constructor::Cast(kernel_node)->annotations();
+    } else {
+      FATAL1("No support for metadata on this type of kernel node %p\n",
+             kernel_node);
+    }
+
+    TranslationHelper translation_helper(thread);
+    DartTypeTranslator type_translator(&translation_helper, NULL, true);
+    ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
+                                         &translation_helper, &type_translator);
+
+    const Array& metadata_values =
+        Array::Handle(Z, Array::New(metadata_expressions->length()));
+
+    for (intptr_t i = 0; i < metadata_expressions->length(); i++) {
+      const Instance& value =
+          constant_evaluator.EvaluateExpression((*metadata_expressions)[i]);
+      metadata_values.SetAt(i, value);
+    }
+
+    return metadata_values.raw();
+  } else {
+    Thread* thread = Thread::Current();
+    Error& error = Error::Handle();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error.raw();
+  }
+}
+
+
+RawObject* BuildParameterDescriptor(TreeNode* kernel_node) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    FunctionNode* function_node = NULL;
+
+    if (kernel_node->IsProcedure()) {
+      function_node = Procedure::Cast(kernel_node)->function();
+    } else if (kernel_node->IsConstructor()) {
+      function_node = Constructor::Cast(kernel_node)->function();
+    } else if (kernel_node->IsFunctionNode()) {
+      function_node = FunctionNode::Cast(kernel_node);
+    } else {
+      UNIMPLEMENTED();
+      return NULL;
+    }
+
+    Thread* thread = Thread::Current();
+    Zone* zone_ = thread->zone();
+    TranslationHelper translation_helper(thread);
+    DartTypeTranslator type_translator(&translation_helper, NULL, true);
+    ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
+                                         &translation_helper, &type_translator);
+
+
+    intptr_t param_count = function_node->positional_parameters().length() +
+                           function_node->named_parameters().length();
+    const Array& param_descriptor = Array::Handle(
+        Array::New(param_count * Parser::kParameterEntrySize, Heap::kOld));
+    for (intptr_t i = 0; i < param_count; ++i) {
+      VariableDeclaration* variable;
+      if (i < function_node->positional_parameters().length()) {
+        variable = function_node->positional_parameters()[i];
+      } else {
+        variable = function_node->named_parameters()[i];
+      }
+
+      param_descriptor.SetAt(
+          i + Parser::kParameterIsFinalOffset,
+          variable->IsFinal() ? Bool::True() : Bool::False());
+
+      if (variable->initializer() != NULL) {
+        param_descriptor.SetAt(
+            i + Parser::kParameterDefaultValueOffset,
+            constant_evaluator.EvaluateExpression(variable->initializer()));
+      } else {
+        param_descriptor.SetAt(i + Parser::kParameterDefaultValueOffset,
+                               Object::null_instance());
+      }
+
+      param_descriptor.SetAt(i + Parser::kParameterMetadataOffset,
+                             /* Issue(28434): Missing parameter metadata. */
+                             Object::null_instance());
+    }
+    return param_descriptor.raw();
+  } else {
+    Thread* thread = Thread::Current();
+    Error& error = Error::Handle();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error.raw();
+  }
+}
+
+
 }  // namespace kernel
 }  // namespace dart
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

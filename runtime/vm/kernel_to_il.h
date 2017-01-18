@@ -949,6 +949,24 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   friend class TryFinallyBlock;
 };
 
+RawObject* EvaluateMetadata(TreeNode* kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* kernel_node);
+
+
+}  // namespace kernel
+}  // namespace dart
+
+#else  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#include "vm/object.h"
+#include "vm/kernel.h"
+
+namespace dart {
+namespace kernel {
+
+RawObject* EvaluateMetadata(TreeNode* kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* kernel_node);
+
 }  // namespace kernel
 }  // namespace dart
 

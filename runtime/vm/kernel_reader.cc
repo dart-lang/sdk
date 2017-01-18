@@ -200,7 +200,7 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   // Load all classes.
   for (intptr_t i = 0; i < kernel_library->classes().length(); i++) {
     Class* kernel_klass = kernel_library->classes()[i];
-    classes.Add(ReadClass(library, kernel_klass), Heap::kOld);
+    classes.Add(ReadClass(library, toplevel_class, kernel_klass), Heap::kOld);
   }
 
   classes.Add(toplevel_class, Heap::kOld);
@@ -281,6 +281,7 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
 
 
 dart::Class& KernelReader::ReadClass(const dart::Library& library,
+                                     const dart::Class& toplevel_class,
                                      Class* kernel_klass) {
   // This will trigger a call to [ReadPreliminaryClass] if not already done.
   dart::Class& klass = LookupClass(kernel_klass);
@@ -334,6 +335,11 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                             kernel_constructor->function(),
                             true,    // is_method
                             false);  // is_closure
+
+    if (FLAG_enable_mirrors) {
+      library.AddFunctionMetadata(function, TokenPosition::kNoSource,
+                                  kernel_constructor);
+    }
   }
 
   for (intptr_t i = 0; i < kernel_klass->procedures().length(); i++) {
@@ -344,6 +350,11 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
 
   if (!klass.is_marked_for_parsing()) {
     klass.set_is_marked_for_parsing();
+  }
+
+  if (FLAG_enable_mirrors) {
+    library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
+                             kernel_klass);
   }
 
   return klass;
@@ -421,6 +432,10 @@ void KernelReader::ReadProcedure(const dart::Library& library,
     ASSERT(!Object::Handle(Z, library.LookupObjectAllowPrivate(
                                   H.DartProcedureName(kernel_procedure)))
                 .IsNull());
+  }
+  if (FLAG_enable_mirrors) {
+    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
+                                kernel_procedure);
   }
 }
 

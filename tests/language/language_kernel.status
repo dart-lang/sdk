@@ -240,11 +240,9 @@ vm/type_vm_test: RuntimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
-const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 const_string_test: RuntimeError  # Dartk Issue 28306
-instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 main_not_a_function_test/01: Crash
 redirecting_factory_reflection_test: RuntimeError
