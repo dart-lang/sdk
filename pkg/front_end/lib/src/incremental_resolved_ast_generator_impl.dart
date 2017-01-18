@@ -117,6 +117,7 @@ class IncrementalResolvedAstGeneratorImpl
         _resourceProvider,
         byteStore,
         fileContentOverlay,
+        'front_end',
         sourceFactory,
         analysisOptions);
     _isInitialized = true;

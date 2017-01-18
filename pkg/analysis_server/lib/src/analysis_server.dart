@@ -1833,9 +1833,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         resourceProvider,
         analysisServer.byteStore,
         analysisServer.fileContentOverlay,
+        folder.path,
         sourceFactory,
         analysisOptions);
-    analysisDriver.name = folder.path;
     analysisDriver.status.listen((status) {
       // TODO(scheglov) send server status
     });

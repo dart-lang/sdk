@@ -154,6 +154,7 @@ class AbstractContextTest {
           provider,
           new MemoryByteStore(),
           _fileContentOverlay,
+          'test',
           sourceFactory,
           new AnalysisOptionsImpl());
       scheduler.start();

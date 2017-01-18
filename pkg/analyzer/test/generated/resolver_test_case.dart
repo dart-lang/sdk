@@ -686,8 +686,15 @@ class ResolverTestCase extends EngineTestCase {
 
       PerformanceLog log = new PerformanceLog(_logBuffer);
       AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-      driver = new AnalysisDriver(scheduler, log, resourceProvider,
-          new MemoryByteStore(), fileContentOverlay, sourceFactory, options);
+      driver = new AnalysisDriver(
+          scheduler,
+          log,
+          resourceProvider,
+          new MemoryByteStore(),
+          fileContentOverlay,
+          'test',
+          sourceFactory,
+          options);
       scheduler.start();
     } else {
       if (packages != null) {
@@ -735,15 +742,15 @@ class ResolverTestCase extends EngineTestCase {
           Source source, LibraryElement library) =>
       analysisContext2.resolveCompilationUnit(source, library);
 
+  Future<CompilationUnit> resolveSource(String sourceText) =>
+      resolveSource2('/test.dart', sourceText);
+
   Future<CompilationUnit> resolveSource2(
       String fileName, String sourceText) async {
     Source source = addNamedSource(fileName, sourceText);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     return analysisResult.unit;
   }
-
-  Future<CompilationUnit> resolveSource(String sourceText) =>
-      resolveSource2('/test.dart', sourceText);
 
   Future<Source> resolveSources(List<String> sourceTexts) async {
     for (int i = 0; i < sourceTexts.length; i++) {

@@ -240,6 +240,7 @@ get b => 42;
       provider,
       byteStore,
       contentOverlay,
+      'test',
       new SourceFactory(
           [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
           null,
