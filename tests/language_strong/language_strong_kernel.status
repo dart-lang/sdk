@@ -28,7 +28,6 @@ bool_test: RuntimeError # Throws CastError instead of TypeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
-checked_covariant_overrides_test: RuntimeError
 closure_type_variable_test: RuntimeError
 closures_initializer_test: RuntimeError
 compile_time_constant12_test: Crash
@@ -38,6 +37,7 @@ const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
+covariant_override/runtime_check_test: RuntimeError
 custom_await_stack_trace_test: RuntimeError
 cyclic_type2_test: CompileTimeError
 cyclic_type_test/00: RuntimeError

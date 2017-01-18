@@ -275,6 +275,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
     },
 
+    'language/covariant_override': {},
+
     'corelib': {
       'apply2_test': fail,
       'apply3_test': fail,
@@ -796,7 +798,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
         async_helper.asyncTestInitialize(finish);
         if (has('slow')) this.timeout(10000);
- 
+
         var result;
         try {
           var result = mainLibrary.main();

@@ -188,7 +188,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     _buildUnit = unit;
     _libraryRoot = _buildUnit.libraryRoot;
     if (!_libraryRoot.endsWith(separator)) {
-      _libraryRoot = '$_libraryRoot${separator}';
+      _libraryRoot += separator;
     }
 
     var module = _emitModule(compilationUnits);
@@ -1806,7 +1806,6 @@ class CodeGenerator extends GeneralizingAstVisitor
 
       Function lookup;
       List<JS.Property> tMember;
-      JS.Expression type;
       if (node.isGetter) {
         lookup = classElem.lookUpInheritedConcreteGetter;
         tMember = node.isStatic ? tStaticGetters : tInstanceGetters;
@@ -1819,22 +1818,38 @@ class CodeGenerator extends GeneralizingAstVisitor
         tMember = node.isStatic ? tStaticMethods : tInstanceMethods;
       }
 
-      type = _emitAnnotatedFunctionType(element.type, node.metadata,
+      // Swap in "Object" for parameter types that are covariant overrides.
+      var objectType = context.typeProvider.objectType;
+      var reifiedType = element is MethodElement
+          ? element.getReifiedType(objectType)
+          : element.type;
+      var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
           parameters: node.parameters?.parameters,
           nameType: options.hoistSignatureTypes,
           hoistType: options.hoistSignatureTypes,
           definite: true);
 
+      // Don't add redundant signatures for inherited methods whose signature
+      // did not change.
+      var needsSignature = true;
       var inheritedElement = lookup(name, currentLibrary);
-      if (inheritedElement != null && inheritedElement.type == element.type) {
-        continue;
+      if (inheritedElement != null) {
+        if (inheritedElement is MethodElement) {
+          needsSignature =
+              inheritedElement.getReifiedType(objectType) != reifiedType;
+        } else {
+          needsSignature = inheritedElement.type != reifiedType;
+        }
       }
-      var memberName = _declareMemberName(element);
-      var property = new JS.Property(memberName, type);
-      tMember.add(property);
-      // TODO(vsm): Why do we need this?
-      if (node.isStatic && !node.isGetter && !node.isSetter) {
-        sNames.add(memberName);
+
+      if (needsSignature) {
+        var memberName = _declareMemberName(element);
+        var property = new JS.Property(memberName, type);
+        tMember.add(property);
+        // TODO(vsm): Why do we need this?
+        if (node.isStatic && !node.isGetter && !node.isSetter) {
+          sNames.add(memberName);
+        }
       }
     }
 
@@ -2908,7 +2923,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         lowerTypedef: lowerTypedef,
         nameType: nameType,
         hoistType: hoistType);
-    var helper = (definite) ? 'definiteFunctionType' : 'functionType';
+    var helper = definite ? 'definiteFunctionType' : 'functionType';
     var fullType = _callHelper('${helper}(#)', [parts]);
     if (!nameType) return fullType;
     return _typeTable.nameType(type, fullType,
@@ -2943,6 +2958,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var namedTypes = type.namedParameterTypes;
     var rt =
         _emitType(type.returnType, nameType: nameType, hoistType: hoistType);
+
     var ra = _emitTypeNames(parameterTypes, parameters,
         nameType: nameType, hoistType: hoistType);
 
