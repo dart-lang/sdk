@@ -32,6 +32,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   const firefox_fail = is.firefox() ? fail : pass;
   const chrome_fail = is.chrome() ? fail : pass;
 
+  // These are typically tests with asynchronous exceptions that our
+  // test framework doesn't always catch.
+  const flaky = 'skip';
+
   // Tests marked with this are still using the deprecated unittest package
   // because they rely on its support for futures and asynchronous tests, which
   // expect and minitest do not handle.
@@ -201,7 +205,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'many_generic_instanceof_test': fail,
       'map_literal10_test': fail,
       'map_literal7_test': fail,
-      'memory_swap_test': is.firefox() ? skip_timeout : pass,
+      'memory_swap_test': is.firefox() ? skip_timeout : pass,
       'method_invocation_test': fail,
       'mint_arithmetic_test': fail,
       'mixin_forwarding_constructor3_test': fail,
@@ -229,7 +233,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'regress_16640_test': fail,
       'regress_18535_test': fail,
       'regress_22666_test': fail,
-      'regress_22777_test': is.firefox() ? 'skip' : fail, // flake on ff
+      'regress_22777_test': flaky,
       'setter_no_getter_test_01_multi': fail,
       'stack_overflow_stacktrace_test': fail,
       'stack_overflow_test': fail,
