@@ -5369,7 +5369,7 @@ class SsaBuilder extends ast.Visitor
     if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
       // with continue statements.
-      return new SwitchCaseJumpHandler(this, element, node);
+      return new AstSwitchCaseJumpHandler(this, element, node);
     }
     return new JumpHandler(this, element);
   }

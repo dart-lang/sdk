@@ -1143,7 +1143,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return new NullJumpHandler(compiler.reporter);
     }
     if (isLoopJump && node is ir.SwitchStatement) {
-      throw 'Kernel Switch Statement handler not yet implemented.';
+      return new KernelSwitchCaseJumpHandler(this, target, node, astAdapter);
     }
 
     return new JumpHandler(this, target);
@@ -1236,9 +1236,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitSwitchStatement(ir.SwitchStatement switchStatement) {
-    Map<ir.Expression, ConstantValue> constants =
-        _buildSwitchCaseConstants(switchStatement);
-
     // The switch case indices must match those computed in
     // [KernelSwitchCaseJumpHandler].
     bool hasContinue = false;
@@ -1260,9 +1257,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (!hasContinue) {
       // If the switch statement has no switch cases targeted by continue
       // statements we encode the switch statement directly.
-      _buildSimpleSwitchStatement(switchStatement, jumpHandler, constants);
+      _buildSimpleSwitchStatement(switchStatement, jumpHandler);
     } else {
-      throw 'Complex switch statement with continue label not implemented yet.';
+      _buildComplexSwitchStatement(
+          switchStatement, jumpHandler, caseIndex, hasDefault);
     }
   }
 
@@ -1270,43 +1268,192 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   static bool _isDefaultCase(ir.SwitchCase switchCase) =>
       switchCase == null || switchCase.isDefault;
 
+  /// Helper for building switch statements.
+  HInstruction _buildExpression(ir.SwitchStatement switchStatement) {
+    switchStatement.expression.accept(this);
+    return pop();
+  }
+
+  /// Helper method for creating the list of constants that make up the
+  /// switch case branches.
+  List<ConstantValue> _getSwitchConstants(
+      ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
+    Map<ir.Expression, ConstantValue> constantsLookup =
+        _buildSwitchCaseConstants(parentSwitch);
+    List<ConstantValue> constantList = <ConstantValue>[];
+    if (switchCase != null) {
+      for (var expression in switchCase.expressions) {
+        constantList.add(constantsLookup[expression]);
+      }
+    }
+    return constantList;
+  }
+
   /// Builds a simple switch statement which does not handle uses of continue
   /// statements to labeled switch cases.
-  void _buildSimpleSwitchStatement(ir.SwitchStatement switchStatement,
-      JumpHandler jumpHandler, Map<ir.Expression, ConstantValue> constants) {
+  void _buildSimpleSwitchStatement(
+      ir.SwitchStatement switchStatement, JumpHandler jumpHandler) {
     void buildSwitchCase(ir.SwitchCase switchCase) {
       switchCase.body.accept(this);
     }
 
-    handleSwitch(switchStatement, jumpHandler, switchStatement.cases,
-        _isDefaultCase, buildSwitchCase, constants);
+    _handleSwitch(
+        switchStatement,
+        jumpHandler,
+        _buildExpression,
+        switchStatement.cases,
+        _getSwitchConstants,
+        _isDefaultCase,
+        buildSwitchCase);
     jumpHandler.close();
+  }
+
+  /// Builds a switch statement that can handle arbitrary uses of continue
+  /// statements to labeled switch cases.
+  void _buildComplexSwitchStatement(
+      ir.SwitchStatement switchStatement,
+      JumpHandler jumpHandler,
+      Map<ir.SwitchCase, int> caseIndex,
+      bool hasDefault) {
+    // If the switch statement has switch cases targeted by continue
+    // statements we create the following encoding:
+    //
+    //   switch (e) {
+    //     l_1: case e0: s_1; break;
+    //     l_2: case e1: s_2; continue l_i;
+    //     ...
+    //     l_n: default: s_n; continue l_j;
+    //   }
+    //
+    // is encoded as
+    //
+    //   var target;
+    //   switch (e) {
+    //     case e1: target = 1; break;
+    //     case e2: target = 2; break;
+    //     ...
+    //     default: target = n; break;
+    //   }
+    //   l: while (true) {
+    //    switch (target) {
+    //       case 1: s_1; break l;
+    //       case 2: s_2; target = i; continue l;
+    //       ...
+    //       case n: s_n; target = j; continue l;
+    //     }
+    //   }
+    //
+    // This is because JS does not have this same "continue label" semantics so
+    // we encode it in the form of a state machine.
+
+    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement.parent);
+    localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
+
+    var switchCases = switchStatement.cases;
+    if (!hasDefault) {
+      // Use null as the marker for a synthetic default clause.
+      // The synthetic default is added because otherwise there would be no
+      // good place to give a default value to the local.
+      switchCases = new List<ir.SwitchCase>.from(switchCases);
+      switchCases.add(null);
+    }
+
+    void buildSwitchCase(ir.SwitchCase switchCase) {
+      if (switchCase != null) {
+        // Generate 'target = i; break;' for switch case i.
+        int index = caseIndex[switchCase];
+        HInstruction value = graph.addConstantInt(index, closedWorld);
+        localsHandler.updateLocal(switchTarget, value);
+      } else {
+        // Generate synthetic default case 'target = null; break;'.
+        HInstruction nullValue = graph.addConstantNull(closedWorld);
+        localsHandler.updateLocal(switchTarget, nullValue);
+      }
+      jumpTargets[switchTarget].generateBreak();
+    }
+
+    _handleSwitch(switchStatement, jumpHandler, _buildExpression, switchCases,
+        _getSwitchConstants, _isDefaultCase, buildSwitchCase);
+    jumpHandler.close();
+
+    HInstruction buildCondition() => graph.addConstantBool(true, closedWorld);
+
+    void buildSwitch() {
+      HInstruction buildExpression(ir.SwitchStatement notUsed) {
+        return localsHandler.readLocal(switchTarget);
+      }
+
+      List<ConstantValue> getConstants(
+          ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
+        return <ConstantValue>[
+          backend.constantSystem.createInt(caseIndex[switchCase])
+        ];
+      }
+
+      void buildSwitchCase(ir.SwitchCase switchCase) {
+        switchCase.body.accept(this);
+        if (!isAborted()) {
+          // Ensure that we break the loop if the case falls through. (This
+          // is only possible for the last case.)
+          jumpTargets[switchTarget].generateBreak();
+        }
+      }
+
+      // Pass a [NullJumpHandler] because the target for the contained break
+      // is not the generated switch statement but instead the loop generated
+      // in the call to [handleLoop] below.
+      _handleSwitch(
+          switchStatement, // nor is buildExpression.
+          new NullJumpHandler(compiler.reporter),
+          buildExpression,
+          switchStatement.cases,
+          getConstants,
+          (_) => false, // No case is default.
+          buildSwitchCase);
+    }
+
+    void buildLoop() {
+      loopHandler.handleLoop(
+          switchStatement, () {}, buildCondition, () {}, buildSwitch);
+    }
+
+    if (hasDefault) {
+      buildLoop();
+    } else {
+      // If the switch statement has no default case, surround the loop with
+      // a test of the target. So:
+      // `if (target) while (true) ...` If there's no default case, target is
+      // null, so we don't drop into the while loop.
+      void buildCondition() {
+        js.Template code = js.js.parseForeignJS('#');
+        push(new HForeignCode(
+            code, commonMasks.boolType, [localsHandler.readLocal(switchTarget)],
+            nativeBehavior: native.NativeBehavior.PURE));
+      }
+
+      handleIf(
+          node: switchStatement,
+          visitCondition: buildCondition,
+          visitThen: buildLoop,
+          visitElse: () => {});
+    }
   }
 
   /// Creates a switch statement.
   ///
   /// [jumpHandler] is the [JumpHandler] for the created switch statement.
   /// [buildSwitchCase] creates the statements for the switch case.
-  void handleSwitch(
+  void _handleSwitch(
       ir.SwitchStatement switchStatement,
       JumpHandler jumpHandler,
+      HInstruction buildExpression(ir.SwitchStatement statement),
       List<ir.SwitchCase> switchCases,
+      List<ConstantValue> getConstants(
+          ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase),
       bool isDefaultCase(ir.SwitchCase switchCase),
-      void buildSwitchCase(ir.SwitchCase switchCase),
-      Map<ir.Expression, ConstantValue> constantsLookup) {
+      void buildSwitchCase(ir.SwitchCase switchCase)) {
     HBasicBlock expressionStart = openNewBlock();
-    switchStatement.expression.accept(this);
-    HInstruction expression = pop();
-
-    List<ConstantValue> getConstants(ir.SwitchCase switchCase) {
-      List<ConstantValue> constantList = <ConstantValue>[];
-      if (switchCase != null) {
-        for (var expression in switchCase.expressions) {
-          constantList.add(constantsLookup[expression]);
-        }
-      }
-      return constantList;
-    }
+    HInstruction expression = buildExpression(switchStatement);
 
     if (switchCases.isEmpty) {
       return;
@@ -1320,7 +1467,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in switchCases) {
       HBasicBlock block = graph.addNewBlock();
-      for (ConstantValue constant in getConstants(switchCase)) {
+      for (ConstantValue constant
+          in getConstants(switchStatement, switchCase)) {
         HConstant hConstant = graph.addConstant(constant, closedWorld);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);

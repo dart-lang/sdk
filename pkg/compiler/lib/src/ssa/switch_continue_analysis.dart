@@ -4,7 +4,6 @@ import 'package:kernel/ast.dart' as ir;
 /// continue statements in the body of any switch cases (having continue
 /// statements results in a more complex generated code).
 class SwitchContinueAnalysis extends ir.Visitor<bool> {
-
   SwitchContinueAnalysis._();
 
   static bool containsContinue(ir.Statement switchCaseBody) {
@@ -86,8 +85,7 @@ class SwitchContinueAnalysis extends ir.Visitor<bool> {
   }
 
   bool visitTryFinally(ir.TryFinally tryFinally) {
-    return tryFinally.body.accept(this) &&
-        tryFinally.finalizer.accept(this);
+    return tryFinally.body.accept(this) && tryFinally.finalizer.accept(this);
   }
 
   bool visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
@@ -99,10 +97,14 @@ class SwitchContinueAnalysis extends ir.Visitor<bool> {
   }
 
   bool defaultStatement(ir.Statement node) {
-    if (node is ir.ExpressionStatement || node is ir.EmptyStatement ||
-        node is ir.InvalidStatement || node is ir.BreakStatement ||
-        node is ir.ReturnStatement || node is ir.AssertStatement ||
-        node is ir.YieldStatement || node is ir.VariableDeclaration) {
+    if (node is ir.ExpressionStatement ||
+        node is ir.EmptyStatement ||
+        node is ir.InvalidStatement ||
+        node is ir.BreakStatement ||
+        node is ir.ReturnStatement ||
+        node is ir.AssertStatement ||
+        node is ir.YieldStatement ||
+        node is ir.VariableDeclaration) {
       return false;
     }
     throw 'Statement type ${node.runtimeType} not handled in '

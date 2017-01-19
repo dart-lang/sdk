@@ -27,6 +27,7 @@ import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'graph_builder.dart';
 import 'jump_handler.dart' show SwitchCaseJumpHandler;
 import 'locals_handler.dart';
 import 'types.dart';
@@ -375,13 +376,14 @@ class KernelAstAdapter {
 
   LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
 
-  KernelJumpTarget getJumpTarget(ir.TreeNode node) =>
+  KernelJumpTarget getJumpTarget(ir.TreeNode node,
+          {bool isContinueTarget: false}) =>
       _jumpTargets.putIfAbsent(node, () {
         if (node is ir.LabeledStatement &&
             _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
           return _jumpTargets[(node as ir.LabeledStatement).body];
         }
-        return new KernelJumpTarget(node);
+        return new KernelJumpTarget(node, makeContinueLabel: isContinueTarget);
       });
 
   LabelDefinition getTargetLabel(ir.Node node) =>
@@ -419,6 +421,7 @@ class KernelAstAdapter {
   TypeMask get streamIteratorConstructorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.streamIteratorConstructor, _globalInferenceResults);
+
   ir.Procedure get fallThroughError =>
       kernel.functions[_backend.helpers.fallThroughError];
 
@@ -1003,7 +1006,7 @@ class KernelJumpTarget extends JumpTarget {
   @override
   bool isContinueTarget = false;
 
-  KernelJumpTarget(this.targetStatement) {
+  KernelJumpTarget(this.targetStatement, {bool makeContinueLabel = false}) {
     labels = <LabelDefinition>[];
     originalStatement = targetStatement;
     if (targetStatement is ir.LabeledStatement) {
@@ -1011,6 +1014,10 @@ class KernelJumpTarget extends JumpTarget {
       labels.add(
           new LabelDefinitionX(null, 'L${index++}', this)..setBreakTarget());
       isBreakTarget = true;
+    } else if (makeContinueLabel) {
+      labels.add(
+          new LabelDefinitionX(null, 'L${index++}', this)..setContinueTarget());
+      isContinueTarget = true;
     }
   }
 
@@ -1034,13 +1041,42 @@ class KernelJumpTarget extends JumpTarget {
   List<LabelDefinition> labels;
 
   @override
-  String get name => null;
+  String get name => 'target';
 
+  // TODO(efortuna): In the original version, this nesting level is specified at
+  // jump target construction time, by the resolver. Because these are
+  // instantiated later, we don't have that information. When we move fully over
+  // to the kernel model, we can pass the nesting level in KernelJumpTarget's
+  // constructor.
   @override
-  int get nestingLevel => 1;
+  int get nestingLevel => 0;
 
   @override
   ast.Node get statement => null;
 
   String toString() => 'Target:$targetStatement';
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
+  KernelSwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target,
+      ir.SwitchStatement switchStatement, KernelAstAdapter astAdapter)
+      : super(builder, target) {
+    // The switch case indices must match those computed in
+    // [KernelSsaBuilder.buildSwitchCaseConstants].
+    // Switch indices are 1-based so we can bypass the synthetic loop when no
+    // cases match simply by branching on the index (which defaults to null).
+    // TODO
+    int switchIndex = 1;
+    for (ir.SwitchCase switchCase in switchStatement.cases) {
+      JumpTarget continueTarget =
+          astAdapter.getJumpTarget(switchCase, isContinueTarget: true);
+      assert(continueTarget is KernelJumpTarget);
+      targetIndexMap[continueTarget] = switchIndex;
+      assert(builder.jumpTargets[continueTarget] == null);
+      builder.jumpTargets[continueTarget] = this;
+      switchIndex++;
+    }
+  }
 }

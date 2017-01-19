@@ -150,36 +150,13 @@ class TargetJumpHandler implements JumpHandler {
 
 /// Special [JumpHandler] implementation used to handle continue statements
 /// targeting switch cases.
-class SwitchCaseJumpHandler extends TargetJumpHandler {
+abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// Map from switch case targets to indices used to encode the flow of the
   /// switch case loop.
   final Map<JumpTarget, int> targetIndexMap = new Map<JumpTarget, int>();
 
-  SwitchCaseJumpHandler(
-      GraphBuilder builder, JumpTarget target, ast.SwitchStatement node)
-      : super(builder, target) {
-    // The switch case indices must match those computed in
-    // [SsaFromAstMixin.buildSwitchCaseConstants].
-    // Switch indices are 1-based so we can bypass the synthetic loop when no
-    // cases match simply by branching on the index (which defaults to null).
-    int switchIndex = 1;
-    for (ast.SwitchCase switchCase in node.cases) {
-      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
-        ast.Node label = labelOrCase.asLabel();
-        if (label != null) {
-          LabelDefinition labelElement =
-              builder.elements.getLabelDefinition(label);
-          if (labelElement != null && labelElement.isContinueTarget) {
-            JumpTarget continueTarget = labelElement.target;
-            targetIndexMap[continueTarget] = switchIndex;
-            assert(builder.jumpTargets[continueTarget] == null);
-            builder.jumpTargets[continueTarget] = this;
-          }
-        }
-      }
-      switchIndex++;
-    }
-  }
+  SwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target)
+      : super(builder, target);
 
   void generateBreak([LabelDefinition label]) {
     if (label == null) {
@@ -230,5 +207,35 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
       builder.jumpTargets.remove(target);
     }
     super.close();
+  }
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class AstSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
+  AstSwitchCaseJumpHandler(
+      GraphBuilder builder, JumpTarget target, ast.SwitchStatement node)
+      : super(builder, target) {
+    // The switch case indices must match those computed in
+    // [SsaFromAstMixin.buildSwitchCaseConstants].
+    // Switch indices are 1-based so we can bypass the synthetic loop when no
+    // cases match simply by branching on the index (which defaults to null).
+    int switchIndex = 1;
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        ast.Node label = labelOrCase.asLabel();
+        if (label != null) {
+          LabelDefinition labelElement =
+              builder.elements.getLabelDefinition(label);
+          if (labelElement != null && labelElement.isContinueTarget) {
+            JumpTarget continueTarget = labelElement.target;
+            targetIndexMap[continueTarget] = switchIndex;
+            assert(builder.jumpTargets[continueTarget] == null);
+            builder.jumpTargets[continueTarget] = this;
+          }
+        }
+      }
+      switchIndex++;
+    }
   }
 }
