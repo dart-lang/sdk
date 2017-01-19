@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-Language/Functions/Formal_Parameters/syntax_t05: RuntimeError # Issue 26644
 
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
@@ -89,147 +88,9 @@ Language/Expressions/Object_Identity/constant_objects_t01: RuntimeError # Please
 Language/Expressions/Object_Identity/double_t02: RuntimeError # Please triage this failure
 Language/Expressions/Object_Identity/double_t03: RuntimeError # Please triage this failure
 Language/Expressions/Object_Identity/object_t02: RuntimeError # Issue 1533 (int/double related)
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: CompileTimeError # Issue 24607
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: CompileTimeError # Issue 24607
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/named_parameters_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/positional_parameters_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/closurization_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/closurization_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/closurization_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/deferred_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/malbounded_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/malbounded_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/malformed_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/malformed_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/no_such_method_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/no_such_method_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/not_class_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/not_class_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/not_class_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/static_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/static_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/static_type_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/expression_evaluation_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/expression_evaluation_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/expression_evaluation_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t08: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/getter_lookup_t09: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/method_lookup_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/no_accessible_member_t08: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t08: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/setter_lookup_t09: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Closurization/static_type_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/expression_evaluation_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Closurization/identical_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Closurization/identical_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Closurization/named_parameters_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Closurization/positional_parameters_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/closurization_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/closurization_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/malbounded_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/malbounded_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/malformed_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/malformed_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/no_such_method_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/no_such_method_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/not_class_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/not_class_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/not_class_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/static_type_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/static_type_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/static_type_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/static_type_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t08: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_named_params_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_named_params_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_positional_params_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_positional_params_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_list_access_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_list_assignment_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t08: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t09: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t10: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t11: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t12: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t13: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t14: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t15: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t16: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_t17: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/operator_closurization_unary_bitwise_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t01: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t03: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t04: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t05: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t06: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t07: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/setter_closurization_t08: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError # Please triage this failure
 Language/Expressions/Shift/syntax_t01/14: MissingRuntimeError # Please triage this failure
+Language/Expressions/Strings/adjacent_strings_t01: RuntimeError # Please triage this failure
+Language/Expressions/Strings/escape_newline_t01: RuntimeError # Please triage this failure
 Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
 Language/Generics/syntax_t17: fail # Issue 21203
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
@@ -264,6 +125,7 @@ Language/Mixins/deferred_t01: MissingCompileTimeError # Please triage this failu
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
 Language/Reference/Lexical_Rules/Reserved_Words/whitespace_t04: MissingCompileTimeError # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
+Language/Reference/Lexical_Rules/unicode_t10: RuntimeError # Please triage this failure
 Language/Reference/Lexical_Rules/whitespace_t06: MissingCompileTimeError # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: RuntimeError # Please triage this failure
 Language/Statements/Assert/syntax_t04: MissingCompileTimeError # This is legal Dart
@@ -284,6 +146,8 @@ Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
 Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
+LayoutTests/fast/html/draggable_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/innerHTML/005_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
 LibTest/collection/LinkedHashSet/LinkedHashSet.from_A03_t01: RuntimeError # Please triage this failure.
 LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
@@ -321,6 +185,7 @@ LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # Dart issue 15974
@@ -472,21 +337,31 @@ Language/Expressions/Function_Expressions/static_type_form_3_asyncs_t03: Runtime
 Language/Expressions/Function_Expressions/static_type_form_3_syncs_t03: RuntimeError # Please triage this failure
 Language/Expressions/If_null_Expressions/static_type_t01: RuntimeError # Please triage this failure
 Language/Expressions/If_null_Expressions/static_type_t02: RuntimeError # Please triage this failure
-Language/Expressions/Property_Extraction/General_Super_Property_Extraction/getter_lookup_t02: CompileTimeError # Please triage this failure
-Language/Expressions/Property_Extraction/Super_Closurization/setter_closurization_t09: Timeout, Skip  # Please triage this failure
 Language/Functions/async_return_type_t01: RuntimeError # Please triage this failure
 Language/Functions/generator_return_type_t01: RuntimeError # Please triage this failure
 Language/Functions/generator_return_type_t02: RuntimeError # Please triage this failure
+Language/Statements/Assert/execution_t03: RuntimeError # Please triage this failure
+Language/Statements/Assert/execution_t11: RuntimeError # Please triage this failure
 Language/Statements/Switch/execution_t01: Fail # Missing type check in switch expression
 Language/Statements/Switch/type_t01: RuntimeError # Issue 16089
 Language/Statements/Return/runtime_type_t04: RuntimeError # Issue 26584
 Language/Types/Static_Types/malformed_type_t01: RuntimeError # Issue 21089
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError # Issue 21088
 Language/Types/Parameterized_Types/malbounded_t06: RuntimeError # Issue 21088
+LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/change-form-element-document-crash_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/inline/empty-inline-before-collapsed-space_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/url/trivial-segments_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/url/trivial_t01: RuntimeError # Please triage this failure
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Timesout. Please triage this failure.
-LibTest/core/Map/Map_class_A01_t04: Slow, Pass
-LibTest/core/Uri/Uri_A06_t03: Slow, Pass
+LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
+LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
+
 
 [ $compiler == dart2js && $checked && $runtime != d8]
 LayoutTests/fast/inline/empty-inline-before-collapsed-space_t01: RuntimeError # Please triage this failure
@@ -1154,6 +1029,7 @@ LayoutTests/fast/dom/Document/CaretRangeFromPoint/replace-element_t01: RuntimeEr
 LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/attribute-uppercase_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/getClientRects_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Element/scrollWidth_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/remove-href-from-focused-anchor_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-hash_t01: RuntimeError # Please triage this failure
@@ -1240,6 +1116,8 @@ LayoutTests/fast/dom/custom/upgrade-candidate-remove-crash_t01: RuntimeError # P
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/dom-parse-serialize-display_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/dom-parse-serialize_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/focus-contenteditable_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/fragment-activation-focuses-target_t01: Pass, RuntimeError # Please triage this failure
@@ -1328,6 +1206,7 @@ LayoutTests/fast/filesystem/async-operations_t01: Pass, RuntimeError # Please tr
 LayoutTests/fast/filesystem/directory-entry-to-uri_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/file-entry-to-uri_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/filesystem-reference_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/filesystem/file-writer-abort-continue_t01: RuntimeError
 LayoutTests/fast/forms/ValidityState-tooLong-input_t01: RuntimeError # https://github.com/dart-lang/co19/issues/48
 LayoutTests/fast/forms/ValidityState-tooLong-textarea_t01: RuntimeError # https://github.com/dart-lang/co19/issues/48
 LayoutTests/fast/forms/autofocus-focus-only-once_t01: Skip # Times out. Please triage this failure
@@ -1872,6 +1751,7 @@ WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
@@ -1898,7 +1778,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: Pass, Slow # Issue 25940
 Language/Expressions/Bitwise_Expressions/method_invocation_super_t01: Pass, Slow # Issue 25940
 
-[ $compiler == dart2js && $runtime == chrome && $system != macos ]
+[ $compiler == dart2js && $runtime == chrome && $system != macos && $system != windows]
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
@@ -2793,6 +2673,7 @@ LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.verySmall_t01: RuntimeError #
 LayoutTests/fast/canvas/DrawImageSinglePixelStretch_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/alpha_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-blending-clipping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blend-solid_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-composite-canvas_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-composite-image_t01: Pass, RuntimeError # Please triage this failure
@@ -2817,6 +2698,7 @@ LayoutTests/fast/canvas/canvas-large-fills_t01: RuntimeError # Please triage thi
 LayoutTests/fast/canvas/canvas-lineDash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-modify-emptyPath_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-shadowBlur_t01: RuntimeError # Please triage this failure
@@ -2834,12 +2716,12 @@ LayoutTests/fast/canvas/drawImage-with-valid-image_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Issue 27872
+LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: Pass, RuntimeError # Issue 26898
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Pass, RuntimeError # Issue 26898
 LayoutTests/fast/canvas/webgl/context-lost_t01: Pass, RuntimeError # Issue 26898
-LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # Issue 27872
+LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Skip # Times out.
@@ -2847,6 +2729,7 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: 
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
@@ -3226,12 +3109,12 @@ LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please tria
 LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Issue 27873
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-rule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-shortHands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-shorthand-common-value_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/constructor-calls-created-synchronously_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/created-callback_t01: RuntimeError # Please triage this failure
@@ -4128,6 +4011,8 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ti
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $checked == false]
+LayoutTests/fast/text/find-case-folding_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == macos]
