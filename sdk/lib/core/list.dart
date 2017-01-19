@@ -452,7 +452,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * The [iterable] must have enough objects to fill the range from `start`
    * to `end` after skipping [skipCount] objects.
    *
-   * If `iterable` is this list, the operation will copies the elements
+   * If `iterable` is this list, the operation copies the elements
    * originally in the range from `skipCount` to `skipCount + (end - start)` to
    * the range `start` to `end`, even if the two ranges overlap.
    *
