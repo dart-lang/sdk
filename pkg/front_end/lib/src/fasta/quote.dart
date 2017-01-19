@@ -218,10 +218,10 @@ String unescapeCodeUnits(List<int> codeUnits) {
           }
         } else {
           // Expect exactly 4 hex digits.
-          if (codeUnits.length < i + 4) return error(i, incompleteSequence);
+          if (codeUnits.length <= i + 4) return error(i, incompleteSequence);
           code = 0;
           for (int j = 0; j < 4; j++) {
-            int digit = codeUnits[i];
+            int digit = codeUnits[++i];
             if (!isHexDigit(digit)) return error(i, invalidCharacter);
             code = (code << 4) + hexDigitValue(digit);
           }
