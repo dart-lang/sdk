@@ -2738,6 +2738,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildGenerativeConstructor(ConstructorDeclaration node) {
+    if (currentMember is! ast.Constructor) {
+      buildBrokenMember();
+      return;
+    }
     addAnnotations(node.metadata);
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
@@ -2790,6 +2794,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildFactoryConstructor(ConstructorDeclaration node) {
+    if (currentMember is! ast.Procedure) {
+      buildBrokenMember();
+      return;
+    }
     addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
     ClassElement classElement = resolutionMap

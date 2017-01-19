@@ -100,9 +100,6 @@ implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
 syntax_test/none: fail # Issue 11575
 
-# test issue 11576
-bad_constructor_test/none: fail # Issue 11576
-
 # test issue 11577, has return type for []=
 cascade_test/none: fail # Issue 11577
 
@@ -210,7 +207,6 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 # The following tests are currently assumed to be failing because the test is wrong.
 #
 application_negative_test: CompileTimeError # Test Issue 14528
-bad_constructor_test/05: CompileTimeError # Test Issue 5337
 bad_initializer1_negative_test: CompileTimeError # Test Issue 14529
 bad_named_constructor_negative_test: CompileTimeError # Test Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Test Issue 18695

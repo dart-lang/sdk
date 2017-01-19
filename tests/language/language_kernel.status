@@ -11,7 +11,6 @@ large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
-bad_constructor_test/05: DartkCompileTimeError
 conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: DartkCompileTimeError
 conflicting_type_variable_and_setter_test: DartkCompileTimeError

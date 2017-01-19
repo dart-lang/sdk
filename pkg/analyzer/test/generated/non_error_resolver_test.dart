@@ -1244,6 +1244,17 @@ class B extends A {
     verify([source]);
   }
 
+  test_conflictingConstructorNameAndMember_setter() async {
+    Source source = addSource(r'''
+class A {
+A.x() {}
+set x(_) {}
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_conflictingInstanceGetterAndSuperclassMember_instance() async {
     Source source = addSource(r'''
 class A {

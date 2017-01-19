@@ -2719,8 +2719,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (constructorName != null &&
         constructorElement != null &&
         !constructorName.isSynthetic) {
-      if (classElement.getField(name) != null) {
-        // fields
+      FieldElement field = classElement.getField(name);
+      if (field != null && field.getter != null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
             constructor,

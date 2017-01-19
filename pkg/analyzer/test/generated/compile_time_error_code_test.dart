@@ -713,6 +713,18 @@ class A {
     verify([source]);
   }
 
+  test_conflictingConstructorNameAndMember_getter() async {
+    Source source = addSource(r'''
+class A {
+  int get x => 42;
+  A.x() {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+    verify([source]);
+  }
+
   test_conflictingConstructorNameAndMember_method() async {
     Source source = addSource(r'''
 class A {
