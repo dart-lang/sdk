@@ -192,6 +192,7 @@ f_bounded_quantification5_test: Fail, OK # Issue 12605
 cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
 f_bounded_quantification4_test: Fail, OK # Issue 12605
+generic_closure_test: Fail # Issue 12605
 mixin_generic_test: Fail # Issue 12605
 mixin_mixin2_test: Fail # Issue 12605
 mixin_mixin3_test: Fail # Issue 12605
@@ -226,7 +227,6 @@ mixin_mixin3_test: RuntimeError # Issue 13109.
 modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
-generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 

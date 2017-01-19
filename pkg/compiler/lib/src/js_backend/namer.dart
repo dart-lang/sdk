@@ -135,18 +135,106 @@ part 'namer_names.dart';
  */
 class Namer {
   static const List<String> javaScriptKeywords = const <String>[
-    // These are current keywords.
-    "break", "delete", "function", "return", "typeof", "case", "do", "if",
-    "switch", "var", "catch", "else", "in", "this", "void", "continue",
-    "false", "instanceof", "throw", "while", "debugger", "finally", "new",
-    "true", "with", "default", "for", "null", "try",
+    // ES5 7.6.1.1 Keywords.
+    'break',
+    'do',
+    'instanceof',
+    'typeof',
+    'case',
+    'else',
+    'new',
+    'var',
+    'catch',
+    'finally',
+    'return',
+    'void',
+    'continue',
+    'for',
+    'switch',
+    'while',
+    'debugger',
+    'function',
+    'this',
+    'with',
+    'default',
+    'if',
+    'throw',
+    'delete',
+    'in',
+    'try',
 
-    // These are future keywords.
-    "abstract", "double", "goto", "native", "static", "boolean", "enum",
-    "implements", "package", "super", "byte", "export", "import", "private",
-    "synchronized", "char", "extends", "int", "protected", "throws",
-    "class", "final", "interface", "public", "transient", "const", "float",
-    "long", "short", "volatile"
+    // ES5 7.6.1.2 Future Reserved Words.
+    'class',
+    'enum',
+    'extends',
+    'super',
+    'const',
+    'export',
+    'import',
+
+    // ES5 7.6.1.2 Words with semantic restrictions.
+    'implements',
+    'let',
+    'private',
+    'public',
+    'yield',
+    'interface',
+    'package',
+    'protected',
+    'static',
+
+    // ES6 11.6.2.1 Keywords (including repeats of ES5 to ease comparison with
+    // documents).
+    'break',
+    'do',
+    'in',
+    'typeof',
+    'case',
+    'else',
+    'instanceof',
+    'var',
+    'catch',
+    'export',
+    'new',
+    'void',
+    'class',
+    'extends',
+    'return',
+    'while',
+    'const',
+    'finally',
+    'super',
+    'with',
+    'continue',
+    'for',
+    'switch',
+    'yield',
+    'debugger',
+    'function',
+    'this',
+    'default',
+    'if',
+    'throw',
+    'delete',
+    'import',
+    'try',
+
+    // ES6 11.6.2.1 Words with semantic restrictions.
+    'yield', 'let', 'static',
+
+    // ES6 11.6.2.2 Future Reserved Words.
+    'enum',
+    'await',
+
+    // ES6 11.6.2.2 / ES6 12.1.1 Words with semantic restrictions.
+    'implements',
+    'package',
+    'protected',
+    'interface',
+    'private',
+    'public',
+
+    // Other words to avoid due to non-standard keyword-like behavior.
   ];
 
   static const List<String> reservedPropertySymbols = const <String>[
@@ -237,12 +325,6 @@ class Namer {
     // https://developer.mozilla.org/en/New_in_JavaScript_1.8.1
     "getPrototypeOf", "let", "yield",
 
-    // "future reserved words"
-    "abstract", "int", "short", "boolean", "interface", "static", "byte",
-    "long", "char", "final", "native", "synchronized", "float", "package",
-    "throws", "goto", "private", "transient", "implements", "protected",
-    "volatile", "double", "public",
-
     // IE methods
     // (http://msdn.microsoft.com/en-us/library/ms535873(VS.85).aspx#)
     "attachEvent", "clientInformation", "clipboardData", "createPopup",
@@ -278,7 +360,7 @@ class Namer {
     "JavaArray", "JavaMember",
 
     // ES6 collections.
-    "Map",
+    "Map", "Set",
   ];
 
   static const List<String> reservedGlobalObjectNames = const <String>[
