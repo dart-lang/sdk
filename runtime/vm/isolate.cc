@@ -1681,9 +1681,11 @@ void Isolate::LowLevelShutdown() {
   if (FLAG_dump_megamorphic_stats) {
     MegamorphicCacheTable::PrintSizes(this);
   }
+  if (FLAG_dump_symbol_stats) {
+    Symbols::DumpStats(this);
+  }
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
-    Symbols::DumpStats();
     OS::Print(
         "[-] Stopping isolate:\n"
         "\tisolate:    %s\n",

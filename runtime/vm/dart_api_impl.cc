@@ -1577,6 +1577,8 @@ Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
   I->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG)
 
+  Symbols::Compact(I);
+
   FullSnapshotWriter writer(Snapshot::kCore, vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer, ApiReallocate,
                             NULL /* instructions_writer */);
@@ -6766,6 +6768,8 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_buffer,
     return state;
   }
   I->StopBackgroundCompiler();
+
+  Symbols::Compact(I);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppJITSnapshot"));
