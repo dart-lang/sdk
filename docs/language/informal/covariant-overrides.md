@@ -183,9 +183,7 @@ The return type of *f* the is the static return type of *D*. For each
 parameter `p` declared in *D* which is not covariant, the part in the
 dynamic type of *f* which corresponds to `p` is the static type of `p` in
 *D*. For each covariant parameter `q`, the part in the dynamic type of *f*
-which corresponds to `q` is the least upper bound of all the types declared
-for parameters corresponding to `q` in directly and indirectly overridden
-declarations of `m`.
+which corresponds to `q` is `Object`.
 
 # Background Material
 
