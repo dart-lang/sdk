@@ -134,7 +134,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ResolvedUriTranslator get resolvedUriTranslator;
 
   LibraryElement mainApp;
-  FunctionElement mainFunction;
+  MethodElement mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
   CommonElements get commonElements => _commonElements;

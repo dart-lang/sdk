@@ -33,6 +33,9 @@ abstract class TypeVariableEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  bool get isTopLevel;
+  bool get isStatic;
+  bool get isInstanceMember;
   bool get isConstructor;
   bool get isField;
   bool get isFunction;

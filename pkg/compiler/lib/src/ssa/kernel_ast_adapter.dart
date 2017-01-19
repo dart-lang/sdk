@@ -124,6 +124,9 @@ class KernelAstAdapter {
     return result;
   }
 
+  ConstructorElement getConstructor(ir.Node node) =>
+      getElement(node).declaration;
+
   MemberElement getMember(ir.Node node) => getElement(node).declaration;
 
   MethodElement getMethod(ir.Node node) => getElement(node).declaration;

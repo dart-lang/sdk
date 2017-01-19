@@ -256,16 +256,17 @@ class KernelImpactBuilder extends ir.Visitor {
   void handleNew(ir.InvocationExpression node, ir.Member target,
       {bool isConst: false}) {
     _visitArguments(node.arguments);
-    Element element = astAdapter.getElement(target).declaration;
-    ClassElement cls = astAdapter.getElement(target.enclosingClass);
+    ConstructorElement constructor = astAdapter.getConstructor(target);
+    ClassElement cls = astAdapter.getClass(target.enclosingClass);
     List<ResolutionDartType> typeArguments =
         astAdapter.getDartTypes(node.arguments.types);
     ResolutionInterfaceType type =
         new ResolutionInterfaceType(cls, typeArguments);
     CallStructure callStructure = astAdapter.getCallStructure(node.arguments);
     impactBuilder.registerStaticUse(isConst
-        ? new StaticUse.constConstructorInvoke(element, callStructure, type)
-        : new StaticUse.typedConstructorInvoke(element, callStructure, type));
+        ? new StaticUse.constConstructorInvoke(constructor, callStructure, type)
+        : new StaticUse.typedConstructorInvoke(
+            constructor, callStructure, type));
     if (typeArguments.any((ResolutionDartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
@@ -273,7 +274,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitSuperInitializer(ir.SuperInitializer node) {
-    Element target = astAdapter.getElement(node.target).declaration;
+    ConstructorElement target = astAdapter.getConstructor(node.target);
     _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, astAdapter.getCallStructure(node.arguments)));
@@ -281,7 +282,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitStaticInvocation(ir.StaticInvocation node) {
-    Element target = astAdapter.getElement(node.target).declaration;
+    MethodElement target = astAdapter.getMethod(node.target);
     if (target.isFactoryConstructor) {
       // TODO(johnniwinther): We should not mark the type as instantiated but
       // rather follow the type arguments directly.
@@ -344,26 +345,27 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitStaticGet(ir.StaticGet node) {
     ir.Member target = node.target;
-    Element element = astAdapter.getElement(target).declaration;
     if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(element));
+      MethodElement method = astAdapter.getMethod(target);
+      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(method));
     } else {
-      impactBuilder.registerStaticUse(new StaticUse.staticGet(element));
+      MemberElement member = astAdapter.getMember(target);
+      impactBuilder.registerStaticUse(new StaticUse.staticGet(member));
     }
   }
 
   @override
   void visitStaticSet(ir.StaticSet node) {
     visitNode(node.value);
-    Element element = astAdapter.getElement(node.target).declaration;
-    impactBuilder.registerStaticUse(new StaticUse.staticSet(element));
+    MemberElement member = astAdapter.getMember(node.target);
+    impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
   }
 
   void handleSuperInvocation(ir.Node target, ir.Node arguments) {
-    Element element = astAdapter.getElement(target).declaration;
+    MethodElement method = astAdapter.getMethod(target);
     _visitArguments(arguments);
     impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-        element, astAdapter.getCallStructure(arguments)));
+        method, astAdapter.getCallStructure(arguments)));
   }
 
   @override
@@ -379,11 +381,12 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   void handleSuperGet(ir.Member target) {
-    Element element = astAdapter.getElement(target).declaration;
     if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      impactBuilder.registerStaticUse(new StaticUse.superTearOff(element));
+      MethodElement method = astAdapter.getMethod(target);
+      impactBuilder.registerStaticUse(new StaticUse.superTearOff(method));
     } else {
-      impactBuilder.registerStaticUse(new StaticUse.superGet(element));
+      MemberElement member = astAdapter.getMember(target);
+      impactBuilder.registerStaticUse(new StaticUse.superGet(member));
     }
   }
 
@@ -399,11 +402,12 @@ class KernelImpactBuilder extends ir.Visitor {
 
   void handleSuperSet(ir.Node target, ir.Node value) {
     visitNode(value);
-    Element element = astAdapter.getElement(target).declaration;
     if (target is ir.Field) {
-      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(element));
+      FieldElement field = astAdapter.getField(target);
+      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(field));
     } else {
-      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(element));
+      MethodElement method = astAdapter.getMethod(target);
+      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(method));
     }
   }
 
@@ -558,7 +562,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitFieldInitializer(ir.FieldInitializer node) {
     impactBuilder.registerStaticUse(
-        new StaticUse.fieldInit(astAdapter.getElement(node.field)));
+        new StaticUse.fieldInit(astAdapter.getField(node.field)));
     visitNode(node.value);
   }
 

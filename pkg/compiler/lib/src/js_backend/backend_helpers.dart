@@ -574,7 +574,7 @@ class BackendHelpers {
     return _findHelper('getTraceFromException');
   }
 
-  Element get setRuntimeTypeInfo {
+  MethodElement get setRuntimeTypeInfo {
     return _findHelper('setRuntimeTypeInfo');
   }
 
@@ -659,7 +659,7 @@ class BackendHelpers {
   Element _cachedCoreHelper(String name) =>
       _cachedCoreHelpers[name] ??= findCoreHelper(name);
 
-  Element get createRuntimeType {
+  MethodElement get createRuntimeType {
     return _findHelper('createRuntimeType');
   }
 
@@ -671,7 +671,7 @@ class BackendHelpers {
     return _findHelper('createInvocationMirror');
   }
 
-  Element get cyclicThrowHelper {
+  MethodElement get cyclicThrowHelper {
     return _findHelper("throwCyclicInit");
   }
 

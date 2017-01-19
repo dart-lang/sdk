@@ -709,12 +709,14 @@ ResolutionImpact laxImpact(
         ConstructorElement effectiveTarget = constructor.effectiveTarget;
         ResolutionDartType effectiveTargetType =
             constructor.computeEffectiveTargetType(staticUse.type);
+        ConstructorElement effectiveTargetDeclaration =
+            effectiveTarget.declaration;
         builder.registerStaticUse(
             staticUse.kind == StaticUseKind.CONST_CONSTRUCTOR_INVOKE
                 ? new StaticUse.constConstructorInvoke(
-                    effectiveTarget.declaration, null, effectiveTargetType)
+                    effectiveTargetDeclaration, null, effectiveTargetType)
                 : new StaticUse.typedConstructorInvoke(
-                    effectiveTarget.declaration, null, effectiveTargetType));
+                    effectiveTargetDeclaration, null, effectiveTargetType));
         break;
       default:
         builder.registerStaticUse(staticUse);
