@@ -297,10 +297,6 @@ executable("gen_snapshot") {
 
   include_dirs = [ ".." ]
 
-  if (dart_use_tcmalloc) {
-    deps += [ "//third_party/tcmalloc" ]
-  }
-
   if (is_mac) {
     libs = [
       "CoreFoundation.framework",
@@ -578,6 +574,7 @@ template("dart_executable") {
 
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
+      defines += [ "DART_USE_TCMALLOC" ]
     }
 
     sources = [
