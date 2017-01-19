@@ -9794,6 +9794,10 @@ RawField* Library::GetMetadataField(const String& metaname) const {
 
 
 RawObject* Library::GetMetadata(const Object& obj) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  COMPILE_ASSERT(!FLAG_enable_mirrors);
+  return Object::empty_array().raw();
+#else
   if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
       !obj.IsLibrary() && !obj.IsTypeParameter()) {
     return Object::null();
@@ -9821,6 +9825,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     }
   }
   return metadata.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 

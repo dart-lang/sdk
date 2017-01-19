@@ -20,7 +20,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
@@ -2092,6 +2092,6 @@ DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
-#endif  // !PRODUCT
+#endif  // !PRODUCT && !DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

@@ -27,9 +27,9 @@ static struct NativeEntries {
   Dart_NativeFunction function_;
   int argument_count_;
 } BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
                             MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
-#endif  // !PRODUCT
+#endif  // !PRODUCT && !DART_PRECOMPILED_RUNTIME
 };
 
 

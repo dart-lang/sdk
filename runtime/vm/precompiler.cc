@@ -106,30 +106,38 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
           StoreInstanceFieldInstr* store = it.Current()->AsStoreInstanceField();
           if (store != NULL) {
             if (!store->field().IsNull() && store->field().is_final()) {
+#ifndef PRODUCT
               if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print("Found store to %s <- %s\n",
                           store->field().ToCString(),
                           store->value()->Type()->ToCString());
               }
+#endif  // !PRODUCT
               FieldTypePair* entry = field_map_->Lookup(&store->field());
               if (entry == NULL) {
                 field_map_->Insert(FieldTypePair(
                     &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
                     store->value()->Type()->ToCid()));
+#ifndef PRODUCT
                 if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                   THR_Print(" initial type = %s\n",
                             store->value()->Type()->ToCString());
                 }
+#endif  // !PRODUCT
                 continue;
               }
               CompileType type = CompileType::FromCid(entry->cid_);
+#ifndef PRODUCT
               if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print(" old type = %s\n", type.ToCString());
               }
+#endif  // !PRODUCT
               type.Union(store->value()->Type());
+#ifndef PRODUCT
               if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print(" new type = %s\n", type.ToCString());
               }
+#endif  // !PRODUCT
               entry->cid_ = type.ToCid();
             }
           }
@@ -1226,10 +1234,12 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();
     if (result_cid != kDynamicCid) {
+#ifndef PRODUCT
       if (FLAG_trace_precompiler && FLAG_support_il_printer) {
         THR_Print("Setting guarded_cid of %s to %s\n", field.ToCString(),
                   pipeline.result_type().ToCString());
       }
+#endif  // !PRODUCT
       field.set_guarded_cid(result_cid);
     }
   }
