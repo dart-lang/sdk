@@ -5,26 +5,16 @@
 # This file contains a set of utilities functions used by other Python-based
 # scripts.
 
-from bots import bot_utils
 import commands
 import datetime
-import glob
 import json
 import os
 import platform
 import re
 import shutil
 import subprocess
-import sys
-import tarfile
 import tempfile
-import uuid
-
-try:
-  # Not available on Windows.
-  import resource
-except:
-  pass
+import sys
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
@@ -667,122 +657,6 @@ class ChangedWorkingDirectory(object):
     print "Enter directory = ", self._old_cwd
     os.chdir(self._old_cwd)
 
-# This class finds and archives all core.* files from the current working
-# directory and all binaries copied by UnexpectedCrashDumpArchiver into
-# the current working directory (see tools/testing/dart/test_progress.dart).
-class CoreDumpArchiver(object):
-  def __init__(self, args):
-    self._enabled = '--copy-coredumps' in args and GuessOS() == 'linux'
-    self._search_dir = os.getcwd()
-    self._bucket = 'dart-temp-crash-archive'
-    self._old_limits = None
-
-  def __enter__(self):
-    if not self._enabled:
-      return
-
-    # Cleanup any stale coredumps
-    coredumps = self._find_coredumps()
-    if coredumps:
-      print "WARNING: Found stale coredumps, removing"
-      MarkCurrentStepWarning()
-      self._remove_coredumps(coredumps)
-
-    self._old_limits = resource.getrlimit(resource.RLIMIT_CORE)
-
-    # Bump core limits to unlimited if core_pattern is correctly configured.
-    if self._check_core_dump_pattern(fatal=False):
-      resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
-
-  def __exit__(self, *_):
-    if not self._enabled:
-      return
-
-    # Restore old core limit.
-    resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
-
-    # Check that kernel was correctly configured to use core.%p
-    # core_pattern.
-    self._check_core_dump_pattern(fatal=True)
-
-    coredumps = self._find_coredumps()
-    if coredumps:
-      # If we get a ton of crashes, only archive 10 dumps.
-      archive_coredumps = coredumps[:10]
-      print 'Archiving coredumps: %s' % ', '.join(archive_coredumps)
-      sys.stdout.flush()
-      self._archive(archive_coredumps)
-      self._remove_coredumps(coredumps)
-    coredumps = self._find_coredumps()
-    assert not coredumps
-
-  def _find_coredumps(self):
-    return glob.glob(os.path.join(self._search_dir, 'core.*'))
-
-  def _remove_coredumps(self, coredumps):
-    for name in coredumps:
-      os.unlink(name)
-
-  def _archive(self, coredumps):
-    gsutil = bot_utils.GSUtil()
-    storage_path = '%s/%s/' % (self._bucket, uuid.uuid4())
-    gs_prefix = 'gs://%s' % storage_path
-    http_prefix = 'https://storage.cloud.google.com/%s' % storage_path
-
-    for core in coredumps:
-      # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
-      # binaries are copied next to cores and named 'core.<binary_name>'.
-      suffix = os.path.basename(core).split('.')[1]
-      try:
-        # Check if suffix is an integer - in this case it's an actual core.
-        clean_name = 'core.%d' % int(suffix)
-      except:
-        # This is not a coredump but a crashed binary.
-        clean_name = suffix
-
-      tarname = '%s.tar.gz' % clean_name
-
-      # Create a .tar.gz archive out of a crash folder that contains
-      # both binary and the core dump.
-      tar = tarfile.open(tarname, mode='w:gz')
-      tar.add(core, arcname=clean_name)
-      tar.close()
-
-      # Remove / from absolute path to not have // in gs path.
-      gs_url = '%s%s' % (gs_prefix, tarname)
-      http_url = '%s%s' % (http_prefix, tarname)
-
-      try:
-        gsutil.upload(tarname, gs_url)
-        print '@@@STEP_LOG_LINE@coredumps@%s (%s)@@@' % (gs_url, http_url)
-      except Exception as error:
-        message = "Failed to upload coredump %s, error: %s" % (tarname, error)
-        print '@@@STEP_LOG_LINE@coredumps@%s@@@' % message
-
-      os.unlink(tarname)
-
-    print '@@@STEP_LOG_END@coredumps@@@'
-    MarkCurrentStepWarning()
-
-  def _check_core_dump_pattern(self, fatal=False):
-    core_pattern_file = '/proc/sys/kernel/core_pattern'
-    core_pattern = open(core_pattern_file).read()
-
-    expected_core_pattern = 'core.%p'
-    if core_pattern.strip() != expected_core_pattern:
-      if fatal:
-        message = ("Invalid core_pattern configuration. "
-            "The configuration of core dump handling is *not* correct for "
-            "a buildbot. The content of {0} must be '{1}' instead of '{2}'."
-            .format(core_pattern_file, expected_core_pattern, core_pattern))
-        raise Exception(message)
-      else:
-        return False
-    return True
-
-def MarkCurrentStepWarning():
-  print "@@@STEP_WARNINGS@@@"
-  sys.stdout.flush()
 
 if __name__ == "__main__":
   import sys
