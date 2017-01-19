@@ -13,9 +13,6 @@ import 'dart:io' show
 import 'package:package_config/packages_file.dart' as packages_file show
     parse;
 
-import 'errors.dart' show
-    internalError;
-
 class TranslateUri {
   final Map<String, Uri> packages;
 
@@ -27,9 +24,9 @@ class TranslateUri {
     return null;
   }
 
-  Uri translateDartUri(Uri uri) {
-    throw internalError("dart: URIs not implemented yet.");
-  }
+  // TODO(ahe): Implement loading platform file on demand. This method must
+  // become async for that to happen.
+  Uri translateDartUri(Uri uri) => null;
 
   Uri translatePackageUri(Uri uri) {
     int index = uri.path.indexOf("/");
