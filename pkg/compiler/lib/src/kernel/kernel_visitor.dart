@@ -848,17 +848,17 @@ class KernelVisitor extends Object
 
   @override
   ir.BoolLiteral visitLiteralBool(LiteralBool node) {
-    return new ir.BoolLiteral(node.value);
+    return associateNode(new ir.BoolLiteral(node.value), node);
   }
 
   @override
   ir.DoubleLiteral visitLiteralDouble(LiteralDouble node) {
-    return new ir.DoubleLiteral(node.value);
+    return associateNode(new ir.DoubleLiteral(node.value), node);
   }
 
   @override
   ir.IntLiteral visitLiteralInt(LiteralInt node) {
-    return new ir.IntLiteral(node.value);
+    return associateNode(new ir.IntLiteral(node.value), node);
   }
 
   @override
@@ -909,7 +909,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitLiteralString(LiteralString node) {
     if (node.dartString == null) return new ir.InvalidExpression();
-    return new ir.StringLiteral(node.dartString.slowToString());
+    return associateNode(new ir.StringLiteral(node.dartString.slowToString()),
+        node);
   }
 
   @override
@@ -1039,8 +1040,10 @@ class KernelVisitor extends Object
       }
       if (statements.isEmpty || fallsThrough(statements.last)) {
         if (isLastCase) {
-          statements.add(new ir.BreakStatement(
-              getBreakTarget(elements.getTargetDefinition(node))));
+          if (!caseNode.isDefaultCase) {
+            statements.add(new ir.BreakStatement(
+                getBreakTarget(elements.getTargetDefinition(node))));
+          }
         } else {
           statements.add(new ir.ExpressionStatement(new ir.Throw(
               new ir.ConstructorInvocation(
@@ -1243,7 +1246,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitConstConstructorInvoke(
       NewExpression node, ConstructedConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   @override

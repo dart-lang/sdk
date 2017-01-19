@@ -668,8 +668,6 @@ class SsaBuilder extends ast.Visitor
   Local returnLocal;
   ResolutionDartType returnType;
 
-  bool inTryStatement = false;
-
   ConstantValue getConstantForNode(ast.Node node) {
     ConstantValue constantValue =
         backend.constants.getConstantValueForNode(node, elements);
@@ -1909,6 +1907,17 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           node, "SsaFromAstMixin.visitIdentifier on non-this.");
     }
+  }
+
+  void handleIf(
+      {ast.Node node,
+      void visitCondition(),
+      void visitThen(),
+      void visitElse(),
+      SourceInformation sourceInformation}) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
+    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
+        sourceInformation: sourceInformation);
   }
 
   visitIf(ast.If node) {
@@ -5054,14 +5063,6 @@ class SsaBuilder extends ast.Visitor
     dup();
   }
 
-  void handleInTryStatement() {
-    if (!inTryStatement) return;
-    HBasicBlock block = close(new HExitTry());
-    HBasicBlock newBlock = graph.addNewBlock();
-    block.addSuccessor(newBlock);
-    open(newBlock);
-  }
-
   visitRethrow(ast.Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
@@ -5986,7 +5987,7 @@ class SsaBuilder extends ast.Visitor
    * [switchCases] must be either an [Iterable] of [ast.SwitchCase] nodes or
    *   a [Link] or a [ast.NodeList] of [ast.SwitchCase] nodes.
    * [getConstants] returns the set of constants for a switch case.
-   * [isDefaultCase] returns [:true:] if the provided switch case should be
+   * [isDefaultCase] returns true if the provided switch case should be
    *   considered default for the created switch statement.
    * [buildSwitchCase] creates the statements for the switch case.
    */

@@ -40,6 +40,7 @@ import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
 import 'ssa_branch_builder.dart';
+import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 import 'types.dart' show TypeMaskFactory;
 
@@ -558,6 +559,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (expression is ir.Throw) {
       // TODO(sra): Prevent generating a statement when inlining.
       _visitThrowExpression(expression.expression);
+      handleInTryStatement();
       closeAndGotoExit(new HThrow(pop(), null));
     } else {
       expression.accept(this);
@@ -611,6 +613,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
     }
     // TODO(het): Add source information
+    handleInTryStatement();
     // TODO(het): Set a return value instead of closing the function when we
     // support inlining.
     closeAndGotoExit(new HReturn(value, null));
@@ -904,8 +907,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target = astAdapter.elements
-        .getTargetDefinition(astAdapter.getNode(doStatement));
+    JumpTarget target = astAdapter.getJumpTarget(doStatement);
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -1017,8 +1019,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        JumpTarget target = astAdapter.elements
-            .getTargetDefinition(astAdapter.getNode(doStatement));
+        JumpTarget target = astAdapter.getJumpTarget(doStatement);
         LabelDefinition label = target.addLabel(null, 'loop');
         label.setBreakTarget();
         HLabeledBlockInformation info = new HLabeledBlockInformation(
@@ -1040,6 +1041,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         visitCondition: () => ifStatement.condition.accept(this),
         visitThen: () => ifStatement.then.accept(this),
         visitElse: () => ifStatement.otherwise?.accept(this));
+  }
+
+  void handleIf(
+      {ir.Node node,
+      void visitCondition(),
+      void visitThen(),
+      void visitElse(),
+      SourceInformation sourceInformation}) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(
+        this, compiler, node == null ? node : astAdapter.getNode(node));
+    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
+        sourceInformation: sourceInformation);
   }
 
   @override
@@ -1115,30 +1128,56 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     handleIf(visitCondition: buildCondition, visitThen: fail);
   }
 
+  /// Creates a [JumpHandler] for a statement. The node must be a jump
+  /// target. If there are no breaks or continues targeting the statement,
+  /// a special "null handler" is returned.
+  ///
+  /// [isLoopJump] is true when the jump handler is for a loop. This is used
+  /// to distinguish the synthesized loop created for a switch statement with
+  /// continue statements from simple switch statements.
+  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump: false}) {
+    JumpTarget target = astAdapter.getJumpTarget(node);
+    assert(target is KernelJumpTarget);
+    if (target == null) {
+      // No breaks or continues to this node.
+      return new NullJumpHandler(compiler.reporter);
+    }
+    if (isLoopJump && node is ir.SwitchStatement) {
+      throw 'Kernel Switch Statement handler not yet implemented.';
+    }
+
+    return new JumpHandler(this, target);
+  }
+
   @override
   void visitBreakStatement(ir.BreakStatement breakStatement) {
     assert(!isAborted());
+    handleInTryStatement();
     JumpTarget target = astAdapter.getJumpTarget(breakStatement.target);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
-    handler.generateBreak(handler.labels.first);
+    if (handler.labels.isNotEmpty) {
+      handler.generateBreak(handler.labels.first);
+    } else {
+      handler.generateBreak();
+    }
   }
 
   @override
   void visitLabeledStatement(ir.LabeledStatement labeledStatement) {
-    JumpTarget target = astAdapter.getJumpTarget(labeledStatement);
-    JumpHandler handler = new JumpHandler(this, target);
-
     ir.Statement body = labeledStatement.body;
     if (body is ir.WhileStatement ||
         body is ir.DoStatement ||
         body is ir.ForStatement ||
-        body is ir.ForInStatement) {
-      // loops handle breaks on their own
+        body is ir.ForInStatement ||
+        body is ir.SwitchStatement) {
+      // loops and switches handle breaks on their own
       body.accept(this);
       return;
     }
+    JumpHandler handler = createJumpHandler(labeledStatement);
+
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
 
     HBasicBlock newBlock = openNewBlock();
@@ -1166,6 +1205,198 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
             new HSubGraphBlockInformation(bodyGraph), handler.labels),
         joinBlock);
     handler.close();
+  }
+
+  /// Loop through the cases in a switch and create a mapping of case
+  /// expressions to constants.
+  Map<ir.Expression, ConstantValue> _buildSwitchCaseConstants(
+      ir.SwitchStatement switchStatement) {
+    Map<ir.Expression, ConstantValue> constants =
+        new Map<ir.Expression, ConstantValue>();
+    for (ir.SwitchCase switchCase in switchStatement.cases) {
+      for (ir.Expression caseExpression in switchCase.expressions) {
+        ConstantValue constant = astAdapter.getConstantFor(caseExpression);
+        constants[caseExpression] = constant;
+      }
+    }
+    return constants;
+  }
+
+  @override
+  void visitContinueSwitchStatement(
+      ir.ContinueSwitchStatement switchStatement) {
+    handleInTryStatement();
+    JumpTarget target = astAdapter.getJumpTarget(switchStatement.target);
+    assert(target != null);
+    JumpHandler handler = jumpTargets[target];
+    assert(handler != null);
+    assert(target.labels.isNotEmpty);
+    handler.generateContinue(target.labels.first);
+  }
+
+  @override
+  void visitSwitchStatement(ir.SwitchStatement switchStatement) {
+    Map<ir.Expression, ConstantValue> constants =
+        _buildSwitchCaseConstants(switchStatement);
+
+    // The switch case indices must match those computed in
+    // [KernelSwitchCaseJumpHandler].
+    bool hasContinue = false;
+    Map<ir.SwitchCase, int> caseIndex = new Map<ir.SwitchCase, int>();
+    int switchIndex = 1;
+    bool hasDefault = false;
+    for (ir.SwitchCase switchCase in switchStatement.cases) {
+      if (SwitchContinueAnalysis.containsContinue(switchCase.body)) {
+        hasContinue = true;
+      }
+      if (switchCase.isDefault) {
+        hasDefault = true;
+      }
+      caseIndex[switchCase] = switchIndex;
+      switchIndex++;
+    }
+
+    JumpHandler jumpHandler = createJumpHandler(switchStatement);
+    if (!hasContinue) {
+      // If the switch statement has no switch cases targeted by continue
+      // statements we encode the switch statement directly.
+      _buildSimpleSwitchStatement(switchStatement, jumpHandler, constants);
+    } else {
+      throw 'Complex switch statement with continue label not implemented yet.';
+    }
+  }
+
+  /// Helper for building switch statements.
+  static bool _isDefaultCase(ir.SwitchCase switchCase) =>
+      switchCase == null || switchCase.isDefault;
+
+  /// Builds a simple switch statement which does not handle uses of continue
+  /// statements to labeled switch cases.
+  void _buildSimpleSwitchStatement(ir.SwitchStatement switchStatement,
+      JumpHandler jumpHandler, Map<ir.Expression, ConstantValue> constants) {
+    void buildSwitchCase(ir.SwitchCase switchCase) {
+      switchCase.body.accept(this);
+    }
+
+    handleSwitch(switchStatement, jumpHandler, switchStatement.cases,
+        _isDefaultCase, buildSwitchCase, constants);
+    jumpHandler.close();
+  }
+
+  /// Creates a switch statement.
+  ///
+  /// [jumpHandler] is the [JumpHandler] for the created switch statement.
+  /// [buildSwitchCase] creates the statements for the switch case.
+  void handleSwitch(
+      ir.SwitchStatement switchStatement,
+      JumpHandler jumpHandler,
+      List<ir.SwitchCase> switchCases,
+      bool isDefaultCase(ir.SwitchCase switchCase),
+      void buildSwitchCase(ir.SwitchCase switchCase),
+      Map<ir.Expression, ConstantValue> constantsLookup) {
+    HBasicBlock expressionStart = openNewBlock();
+    switchStatement.expression.accept(this);
+    HInstruction expression = pop();
+
+    List<ConstantValue> getConstants(ir.SwitchCase switchCase) {
+      List<ConstantValue> constantList = <ConstantValue>[];
+      if (switchCase != null) {
+        for (var expression in switchCase.expressions) {
+          constantList.add(constantsLookup[expression]);
+        }
+      }
+      return constantList;
+    }
+
+    if (switchCases.isEmpty) {
+      return;
+    }
+
+    HSwitch switchInstruction = new HSwitch(<HInstruction>[expression]);
+    HBasicBlock expressionEnd = close(switchInstruction);
+    LocalsHandler savedLocals = localsHandler;
+
+    List<HStatementInformation> statements = <HStatementInformation>[];
+    bool hasDefault = false;
+    for (ir.SwitchCase switchCase in switchCases) {
+      HBasicBlock block = graph.addNewBlock();
+      for (ConstantValue constant in getConstants(switchCase)) {
+        HConstant hConstant = graph.addConstant(constant, closedWorld);
+        switchInstruction.inputs.add(hConstant);
+        hConstant.usedBy.add(switchInstruction);
+        expressionEnd.addSuccessor(block);
+      }
+
+      if (isDefaultCase(switchCase)) {
+        // An HSwitch has n inputs and n+1 successors, the last being the
+        // default case.
+        expressionEnd.addSuccessor(block);
+        hasDefault = true;
+      }
+      open(block);
+      localsHandler = new LocalsHandler.from(savedLocals);
+      buildSwitchCase(switchCase);
+      statements.add(
+          new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
+    }
+
+    // Add a join-block if necessary.
+    // We create [joinBlock] early, and then go through the cases that might
+    // want to jump to it. In each case, if we add [joinBlock] as a successor
+    // of another block, we also add an element to [caseHandlers] that is used
+    // to create the phis in [joinBlock].
+    // If we never jump to the join block, [caseHandlers] will stay empty, and
+    // the join block is never added to the graph.
+    HBasicBlock joinBlock = new HBasicBlock();
+    List<LocalsHandler> caseHandlers = <LocalsHandler>[];
+    jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
+      instruction.block.addSuccessor(joinBlock);
+      caseHandlers.add(locals);
+    });
+    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
+      assert(invariant(astAdapter.getNode(switchStatement), false,
+          message: 'Continue cannot target a switch.'));
+    });
+    if (!isAborted()) {
+      current.close(new HGoto());
+      lastOpenedBlock.addSuccessor(joinBlock);
+      caseHandlers.add(localsHandler);
+    }
+    if (!hasDefault) {
+      // Always create a default case, to avoid a critical edge in the
+      // graph.
+      HBasicBlock defaultCase = addNewBlock();
+      expressionEnd.addSuccessor(defaultCase);
+      open(defaultCase);
+      close(new HGoto());
+      defaultCase.addSuccessor(joinBlock);
+      caseHandlers.add(savedLocals);
+      statements.add(new HSubGraphBlockInformation(
+          new SubGraph(defaultCase, defaultCase)));
+    }
+    assert(caseHandlers.length == joinBlock.predecessors.length);
+    if (caseHandlers.length != 0) {
+      graph.addBlock(joinBlock);
+      open(joinBlock);
+      if (caseHandlers.length == 1) {
+        localsHandler = caseHandlers[0];
+      } else {
+        localsHandler = savedLocals.mergeMultiple(caseHandlers, joinBlock);
+      }
+    } else {
+      // The joinblock is not used.
+      joinBlock = null;
+    }
+
+    HSubExpressionBlockInformation expressionInfo =
+        new HSubExpressionBlockInformation(
+            new SubExpression(expressionStart, expressionEnd));
+    expressionStart.setBlockFlow(
+        new HSwitchBlockInformation(
+            expressionInfo, statements, jumpHandler.target, jumpHandler.labels),
+        joinBlock);
+
+    jumpHandler.close();
   }
 
   @override
@@ -2326,6 +2557,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitThrow(ir.Throw throwNode) {
     _visitThrowExpression(throwNode.expression);
     if (isReachable) {
+      handleInTryStatement();
       push(new HThrowExpression(pop(), null));
       isReachable = false;
     }
@@ -2362,6 +2594,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       compiler.reporter.internalError(astAdapter.getNode(rethrowNode),
           'rethrowableException should not be null.');
     }
+    handleInTryStatement();
     SourceInformation sourceInformation = null;
     closeAndGotoExit(new HThrow(exception, sourceInformation, isRethrow: true));
     // ir.Rethrow is an expression so we need to push a value - a constant with
@@ -2446,6 +2679,10 @@ class TryCatchFinallyBuilder {
   HLocalValue exception;
   KernelSsaBuilder kernelBuilder;
 
+  /// True if the code surrounding this try statement was also part of a
+  /// try/catch/finally statement.
+  bool previouslyInTryStatement;
+
   SubGraph bodyGraph;
   SubGraph catchGraph;
   SubGraph finallyGraph;
@@ -2463,6 +2700,8 @@ class TryCatchFinallyBuilder {
     originalSavedLocals = new LocalsHandler.from(kernelBuilder.localsHandler);
     enterBlock = kernelBuilder.openNewBlock();
     kernelBuilder.close(tryInstruction);
+    previouslyInTrySequence = kernelBuilder.inTryStatement;
+    kernelBuilder.inTryStatement = true;
 
     startTryBlock = kernelBuilder.graph.addNewBlock();
     kernelBuilder.open(startTryBlock);
@@ -2644,5 +2883,6 @@ class TryCatchFinallyBuilder {
             kernelBuilder.wrapStatementGraph(catchGraph),
             kernelBuilder.wrapStatementGraph(finallyGraph)),
         exitBlock);
+    kernelBuilder.inTryStatement = previouslyInTrySequence;
   }
 }

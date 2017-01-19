@@ -360,28 +360,15 @@ class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
         super(builder);
 
   @override
-  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump}) {
-    if (node.parent is! ir.LabeledStatement) {
-      // No breaks or continues to this node.
-      return new NullJumpHandler(builder.compiler.reporter);
-    }
-    // We must have already created a JumpHandler for the labeled statement
-    JumpHandler result =
-        builder.jumpTargets[astAdapter.getJumpTarget(node.parent)];
-    assert(result != null);
-    return result;
-  }
+  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump}) =>
+      builder.createJumpHandler(node, isLoopJump: isLoopJump);
 
   @override
   ast.Node getNode(ir.TreeNode node) => astAdapter.getNode(node);
 
   @override
-  JumpTarget getTargetDefinition(ir.TreeNode node) {
-    if (node.parent is ir.LabeledStatement) {
-      return astAdapter.getJumpTarget(node.parent);
-    }
-    return null;
-  }
+  JumpTarget getTargetDefinition(ir.TreeNode node) =>
+      astAdapter.getJumpTarget(node.parent);
 
   @override
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());

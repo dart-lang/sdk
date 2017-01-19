@@ -35,6 +35,11 @@ abstract class GraphBuilder {
   /// A reference to the compiler.
   Compiler compiler;
 
+  /// True if the builder is processing nodes inside a try statement. This is
+  /// important for generating control flow out of a try block like returns or
+  /// breaks.
+  bool inTryStatement = false;
+
   /// The tree elements for the element being built into an SSA graph.
   TreeElements get elements;
 
@@ -180,17 +185,6 @@ abstract class GraphBuilder {
     return result;
   }
 
-  void handleIf(
-      {ast.Node node,
-      void visitCondition(),
-      void visitThen(),
-      void visitElse(),
-      SourceInformation sourceInformation}) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
-    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
-        sourceInformation: sourceInformation);
-  }
-
   HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
     if (statements == null) return null;
     return new HSubGraphBlockInformation(statements);
@@ -235,6 +229,16 @@ abstract class GraphBuilder {
         closedWorld.commonMasks.dynamicType);
     add(typeInfo);
     return callSetRuntimeTypeInfo(typeInfo, newObject);
+  }
+
+  /// Called when control flow is about to change, in which case we need to
+  /// specify special successors if we are already in a try/catch/finally block.
+  void handleInTryStatement() {
+    if (!inTryStatement) return;
+    HBasicBlock block = close(new HExitTry());
+    HBasicBlock newBlock = graph.addNewBlock();
+    block.addSuccessor(newBlock);
+    open(newBlock);
   }
 
   HInstruction callSetRuntimeTypeInfo(
