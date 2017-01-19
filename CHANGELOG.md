@@ -29,6 +29,20 @@
     #2      main (file:///Users/mit/tmp/tool/bin/main.dart:9:10)
     ```
 
+  * The `Null` type has been moved to the bottom of the type hierarchy. As such,
+    it is considered a subtype of every other type.
+
+    Examples:
+    ```
+    Null foo() => null;
+    int x = foo();
+    String x = foo();
+
+    List<Null> bar() => <Null>[];
+    List<int> = bar();
+    List<String> = bar();
+    ```
+
 ### Tool changes
 
 * Dart2Js
