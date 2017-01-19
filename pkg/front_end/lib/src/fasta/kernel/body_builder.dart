@@ -115,6 +115,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final ClassHierarchy hierarchy;
 
+  @override
   final CoreTypes coreTypes;
 
   final bool isInstanceMember;
@@ -157,6 +158,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return isInstanceMember || member is KernelConstructorBuilder;
   }
 
+  @override
   void push(Object node) {
     isFirstIdentifier = false;
     inInitializer = false;
@@ -167,6 +169,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   Expression popForEffect() => toEffect(pop());
 
+  @override
   Expression toValue(Object node) {
     if (node is UnresolvedIdentifier) {
       return throwNoSuchMethodError(node.name.name, new Arguments.empty(),
@@ -258,10 +261,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     switchScope = pop();
   }
 
+  @override
   Uri get uri => library.fileUri ?? library.uri;
 
+  @override
   JumpTarget createJumpTarget(JumpTargetKind kind) => new JumpTarget(kind);
 
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     pop(); // Arguments.
@@ -271,11 +277,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // TODO(ahe): Implement metadata on local declarations.
   }
 
+  @override
   void endMetadataStar(int count, bool forParameter) {
     debugEvent("MetadataStar");
     push(NullValue.Metadata);
   }
 
+  @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     doFields(count);
@@ -284,6 +292,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // DietListener discarding top-level member metadata.
   }
 
+  @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     doFields(count);
@@ -317,11 +326,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endMember() {
     debugEvent("Member");
     checkEmpty();
   }
 
+  @override
   void endFunctionBody(int count, Token beginToken, Token endToken) {
     debugEvent("FunctionBody");
     if (beginToken == null) {
@@ -334,6 +345,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void prepareInitializers() {
     scope = formalParameterScope;
     assert(fieldInitializers.isEmpty);
@@ -363,11 +375,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void beginConstructorInitializer(Token token) {
     debugEvent("beginConstructorInitializer");
     inInitializer = true;
   }
 
+  @override
   void endConstructorInitializer(Token token) {
     debugEvent("endConstructorInitializer");
     assert(!inInitializer);
@@ -394,14 +408,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
   }
 
+  @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
   }
 
+  @override
   void finishFunction(FormalParameters formals,
       AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
@@ -432,11 +449,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
     push(new ExpressionStatement(popForEffect()));
   }
 
+  @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
     List arguments = popList(count) ?? <Expression>[];
@@ -463,11 +482,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     debugEvent("ParenthesizedExpression");
     push(popForValue());
   }
 
+  @override
   void endSend(Token token) {
     debugEvent("Send");
     Arguments arguments = pop();
@@ -492,6 +513,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
     if (receiver is BuilderAccessor) {
       return receiver.doInvocation(charOffset, arguments);
@@ -504,6 +526,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void beginCascade(Token token) {
     debugEvent("beginCascade");
     Expression expression = popForValue();
@@ -520,6 +543,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endCascade() {
     debugEvent("endCascade");
     Expression expression = popForEffect();
@@ -528,6 +552,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(cascadeReceiver);
   }
 
+  @override
   void handleBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (optional(".", token) || optional("..", token)) {
@@ -597,6 +622,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(send.withReceiver(receiver));
   }
 
+  @override
   Expression toSuperMethodInvocation(MethodInvocation node) {
     Member target = lookupSuperMember(node.name);
     bool isNoSuchMethod = target == null;
@@ -636,6 +662,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         isSetter: isSetter);
   }
 
+  @override
   Member lookupSuperMember(Name name, {bool isSetter: false}) {
     Class superclass = classBuilder.cls.superclass;
     return superclass == null
@@ -643,6 +670,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         : hierarchy.getDispatchTarget(superclass, name, setter: isSetter);
   }
 
+  @override
   Constructor lookupConstructor(Name name, {bool isSuper}) {
     Class cls = classBuilder.cls;
     if (isSuper) {
@@ -659,6 +687,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return null;
   }
 
+  @override
   void beginExpression(Token token) {
     debugEvent("beginExpression");
     isFirstIdentifier = true;
@@ -670,6 +699,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return builder.isField ? (builder.isFinal ? null : builder) : null;
   }
 
+  @override
   void handleIdentifier(Token token) {
     debugEvent("handleIdentifier");
     String name = token.value;
@@ -685,6 +715,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   builderToFirstExpression(Builder builder, String name, int charOffset,
       {bool isPrefix: false}) {
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
@@ -730,6 +761,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleQualified(Token period) {
     debugEvent("Qualified");
     Identifier name = pop();
@@ -737,16 +769,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push([receiver, name]);
   }
 
+  @override
   void beginLiteralString(Token token) {
     debugEvent("beginLiteralString");
     push(token);
   }
 
+  @override
   void handleStringPart(Token token) {
     debugEvent("StringPart");
     push(token);
   }
 
+  @override
   void endLiteralString(int interpolationCount) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
@@ -774,6 +809,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     List<Expression> parts = popListForValue(literalCount);
@@ -795,11 +831,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new StringConcatenation(expressions ?? parts));
   }
 
+  @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     push(new IntLiteral(int.parse(token.value)));
   }
 
+  @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     debugEvent("ReturnStatement");
@@ -812,6 +850,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popStatementIfNotNull(elseToken);
     Statement thenPart = popStatement();
@@ -819,6 +858,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new IfStatement(condition, thenPart, elsePart));
   }
 
+  @override
   void endInitializer(Token assignmentOperator) {
     debugEvent("Initializer");
     assert(assignmentOperator.stringValue == "=");
@@ -827,6 +867,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new VariableDeclaration(identifier.name, initializer: initializer));
   }
 
+  @override
   void endInitializedIdentifier() {
     // TODO(ahe): Use [InitializedIdentifier] here?
     debugEvent("InitializedIdentifier");
@@ -843,6 +884,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     scope[variable.name] = new KernelVariableBuilder(variable);
   }
 
+  @override
   void endVariablesDeclaration(int count, Token endToken) {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
@@ -866,6 +908,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endBlock(int count, Token beginToken, Token endToken) {
     debugEvent("Block");
     Block block = popBlock(count);
@@ -873,6 +916,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(block);
   }
 
+  @override
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
@@ -888,6 +932,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void enterLoop() {
     if (peek() is LabelTarget) {
       LabelTarget target = peek();
@@ -908,6 +953,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endForStatement(
       int updateExpressionCount, Token beginToken, Token endToken) {
     debugEvent("ForStatement");
@@ -955,16 +1001,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLoopOrSwitch(result);
   }
 
+  @override
   void endAwaitExpression(Token beginToken, Token endToken) {
     debugEvent("AwaitExpression");
     push(new AwaitExpression(popForValue()));
   }
 
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
     push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
+  @override
   void handleLiteralList(
       int count, Token beginToken, Token constKeyword, Token endToken) {
     debugEvent("LiteralList");
@@ -983,6 +1032,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             isConst: constKeyword != null));
   }
 
+  @override
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     bool value = optional("true", token);
@@ -990,16 +1040,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new BoolLiteral(value));
   }
 
+  @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
     push(new DoubleLiteral(double.parse(token.value)));
   }
 
+  @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
     push(new NullLiteral());
   }
 
+  @override
   void handleLiteralMap(
       int count, Token beginToken, Token constKeyword, Token endToken) {
     debugEvent("LiteralMap");
@@ -1022,6 +1075,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             isConst: constKeyword != null));
   }
 
+  @override
   void endLiteralMapEntry(Token colon, Token endToken) {
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
@@ -1029,6 +1083,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new MapEntry(key, value));
   }
 
+  @override
   void beginLiteralSymbol(Token token) {
     isFirstIdentifier = false;
   }
@@ -1043,6 +1098,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     debugEvent("LiteralSymbol");
     String value;
@@ -1074,6 +1130,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return const DynamicType();
   }
 
+  @override
   void endType(Token beginToken, Token endToken) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
@@ -1134,11 +1191,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     push(const VoidType());
   }
 
+  @override
   void handleAsOperator(Token operator, Token endToken) {
     debugEvent("AsOperator");
     DartType type = pop();
@@ -1146,6 +1205,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new AsExpression(expression, type));
   }
 
+  @override
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
     DartType type = pop();
@@ -1157,6 +1217,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(expression);
   }
 
+  @override
   void handleConditionalExpression(Token question, Token colon) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
@@ -1166,12 +1227,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             condition, thenExpression, elseExpression, const DynamicType()));
   }
 
+  @override
   void endThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     Expression expression = popForValue();
     push(new Throw(expression));
   }
 
+  @override
   void endFormalParameter(Token thisKeyword) {
     debugEvent("FormalParameter");
     if (thisKeyword != null) {
@@ -1214,6 +1277,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(variable);
   }
 
+  @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
@@ -1222,11 +1286,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new OptionalFormals(kind, popList(count)));
   }
 
+  @override
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     functionNestingLevel++;
   }
 
+  @override
   void handleFunctionTypedFormalParameter(Token token) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
@@ -1241,6 +1307,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     functionNestingLevel--;
   }
 
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
@@ -1248,6 +1315,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new InitializedIdentifier(name.name, initializer));
   }
 
+  @override
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     debugEvent("FormalParameters");
     OptionalFormals optional;
@@ -1263,16 +1331,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void beginCatchClause(Token token) {
     debugEvent("beginCatchClause");
     inCatchClause = true;
   }
 
+  @override
   void endCatchClause(Token token) {
     debugEvent("CatchClause");
     inCatchClause = false;
   }
 
+  @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     debugEvent("CatchBlock");
     Block body = pop();
@@ -1300,6 +1371,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new Catch(exception, body, guard: type, stackTrace: stackTrace));
   }
 
+  @override
   void endTryStatement(
       int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
@@ -1319,11 +1391,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleNoExpression(Token token) {
     debugEvent("NoExpression");
     push(NullValue.Expression);
   }
 
+  @override
   void handleIndexedExpression(
       Token openCurlyBracket, Token closeCurlyBracket) {
     debugEvent("IndexedExpression");
@@ -1333,6 +1407,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             null, null));
   }
 
+  @override
   void handleUnaryPrefixExpression(Token token) {
     debugEvent("UnaryPrefixExpression");
     Expression expression = popForValue();
@@ -1354,6 +1429,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return internalError("Unknown increment operator: ${token.value}");
   }
 
+  @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
     var accessor = pop();
@@ -1364,6 +1440,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
     var accessor = pop();
@@ -1375,6 +1452,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");
@@ -1430,6 +1508,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(name);
   }
 
+  @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
       {bool isConst: false}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
@@ -1511,6 +1590,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return true;
   }
 
+  @override
   void handleNewExpression(Token token) {
     debugEvent("NewExpression");
     Arguments arguments = pop();
@@ -1559,16 +1639,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(throwNoSuchMethodError(errorName, arguments, token.charOffset));
   }
 
+  @override
   void handleConstExpression(Token token) {
     debugEvent("ConstExpression");
     handleNewExpression(token);
   }
 
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     push(popList(count));
   }
 
+  @override
   void handleThisExpression(Token token) {
     debugEvent("ThisExpression");
     if (isFirstIdentifier && isInstanceContext) {
@@ -1579,6 +1662,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleSuperExpression(Token token) {
     debugEvent("SuperExpression");
     if (isFirstIdentifier && isInstanceContext) {
@@ -1592,6 +1676,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleNamedArgument(Token colon) {
     debugEvent("NamedArgument");
     Expression value = popForValue();
@@ -1599,6 +1684,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new NamedExpression(identifier.name, value));
   }
 
+  @override
   void endFunctionName(Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
@@ -1610,16 +1696,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     enterLocalScope();
   }
 
+  @override
   void beginFunction(Token token) {
     debugEvent("beginFunction");
     functionNestingLevel++;
   }
 
+  @override
   void beginUnnamedFunction(Token token) {
     debugEvent("beginUnnamedFunction");
     functionNestingLevel++;
   }
 
+  @override
   void endFunction(Token getOrSet, Token endToken) {
     debugEvent("Function");
     Statement body = popStatement();
@@ -1634,6 +1723,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     functionNestingLevel--;
   }
 
+  @override
   void endFunctionDeclaration(Token token) {
     debugEvent("FunctionDeclaration");
     FunctionNode function = pop();
@@ -1646,6 +1736,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(declaration);
   }
 
+  @override
   void endUnnamedFunction(Token token) {
     debugEvent("UnnamedFunction");
     Statement body = popStatement();
@@ -1659,6 +1750,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     functionNestingLevel--;
   }
 
+  @override
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
     debugEvent("DoWhileStatement");
@@ -1678,10 +1770,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLoopOrSwitch(result);
   }
 
+  @override
   void beginForInExpression(Token token) {
     enterLocalScope(scope.parent);
   }
 
+  @override
   void endForInExpression(Token token) {
     debugEvent("ForInExpression");
     Expression expression = popForValue();
@@ -1689,6 +1783,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(expression ?? NullValue.Expression);
   }
 
+  @override
   void endForIn(
       Token awaitToken, Token forToken, Token inKeyword, Token endToken) {
     debugEvent("ForIn");
@@ -1735,12 +1830,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLoopOrSwitch(result);
   }
 
+  @override
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
     push(new Label(identifier.name));
   }
 
+  @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
@@ -1752,6 +1849,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(target);
   }
 
+  @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
     Statement statement = popStatement();
@@ -1772,16 +1870,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(statement);
   }
 
+  @override
   void endRethrowStatement(Token throwToken, Token endToken) {
     debugEvent("RethrowStatement");
     push(new ExpressionStatement(new Rethrow()));
   }
 
+  @override
   void handleFinallyBlock(Token finallyKeyword) {
     debugEvent("FinallyBlock");
     // Do nothing, handled by [endTryStatement].
   }
 
+  @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     debugEvent("WhileStatement");
     Statement body = popStatement();
@@ -1800,11 +1901,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLoopOrSwitch(result);
   }
 
+  @override
   void handleEmptyStatement(Token token) {
     debugEvent("EmptyStatement");
     push(new EmptyStatement());
   }
 
+  @override
   void handleAssertStatement(
       Token assertKeyword, Token commaToken, Token semicolonToken) {
     debugEvent("AssertStatement");
@@ -1813,11 +1916,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new AssertStatement(condition, message));
   }
 
+  @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement");
     push(new YieldStatement(popForValue(), isYieldStar: starToken != null));
   }
 
+  @override
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
     enterLocalScope();
@@ -1825,6 +1930,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     enterBreakTarget();
   }
 
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
     List labelsAndExpressions = popList(labelCount + expressionCount);
@@ -1853,6 +1959,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     enterLocalScope();
   }
 
+  @override
   void handleSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1869,11 +1976,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(labels);
   }
 
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     debugEvent("SwitchStatement");
     // Do nothing. Handled by [endSwitchBlock].
   }
 
+  @override
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     debugEvent("SwitchBlock");
     List<SwitchCase> cases =
@@ -1901,11 +2010,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLoopOrSwitch(result);
   }
 
+  @override
   void handleCaseMatch(Token caseKeyword, Token colon) {
     debugEvent("CaseMatch");
     // Do nothing. Handled by [handleSwitchCase].
   }
 
+  @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     debugEvent("BreakStatement");
@@ -1932,6 +2043,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     debugEvent("ContinueStatement");
@@ -1978,28 +2090,33 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     logEvent("TypeVariable");
     // TODO(ahe): Implement this when enabling generic method syntax.
   }
 
+  @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     logEvent("TypeVariables");
     // TODO(ahe): Implement this when enabling generic method syntax.
   }
 
+  @override
   void handleModifier(Token token) {
     debugEvent("Modifier");
     // TODO(ahe): Copied from outline_builder.dart.
     push(new Modifier.fromString(token.stringValue));
   }
 
+  @override
   void handleModifiers(int count) {
     debugEvent("Modifiers");
     // TODO(ahe): Copied from outline_builder.dart.
     push(popList(count) ?? NullValue.Modifiers);
   }
 
+  @override
   void reportErrorHelper(Token token, ErrorKind kind, Map arguments) {
     super.reportErrorHelper(token, kind, arguments);
     if (!hasParserError) {
@@ -2008,6 +2125,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     hasParserError = true;
   }
 
+  @override
   Token expectedExpression(Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
@@ -2022,6 +2140,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   Token expected(String string, Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
@@ -2053,6 +2172,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     print(message);
   }
 
+  @override
   Expression buildCompileTimeError(error, [int charOffset = -1]) {
     String message = new InputError(uri, charOffset, error).format();
     print(message);
@@ -2063,6 +2183,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new ExpressionStatement(buildCompileTimeError(error, charOffset));
   }
 
+  @override
   Initializer buildCompileTimeErrorIntializer(error, [int charOffset = -1]) {
     return new LocalInitializer(
         new VariableDeclaration.forValue(
@@ -2070,6 +2191,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
 
+  @override
   Expression buildProblemExpression(Builder builder, String name) {
     if (builder is AmbiguousBuilder) {
       return buildCompileTimeError("Duplicated named: '$name'.");
@@ -2080,6 +2202,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   void handleOperator(Token token) {
     debugEvent("Operator");
     push(new Operator(token.stringValue)..fileOffset = token.charOffset);
@@ -2089,6 +2212,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return errors.inputError(uri, charOffset, message);
   }
 
+  @override
   void debugEvent(String name) {
     // printEvent(name);
   }
