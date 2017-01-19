@@ -230,11 +230,6 @@ abstract class Compiler implements LibraryLoaderListener {
     }
     enqueuer = backend.makeEnqueuer();
 
-    if (options.dumpInfo && options.useStartupEmitter) {
-      throw new ArgumentError(
-          '--dump-info is not supported with the fast startup emitter');
-    }
-
     tasks = [
       dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),

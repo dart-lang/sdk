@@ -9,6 +9,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
+import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show ClassElement, Element, FieldElement, FunctionElement;
 import '../../js/js.dart' as js;
@@ -186,6 +187,10 @@ class Emitter implements emitterTask.Emitter {
         return null;
     }
   }
+
+  @override
+  // TODO(het): Generate this correctly
+  int generatedSize(OutputUnit unit) => 0;
 
   @override
   void invalidateCaches() {}

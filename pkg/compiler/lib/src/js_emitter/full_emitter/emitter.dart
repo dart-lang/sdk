@@ -420,6 +420,11 @@ class Emitter implements js_emitter.Emitter {
     }
   }
 
+  @override
+  int generatedSize(OutputUnit unit) {
+    return outputBuffers[unit].length;
+  }
+
   List<jsAst.Statement> buildTrivialNsmHandlers() {
     return nsmEmitter.buildTrivialNsmHandlers();
   }

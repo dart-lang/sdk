@@ -228,5 +228,8 @@ abstract class Emitter {
   /// Returns the JS template for the given [builtin].
   jsAst.Template templateForBuiltin(JsBuiltin builtin);
 
+  /// Returns the size of the code generated for a given output [unit].
+  int generatedSize(OutputUnit unit);
+
   void invalidateCaches();
 }

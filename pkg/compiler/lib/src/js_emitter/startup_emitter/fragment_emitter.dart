@@ -171,7 +171,7 @@ function makeConstList(list) {
 function convertToFastObject(properties) {
   // Create an instance that uses 'properties' as prototype. This should
   // make 'properties' a fast object.
-  function t() {};
+  function t() {}
   t.prototype = properties;
   new t();
   return properties;
@@ -563,11 +563,21 @@ class FragmentEmitter {
     for (Library library in fragment.libraries) {
       for (StaticMethod method in library.statics) {
         assert(!method.holder.isStaticStateHolder);
-        holderCode[method.holder].addAll(emitStaticMethod(method));
+        var staticMethod = emitStaticMethod(method);
+        if (compiler.options.dumpInfo) {
+          for (var code in staticMethod.values) {
+            compiler.dumpInfoTask.registerElementAst(method.element, code);
+            compiler.dumpInfoTask.registerElementAst(library.element, code);
+          }
+        }
+        holderCode[method.holder].addAll(staticMethod);
       }
       for (Class cls in library.classes) {
         assert(!cls.holder.isStaticStateHolder);
-        holderCode[cls.holder][cls.name] = emitConstructor(cls);
+        var constructor = emitConstructor(cls);
+        compiler.dumpInfoTask.registerElementAst(cls.element, constructor);
+        compiler.dumpInfoTask.registerElementAst(library.element, constructor);
+        holderCode[cls.holder][cls.name] = constructor;
       }
     }
 
@@ -668,9 +678,13 @@ class FragmentEmitter {
   js.Statement emitPrototypes(Fragment fragment) {
     List<js.Statement> assignments = fragment.libraries
         .expand((Library library) => library.classes)
-        .map((Class cls) => js.js.statement(
-            '#.prototype = #;', [classReference(cls), emitPrototype(cls)]))
-        .toList(growable: false);
+        .map((Class cls) {
+      var proto = js.js.statement(
+          '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
+      compiler.dumpInfoTask.registerElementAst(cls.element, proto);
+      compiler.dumpInfoTask.registerElementAst(cls.element.library, proto);
+      return proto;
+    }).toList(growable: false);
 
     return new js.Block(assignments);
   }
@@ -712,7 +726,9 @@ class FragmentEmitter {
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        properties.add(new js.Property(name, code));
+        var prop = new js.Property(name, code);
+        compiler.dumpInfoTask.registerElementAst(method.element, prop);
+        properties.add(prop);
       });
     });
 
@@ -1011,11 +1027,13 @@ class FragmentEmitter {
       // find the constants that don't have any dependency on other constants
       // and create an object-literal with them (and assign it to the
       // constant-holder variable).
-      assignments.add(js.js.statement('#.# = #', [
+      var assignment = js.js.statement('#.# = #', [
         constant.holder.name,
         constant.name,
         constantEmitter.generate(constant.value)
-      ]));
+      ]);
+      compiler.dumpInfoTask.registerConstantAst(constant.value, assignment);
+      assignments.add(assignment);
     }
     return new js.Block(assignments);
   }

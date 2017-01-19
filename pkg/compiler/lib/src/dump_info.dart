@@ -329,10 +329,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
       JavaScriptBackend backend = compiler.backend;
-      full.Emitter emitter = backend.emitter.emitter;
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
-          outputUnit.name, emitter.outputBuffers[outputUnit].length);
+          outputUnit.name, backend.emitter.emitter.generatedSize(outputUnit));
       info.imports.addAll(outputUnit.imports
           .map((d) => compiler.deferredLoadTask.importDeferName[d]));
       result.outputUnits.add(info);
