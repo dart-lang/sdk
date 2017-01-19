@@ -2700,7 +2700,7 @@ class TryCatchFinallyBuilder {
     originalSavedLocals = new LocalsHandler.from(kernelBuilder.localsHandler);
     enterBlock = kernelBuilder.openNewBlock();
     kernelBuilder.close(tryInstruction);
-    previouslyInTrySequence = kernelBuilder.inTryStatement;
+    previouslyInTryStatement = kernelBuilder.inTryStatement;
     kernelBuilder.inTryStatement = true;
 
     startTryBlock = kernelBuilder.graph.addNewBlock();
@@ -2883,6 +2883,6 @@ class TryCatchFinallyBuilder {
             kernelBuilder.wrapStatementGraph(catchGraph),
             kernelBuilder.wrapStatementGraph(finallyGraph)),
         exitBlock);
-    kernelBuilder.inTryStatement = previouslyInTrySequence;
+    kernelBuilder.inTryStatement = previouslyInTryStatement;
   }
 }
