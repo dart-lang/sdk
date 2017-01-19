@@ -13,18 +13,16 @@ import 'package:kernel/transformations/treeshaker.dart';
 
 import 'class_hierarchy_basic.dart';
 
-ArgParser argParser = new ArgParser(allowTrailingOptions: true)
+ArgParser argParser = new ArgParser()
   ..addFlag('basic',
       help: 'Use the basic class hierarchy implementation', negatable: false)
   ..addFlag('from-scratch',
       help: 'Rebuild class hierarchy for each tree shaking', negatable: false)
   ..addFlag('diagnose',
-      abbr: 'd', help: 'Print internal diagnostics', negatable: false)
-  ..addFlag('strong',
-      help: 'Run the tree shaker in strong mode', negatable: false);
+      abbr: 'd', help: 'Print internal diagnostics', negatable: false);
 
 String usage = '''
-Usage: treeshaker_bench [options] FILE.dill
+Usage: treeshaker_bench [options] FILE.dart
 
 Benchmark the tree shaker and the class hierarchy it depends on.
 
@@ -43,7 +41,6 @@ void main(List<String> args) {
     exit(1);
   }
   String filename = options.rest.single;
-  bool strongMode = options['strong'];
 
   Program program = loadProgramFromBinary(filename);
 
@@ -59,9 +56,7 @@ void main(List<String> args) {
   ClassHierarchy sharedClassHierarchy = buildClassHierarchy();
   int coldHierarchyTime = watch.elapsedMicroseconds;
   var shaker = new TreeShaker(program,
-      hierarchy: sharedClassHierarchy,
-      coreTypes: coreTypes,
-      strongMode: strongMode);
+      hierarchy: sharedClassHierarchy, coreTypes: coreTypes);
   if (options['diagnose']) {
     print(shaker.getDiagnosticString());
   }
@@ -82,8 +77,7 @@ void main(List<String> args) {
     watch.reset();
     var hierarchy = getClassHierarchy();
     hotHierarchyTime += watch.elapsedMicroseconds;
-    new TreeShaker(program,
-        hierarchy: hierarchy, coreTypes: coreTypes, strongMode: strongMode);
+    new TreeShaker(program, hierarchy: hierarchy, coreTypes: coreTypes);
     hotTreeShakingTime += watch.elapsedMicroseconds;
   }
   hotHierarchyTime ~/= numberOfTrials;

@@ -70,9 +70,6 @@ covariant_override_test: DartkCompileTimeError # Issue 28166
 # dartk: temporary failure
 mixin_illegal_syntax_test/00: DartkCrash
 
-# Passing for the wrong reason
-language/main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
-
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 config_import_corelib_test: RuntimeError
@@ -199,6 +196,7 @@ issue_1751477_test: RuntimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
+main_not_a_function_test/01: Crash
 malformed_test/none: RuntimeError
 map_literal3_test: RuntimeError
 map_literal4_test: RuntimeError  # Checked Mode Issue
@@ -239,6 +237,7 @@ const_locals_test: RuntimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 const_string_test: RuntimeError  # Dartk Issue 28306
 library_env_test/has_no_mirror_support: RuntimeError
+main_not_a_function_test/01: Crash
 redirecting_factory_reflection_test: RuntimeError
 
 # dartk: JIT failures (debug)
