@@ -2704,7 +2704,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   instructions += AllocateObject(klass, 0);
   LocalVariable* instance = MakeTemporary();
 
-  // Call _AssertionError._create constructor.
+  // Call _TypeError._create constructor.
   instructions += LoadLocal(instance);
   instructions += PushArgument();  // this
 
@@ -5386,7 +5386,7 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
       body_fragment += AllocateObject(klass, 0);
       LocalVariable* instance = MakeTemporary();
 
-      // Call _AssertionError._create constructor.
+      // Call _FallThroughError._create constructor.
       body_fragment += LoadLocal(instance);
       body_fragment += PushArgument();  // this
 
@@ -5577,7 +5577,7 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
       node->message() != NULL
           ? TranslateExpression(node->message())
           : Constant(H.DartString("<no message>", Heap::kOld));
-  otherwise_fragment += PushArgument();  // message
+  otherwise_fragment += PushArgument();  // failedAssertion
 
   otherwise_fragment += Constant(url);
   otherwise_fragment += PushArgument();  // url
@@ -5588,7 +5588,10 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
   otherwise_fragment += IntConstant(0);
   otherwise_fragment += PushArgument();  // column
 
-  otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 5);
+  otherwise_fragment += Constant(H.DartString("<no message>", Heap::kOld));
+  otherwise_fragment += PushArgument();  // message
+
+  otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 6);
   otherwise_fragment += Drop();
 
   // Throw _AssertionError exception.

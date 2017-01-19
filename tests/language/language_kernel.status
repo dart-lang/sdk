@@ -279,19 +279,12 @@ runtime_type_function_test: RuntimeError
 
 # Failures during Gardening shift: To be triaged!
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-assert_assignable_type_test: Crash
-assertion_test: Crash
 assert_with_type_test_or_cast_test: Pass, Crash  # Multitest via multiple VMOptions.
-factory3_test: Crash
-generic_test: Crash
-implicit_closure1_test: Crash
 named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
-named_parameters_type_test/none: Crash
 positional_parameters_type_test/01: Crash
 positional_parameters_type_test/02: Crash
-positional_parameters_type_test/none: Crash
 type_checks_in_factory_method_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
