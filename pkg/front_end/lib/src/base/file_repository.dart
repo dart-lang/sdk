@@ -21,11 +21,36 @@ class FileRepository {
   /// The file contents associated with the URIs in [_uris].
   final _contents = <String>[];
 
+  /// Clear any contents stored in the file repository.  The association between
+  /// URI and arbitrary path is preserved.
+  ///
+  /// Subsequent calls to [contentsForPath] will have undefined results until
+  /// new contents are stored using [store].
+  void clearContents() {
+    for (var i = 0; i < _contents.length; i++) {
+      _contents[i] = null;
+    }
+  }
+
   /// Return the contents of the file whose arbitary path is [path].
   ///
   /// The path must have been returned by a previous call to [store] or
   /// [pathForUri].
-  String contentsForPath(String path) => _contents[_indexForPath(path)];
+  String contentsForPath(String path) {
+    var contents = _contents[_indexForPath(path)];
+    assert(contents != null);
+    return contents;
+  }
+
+  /// For testing purposes, return the contents of all files stored in the file
+  /// repository, as a map from path to contents string.
+  Map<String, String> getContentsForTesting() {
+    var result = <String, String>{};
+    for (var i = 0; i < _contents.length; i++) {
+      if (_contents[i] != null) result[_pathForIndex(i)] = _contents[i];
+    }
+    return result;
+  }
 
   /// Return the arbitrary path associated with [uri].
   ///

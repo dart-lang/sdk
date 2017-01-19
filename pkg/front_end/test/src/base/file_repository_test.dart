@@ -2,15 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:front_end/src/base/file_repository.dart';
-import 'package:front_end/src/base/library_info.dart';
-import 'package:front_end/src/libraries_reader.dart';
-import 'package:front_end/src/scanner/errors.dart';
-import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/scanner.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,6 +17,14 @@ main() {
 @reflectiveTest
 class FileRepositoryTest {
   final fileRepository = new FileRepository();
+
+  test_clearContents() {
+    var uri = Uri.parse('file:///foo/bar.dart');
+    fileRepository.store(uri, 'contents1');
+    expect(fileRepository.getContentsForTesting(), isNotEmpty);
+    fileRepository.clearContents();
+    expect(fileRepository.getContentsForTesting(), isEmpty);
+  }
 
   test_contentsForPath() {
     var path1 =
@@ -49,8 +49,10 @@ class FileRepositoryTest {
     var path = fileRepository.store(uri, 'contents1');
     expect(path, endsWith('.dart'));
     expect(fileRepository.contentsForPath(path), 'contents1');
+    expect(fileRepository.getContentsForTesting(), {path: 'contents1'});
     expect(fileRepository.store(uri, 'contents2'), path);
     expect(fileRepository.contentsForPath(path), 'contents2');
+    expect(fileRepository.getContentsForTesting(), {path: 'contents2'});
   }
 
   test_uriForPath() {

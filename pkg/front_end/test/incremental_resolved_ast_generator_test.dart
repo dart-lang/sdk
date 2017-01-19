@@ -70,10 +70,13 @@ class IncrementalResolvedAstGeneratorTest {
 
     _checkMain(initialProgram[fooUri].definingCompilationUnit, 1);
     writeFiles({'/foo.dart': 'main() { print(2); }'});
-    // TODO(paulberry): verify that the file isn't actually reread until
-    // invalidate is called.
-    // var deltaProgram1 = await incrementalResolvedAstGenerator.computeDelta();
+    // Verify that the file isn't actually reread until invalidate is called.
+    var deltaProgram1 = await incrementalResolvedAstGenerator.computeDelta();
+    // TODO(paulberry): since there is no delta, computeDelta should return an
+    // empty map.
     // expect(deltaProgram1.newState, isEmpty);
+    expect(deltaProgram1.newState.keys, unorderedEquals([fooUri]));
+    _checkMain(deltaProgram1.newState[fooUri].definingCompilationUnit, 1);
     incrementalResolvedAstGenerator.invalidateAll();
     var deltaProgram2 = await incrementalResolvedAstGenerator.computeDelta();
     expect(deltaProgram2.newState.keys, unorderedEquals([fooUri]));

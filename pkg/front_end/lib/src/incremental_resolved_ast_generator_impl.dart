@@ -52,6 +52,7 @@ class IncrementalResolvedAstGeneratorImpl
   final ProcessedOptions _options;
   final Uri _source;
   bool _schedulerStarted = false;
+  final _fileState = <Uri, String>{};
 
   IncrementalResolvedAstGeneratorImpl(this._source, this._options);
 
@@ -64,7 +65,10 @@ class IncrementalResolvedAstGeneratorImpl
     // so we have to find all the files first to read their contents.
     // TODO(paulberry): this is an unnecessary source of duplicate work and
     // should be eliminated ASAP.
-    var graph = await graphForProgram([_source], _options);
+    var graph =
+        await graphForProgram([_source], _options, fileReader: _fileReader);
+    // TODO(paulberry): collect no-longer-referenced files from _fileState and
+    // _fileRepository.
     var libraries = <Uri, ResolvedLibrary>{};
     if (!_schedulerStarted) {
       _scheduler.start();
@@ -76,13 +80,9 @@ class IncrementalResolvedAstGeneratorImpl
     for (var libraryCycle in graph.topologicallySortedCycles) {
       for (var libraryUri in libraryCycle.libraries.keys) {
         var libraryNode = libraryCycle.libraries[libraryUri];
-        var libraryContents =
-            await _options.fileSystem.entityForUri(libraryUri).readAsString();
-        _fileRepository.store(libraryUri, libraryContents);
         for (var partUri in libraryNode.parts) {
-          var partContents =
-              await _options.fileSystem.entityForUri(partUri).readAsString();
-          _fileRepository.store(partUri, partContents);
+          // TODO(paulberry): resolve the part URI.
+          _fileReader(partUri, partUri);
         }
       }
       for (var libraryUri in libraryCycle.libraries.keys) {
@@ -150,11 +150,20 @@ class IncrementalResolvedAstGeneratorImpl
 
   @override
   void invalidateAll() {
+    _fileState.clear();
+    _fileRepository.clearContents();
     // TODO(paulberry): verify that this has an effect (requires a multi-file
     // test).
     if (_isInitialized) {
       _driver.knownFiles.forEach(_driver.changeFile);
     }
+  }
+
+  Future<String> _fileReader(Uri originalUri, Uri resolvedUri) async {
+    String contents = _fileState[resolvedUri] ??=
+        await _options.fileSystem.entityForUri(resolvedUri).readAsString();
+    _fileRepository.store(originalUri, contents);
+    return contents;
   }
 }
 

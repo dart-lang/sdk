@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:front_end/dependency_grapher.dart';
-import 'package:front_end/file_system.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/uri_resolver.dart';
@@ -21,16 +20,25 @@ import 'package:front_end/src/scanner/scanner.dart';
 /// `export`, and `part` declarations to discover a graph of all files involved
 /// in the program.
 ///
+/// If a [fileReader] is supplied, it is used to read file contents; otherwise
+/// they are read directly from `options.fileSystem`.
+///
 /// This is intended for internal use by the front end.  Clients should use
 /// package:front_end/dependency_grapher.dart.
-Future<Graph> graphForProgram(
-    List<Uri> sources, ProcessedOptions options) async {
+Future<Graph> graphForProgram(List<Uri> sources, ProcessedOptions options,
+    {FileReader fileReader}) async {
   var uriResolver = await options.getUriResolver();
-  var walker = new _Walker(options.fileSystem, uriResolver, options.compileSdk);
+  fileReader ??= (originalUri, resolvedUri) =>
+      options.fileSystem.entityForUri(resolvedUri).readAsString();
+  var walker = new _Walker(fileReader, uriResolver, options.compileSdk);
   var startingPoint = new _StartingPoint(walker, sources);
   await walker.walk(startingPoint);
   return walker.graph;
 }
+
+/// Type of the callback function used by [graphForProgram] to read file
+/// contents.
+typedef Future<String> FileReader(Uri originalUri, Uri resolvedUri);
 
 class _Scanner extends Scanner {
   _Scanner(String contents) : super(new CharSequenceReader(contents)) {
@@ -54,13 +62,13 @@ class _StartingPoint extends _WalkerNode {
 }
 
 class _Walker extends AsyncDependencyWalker<_WalkerNode> {
-  final FileSystem fileSystem;
+  final FileReader fileReader;
   final UriResolver uriResolver;
   final _nodesByUri = <Uri, _WalkerNode>{};
   final graph = new Graph();
   final bool compileSdk;
 
-  _Walker(this.fileSystem, this.uriResolver, this.compileSdk);
+  _Walker(this.fileReader, this.uriResolver, this.compileSdk);
 
   @override
   Future<Null> evaluate(_WalkerNode v) {
@@ -105,8 +113,7 @@ class _WalkerNode extends Node<_WalkerNode> {
       // in the proper way and continue.
       throw new StateError('Invalid URI: $uri');
     }
-    var contents =
-        await walker.fileSystem.entityForUri(resolvedUri).readAsString();
+    var contents = await walker.fileReader(uri, resolvedUri);
     var scanner = new _Scanner(contents);
     var token = scanner.tokenize();
     // TODO(paulberry): report errors.
