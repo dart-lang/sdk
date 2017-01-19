@@ -911,11 +911,13 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     return identifier;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<Null> resolveTestUnit(String code, {bool noErrors: true}) async {
     testCode = code;
     testSource = addSource(testCode);
     TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);
-    assertNoErrors(testSource);
+    if (noErrors) {
+      assertNoErrors(testSource);
+    }
     verify([testSource]);
     testUnit = analysisResult.unit;
   }

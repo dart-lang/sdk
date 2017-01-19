@@ -625,6 +625,7 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.INVALID_PARAMETER_DECLARATION,
   StrongModeCode.INVALID_SUPER_INVOCATION,
   StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
+  StrongModeCode.NOT_INSTANTIATED_BOUND,
   StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
   TodoCode.TODO,
 ];

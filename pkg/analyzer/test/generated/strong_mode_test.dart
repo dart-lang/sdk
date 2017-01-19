@@ -1950,7 +1950,7 @@ void test() {
   var cc = new C();
 }
 ''';
-    await resolveTestUnit(code);
+    await resolveTestUnit(code, noErrors: false);
     expectIdentifierType('ai', "A<dynamic>");
     expectIdentifierType('bi', "B<num>");
     expectIdentifierType('ci', "C<int, B<int>, B<dynamic>>");

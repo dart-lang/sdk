@@ -592,9 +592,11 @@ class C2 implements A, B {
   void test_constructors_downwardsWithConstraint() {
     // Regression test for https://github.com/dart-lang/sdk/issues/26431
     checkFile(r'''
-class Foo<T extends Iterable> {}
+class A {}
+class B extends A {}
+class Foo<T extends A> {}
 void main() {
-  Foo<List> foo = /*info:INFERRED_TYPE_ALLOCATION*/new Foo();
+  Foo<B> foo = /*info:INFERRED_TYPE_ALLOCATION*/new Foo();
 }
     ''');
   }
@@ -4277,7 +4279,7 @@ main() {
 
   void test_instantiateToBounds_generic2_hasBound_definedAfter() {
     var unit = checkFile(r'''
-class B<T extends A> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 class A<T extends int> {}
 B v = null;
 ''');
@@ -4287,7 +4289,7 @@ B v = null;
   void test_instantiateToBounds_generic2_hasBound_definedBefore() {
     var unit = checkFile(r'''
 class A<T extends int> {}
-class B<T extends A> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
     expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
@@ -4296,7 +4298,7 @@ B v = null;
   void test_instantiateToBounds_generic2_noBound() {
     var unit = checkFile(r'''
 class A<T> {}
-class B<T extends A> {}
+class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
     expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');

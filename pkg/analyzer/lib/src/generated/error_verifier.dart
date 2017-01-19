@@ -1223,6 +1223,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
+    _checkForNotInstantiatedBound(node.bound);
     return super.visitTypeParameter(node);
   }
 
@@ -5193,6 +5194,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
       }
+    }
+  }
+
+  void _checkForNotInstantiatedBound(TypeAnnotation node) {
+    if (!_options.strongMode ||
+        node == null ||
+        (node is TypeName && node.typeArguments != null)) {
+      return;
+    }
+    DartType type = node.type;
+    if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
     }
   }
 

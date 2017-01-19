@@ -4898,6 +4898,12 @@ class StrongModeCode extends ErrorCode {
       "Missing type arguments for calling generic function type '{0}'.",
       _implicitDynamicCorrection);
 
+  static const StrongModeCode NOT_INSTANTIATED_BOUND = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'NOT_INSTANTIATED_BOUND',
+      "Type parameter bound types must be instantiated.",
+      "Try adding type arguments.");
+
   static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
       ErrorType.STATIC_WARNING,
       'UNSAFE_BLOCK_CLOSURE_INFERENCE',
