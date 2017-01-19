@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("runtime_args.gni")
-
 declare_args() {
   # Instead of using is_debug, we introduce a different flag for specifying a
   # Debug build of Dart so that clients can still use a Release build of Dart
@@ -146,12 +144,6 @@ config("dart_config") {
     defines += [ "DEBUG" ]
   } else {
     defines += [ "NDEBUG" ]
-  }
-
-  include_dirs = []
-  if (dart_use_tcmalloc) {
-    defines += [ "DART_USE_TCMALLOC" ]
-    include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
   if (!is_win) {
