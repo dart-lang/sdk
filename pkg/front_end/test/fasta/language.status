@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-assert_message_test: Crash
-
 const_constructor_syntax_test/01_generated: VerificationError
 const_constructor_syntax_test/02_generated: VerificationError
 const_constructor_syntax_test/03_generated: VerificationError

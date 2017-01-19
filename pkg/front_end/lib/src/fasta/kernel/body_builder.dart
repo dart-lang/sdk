@@ -169,6 +169,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   Expression popForEffect() => toEffect(pop());
 
+  Expression popForValueIfNotNull(Object value) {
+    return value == null ? null : popForValue();
+  }
+
   @override
   Expression toValue(Object node) {
     if (node is UnresolvedIdentifier) {
@@ -1911,7 +1915,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleAssertStatement(
       Token assertKeyword, Token commaToken, Token semicolonToken) {
     debugEvent("AssertStatement");
-    Expression message = popIfNotNull(commaToken);
+    Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
     push(new AssertStatement(condition, message));
   }
