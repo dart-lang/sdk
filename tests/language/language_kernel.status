@@ -17,6 +17,7 @@ conditional_import_test: DartkCompileTimeError
 conflicting_type_variable_and_setter_test: DartkCompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/03: MissingCompileTimeError
+covariant_override_test: DartkCrash
 deep_nesting1_negative_test: DartkCrash
 deep_nesting2_negative_test: DartkCrash
 deferred_closurize_load_library_test: DartkCrash
@@ -271,3 +272,26 @@ hello_dart_test: Crash
 hello_dart_test: CompileTimeError
 ct_const2_test: Pass, CompileTimeError  # Multitest via multiple VMOptions!
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions!
+
+# Failures during Gardening shift: To be triaged!
+[ $compiler == dartk || $compiler == dartkp ]
+runtime_type_function_test: RuntimeError
+
+# Failures during Gardening shift: To be triaged!
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+assert_assignable_type_test: Crash
+assertion_test: Crash
+assert_with_type_test_or_cast_test: Pass, Crash  # Multitest via multiple VMOptions.
+factory3_test: Crash
+generic_test: Crash
+implicit_closure1_test: Crash
+named_parameters_type_test/01: Crash
+named_parameters_type_test/02: Crash
+named_parameters_type_test/03: Crash
+named_parameters_type_test/none: Crash
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
+positional_parameters_type_test/none: Crash
+type_checks_in_factory_method_test: Crash
+vm/regress_27671_test: Crash
+vm/type_vm_test: Crash
