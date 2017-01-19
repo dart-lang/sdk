@@ -593,6 +593,14 @@ class KernelAstAdapter {
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
+  ResolutionInterfaceType getInterfaceType(ir.DartType type) =>
+      getDartType(type);
+
+  ResolutionInterfaceType createInterfaceType(
+      ClassElement cls, List<ResolutionDartType> typeArguments) {
+    return new ResolutionInterfaceType(cls, typeArguments);
+  }
+
   /// Converts [annotations] into a list of [ConstantExpression]s.
   List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
     List<ConstantExpression> metadata = <ConstantExpression>[];
