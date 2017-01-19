@@ -1804,25 +1804,32 @@ class CodeGenerator extends GeneralizingAstVisitor
         continue;
       }
 
-      Function lookup;
       List<JS.Property> tMember;
+      Function getOverride;
+      Function lookup;
+      Function elementToType;
       if (node.isGetter) {
-        lookup = classElem.lookUpInheritedConcreteGetter;
+        elementToType = (ExecutableElement element) => element.type;
+        getOverride = classElem.lookUpInheritedConcreteGetter;
+        lookup = classElem.type.lookUpInheritedGetter;
         tMember = node.isStatic ? tStaticGetters : tInstanceGetters;
       } else if (node.isSetter) {
-        lookup = classElem.lookUpInheritedConcreteSetter;
+        elementToType = (ExecutableElement element) => element.type;
+        getOverride = classElem.lookUpInheritedConcreteSetter;
+        lookup = classElem.type.lookUpInheritedSetter;
         tMember = node.isStatic ? tStaticSetters : tInstanceSetters;
       } else {
         // Method
-        lookup = classElem.lookUpInheritedConcreteMethod;
+        // Swap in "Object" for parameter types that are covariant overrides.
+        var objectType = context.typeProvider.objectType;
+        elementToType =
+            (MethodElement element) => element.getReifiedType(objectType);
+        getOverride = classElem.lookUpInheritedConcreteMethod;
+        lookup = classElem.type.lookUpInheritedMethod;
         tMember = node.isStatic ? tStaticMethods : tInstanceMethods;
       }
 
-      // Swap in "Object" for parameter types that are covariant overrides.
-      var objectType = context.typeProvider.objectType;
-      var reifiedType = element is MethodElement
-          ? element.getReifiedType(objectType)
-          : element.type;
+      DartType reifiedType = elementToType(element);
       var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
           parameters: node.parameters?.parameters,
           nameType: options.hoistSignatureTypes,
@@ -1830,17 +1837,14 @@ class CodeGenerator extends GeneralizingAstVisitor
           definite: true);
 
       // Don't add redundant signatures for inherited methods whose signature
-      // did not change.
-      var needsSignature = true;
-      var inheritedElement = lookup(name, currentLibrary);
-      if (inheritedElement != null) {
-        if (inheritedElement is MethodElement) {
-          needsSignature =
-              inheritedElement.getReifiedType(objectType) != reifiedType;
-        } else {
-          needsSignature = inheritedElement.type != reifiedType;
-        }
-      }
+      // did not change.  If we are not overriding, or if the thing we are
+      // overriding has a different reified type from ourselves, we must
+      // emit a signature on this class.  Otherwise we will inherit the
+      // signature from the superclass.
+      var needsSignature = getOverride(name, currentLibrary) == null ||
+          elementToType(
+                  lookup(name, library: currentLibrary, thisType: false)) !=
+              reifiedType;
 
       if (needsSignature) {
         var memberName = _declareMemberName(element);
