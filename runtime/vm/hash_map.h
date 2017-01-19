@@ -332,6 +332,12 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
 
   intptr_t current = array_[pos].next;
 
+  // If there's only the single element in the bucket and it does not match the
+  // key to be removed, just return.
+  if (current == kNil) {
+    return false;
+  }
+
   // Check the case where the second element in the bucket is the one to be
   // removed.
   if (KeyValueTrait::KeyOf(lists_[current].kv) == key) {
