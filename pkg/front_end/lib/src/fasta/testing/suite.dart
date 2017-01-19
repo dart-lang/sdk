@@ -169,7 +169,9 @@ class Outline extends Step<TestDescription, Program, FeContext> {
     Program platform = await context.createPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
-    dillTarget.loader.setProgram(platform);
+    dillTarget.loader
+        ..input = Uri.parse("org.dartlang:platform") // Make up a name.
+        ..setProgram(platform);
     KernelSourceTarget sourceTarget =
         new KernelSourceTarget(dillTarget, context.uriTranslator);
     Program p;
