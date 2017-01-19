@@ -32,9 +32,9 @@ class DeltaLibraries {
 class ResolvedLibrary {
   final CompilationUnit definingCompilationUnit;
 
-  ResolvedLibrary(this.definingCompilationUnit);
+  final Map<Uri, CompilationUnit> partUnits;
 
-  // TODO(paulberry): add support for parts.
+  ResolvedLibrary(this.definingCompilationUnit, this.partUnits);
 }
 
 /// Interface for generating an initial resolved representation of a program and

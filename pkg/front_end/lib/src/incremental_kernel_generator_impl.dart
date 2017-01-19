@@ -116,9 +116,13 @@ class _AnalysisContextProxy implements AnalysisContext {
   CompilationUnit resolveCompilationUnit(
       Source unitSource, LibraryElement library) {
     assert(_resolvedLibraries.containsKey(library.source.uri));
-    // TODO(paulberry): support parts.
-    assert(unitSource == library.source);
-    return _resolvedLibraries[library.source.uri].definingCompilationUnit;
+    var resolvedLibrary = _resolvedLibraries[library.source.uri];
+    if (unitSource == library.source) {
+      return resolvedLibrary.definingCompilationUnit;
+    } else {
+      assert(resolvedLibrary.partUnits.containsKey(unitSource.uri));
+      return resolvedLibrary.partUnits[unitSource.uri];
+    }
   }
 }
 

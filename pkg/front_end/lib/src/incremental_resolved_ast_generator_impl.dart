@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -73,15 +74,36 @@ class IncrementalResolvedAstGeneratorImpl
     // the data from the summary.  TODO(paulberry): fix this.
     _fileRepository.store(Uri.parse('dart:core'), '');
     for (var libraryCycle in graph.topologicallySortedCycles) {
-      for (var uri in libraryCycle.libraries.keys) {
-        var contents =
-            await _options.fileSystem.entityForUri(uri).readAsString();
-        _fileRepository.store(uri, contents);
+      for (var libraryUri in libraryCycle.libraries.keys) {
+        var libraryNode = libraryCycle.libraries[libraryUri];
+        var libraryContents =
+            await _options.fileSystem.entityForUri(libraryUri).readAsString();
+        _fileRepository.store(libraryUri, libraryContents);
+        for (var partUri in libraryNode.parts) {
+          var partContents =
+              await _options.fileSystem.entityForUri(partUri).readAsString();
+          _fileRepository.store(partUri, partContents);
+        }
       }
-      for (var uri in libraryCycle.libraries.keys) {
-        var result = await _driver.getResult(_fileRepository.pathForUri(uri));
+      for (var libraryUri in libraryCycle.libraries.keys) {
+        var libraryNode = libraryCycle.libraries[libraryUri];
+        var result =
+            await _driver.getResult(_fileRepository.pathForUri(libraryUri));
         // TODO(paulberry): handle errors.
-        libraries[uri] = new ResolvedLibrary(result.unit);
+        var definingCompilationUnit = result.unit;
+        var partUnits = <Uri, CompilationUnit>{};
+        for (var partUri in libraryNode.parts) {
+          // Really we ought to have a driver API that lets us request a
+          // specific part of a given library.  Otherwise we will run into
+          // problems if a part is included in multiple libraries.
+          // TODO(paulberry): address this.
+          var partResult =
+              await _driver.getResult(_fileRepository.pathForUri(partUri));
+          // TODO(paulberry): handle errors.
+          partUnits[partUri] = partResult.unit;
+        }
+        libraries[libraryUri] =
+            new ResolvedLibrary(definingCompilationUnit, partUnits);
       }
     }
     _driver.addFile(_fileRepository.pathForUri(_source));
@@ -246,8 +268,10 @@ class _SourceFactoryProxy implements SourceFactory {
   Source resolveUri(Source containingSource, String containedUri) {
     // TODO(paulberry): re-use code from dependency_grapher_impl, and support
     // SDK URI resolution logic.
-    var absoluteUri = containingSource.uri.resolve(containedUri);
-    return forUri(absoluteUri.toString());
+    var absoluteUri = containingSource == null
+        ? containedUri
+        : containingSource.uri.resolve(containedUri).toString();
+    return forUri(absoluteUri);
   }
 
   @override
