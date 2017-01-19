@@ -118,9 +118,6 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   // ports.
   errno = 0;
   dirent* entry = readdir(reinterpret_cast<DIR*>(lister_));
-  if (entry == NULL) {
-    perror("readdir failed: ");
-  }
   if (entry != NULL) {
     if (!listing->path_buffer().Add(entry->d_name)) {
       done_ = true;

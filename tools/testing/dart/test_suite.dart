@@ -2302,7 +2302,10 @@ class TestUtils {
   static String outputDir(Map configuration) {
     var result = '';
     var system = configuration['system'];
-    if (system == 'linux' || system == 'android' || system == 'windows') {
+    if (system == 'fuchsia' ||
+        system == 'linux' ||
+        system == 'android' ||
+        system == 'windows') {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
@@ -2412,6 +2415,7 @@ class TestUtils {
       case 'android':
         os = 'Android';
         break;
+      case 'fuchsia':
       case 'linux':
       case 'macos':
       case 'windows':

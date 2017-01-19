@@ -167,3 +167,77 @@ group("samples") {
     "runtime/bin:sample_extension",
   ]
 }
+
+
+# The rules below build a qemu Fuchsia OS image that includes the Dart tree
+# under /system/test/dart. Building this image is gated by the GN argument
+# 'dart_build_fuchsia_test_image' because building the image is slow.
+if (defined(is_fuchsia) && (is_fuchsia)) {
+  declare_args() {
+    dart_build_fuchsia_test_image = false
+  }
+
+  if (dart_build_fuchsia_test_image) {
+    action("generate_dart_test_manifest") {
+      testonly = true
+
+      deps = [
+        "//packages/gn:mkbootfs",
+      ]
+
+      output_prefix = "$target_gen_dir/dart_test_tree"
+      outputs = [
+        "$output_prefix.manifest",
+      ]
+
+      mode = "release"
+      if (is_debug) {
+        mode = "debug"
+      }
+
+      mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
+      user_manifest = "$mkbootfs_gen/user.bootfs.manifest"
+
+      script = "tools/gen_fuchsia_test_manifest.py"
+      args = [
+        "-m",
+        mode,
+        "-u",
+        rebase_path(user_manifest),
+        "-o",
+        rebase_path(output_prefix),
+      ]
+    }
+
+    action("generate_dart_test_image") {
+      testonly = true
+      deps = [
+        "runtime/bin:dart",
+        "runtime/bin:run_vm_tests",
+        "runtime/bin:process_test",
+        ":generate_dart_test_manifest",
+      ]
+
+      input = "$target_gen_dir/dart_test_tree.manifest"
+      inputs = [
+        input,
+      ]
+
+      output = "$root_out_dir/dart_test_tree.bin"
+      outputs = [
+        output,
+      ]
+
+      script = "//packages/gn/make_bootfs.py"
+      args = [
+        "--manifest",
+        rebase_path(input),
+        "--output-file",
+        rebase_path(output),
+        "--build-id-map",
+        rebase_path("$target_gen_dir/build_id_map"),
+        "--compress",
+      ]
+    }
+  }
+}
