@@ -47,8 +47,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(context.explicitFileCount, 1); /* test.dart */
 
     if (enableNewAnalysisDriver) {
-      // dart:core (although it should not be here)
-      expect(context.implicitFileCount, 1);
+      expect(context.implicitFileCount, 0);
     } else {
       // dart:core dart:async dart:math dart:_internal
       expect(context.implicitFileCount, 4);

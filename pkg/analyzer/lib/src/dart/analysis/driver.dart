@@ -1549,11 +1549,17 @@ class _ContentCacheWrapper implements ContentCache {
 
   @override
   bool getExists(Source source) {
+    if (source.isInSystemLibrary) {
+      return true;
+    }
     return _getFileForSource(source).exists;
   }
 
   @override
   int getModificationStamp(Source source) {
+    if (source.isInSystemLibrary) {
+      return 0;
+    }
     return _getFileForSource(source).exists ? 0 : -1;
   }
 
