@@ -284,6 +284,3 @@ positional_parameters_type_test/02: Crash
 type_checks_in_factory_method_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
-
-[ $compiler == dartk || $compiler == dartkp ]
-vm/async_await_catch_stacktrace_test: RuntimeError # Issue 28446

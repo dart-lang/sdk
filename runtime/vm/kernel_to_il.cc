@@ -671,10 +671,11 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
 
   if (node->async_marker() == FunctionNode::kSyncYielding) {
     LocalScope* scope = parsed_function_->node_sequence()->scope();
+    intptr_t offset = parsed_function_->function().num_fixed_parameters();
     for (intptr_t i = 0;
          i < parsed_function_->function().NumOptionalPositionalParameters();
          i++) {
-      scope->VariableAt(i)->set_is_forced_stack();
+      scope->VariableAt(offset + i)->set_is_forced_stack();
     }
   }
 
