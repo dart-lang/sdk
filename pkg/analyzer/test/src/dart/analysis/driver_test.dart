@@ -72,6 +72,7 @@ class AnalysisDriverSchedulerTest {
         provider,
         byteStore,
         contentOverlay,
+        'test',
         new SourceFactory(
             [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
             null,

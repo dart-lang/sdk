@@ -27,6 +27,7 @@ import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'jump_handler.dart' show SwitchCaseJumpHandler;
 import 'locals_handler.dart';
 import 'types.dart';
 
@@ -40,8 +41,12 @@ class KernelAstAdapter {
   final Map<ir.Node, Element> _nodeToElement;
   final Map<ir.VariableDeclaration, SyntheticLocal> _syntheticLocals =
       <ir.VariableDeclaration, SyntheticLocal>{};
-  final Map<ir.LabeledStatement, KernelJumpTarget> _jumpTargets =
-      <ir.LabeledStatement, KernelJumpTarget>{};
+  // TODO(efortuna): In an ideal world the TreeNodes should be some common
+  // interface we create for both ir.Statements and ir.SwitchCase (the
+  // ContinueSwitchStatement's target is a SwitchCase) rather than general
+  // TreeNode. Talking to Asger about this.
+  final Map<ir.TreeNode, KernelJumpTarget> _jumpTargets =
+      <ir.TreeNode, KernelJumpTarget>{};
   DartTypeConverter _typeConverter;
   ResolvedAst _resolvedAst;
 
@@ -52,6 +57,7 @@ class KernelAstAdapter {
 
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
       this._nodeToAst, this._nodeToElement) {
+    KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {
       _nodeToElement[kernel.fields[fieldElement]] = fieldElement;
@@ -366,14 +372,13 @@ class KernelAstAdapter {
 
   LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
 
-  JumpTarget getTargetDefinition(ir.Node node) =>
-      elements.getTargetDefinition(getNode(node));
-
-  JumpTarget getTargetOf(ir.Node node) => elements.getTargetOf(getNode(node));
-
-  KernelJumpTarget getJumpTarget(ir.LabeledStatement labeledStatement) =>
-      _jumpTargets.putIfAbsent(labeledStatement, () {
-        return new KernelJumpTarget();
+  KernelJumpTarget getJumpTarget(ir.TreeNode node) =>
+      _jumpTargets.putIfAbsent(node, () {
+        if (node is ir.LabeledStatement &&
+            _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
+          return _jumpTargets[(node as ir.LabeledStatement).body];
+        }
+        return new KernelJumpTarget(node);
       });
 
   LabelDefinition getTargetLabel(ir.Node node) =>
@@ -404,6 +409,19 @@ class KernelAstAdapter {
   TypeMask get traceFromExceptionType =>
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.traceFromException, _globalInferenceResults);
+
+  ir.Procedure get streamIteratorConstructor =>
+      kernel.functions[_backend.helpers.streamIteratorConstructor];
+
+  TypeMask get streamIteratorConstructorType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.streamIteratorConstructor, _globalInferenceResults);
+  ir.Procedure get fallThroughError =>
+      kernel.functions[_backend.helpers.fallThroughError];
+
+  TypeMask get fallThroughErrorType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.fallThroughError, _globalInferenceResults);
 
   ir.Procedure get mapLiteralUntypedMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
@@ -466,6 +484,12 @@ class KernelAstAdapter {
 
   ir.Class get objectClass =>
       kernel.classes[_compiler.commonElements.objectClass];
+
+  ir.Class get futureClass =>
+      kernel.classes[_compiler.commonElements.futureClass];
+
+  TypeMask makeSubtypeOfObject(ClosedWorld closedWorld) =>
+      new TypeMask.subclass(_compiler.commonElements.objectClass, closedWorld);
 
   ir.Procedure get currentIsolate =>
       kernel.functions[_backend.helpers.currentIsolate];
@@ -948,24 +972,35 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 class KernelJumpTarget extends JumpTarget {
   static int index = 0;
 
-  KernelJumpTarget() {
-    labels = <LabelDefinition>[
-      new LabelDefinitionX(null, 'l${index++}', this)..setBreakTarget()
-    ];
-  }
+  /// Pointer to the actual executable statements that a jump target refers to.
+  /// If this jump target was not initially constructed with a LabeledStatement,
+  /// this value is identical to originalStatement.
+  // TODO(efortuna): In an ideal world the Node should be some common
+  // interface we create for both ir.Statements and ir.SwitchCase (the
+  // ContinueSwitchStatement's target is a SwitchCase) rather than general
+  // Node. Talking to Asger about this.
+  ir.Node targetStatement;
+
+  /// The original statement used to construct this jump target.
+  /// If this jump target was not initially constructed with a LabeledStatement,
+  /// this value is identical to targetStatement.
+  ir.Node originalStatement;
 
   @override
-  bool get isBreakTarget => true;
-
-  set isBreakTarget(bool x) {
-    // do nothing, these are always break targets
-  }
+  bool isBreakTarget = false;
 
   @override
-  bool get isContinueTarget => false;
+  bool isContinueTarget = false;
 
-  set isContinueTarget(bool x) {
-    // do nothing, these are always break targets
+  KernelJumpTarget(this.targetStatement) {
+    labels = <LabelDefinition>[];
+    originalStatement = targetStatement;
+    if (targetStatement is ir.LabeledStatement) {
+      targetStatement = (targetStatement as ir.LabeledStatement).body;
+      labels.add(
+          new LabelDefinitionX(null, 'L${index++}', this)..setBreakTarget());
+      isBreakTarget = true;
+    }
   }
 
   @override
@@ -979,10 +1014,10 @@ class KernelJumpTarget extends JumpTarget {
   ExecutableElement get executableContext => null;
 
   @override
-  bool get isSwitch => false;
+  bool get isSwitch => targetStatement is ir.SwitchStatement;
 
   @override
-  bool get isTarget => true;
+  bool get isTarget => isBreakTarget || isContinueTarget;
 
   @override
   List<LabelDefinition> labels;
@@ -995,4 +1030,6 @@ class KernelJumpTarget extends JumpTarget {
 
   @override
   ast.Node get statement => null;
+
+  String toString() => 'Target:$targetStatement';
 }

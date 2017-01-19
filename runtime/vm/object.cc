@@ -29,6 +29,7 @@
 #include "vm/heap.h"
 #include "vm/intrinsifier.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel_to_il.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/precompiler.h"
@@ -9681,7 +9682,8 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
 
 void Library::AddMetadata(const Object& owner,
                           const String& name,
-                          TokenPosition token_pos) const {
+                          TokenPosition token_pos,
+                          kernel::TreeNode* kernel_node) const {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -9694,6 +9696,7 @@ void Library::AddMetadata(const Object& owner,
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
+  field.set_kernel_field(kernel_node);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -9702,34 +9705,37 @@ void Library::AddMetadata(const Object& owner,
 
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
-                               TokenPosition token_pos) const {
+                               TokenPosition token_pos,
+                               kernel::TreeNode* kernel_node) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos);
+              token_pos, kernel_node);
 }
 
 
 void Library::AddFieldMetadata(const Field& field,
-                               TokenPosition token_pos) const {
+                               TokenPosition token_pos,
+                               kernel::TreeNode* kernel_node) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos);
+              token_pos, kernel_node);
 }
 
 
 void Library::AddFunctionMetadata(const Function& func,
-                                  TokenPosition token_pos) const {
+                                  TokenPosition token_pos,
+                                  kernel::TreeNode* kernel_node) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos);
+              token_pos, kernel_node);
 }
 
 
@@ -9801,7 +9807,14 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(field);
+    kernel::TreeNode* kernel_node =
+        reinterpret_cast<kernel::TreeNode*>(field.kernel_field());
+
+    if (kernel_node != NULL) {
+      metadata = kernel::EvaluateMetadata(kernel_node);
+    } else {
+      metadata = Parser::ParseMetadata(field);
+    }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);

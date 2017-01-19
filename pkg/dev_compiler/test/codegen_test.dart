@@ -89,9 +89,6 @@ main(List<String> arguments) {
     path.join('lib', 'collection'),
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
-    // TODO(vsm): Fix these - they import files from a different directory
-    // - this triggers an invalid library root build error.
-    // path.join('lib', 'html', 'custom'),
     path.join('lib', 'math'),
     path.join('lib', 'mirrors'),
     path.join('lib', 'typed_data'),
@@ -263,7 +260,7 @@ List<String> _setUpTests(List<String> testDirs) {
         path.join(dirParts[0] + "_strong", path.joinAll(dirParts.skip(1)));
     var inputPath = path.join(testDirectory, '../../../tests/', sdkTestDir);
 
-    for (var file in _listFiles(inputPath, recursive: false)) {
+    for (var file in _listFiles(inputPath, recursive: true)) {
       var relativePath = path.relative(file, from: inputPath);
       var outputPath = path.join(codegenTestDir, testDir, relativePath);
 
@@ -391,5 +388,13 @@ final _crashingTests = new Set<String>.from([
   'language/mixin_illegal_syntax_test_11_multi',
   'language/mixin_illegal_syntax_test_12_multi',
   'language/mixin_illegal_syntax_test_13_multi',
-  'language/mixin_illegal_syntax_test_14_multi'
+  'language/mixin_illegal_syntax_test_14_multi',
+
+  // TODO(vsm): Fix these - they import files from a different directory
+  // - this triggers an invalid library root build error.
+  'lib/html/custom/attribute_changed_callback_test',
+  'lib/html/custom/entered_left_view_test',
+  'lib/html/custom/js_custom_test',
+  'lib/html/custom/mirrors_test',
+  'lib/html/custom/regress_194523002_test',
 ]);

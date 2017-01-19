@@ -24,6 +24,7 @@ import '../../ast.dart'
         Library,
         MethodInvocation,
         Name,
+        NullLiteral,
         Procedure,
         ProcedureKind,
         Program,
@@ -84,6 +85,11 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
   ///     Context(int i) : list = new List(i);
   VariableDeclaration iParameter = new VariableDeclaration("i",
       type: coreTypes.intClass.rawType, isFinal: true);
+
+  // TODO(karlklose): use the default factory when it is exposed again.
+  Procedure listConstructor = coreTypes.listClass.procedures.firstWhere(
+      (Procedure p) => p.name.name == 'filled');
+
   Constructor constructor = new Constructor(
       new FunctionNode(new EmptyStatement(),
           positionalParameters: <VariableDeclaration>[iParameter]),
@@ -92,9 +98,10 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
         new FieldInitializer(
             listField,
             new StaticInvocation(
-                coreTypes.listClass.procedures.first,
+                listConstructor,
                 new Arguments(<Expression>[
-                  new VariableAccessor(iParameter).buildSimpleRead()
+                  new VariableAccessor(iParameter).buildSimpleRead(),
+                  new NullLiteral(),
                 ], types: <DartType>[
                   const DynamicType()
                 ])))

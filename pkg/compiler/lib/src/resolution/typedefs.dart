@@ -27,12 +27,12 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
   visitTypedef(Typedef node) {
     element.computeType(resolution);
     scope = new TypeDeclarationScope(scope, element);
-    resolveTypeVariableBounds(node.templateParameters);
+    resolveTypeVariableBounds(node.typeParameters);
 
     FunctionSignature signature = SignatureResolver.analyze(
         resolution,
         scope,
-        node.typeParameters,
+        null /* typeVariables */,
         node.formals,
         node.returnType,
         element,

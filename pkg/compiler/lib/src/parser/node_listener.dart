@@ -12,6 +12,7 @@ import '../tokens/token.dart' show ErrorToken, StringToken, Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
+import 'partial_elements.dart' show PartialFunctionElement;
 
 class NodeListener extends ElementListener {
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
@@ -114,58 +115,13 @@ class NodeListener extends ElementListener {
     pushNode(makeNodeList(count, null, null, '\n'));
   }
 
-  void endTypedef(Token typedefKeyword, Token equals, Token endToken) {
-    bool isGeneralizedTypeAlias;
-    NodeList templateParameters;
-    TypeAnnotation returnType;
-    Identifier name;
-    NodeList typeParameters;
-    NodeList formals;
-    if (equals == null) {
-      isGeneralizedTypeAlias = false;
-      formals = popNode();
-      templateParameters = popNode();
-      name = popNode();
-      returnType = popNode();
-    } else {
-      // TODO(floitsch): keep using the `FunctionTypeAnnotation' node.
-      isGeneralizedTypeAlias = true;
-      Node type = popNode();
-      if (type.asFunctionTypeAnnotation() == null) {
-        // TODO(floitsch): The parser should diagnose this problem, not
-        // this listener.
-        // However, this problem goes away, when we allow aliases for
-        // non-function types too.
-        reportFatalError(type, 'Expected a function type.');
-      }
-      FunctionTypeAnnotation functionType = type;
-      templateParameters = popNode();
-      name = popNode();
-      returnType = functionType.returnType;
-      typeParameters = functionType.typeParameters;
-      formals = functionType.formals;
-    }
-    pushNode(new Typedef(
-        isGeneralizedTypeAlias,
-        templateParameters,
-        returnType,
-        name,
-        typeParameters,
-        formals,
-        typedefKeyword,
-        endToken));
-  }
-
-  void handleNoName(Token token) {
-    pushNode(null);
-  }
-
-  void endFunctionType(Token functionToken, Token endToken) {
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     NodeList formals = popNode();
     NodeList typeParameters = popNode();
+    Identifier name = popNode();
     TypeAnnotation returnType = popNode();
-    pushNode(new FunctionTypeAnnotation(
-        returnType, functionToken, typeParameters, formals));
+    pushNode(new Typedef(
+        returnType, name, typeParameters, formals, typedefKeyword, endToken));
   }
 
   void endNamedMixinApplication(
@@ -250,7 +206,7 @@ class NodeListener extends ElementListener {
     NodeList typeArguments = popNode();
     Node classReference = popNode();
     if (typeArguments != null) {
-      classReference = new NominalTypeAnnotation(classReference, typeArguments);
+      classReference = new TypeAnnotation(classReference, typeArguments);
     } else {
       Identifier identifier = classReference.asIdentifier();
       Send send = classReference.asSend();
@@ -835,7 +791,7 @@ class NodeListener extends ElementListener {
       NodeList typeArguments = popNode();
       Node receiver = popNode();
       if (typeArguments != null) {
-        receiver = new NominalTypeAnnotation(receiver, typeArguments);
+        receiver = new TypeAnnotation(receiver, typeArguments);
         recoverableError(typeArguments, 'Type arguments are not allowed here.');
       } else {
         Identifier identifier = receiver.asIdentifier();

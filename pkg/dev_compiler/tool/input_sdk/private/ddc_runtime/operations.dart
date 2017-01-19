@@ -58,7 +58,7 @@ _checkApply(type, actuals) => JS(
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {
-    if (!$instanceOfOrNull($actuals[i], $type.args[i])) return false;
+    $check($actuals[i], $type.args[i]);
     ++index;
   }
   if ($actuals.length == $type.args.length) return true;
@@ -66,7 +66,7 @@ _checkApply(type, actuals) => JS(
   if ($type.optionals.length > 0) {
     if (extras > $type.optionals.length) return false;
     for(let i = 0, j=index; i < extras; ++i, ++j) {
-      if (!$instanceOfOrNull($actuals[j], $type.optionals[i])) return false;
+      $check($actuals[j], $type.optionals[i]);
     }
     return true;
   }
@@ -84,7 +84,7 @@ _checkApply(type, actuals) => JS(
     if (!($hasOwnProperty.call($type.named, name))) {
       return false;
     }
-    if (!$instanceOfOrNull(opts[name], $type.named[name])) return false;
+    $check(opts[name], $type.named[name]);
   }
   return true;
 })()''');

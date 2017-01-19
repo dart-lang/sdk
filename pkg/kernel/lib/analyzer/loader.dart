@@ -108,8 +108,8 @@ class DartLoader implements ReferenceLevelLoader {
   bool get strongMode => context.analysisOptions.strongMode;
 
   DartLoader(this.repository, DartOptions options, Packages packages,
-      {DartSdk dartSdk})
-      : this.context = createContext(options, packages, dartSdk: dartSdk),
+      {DartSdk dartSdk, AnalysisContext context})
+      : this.context = context ?? createContext(options, packages, dartSdk: dartSdk),
         this.applicationRoot = options.applicationRoot;
 
   String getLibraryName(LibraryElement element) {

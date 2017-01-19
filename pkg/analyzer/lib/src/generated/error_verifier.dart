@@ -2281,9 +2281,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // RETURN_WITHOUT_VALUE
     if (returnExpression == null) {
-      if (_inGenerator ||
-          _typeSystem.isAssignableTo(
-              _computeReturnTypeForMethod(null), expectedReturnType)) {
+      if (_inGenerator) {
+        return;
+      } else if (_inAsync) {
+        if (expectedReturnType.isDynamic) {
+          return;
+        }
+        if (expectedReturnType is InterfaceType &&
+            expectedReturnType.isDartAsyncFuture) {
+          DartType futureArgument = expectedReturnType.typeArguments[0];
+          if (futureArgument.isDynamic ||
+              futureArgument.isDartCoreNull ||
+              futureArgument.isObject) {
+            return;
+          }
+        }
+      } else if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
         return;
       }
       _hasReturnWithoutValue = true;
@@ -5476,7 +5489,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (expectedReturnType.isVoid) {
       if (staticReturnType.isVoid ||
           staticReturnType.isDynamic ||
-          staticReturnType.isBottom) {
+          staticReturnType.isBottom ||
+          staticReturnType.isDartCoreNull) {
         return;
       }
       _errorReporter.reportTypeErrorForNode(
@@ -6427,7 +6441,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   bool _isFunctionType(DartType type) {
-    if (type.isDynamic || type.isBottom) {
+    if (type.isDynamic || type.isDartCoreNull) {
       return true;
     } else if (type is FunctionType || type.isDartCoreFunction) {
       return true;

@@ -193,37 +193,6 @@ class ZoneCompileType : public ZoneAllocated {
 };
 
 
-// ConstrainedCompileType represents a compile type that is computed from
-// another compile type.
-class ConstrainedCompileType : public ZoneCompileType {
- public:
-  virtual ~ConstrainedCompileType() {}
-
-  // Recompute compile type.
-  virtual void Update() = 0;
-
- protected:
-  explicit ConstrainedCompileType(const CompileType& type)
-      : ZoneCompileType(type) {}
-};
-
-
-// NotNullConstrainedCompileType represents not-null constraint applied to
-// the source compile type. Result is non-nullable version of the incoming
-// compile type. It is used to represent compile type propagated downwards
-// from strict comparison with the null constant.
-class NotNullConstrainedCompileType : public ConstrainedCompileType {
- public:
-  explicit NotNullConstrainedCompileType(CompileType* source)
-      : ConstrainedCompileType(source->CopyNonNullable()), source_(source) {}
-
-  virtual void Update() { type_ = source_->CopyNonNullable(); }
-
- private:
-  CompileType* source_;
-};
-
-
 class EffectSet : public ValueObject {
  public:
   enum Effects {
@@ -2355,8 +2324,6 @@ class BranchInstr : public Instruction {
   explicit BranchInstr(ComparisonInstr* comparison)
       : Instruction(Thread::Current()->GetNextDeoptId()),
         comparison_(comparison),
-        is_checked_(false),
-        constrained_type_(NULL),
         constant_target_(NULL) {
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
@@ -2376,11 +2343,7 @@ class BranchInstr : public Instruction {
 
   virtual TokenPosition token_pos() const { return comparison_->token_pos(); }
 
-  virtual bool CanDeoptimize() const {
-    // Branches need a deoptimization info in checked mode if they
-    // can throw a type check error.
-    return comparison()->CanDeoptimize() || is_checked();
-  }
+  virtual bool CanDeoptimize() const { return comparison()->CanDeoptimize(); }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     return comparison()->CanBecomeDeoptimizationTarget();
@@ -2391,9 +2354,6 @@ class BranchInstr : public Instruction {
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
 
-  void set_is_checked(bool value) { is_checked_ = value; }
-  bool is_checked() const { return is_checked_; }
-
   virtual intptr_t DeoptimizationTarget() const {
     return comparison()->DeoptimizationTarget();
   }
@@ -2403,16 +2363,6 @@ class BranchInstr : public Instruction {
   }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  // Set compile type constrained by the comparison of this branch.
-  // FlowGraphPropagator propagates it downwards into either true or false
-  // successor.
-  void set_constrained_type(ConstrainedCompileType* type) {
-    constrained_type_ = type;
-  }
-
-  // Return compile type constrained by the comparison of this branch.
-  ConstrainedCompileType* constrained_type() const { return constrained_type_; }
 
   void set_constant_target(TargetEntryInstr* target) {
     ASSERT(target == true_successor() || target == false_successor());
@@ -2443,8 +2393,6 @@ class BranchInstr : public Instruction {
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
   ComparisonInstr* comparison_;
-  bool is_checked_;
-  ConstrainedCompileType* constrained_type_;
   TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);

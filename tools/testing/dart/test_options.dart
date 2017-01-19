@@ -1015,6 +1015,7 @@ Note: currently only implemented for dart2js.''',
     }
     print('Unknown test option $name');
     exit(1);
+    return null; // Unreachable.
   }
 
   List<_TestOptionSpecification> _options;

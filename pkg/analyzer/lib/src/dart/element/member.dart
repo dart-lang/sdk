@@ -603,6 +603,10 @@ class MethodMember extends ExecutableMember implements MethodElement {
   MethodDeclaration computeNode() => baseElement.computeNode();
 
   @override
+  FunctionType getReifiedType(DartType objectType) =>
+      baseElement.getReifiedType(objectType);
+
+  @override
   String toString() {
     MethodElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;

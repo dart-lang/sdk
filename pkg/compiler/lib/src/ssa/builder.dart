@@ -668,8 +668,6 @@ class SsaBuilder extends ast.Visitor
   Local returnLocal;
   ResolutionDartType returnType;
 
-  bool inTryStatement = false;
-
   ConstantValue getConstantForNode(ast.Node node) {
     ConstantValue constantValue =
         backend.constants.getConstantValueForNode(node, elements);
@@ -1070,7 +1068,7 @@ class SsaBuilder extends ast.Visitor
 
     ConstructorElement target = constructor.definingConstructor.implementation;
     bool match = !target.isMalformed &&
-        CallStructure.addForwardingElementArgumentsToList(
+        Elements.addForwardingElementArgumentsToList<HInstruction>(
             constructor,
             arguments,
             target,
@@ -1163,7 +1161,8 @@ class SsaBuilder extends ast.Visitor
           reporter.internalError(
               superClass, "No default constructor available.");
         }
-        List<HInstruction> arguments = CallStructure.NO_ARGS.makeArgumentsList(
+        List<HInstruction> arguments = Elements.makeArgumentsList<HInstruction>(
+            CallStructure.NO_ARGS,
             const Link<ast.Node>(),
             target.implementation,
             null,
@@ -1910,6 +1909,17 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
+  void handleIf(
+      {ast.Node node,
+      void visitCondition(),
+      void visitThen(),
+      void visitElse(),
+      SourceInformation sourceInformation}) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
+    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
+        sourceInformation: sourceInformation);
+  }
+
   visitIf(ast.If node) {
     assert(isReachable);
     handleIf(
@@ -2547,7 +2557,8 @@ class SsaBuilder extends ast.Visitor
       return pop();
     }
 
-    return callStructure.makeArgumentsList(
+    return Elements.makeArgumentsList<HInstruction>(
+        callStructure,
         arguments,
         element,
         compileArgument,
@@ -3435,8 +3446,7 @@ class SsaBuilder extends ast.Visitor
     // calling [makeStaticArgumentList].
     constructorImplementation = constructor.implementation;
     if (constructorImplementation.isMalformed ||
-        !callStructure
-            .signatureApplies(constructorImplementation.functionSignature)) {
+        !callStructure.signatureApplies(constructorImplementation.type)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }
@@ -5053,14 +5063,6 @@ class SsaBuilder extends ast.Visitor
     dup();
   }
 
-  void handleInTryStatement() {
-    if (!inTryStatement) return;
-    HBasicBlock block = close(new HExitTry());
-    HBasicBlock newBlock = graph.addNewBlock();
-    block.addSuccessor(newBlock);
-    open(newBlock);
-  }
-
   visitRethrow(ast.Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
@@ -5985,7 +5987,7 @@ class SsaBuilder extends ast.Visitor
    * [switchCases] must be either an [Iterable] of [ast.SwitchCase] nodes or
    *   a [Link] or a [ast.NodeList] of [ast.SwitchCase] nodes.
    * [getConstants] returns the set of constants for a switch case.
-   * [isDefaultCase] returns [:true:] if the provided switch case should be
+   * [isDefaultCase] returns true if the provided switch case should be
    *   considered default for the created switch statement.
    * [buildSwitchCase] creates the statements for the switch case.
    */

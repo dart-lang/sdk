@@ -756,7 +756,8 @@ class BreakableBlock {
         outer_(builder->breakable_block_),
         destination_(NULL),
         outer_finally_(builder->try_finally_block_),
-        context_depth_(builder->context_depth_) {
+        context_depth_(builder->context_depth_),
+        try_index_(builder->CurrentTryIndex()) {
     builder_->breakable_block_ = this;
   }
   ~BreakableBlock() { builder_->breakable_block_ = outer_; }
@@ -781,7 +782,7 @@ class BreakableBlock {
  private:
   JoinEntryInstr* EnsureDestination() {
     if (destination_ == NULL) {
-      destination_ = builder_->BuildJoinEntry();
+      destination_ = builder_->BuildJoinEntry(try_index_);
     }
     return destination_;
   }
@@ -792,6 +793,7 @@ class BreakableBlock {
   JoinEntryInstr* destination_;
   TryFinallyBlock* outer_finally_;
   intptr_t context_depth_;
+  intptr_t try_index_;
 };
 
 
@@ -802,7 +804,8 @@ class SwitchBlock {
         outer_(builder->switch_block_),
         outer_finally_(builder->try_finally_block_),
         switch_statement_(switch_stmt),
-        context_depth_(builder->context_depth_) {
+        context_depth_(builder->context_depth_),
+        try_index_(builder->CurrentTryIndex()) {
     builder_->switch_block_ = this;
   }
   ~SwitchBlock() { builder_->switch_block_ = outer_; }
@@ -838,7 +841,7 @@ class SwitchBlock {
   JoinEntryInstr* EnsureDestination(SwitchCase* switch_case) {
     JoinEntryInstr* cached_inst = destinations_.Lookup(switch_case);
     if (cached_inst == NULL) {
-      JoinEntryInstr* inst = builder_->BuildJoinEntry();
+      JoinEntryInstr* inst = builder_->BuildJoinEntry(try_index_);
       destinations_.Insert(switch_case, inst);
       return inst;
     }
@@ -867,6 +870,7 @@ class SwitchBlock {
   TryFinallyBlock* outer_finally_;
   SwitchStatement* switch_statement_;
   intptr_t context_depth_;
+  intptr_t try_index_;
 };
 
 
@@ -1319,10 +1323,11 @@ ConstantEvaluator::ConstantEvaluator(FlowGraphBuilder* builder,
       zone_(zone),
       translation_helper_(*h),
       type_translator_(*type_translator),
-      script_(dart::Script::Handle(
+      script_(Script::Handle(
           zone,
-          builder_->parsed_function_->function().script())),
-      result_(dart::Instance::Handle(zone)) {}
+          builder == NULL ? Script::null()
+                          : builder_->parsed_function_->function().script())),
+      result_(Instance::Handle(zone)) {}
 
 
 Instance& ConstantEvaluator::EvaluateExpression(Expression* expression) {
@@ -1468,6 +1473,8 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
 
 
 bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
+  if (builder_ == NULL) return false;
+
   const Function& function = builder_->parsed_function_->function();
   if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
     // Don't cache constants in initializer expressions. They get
@@ -1496,6 +1503,8 @@ bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
 void ConstantEvaluator::CacheConstantValue(TreeNode* node,
                                            const Instance& value) {
   ASSERT(Thread::Current()->IsMutatorThread());
+
+  if (builder_ == NULL) return;
 
   const Function& function = builder_->parsed_function_->function();
   if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
@@ -2597,6 +2606,7 @@ Fragment FlowGraphBuilder::StoreIndexed(intptr_t class_id) {
 
 Fragment FlowGraphBuilder::StoreInstanceField(
     const dart::Field& field,
+    bool is_initialization_store,
     StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
@@ -2605,11 +2615,14 @@ Fragment FlowGraphBuilder::StoreInstanceField(
   StoreInstanceFieldInstr* store = new (Z)
       StoreInstanceFieldInstr(MayCloneField(Z, field), Pop(), value,
                               emit_store_barrier, TokenPosition::kNoSource);
+  store->set_is_initialization(is_initialization_store);
   return Fragment(store);
 }
 
 
-Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
+Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
+    const dart::Field& field,
+    bool is_initialization_store) {
   Fragment instructions;
   const dart::Field& field_clone = MayCloneField(Z, field);
   if (FLAG_use_field_guards) {
@@ -2619,7 +2632,7 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldLength(field_clone, H.thread()->GetNextDeoptId());
   }
-  instructions += StoreInstanceField(field_clone);
+  instructions += StoreInstanceField(field_clone, is_initialization_store);
   return instructions;
 }
 
@@ -2691,7 +2704,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   instructions += AllocateObject(klass, 0);
   LocalVariable* instance = MakeTemporary();
 
-  // Call _AssertionError._create constructor.
+  // Call _TypeError._create constructor.
   instructions += LoadLocal(instance);
   instructions += PushArgument();  // this
 
@@ -3351,7 +3364,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     if (is_method) {
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(setter_value);
-      body += StoreInstanceFieldGuarded(field);
+      body += StoreInstanceFieldGuarded(field, false);
     } else {
       body += LoadLocal(setter_value);
       body += StoreStaticField(field);
@@ -3755,6 +3768,11 @@ TargetEntryInstr* FlowGraphBuilder::BuildTargetEntry() {
 }
 
 
+JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
+  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index);
+}
+
+
 JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry() {
   return new (Z) JoinEntryInstr(AllocateBlockId(), CurrentTryIndex());
 }
@@ -3779,7 +3797,7 @@ Fragment FlowGraphBuilder::TranslateInitializers(
       EnterScope(kernel_field);
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init);
-      instructions += StoreInstanceFieldGuarded(field);
+      instructions += StoreInstanceFieldGuarded(field, true);
       ExitScope(kernel_field);
     }
   }
@@ -3799,7 +3817,7 @@ Fragment FlowGraphBuilder::TranslateInitializers(
 
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init->value());
-      instructions += StoreInstanceFieldGuarded(field);
+      instructions += StoreInstanceFieldGuarded(field, true);
     } else if (initializer->IsSuperInitializer()) {
       SuperInitializer* init = SuperInitializer::Cast(initializer);
 
@@ -5368,7 +5386,7 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
       body_fragment += AllocateObject(klass, 0);
       LocalVariable* instance = MakeTemporary();
 
-      // Call _AssertionError._create constructor.
+      // Call _FallThroughError._create constructor.
       body_fragment += LoadLocal(instance);
       body_fragment += PushArgument();  // this
 
@@ -5559,7 +5577,7 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
       node->message() != NULL
           ? TranslateExpression(node->message())
           : Constant(H.DartString("<no message>", Heap::kOld));
-  otherwise_fragment += PushArgument();  // message
+  otherwise_fragment += PushArgument();  // failedAssertion
 
   otherwise_fragment += Constant(url);
   otherwise_fragment += PushArgument();  // url
@@ -5570,7 +5588,10 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
   otherwise_fragment += IntConstant(0);
   otherwise_fragment += PushArgument();  // column
 
-  otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 5);
+  otherwise_fragment += Constant(H.DartString("<no message>", Heap::kOld));
+  otherwise_fragment += PushArgument();  // message
+
+  otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 6);
   otherwise_fragment += Drop();
 
   // Throw _AssertionError exception.
@@ -5917,6 +5938,116 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
 }
 
 
+RawObject* EvaluateMetadata(TreeNode* const kernel_node) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    Zone* zone_ = thread->zone();
+
+    List<Expression>* metadata_expressions = NULL;
+    if (kernel_node->IsClass()) {
+      metadata_expressions = &Class::Cast(kernel_node)->annotations();
+    } else if (kernel_node->IsProcedure()) {
+      metadata_expressions = &Procedure::Cast(kernel_node)->annotations();
+    } else if (kernel_node->IsField()) {
+      metadata_expressions = &Field::Cast(kernel_node)->annotations();
+    } else if (kernel_node->IsConstructor()) {
+      metadata_expressions = &Constructor::Cast(kernel_node)->annotations();
+    } else {
+      FATAL1("No support for metadata on this type of kernel node %p\n",
+             kernel_node);
+    }
+
+    TranslationHelper translation_helper(thread);
+    DartTypeTranslator type_translator(&translation_helper, NULL, true);
+    ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
+                                         &translation_helper, &type_translator);
+
+    const Array& metadata_values =
+        Array::Handle(Z, Array::New(metadata_expressions->length()));
+
+    for (intptr_t i = 0; i < metadata_expressions->length(); i++) {
+      const Instance& value =
+          constant_evaluator.EvaluateExpression((*metadata_expressions)[i]);
+      metadata_values.SetAt(i, value);
+    }
+
+    return metadata_values.raw();
+  } else {
+    Thread* thread = Thread::Current();
+    Error& error = Error::Handle();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error.raw();
+  }
+}
+
+
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    FunctionNode* function_node = NULL;
+
+    if (kernel_node->IsProcedure()) {
+      function_node = Procedure::Cast(kernel_node)->function();
+    } else if (kernel_node->IsConstructor()) {
+      function_node = Constructor::Cast(kernel_node)->function();
+    } else if (kernel_node->IsFunctionNode()) {
+      function_node = FunctionNode::Cast(kernel_node);
+    } else {
+      UNIMPLEMENTED();
+      return NULL;
+    }
+
+    Thread* thread = Thread::Current();
+    Zone* zone_ = thread->zone();
+    TranslationHelper translation_helper(thread);
+    DartTypeTranslator type_translator(&translation_helper, NULL, true);
+    ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
+                                         &translation_helper, &type_translator);
+
+
+    intptr_t param_count = function_node->positional_parameters().length() +
+                           function_node->named_parameters().length();
+    const Array& param_descriptor = Array::Handle(
+        Array::New(param_count * Parser::kParameterEntrySize, Heap::kOld));
+    for (intptr_t i = 0; i < param_count; ++i) {
+      VariableDeclaration* variable;
+      if (i < function_node->positional_parameters().length()) {
+        variable = function_node->positional_parameters()[i];
+      } else {
+        variable = function_node->named_parameters()[i];
+      }
+
+      param_descriptor.SetAt(
+          i + Parser::kParameterIsFinalOffset,
+          variable->IsFinal() ? Bool::True() : Bool::False());
+
+      if (variable->initializer() != NULL) {
+        param_descriptor.SetAt(
+            i + Parser::kParameterDefaultValueOffset,
+            constant_evaluator.EvaluateExpression(variable->initializer()));
+      } else {
+        param_descriptor.SetAt(i + Parser::kParameterDefaultValueOffset,
+                               Object::null_instance());
+      }
+
+      param_descriptor.SetAt(i + Parser::kParameterMetadataOffset,
+                             /* Issue(28434): Missing parameter metadata. */
+                             Object::null_instance());
+    }
+    return param_descriptor.raw();
+  } else {
+    Thread* thread = Thread::Current();
+    Error& error = Error::Handle();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error.raw();
+  }
+}
+
+
 }  // namespace kernel
 }  // namespace dart
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

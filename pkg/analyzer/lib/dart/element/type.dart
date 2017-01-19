@@ -70,6 +70,12 @@ abstract class DartType implements ResolutionType {
   bool get isDartCoreFunction;
 
   /**
+   * Return `true` if this type represents the type 'Null' defined in the
+   * dart:core library.
+   */
+  bool get isDartCoreNull;
+
+  /**
    * Return `true` if this type represents the type 'dynamic'.
    */
   bool get isDynamic;

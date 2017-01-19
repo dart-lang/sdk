@@ -275,8 +275,7 @@ class InitializerResolver {
           reportAndCreateErroneousConstructor(node, constructorName, kind, {});
     } else {
       lookedupConstructor.computeType(visitor.resolution);
-      if (!callStructure
-          .signatureApplies(lookedupConstructor.functionSignature)) {
+      if (!callStructure.signatureApplies(lookedupConstructor.type)) {
         MessageKind kind = isImplicitSuperCall
             ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
             : MessageKind.NO_MATCHING_CONSTRUCTOR;
@@ -619,7 +618,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     return result;
   }
 
-  ConstructorResult visitNominalTypeAnnotation(NominalTypeAnnotation node) {
+  ConstructorResult visitTypeAnnotation(TypeAnnotation node) {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
     ResolutionDartType type = resolver.resolveTypeAnnotation(node,

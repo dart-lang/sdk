@@ -1396,6 +1396,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreNull {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Null" && element.library.isDartCore;
+  }
+
+  @override
   bool get isObject => element.supertype == null;
 
   @override
@@ -1589,6 +1598,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   bool isMoreSpecificThan(DartType type,
       [bool withDynamic = false, Set<Element> visitedElements]) {
     //
+    // T is Null and S is not Bottom.
+    //
+    if (isDartCoreNull && !type.isBottom) {
+      return true;
+    }
+
     // S is dynamic.
     // The test to determine whether S is dynamic is done here because dynamic
     // is not an instance of InterfaceType.
@@ -2371,6 +2386,9 @@ abstract class TypeImpl implements DartType {
   bool get isDartCoreFunction => false;
 
   @override
+  bool get isDartCoreNull => false;
+
+  @override
   bool get isDynamic => false;
 
   @override
@@ -2551,10 +2569,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       : super(element, element.name);
 
   @override
-  ElementLocation get definition => element.location;
+  DartType get bound => element.bound ?? DynamicTypeImpl.instance;
 
   @override
-  DartType get bound => element.bound ?? DynamicTypeImpl.instance;
+  ElementLocation get definition => element.location;
 
   @override
   TypeParameterElement get element => super.element as TypeParameterElement;

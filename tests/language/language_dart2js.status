@@ -39,12 +39,6 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
 bad_typedef_test/00: Crash # Issue 28214
-generic_function_typedef2_test/00: Crash # Issue 28214
-generic_function_typedef2_test/01: Crash # Issue 28214
-generic_function_typedef2_test/02: Crash # Issue 28214
-generic_function_typedef2_test/03: Crash # Issue 28214
-generic_function_typedef2_test/05: Crash # Issue 28214
-generic_function_typedef2_test/06: Crash # Issue 28214
 
 covariant_test/02: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
 covariant_test/08: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
@@ -198,6 +192,7 @@ f_bounded_quantification5_test: Fail, OK # Issue 12605
 cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
 f_bounded_quantification4_test: Fail, OK # Issue 12605
+generic_closure_test: Fail # Issue 12605
 mixin_generic_test: Fail # Issue 12605
 mixin_mixin2_test: Fail # Issue 12605
 mixin_mixin3_test: Fail # Issue 12605
@@ -232,7 +227,6 @@ mixin_mixin3_test: RuntimeError # Issue 13109.
 modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
-generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 

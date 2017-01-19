@@ -389,7 +389,9 @@ class Isolate {
    * message, using the last response value that was added.
    *
    * If the isolate is already dead, no message will be sent.
-   * If `response` cannot be sent to the isolate, then the request is ignored.
+   *
+   * The [response] object must follow the same restrictions as enforced by
+   * [SendPort.send].
    * It is recommended to only use simple values that can be sent to all
    * isolates, like `null`, booleans, numbers or strings.
    *
@@ -464,6 +466,11 @@ class Isolate {
   /**
    * Request that the isolate send [response] on the [responsePort].
    *
+   * The [response] object must follow the same restrictions as enforced by
+   * [SendPort.send].
+   * It is recommended to only use simple values that can be sent to all
+   * isolates, like `null`, booleans, numbers or strings.
+   *
    * If the isolate is alive, it will eventually send `response`
    * (defaulting to `null`) on the response port.
    *
@@ -478,10 +485,6 @@ class Isolate {
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
-   *
-   * If `response` cannot be sent to the isolate, then the request is ignored.
-   * It is recommended to only use simple values that can be sent to all
-   * isolates, like `null`, booleans, numbers or strings.
    */
   external void ping(SendPort responsePort, {Object response,
                                              int priority: IMMEDIATE});

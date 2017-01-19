@@ -900,11 +900,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (returnTypeType == null || returnTypeType.isVoid) {
         return;
       }
-      // For async, give no hint if Future<Null> is assignable to the return
-      // type.
-      if (body.isAsynchronous &&
-          _typeSystem.isAssignableTo(_futureNullType, returnTypeType)) {
-        return;
+      // For async, give no hint if the return type does not matter, i.e.
+      // dynamic, Future<Null> or Future<dynamic>.
+      if (body.isAsynchronous) {
+        if (returnTypeType.isDynamic) {
+          return;
+        }
+        if (returnTypeType is InterfaceType &&
+            returnTypeType.isDartAsyncFuture) {
+          DartType futureArgument = returnTypeType.typeArguments[0];
+          if (futureArgument.isDynamic ||
+              futureArgument.isDartCoreNull ||
+              futureArgument.isObject) {
+            return;
+          }
+        }
       }
       // Check the block for a return statement, if not, create the hint
       if (!ExitDetector.exits(body)) {
@@ -4179,7 +4189,7 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
-      if (inferred.isBottom) {
+      if (inferred.isBottom || inferred.isDartCoreNull) {
         return;
       }
 
@@ -5322,7 +5332,9 @@ class ResolverVisitor extends ScopedVisitor {
       return null;
     }
 
-    if (potentialType == null || potentialType.isBottom) {
+    if (potentialType == null ||
+        potentialType.isBottom ||
+        potentialType.isDartCoreNull) {
       return null;
     }
     DartType currentType = _overrideManager.getBestType(element);
@@ -5380,7 +5392,11 @@ class ResolverVisitor extends ScopedVisitor {
   void recordPropagatedTypeIfBetter(Expression expression, DartType type,
       [bool hasOldPropagatedType = false]) {
     // Ensure that propagated type invalid.
-    if (strongMode || type == null || type.isDynamic || type.isBottom) {
+    if (strongMode ||
+        type == null ||
+        type.isBottom ||
+        type.isDynamic ||
+        type.isDartCoreNull) {
       if (!hasOldPropagatedType) {
         expression.propagatedType = null;
       }

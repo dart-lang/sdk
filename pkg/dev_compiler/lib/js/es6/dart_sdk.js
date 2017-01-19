@@ -1778,7 +1778,7 @@ dart._checkApply = function(type, actuals) {
   if (actuals.length < type.args.length) return false;
   let index = 0;
   for (let i = 0; i < type.args.length; ++i) {
-    if (!dart.instanceOfOrNull(actuals[i], type.args[i])) return false;
+    dart.check(actuals[i], type.args[i]);
     ++index;
   }
   if (actuals.length == type.args.length) return true;
@@ -1786,7 +1786,7 @@ dart._checkApply = function(type, actuals) {
   if (type.optionals.length > 0) {
     if (extras > type.optionals.length) return false;
     for (let i = 0, j = index; i < extras; ++i, ++j) {
-      if (!dart.instanceOfOrNull(actuals[j], type.optionals[i])) return false;
+      dart.check(actuals[j], type.optionals[i]);
     }
     return true;
   }
@@ -1799,7 +1799,7 @@ dart._checkApply = function(type, actuals) {
     if (!dart.hasOwnProperty.call(type.named, name)) {
       return false;
     }
-    if (!dart.instanceOfOrNull(opts[name], type.named[name])) return false;
+    dart.check(opts[name], type.named[name]);
   }
   return true;
 };

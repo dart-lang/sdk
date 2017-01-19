@@ -3409,8 +3409,8 @@ class CastErrorImplementation extends Error implements CastError {
    * Normal cast error caused by a failed type cast.
    */
   CastErrorImplementation(Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type $actualType to"
-                  " incompatible type $expectedType";
+      : message = "CastError: Casting value of type '$actualType' to"
+                  " incompatible type '$expectedType'";
 
   String toString() => message;
 }
@@ -3514,7 +3514,7 @@ class RuntimeFunctionType extends RuntimeType {
   /// returns true if [this] is a supertype of [expression].
   @NoInline() @NoSideEffects()
   bool _isTest(expression) {
-    var functionTypeObject = _extractFunctionTypeObjectFrom(expression);
+    var functionTypeObject = extractFunctionTypeObjectFrom(expression);
     return functionTypeObject == null
         ? false
         : isFunctionSubtype(functionTypeObject, toRti());
@@ -3542,12 +3542,12 @@ class RuntimeFunctionType extends RuntimeType {
     if (expression == null) return null;
     if (_isTest(expression)) return expression;
 
-    var self = new FunctionTypeInfoDecoderRing(toRti()).toString();
+    var self = runtimeTypeToString(toRti());
     if (isCast) {
-      var functionTypeObject = _extractFunctionTypeObjectFrom(expression);
+      var functionTypeObject = extractFunctionTypeObjectFrom(expression);
       var pretty;
       if (functionTypeObject != null) {
-        pretty = new FunctionTypeInfoDecoderRing(functionTypeObject).toString();
+        pretty = runtimeTypeToString(functionTypeObject);
       } else {
         pretty = Primitives.objectTypeName(expression);
       }
@@ -3556,14 +3556,6 @@ class RuntimeFunctionType extends RuntimeType {
       // TODO(ahe): Pass "pretty" function-type to TypeErrorImplementation?
       throw new TypeErrorImplementation(expression, self);
     }
-  }
-
-  _extractFunctionTypeObjectFrom(o) {
-    var interceptor = getInterceptor(o);
-    var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-    return JS('bool', '# in #', signatureName, interceptor)
-        ? JS('', '#[#]()', interceptor, JS_GET_NAME(JsGetName.SIGNATURE_NAME))
-        : null;
   }
 
   toRti() {
@@ -3655,6 +3647,14 @@ class RuntimeFunctionType extends RuntimeType {
     result += ') -> $returnType';
     return result;
   }
+}
+
+extractFunctionTypeObjectFrom(o) {
+  var interceptor = getInterceptor(o);
+  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+  return JS('bool', '# in #', signatureName, interceptor)
+      ? JS('', '#[#]()', interceptor, signatureName)
+      : null;
 }
 
 RuntimeFunctionType buildFunctionType(returnType,
@@ -3816,58 +3816,8 @@ class FunctionTypeInfoDecoderRing {
     return const DynamicRuntimeType();
   }
 
-  String _convert(type) {
-    String result = runtimeTypeToString(type);
-    if (result != null) return result;
-    // Currently the [runtimeTypeToString] method doesn't handle function rtis.
-    if (JS('bool', '"func" in #', type)) {
-      return new FunctionTypeInfoDecoderRing(type).toString();
-    } else {
-      throw 'bad type';
-    }
-  }
-
   String toString() {
-    if (_cachedToString != null) return _cachedToString;
-    var s = "(";
-    var sep = '';
-    if (_hasArguments) {
-      for (var argument in _arguments) {
-        s += sep;
-        s += _convert(argument);
-        sep = ', ';
-      }
-    }
-    if (_hasOptionalArguments) {
-      s += '$sep[';
-      sep = '';
-      for (var argument in _optionalArguments) {
-        s += sep;
-        s += _convert(argument);
-        sep = ', ';
-      }
-      s += ']';
-    }
-    if (_hasNamedArguments) {
-      s += '$sep{';
-      sep = '';
-      for (var name in extractKeys(_namedArguments)) {
-        s += sep;
-        s += '$name: ';
-        s += _convert(JS('', '#[#]', _namedArguments, name));
-        sep = ', ';
-      }
-      s += '}';
-    }
-    s += ') -> ';
-    if (_isVoid) {
-      s += 'void';
-    } else if (_hasReturnType) {
-      s += _convert(_returnType);
-    } else {
-      s += 'dynamic';
-    }
-    return _cachedToString = "$s";
+    return _cachedToString ??= runtimeTypeToString(_typeData);
   }
 }
 

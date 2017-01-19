@@ -991,23 +991,8 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 }
 
 
-void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
-  BranchInstr* branch;
-  if (Token::IsStrictEqualityOperator(comp->kind())) {
-    ASSERT(comp->IsStrictCompare());
-    branch = new (Z) BranchInstr(comp);
-  } else if (Token::IsEqualityOperator(comp->kind()) &&
-             (comp->left()->BindsToConstantNull() ||
-              comp->right()->BindsToConstantNull())) {
-    branch = new (Z) BranchInstr(new (Z) StrictCompareInstr(
-        comp->token_pos(),
-        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-        comp->left(), comp->right(),
-        false));  // No number check.
-  } else {
-    branch = new (Z) BranchInstr(comp);
-    branch->set_is_checked(Isolate::Current()->type_checks());
-  }
+void TestGraphVisitor::MergeBranchWithStrictCompare(StrictCompareInstr* comp) {
+  BranchInstr* branch = new (Z) BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_addresses_.Add(branch->true_successor_address());
@@ -1030,9 +1015,9 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
 
 
 void TestGraphVisitor::ReturnDefinition(Definition* definition) {
-  ComparisonInstr* comp = definition->AsComparison();
+  StrictCompareInstr* comp = definition->AsStrictCompare();
   if (comp != NULL) {
-    MergeBranchWithComparison(comp);
+    MergeBranchWithStrictCompare(comp);
     return;
   }
   if (!Isolate::Current()->type_checks()) {

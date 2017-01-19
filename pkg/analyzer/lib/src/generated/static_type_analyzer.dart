@@ -981,8 +981,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitNullLiteral(NullLiteral node) {
-    // TODO(jmesserly): in strong mode, should we just use the context type?
-    _recordStaticType(node, _typeProvider.bottomType);
+    _recordStaticType(node, _typeProvider.nullType);
     return null;
   }
 
@@ -2079,7 +2078,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // * ExpressionFunctionBody, when the surrounding context had a better type.
     // * BlockFunctionBody, if we inferred a type from yield/return.
     // * we also normalize bottom to dynamic here.
-    if (_strongMode && (computedType.isBottom || computedType.isDynamic)) {
+    if (_strongMode &&
+        (computedType.isDartCoreNull || computedType.isDynamic)) {
       DartType contextType = InferenceContext.getContext(body);
       if (contextType is FutureUnionType) {
         // TODO(jmesserly): can we do something better here?
@@ -2107,14 +2107,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   void _inferLocalVariableType(
       VariableDeclaration node, Expression initializer) {
-    if (initializer != null &&
-        (node.parent as VariableDeclarationList).type == null &&
-        (resolutionMap.staticTypeForExpression(initializer) != null) &&
-        (!resolutionMap.staticTypeForExpression(initializer).isBottom)) {
-      VariableElement element = node.element;
-      if (element is LocalVariableElementImpl) {
-        element.type = initializer.staticType;
-        node.name.staticType = initializer.staticType;
+    if (initializer != null) {
+      AstNode parent = node.parent;
+      if (parent is VariableDeclarationList && parent.type == null) {
+        DartType type = resolutionMap.staticTypeForExpression(initializer);
+        if (type != null && !type.isBottom && !type.isDartCoreNull) {
+          VariableElement element = node.element;
+          if (element is LocalVariableElementImpl) {
+            element.type = initializer.staticType;
+            node.name.staticType = initializer.staticType;
+          }
+        }
       }
     }
   }
@@ -2269,7 +2272,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param type the propagated type of the node
    */
   void _recordPropagatedType(Expression expression, DartType type) {
-    if (!_strongMode && type != null && !type.isDynamic && !type.isBottom) {
+    if (!_strongMode &&
+        type != null &&
+        !type.isBottom &&
+        !type.isDynamic &&
+        !type.isDartCoreNull) {
       expression.propagatedType = type;
     }
   }
@@ -2293,8 +2300,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (propagatedReturnType == null) {
       return;
     }
-    // Ignore 'bottom' type.
-    if (propagatedReturnType.isBottom) {
+    // Ignore 'Bottom' and 'Null' types.
+    if (propagatedReturnType.isBottom || propagatedReturnType.isDartCoreNull) {
       return;
     }
     // Record only if we inferred more specific type.
@@ -2410,7 +2417,7 @@ class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     if (expression != null) {
       type = expression.bestType;
     } else {
-      type = BottomTypeImpl.instance;
+      type = _typeProvider.nullType;
     }
     // merge types
     if (result == null) {

@@ -765,7 +765,7 @@ void testRegression28359() {
   Expect.isTrue(uri.hasAuthority, "$uri has authority");
 
   uri = new Uri(path: "file:///wat");
-  // This is an invalid pat for a URI reference with no authority or scheme
+  // This is an invalid path for a URI reference with no authority or scheme
   // since the path looks like it starts with a scheme.
   // Normalized by escaping the ":".
   Expect.equals("file%3A///wat", uri.path);
@@ -835,7 +835,7 @@ main() {
   Expect.throws(
       () => Uri.parse("http:").origin,
       (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
+      "origin for URI with empty host should fail");
   Expect.throws(
       () => new Uri(
           scheme: "http",
@@ -846,7 +846,7 @@ main() {
           query: "query",
           fragment: "fragment").origin,
       (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
+      "origin for URI with empty host should fail");
   Expect.throws(
       () => new Uri(
           scheme: null,
@@ -857,7 +857,7 @@ main() {
           query: "query",
           fragment: "fragment").origin,
       (e) { return e is StateError; },
-      "origin for uri with empty scheme should fail");
+      "origin for URI with empty scheme should fail");
   Expect.throws(
       () => new Uri(
           scheme: "http",
@@ -868,11 +868,11 @@ main() {
           query: "query",
           fragment: "fragment").origin,
       (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
+      "origin for URI with empty host should fail");
   Expect.throws(
       () => Uri.parse("http://:80").origin,
       (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
+      "origin for URI with empty host should fail");
   Expect.throws(
       () => Uri.parse("file://localhost/test.txt").origin,
       (e) { return e is StateError; },

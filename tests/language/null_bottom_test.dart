@@ -113,7 +113,7 @@ void testFunctionTypes() {
     // If type promotion succeeds, the static type is int->Null, otherwise
     // it's Null->int.
     fun2(42);  // Should not give a warning after type promotion.
-    fun2(null).abs();  /// 03: static type warning, runtime error
+    fun2(null).abs();  /// 03: runtime error
   }
 }
 
@@ -125,9 +125,9 @@ class T1 {
 }
 
 class T2 extends T1 {
-  Null foo(Null x) => null;  /// 01: static type warning
+  Null foo(Null x) => null;
   Null bar(Null x) => null;
-  int baz(int x) => x;  /// 02: static type warning
+  int baz(int x) => x;
   int qux(int x) => x;
 }
 

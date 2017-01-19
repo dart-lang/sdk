@@ -126,9 +126,11 @@ class DartEntry : public AllStatic {
 
   // Invokes the specified instance, static, or closure function.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeFunction(const Function& function,
-                                   const Array& arguments,
-                                   const Array& arguments_descriptor);
+  static RawObject* InvokeFunction(
+      const Function& function,
+      const Array& arguments,
+      const Array& arguments_descriptor,
+      uword current_sp = Thread::GetCurrentStackPointer());
 
   // Invokes the closure object given as the first argument.
   // On success, returns a RawInstance.  On failure, a RawError.

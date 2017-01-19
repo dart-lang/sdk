@@ -219,8 +219,7 @@ class NoSuchMethodRegistry {
     }
     if (expr is Send && expr.isTypeCast) {
       Send sendExpr = expr;
-      var typeAnnotation = sendExpr.typeAnnotationFromIsCheckOrCast;
-      var typeName = typeAnnotation.asNominalTypeAnnotation()?.typeName;
+      var typeName = sendExpr.typeAnnotationFromIsCheckOrCast.typeName;
       if (typeName is Identifier && typeName.source == "dynamic") {
         expr = sendExpr.receiver;
       }

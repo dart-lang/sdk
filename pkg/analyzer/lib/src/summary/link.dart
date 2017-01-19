@@ -247,7 +247,7 @@ EntityRefBuilder _createLinkedType(
 }
 
 DartType _dynamicIfNull(DartType type) {
-  if (type == null || type.isBottom || type.isVoid) {
+  if (type == null || type.isBottom || type.isDartCoreNull || type.isVoid) {
     return DynamicTypeImpl.instance;
   }
   return type;
@@ -2006,7 +2006,7 @@ class ExprTypeComputer {
           stack.add(typeProvider.symbolType);
           break;
         case UnlinkedExprOperation.pushNull:
-          stack.add(BottomTypeImpl.instance);
+          stack.add(typeProvider.nullType);
           break;
         case UnlinkedExprOperation.pushReference:
           _doPushReference();

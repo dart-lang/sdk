@@ -428,6 +428,9 @@ abstract class String implements Comparable<String>, Pattern {
    * except that the first match of [pattern], starting from [startIndex],
    * is replaced by the result of calling [replace] with the match object.
    *
+   * The optional [startIndex] is by default set to 0. If provided, it must be
+   * an integer in the range `[0 .. len]`, where `len` is this string's length.
+   *
    * If the value returned by calling `replace` is not a [String], it
    * is converted to a `String` using its `toString` method, which must
    * then return a string.

@@ -63,6 +63,9 @@ io/raw_server_socket_cancel_test: Skip # Issue 28182
 io/http_proxy_test: Skip
 io/secure_builtin_roots_test: Skip
 
+# This test might be slow on an opt counter threshold bot.
+io/http_basic_test: Pass, Slow
+
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
@@ -358,6 +361,9 @@ io/raw_secure_socket_test: RuntimeError
 io/https_bad_certificate_test: RuntimeError
 io/secure_server_closing_test: RuntimeError
 
+[ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
+io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
+
 [ $runtime == vm || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
@@ -379,10 +385,11 @@ io/socket_ipv6_test: SkipByDesign
 io/socket_info_ipv6_test: SkipByDesign
 
 [ $builder_tag == asan && $arch == x64 ]
+io/process_detached_test: Pass, Slow
+
 io/directory_error_test: Fail # Issue 28350
 io/directory_fuzz_test: Fail # Issue 28350
 io/directory_list_nonexistent_test: Fail # Issue 28350
-
 io/stdout_bad_argument_test: Fail # Issue 28353
 io/file_blocking_lock_test: Fail # Issue 28353
 

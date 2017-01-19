@@ -37,7 +37,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [getVersion](#getversion)
 	- [getVM](#getvm)
 	- [pause](#pause)
-	- [reloadSources](#reloadSources)
+	- [reloadSources](#reloadsources)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
 	- [setExceptionPauseMode](#setexceptionpausemode)
@@ -2183,7 +2183,7 @@ An _Object_ is a  persistent object that is owned by some isolate.
 ```
 class ReloadReport extends Response {
   // Did the reload succeed or fail?
-  bool status;
+  bool success;
 }
 ```
 

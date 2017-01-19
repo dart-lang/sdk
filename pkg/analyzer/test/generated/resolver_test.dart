@@ -1204,6 +1204,22 @@ main() {
     }
   }
 
+  test_assignment_throwExpression() async {
+    Source source = addSource(r'''
+f() {
+  var v = 1;
+  v = throw 2;
+  return v;
+}''');
+    CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
+    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[2] as ReturnStatement;
+    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+    expect(variableName.propagatedType, same(typeProvider.intType));
+  }
+
   test_CanvasElement_getContext() async {
     String code = r'''
 import 'dart:html';
@@ -1593,6 +1609,21 @@ main() {
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
+  }
+
+  test_initializer_throwExpression() async {
+    Source source = addSource(r'''
+f() {
+  var v = throw 2;
+  return v;
+}''');
+    CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
+    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
+    BlockFunctionBody body =
+        function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as VariableDeclarationStatement;
+    SimpleIdentifier variableName = statement.variables.variables[0].name;
+    expect(variableName.propagatedType, isNull);
   }
 
   test_invocation_target_prefixed() async {

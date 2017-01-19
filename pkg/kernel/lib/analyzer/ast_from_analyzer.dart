@@ -2840,6 +2840,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
+    addAnnotations(node.metadata);
     var function = node.functionExpression;
     ast.Procedure procedure = currentMember;
     procedure.function = scope.buildFunctionNode(

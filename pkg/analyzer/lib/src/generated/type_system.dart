@@ -24,7 +24,7 @@ import 'package:analyzer/src/generated/utilities_general.dart'
     show JenkinsSmiHash;
 
 bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
-  return (t.isDynamic && dynamicIsBottom) || t.isBottom;
+  return (t.isDynamic && dynamicIsBottom) || t.isBottom || t.isDartCoreNull;
 }
 
 bool _isTop(DartType t, {bool dynamicIsBottom: false}) {

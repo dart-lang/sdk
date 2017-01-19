@@ -721,6 +721,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   TargetEntryInstr* BuildTargetEntry();
   JoinEntryInstr* BuildJoinEntry();
+  JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
   Fragment TranslateArguments(Arguments* node, Array* argument_names);
   ArgumentArray GetArguments(int count);
@@ -815,9 +816,11 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                       intptr_t argument_count,
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment StoreInstanceFieldGuarded(const dart::Field& field);
+  Fragment StoreInstanceFieldGuarded(const dart::Field& field,
+                                     bool is_initialization_store);
   Fragment StoreInstanceField(
       const dart::Field& field,
+      bool is_initialization_store,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       intptr_t offset,
@@ -946,6 +949,24 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
 };
+
+RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
+
+
+}  // namespace kernel
+}  // namespace dart
+
+#else  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#include "vm/object.h"
+#include "vm/kernel.h"
+
+namespace dart {
+namespace kernel {
+
+RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 }  // namespace kernel
 }  // namespace dart

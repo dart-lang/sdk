@@ -6238,6 +6238,33 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
+
+  @override
+  FunctionType getReifiedType(DartType objectType) {
+    // Collect the covariant parameters. Do this first so we don't allocate
+    // anything in the common case where there are none.
+    Set<String> covariantNames;
+    for (ParameterElement parameter in parameters) {
+      if (parameter.isCovariant) {
+        covariantNames ??= new Set();
+        covariantNames.add(parameter.name);
+      }
+    }
+
+    if (covariantNames == null) return type;
+
+    List<ParameterElement> covariantParameters = parameters.map((parameter) {
+      if (!covariantNames.contains(parameter.name)) {
+        return parameter;
+      }
+
+      return new ParameterElementImpl.synthetic(
+          parameter.name, objectType, parameter.parameterKind);
+    }).toList();
+
+    return new FunctionElementImpl.synthetic(covariantParameters, returnType)
+        .type;
+  }
 }
 
 /**

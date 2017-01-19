@@ -576,6 +576,7 @@ class TestTypeProvider extends TypeProviderBase {
     //
     objectType;
     boolType;
+    nullType;
     stringType;
     //
     // Add the methods.

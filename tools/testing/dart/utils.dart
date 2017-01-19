@@ -14,9 +14,9 @@ import 'path.dart';
 const Duration MAX_STDIO_DELAY = const Duration(seconds: 30);
 
 String MAX_STDIO_DELAY_PASSED_MESSAGE =
-    """Not waiting for stdout/stderr from subprocess anymore 
-($MAX_STDIO_DELAY passed). Please note that this could be an indicator 
-that there is a hanging process which we were unable to kill.""";
+    """Not waiting for stdout/stderr from subprocess anymore
+ ($MAX_STDIO_DELAY passed). Please note that this could be an indicator
+ that there is a hanging process which we were unable to kill.""";
 
 class DebugLogger {
   static IOSink _sink;

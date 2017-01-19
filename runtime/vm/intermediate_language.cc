@@ -3611,7 +3611,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
         pieces.SetAt(store_index, Bool::Cast(obj).value() ? Symbols::True()
                                                           : Symbols::False());
       } else if (obj.IsNull()) {
-        pieces.SetAt(store_index, Symbols::Null());
+        pieces.SetAt(store_index, Symbols::null());
       } else {
         return this;
       }

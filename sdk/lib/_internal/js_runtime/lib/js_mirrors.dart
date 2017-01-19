@@ -2803,6 +2803,10 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     DeclarationMirror owner, var /*int|List|JsFunction|TypeImpl*/ type) {
   // TODO(ahe): This method might benefit from using convertRtiToRuntimeType
   // instead of working on strings.
+  if (type == null) {
+    return JsMirrorSystem._dynamicType;
+  }
+
   ClassMirror ownerClass;
   DeclarationMirror context = owner;
   while (context != null) {
@@ -2816,9 +2820,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
   }
 
   String representation;
-  if (type == null) {
-    return JsMirrorSystem._dynamicType;
-  } else if (type is TypeImpl) {
+  if (type is TypeImpl) {
     return reflectType(type);
   } else if (ownerClass == null) {
     representation = runtimeTypeToString(type);
@@ -2876,10 +2878,10 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
         getMangledTypeName(createRuntimeType(representation)));
   }
   String typedefPropertyName = JS_GET_NAME(JsGetName.TYPEDEF_TAG);
-  if (type != null && JS('', '#[#]', type, typedefPropertyName) != null) {
+  if (JS('', '#[#]', type, typedefPropertyName) != null) {
     return typeMirrorFromRuntimeTypeRepresentation(
         owner, JS('', '#[#]', type, typedefPropertyName));
-  } else if (type != null && isDartFunctionType(type)) {
+  } else if (isDartFunctionType(type)) {
     return new JsFunctionTypeMirror(type, owner);
   }
   return reflectClass(Function);

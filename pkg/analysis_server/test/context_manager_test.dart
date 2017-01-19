@@ -2712,9 +2712,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
         resourceProvider,
         new MemoryByteStore(),
         new FileContentOverlay(),
+        path,
         sourceFactory,
         analysisOptions);
-    currentDriver.name = path;
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.logger

@@ -35,11 +35,16 @@ abstract class GraphBuilder {
   /// A reference to the compiler.
   Compiler compiler;
 
-  /// The JavaScript backend we are targeting in this compilation.
-  JavaScriptBackend get backend;
+  /// True if the builder is processing nodes inside a try statement. This is
+  /// important for generating control flow out of a try block like returns or
+  /// breaks.
+  bool inTryStatement = false;
 
   /// The tree elements for the element being built into an SSA graph.
   TreeElements get elements;
+
+  /// The JavaScript backend we are targeting in this compilation.
+  JavaScriptBackend get backend;
 
   CodegenRegistry get registry;
 
@@ -180,17 +185,6 @@ abstract class GraphBuilder {
     return result;
   }
 
-  void handleIf(
-      {ast.Node node,
-      void visitCondition(),
-      void visitThen(),
-      void visitElse(),
-      SourceInformation sourceInformation}) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
-    branchBuilder.handleIf(visitCondition, visitThen, visitElse,
-        sourceInformation: sourceInformation);
-  }
-
   HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
     if (statements == null) return null;
     return new HSubGraphBlockInformation(statements);
@@ -237,6 +231,16 @@ abstract class GraphBuilder {
     return callSetRuntimeTypeInfo(typeInfo, newObject);
   }
 
+  /// Called when control flow is about to change, in which case we need to
+  /// specify special successors if we are already in a try/catch/finally block.
+  void handleInTryStatement() {
+    if (!inTryStatement) return;
+    HBasicBlock block = close(new HExitTry());
+    HBasicBlock newBlock = graph.addNewBlock();
+    block.addSuccessor(newBlock);
+    open(newBlock);
+  }
+
   HInstruction callSetRuntimeTypeInfo(
       HInstruction typeInfo, HInstruction newObject);
 
@@ -263,14 +267,6 @@ class ReifiedTypeRepresentationBuilder
       ResolutionTypeVariableType type, GraphBuilder builder) {
     ClassElement cls = builder.backend.helpers.RuntimeType;
     TypeMask instructionType = new TypeMask.subclass(cls, closedWorld);
-
-    // TODO(floitsch): this hack maps type variables of generic function
-    // typedefs to dynamic. For example: `typedef F = Function<T>(T)`.
-    if (type is MethodTypeVariableType) {
-      visitDynamicType(const ResolutionDynamicType(), builder);
-      return;
-    }
-
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();

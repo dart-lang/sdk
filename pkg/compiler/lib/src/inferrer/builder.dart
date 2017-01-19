@@ -2316,8 +2316,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn'TypeInformation break anything
-    if (target.isMalformed ||
-        !callStructure.signatureApplies(target.functionSignature)) {
+    if (target.isMalformed || !callStructure.signatureApplies(target.type)) {
       return types.dynamicType;
     }
 

@@ -1079,7 +1079,6 @@ class StandardTestSuite extends TestSuite {
       List<String> otherResources = info.optionsFromFile['otherResources'];
       for (String name in otherResources) {
         Path namePath = new Path(name);
-        String fileName = namePath.filename;
         Path fromPath = info.filePath.directoryPath.join(namePath);
         new File('$tempDir/$name').parent.createSync(recursive: true);
         new File(fromPath.toNativePath()).copySync('$tempDir/$name');
@@ -1171,6 +1170,7 @@ class StandardTestSuite extends TestSuite {
     // Unreachable
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
+    return null;
   }
 
   Uri _getUriForBrowserTest(String pathComponent, String subtestName) {
@@ -1829,7 +1829,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler', 'app_jit'];
+    var COMPILERS = const ['none', 'dartk', 'dartkp', 'precompiler', 'app_jit'];
     var RUNTIMES = const [
       'none',
       'dart_precompiled',

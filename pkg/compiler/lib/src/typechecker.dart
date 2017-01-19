@@ -809,13 +809,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
           if (memberName.isSimilarTo(member.name)) {
             PrivateName privateName = member.name;
             LibraryElement library = privateName.library;
-            reportMessage(
-                node,
-                MessageKind.PRIVATE_ACCESS,
-                {
-                  'name': name,
-                  'libraryName': library.libraryOrScriptName
-                },
+            reportMessage(node, MessageKind.PRIVATE_ACCESS,
+                {'name': name, 'libraryName': library.libraryOrScriptName},
                 isHint: isHint);
             foundPrivateMember = true;
           }

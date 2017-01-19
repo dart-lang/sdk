@@ -1581,7 +1581,9 @@ Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer, ApiReallocate,
                             NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
-  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  if (vm_isolate_snapshot_buffer != NULL) {
+    *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  }
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
   return Api::Success();
 }

@@ -18,6 +18,7 @@ dart_messages/test/dart_messages_test: Skip  # Requires a package root.
 
 # Skip dev_compiler codegen tests
 dev_compiler/test/codegen/*: Skip
+dev_compiler/gen/*: SkipByDesign
 
 [ $runtime == vm && $mode == release && $system == linux ]
 kernel/test/closures_test: Slow, Pass
@@ -30,7 +31,6 @@ kernel/test/closures_test: Skip
 dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
-dev_compiler/gen/*: SkipByDesign
 dev_compiler/test/options/*: SkipByDesign
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
@@ -68,6 +68,8 @@ compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
+front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
 front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io

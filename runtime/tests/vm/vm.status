@@ -30,24 +30,6 @@ cc/Sleep: Pass, Fail
 
 dart/data_uri_import_test/none: SkipByDesign
 
-[ $mode == debug && $arch != ia32 && $system != windows ]
-cc/Profiler_ArrayAllocation: Fail # 28304
-cc/Profiler_BasicSourcePosition: Fail # 28304
-cc/Profiler_BasicSourcePositionOptimized: Fail, Crash # 28304, # 28282
-cc/Profiler_BinaryOperatorSourcePosition: Fail # 28304
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail # 28304
-cc/Profiler_ChainedSamples: Fail # 28304
-cc/Profiler_ClosureAllocation: Fail # 28304
-cc/Profiler_CodeTicks: Fail # 28304
-cc/Profiler_ContextAllocation: Fail # 28304
-cc/Profiler_FunctionInline: Fail # 28304
-cc/Profiler_FunctionTicks: Fail # 28304
-cc/Profiler_SourcePosition: Fail # 28304
-cc/Profiler_SourcePositionOptimized: Fail # 28304
-cc/Profiler_ToggleRecordAllocation: Fail # 28304
-cc/Profiler_TrivialRecordAllocation: Fail # 28304
-cc/Profiler_TypedArrayAllocation: Fail # 28304
-
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
@@ -168,18 +150,6 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == asan && $arch == x64 ]
-cc/Service_Profile: Fail # Issue 28342
-cc/Service_PersistentHandles: Fail # Issue 28342
-cc/Service_EmbedderIsolateHandler: Fail # Issue 28342
-cc/Service_LocalVarDescriptors: Fail # Issue 28342
-cc/Service_Code: Fail # Issue 28342
-cc/Service_EmbedderRootHandler: Fail # Issue 28342
-cc/Service_TokenStream: Fail # Issue 28342
-cc/Service_PcDescriptors: Fail # Issue 28342
-cc/Service_Address: Fail # Issue 28342
-
-cc/EmbeddedScript: Fail # Issue 28345
-
 cc/Log_Basic: Fail # Issue 28347
 cc/Log_Block: Fail # Issue 28347
 cc/Log_Macro: Fail # Issue 28347
@@ -256,9 +226,9 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 # StackTraces in precompilation omit inlined frames.
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $compiler == app_jit || $compiler == precompiler ]
-dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]

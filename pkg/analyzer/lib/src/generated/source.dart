@@ -174,6 +174,12 @@ class DartUriResolver extends UriResolver {
     return _sdk.mapDartUri(uri.toString());
   }
 
+  @override
+  Uri restoreAbsolute(Source source) {
+    Source dartSource = _sdk.fromFileUri(source.uri);
+    return dartSource?.uri;
+  }
+
   /**
    * Return `true` if the given URI is a `dart-ext:` URI.
    *

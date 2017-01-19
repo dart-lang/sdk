@@ -1129,8 +1129,8 @@ class CorrectionUtils {
       parametersBuffer.write(')');
       return getTypeSource(type.returnType, librariesToImport);
     }
-    // BottomType
-    if (type.isBottom) {
+    // <Bottom>, Null
+    if (type.isBottom || type.isDartCoreNull) {
       return 'dynamic';
     }
     // prepare element

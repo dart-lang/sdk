@@ -78,7 +78,7 @@ class AnalysisDriver {
   /**
    * The name of the driver, e.g. the name of the folder.
    */
-  String name;
+  final String name;
 
   /**
    * The scheduler that schedules analysis work in this, and possibly other
@@ -239,12 +239,19 @@ class AnalysisDriver {
       this._resourceProvider,
       this._byteStore,
       this._contentOverlay,
+      this.name,
       SourceFactory sourceFactory,
       this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
     _testView = new AnalysisDriverTestView(this);
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
+    if (_sdkBundle == null) {
+      Type sdkType = sourceFactory.dartSdk.runtimeType;
+      String message = 'DartSdk ($sdkType) for $name does not have summary.';
+      AnalysisEngine.instance.logger.logError(message);
+      throw new StateError(message);
+    }
     _fsState = new FileSystemState(
         _logger,
         _byteStore,

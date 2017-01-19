@@ -280,23 +280,20 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    var args = new List();
-    args.addAll(arguments);
-    for (var i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".dart")) {
-        args[i] = "${artifact.filename}/out.aotsnapshot";
-      }
-    }
-
     return <Command>[
       commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
-          args, environmentOverrides)
+          arguments, environmentOverrides)
     ];
   }
 }
 
 class DartPrecompiledAdbRuntimeConfiguration
       extends DartVmRuntimeConfiguration {
+  static const String DeviceDir =
+      '/data/local/tmp/precompilation-testing';
+  static const String DeviceTestDir =
+      '/data/local/tmp/precompilation-testing/test';
+
   final bool useBlobs;
   DartPrecompiledAdbRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
 

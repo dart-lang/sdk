@@ -32,6 +32,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   const firefox_fail = is.firefox() ? fail : pass;
   const chrome_fail = is.chrome() ? fail : pass;
 
+  // These are typically tests with asynchronous exceptions that our
+  // test framework doesn't always catch.
+  const flaky = 'skip';
+
   // Tests marked with this are still using the deprecated unittest package
   // because they rely on its support for futures and asynchronous tests, which
   // expect and minitest do not handle.
@@ -101,6 +105,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'const_switch_test_02_multi': fail,
       'const_switch_test_04_multi': fail,
       'constructor12_test': fail,
+      'covariant_subtyping_unsafe_call2_test': fail,
       'cyclic_type2_test': fail,
       'cyclic_type_test_00_multi': fail,
       'cyclic_type_test_01_multi': fail,
@@ -126,7 +131,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'external_test_13_multi': fail,
       'external_test_20_multi': fail,
       'f_bounded_quantification3_test': fail,
-      'fast_method_extraction_test': fail,
       'field_increment_bailout_test': fail,
       'field_optimization3_test': fail,
       'final_syntax_test_08_multi': fail,
@@ -200,6 +204,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'many_generic_instanceof_test': fail,
       'map_literal10_test': fail,
       'map_literal7_test': fail,
+      'memory_swap_test': is.firefox() ? skip_timeout : pass,
       'method_invocation_test': fail,
       'mint_arithmetic_test': fail,
       'mixin_forwarding_constructor3_test': fail,
@@ -227,7 +232,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'regress_16640_test': fail,
       'regress_18535_test': fail,
       'regress_22666_test': fail,
-      'regress_22777_test': fail,
+      'regress_22777_test': flaky,
       'setter_no_getter_test_01_multi': fail,
       'stack_overflow_stacktrace_test': fail,
       'stack_overflow_test': fail,
@@ -270,6 +275,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
     },
 
+    'language/covariant_override': {},
+
     'corelib': {
       'apply2_test': fail,
       'apply3_test': fail,
@@ -291,7 +298,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'hash_map2_test': skip_timeout,
       'hash_set_test_01_multi': fail,
       'hidden_library2_test_01_multi': fail,
-      'indexed_list_access_test': fail,
       'int_modulo_arith_test_bignum_multi': fail,
       'int_modulo_arith_test_modPow_multi': fail,
       'int_modulo_arith_test_none_multi': fail,
@@ -792,7 +798,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
         async_helper.asyncTestInitialize(finish);
         if (has('slow')) this.timeout(10000);
- 
+
         var result;
         try {
           var result = mainLibrary.main();

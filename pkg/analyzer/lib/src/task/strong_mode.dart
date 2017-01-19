@@ -368,7 +368,7 @@ class InstanceMemberInferrer {
           newType = fieldElement.initializer.returnType;
         }
       }
-      if (newType == null || newType.isBottom) {
+      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
         newType = typeProvider.dynamicType;
       }
       setFieldType(fieldElement, newType);

@@ -5318,19 +5318,19 @@ var tau = piFirst ? pi * 2 : 6.28;
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
-    DartType bottomType = context.typeProvider.bottomType;
+    DartType nullType = context.typeProvider.nullType;
     DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
-        AstFinder.getTopLevelVariable(unit, "x"), dynamicType, bottomType);
+        AstFinder.getTopLevelVariable(unit, "x"), dynamicType, nullType);
     assertVariableDeclarationTypes(
         AstFinder.getTopLevelVariable(unit, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit, "A", "x"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x"), dynamicType, nullType);
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit, "A", "y"), intType, intType);
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit, "A", "x2"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x2"), dynamicType, nullType);
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit, "A", "y2"), intType, intType);
 

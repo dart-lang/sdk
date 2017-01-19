@@ -694,6 +694,6 @@ EventListener progressIndicatorFromName(
       return new BuildbotProgressIndicator(startTime);
     default:
       assert(false);
-      break;
+      return null;
   }
 }
