@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
+import 'package:front_end/src/base/file_repository.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/dependency_grapher_impl.dart';
@@ -43,9 +44,7 @@ dynamic unimplemented() {
 class IncrementalResolvedAstGeneratorImpl
     implements IncrementalResolvedAstGenerator {
   driver.AnalysisDriverScheduler _scheduler;
-  final _pathToUriMap = <String, Uri>{};
-  final _uriToPathMap = <Uri, String>{};
-  final _fileContents = <String, String>{};
+  final _fileRepository = new FileRepository();
   _ResourceProviderProxy _resourceProvider;
   driver.AnalysisDriver _driver;
   bool _isInitialized = false;
@@ -66,28 +65,26 @@ class IncrementalResolvedAstGeneratorImpl
     // should be eliminated ASAP.
     var graph = await graphForProgram([_source], _options);
     var libraries = <Uri, ResolvedLibrary>{};
-    // TODO(paulberry): it should be possible to seed the driver using a URI,
-    // not a file path.
     if (!_schedulerStarted) {
       _scheduler.start();
       _schedulerStarted = true;
     }
-    _driver.addFile(_source.path);
+    // The driver will request files from dart:, even though it actually uses
+    // the data from the summary.  TODO(paulberry): fix this.
+    _fileRepository.store(Uri.parse('dart:core'), '');
     for (var libraryCycle in graph.topologicallySortedCycles) {
       for (var uri in libraryCycle.libraries.keys) {
         var contents =
             await _options.fileSystem.entityForUri(uri).readAsString();
-        _storeVirtualFile(uri, uri.path, contents);
+        _fileRepository.store(uri, contents);
       }
-      // The driver will request files from dart:, even though it actually uses
-      // the data from the summary.  TODO(paulberry): fix this.
-      _storeVirtualFile(_DartSdkProxy._dartCoreSource.uri, 'core.dart', '');
       for (var uri in libraryCycle.libraries.keys) {
-        var result = await _driver.getResult(uri.path);
+        var result = await _driver.getResult(_fileRepository.pathForUri(uri));
         // TODO(paulberry): handle errors.
         libraries[uri] = new ResolvedLibrary(result.unit);
       }
     }
+    _driver.addFile(_fileRepository.pathForUri(_source));
     // TODO(paulberry): stop the scheduler
     return new DeltaLibraries(libraries);
   }
@@ -96,8 +93,7 @@ class IncrementalResolvedAstGeneratorImpl
     // TODO(paulberry): can we just use null?
     var performanceLog = new driver.PerformanceLog(new _NullStringSink());
     _scheduler = new driver.AnalysisDriverScheduler(performanceLog);
-    _resourceProvider =
-        new _ResourceProviderProxy(_fileContents, _pathToUriMap);
+    _resourceProvider = new _ResourceProviderProxy(_fileRepository);
     // TODO(paulberry): MemoryByteStore leaks memory (it never discards data).
     // Do something better here.
     var byteStore = new MemoryByteStore();
@@ -111,8 +107,7 @@ class IncrementalResolvedAstGeneratorImpl
     sdkContext.resultProvider = new SdkSummaryResultProvider(
         sdkContext, await _options.getSdkSummary(), strongMode);
 
-    var sourceFactory =
-        new _SourceFactoryProxy(dartSdk, _pathToUriMap, _uriToPathMap);
+    var sourceFactory = new _SourceFactoryProxy(dartSdk, _fileRepository);
     var analysisOptions = new AnalysisOptionsImpl();
     _driver = new driver.AnalysisDriver(
         _scheduler,
@@ -139,18 +134,9 @@ class IncrementalResolvedAstGeneratorImpl
       _driver.knownFiles.forEach(_driver.changeFile);
     }
   }
-
-  void _storeVirtualFile(Uri uri, String path, String contents) {
-    _pathToUriMap[path] = uri;
-    _uriToPathMap[uri] = path;
-    _fileContents[path] = contents;
-  }
 }
 
 class _DartSdkProxy implements DartSdk {
-  static final _dartCoreSource =
-      new _SourceProxy(Uri.parse('dart:core'), 'core.dart');
-
   final PackageBundle summary;
 
   final AnalysisContext context;
@@ -192,8 +178,7 @@ class _FileProxy implements File {
 
   @override
   String readAsStringSync() {
-    assert(_resourceProvider.fileContents.containsKey(path));
-    return _resourceProvider.fileContents[path];
+    return _resourceProvider._fileRepository.contentsForPath(path);
   }
 }
 
@@ -206,10 +191,9 @@ class _NullStringSink implements StringSink {
 }
 
 class _ResourceProviderProxy implements ResourceProvider {
-  final Map<String, String> fileContents;
-  final Map<String, Uri> pathToUriMap;
+  final FileRepository _fileRepository;
 
-  _ResourceProviderProxy(this.fileContents, this.pathToUriMap);
+  _ResourceProviderProxy(this._fileRepository);
 
   @override
   AbsolutePathContext get absolutePathContext => throw new UnimplementedError();
@@ -219,9 +203,8 @@ class _ResourceProviderProxy implements ResourceProvider {
 
   @override
   File getFile(String path) {
-    assert(fileContents.containsKey(path));
-    assert(pathToUriMap.containsKey(path));
-    return new _FileProxy(new _SourceProxy(pathToUriMap[path], path), this);
+    return new _FileProxy(
+        new _SourceProxy(_fileRepository.uriForPath(path), path), this);
   }
 
   @override
@@ -242,25 +225,20 @@ class _SourceFactoryProxy implements SourceFactory {
   @override
   final DartSdk dartSdk;
 
-  final Map<String, Uri> pathToUriMap;
-
-  final Map<Uri, String> uriToPathMap;
+  final FileRepository _fileRepository;
 
   @override
   AnalysisContext context;
 
-  _SourceFactoryProxy(this.dartSdk, this.pathToUriMap, this.uriToPathMap);
+  _SourceFactoryProxy(this.dartSdk, this._fileRepository);
 
   @override
-  SourceFactory clone() =>
-      new _SourceFactoryProxy(dartSdk, pathToUriMap, uriToPathMap);
+  SourceFactory clone() => new _SourceFactoryProxy(dartSdk, _fileRepository);
 
   @override
   Source forUri(String absoluteUri) {
-    if (absoluteUri == 'dart:core') return _DartSdkProxy._dartCoreSource;
     Uri uri = Uri.parse(absoluteUri);
-    assert(uriToPathMap.containsKey(uri));
-    return new _SourceProxy(uri, uriToPathMap[uri]);
+    return new _SourceProxy(uri, _fileRepository.pathForUri(uri));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();
