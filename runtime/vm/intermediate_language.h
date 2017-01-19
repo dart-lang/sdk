@@ -7908,6 +7908,8 @@ class Environment : public ZoneAllocated {
 
   Value* ValueAt(intptr_t ix) const { return values_[ix]; }
 
+  void PushValue(Value* value);
+
   intptr_t Length() const { return values_.length(); }
 
   Location LocationAt(intptr_t index) const {
