@@ -604,7 +604,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   FunctionType getReifiedType(DartType objectType) =>
-      baseElement.getReifiedType(objectType);
+      substituteFor(baseElement.getReifiedType(objectType));
 
   @override
   String toString() {
