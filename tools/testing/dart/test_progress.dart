@@ -319,17 +319,20 @@ class UnexpectedCrashDumpArchiver extends EventListener {
   final archivedBinaries = new Set<String>();
 
   void done(TestCase test) {
-    if (test.unexpectedOutput && test.result == Expectation.CRASH) {
+    if (test.unexpectedOutput &&
+        test.result == Expectation.CRASH &&
+        test.lastCommandExecuted is ProcessCommand) {
       final name = "core.${test.lastCommandOutput.pid}";
       final file = new File(name);
       final exists = file.existsSync();
       if (exists) {
+        final lastCommand = test.lastCommandExecuted as ProcessCommand;
         // We have a coredump for the process. This coredump will be archived by
         // CoreDumpArchiver (see tools/utils.py). For debugging purposes we
         // need to archive the crashed binary as well. To simplify the
         // archiving code we simply copy binaries into current folder next to
         // core dumps and name them `core.${mode}_${arch}_${binary_name}`.
-        final binName = test.lastCommandExecuted.executable;
+        final binName = lastCommand.executable;
         final binFile = new File(binName);
         final binBaseName = new Path(binName).filename;
         if (archivedBinaries.contains(binBaseName)) {
