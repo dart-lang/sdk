@@ -1368,6 +1368,7 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
 }
 
 
+#if defined(DART_PRECOMPILED_RUNTIME)
 static bool ReadAppSnapshotDynamicLibrary(const char* script_name,
                                           const uint8_t** vmisolate_buffer,
                                           const uint8_t** isolate_buffer,
@@ -1412,6 +1413,7 @@ static bool ReadAppSnapshotDynamicLibrary(const char* script_name,
 
   return true;
 }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 
 static bool ReadAppSnapshot(const char* script_name,
@@ -1429,9 +1431,15 @@ static bool ReadAppSnapshot(const char* script_name,
                            instructions_buffer, rodata_buffer)) {
     return true;
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // For testing AOT with the standalone embedder, we also support loading
+  // from a dynamic library to simulate what happens on iOS.
   return ReadAppSnapshotDynamicLibrary(script_name, vmisolate_buffer,
                                        isolate_buffer, instructions_buffer,
                                        rodata_buffer);
+#else
+  return false;
+#endif  //  defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
