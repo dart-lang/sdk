@@ -89,6 +89,12 @@ class Modifiers {
   Token constKeyword;
 
   /**
+   * The token representing the keyword 'covariant', or `null` if the keyword
+   * was not found.
+   */
+  Token covariantKeyword;
+
+  /**
    * The token representing the keyword 'external', or `null` if the keyword was
    * not found.
    */
@@ -1262,6 +1268,7 @@ class Parser {
             return parseInitializedIdentifierList(
                 commentAndMetadata,
                 modifiers.staticKeyword,
+                modifiers.covariantKeyword,
                 _validateModifiersForField(modifiers),
                 returnType);
           }
@@ -1326,13 +1333,9 @@ class Parser {
         return parseOperator(
             commentAndMetadata, modifiers.externalKeyword, null);
       }
-      Token keyword = modifiers.varKeyword;
-      if (keyword == null) {
-        keyword = modifiers.finalKeyword;
-      }
-      if (keyword == null) {
-        keyword = modifiers.constKeyword;
-      }
+      Token keyword = modifiers.varKeyword ??
+          modifiers.finalKeyword ??
+          modifiers.constKeyword;
       if (keyword != null) {
         //
         // We appear to have found an incomplete field declaration.
@@ -1341,13 +1344,15 @@ class Parser {
         VariableDeclaration variable = astFactory.variableDeclaration(
             createSyntheticIdentifier(), null, null);
         List<VariableDeclaration> variables = <VariableDeclaration>[variable];
-        return astFactory.fieldDeclaration(
+        FieldDeclarationImpl field = astFactory.fieldDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             null,
             astFactory.variableDeclarationList(
                 null, null, keyword, null, variables),
             _expect(TokenType.SEMICOLON));
+        field.covariantKeyword = modifiers.covariantKeyword;
+        return field;
       }
       _reportErrorForToken(
           ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken);
@@ -1426,8 +1431,12 @@ class Parser {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
       }
-      return parseInitializedIdentifierList(commentAndMetadata,
-          modifiers.staticKeyword, _validateModifiersForField(modifiers), null);
+      return parseInitializedIdentifierList(
+          commentAndMetadata,
+          modifiers.staticKeyword,
+          modifiers.covariantKeyword,
+          _validateModifiersForField(modifiers),
+          null);
     } else if (keyword == Keyword.TYPEDEF) {
       _reportErrorForCurrentToken(ParserErrorCode.TYPEDEF_IN_CLASS);
       // TODO(brianwilkerson) We don't currently have any way to capture the
@@ -1467,6 +1476,7 @@ class Parser {
         return parseInitializedIdentifierList(
             commentAndMetadata,
             modifiers.staticKeyword,
+            modifiers.covariantKeyword,
             _validateModifiersForField(modifiers),
             type);
       }
@@ -1491,6 +1501,7 @@ class Parser {
         return parseInitializedIdentifierList(
             commentAndMetadata,
             modifiers.staticKeyword,
+            modifiers.covariantKeyword,
             _validateModifiersForField(modifiers),
             type);
       } finally {
@@ -1536,8 +1547,12 @@ class Parser {
       return parseGetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, type);
     }
-    return parseInitializedIdentifierList(commentAndMetadata,
-        modifiers.staticKeyword, _validateModifiersForField(modifiers), type);
+    return parseInitializedIdentifierList(
+        commentAndMetadata,
+        modifiers.staticKeyword,
+        modifiers.covariantKeyword,
+        _validateModifiersForField(modifiers),
+        type);
   }
 
   /**
@@ -3546,8 +3561,8 @@ class Parser {
    * that has already been parsed, or `null` if 'var' was provided. Return the
    * getter that was parsed.
    *
-   *     ?? ::=
-   *         'static'? ('var' | type) initializedIdentifierList ';'
+   *     declaration ::=
+   *         ('static' | 'covariant')? ('var' | type) initializedIdentifierList ';'
    *       | 'final' type? initializedIdentifierList ';'
    *
    *     initializedIdentifierList ::=
@@ -3559,16 +3574,19 @@ class Parser {
   FieldDeclaration parseInitializedIdentifierList(
       CommentAndMetadata commentAndMetadata,
       Token staticKeyword,
+      Token covariantKeyword,
       Token keyword,
       TypeAnnotation type) {
     VariableDeclarationList fieldList =
         parseVariableDeclarationListAfterType(null, keyword, type);
-    return astFactory.fieldDeclaration(
+    FieldDeclarationImpl field = astFactory.fieldDeclaration(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         staticKeyword,
         fieldList,
         _expect(TokenType.SEMICOLON));
+    field.covariantKeyword = covariantKeyword;
+    return field;
   }
 
   /**
@@ -3824,6 +3842,14 @@ class Parser {
           _advance();
         } else {
           modifiers.constKeyword = getAndAdvance();
+        }
+      } else if (keyword == Keyword.COVARIANT) {
+        if (modifiers.constKeyword != null) {
+          _reportErrorForCurrentToken(
+              ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          _advance();
+        } else {
+          modifiers.covariantKeyword = getAndAdvance();
         }
       } else if (keyword == Keyword.EXTERNAL) {
         if (modifiers.externalKeyword != null) {
@@ -4110,7 +4136,11 @@ class Parser {
    */
   NormalFormalParameter parseNormalFormalParameter(
       {bool inFunctionType: false}) {
+    Token covariantKeyword;
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+    if (_matchesKeyword(Keyword.COVARIANT)) {
+      covariantKeyword = getAndAdvance();
+    }
     FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
         inFunctionType: inFunctionType);
     Token thisKeyword = null;
@@ -4120,8 +4150,14 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     if (!_matchesIdentifier() && inFunctionType) {
-      return astFactory.simpleFormalParameter(commentAndMetadata.comment,
-          commentAndMetadata.metadata, holder.keyword, holder.type, null);
+      SimpleFormalParameterImpl parameter = astFactory.simpleFormalParameter(
+          commentAndMetadata.comment,
+          commentAndMetadata.metadata,
+          holder.keyword,
+          holder.type,
+          null);
+      parameter.covariantKeyword = covariantKeyword;
+      return parameter;
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
@@ -4136,16 +4172,20 @@ class Parser {
         if (enableNnbd && _matches(TokenType.QUESTION)) {
           question = getAndAdvance();
         }
-        return astFactory.functionTypedFormalParameter(
-            commentAndMetadata.comment,
-            commentAndMetadata.metadata,
-            holder.type,
-            astFactory.simpleIdentifier(identifier.token, isDeclaration: true),
-            typeParameters,
-            parameters,
-            question: question);
+        FunctionTypedFormalParameterImpl parameter =
+            astFactory.functionTypedFormalParameter(
+                commentAndMetadata.comment,
+                commentAndMetadata.metadata,
+                holder.type,
+                astFactory.simpleIdentifier(identifier.token,
+                    isDeclaration: true),
+                typeParameters,
+                parameters,
+                question: question);
+        parameter.covariantKeyword = covariantKeyword;
+        return parameter;
       } else {
-        return astFactory.fieldFormalParameter(
+        FieldFormalParameterImpl parameter = astFactory.fieldFormalParameter(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.keyword,
@@ -4155,6 +4195,8 @@ class Parser {
             identifier,
             typeParameters,
             parameters);
+        parameter.covariantKeyword = covariantKeyword;
+        return parameter;
       }
     } else if (typeParameters != null) {
       // TODO(brianwilkerson) Report an error. It looks like a function-typed
@@ -4176,7 +4218,7 @@ class Parser {
       // TODO(brianwilkerson) If there are type parameters but no parameters,
       // should we create a synthetic empty parameter list here so we can
       // capture the type parameters?
-      return astFactory.fieldFormalParameter(
+      FieldFormalParameterImpl parameter = astFactory.fieldFormalParameter(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
           holder.keyword,
@@ -4186,13 +4228,17 @@ class Parser {
           identifier,
           null,
           null);
+      parameter.covariantKeyword = covariantKeyword;
+      return parameter;
     }
-    return astFactory.simpleFormalParameter(
+    SimpleFormalParameterImpl parameter = astFactory.simpleFormalParameter(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
         holder.keyword,
         type,
         astFactory.simpleIdentifier(identifier.token, isDeclaration: true));
+    parameter.covariantKeyword = covariantKeyword;
+    return parameter;
   }
 
   /**
@@ -8132,6 +8178,10 @@ class Parser {
       _reportErrorForToken(
           ParserErrorCode.ABSTRACT_CLASS_MEMBER, modifiers.abstractKeyword);
     }
+    if (modifiers.covariantKeyword != null) {
+      _reportErrorForToken(
+          ParserErrorCode.COVARIANT_CONSTRUCTOR, modifiers.covariantKeyword);
+    }
     if (modifiers.finalKeyword != null) {
       _reportErrorForToken(
           ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword);
@@ -8204,10 +8254,15 @@ class Parser {
           ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword);
     }
     Token staticKeyword = modifiers.staticKeyword;
+    Token covariantKeyword = modifiers.covariantKeyword;
     Token constKeyword = modifiers.constKeyword;
     Token finalKeyword = modifiers.finalKeyword;
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
+      if (covariantKeyword != null) {
+        _reportErrorForToken(
+            ParserErrorCode.CONST_AND_COVARIANT, covariantKeyword);
+      }
       if (finalKeyword != null) {
         _reportErrorForToken(ParserErrorCode.CONST_AND_FINAL, finalKeyword);
       }
@@ -8218,16 +8273,28 @@ class Parser {
         _reportErrorForToken(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword);
       }
     } else if (finalKeyword != null) {
+      if (covariantKeyword != null) {
+        _reportErrorForToken(
+            ParserErrorCode.FINAL_AND_COVARIANT, covariantKeyword);
+      }
       if (varKeyword != null) {
         _reportErrorForToken(ParserErrorCode.FINAL_AND_VAR, varKeyword);
       }
       if (staticKeyword != null && finalKeyword.offset < staticKeyword.offset) {
         _reportErrorForToken(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword);
       }
-    } else if (varKeyword != null &&
-        staticKeyword != null &&
-        varKeyword.offset < staticKeyword.offset) {
-      _reportErrorForToken(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword);
+    } else if (varKeyword != null) {
+      if (staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
+        _reportErrorForToken(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword);
+      }
+      if (covariantKeyword != null &&
+          varKeyword.offset < covariantKeyword.offset) {
+        _reportErrorForToken(
+            ParserErrorCode.COVARIANT_AFTER_VAR, covariantKeyword);
+      }
+    }
+    if (covariantKeyword != null && staticKeyword != null) {
+      _reportErrorForToken(ParserErrorCode.COVARIANT_AND_STATIC, staticKeyword);
     }
     return Token.lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
@@ -8318,6 +8385,10 @@ class Parser {
    * declaration.
    */
   void _validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
+    if (modifiers.covariantKeyword != null) {
+      _reportErrorForToken(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION,
+          modifiers.covariantKeyword);
+    }
     if (modifiers.factoryKeyword != null) {
       _reportErrorForToken(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION,
           modifiers.factoryKeyword);

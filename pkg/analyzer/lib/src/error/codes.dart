@@ -1457,6 +1457,16 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try replacing the type parameter with a different type.");
 
   /**
+   * The 'covariant' keyword was found in an inappropriate location.
+   */
+  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT =
+      const CompileTimeErrorCode(
+          'INVALID_USE_OF_COVARIANT',
+          "The 'covariant' keyword can only be used for parameters in instance "
+          "methods or before non-final instance fields.",
+          "Try removing the 'covariant' keyword.");
+
+  /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.
    *

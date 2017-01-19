@@ -166,6 +166,9 @@ class Keyword {
 
   static const Keyword CONTINUE = const Keyword._('CONTINUE', "continue");
 
+  static const Keyword COVARIANT =
+      const Keyword._('COVARIANT', "covariant", true);
+
   static const Keyword DEFAULT = const Keyword._('DEFAULT', "default");
 
   static const Keyword DEFERRED = const Keyword._('DEFERRED', "deferred", true);
@@ -257,6 +260,7 @@ class Keyword {
     CLASS,
     CONST,
     CONTINUE,
+    COVARIANT,
     DEFAULT,
     DEFERRED,
     DO,

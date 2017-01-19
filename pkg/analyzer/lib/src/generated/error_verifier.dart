@@ -739,6 +739,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitFormalParameterList(FormalParameterList node) {
     _checkDuplicateDefinitionInParameterList(node);
+    _checkUseOfCovariantInParameters(node);
     return super.visitFormalParameterList(node);
   }
 
@@ -6166,6 +6167,23 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (!_typeSystem.isSubtypeOf(argType, boundType)) {
           reportError(argument, argType, boundType);
         }
+      }
+    }
+  }
+
+  void _checkUseOfCovariantInParameters(FormalParameterList node) {
+    AstNode parent = node.parent;
+    if (parent is MethodDeclaration && !parent.isStatic) {
+      return;
+    }
+    NodeList<FormalParameter> parameters = node.parameters;
+    int length = parameters.length;
+    for (int i = 0; i < length; i++) {
+      FormalParameter parameter = parameters[i];
+      Token keyword = parameter.covariantKeyword;
+      if (keyword != null) {
+        _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, keyword);
       }
     }
   }

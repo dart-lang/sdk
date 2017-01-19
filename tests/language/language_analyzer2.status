@@ -8,31 +8,17 @@ regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 
 # Doesn't yet implement `covariant` keyword.
-covariant_test/06: MissingCompileTimeError # Issue 28167
-covariant_test/06b: MissingCompileTimeError # Issue 28167
-covariant_test/07: MissingCompileTimeError # Issue 28167
-covariant_test/08: MissingCompileTimeError # Issue 28167
-covariant_test/11: MissingCompileTimeError # Issue 28167
-covariant_test/15: MissingCompileTimeError # Issue 28167
-covariant_test/26: MissingCompileTimeError # Issue 28167
-covariant_test/26b: MissingCompileTimeError # Issue 28167
-covariant_test/27: MissingCompileTimeError # Issue 28167
-covariant_test/28: MissingCompileTimeError # Issue 28167
-covariant_test/31: MissingCompileTimeError # Issue 28167
-covariant_test/35: MissingCompileTimeError # Issue 28167
+covariant_test/none: CompileTimeError # Issue 28167
+covariant_test/00c: CompileTimeError # Issue 28167
+covariant_test/20c: CompileTimeError # Issue 28167
 covariant_test/40: CompileTimeError # Issue 28167
 covariant_test/40b: CompileTimeError # Issue 28167
+covariant_test/40c: CompileTimeError # Issue 28167
 covariant_test/42: CompileTimeError # Issue 28167
-covariant_test/46: MissingCompileTimeError # Issue 28167
-covariant_test/46b: MissingCompileTimeError # Issue 28167
-covariant_test/47: MissingCompileTimeError # Issue 28167
-covariant_test/48: StaticWarning
-covariant_test/51: MissingCompileTimeError # Issue 28167
+covariant_test/48: CompileTimeError # Issue 28167
 covariant_test/52: CompileTimeError # Issue 28167
 covariant_test/54: CompileTimeError # Issue 28167
-covariant_test/55: MissingCompileTimeError # Issue 28167
 covariant_test/56: CompileTimeError # Issue 28167
-covariant_override_test: CompileTimeError # Issue 28167
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
