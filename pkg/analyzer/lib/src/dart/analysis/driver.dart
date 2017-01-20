@@ -639,6 +639,14 @@ class AnalysisDriver {
   }
 
   /**
+   * Return a future that will be completed the next time the status is idle.
+   *
+   * If the status is currently idle, the returned future will be signaled
+   * immediately.
+   */
+  Future<Null> waitForIdle() => _statusSupport.waitForIdle();
+
+  /**
    * Return the cached or newly computed analysis result of the file with the
    * given [path].
    *

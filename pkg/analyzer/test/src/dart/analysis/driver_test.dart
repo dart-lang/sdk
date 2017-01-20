@@ -1687,6 +1687,20 @@ var A = B;
     expect(allStatuses[1].isIdle, isTrue);
   }
 
+  test_waitForIdle() async {
+    // With no analysis to do, driver.waitForIdle should complete immediately.
+    await driver.waitForIdle();
+    // Now schedule some analysis.
+    addTestFile('int f() => 42;');
+    expect(allResults, isEmpty);
+    // driver.waitForIdle should wait for the analysis.
+    await driver.waitForIdle();
+    expect(allResults, hasLength(1));
+    // Make sure there is no more analysis pending.
+    await _waitForIdle();
+    expect(allResults, hasLength(1));
+  }
+
   void _assertTopLevelDeclarations(
       List<TopLevelDeclarationInSource> declarations,
       List<String> expectedFiles,
