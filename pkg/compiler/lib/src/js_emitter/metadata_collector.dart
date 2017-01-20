@@ -2,7 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.metadata_collector;
+
+import 'package:js_ast/src/precedence.dart' as js_precedence;
+
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../elements/resolution_types.dart'
+    show
+    ResolutionDartType,
+    ResolutionTypedefType;
+import '../deferred_load.dart' show OutputUnit;
+import '../elements/elements.dart'
+    show
+    ConstructorElement,
+    Element,
+    FunctionElement,
+    FunctionSignature,
+    MetadataAnnotation,
+    ParameterElement;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/js_backend.dart'
+    show
+    JavaScriptBackend,
+    TypeVariableHandler;
+
+import 'code_emitter_task.dart' show Emitter;
 
 /// Represents an entry's position in one of the global metadata arrays.
 ///

@@ -2,7 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.class_stub_generator;
+
+import '../common.dart';
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart'
+    show
+    ClassElement,
+    Element;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/js_backend.dart'
+    show
+    JavaScriptBackend,
+    Namer;
+import '../universe/selector.dart' show Selector;
+import '../universe/world_builder.dart'
+    show CodegenWorldBuilder, SelectorConstraints;
+import '../world.dart' show ClosedWorld;
+
+import 'model.dart';
 
 class ClassStubGenerator {
   final Namer namer;

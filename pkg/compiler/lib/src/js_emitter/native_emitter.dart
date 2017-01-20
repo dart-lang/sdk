@@ -2,7 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.native_emitter;
+
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../elements/resolution_types.dart'
+    show
+    ResolutionDartType,
+    ResolutionFunctionType;
+import '../elements/elements.dart'
+    show
+    ClassElement,
+    Element,
+    FunctionElement,
+    FunctionSignature,
+    ParameterElement;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart'
+    show
+    JavaScriptBackend;
+import 'full_emitter/emitter.dart' as full_js_emitter;
+
+import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'model.dart';
 
 class NativeEmitter {
   // TODO(floitsch): the native-emitter should not know about ClassBuilders.

@@ -2,7 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.code_emitter_task;
+
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
+
+import '../common.dart';
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../deferred_load.dart' show OutputUnit;
+import '../elements/elements.dart'
+    show
+    ClassElement,
+    Entity,
+    FieldElement,
+    FunctionElement,
+    MethodElement,
+    TypeVariableElement;
+import '../js/js.dart' as jsAst;
+import '../js_backend/js_backend.dart'
+    show
+    JavaScriptBackend,
+    Namer;
+import '../world.dart' show ClosedWorld;
+import 'full_emitter/emitter.dart' as full_js_emitter;
+import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
+import 'program_builder/program_builder.dart';
+import 'startup_emitter/emitter.dart' as startup_js_emitter;
+
+import 'metadata_collector.dart' show MetadataCollector;
+import 'native_emitter.dart' show NativeEmitter;
+import 'type_test_registry.dart' show TypeTestRegistry;
 
 const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
