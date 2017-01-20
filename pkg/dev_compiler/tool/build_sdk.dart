@@ -51,5 +51,8 @@ main(List<String> arguments) {
     'dart:web_gl',
     'dart:web_sql'
   ]);
-  compile(args);
+
+  if (compile(args) != 0) {
+    throw 'SDK build failed.';
+  }
 }

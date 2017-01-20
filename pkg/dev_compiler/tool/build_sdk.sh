@@ -9,7 +9,8 @@ dart -c tool/patch_sdk.dart tool/input_sdk gen/patched_sdk
 echo "*** Compiling SDK to JavaScript"
 
 # TODO(jmesserly): break out dart:html & friends.
-dart -c tool/build_sdk.dart \
+{ # Try
+  dart -c tool/build_sdk.dart \
     --dart-sdk gen/patched_sdk \
     --dart-sdk-summary=build \
     --summary-out lib/sdk/ddc_sdk.sum \
@@ -22,3 +23,7 @@ dart -c tool/build_sdk.dart \
     --modules=legacy \
     -o lib/js/legacy/dart_sdk.js \
     "$@" > tool/sdk_expected_errors.txt
+} || { # Catch
+  # Show errors if the sdk didn't compile.
+  cat tool/sdk_expected_errors.txt
+}
