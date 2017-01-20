@@ -1959,6 +1959,38 @@ void test() {
     expectIdentifierType('cc', "C<int, B<int>, B<dynamic>>");
   }
 
+  test_notInstantiatedBound_direct() async {
+    String code = r'''
+class A<T> {}
+class C<T extends A> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_indirect() async {
+    String code = r'''
+class A<T> {}
+class B<T> {}
+class C<T extends A<B>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_indirect2() async {
+    String code = r'''
+class A<K, V> {}
+class B<T> {}
+class C<T extends A<B, B>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND
+    ]);
+  }
+
   test_objectMethodOnFunctions_Anonymous() async {
     String code = r'''
 void main() {

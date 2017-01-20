@@ -5198,15 +5198,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   void _checkForNotInstantiatedBound(TypeAnnotation node) {
-    if (!_options.strongMode ||
-        node == null ||
-        (node is TypeName && node.typeArguments != null)) {
+    if (!_options.strongMode || node == null) {
       return;
     }
-    DartType type = node.type;
-    if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
-      _errorReporter.reportErrorForNode(
-          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
+
+    if (node is TypeName) {
+      if (node.typeArguments == null) {
+        DartType type = node.type;
+        if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
+          _errorReporter.reportErrorForNode(
+              StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
+        }
+      } else {
+        node.typeArguments.arguments.forEach(_checkForNotInstantiatedBound);
+      }
+    } else {
+      throw new UnimplementedError('${node.runtimeType}');
     }
   }
 
