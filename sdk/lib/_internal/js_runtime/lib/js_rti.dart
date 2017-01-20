@@ -169,11 +169,7 @@ String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
     return rawRtiToJsConstructorName(rti);
   }
   if (rti is int) {
-    if (onTypeVariable == null) {
-      return rti.toString();
-    } else {
-      return onTypeVariable(rti);
-    }
+    return '${onTypeVariable == null ? rti : onTypeVariable(rti)}';
   }
   if (JS('bool', 'typeof #.func != "undefined"', rti)) {
     // If the RTI has typedef equivalence info (via mirrors), use that since the
