@@ -1375,7 +1375,11 @@ class Parser {
             createSyntheticIdentifier(isDeclaration: true),
             null,
             astFactory.formalParameterList(
-                null, <FormalParameter>[], null, null, null),
+                _createSyntheticToken(TokenType.OPEN_PAREN),
+                <FormalParameter>[],
+                null,
+                null,
+                _createSyntheticToken(TokenType.CLOSE_PAREN)),
             astFactory
                 .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
       }
