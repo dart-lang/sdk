@@ -44,6 +44,15 @@ class FileRepositoryTest {
     expect(fileRepository.pathForUri(uri2), path2);
   }
 
+  test_pathForUri_allocate() {
+    var uri1 = Uri.parse('file:///foo/bar.dart');
+    var path1 = fileRepository.pathForUri(uri1, allocate: true);
+    var uri2 = Uri.parse('package:foo/bar.dart');
+    var path2 = fileRepository.pathForUri(uri2, allocate: true);
+    expect(fileRepository.store(uri1, 'contents1'), path1);
+    expect(fileRepository.store(uri2, 'contents2'), path2);
+  }
+
   test_store() {
     var uri = Uri.parse('file:///foo/bar.dart');
     var path = fileRepository.store(uri, 'contents1');

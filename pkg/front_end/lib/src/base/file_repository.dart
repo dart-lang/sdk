@@ -16,7 +16,7 @@ class FileRepository {
   final _uris = <Uri>[];
 
   /// Map from a URI to its index in [_uris].
-  final _indexForUri = <Uri, int>{};
+  final _uriToIndexMap = <Uri, int>{};
 
   /// The file contents associated with the URIs in [_uris].
   final _contents = <String>[];
@@ -54,26 +54,19 @@ class FileRepository {
 
   /// Return the arbitrary path associated with [uri].
   ///
-  /// The uri must have previously been passed to [store].
-  String pathForUri(Uri uri) {
-    int index = _indexForUri[uri];
-    assert(index != null);
-    return _pathForIndex(index);
+  /// If [allocate] is `false` (the default), the uri must have previously been
+  /// allocated a corresponding path, e.g. via a call to [store].  If [allocate]
+  /// is `true`, then a new path will be allocated if necessary.
+  String pathForUri(Uri uri, {bool allocate: false}) {
+    return _pathForIndex(_indexForUri(uri, allocate));
   }
 
   /// Associate the given [uri] with file [contents].
   ///
   /// The arbitrary path associated with the file is returned.
   String store(Uri uri, String contents) {
-    int index = _indexForUri[uri];
-    if (index == null) {
-      index = _uris.length;
-      _uris.add(uri);
-      _indexForUri[uri] = index;
-      _contents.add(contents);
-    } else {
-      _contents[index] = contents;
-    }
+    int index = _indexForUri(uri, true);
+    _contents[index] = contents;
     return _pathForIndex(index);
   }
 
@@ -88,6 +81,18 @@ class FileRepository {
   int _indexForPath(String path) {
     assert(_pathRegexp.hasMatch(path));
     return int.parse(path.substring(1, path.length - 5));
+  }
+
+  int _indexForUri(Uri uri, bool allocate) {
+    int index = _uriToIndexMap[uri];
+    assert(allocate || index != null);
+    if (index == null) {
+      index = _uris.length;
+      _uris.add(uri);
+      _uriToIndexMap[uri] = index;
+      _contents.add(null);
+    }
+    return index;
   }
 
   /// Return the arbitrary path associated with the given index.

@@ -74,9 +74,6 @@ class IncrementalResolvedAstGeneratorImpl
       _scheduler.start();
       _schedulerStarted = true;
     }
-    // The driver will request files from dart:, even though it actually uses
-    // the data from the summary.  TODO(paulberry): fix this.
-    _fileRepository.store(Uri.parse('dart:core'), '');
     for (var libraryCycle in graph.topologicallySortedCycles) {
       for (var libraryUri in libraryCycle.libraries.keys) {
         var libraryNode = libraryCycle.libraries[libraryUri];
@@ -122,7 +119,8 @@ class IncrementalResolvedAstGeneratorImpl
     // TODO(paulberry): can we just use null?
     var fileContentOverlay = new FileContentOverlay();
     var sdkContext = new AnalysisContextImpl();
-    var dartSdk = new _DartSdkProxy(await _options.getSdkSummary(), sdkContext);
+    var dartSdk = new _DartSdkProxy(
+        await _options.getSdkSummary(), sdkContext, _fileRepository);
     sdkContext.sourceFactory =
         new SourceFactory([new DartUriResolver(dartSdk)]);
     bool strongMode = true; // TODO(paulberry): support strong mode flag.
@@ -172,15 +170,18 @@ class _DartSdkProxy implements DartSdk {
 
   final AnalysisContext context;
 
-  _DartSdkProxy(this.summary, this.context);
+  final FileRepository _fileRepository;
+
+  _DartSdkProxy(this.summary, this.context, this._fileRepository);
 
   @override
   PackageBundle getLinkedBundle() => summary;
 
   @override
-  Source mapDartUri(String uri) {
-    // TODO(paulberry): this seems hacky.
-    return new _SourceProxy(Uri.parse(uri), '$uri.dart');
+  Source mapDartUri(String uriString) {
+    var uri = Uri.parse(uriString);
+    return new _SourceProxy(
+        uri, _fileRepository.pathForUri(uri, allocate: true));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();
