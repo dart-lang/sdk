@@ -30,7 +30,7 @@ vars = {
   "github_testing": "https://github.com/peter-ahe-google/testing.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
+  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",

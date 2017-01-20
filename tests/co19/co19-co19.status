@@ -68,3 +68,8 @@ LibTest/math/log_A01_t01: PASS, FAIL, OK  # Issue 26261
 
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == drt || $runtime == dart_precompiled) ]
+# Optional trailing commas for argument and parameter lists added to language.
+# https://github.com/dart-lang/co19/issues/68
+Language/Functions/Formal_Parameters/syntax_t05: Fail, OK
