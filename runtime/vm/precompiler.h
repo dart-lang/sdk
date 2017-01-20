@@ -473,6 +473,7 @@ class Precompiler : public ValueObject {
   void FinalizeAllClasses();
   void SortClasses();
   void RemapClassIds(intptr_t* old_to_new_cid);
+  void RehashTypes();
   void VerifyJITFeedback();
   RawScript* LookupScript(const char* uri);
   intptr_t MapCid(intptr_t feedback_cid);

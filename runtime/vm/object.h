@@ -1745,6 +1745,7 @@ class TypeArguments : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
   friend class AbstractType;
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -6013,6 +6014,7 @@ class Type : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
   friend class TypeArguments;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -6185,6 +6187,7 @@ class TypeParameter : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -6276,6 +6279,7 @@ class BoundedType : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(BoundedType, AbstractType);
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 

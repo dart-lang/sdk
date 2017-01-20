@@ -1761,7 +1761,6 @@ class RawMixinAppType : public RawAbstractType {
     return reinterpret_cast<RawObject**>(&ptr()->super_type_);
   }
   RawAbstractType* super_type_;
-  RawSmi* hash_;
   RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
