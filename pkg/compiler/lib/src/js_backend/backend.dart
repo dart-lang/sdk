@@ -852,7 +852,7 @@ class JavaScriptBackend extends Backend {
     return isNativeOrExtendsNative(element.superclass);
   }
 
-  bool isInterceptedMethod(Element element) {
+  bool isInterceptedMethod(MemberElement element) {
     if (!element.isInstanceMember) return false;
     if (element.isGenerativeConstructorBody) {
       return isNativeOrExtendsNative(element.enclosingClass);

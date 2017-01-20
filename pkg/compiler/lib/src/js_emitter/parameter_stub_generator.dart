@@ -4,29 +4,24 @@
 
 library dart2js.js_emitter.parameter_stub_generator;
 
-import '../closure.dart'
-    show ClosureClassElement;
+import '../closure.dart' show ClosureClassElement;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart'
     show
-    ClassElement,
-    FunctionElement,
-    FunctionSignature,
-    MethodElement,
-    ParameterElement;
+        ClassElement,
+        FunctionElement,
+        FunctionSignature,
+        MethodElement,
+        ParameterElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_backend.dart'
-    show
-    JavaScriptBackend,
-    JavaScriptConstantCompiler,
-    Namer;
+    show JavaScriptBackend, JavaScriptConstantCompiler, Namer;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart'
-    show SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import '../world.dart' show ClosedWorld;
 
 import 'model.dart';
@@ -68,7 +63,7 @@ class ParameterStubGenerator {
    * the input selector is non-null (and the member needs a stub).
    */
   ParameterStubMethod generateParameterStub(
-      FunctionElement member, Selector selector, Selector callSelector) {
+      MethodElement member, Selector selector, Selector callSelector) {
     CallStructure callStructure = selector.callStructure;
     FunctionSignature parameters = member.functionSignature;
     int positionalArgumentCount = callStructure.positionalArgumentCount;

@@ -10,8 +10,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
   InterceptorEmitter(this.closedWorld);
 
-  void recordMangledNameOfMemberMethod(
-      FunctionElement member, jsAst.Name name) {
+  void recordMangledNameOfMemberMethod(MethodElement member, jsAst.Name name) {
     if (backend.isInterceptedMethod(member)) {
       interceptorInvocationNames.add(name);
     }

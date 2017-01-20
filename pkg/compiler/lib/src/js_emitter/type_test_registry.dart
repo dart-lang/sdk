@@ -7,22 +7,15 @@ library dart2js.js_emitter.type_test_registry;
 import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart'
     show
-    ResolutionDartType,
-    ResolutionFunctionType,
-    ResolutionInterfaceType,
-    Types,
-    ResolutionTypeVariableType;
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionInterfaceType,
+        Types,
+        ResolutionTypeVariableType;
 import '../elements/elements.dart'
-    show
-    ClassElement,
-    Element,
-    ElementKind,
-    FunctionElement;
+    show ClassElement, Element, ElementKind, FunctionElement;
 import '../js_backend/js_backend.dart'
-    show
-    JavaScriptBackend,
-    RuntimeTypes,
-    TypeChecks;
+    show JavaScriptBackend, RuntimeTypes, TypeChecks;
 import '../world.dart' show ClosedWorld;
 
 class TypeTestRegistry {

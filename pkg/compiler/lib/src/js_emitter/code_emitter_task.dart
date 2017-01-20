@@ -13,17 +13,14 @@ import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart'
     show
-    ClassElement,
-    Entity,
-    FieldElement,
-    FunctionElement,
-    MethodElement,
-    TypeVariableElement;
+        ClassElement,
+        Entity,
+        FieldElement,
+        FunctionElement,
+        MethodElement,
+        TypeVariableElement;
 import '../js/js.dart' as jsAst;
-import '../js_backend/js_backend.dart'
-    show
-    JavaScriptBackend,
-    Namer;
+import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../world.dart' show ClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;

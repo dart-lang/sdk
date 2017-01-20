@@ -909,8 +909,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitLiteralString(LiteralString node) {
     if (node.dartString == null) return new ir.InvalidExpression();
-    return associateNode(new ir.StringLiteral(node.dartString.slowToString()),
-        node);
+    return associateNode(
+        new ir.StringLiteral(node.dartString.slowToString()), node);
   }
 
   @override

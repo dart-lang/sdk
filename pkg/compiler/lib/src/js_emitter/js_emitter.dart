@@ -4,10 +4,7 @@
 
 library dart2js.js_emitter;
 
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        MixinApplicationElement;
+import '../elements/elements.dart' show ClassElement, MixinApplicationElement;
 
 export 'class_stub_generator.dart';
 export 'code_emitter_task.dart';

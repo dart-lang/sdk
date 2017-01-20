@@ -2,27 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 library dart2js.js_emitter.interceptor_stub_generator;
 
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../elements/resolution_types.dart'
-    show
-    ResolutionInterfaceType;
-import '../elements/elements.dart'
-    show
-    ClassElement,
-    Element;
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
+import '../elements/elements.dart' show ClassElement, Element;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart'
     show
-    CustomElementsAnalysis,
-    JavaScriptBackend,
-    JavaScriptConstantCompiler,
-    Namer;
+        CustomElementsAnalysis,
+        JavaScriptBackend,
+        JavaScriptConstantCompiler,
+        Namer;
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
 

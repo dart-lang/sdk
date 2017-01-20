@@ -215,7 +215,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (!compiler.options.useContentSecurityPolicy || cls.onlyForRti) return;
 
     for (Field field in cls.fields) {
-      Element member = field.element;
+      FieldElement member = field.element;
       reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
@@ -374,7 +374,7 @@ class ClassEmitter extends CodeEmitterHelper {
         message: '$previousName != ${memberName}'));
   }
 
-  void emitGetterForCSP(Element member, jsAst.Name fieldName,
+  void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
@@ -394,7 +394,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitSetterForCSP(Element member, jsAst.Name fieldName,
+  void emitSetterForCSP(FieldElement member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);

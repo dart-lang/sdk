@@ -4,35 +4,31 @@
 
 library dart2js.js_emitter.runtime_type_generator;
 
-import '../closure.dart'
-    show ClosureClassMap, ClosureFieldElement;
+import '../closure.dart' show ClosureClassMap, ClosureFieldElement;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CommonElements;
 import '../elements/resolution_types.dart'
-    show
-    ResolutionDartType,
-    ResolutionFunctionType,
-    ResolutionTypeVariableType;
+    show ResolutionDartType, ResolutionFunctionType, ResolutionTypeVariableType;
 import '../elements/elements.dart'
     show
-    ClassElement,
-    Element,
-    FunctionElement,
-    MixinApplicationElement,
-    TypeVariableElement;
+        ClassElement,
+        Element,
+        FunctionElement,
+        MixinApplicationElement,
+        TypeVariableElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_backend.dart'
     show
-    JavaScriptBackend,
-    Namer,
-    RuntimeTypes,
-    RuntimeTypesEncoder,
-    Substitution,
-    TypeCheck,
-    TypeChecks;
+        JavaScriptBackend,
+        Namer,
+        RuntimeTypes,
+        RuntimeTypesEncoder,
+        Substitution,
+        TypeCheck,
+        TypeChecks;
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;

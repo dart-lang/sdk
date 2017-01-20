@@ -10,24 +10,20 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/resolution_types.dart'
-    show
-    ResolutionDartType,
-    ResolutionTypedefType;
+    show ResolutionDartType, ResolutionTypedefType;
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart'
     show
-    ConstructorElement,
-    Element,
-    FunctionElement,
-    FunctionSignature,
-    MetadataAnnotation,
-    ParameterElement;
+        ConstructorElement,
+        Element,
+        FunctionElement,
+        FunctionSignature,
+        MetadataAnnotation,
+        ParameterElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_backend.dart'
-    show
-    JavaScriptBackend,
-    TypeVariableHandler;
+    show JavaScriptBackend, TypeVariableHandler;
 
 import 'code_emitter_task.dart' show Emitter;
 

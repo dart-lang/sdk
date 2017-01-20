@@ -1497,9 +1497,19 @@ class Namer {
   }
 
   /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
+  // TODO(johnniwinther): Verify that the implementation can be changed to
+  // `globalObjectForLibrary(element.library)`.
+  String globalObjectForMethod(MethodElement element) =>
+      globalObjectFor(element);
+
+  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
   String globalObjectFor(Element element) {
     if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
-    LibraryElement library = element.library;
+    return globalObjectForLibrary(element.library);
+  }
+
+  /// Returns the [reservedGlobalObjectNames] for [library].
+  String globalObjectForLibrary(LibraryElement library) {
     if (library == helpers.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {

@@ -8,9 +8,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_backend.dart'
-    show
-    JavaScriptBackend;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
 
 import 'model.dart';
 

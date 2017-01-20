@@ -6,7 +6,7 @@ library dart2js.new_js_emitter.model;
 
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
-import '../elements/elements.dart' show Element;
+import '../elements/elements.dart' show Element, FieldElement;
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
 import 'js_emitter.dart' show MetadataCollector;
 
@@ -335,7 +335,7 @@ class MixinApplication extends Class {
 class Field {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final Element element;
+  final FieldElement element;
 
   final js.Name name;
   final js.Name accessorName;

@@ -24,6 +24,7 @@ import '../../elements/elements.dart'
         FunctionSignature,
         GetterElement,
         LibraryElement,
+        MemberElement,
         MethodElement,
         ParameterElement,
         TypedefElement,
@@ -524,7 +525,7 @@ class ProgramBuilder {
     RuntimeTypeGenerator runtimeTypeGenerator =
         new RuntimeTypeGenerator(_compiler, _task, namer);
 
-    void visitMember(ClassElement enclosing, Element member) {
+    void visitMember(ClassElement enclosing, MemberElement member) {
       assert(invariant(element, member.isDeclaration));
       assert(invariant(element, element == enclosing));
 
@@ -863,7 +864,7 @@ class ProgramBuilder {
   List<Field> _buildFields(Element holder, bool visitStatics) {
     List<Field> fields = <Field>[];
     new FieldVisitor(_compiler, namer, closedWorld)
-        .visitFields(holder, visitStatics, (VariableElement field,
+        .visitFields(holder, visitStatics, (FieldElement field,
             js.Name name,
             js.Name accessorName,
             bool needsGetter,
