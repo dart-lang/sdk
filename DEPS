@@ -45,7 +45,7 @@ vars = {
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+9",
-  "bazel_worker_tag": "@0.1.1",
+  "bazel_worker_tag": "@0.1.2",
   "boolean_selector_tag" : "@1.0.2",
   "boringssl_gen_rev": "@1a810313a0290e1caace9da73fa3ab89995ad2c7",
   "boringssl_rev" : "@d519bf6be0b447fb80fbc539d4bff4479b5482a2",
