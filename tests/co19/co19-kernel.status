@@ -113,14 +113,14 @@ Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Missing compile-time error from analyzer
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError
 Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/evaluation_type_parameter_t02: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: precompilation failures

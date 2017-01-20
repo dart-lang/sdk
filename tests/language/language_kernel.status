@@ -18,6 +18,7 @@ const_for_in_variable_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: DartkCrash
 deep_nesting2_negative_test: DartkCrash
+enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 external_test/21: MissingCompileTimeError
 external_test/24: MissingCompileTimeError
@@ -56,10 +57,12 @@ covariant_test/none: DartkCompileTimeError # Issue 28166
 # dartk: temporary failure
 mixin_illegal_syntax_test/00: DartkCrash
 
+# Passing for the wrong reason
+language/main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
+
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 config_import_corelib_test: RuntimeError
-enum_syntax_test/05: MissingCompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError
 type_variable_conflict2_test/06: MissingCompileTimeError
 type_variable_conflict2_test/08: MissingCompileTimeError
@@ -181,7 +184,6 @@ issue_1751477_test: RuntimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
-main_not_a_function_test/01: Crash
 malformed_test/none: RuntimeError
 map_literal3_test: RuntimeError
 map_literal4_test: RuntimeError  # Checked Mode Issue
@@ -222,7 +224,6 @@ const_locals_test: RuntimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 const_string_test: RuntimeError  # Dartk Issue 28306
 library_env_test/has_no_mirror_support: RuntimeError
-main_not_a_function_test/01: Crash
 redirecting_factory_reflection_test: RuntimeError
 
 # dartk: JIT failures (debug)
