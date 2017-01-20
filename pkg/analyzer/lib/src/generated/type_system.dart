@@ -173,32 +173,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  DartType tryPromoteToType(DartType to, DartType from) {
-    // Allow promoting to a subtype, for example:
-    //
-    //     f(Base b) {
-    //       if (b is SubTypeOfBase) {
-    //         // promote `b` to SubTypeOfBase for this block
-    //       }
-    //     }
-    //
-    // This allows the variable to be used wherever the supertype (here `Base`)
-    // is expected, while gaining a more precise type.
-    if (isSubtypeOf(to, from)) {
-      return to;
-    }
-    // For a type parameter `T extends U`, allow promoting the upper bound
-    // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
-    if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
-        return new TypeParameterMember(from.element, null, to).type;
-      }
-    }
-
-    return null;
-  }
-
-  @override
   FunctionType functionTypeToConcreteType(FunctionType t) {
     // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
     // type? That would allow us to implement this in the subtype relation.
@@ -612,6 +586,32 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
     return super
         .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+  }
+
+  @override
+  DartType tryPromoteToType(DartType to, DartType from) {
+    // Allow promoting to a subtype, for example:
+    //
+    //     f(Base b) {
+    //       if (b is SubTypeOfBase) {
+    //         // promote `b` to SubTypeOfBase for this block
+    //       }
+    //     }
+    //
+    // This allows the variable to be used wherever the supertype (here `Base`)
+    // is expected, while gaining a more precise type.
+    if (isSubtypeOf(to, from)) {
+      return to;
+    }
+    // For a type parameter `T extends U`, allow promoting the upper bound
+    // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
+    if (from is TypeParameterType) {
+      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
+        return new TypeParameterMember(from.element, null, to).type;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -1050,20 +1050,6 @@ abstract class TypeSystem {
   TypeProvider get typeProvider;
 
   /**
-   * Tries to promote from the first type from the second type, and returns the
-   * promoted type if it succeeds, otherwise null.
-   *
-   * In the Dart 1 type system, it is not possible to promote from or to
-   * `dynamic`, and we must be promoting to a more specific type, see
-   * [isMoreSpecificThan]. Also it will always return the promote [to] type or
-   * null.
-   *
-   * In strong mode, this can potentially return a different type, see
-   * the override in [StrongTypeSystemImpl].
-   */
-  DartType tryPromoteToType(DartType to, DartType from);
-
-  /**
    * Make a function type concrete.
    *
    * Normally we treat dynamically typed parameters as bottom for function
@@ -1270,6 +1256,20 @@ abstract class TypeSystem {
   }
 
   /**
+   * Tries to promote from the first type from the second type, and returns the
+   * promoted type if it succeeds, otherwise null.
+   *
+   * In the Dart 1 type system, it is not possible to promote from or to
+   * `dynamic`, and we must be promoting to a more specific type, see
+   * [isMoreSpecificThan]. Also it will always return the promote [to] type or
+   * null.
+   *
+   * In strong mode, this can potentially return a different type, see
+   * the override in [StrongTypeSystemImpl].
+   */
+  DartType tryPromoteToType(DartType to, DartType from);
+
+  /**
    * Given a [DartType] type, return the [TypeParameterElement]s corresponding
    * to its formal type parameters (if any).
    *
@@ -1418,18 +1418,6 @@ class TypeSystemImpl extends TypeSystem {
   TypeSystemImpl(this.typeProvider);
 
   @override
-  DartType tryPromoteToType(DartType to, DartType from) {
-    // Declared type should not be "dynamic".
-    // Promoted type should not be "dynamic".
-    // Promoted type should be more specific than declared.
-    if (!from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from)) {
-      return to;
-    } else {
-      return null;
-    }
-  }
-
-  @override
   FunctionType functionTypeToConcreteType(FunctionType t) => t;
 
   /**
@@ -1459,6 +1447,18 @@ class TypeSystemImpl extends TypeSystem {
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return leftType.isSubtypeOf(rightType);
+  }
+
+  @override
+  DartType tryPromoteToType(DartType to, DartType from) {
+    // Declared type should not be "dynamic".
+    // Promoted type should not be "dynamic".
+    // Promoted type should be more specific than declared.
+    if (!from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from)) {
+      return to;
+    } else {
+      return null;
+    }
   }
 
   @override
