@@ -126,7 +126,7 @@ class CustomElementsAnalysis {
   bool needsClass(ClassElement classElement) =>
       codegenJoin.activeClasses.contains(classElement);
 
-  List<Element> constructors(ClassElement classElement) =>
+  List<ConstructorElement> constructors(ClassElement classElement) =>
       codegenJoin.computeEscapingConstructors(classElement);
 }
 
