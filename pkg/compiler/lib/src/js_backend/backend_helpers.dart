@@ -145,7 +145,7 @@ class BackendHelpers {
    */
   ClassElement jsIndexingBehaviorInterface;
 
-  Element getNativeInterceptorMethod;
+  MethodElement getNativeInterceptorMethod;
 
   /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
   /// loaded.
@@ -505,7 +505,7 @@ class BackendHelpers {
     return _findHelper('closureFromTearOff');
   }
 
-  Element get isJsIndexable {
+  MethodElement get isJsIndexable {
     return _findHelper('isJsIndexable');
   }
 
@@ -566,7 +566,7 @@ class BackendHelpers {
     return _findHelper('throwExpression');
   }
 
-  Element get closureConverter {
+  MethodElement get closureConverter {
     return _findHelper('convertDartClosureToJS');
   }
 
@@ -586,7 +586,7 @@ class BackendHelpers {
     return _findHelper('getTypeArgumentByIndex');
   }
 
-  Element get computeSignature {
+  MethodElement get computeSignature {
     return _findHelper('computeSignature');
   }
 
@@ -667,7 +667,7 @@ class BackendHelpers {
     return _findHelper("getFallThroughError");
   }
 
-  Element get createInvocationMirror {
+  MethodElement get createInvocationMirror {
     return _findHelper('createInvocationMirror');
   }
 
@@ -675,47 +675,47 @@ class BackendHelpers {
     return _findHelper("throwCyclicInit");
   }
 
-  Element get asyncHelper {
+  MethodElement get asyncHelper {
     return _findAsyncHelper("_asyncHelper");
   }
 
-  Element get wrapBody {
+  MethodElement get wrapBody {
     return _findAsyncHelper("_wrapJsFunctionForAsync");
   }
 
-  Element get yieldStar {
+  MethodElement get yieldStar {
     ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("yieldStar");
   }
 
-  Element get yieldSingle {
+  MethodElement get yieldSingle {
     ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("yieldSingle");
   }
 
-  Element get syncStarUncaughtError {
+  MethodElement get syncStarUncaughtError {
     ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("uncaughtError");
   }
 
-  Element get asyncStarHelper {
+  MethodElement get asyncStarHelper {
     return _findAsyncHelper("_asyncStarHelper");
   }
 
-  Element get streamOfController {
+  MethodElement get streamOfController {
     return _findAsyncHelper("_streamOfController");
   }
 
-  Element get endOfIteration {
+  MethodElement get endOfIteration {
     ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("endOfIteration");
   }
 
-  Element get syncStarIterable {
+  ClassElement get syncStarIterable {
     ClassElement classElement = _findAsyncHelper("_SyncStarIterable");
     classElement.ensureResolved(resolution);
     return classElement;
@@ -727,36 +727,36 @@ class BackendHelpers {
     return classElement;
   }
 
-  Element get controllerStream {
+  ClassElement get controllerStream {
     ClassElement classElement = _findAsyncHelper("_ControllerStream");
     classElement.ensureResolved(resolution);
     return classElement;
   }
 
-  Element get syncStarIterableConstructor {
+  ConstructorElement get syncStarIterableConstructor {
     ClassElement classElement = syncStarIterable;
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");
   }
 
-  Element get syncCompleterConstructor {
+  ConstructorElement get syncCompleterConstructor {
     ClassElement classElement = _find(asyncLibrary, "Completer");
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("sync");
   }
 
-  Element get asyncStarController {
+  ClassElement get asyncStarController {
     ClassElement classElement = _findAsyncHelper("_AsyncStarStreamController");
     classElement.ensureResolved(resolution);
     return classElement;
   }
 
-  Element get asyncStarControllerConstructor {
+  ConstructorElement get asyncStarControllerConstructor {
     ClassElement classElement = asyncStarController;
     return classElement.lookupConstructor("");
   }
 
-  Element get streamIteratorConstructor {
+  ConstructorElement get streamIteratorConstructor {
     ClassElement classElement = _find(asyncLibrary, "StreamIterator");
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");

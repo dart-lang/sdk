@@ -14,6 +14,7 @@ import '../elements/elements.dart'
         Element,
         FunctionElement,
         FunctionSignature,
+        MethodElement,
         ParameterElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -275,7 +276,7 @@ class NativeEmitter {
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionElement member, List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
-    Element converter = helpers.closureConverter;
+    MethodElement converter = helpers.closureConverter;
     jsAst.Expression closureConverter =
         emitterTask.staticFunctionAccess(converter);
     parameters.forEachParameter((ParameterElement parameter) {

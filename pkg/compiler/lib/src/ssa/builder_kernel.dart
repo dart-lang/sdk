@@ -2217,10 +2217,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
                   function.positionalParameters.length &&
               function.namedParameters.isEmpty) {
             registry?.registerStaticUse(
-                new StaticUse.foreignUse(astAdapter.getMember(staticTarget)));
+                new StaticUse.foreignUse(astAdapter.getMethod(staticTarget)));
             push(new HForeignCode(
                 js.js.expressionTemplateYielding(backend.emitter
-                    .staticFunctionAccess(astAdapter.getMember(staticTarget))),
+                    .staticFunctionAccess(astAdapter.getMethod(staticTarget))),
                 commonMasks.dynamicType,
                 <HInstruction>[],
                 nativeBehavior: native.NativeBehavior.PURE));

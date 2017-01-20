@@ -338,7 +338,7 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
-  jsAst.PropertyAccess staticFunctionAccess(FunctionElement element) {
+  jsAst.PropertyAccess staticFunctionAccess(MethodElement element) {
     return globalPropertyAccess(element);
   }
 

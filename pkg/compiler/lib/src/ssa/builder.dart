@@ -2913,7 +2913,7 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           closure, '"$name" requires a static or top-level method.');
     }
-    FunctionElement function = element;
+    MethodElement function = element;
     // TODO(johnniwinther): Try to eliminate the need to distinguish declaration
     // and implementation signatures. Currently it is need because the
     // signatures have different elements for parameters.

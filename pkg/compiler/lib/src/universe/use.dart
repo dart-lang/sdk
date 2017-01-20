@@ -329,6 +329,9 @@ class StaticUse {
   }
 
   /// Unknown use of [element].
+  ///
+  /// Avoid using this, if possible: Use one of the other constructor which more
+  /// precisely capture why [element] is used.
   @deprecated
   factory StaticUse.foreignUse(Entity element) {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
