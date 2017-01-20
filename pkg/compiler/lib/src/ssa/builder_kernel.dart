@@ -1781,13 +1781,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(sra): Convert the type logic here to use ir.DartType.
     ResolutionDartType dartType = astAdapter.getDartType(type);
     dartType = localsHandler.substInContext(dartType);
-    HInstruction value = typeBuilder.analyzeTypeArgument(
-        dartType, sourceElement,
-        sourceInformation: null);
-    _pushStaticInvocation(astAdapter.runtimeTypeToString,
-                          <HInstruction>[value], commonMasks.stringType);
+    HInstruction value = typeBuilder
+        .analyzeTypeArgument(dartType, sourceElement, sourceInformation: null);
+    _pushStaticInvocation(astAdapter.runtimeTypeToString, <HInstruction>[value],
+        commonMasks.stringType);
     _pushStaticInvocation(astAdapter.createRuntimeType, <HInstruction>[pop()],
-                          astAdapter.createRuntimeTypeReturnType);
+        astAdapter.createRuntimeTypeReturnType);
   }
 
   @override
