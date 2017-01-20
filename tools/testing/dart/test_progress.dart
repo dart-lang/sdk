@@ -316,7 +316,7 @@ class TestOutcomeLogWriter extends EventListener {
 }
 
 class UnexpectedCrashDumpArchiver extends EventListener {
-  final archivedBinaries = new Set<String>();
+  final archivedBinaries = <String, String>{};
 
   void done(TestCase test) {
     if (test.unexpectedOutput &&
@@ -335,16 +335,33 @@ class UnexpectedCrashDumpArchiver extends EventListener {
         final binName = lastCommand.executable;
         final binFile = new File(binName);
         final binBaseName = new Path(binName).filename;
-        if (archivedBinaries.contains(binBaseName)) {
-          return;
-        }
-
-        if (binFile.existsSync()) {
+        if (!archivedBinaries.containsKey(binName) &&
+            binFile.existsSync()) {
           final mode = test.configuration['mode'];
           final arch = test.configuration['arch'];
-          TestUtils.copyFile(new Path(binName),
-              new Path("core.${mode}_${arch}_${binBaseName}"));
-          archivedBinaries.add(binBaseName);
+          final archived = "binary.${mode}_${arch}_${binBaseName}";
+          TestUtils.copyFile(new Path(binName), new Path(archived));
+          archivedBinaries[binName] = archived;
+        }
+
+        if (archivedBinaries.containsKey(binName)) {
+          // We have found and copied the binary.
+          var coredumpsList;
+          try {
+            coredumpsList =
+                new File('coredumps').openSync(mode: FileMode.APPEND);
+            coredumpsList.writeStringSync(
+                "${test.displayName},${name},${archivedBinaries[binName]}\n");
+          } catch (e) {
+            print('Failed to add crash to coredumps list: ${e}');
+          } finally {
+            try {
+              if (coredumpsList != null)
+                coredumpsList.closeSync();
+            } catch (e) {
+              print('Failed to close coredumps list: ${e}');
+            }
+          }
         }
       }
     }
