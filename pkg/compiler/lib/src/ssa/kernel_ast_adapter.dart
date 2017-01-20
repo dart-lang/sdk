@@ -12,6 +12,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show MemberEntity;
 import '../elements/modelx.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart';
@@ -103,7 +104,8 @@ class KernelAstAdapter {
       _compiler.globalInference.results;
 
   GlobalTypeInferenceElementResult _resultOf(Element e) =>
-      _globalInferenceResults.resultOf(e);
+      _globalInferenceResults
+          .resultOf(e is ConstructorBodyElementX ? e.constructor : e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
@@ -812,6 +814,14 @@ class KernelAstAdapter {
     return native.NativeBehavior.ofMethod(CURRENT_ELEMENT_SPANNABLE, type,
         metadata, _typeLookup(resolveAsRaw: false), _compiler,
         isJsInterop: false);
+  }
+
+  MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {
+    AstElement element = getElement(constructor);
+    MemberEntity constructorBody =
+        ConstructorBodyElementX.createFromResolvedAst(element.resolvedAst);
+    assert(constructorBody != null);
+    return constructorBody;
   }
 }
 

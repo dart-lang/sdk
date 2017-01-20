@@ -18,6 +18,7 @@ import '../constants/values.dart'
         TypeConstantValue;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -91,6 +92,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
+  bool _targetIsConstructorBody = false;
   final AstElement targetElement;
   final ResolvedAst resolvedAst;
   final ClosedWorld closedWorld;
@@ -156,11 +158,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       originTarget = originTarget.origin;
     }
     if (originTarget is FunctionElement) {
+      if (originTarget is ConstructorBodyElement) {
+        ConstructorBodyElement body = originTarget;
+        _targetIsConstructorBody = true;
+        originTarget = body.constructor;
+      }
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
+        FunctionElement originTargetFunction = originTarget;
         ClosureClassMap classMap = compiler.closureToClassMapper
-            .getClosureToClassMapping(originTarget.resolvedAst);
+            .getClosureToClassMapping(originTargetFunction.resolvedAst);
         if (classMap.closureElement != null) {
           target = kernel.localFunctions[classMap.closureElement];
         }
@@ -179,7 +187,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (target is ir.Field) {
       buildField(target);
     } else if (target is ir.Constructor) {
-      buildConstructor(target);
+      if (_targetIsConstructorBody) {
+        buildConstructorBody(target);
+      } else {
+        buildConstructor(target);
+      }
     } else if (target is ir.FunctionExpression) {
       _targetFunction = (target as ir.FunctionExpression).function;
       buildFunctionNode(_targetFunction);
@@ -187,7 +199,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _targetFunction = (target as ir.FunctionDeclaration).function;
       buildFunctionNode(_targetFunction);
     } else {
-      throw 'No case implemented to handle $target';
+      throw 'No case implemented to handle target: $target';
     }
     assert(graph.isValid());
     return graph;
@@ -261,8 +273,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     //            initializer list? If so then this is unnecessary...
     Map<ir.Field, HInstruction> fieldValues =
         _collectFieldValues(constructor.enclosingClass);
+    List<ir.Constructor> constructorChain = <ir.Constructor>[];
 
-    _buildInitializers(constructor, fieldValues);
+    _buildInitializers(constructor, constructorChain, fieldValues);
 
     final constructorArguments = <HInstruction>[];
     astAdapter.getClass(constructor.enclosingClass).forEachInstanceField(
@@ -273,7 +286,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // TODO(het): If the class needs runtime type information, add it as a
     // constructor argument.
-    HInstruction create = new HCreate(
+    HInstruction newObject = new HCreate(
         astAdapter.getClass(constructor.enclosingClass),
         constructorArguments,
         new TypeMask.nonNullExact(
@@ -283,12 +296,38 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         ],
         hasRtiInput: false);
 
-    add(create);
+    add(newObject);
 
     // Generate calls to the constructor bodies.
 
-    closeAndGotoExit(new HReturn(create, null));
+    for (ir.Constructor body in constructorChain.reversed) {
+      if (_isEmptyStatement(body.function.body)) continue;
+
+      List<HInstruction> bodyCallInputs = <HInstruction>[];
+      bodyCallInputs.add(newObject);
+
+      // TODO(sra): Pass arguments, boxes and type parameters.
+      _invokeConstructorBody(body, bodyCallInputs);
+    }
+
+    closeAndGotoExit(new HReturn(newObject, null));
     closeFunction();
+  }
+
+  static bool _isEmptyStatement(ir.Statement body) {
+    if (body is ir.EmptyStatement) return true;
+    if (body is ir.Block) return body.statements.every(_isEmptyStatement);
+    return false;
+  }
+
+  void _invokeConstructorBody(
+      ir.Constructor constructor, List<HInstruction> inputs) {
+    // TODO(sra): Inline the constructor body.
+    MemberEntity constructorBody =
+        astAdapter.getConstructorBodyEntity(constructor);
+    HInvokeConstructorBody invoke = new HInvokeConstructorBody(
+        constructorBody, inputs, commonMasks.nonNullType);
+    add(invoke);
   }
 
   /// Maps the instance fields of a class to their SSA values.
@@ -315,7 +354,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   /// Collects field initializers all the way up the inheritance chain.
   void _buildInitializers(
-      ir.Constructor constructor, Map<ir.Field, HInstruction> fieldValues) {
+      ir.Constructor constructor,
+      List<ir.Constructor> constructorChain,
+      Map<ir.Field, HInstruction> fieldValues) {
+    constructorChain.add(constructor);
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.SuperInitializer ||
@@ -324,29 +366,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         var superOrRedirectConstructor = initializer.target;
         var arguments = _normalizeAndBuildArguments(
             superOrRedirectConstructor.function, initializer.arguments);
-        _buildInlinedInitializers(
-            superOrRedirectConstructor, arguments, fieldValues);
+        _buildInlinedInitializers(superOrRedirectConstructor, arguments,
+            constructorChain, fieldValues);
       } else if (initializer is ir.FieldInitializer) {
         initializer.value.accept(this);
         fieldValues[initializer.field] = pop();
       }
     }
 
-    // Kernel always set the super initializer at the end, so if there was no
-    // super-call initializer, then the default constructor is called in the
-    // superclass.
     if (!foundSuperOrRedirectCall) {
-      if (constructor.enclosingClass != astAdapter.objectClass) {
-        var superclass = constructor.enclosingClass.superclass;
-        var defaultConstructor = superclass.constructors
-            .firstWhere((c) => c.name.name == '', orElse: () => null);
-        if (defaultConstructor == null) {
-          compiler.reporter.internalError(
-              NO_LOCATION_SPANNABLE, 'Could not find default constructor.');
-        }
-        _buildInlinedInitializers(
-            defaultConstructor, <HInstruction>[], fieldValues);
-      }
+      assert(constructor.enclosingClass == astAdapter.objectClass,
+          'All constructors have super-constructor initializers, except Object()');
     }
   }
 
@@ -396,8 +426,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Inlines the given super [constructor]'s initializers by collecting its
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
-  void _buildInlinedInitializers(ir.Constructor constructor,
-      List<HInstruction> arguments, Map<ir.Field, HInstruction> fieldValues) {
+  void _buildInlinedInitializers(
+      ir.Constructor constructor,
+      List<HInstruction> arguments,
+      List<ir.Constructor> constructorChain,
+      Map<ir.Field, HInstruction> fieldValues) {
     // TODO(het): Handle RTI if class needs it
     fieldValues.addAll(_collectFieldValues(constructor.enclosingClass));
 
@@ -414,7 +447,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // TODO(het): set the locals handler state as if we were inlining the
     // constructor.
-    _buildInitializers(constructor, fieldValues);
+    _buildInitializers(constructor, constructorChain, fieldValues);
   }
 
   HTypeConversion buildFunctionTypeConversion(
@@ -422,6 +455,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction reifiedType = buildFunctionType(type);
     return new HTypeConversion.viaMethodOnType(
         type, kind, original.instructionType, reifiedType, original);
+  }
+
+  /// Builds generative constructor body.
+  void buildConstructorBody(ir.Constructor constructor) {
+    openFunction();
+    constructor.function.body.accept(this);
+    closeFunction();
   }
 
   /// Builds a SSA graph for FunctionNodes, found in FunctionExpressions and

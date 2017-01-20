@@ -2414,6 +2414,51 @@ class ConstructorBodyElementX extends BaseFunctionElementX
     functionSignature = constructor.functionSignature;
   }
 
+  /// Returns the constructor body associated with the given constructor or
+  /// creates a new constructor body, if none can be found.
+  ///
+  /// Returns `null` if the constructor does not have a body.
+  static ConstructorBodyElementX createFromResolvedAst(
+      ResolvedAst constructorResolvedAst) {
+    ConstructorElement constructor =
+        constructorResolvedAst.element.implementation;
+    assert(constructor.isGenerativeConstructor);
+    if (constructorResolvedAst.kind != ResolvedAstKind.PARSED) return null;
+
+    FunctionExpression node = constructorResolvedAst.node;
+    // If we know the body doesn't have any code, we don't generate it.
+    if (!node.hasBody) return null;
+    if (node.hasEmptyBody) return null;
+    ClassElement classElement = constructor.enclosingClass;
+    ConstructorBodyElement bodyElement;
+    classElement.forEachBackendMember((Element backendMember) {
+      if (backendMember.isGenerativeConstructorBody) {
+        ConstructorBodyElement body = backendMember;
+        if (body.constructor == constructor) {
+          // TODO(kasperl): Find a way of stopping the iteration
+          // through the backend members.
+          bodyElement = backendMember;
+        }
+      }
+    });
+    if (bodyElement == null) {
+      bodyElement =
+          new ConstructorBodyElementX(constructorResolvedAst, constructor);
+      classElement.addBackendMember(bodyElement);
+
+      if (constructor.isPatch) {
+        // Create origin body element for patched constructors.
+        ConstructorBodyElementX patch = bodyElement;
+        ConstructorBodyElementX origin = new ConstructorBodyElementX(
+            constructorResolvedAst, constructor.origin);
+        origin.applyPatch(patch);
+        classElement.origin.addBackendMember(bodyElement.origin);
+      }
+    }
+    assert(bodyElement.isGenerativeConstructorBody);
+    return bodyElement;
+  }
+
   bool get hasNode => _resolvedAst.kind == ResolvedAstKind.PARSED;
 
   FunctionExpression get node => _resolvedAst.node;
