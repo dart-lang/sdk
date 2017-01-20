@@ -2631,7 +2631,7 @@ The reserved word \NULL{} evaluates to the {\em null object}.
 
 \LMHash{}
 The null object is the sole instance of the built-in class \code{Null}. Attempting to instantiate \code{Null} causes a run-time error. It is a compile-time error for a class to extend, mix in or implement \code{Null}.
-The \code{Null} class declares no methods except those also declared by \code{Object}.
+The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
 
 \LMHash{}
 The static type of \NULL{} is the \code{Null} type.
@@ -7404,7 +7404,7 @@ A type $T$ is more specific than a type $S$, written $T << S$,  if one of the fo
 \begin{itemize}
 \item $T$ is $S$.
 \item $T$ is $\bot$.
-\item $T$ is \NULL{} and $S$ is not $\bot$.
+\item $T$ is \code{Null} and $S$ is not $\bot$.
 \item $S$ is \DYNAMIC{}.
 \item $S$ is a direct supertype of $T$.
 \item $T$ is a type parameter and $S$ is the upper bound of $T$.
@@ -7426,13 +7426,20 @@ $List <: List<String>$ and $List<int> <: List$, but $List<int>$ is not a subtype
 Although $<:$ is not a partial order on types, it does contain a partial order, namely $<<$. This means that, barring raw types, intuition about classical subtype rules does apply.
 }
 
+\commentary{
+The \code{Null} type is more specific than all non-$\bot$ types, even though
+it doesn't actually extend or implement those types.
+The other types are effectively treated as if they are {\em nullable},
+which makes \NULL{} assignable to them.
+}
+
 \LMHash{}
 $S$ is a supertype of $T$, written $S :> T$, iff $T$ is a subtype of $S$.
 
 \commentary{The supertypes of an interface are its direct supertypes and their supertypes. }
 
 \LMHash{}
-An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$, $S <: T$, or either $T$ or $S$ is the \code{Null} type.
+An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$, $S <: T$.
 
 \rationale{This rule may surprise readers accustomed to conventional typechecking. The intent of the $\Longleftrightarrow$ relation is not to ensure that an assignment is correct. Instead, it aims to only flag assignments that are almost certain to be erroneous, without precluding assignments that may work.
 
