@@ -1774,22 +1774,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       stack.add(graph.addConstant(constant, closedWorld));
       return;
     }
-    if (type is ir.TypeParameterType) {
-      // TODO(sra): Convert the type logic here to use ir.DartType.
-      ResolutionDartType dartType = astAdapter.getDartType(type);
-      dartType = localsHandler.substInContext(dartType);
-      HInstruction value = typeBuilder.analyzeTypeArgument(
-          dartType, sourceElement,
-          sourceInformation: null);
-      _pushStaticInvocation(astAdapter.runtimeTypeToString,
-          <HInstruction>[value], commonMasks.stringType);
-      _pushStaticInvocation(astAdapter.createRuntimeType, <HInstruction>[pop()],
-          astAdapter.createRuntimeTypeReturnType);
-      return;
-    }
-    // TODO(27394): Function types observed. Where are they from?
-    defaultExpression(typeLiteral);
-    return;
+    // For other types (e.g. TypeParameterType, function types from expanded
+    // typedefs), look-up or construct a reified type representation and convert
+    // to a RuntimeType.
+
+    // TODO(sra): Convert the type logic here to use ir.DartType.
+    ResolutionDartType dartType = astAdapter.getDartType(type);
+    dartType = localsHandler.substInContext(dartType);
+    HInstruction value = typeBuilder.analyzeTypeArgument(
+        dartType, sourceElement,
+        sourceInformation: null);
+    _pushStaticInvocation(astAdapter.runtimeTypeToString,
+                          <HInstruction>[value], commonMasks.stringType);
+    _pushStaticInvocation(astAdapter.createRuntimeType, <HInstruction>[pop()],
+                          astAdapter.createRuntimeTypeReturnType);
   }
 
   @override
