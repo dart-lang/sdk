@@ -819,7 +819,7 @@ class BackendHelpers {
     return _findHelper('defineProperty');
   }
 
-  Element get startRootIsolate {
+  MethodElement get startRootIsolate {
     return _find(isolateHelperLibrary, START_ROOT_ISOLATE);
   }
 

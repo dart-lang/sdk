@@ -231,9 +231,10 @@ class ProgramBuilder {
   js.Statement _buildInvokeMain() {
     if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
 
-    MainCallStubGenerator generator =
-        new MainCallStubGenerator(_compiler, backend, backend.emitter);
-    return generator.generateInvokeMain();
+    MainCallStubGenerator generator = new MainCallStubGenerator(
+        backend, backend.emitter,
+        hasIncrementalSupport: _compiler.options.hasIncrementalSupport);
+    return generator.generateInvokeMain(_compiler.mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
