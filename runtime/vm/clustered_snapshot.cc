@@ -5037,8 +5037,9 @@ RawApiError* Deserializer::VerifyVersionAndFeatures() {
     char* actual_features =
         OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
     OS::SNPrint(message_buffer, kMessageBufferSize,
-                "Wrong features in snapshot, expected '%s' found '%s'",
-                expected_features, actual_features);
+                "Snapshot not compatible with the current VM configuration: "
+                "the snapshot requires '%s' but the VM has '%s'",
+                actual_features, expected_features);
     free(const_cast<char*>(expected_features));
     free(actual_features);
     // This can also fail while bringing up the VM isolate, so make sure to
