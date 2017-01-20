@@ -653,9 +653,12 @@ class Thread : public BaseThread {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
+  bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
   intptr_t CountLocalHandles() const;
+  bool IsValidZoneHandle(Dart_Handle object) const;
   intptr_t CountZoneHandles() const;
+  bool IsValidScopedHandle(Dart_Handle object) const;
   intptr_t CountScopedHandles() const;
   int ZoneSizeInBytes() const;
   void UnwindScopes(uword stack_marker);

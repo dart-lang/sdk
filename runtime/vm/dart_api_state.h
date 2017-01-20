@@ -512,6 +512,17 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
   }
 
+  bool IsFreeHandle(Dart_PersistentHandle object) const {
+    PersistentHandle* handle = free_list_;
+    while (handle != NULL) {
+      if (handle == reinterpret_cast<PersistentHandle*>(object)) {
+        return true;
+      }
+      handle = handle->Next();
+    }
+    return false;
+  }
+
   // Returns a count of active handles (used for testing purposes).
   int CountHandles() const { return CountScopedHandles(); }
 
@@ -592,6 +603,18 @@ class FinalizablePersistentHandles
   bool IsValidHandle(Dart_WeakPersistentHandle object) const {
     MutexLocker ml(mutex_);
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
+  }
+
+  bool IsFreeHandle(Dart_WeakPersistentHandle object) const {
+    MutexLocker ml(mutex_);
+    FinalizablePersistentHandle* handle = free_list_;
+    while (handle != NULL) {
+      if (handle == reinterpret_cast<FinalizablePersistentHandle*>(object)) {
+        return true;
+      }
+      handle = handle->Next();
+    }
+    return false;
   }
 
   // Returns a count of active handles (used for testing purposes).
@@ -742,8 +765,25 @@ class ApiState {
     return persistent_handles_.IsValidHandle(object);
   }
 
+  bool IsFreePersistentHandle(Dart_PersistentHandle object) const {
+    return persistent_handles_.IsFreeHandle(object);
+  }
+
+  bool IsActivePersistentHandle(Dart_PersistentHandle object) const {
+    return IsValidPersistentHandle(object) && !IsFreePersistentHandle(object);
+  }
+
   bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
     return weak_persistent_handles_.IsValidHandle(object);
+  }
+
+  bool IsFreeWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
+    return weak_persistent_handles_.IsFreeHandle(object);
+  }
+
+  bool IsActiveWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
+    return IsValidWeakPersistentHandle(object) &&
+           !IsFreeWeakPersistentHandle(object);
   }
 
   bool IsProtectedHandle(PersistentHandle* object) const {

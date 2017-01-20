@@ -11,6 +11,7 @@
 
 #include "vm/ast.h"
 #include "vm/dart.h"
+#include "vm/dart_api_state.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -539,6 +540,13 @@ class CompilerTest : public AllStatic {
 #define EXPECT_VALID(handle)                                                   \
   do {                                                                         \
     Dart_Handle tmp_handle = (handle);                                         \
+    if (!Api::IsValid(tmp_handle)) {                                           \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail(                                                               \
+              "expected '%s' to be a valid handle but '%s' has already been "  \
+              "freed\n",                                                       \
+              #handle, #handle);                                               \
+    }                                                                          \
     if (Dart_IsError(tmp_handle)) {                                            \
       dart::Expect(__FILE__, __LINE__)                                         \
           .Fail(                                                               \

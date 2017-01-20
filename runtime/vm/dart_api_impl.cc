@@ -534,6 +534,22 @@ Dart_Handle Api::AcquiredError(Isolate* isolate) {
 }
 
 
+bool Api::IsValid(Dart_Handle handle) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+
+  // Check against all of the handles in the current isolate as well as the
+  // read-only handles.
+  return isolate->thread_registry()->IsValidHandle(handle) ||
+         isolate->api_state()->IsActivePersistentHandle(
+             reinterpret_cast<Dart_PersistentHandle>(handle)) ||
+         isolate->api_state()->IsActiveWeakPersistentHandle(
+             reinterpret_cast<Dart_WeakPersistentHandle>(handle)) ||
+         Dart::IsReadOnlyApiHandle(handle) ||
+         Dart::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
+}
+
+
 ApiLocalScope* Api::TopScope(Thread* thread) {
   ASSERT(thread != NULL);
   ApiLocalScope* scope = thread->api_top_scope();
