@@ -140,14 +140,17 @@ def to_gn_args(args, mode, arch, target_os):
                                   and not args.msan
                                   and not args.tsan)
 
-  # Force -mfloat-abi=hard and -mfpu=neon on Linux as we're specifying
-  # a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
-  # TODO(zra): This will likely need some adjustment to build for armv6 etc.
-  hard_float = (gn_args['target_cpu'].startswith('arm') and
-                (gn_args['target_os'] == 'linux'))
-  if hard_float:
-    gn_args['arm_float_abi'] = 'hard'
-    gn_args['arm_use_neon'] = True
+  if gn_args['target_os'] == 'linux':
+    if gn_args['target_cpu'] == 'arm':
+      # Force -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
+      # specifying a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
+      gn_args['arm_arch'] = 'armv7'
+      gn_args['arm_float_abi'] = 'hard'
+      gn_args['arm_use_neon'] = True
+    elif gn_args['target_cpu'] == 'armv6':
+      raise Exception("GN support for armv6 unimplemented")
+    elif gn_args['target_cpu'] == 'armv5te':
+      raise Exception("GN support for armv5te unimplemented")
 
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'

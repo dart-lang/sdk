@@ -226,6 +226,10 @@ config("compiler") {
         ]
       }
     } else if (current_cpu == "mipsel") {
+      # Some toolchains default to big-endian.
+      cflags += [ "-EL" ]
+      ldflags += [ "-EL" ]
+
       # We have to explicitly request exceptions to get good heap profiles from
       # tcmalloc.
       if (is_debug || is_release) {
