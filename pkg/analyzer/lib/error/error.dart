@@ -149,6 +149,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
   CompileTimeErrorCode.INVALID_URI,
+  CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
   CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
