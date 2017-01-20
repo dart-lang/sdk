@@ -447,6 +447,30 @@ class C {
     _assertVisibleRange(parameter, 100, 110);
   }
 
+  void test_visitFunctionTypedFormalParameter_covariant() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    String parameterName = "p";
+    FunctionTypedFormalParameterImpl formalParameter =
+        AstTestFactory.functionTypedFormalParameter(null, parameterName);
+    formalParameter.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElementImpl parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isExplicitlyCovariant, isTrue);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    _assertVisibleRange(parameter, 100, 110);
+  }
+
   void test_visitFunctionTypedFormalParameter_withTypeParameters() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
@@ -552,6 +576,39 @@ class C {
     expect(initializer.hasImplicitReturnType, isTrue);
   }
 
+  void test_visitNamedFormalParameter_covariant() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    String parameterName = "p";
+    DefaultFormalParameter formalParameter =
+        AstTestFactory.namedFormalParameter(
+            AstTestFactory.simpleFormalParameter3(parameterName),
+            AstTestFactory.identifier3("42"));
+    (formalParameter.parameter as NormalFormalParameterImpl).covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElementImpl parameter = parameters[0];
+    expect(parameter, isNotNull);
+    assertHasCodeRange(parameter, 50, 32);
+    expect(parameter.name, parameterName);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isExplicitlyCovariant, isTrue);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.NAMED);
+    _assertVisibleRange(parameter, 100, 110);
+    expect(parameter.defaultValueCode, "42");
+    FunctionElement initializer = parameter.initializer;
+    expect(initializer, isNotNull);
+    expect(initializer.isSynthetic, isTrue);
+    expect(initializer.hasImplicitReturnType, isTrue);
+  }
+
   void test_visitSimpleFormalParameter_noType() {
     // p
     ElementHolder holder = new ElementHolder();
@@ -568,6 +625,32 @@ class C {
     expect(parameter.hasImplicitType, isTrue);
     expect(parameter.initializer, isNull);
     expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    _assertVisibleRange(parameter, 100, 110);
+  }
+
+  void test_visitSimpleFormalParameter_noType_covariant() {
+    // p
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    String parameterName = "p";
+    SimpleFormalParameterImpl formalParameter =
+        AstTestFactory.simpleFormalParameter3(parameterName);
+    formalParameter.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElementImpl parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.hasImplicitType, isTrue);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isExplicitlyCovariant, isTrue);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
@@ -596,6 +679,57 @@ class C {
     expect(parameter.name, parameterName);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
     _assertVisibleRange(parameter, 100, 110);
+  }
+
+  void test_visitSimpleFormalParameter_type_covariant() {
+    // T p
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    String parameterName = "p";
+    SimpleFormalParameterImpl formalParameter = AstTestFactory
+        .simpleFormalParameter4(AstTestFactory.typeName4('T'), parameterName);
+    formalParameter.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElementImpl parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isExplicitlyCovariant, isTrue);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    _assertVisibleRange(parameter, 100, 110);
+  }
+
+  void test_visitVariableDeclaration_field_covariant() {
+    // covariant int f;
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    String fieldName = "f";
+    VariableDeclarationImpl variableDeclaration =
+        AstTestFactory.variableDeclaration2(fieldName, null);
+    FieldDeclarationImpl fieldDeclaration = AstTestFactory.fieldDeclaration(
+        false,
+        null,
+        AstTestFactory.typeName4('int'),
+        <VariableDeclaration>[variableDeclaration]);
+    fieldDeclaration.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    variableDeclaration.accept(builder);
+
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElementImpl field = fields[0];
+    expect(field, isNotNull);
+    PropertyAccessorElementImpl setter = field.setter;
+    expect(setter, isNotNull);
+    expect(setter.parameters[0].isCovariant, isTrue);
   }
 
   void test_visitVariableDeclaration_inConstructor() {
@@ -1094,8 +1228,9 @@ abstract class _ApiElementBuilderTestMixin {
   void
       test_metadata_visitDefaultFormalParameter_functionTypedFormalParameter() {
     ParameterElement parameterElement =
-        buildElementsForText('f([@a g() = null]) {}').functions[0].parameters[
-            0];
+        buildElementsForText('f([@a g() = null]) {}')
+            .functions[0]
+            .parameters[0];
     checkMetadata(parameterElement);
   }
 

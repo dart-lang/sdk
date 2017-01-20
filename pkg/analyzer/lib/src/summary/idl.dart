@@ -2562,6 +2562,12 @@ abstract class UnlinkedParam extends base.SummaryClass {
   UnlinkedExecutable get initializer;
 
   /**
+   * Indicates whether this parameter is explicitly marked as being covariant.
+   */
+  @Id(15)
+  bool get isExplicitlyCovariant;
+
+  /**
    * Indicates whether this is a function-typed parameter.
    */
   @Id(5)
@@ -3058,6 +3064,13 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(6)
   bool get isConst;
+
+  /**
+   * Indicates whether this variable is declared using the `covariant` keyword.
+   * This should be false for everything except instance fields.
+   */
+  @Id(14)
+  bool get isCovariant;
 
   /**
    * Indicates whether the variable is declared using the `final` keyword.

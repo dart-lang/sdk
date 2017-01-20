@@ -3859,7 +3859,7 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (UnlinkedExpr annotation in _unlinkedParam.annotations) {
@@ -3876,6 +3876,9 @@ class ParameterElementForLink implements ParameterElementImpl {
     }
     return false;
   }
+
+  @override
+  bool get isExplicitlyCovariant => _unlinkedParam.isExplicitlyCovariant;
 
   @override
   String get name => _unlinkedParam.name;
@@ -3955,7 +3958,10 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   ParameterElementForLink_VariableSetter(this.enclosingElement);
 
   @override
-  bool get isCovariant => false;
+  bool get isCovariant => isExplicitlyCovariant || inheritsCovariant;
+
+  @override
+  bool get isExplicitlyCovariant => enclosingElement.variable.isCovariant;
 
   @override
   bool get isSynthetic => true;
@@ -4908,6 +4914,12 @@ abstract class VariableElementForLink
 
   @override
   bool get isConst => unlinkedVariable.isConst;
+
+  /**
+   * Return `true` if this variable is a field that was explicitly marked as
+   * being covariant (in the setter's parameter).
+   */
+  bool get isCovariant => unlinkedVariable.isCovariant;
 
   @override
   bool get isFinal => unlinkedVariable.isFinal;

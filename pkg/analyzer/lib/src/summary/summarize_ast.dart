@@ -807,6 +807,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.identifier.offset;
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
+    b.isExplicitlyCovariant = node.covariantKeyword != null;
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }
@@ -971,10 +972,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Comment documentationComment,
       NodeList<Annotation> annotations,
       bool isField) {
+    bool isCovariant = isField
+        ? (variables.parent as FieldDeclaration).covariantKeyword != null
+        : false;
     for (VariableDeclaration variable in variables.variables) {
       UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
-      b.isFinal = variables.isFinal;
       b.isConst = variables.isConst;
+      b.isCovariant = isCovariant;
+      b.isFinal = variables.isFinal;
       b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;

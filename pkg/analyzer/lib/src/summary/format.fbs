@@ -2272,6 +2272,11 @@ table UnlinkedParam {
   initializer:UnlinkedExecutable (id: 12);
 
   /**
+   * Indicates whether this parameter is explicitly marked as being covariant.
+   */
+  isExplicitlyCovariant:bool (id: 15);
+
+  /**
    * Indicates whether this is a function-typed parameter.
    */
   isFunctionTyped:bool (id: 5);
@@ -2662,6 +2667,12 @@ table UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   isConst:bool (id: 6);
+
+  /**
+   * Indicates whether this variable is declared using the `covariant` keyword.
+   * This should be false for everything except instance fields.
+   */
+  isCovariant:bool (id: 14);
 
   /**
    * Indicates whether the variable is declared using the `final` keyword.

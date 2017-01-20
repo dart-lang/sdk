@@ -926,10 +926,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     expect(resynthesized.defaultValueCode, original.defaultValueCode,
         reason: desc);
-    expect(resynthesized.isCovariant, original.isCovariant, reason: desc);
+    expect(resynthesized.isCovariant, original.isCovariant,
+        reason: '$desc isCovariant');
     ParameterElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     ParameterElementImpl originalActual = getActualElement(original, desc);
+    expect(resynthesizedActual.isExplicitlyCovariant,
+        originalActual.isExplicitlyCovariant,
+        reason: desc);
     compareFunctionElements(
         resynthesizedActual.initializer, originalActual.initializer, desc);
   }
@@ -1203,6 +1207,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else if (modifier == Modifier.CONST) {
       if (element is VariableElement) {
         return element.isConst;
+      }
+      return false;
+    } else if (modifier == Modifier.COVARIANT) {
+      if (element is ParameterElementImpl) {
+        return element.isExplicitlyCovariant;
       }
       return false;
     } else if (modifier == Modifier.DEFERRED) {
@@ -2822,35 +2831,6 @@ class D {
 ''');
   }
 
-  void test_covariant_parameter() {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // my need to be changed.
-    checkLibrary(r'''
-library meta;
-const checked = null;
-class A<T> {
-  void f(@checked T t) {}
-}
-''');
-  }
-
-  void test_covariant_parameter_inherited() {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // my need to be changed.
-    checkLibrary(r'''
-library meta;
-const checked = null;
-class A<T> {
-  void f(@checked T t) {}
-}
-class B<T> extends A<T> {
-  void f(T t) {}
-}
-''');
-  }
-
   test_defaultValue_refersToGenericClass_constructor() {
     checkLibrary('''
 class B<T> {
@@ -3101,6 +3081,13 @@ class B extends A {}
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
     checkLibrary('export "a.dart"; export "b.dart";');
+  }
+
+  test_field_covariant() {
+    checkLibrary('''
+class C {
+  covariant int x;
+}''');
   }
 
   test_field_documented() {
@@ -4174,22 +4161,6 @@ class C {
         'class C extends D { f() => null; } abstract class D { int f(); }');
   }
 
-  test_method_parameter_parameters() {
-    checkLibrary('class C { f(g(x, y)) {} }');
-  }
-
-  test_method_parameter_parameters_in_generic_class() {
-    checkLibrary('class C<A, B> { f(A g(B x)) {} }');
-  }
-
-  test_method_parameter_return_type() {
-    checkLibrary('class C { f(int g()) {} }');
-  }
-
-  test_method_parameter_return_type_void() {
-    checkLibrary('class C { f(void g()) {} }');
-  }
-
   test_method_type_parameter() {
     prepareAnalysisContext(createOptions());
     checkLibrary('class C { T f<T, U>(U u) => null; }');
@@ -4289,6 +4260,67 @@ void f<T, U>() {
     checkLibrary('class C { bool operator<=(C other) => false; }');
   }
 
+  void test_parameter_checked() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // my need to be changed.
+    checkLibrary(r'''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+''');
+  }
+
+  void test_parameter_checked_inherited() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // my need to be changed.
+    checkLibrary(r'''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
+}
+''');
+  }
+
+  test_parameter_covariant() {
+    prepareAnalysisContext(createOptions());
+    checkLibrary('class C { void m(covariant C c) {} }');
+  }
+
+  void test_parameter_covariant_inherited() {
+    checkLibrary(r'''
+class A<T> {
+  void f(covariant T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
+}
+''');
+  }
+
+  test_parameter_parameters() {
+    checkLibrary('class C { f(g(x, y)) {} }');
+  }
+
+  test_parameter_parameters_in_generic_class() {
+    checkLibrary('class C<A, B> { f(A g(B x)) {} }');
+  }
+
+  test_parameter_return_type() {
+    checkLibrary('class C { f(int g()) {} }');
+  }
+
+  test_parameter_return_type_void() {
+    checkLibrary('class C { f(void g()) {} }');
+  }
+
   test_parameterTypeNotInferred_constructor() {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
@@ -4361,6 +4393,10 @@ void f() {
   var y = x;
 }
 ''');
+  }
+
+  test_setter_covariant() {
+    checkLibrary('class C { void set x(covariant int value); }');
   }
 
   test_setter_documented() {
