@@ -1508,12 +1508,12 @@ dart.getImplicitFunctionType = function(type) {
 dart.isFunctionType = function(type) {
   return type instanceof dart.AbstractFunctionType || type === core.Function;
 };
-dart.isLazyJSSubtype = function(t1, t2, covariant) {
+dart.isLazyJSSubtype = function(t1, t2, isCovariant) {
   if (dart.equals(t1, t2)) return true;
   if (t1[_jsTypeCallback] == null || t2[_jsTypeCallback] == null) return true;
-  return dart.isClassSubType(t1[_rawJSType], t2[_rawJSType], covariant);
+  return dart.isClassSubType(t1[_rawJSType], t2[_rawJSType], isCovariant);
 };
-dart.isFunctionSubtype = function(ft1, ft2, covariant) {
+dart.isFunctionSubtype = function(ft1, ft2, isCovariant) {
   if (ft2 === core.Function) {
     return true;
   }
@@ -1525,26 +1525,26 @@ dart.isFunctionSubtype = function(ft1, ft2, covariant) {
   let args1 = ft1.args;
   let args2 = ft2.args;
   if (args1.length > args2.length) {
-    return covariant ? false : null;
+    return isCovariant ? false : null;
   }
   for (let i = 0; i < args1.length; ++i) {
-    if (!dart._isSubtype(args2[i], args1[i], !covariant)) {
+    if (!dart._isSubtype(args2[i], args1[i], !isCovariant)) {
       return null;
     }
   }
   let optionals1 = ft1.optionals;
   let optionals2 = ft2.optionals;
   if (args1.length + optionals1.length < args2.length + optionals2.length) {
-    return covariant ? false : null;
+    return isCovariant ? false : null;
   }
   let j = 0;
   for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!dart._isSubtype(args2[i], optionals1[j], !covariant)) {
+    if (!dart._isSubtype(args2[i], optionals1[j], !isCovariant)) {
       return null;
     }
   }
   for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!dart._isSubtype(optionals2[i], optionals1[j], !covariant)) {
+    if (!dart._isSubtype(optionals2[i], optionals1[j], !isCovariant)) {
       return null;
     }
   }
@@ -1556,15 +1556,15 @@ dart.isFunctionSubtype = function(ft1, ft2, covariant) {
     let n1 = named1[name];
     let n2 = named2[name];
     if (n1 === void 0) {
-      return covariant ? false : null;
+      return isCovariant ? false : null;
     }
-    if (!dart._isSubtype(n2, n1, !covariant)) {
+    if (!dart._isSubtype(n2, n1, !isCovariant)) {
       return null;
     }
   }
   if (ret2 === dart.void) return true;
   if (ret1 === dart.void) return ret2 === dart.dynamic;
-  if (!dart._isSubtype(ret1, ret2, covariant)) return null;
+  if (!dart._isSubtype(ret1, ret2, isCovariant)) return null;
   return true;
 };
 dart._subtypeMemo = function(f) {
@@ -1589,7 +1589,7 @@ dart._isBottom = function(type) {
 dart._isTop = function(type) {
   return type == core.Object || type == dart.dynamic;
 };
-dart._isSubtype = function(t1, t2, covariant) {
+dart._isSubtype = function(t1, t2, isCovariant) {
   if (t1 === t2) return true;
   if (dart._isTop(t2) || dart._isBottom(t1)) {
     return true;
@@ -1600,20 +1600,20 @@ dart._isSubtype = function(t1, t2, covariant) {
     return false;
   }
   if (!(t1 instanceof dart.AbstractFunctionType) && !(t2 instanceof dart.AbstractFunctionType)) {
-    let result = dart.isClassSubType(t1, t2, covariant);
+    let result = dart.isClassSubType(t1, t2, isCovariant);
     if (result === true || result === null) return result;
   }
   t1 = dart.getImplicitFunctionType(t1);
   if (!t1) return false;
   if (dart.isFunctionType(t1) && dart.isFunctionType(t2)) {
-    return dart.isFunctionSubtype(t1, t2, covariant);
+    return dart.isFunctionSubtype(t1, t2, isCovariant);
   }
   if (t1 instanceof dart.LazyJSType && t2 instanceof dart.LazyJSType) {
-    return dart.isLazyJSSubtype(t1, t2, covariant);
+    return dart.isLazyJSSubtype(t1, t2, isCovariant);
   }
   return false;
 };
-dart.isClassSubType = function(t1, t2, covariant) {
+dart.isClassSubType = function(t1, t2, isCovariant) {
   if (t1 == t2) return true;
   if (t1 == core.Object) return false;
   if (t1 == null) return t2 == core.Object || t2 == dart.dynamic;
@@ -1631,7 +1631,7 @@ dart.isClassSubType = function(t1, t2, covariant) {
     }
     dart.assert(length == typeArguments2.length);
     for (let i = 0; i < length; ++i) {
-      let result = dart._isSubtype(typeArguments1[i], typeArguments2[i], covariant);
+      let result = dart._isSubtype(typeArguments1[i], typeArguments2[i], isCovariant);
       if (!result) {
         return result;
       }
@@ -1640,7 +1640,7 @@ dart.isClassSubType = function(t1, t2, covariant) {
   }
   let indefinite = false;
   function definitive(t1, t2) {
-    let result = dart.isClassSubType(t1, t2, covariant);
+    let result = dart.isClassSubType(t1, t2, isCovariant);
     if (result == null) {
       indefinite = true;
       return false;

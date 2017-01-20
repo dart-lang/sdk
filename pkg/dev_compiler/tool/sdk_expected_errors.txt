@@ -1,5 +1,6 @@
 [error] Couldn't infer type parameter 'T'; '_ControllerEventSinkWrapper<dynamic>' must be of type 'EventSink<T>'. (dart:async/stream.dart, line 1346, col 16)
 [error] The argument type '_ControllerEventSinkWrapper' can't be assigned to the parameter type 'EventSink<T>'. (dart:async/stream.dart, line 1346, col 53)
+[error] Type parameter bound types must be instantiated. (dart:collection/queue.dart, line 99, col 29)
 [error] Invalid override. The type of 'ChunkedConverter.bind' ('(dynamic) → dynamic') isn't a subtype of 'Converter<S, T>.bind' ('(Stream<S>) → Stream<T>'). (dart:convert/chunked_conversion.dart, line 14, col 3)
 [error] Invalid override. The type of 'ChunkedConverter.bind' ('(dynamic) → dynamic') isn't a subtype of 'StreamTransformer<S, T>.bind' ('(Stream<S>) → Stream<T>'). (dart:convert/chunked_conversion.dart, line 14, col 3)
 [error] Invalid override. The type of 'ChunkedConverter.startChunkedConversion' ('(dynamic) → dynamic') isn't a subtype of 'Converter<S, T>.startChunkedConversion' ('(Sink<T>) → Sink<S>'). (dart:convert/chunked_conversion.dart, line 15, col 3)

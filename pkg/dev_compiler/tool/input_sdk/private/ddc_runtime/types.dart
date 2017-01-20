@@ -560,22 +560,22 @@ getImplicitFunctionType(type) {
 bool isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
     AbstractFunctionType, type, Function);
 
-isLazyJSSubtype(LazyJSType t1, LazyJSType t2, covariant) {
+isLazyJSSubtype(LazyJSType t1, LazyJSType t2, isCovariant) {
   if (t1 == t2) return true;
 
   // All anonymous JS types are subtypes of each other.
   if (t1._jsTypeCallback == null || t2._jsTypeCallback == null) return true;
-  return isClassSubType(t1._rawJSType, t2._rawJSType, covariant);
+  return isClassSubType(t1._rawJSType, t2._rawJSType, isCovariant);
 }
 
 /// Returns true if [ft1] <: [ft2].
 /// Returns false if [ft1] </: [ft2] in both spec and strong mode
 /// Returns null if [ft1] </: [ft2] in strong mode, but spec mode
 /// may differ
-/// If [covariant] is true, then we are checking subtyping in a covariant
+/// If [isCovariant] is true, then we are checking subtyping in a covariant
 /// position, and hence the direction of the check for function types
 /// corresponds to the direction of the check according to the Dart spec.
-isFunctionSubtype(ft1, ft2, covariant) => JS(
+isFunctionSubtype(ft1, ft2, isCovariant) => JS(
     '',
     '''(() => {
   if ($ft2 === $Function) {
@@ -595,11 +595,11 @@ isFunctionSubtype(ft1, ft2, covariant) => JS(
   if (args1.length > args2.length) {
     // If we're in a covariant position, then Dart's arity rules
     // agree with strong mode, otherwise we can't be sure.
-    return ($covariant) ? false : null;
+    return ($isCovariant) ? false : null;
   }
 
   for (let i = 0; i < args1.length; ++i) {
-    if (!$_isSubtype(args2[i], args1[i], !$covariant)) {
+    if (!$_isSubtype(args2[i], args1[i], !$isCovariant)) {
       // Even if isSubtype returns false, assignability
       // means that we can't be definitive
       return null;
@@ -610,18 +610,18 @@ isFunctionSubtype(ft1, ft2, covariant) => JS(
   let optionals2 = $ft2.optionals;
 
   if (args1.length + optionals1.length < args2.length + optionals2.length) {
-    return ($covariant) ? false : null;
+    return ($isCovariant) ? false : null;
   }
 
   let j = 0;
   for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!$_isSubtype(args2[i], optionals1[j], !$covariant)) {
+    if (!$_isSubtype(args2[i], optionals1[j], !$isCovariant)) {
       return null;
     }
   }
 
   for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!$_isSubtype(optionals2[i], optionals1[j], !$covariant)) {
+    if (!$_isSubtype(optionals2[i], optionals1[j], !$isCovariant)) {
       return null;
     }
   }
@@ -635,9 +635,9 @@ isFunctionSubtype(ft1, ft2, covariant) => JS(
     let n1 = named1[name];
     let n2 = named2[name];
     if (n1 === void 0) {
-      return ($covariant) ? false : null;
+      return ($isCovariant) ? false : null;
     }
-    if (!$_isSubtype(n2, n1, !$covariant)) {
+    if (!$_isSubtype(n2, n1, !$isCovariant)) {
       return null;
     }
   }
@@ -650,7 +650,7 @@ isFunctionSubtype(ft1, ft2, covariant) => JS(
   // Dart allows void functions to subtype dynamic functions, but not
   // other functions.
   if (ret1 === $_void) return (ret2 === $dynamic);
-  if (!$_isSubtype(ret1, ret2, $covariant)) return null;
+  if (!$_isSubtype(ret1, ret2, $isCovariant)) return null;
   return true;
 })()''');
 
@@ -687,7 +687,7 @@ _isBottom(type) => JS('bool', '# == #', type, bottom);
 
 _isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamic);
 
-_isSubtype(t1, t2, covariant) => JS(
+_isSubtype(t1, t2, isCovariant) => JS(
     '',
     '''(() => {
   if ($t1 === $t2) return true;
@@ -709,7 +709,7 @@ _isSubtype(t1, t2, covariant) => JS(
   // currently distinguish between generic typedefs and classes.
   if (!($t1 instanceof $AbstractFunctionType) &&
       !($t2 instanceof $AbstractFunctionType)) {
-    let result = $isClassSubType($t1, $t2, $covariant);
+    let result = $isClassSubType($t1, $t2, $isCovariant);
     if (result === true || result === null) return result;
   }
 
@@ -721,17 +721,17 @@ _isSubtype(t1, t2, covariant) => JS(
   if (!t1) return false;
 
   if ($isFunctionType($t1) && $isFunctionType($t2)) {
-    return $isFunctionSubtype($t1, $t2, $covariant);
+    return $isFunctionSubtype($t1, $t2, $isCovariant);
   }
   
   if ($t1 instanceof $LazyJSType && $t2 instanceof $LazyJSType) {
-    return $isLazyJSSubtype($t1, $t2, $covariant);
+    return $isLazyJSSubtype($t1, $t2, $isCovariant);
   }
   
   return false;
 })()''');
 
-isClassSubType(t1, t2, covariant) => JS(
+isClassSubType(t1, t2, isCovariant) => JS(
     '',
     '''(() => {
   // We support Dart's covariant generics with the caveat that we do not
@@ -765,7 +765,7 @@ isClassSubType(t1, t2, covariant) => JS(
     $assert_(length == typeArguments2.length);
     for (let i = 0; i < length; ++i) {
       let result =
-          $_isSubtype(typeArguments1[i], typeArguments2[i], $covariant);
+          $_isSubtype(typeArguments1[i], typeArguments2[i], $isCovariant);
       if (!result) {
         return result;
       }
@@ -775,7 +775,7 @@ isClassSubType(t1, t2, covariant) => JS(
 
   let indefinite = false;
   function definitive(t1, t2) {
-    let result = $isClassSubType(t1, t2, $covariant);
+    let result = $isClassSubType(t1, t2, $isCovariant);
     if (result == null) {
       indefinite = true;
       return false;
