@@ -121,6 +121,11 @@ action("create_sdk") {
     "--snapshot_location",
     rebase_path("$root_gen_dir"),
   ]
+  if (defined(is_fuchsia) && is_fuchsia_host) {
+    args += [
+      "--copy_libs"
+    ]
+  }
 }
 
 group("dart2js") {
