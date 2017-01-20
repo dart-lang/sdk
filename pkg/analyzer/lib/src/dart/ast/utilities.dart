@@ -7384,6 +7384,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    _visitTokenWithSuffix(node.covariantKeyword, ' ');
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _writer.print("this.");
@@ -7510,6 +7511,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    _visitTokenWithSuffix(node.covariantKeyword, ' ');
     _visitNodeWithSuffix(node.returnType, " ");
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
@@ -7864,6 +7866,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    _visitTokenWithSuffix(node.covariantKeyword, ' ');
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _visitNode(node.identifier);
@@ -8691,6 +8694,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNodeWithSuffix(node.type, " ");
     sink.write("this.");
@@ -8817,6 +8821,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitNodeWithSuffix(node.returnType, " ");
     safelyVisitNode(node.identifier);
     safelyVisitNode(node.typeParameters);
@@ -9171,6 +9176,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNodeWithSuffix(node.type, " ");
     safelyVisitNode(node.identifier);
