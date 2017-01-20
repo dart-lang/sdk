@@ -2337,12 +2337,12 @@ The normative versions of these  are given in the appropriate sections of this s
 
 %\begin{grammar}
 %classInterfaceInjection:
-      %class qualified typeParameters? interfaces '{\escapegrammar ;}'
+      %class qualified typeParameters? interfaces `{\escapegrammar ;}'
       %  .
 
 
 %interfaceInterfaceInjection:
-      %interface qualified typeParameters? superinterfaces '{\escapegrammar ;}'
+      %interface qualified typeParameters? superinterfaces `{\escapegrammar ;}'
     %.
 %\end{grammar}
 
@@ -5610,7 +5610,7 @@ A {\em variable declaration statement }declares a new local variable.
 
  \begin{grammar}
 {\bf localVariableDeclaration:}
-    initializedVariableDeclaration {\escapegrammar';'}
+    initializedVariableDeclaration `{\escapegrammar ;}'
   .
  \end{grammar}
 
@@ -7358,7 +7358,7 @@ A {\em type alias} declares a name for a type expression.
 	.
 
 {\bf functionTypeAlias:}
-       functionPrefix  typeParameters? formalParameterList '{\escapegrammar ;}'
+       functionPrefix  typeParameters? formalParameterList `{\escapegrammar ;}'
     .
 
     {\bf functionPrefix:}
