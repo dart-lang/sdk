@@ -292,10 +292,7 @@ config("compiler") {
   # Linux/Android common flags setup.
   # ---------------------------------
   if (is_linux || is_android) {
-    cflags += [ "-fPIC" ]
-
     ldflags += [
-      "-fPIC",
       "-Wl,-z,noexecstack",
       "-Wl,-z,now",
       "-Wl,-z,relro",
