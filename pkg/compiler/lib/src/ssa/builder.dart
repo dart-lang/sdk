@@ -3623,16 +3623,9 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure, node.arguments, function.implementation);
 
-    if (function == compiler.commonElements.identicalFunction) {
-      pushWithPosition(
-          new HIdentity(inputs[0], inputs[1], null, commonMasks.boolType),
-          node);
-      return;
-    } else {
-      pushInvokeStatic(node, function, inputs,
-          sourceInformation:
-              sourceInformationBuilder.buildCall(node, node.selector));
-    }
+    pushInvokeStatic(node, function, inputs,
+        sourceInformation:
+            sourceInformationBuilder.buildCall(node, node.selector));
   }
 
   /// Generate an invocation to a static or top level function with the wrong

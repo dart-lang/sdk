@@ -1005,7 +1005,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
     propagateConstantValueToUses(node);
     MemberEntity element = node.element;
 
-    if (element == backend.helpers.checkConcurrentModificationError) {
+    if (element == compiler.commonElements.identicalFunction) {
+      if (node.inputs.length == 2) {
+        return new HIdentity(node.inputs[0], node.inputs[1], null,
+            closedWorld.commonMasks.boolType)
+          ..sourceInformation = node.sourceInformation;
+      }
+    } else if (element == backend.helpers.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
