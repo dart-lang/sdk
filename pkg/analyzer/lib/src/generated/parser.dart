@@ -4143,7 +4143,15 @@ class Parser {
     Token covariantKeyword;
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     if (_matchesKeyword(Keyword.COVARIANT)) {
-      covariantKeyword = getAndAdvance();
+      // Check to ensure that 'covariant' isn't being used as the parameter name.
+      Token next = _peek();
+      if (_tokenMatchesKeyword(next, Keyword.FINAL) ||
+          _tokenMatchesKeyword(next, Keyword.CONST) ||
+          _tokenMatchesKeyword(next, Keyword.VAR) ||
+          _tokenMatchesKeyword(next, Keyword.THIS) ||
+          _tokenMatchesIdentifier(next)) {
+        covariantKeyword = getAndAdvance();
+      }
     }
     FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
         inFunctionType: inFunctionType);
@@ -8331,6 +8339,10 @@ class Parser {
     if (modifiers.constKeyword != null) {
       _reportErrorForToken(
           ParserErrorCode.CONST_METHOD, modifiers.constKeyword);
+    }
+    if (modifiers.covariantKeyword != null) {
+      _reportErrorForToken(
+          ParserErrorCode.COVARIANT_MEMBER, modifiers.covariantKeyword);
     }
     if (modifiers.factoryKeyword != null) {
       _reportErrorForToken(

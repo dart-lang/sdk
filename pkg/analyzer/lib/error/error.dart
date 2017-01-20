@@ -311,6 +311,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.COVARIANT_AFTER_VAR,
   ParserErrorCode.COVARIANT_AND_STATIC,
   ParserErrorCode.COVARIANT_CONSTRUCTOR,
+  ParserErrorCode.COVARIANT_MEMBER,
   ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION,
   ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
   ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,

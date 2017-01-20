@@ -157,6 +157,11 @@ class ParserErrorCode extends ErrorCode {
       "Members can't be declared to be both 'covariant' and 'static'.",
       "Try removing either the 'covariant' or 'static' keyword.");
 
+  static const ParserErrorCode COVARIANT_MEMBER = const ParserErrorCode(
+      'COVARIANT_MEMBER',
+      "Getters, setters and methods can't be declared to be 'covariant'.",
+      "Try removing the 'covariant' keyword.");
+
   static const ParserErrorCode COVARIANT_TOP_LEVEL_DECLARATION =
       const ParserErrorCode(
           'COVARIANT_TOP_LEVEL_DECLARATION',

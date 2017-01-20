@@ -895,6 +895,27 @@ class ErrorParserTest extends ParserTestCase {
     listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_CONSTRUCTOR]);
   }
 
+  void test_covariantMember_getter_noReturnType() {
+    createParser('static covariant get x => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_MEMBER]);
+  }
+
+  void test_covariantMember_getter_returnType() {
+    createParser('static covariant int get x => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_MEMBER]);
+  }
+
+  void test_covariantMember_method() {
+    createParser('covariant int m() => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes([ParserErrorCode.COVARIANT_MEMBER]);
+  }
+
   void test_covariantTopLevelDeclaration_class() {
     createParser('covariant class C {}');
     ClassDeclaration member =
@@ -11674,6 +11695,19 @@ void''');
     listener.assertNoErrors();
     expect(parameter, new isInstanceOf<SimpleFormalParameter>());
     SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_noType_namedCovariant() {
+    createParser('covariant)');
+    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
+    expectNotNullIfNoErrors(parameter);
+    listener.assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNull);
     expect(simpleParameter.identifier, isNotNull);
