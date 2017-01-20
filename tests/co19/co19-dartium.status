@@ -69,11 +69,6 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Fail # Issue
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: Fail # Issue 25772
 Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
 Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: RuntimeError # Issue 24607
-Language/Expressions/Property_Extraction/General_Super_Property_Extraction: RuntimeError # Issue 26287
-Language/Expressions/Property_Extraction/Named_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
-Language/Expressions/Property_Extraction/Super_Closurization: RuntimeError # Issue 26287
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: RuntimeError, OK  # Uses Isolate.spawn.
 Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
 Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
@@ -101,6 +96,30 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeE
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/canvas-zero-size_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/draw-arrays-out-of-bounds_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/draw-elements-out-of-bounds_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-vertex-attrib_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-vertex-attrib-zero-issues_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/index-validation-copies-indices_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/index-validation-crash-with-buffer-sub-data_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/index-validation-with-resized-buffer_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/index-validation_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/null-uniform-location_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-uniform-binding-bugs_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/webgl-exceptions_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -778,6 +797,7 @@ LayoutTests/fast/url/relative-win_t01: RuntimeError # co19-roll r786: Please tri
 LayoutTests/fast/url/segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/segments-from-data-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/standard-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/writing-mode/positionForPoint_t01: Skip # co19 issue 732.
@@ -1214,8 +1234,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # Timing out on the bot
 WebPlatformTest/custom-elements/concepts/type_A07_t01: Skip # Timing out on the bots. Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
-LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # Please triage this failure.
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/MarqueeLayoutTest_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
