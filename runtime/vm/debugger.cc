@@ -638,7 +638,7 @@ intptr_t ActivationFrame::ContextLevel() {
       const int8_t kind = var_info.kind();
       if ((kind == RawLocalVarDescriptors::kContextLevel) &&
           (var_info.begin_pos <= activation_token_pos) &&
-          (activation_token_pos < var_info.end_pos)) {
+          (activation_token_pos <= var_info.end_pos)) {
         // This var_descriptors_ entry is a context scope which is in scope
         // of the current token position. Now check whether it is shadowing
         // the previous context scope.
