@@ -42,17 +42,6 @@ vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
 vm/reflect_core_vm_test: DartkCompileTimeError
 vm/regress_27201_test: DartkCompileTimeError
 vm/regress_28325_test: RuntimeError  # Issue 28055.
-covariant_test/00c: DartkCompileTimeError # Issue 28166
-covariant_test/20c: DartkCompileTimeError # Issue 28166
-covariant_test/40: DartkCompileTimeError # Issue 28166
-covariant_test/40b: DartkCompileTimeError # Issue 28166
-covariant_test/40c: DartkCompileTimeError # Issue 28166
-covariant_test/42: DartkCompileTimeError # Issue 28166
-covariant_test/48: DartkCompileTimeError # Issue 28166
-covariant_test/52: DartkCompileTimeError # Issue 28166
-covariant_test/54: DartkCompileTimeError # Issue 28166
-covariant_test/56: DartkCompileTimeError # Issue 28166
-covariant_test/none: DartkCompileTimeError # Issue 28166
 
 # dartk: temporary failure
 mixin_illegal_syntax_test/00: DartkCrash
