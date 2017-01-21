@@ -379,17 +379,16 @@ class KernelAstAdapter {
   LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
 
   KernelJumpTarget getJumpTarget(ir.TreeNode node,
-          {bool isContinueTarget: false}) =>
-      _jumpTargets.putIfAbsent(node, () {
-        if (node is ir.LabeledStatement &&
-            _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
-          return _jumpTargets[(node as ir.LabeledStatement).body];
-        }
-        return new KernelJumpTarget(node, makeContinueLabel: isContinueTarget);
-      });
-
-  LabelDefinition getTargetLabel(ir.Node node) =>
-      elements.getTargetLabel(getNode(node));
+      {bool isContinueTarget: false}) {
+    return _jumpTargets.putIfAbsent(node, () {
+      if (node is ir.LabeledStatement &&
+          _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
+        return _jumpTargets[(node as ir.LabeledStatement).body];
+      }
+      return new KernelJumpTarget(node, this,
+          makeContinueLabel: isContinueTarget);
+    });
+  }
 
   ir.Class get mapLiteralClass =>
       kernel.classes[_backend.helpers.mapLiteralClass];
@@ -1016,15 +1015,31 @@ class KernelJumpTarget extends JumpTarget {
   @override
   bool isContinueTarget = false;
 
-  KernelJumpTarget(this.targetStatement, {bool makeContinueLabel = false}) {
-    labels = <LabelDefinition>[];
+  KernelJumpTarget(this.targetStatement, KernelAstAdapter adapter,
+      {bool makeContinueLabel = false}) {
     originalStatement = targetStatement;
-    if (targetStatement is ir.LabeledStatement) {
+    this.labels = <LabelDefinition>[];
+    if (targetStatement is ir.WhileStatement ||
+        targetStatement is ir.DoStatement ||
+        targetStatement is ir.ForStatement ||
+        targetStatement is ir.ForInStatement) {
+      // Currently these labels are set at resolution on the element itself.
+      // Once that gets updated, this logic can change downstream.
+      JumpTarget target = adapter.elements
+          .getTargetDefinition(adapter.getNode(targetStatement));
+      if (target != null) {
+        labels.addAll(target.labels);
+        isBreakTarget = target.isBreakTarget;
+        isContinueTarget = target.isContinueTarget;
+      }
+    } else if (targetStatement is ir.LabeledStatement) {
       targetStatement = (targetStatement as ir.LabeledStatement).body;
       labels.add(
           new LabelDefinitionX(null, 'L${index++}', this)..setBreakTarget());
       isBreakTarget = true;
-    } else if (makeContinueLabel) {
+    }
+
+    if (makeContinueLabel) {
       labels.add(
           new LabelDefinitionX(null, 'L${index++}', this)..setContinueTarget());
       isContinueTarget = true;
