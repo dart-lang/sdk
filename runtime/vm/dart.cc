@@ -17,7 +17,6 @@
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
-#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
@@ -155,7 +154,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
-  MallocHooks::InitOnce();
   if (FLAG_support_timeline) {
     Timeline::InitOnce();
   }
@@ -493,7 +491,7 @@ const char* Dart::Cleanup() {
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
-  MallocHooks::TearDown();
+
   return NULL;
 }
 

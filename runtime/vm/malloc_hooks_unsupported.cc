@@ -2,38 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/globals.h"
-
-#if !defined(DART_USE_TCMALLOC) || defined(PRODUCT)
+#if defined(DART_USE_TCMALLOC)
 
 #include "vm/malloc_hooks.h"
 
 namespace dart {
 
-void MallocHooks::InitOnce() {
-  // Do nothing.
-}
-
-
-void MallocHooks::TearDown() {
-  // Do nothing.
-}
-
-
-void MallocHooks::ResetStats() {
-  // Do nothing.
-}
-
-
-intptr_t MallocHooks::allocation_count() {
-  return 0;
-}
-
-
-intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
-  return 0;
+void MallocHooks::Init() {
+  // TODO(bkonyi): Implement
 }
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_TCMALLOC) || defined(PRODUCT)
+#endif  // defined(DART_USE_TCMALLOC)

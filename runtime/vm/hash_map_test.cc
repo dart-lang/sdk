@@ -31,71 +31,10 @@ TEST_CASE(DirectChainedHashMap) {
   EXPECT(map.LookupValue(&v1) == &v1);
   EXPECT(map.LookupValue(&v2) == &v2);
   EXPECT(map.LookupValue(&v3) == &v1);
-  EXPECT(map.Remove(&v1));
-  EXPECT(map.Lookup(&v1) == NULL);
-  map.Insert(&v1);
   DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map2(map);
   EXPECT(map2.LookupValue(&v1) == &v1);
   EXPECT(map2.LookupValue(&v2) == &v2);
   EXPECT(map2.LookupValue(&v3) == &v1);
-}
-
-
-TEST_CASE(DirectChainedHashMapInsertRemove) {
-  DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
-  EXPECT(map.IsEmpty());
-  TestValue v1(1);
-  TestValue v2(3);  // Note: v1, v2, v3 should have the same hash.
-  TestValue v3(5);
-
-  // Start with adding and removing the same element.
-  map.Insert(&v1);
-  EXPECT(map.LookupValue(&v1) == &v1);
-  EXPECT(map.Remove(&v1));
-  EXPECT(map.Lookup(&v1) == NULL);
-
-  // Inserting v2 first should put it at the head of the list.
-  map.Insert(&v2);
-  map.Insert(&v1);
-  EXPECT(map.LookupValue(&v2) == &v2);
-  EXPECT(map.LookupValue(&v1) == &v1);
-
-  // Check to see if removing the head of the list causes issues.
-  EXPECT(map.Remove(&v2));
-  EXPECT(map.Lookup(&v2) == NULL);
-  EXPECT(map.LookupValue(&v1) == &v1);
-
-  // Reinsert v2, which will place it at the back of the hash map list.
-  map.Insert(&v2);
-  EXPECT(map.LookupValue(&v2) == &v2);
-
-  // Remove from the back of the hash map list.
-  EXPECT(map.Remove(&v2));
-  EXPECT(map.Lookup(&v2) == NULL);
-  EXPECT(map.Remove(&v1));
-  EXPECT(map.Lookup(&v1) == NULL);
-
-  // Check to see that removing an invalid element returns false.
-  EXPECT(!map.Remove(&v1));
-
-  // One last case: remove from the middle of a hash map list.
-  map.Insert(&v1);
-  map.Insert(&v2);
-  map.Insert(&v3);
-
-  EXPECT(map.LookupValue(&v1) == &v1);
-  EXPECT(map.LookupValue(&v2) == &v2);
-  EXPECT(map.LookupValue(&v3) == &v3);
-
-  EXPECT(map.Remove(&v2));
-  EXPECT(map.LookupValue(&v1) == &v1);
-  EXPECT(map.Lookup(&v2) == NULL);
-  EXPECT(map.LookupValue(&v3) == &v3);
-
-  EXPECT(map.Remove(&v1));
-  EXPECT(map.Remove(&v3));
-
-  EXPECT(map.IsEmpty());
 }
 
 

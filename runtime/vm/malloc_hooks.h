@@ -10,13 +10,7 @@
 namespace dart {
 
 class MallocHooks {
- public:
-  static void InitOnce();
-  static void TearDown();
-  static void ResetStats();
-
-  static intptr_t allocation_count();
-  static intptr_t heap_allocated_memory_in_bytes();
+  static void Init();
 
  private:
   DISALLOW_ALLOCATION();

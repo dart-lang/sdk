@@ -1151,6 +1151,9 @@
           'dependencies': [
             '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
           ],
+          'defines': [
+            'DART_USE_TCMALLOC'
+          ],
         }],
       ],
       'configurations': {
@@ -1344,6 +1347,9 @@
         ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
           'dependencies': [
             '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
+          ],
+          'defines': [
+            'DART_USE_TCMALLOC'
           ],
         }],
       ],
