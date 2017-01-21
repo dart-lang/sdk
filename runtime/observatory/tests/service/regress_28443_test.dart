@@ -31,7 +31,11 @@ collect() async {
 }
 
 test_code() async {  // LINE_B
-  await collect();
+  try {
+    await collect();
+  } on TimeoutException {
+    print("ok");
+  }
 }
 
 Future<Isolate> stepThroughProgram(Isolate isolate) async {
