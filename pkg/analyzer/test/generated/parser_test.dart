@@ -13644,7 +13644,8 @@ void''');
   @failingTest
   void test_parseTypeAnnotation_function_returnType_function() {
     createParser('A Function(B, C) Function(D) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
+    // TODO(scheglov) improve the test to verify also the node properties
+    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
@@ -13695,7 +13696,8 @@ void''');
   @failingTest
   void test_parseTypeAnnotation_function_returnType_simple() {
     createParser('A Function(B, C) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
+    // TODO(scheglov) improve the test to verify also the node properties
+    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
@@ -13736,7 +13738,8 @@ void''');
   @failingTest
   void test_parseTypeAnnotation_function_returnType_withArguments() {
     createParser('A<B> Function(C) v');
-    GenericFunctionType functionType = parser.parseTypeAnnotation(false);
+    // TODO(scheglov) improve this test to verify also the node properties
+    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
