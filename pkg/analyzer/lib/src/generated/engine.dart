@@ -1656,6 +1656,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(strongMode);
       buffer.addBool(strongModeHints);
 
+      // Append error processors.
+      buffer.addInt(errorProcessors.length);
+      for (ErrorProcessor processor in errorProcessors) {
+        buffer.addString(processor.description);
+      }
+
       // Append lints.
       buffer.addInt(lintRules.length);
       for (Linter lintRule in lintRules) {
