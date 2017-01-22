@@ -451,13 +451,11 @@ class AnalysisDriver {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
-    if (AnalysisEngine.isDartFileName(path)) {
-      _changedFiles.add(path);
-      if (_addedFiles.contains(path)) {
-        _filesToAnalyze.add(path);
-      }
-      _priorityResults.clear();
+    _changedFiles.add(path);
+    if (_addedFiles.contains(path)) {
+      _filesToAnalyze.add(path);
     }
+    _priorityResults.clear();
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
@@ -517,9 +515,6 @@ class AnalysisDriver {
    * the file with the given [path].
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return new Future.value();
-    }
     var completer = new Completer<AnalysisDriverUnitIndex>();
     _indexRequestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
@@ -547,10 +542,6 @@ class AnalysisDriver {
    * state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return new Future.value();
-    }
-
     // Return the cached result.
     {
       AnalysisResult result = _priorityResults[path];
@@ -587,9 +578,6 @@ class AnalysisDriver {
    * file with the given [path].
    */
   Future<CompilationUnitElement> getUnitElement(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return new Future.value();
-    }
     var completer = new Completer<CompilationUnitElement>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])

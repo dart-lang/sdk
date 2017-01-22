@@ -919,10 +919,11 @@ String z = "string";
 
   test_getResult_notDartFile() async {
     var path = _p('/test/lib/test.txt');
-    provider.newFile(path, 'foo bar');
+    provider.newFile(path, 'class A {}');
 
     AnalysisResult result = await driver.getResult(path);
-    expect(result, isNull);
+    expect(result, isNotNull);
+    expect(result.unit.element.types.map((e) => e.name), ['A']);
   }
 
   test_getResult_sameFile_twoUris() async {
@@ -1122,8 +1123,11 @@ main() {
   }
 
   test_getUnitElement_notDart() async {
-    CompilationUnitElement unit = await driver.getUnitElement('foo.txt');
-    expect(unit, isNull);
+    var path = _p('/test.txt');
+    provider.newFile(path, 'class A {}');
+    CompilationUnitElement unit = await driver.getUnitElement(path);
+    expect(unit, isNotNull);
+    expect(unit.types.map((e) => e.name), ['A']);
   }
 
   test_hasFilesToAnalyze() async {
@@ -1264,6 +1268,15 @@ import 'b.dart';
     driver.removeFile(a);
     expect(driver.knownFiles, isNot(contains(a)));
     expect(driver.knownFiles, isNot(contains(b)));
+  }
+
+  test_parseFile_notDart() async {
+    var p = _p('/test/bin/a.txt');
+    provider.newFile(p, 'class A {}');
+
+    ParseResult parseResult = await driver.parseFile(p);
+    expect(parseResult, isNotNull);
+    expect(driver.knownFiles, [p]);
   }
 
   test_parseFile_shouldRefresh() async {

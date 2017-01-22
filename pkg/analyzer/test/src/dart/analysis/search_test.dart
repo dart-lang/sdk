@@ -91,6 +91,14 @@ class B {
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
+  test_classMembers_importNotDart() async {
+    await _resolveTestUnit('''
+import 'not-dart.txt';
+''');
+    RegExp regExp = new RegExp(r'^test$');
+    expect(await driver.search.classMembers(regExp), isEmpty);
+  }
+
   test_searchReferences_ClassElement_definedInside() async {
     await _resolveTestUnit('''
 class A {};

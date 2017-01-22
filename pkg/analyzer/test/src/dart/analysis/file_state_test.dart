@@ -325,6 +325,7 @@ class A1 {}
   }
 
   test_getFileForPath_onlyDartFiles() {
+    String not_dart = _p('/test/lib/not_dart.txt');
     String a = _p('/test/lib/a.dart');
     String b = _p('/test/lib/b.dart');
     String c = _p('/test/lib/c.dart');
@@ -342,10 +343,13 @@ part 'd.dart';
 part 'not_dart.txt';
 ''');
     FileState file = fileSystemState.getFileForPath(a);
-    expect(file.importedFiles.map((f) => f.path), [b]);
-    expect(file.exportedFiles.map((f) => f.path), [c]);
-    expect(file.partedFiles.map((f) => f.path), [d]);
-    expect(fileSystemState.knownFilePaths, unorderedEquals([a, b, c, d]));
+    expect(
+        file.importedFiles.map((f) => f.path), unorderedEquals([b, not_dart]));
+    expect(
+        file.exportedFiles.map((f) => f.path), unorderedEquals([c, not_dart]));
+    expect(file.partedFiles.map((f) => f.path), unorderedEquals([d, not_dart]));
+    expect(fileSystemState.knownFilePaths,
+        unorderedEquals([a, b, c, d, not_dart]));
   }
 
   test_getFileForPath_part() {

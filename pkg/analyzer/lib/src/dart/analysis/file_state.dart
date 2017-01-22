@@ -526,7 +526,7 @@ class FileState {
   }
 
   static bool _isDartFileUri(String uri) {
-    return !uri.startsWith('dart:') && AnalysisEngine.isDartFileName(uri);
+    return !uri.startsWith('dart:');
   }
 }
 
