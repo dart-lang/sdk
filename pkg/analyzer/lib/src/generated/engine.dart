@@ -1653,6 +1653,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableStrictCallChecks);
       buffer.addBool(enableSuperMixins);
+      buffer.addBool(implicitCasts);
+      buffer.addBool(implicitDynamic);
       buffer.addBool(strongMode);
       buffer.addBool(strongModeHints);
 
