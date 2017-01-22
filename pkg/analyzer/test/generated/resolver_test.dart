@@ -1150,7 +1150,7 @@ f() {
         function.functionExpression.body as BlockFunctionBody;
     ReturnStatement statement = body.block.statements[2] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeProvider.intType));
+    expect(variableName.propagatedType, typeProvider.intType);
   }
 
   test_assignment_afterInitializer() async {
@@ -1166,7 +1166,7 @@ f() {
         function.functionExpression.body as BlockFunctionBody;
     ReturnStatement statement = body.block.statements[2] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeProvider.doubleType));
+    expect(variableName.propagatedType, typeProvider.doubleType);
   }
 
   test_assignment_null() async {
@@ -1187,20 +1187,20 @@ main() {
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "v; // declare", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, same(typeProvider.intType));
-      expect(identifier.propagatedType, same(null));
+      expect(identifier.staticType, typeProvider.intType);
+      expect(identifier.propagatedType, isNull);
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "v = null;", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, same(typeProvider.intType));
-      expect(identifier.propagatedType, same(null));
+      expect(identifier.staticType, typeProvider.intType);
+      expect(identifier.propagatedType, isNull);
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "v; // return", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, same(typeProvider.intType));
-      expect(identifier.propagatedType, same(null));
+      expect(identifier.staticType, typeProvider.intType);
+      expect(identifier.propagatedType, isNull);
     }
   }
 
@@ -1217,7 +1217,7 @@ f() {
         function.functionExpression.body as BlockFunctionBody;
     ReturnStatement statement = body.block.statements[2] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeProvider.intType));
+    expect(variableName.propagatedType, typeProvider.intType);
   }
 
   test_CanvasElement_getContext() async {
@@ -1328,23 +1328,21 @@ f(MyMap<int, String> m) {
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
     // k
-    DartType intType = typeProvider.intType;
     FormalParameter kParameter = EngineTestCase.findNode(
         unit, code, "k, ", (node) => node is SimpleFormalParameter);
-    expect(kParameter.identifier.propagatedType, same(intType));
+    expect(kParameter.identifier.propagatedType, typeProvider.intType);
     SimpleIdentifier kIdentifier = EngineTestCase.findNode(
         unit, code, "k;", (node) => node is SimpleIdentifier);
-    expect(kIdentifier.propagatedType, same(intType));
-    expect(kIdentifier.staticType, same(typeProvider.dynamicType));
+    expect(kIdentifier.propagatedType, typeProvider.intType);
+    expect(kIdentifier.staticType, typeProvider.dynamicType);
     // v
-    DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
         unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.propagatedType, same(stringType));
+    expect(vParameter.identifier.propagatedType, typeProvider.stringType);
     SimpleIdentifier vIdentifier = EngineTestCase.findNode(
         unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.propagatedType, same(stringType));
-    expect(vIdentifier.staticType, same(typeProvider.dynamicType));
+    expect(vIdentifier.propagatedType, typeProvider.stringType);
+    expect(vIdentifier.staticType, typeProvider.dynamicType);
   }
 
   test_functionExpression_asInvocationArgument_fromInferredInvocation() async {
@@ -1359,15 +1357,13 @@ f(MyMap<int, String> m) {
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
     // k
-    DartType intType = typeProvider.intType;
     FormalParameter kParameter = EngineTestCase.findNode(
         unit, code, "k, ", (node) => node is SimpleFormalParameter);
-    expect(kParameter.identifier.propagatedType, same(intType));
+    expect(kParameter.identifier.propagatedType, typeProvider.intType);
     // v
-    DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
         unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.propagatedType, same(stringType));
+    expect(vParameter.identifier.propagatedType, typeProvider.stringType);
   }
 
   test_functionExpression_asInvocationArgument_functionExpressionInvocation() async {
@@ -1380,16 +1376,14 @@ main() {
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
     // v
-    DartType dynamicType = typeProvider.dynamicType;
-    DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
         unit, code, "v)", (node) => node is FormalParameter);
-    expect(vParameter.identifier.propagatedType, same(stringType));
-    expect(vParameter.identifier.staticType, same(dynamicType));
+    expect(vParameter.identifier.propagatedType, typeProvider.stringType);
+    expect(vParameter.identifier.staticType, typeProvider.dynamicType);
     SimpleIdentifier vIdentifier = EngineTestCase.findNode(
         unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.propagatedType, same(stringType));
-    expect(vIdentifier.staticType, same(dynamicType));
+    expect(vIdentifier.propagatedType, typeProvider.stringType);
+    expect(vIdentifier.staticType, typeProvider.dynamicType);
   }
 
   test_functionExpression_asInvocationArgument_keepIfLessSpecific() async {
@@ -1405,15 +1399,14 @@ f(MyList list) {
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
     // v
-    DartType intType = typeProvider.intType;
     FormalParameter vParameter = EngineTestCase.findNode(
         unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.propagatedType, same(null));
-    expect(vParameter.identifier.staticType, same(intType));
+    expect(vParameter.identifier.propagatedType, isNull);
+    expect(vParameter.identifier.staticType, typeProvider.intType);
     SimpleIdentifier vIdentifier = EngineTestCase.findNode(
         unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, same(intType));
-    expect(vIdentifier.propagatedType, same(null));
+    expect(vIdentifier.staticType, typeProvider.intType);
+    expect(vIdentifier.propagatedType, isNull);
   }
 
   test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() async {
@@ -1433,7 +1426,7 @@ x() {
         unit, code, "() => 0)", (node) => node is FunctionExpression);
     expect((functionExpression.staticType as FunctionType).parameters.length,
         same(0));
-    expect(functionExpression.propagatedType, same(null));
+    expect(functionExpression.propagatedType, isNull);
   }
 
   test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() async {
@@ -1449,14 +1442,13 @@ f(MyList<String> list) {
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
     // v
-    DartType stringType = typeProvider.stringType;
     FormalParameter vParameter = EngineTestCase.findNode(
         unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.propagatedType, same(stringType));
-    expect(vParameter.identifier.staticType, same(typeProvider.objectType));
+    expect(vParameter.identifier.propagatedType, typeProvider.stringType);
+    expect(vParameter.identifier.staticType, typeProvider.objectType);
     SimpleIdentifier vIdentifier = EngineTestCase.findNode(
         unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.propagatedType, same(stringType));
+    expect(vIdentifier.propagatedType, typeProvider.stringType);
   }
 
   test_Future_then() async {
@@ -1475,15 +1467,15 @@ main(Future<int> firstFuture) {
     // p1
     FormalParameter p1 = EngineTestCase.findNode(
         unit, code, "p1) {", (node) => node is SimpleFormalParameter);
-    expect(p1.identifier.propagatedType, same(typeProvider.intType));
+    expect(p1.identifier.propagatedType, typeProvider.intType);
     // p2
     FormalParameter p2 = EngineTestCase.findNode(
         unit, code, "p2) {", (node) => node is SimpleFormalParameter);
-    expect(p2.identifier.propagatedType, same(typeProvider.doubleType));
+    expect(p2.identifier.propagatedType, typeProvider.doubleType);
     // p3
     FormalParameter p3 = EngineTestCase.findNode(
         unit, code, "p3) {", (node) => node is SimpleFormalParameter);
-    expect(p3.identifier.propagatedType, same(typeProvider.stringType));
+    expect(p3.identifier.propagatedType, typeProvider.stringType);
   }
 
   test_initializer() async {
@@ -1502,14 +1494,14 @@ f() {
       VariableDeclarationStatement statement =
           statements[0] as VariableDeclarationStatement;
       SimpleIdentifier variableName = statement.variables.variables[0].name;
-      expect(variableName.staticType, same(typeProvider.dynamicType));
-      expect(variableName.propagatedType, same(typeProvider.intType));
+      expect(variableName.staticType, typeProvider.dynamicType);
+      expect(variableName.propagatedType, typeProvider.intType);
     }
     // Type of 'v' in reference.
     {
       ReturnStatement statement = statements[1] as ReturnStatement;
       SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-      expect(variableName.propagatedType, same(typeProvider.intType));
+      expect(variableName.propagatedType, typeProvider.intType);
     }
   }
 
@@ -1527,7 +1519,7 @@ f() {
         body.block.statements[1] as ExpressionStatement;
     PrefixedIdentifier invocation = statement.expression as PrefixedIdentifier;
     SimpleIdentifier variableName = invocation.prefix;
-    expect(variableName.propagatedType, same(typeProvider.stringType));
+    expect(variableName.propagatedType, typeProvider.stringType);
   }
 
   test_initializer_hasStaticType() async {
@@ -1546,14 +1538,14 @@ f() {
       VariableDeclarationStatement statement =
           statements[0] as VariableDeclarationStatement;
       SimpleIdentifier variableName = statement.variables.variables[0].name;
-      expect(variableName.staticType, same(typeProvider.intType));
+      expect(variableName.staticType, typeProvider.intType);
       expect(variableName.propagatedType, isNull);
     }
     // Type of 'v' in reference.
     {
       ReturnStatement statement = statements[1] as ReturnStatement;
       SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-      expect(variableName.staticType, same(typeProvider.intType));
+      expect(variableName.staticType, typeProvider.intType);
       expect(variableName.propagatedType, isNull);
     }
   }
@@ -1600,14 +1592,14 @@ main() {
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "v = null;", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, same(typeProvider.intType));
-      expect(identifier.propagatedType, same(null));
+      expect(identifier.staticType, typeProvider.intType);
+      expect(identifier.propagatedType, isNull);
     }
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "v; // marker", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, same(typeProvider.intType));
-      expect(identifier.propagatedType, same(null));
+      expect(identifier.staticType, typeProvider.intType);
+      expect(identifier.propagatedType, isNull);
     }
   }
 
@@ -1721,7 +1713,7 @@ A f(A p) {
     ReturnStatement statement =
         (ifStatement.thenStatement as Block).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(null));
+    expect(variableName.propagatedType, isNull);
   }
 
   test_is_if_logicalAnd() async {
@@ -2030,10 +2022,10 @@ f() {
     expect(indexExpression.propagatedType, isNull);
     Expression v = indexExpression.target;
     InterfaceType propagatedType = v.propagatedType as InterfaceType;
-    expect(propagatedType.element, same(typeProvider.listType.element));
+    expect(propagatedType.element, typeProvider.listType.element);
     List<DartType> typeArguments = propagatedType.typeArguments;
     expect(typeArguments, hasLength(1));
-    expect(typeArguments[0], same(typeProvider.dynamicType));
+    expect(typeArguments[0], typeProvider.dynamicType);
   }
 
   test_mapLiteral_different() async {
@@ -2049,11 +2041,11 @@ f() {
     ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier identifier = statement.expression as SimpleIdentifier;
     InterfaceType propagatedType = identifier.propagatedType as InterfaceType;
-    expect(propagatedType.element, same(typeProvider.mapType.element));
+    expect(propagatedType.element, typeProvider.mapType.element);
     List<DartType> typeArguments = propagatedType.typeArguments;
     expect(typeArguments, hasLength(2));
-    expect(typeArguments[0], same(typeProvider.dynamicType));
-    expect(typeArguments[1], same(typeProvider.dynamicType));
+    expect(typeArguments[0], typeProvider.dynamicType);
+    expect(typeArguments[1], typeProvider.dynamicType);
   }
 
   test_mapLiteral_same() async {
@@ -2069,11 +2061,11 @@ f() {
     ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier identifier = statement.expression as SimpleIdentifier;
     InterfaceType propagatedType = identifier.propagatedType as InterfaceType;
-    expect(propagatedType.element, same(typeProvider.mapType.element));
+    expect(propagatedType.element, typeProvider.mapType.element);
     List<DartType> typeArguments = propagatedType.typeArguments;
     expect(typeArguments, hasLength(2));
-    expect(typeArguments[0], same(typeProvider.dynamicType));
-    expect(typeArguments[1], same(typeProvider.dynamicType));
+    expect(typeArguments[0], typeProvider.dynamicType);
+    expect(typeArguments[1], typeProvider.dynamicType);
   }
 
   test_mergePropagatedTypes_afterIfThen_different() async {
