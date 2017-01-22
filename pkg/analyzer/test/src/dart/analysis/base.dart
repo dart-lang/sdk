@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -53,7 +51,6 @@ class BaseAnalysisDriverTest {
 
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
-  final _Monitor idleStatusMonitor = new _Monitor();
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
   final List<AnalysisResult> allResults = <AnalysisResult>[];
 
@@ -120,12 +117,7 @@ class BaseAnalysisDriverTest {
         ], null, provider),
         new AnalysisOptionsImpl()..strongMode = true);
     scheduler.start();
-    driver.status.lastWhere((status) {
-      allStatuses.add(status);
-      if (status.isIdle) {
-        idleStatusMonitor.notify();
-      }
-    });
+    driver.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);
   }
 
@@ -143,20 +135,5 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   visitElement(Element element) {
     function(element);
     super.visitElement(element);
-  }
-}
-
-class _Monitor {
-  Completer<Null> _completer = new Completer<Null>();
-
-  Future<Null> get signal async {
-    await _completer.future;
-    _completer = new Completer<Null>();
-  }
-
-  void notify() {
-    if (!_completer.isCompleted) {
-      _completer.complete(null);
-    }
   }
 }

@@ -286,7 +286,7 @@ import 'a.dart';
     }
 
     // Initial analysis, 'b' does not use 'a', so there is a hint.
-    await _waitForIdle();
+    await driver.waitForIdle();
     assertNumberOfErrorsInB(1);
 
     // Update 'b' to use 'a', no more hints.
@@ -299,7 +299,7 @@ main() {
 }
 ''');
     driver.changeFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
     assertNumberOfErrorsInB(0);
 
     // Change 'b' content so that it has a hint.
@@ -312,7 +312,7 @@ import 'a.dart';
 ''');
     driver.removeFile(b);
     driver.addFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
     assertNumberOfErrorsInB(1);
   }
 
@@ -327,7 +327,7 @@ import 'a.dart';
     // Now remove 'a'.
     driver.removeFile(a);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     // Only 'b' has been analyzed, because 'a' was removed before we started.
     expect(allResults, hasLength(1));
@@ -436,7 +436,7 @@ var A = B;
     driver.addFile(a);
 
     // We have a result only for "a".
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(1));
     {
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
@@ -453,7 +453,7 @@ var A = B;
 
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // The change causes "a" to be reanalyzed.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(1));
     {
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
@@ -469,14 +469,14 @@ var A = B;
 
     driver.addFile(a);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
     allResults.clear();
 
     // Change "b" and notify.
     // Nothing depends on "b", so nothing is analyzed.
     provider.updateFile(b, 'class B2 {}');
     driver.changeFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, isEmpty);
 
     // This should not add "b" to the file state.
@@ -503,7 +503,7 @@ var B1 = A1;
     driver.priorityFiles = [a, b];
     driver.addFile(a);
     driver.addFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     // We have results for both "a" and "b".
     expect(allResults, hasLength(2));
@@ -530,7 +530,7 @@ var A2 = B1;
 
     // We again get results for both "a" and "b".
     // The results are consistent.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(2));
     {
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
@@ -548,7 +548,7 @@ var A2 = B1;
 
     // Initial analysis.
     {
-      await _waitForIdle();
+      await driver.waitForIdle();
       expect(allResults, hasLength(1));
       AnalysisResult result = allResults[0];
       expect(result.path, testFile);
@@ -571,7 +571,7 @@ var A2 = B1;
 
     // We get a new result.
     {
-      await _waitForIdle();
+      await driver.waitForIdle();
       expect(allResults, hasLength(1));
       AnalysisResult result = allResults[0];
       expect(result.path, testFile);
@@ -695,7 +695,7 @@ main() {
     expect(f.returnType.type.toString(), 'int');
 
     // The same result is also received through the stream.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, [result]);
   }
 
@@ -714,7 +714,7 @@ main() {
 ''');
     driver.addFile(a);
     driver.addFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     AnalysisResult result = await driver.getResult(b);
     expect(result.errors, isEmpty);
@@ -772,7 +772,7 @@ class C {
 }
 ''',
         priority: true);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
@@ -789,7 +789,7 @@ class B extends A {
 }
 ''',
         priority: true);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(_getClassMethodReturnType(result.unit, 'A', 'm'), 'int');
@@ -945,7 +945,7 @@ var VC = new A<double>();
 
     driver.addFile(a);
     driver.addFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     {
       AnalysisResult result = await driver.getResult(b);
@@ -981,7 +981,7 @@ var B1 = A1;
 
     driver.addFile(a);
     driver.addFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     {
       AnalysisResult result = await driver.getResult(a);
@@ -1135,7 +1135,7 @@ main() {
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Wait for idle, nothing to do.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Ask to analyze the file, so there is a file to analyze.
@@ -1149,7 +1149,7 @@ main() {
     // Change a file, even if not added, it still might affect analysis.
     driver.changeFile(_p('/not/added.dart'));
     expect(driver.hasFilesToAnalyze, isTrue);
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Request of referenced names is not analysis of a file.
@@ -1236,14 +1236,14 @@ import 'b.dart';
 
     driver.addFile(a);
     driver.addFile(c);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     expect(driver.knownFiles, unorderedEquals([a, b, c]));
 
     // Remove a.dart and analyze.
     // Both a.dart and b.dart are not known now.
     driver.removeFile(a);
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(driver.knownFiles, unorderedEquals([c]));
   }
 
@@ -1410,7 +1410,7 @@ var b = new B();
     driver.addFile(c);
 
     {
-      await _waitForIdle();
+      await driver.waitForIdle();
 
       // c.dart was added after a.dart, so it is analyzed after a.dart,
       // so we know that a.dart is the library of c.dart, so no errors.
@@ -1423,7 +1423,7 @@ var b = new B();
     {
       provider.updateFile(a, '// does not use c.dart anymore');
       driver.changeFile(a);
-      await _waitForIdle();
+      await driver.waitForIdle();
 
       // Now c.dart does not have a library context, so A and B cannot be
       // resolved, so there are errors.
@@ -1461,7 +1461,7 @@ var b = new B();
     driver.addFile(a);
     driver.addFile(b);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     // c.dart was added before a.dart, so we attempt to analyze it before
     // a.dart, but we cannot find the library for it, so we delay analysis
@@ -1485,7 +1485,7 @@ var b = new B();
 
     driver.addFile(c);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     // There is no library which c.dart is a part of, so it has unresolved
     // A and B references.
@@ -1523,7 +1523,7 @@ var b = new B();
     driver.addFile(a);
     driver.addFile(b);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     // c.dart was added before a.dart, so we attempt to analyze it before
     // a.dart, but we cannot find the library for it, so we delay analysis
@@ -1550,7 +1550,7 @@ var A = B;
     driver.addFile(b);
 
     // We have results for both "a" and "b".
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(2));
     {
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
@@ -1570,7 +1570,7 @@ var A = B;
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // We don't get a result for "b".
     // But the change causes "a" to be reanalyzed.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(1));
     {
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
@@ -1582,7 +1582,7 @@ var A = B;
     addTestFile('main() {}');
 
     // We have a result.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(1));
     expect(allResults[0].path, testFile);
     allResults.clear();
@@ -1593,7 +1593,7 @@ var A = B;
     driver.removeFile(testFile);
     driver.changeFile(testFile);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, isEmpty);
   }
 
@@ -1606,7 +1606,7 @@ var A = B;
 
     driver.addFile(a);
     driver.addFile(b);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     // b.dart s clean.
     expect(allResults.singleWhere((r) => r.path == b).errors, isEmpty);
@@ -1615,7 +1615,7 @@ var A = B;
     // Remove a.dart, now b.dart should be reanalyzed and has an error.
     provider.deleteFile(a);
     driver.removeFile(a);
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults.singleWhere((r) => r.path == b).errors, hasLength(2));
     allResults.clear();
   }
@@ -1624,7 +1624,7 @@ var A = B;
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);
 
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     expect(allResults, hasLength(1));
     AnalysisResult result = allResults.single;
@@ -1652,7 +1652,7 @@ var A = B;
     driver.addFile(b);
     driver.addFile(c);
     driver.priorityFiles = [b];
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     expect(allResults, hasLength(3));
     AnalysisResult result = allResults[0];
@@ -1664,7 +1664,7 @@ var A = B;
   test_results_regular() async {
     String content = 'int f() => 42;';
     addTestFile(content);
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     expect(allResults, hasLength(1));
     AnalysisResult result = allResults.single;
@@ -1678,7 +1678,7 @@ var A = B;
 
   test_results_status() async {
     addTestFile('int f() => 42;');
-    await _waitForIdle();
+    await driver.waitForIdle();
 
     expect(allStatuses, hasLength(2));
     expect(allStatuses[0].isAnalyzing, isTrue);
@@ -1697,7 +1697,7 @@ var A = B;
     await driver.waitForIdle();
     expect(allResults, hasLength(1));
     // Make sure there is no more analysis pending.
-    await _waitForIdle();
+    await driver.waitForIdle();
     expect(allResults, hasLength(1));
   }
 
@@ -1810,10 +1810,6 @@ var A = B;
    * Return the [provider] specific path for the given Posix [path].
    */
   String _p(String path) => provider.convertPath(path);
-
-  Future<Null> _waitForIdle() async {
-    await idleStatusMonitor.signal;
-  }
 
   static String _md5(String content) {
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
