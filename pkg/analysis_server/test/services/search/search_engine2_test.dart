@@ -154,6 +154,49 @@ int test;
     assertHasElement('test', codeB.indexOf('test() {} // 2'));
   }
 
+  test_searchMemberReferences() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(
+        a,
+        '''
+class A {
+  int test;
+}
+foo(p) {
+  p.test;
+}
+''');
+    provider.newFile(
+        b,
+        '''
+import 'a.dart';
+bar(p) {
+  p.test = 1;
+}
+''');
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+
+    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    expect(matches, hasLength(2));
+    expect(
+        matches,
+        contains(predicate((SearchMatch m) =>
+            m.element.name == 'foo' || m.kind == MatchKind.READ)));
+    expect(
+        matches,
+        contains(predicate((SearchMatch m) =>
+            m.element.name == 'bar' || m.kind == MatchKind.WRITE)));
+  }
+
   test_searchReferences() async {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
