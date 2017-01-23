@@ -56,7 +56,7 @@ abstract class MockElement implements Element {
 
   int get nameLength => internalError("not supported.");
 
-  int get nameOffset => internalError("not supported.");
+  int get nameOffset => -1;
 
   get unit => internalError("not supported.");
 

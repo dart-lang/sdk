@@ -107,4 +107,6 @@ abstract class MockInterfaceType extends MockType implements InterfaceType {
       String name, LibraryElement library) => internalError("not supported.");
 
   InterfaceType substitute4(List<DartType> argumentTypes) => internalError("not supported.");
+
+  get isDartCoreNull => internalError("not supported.");
 }

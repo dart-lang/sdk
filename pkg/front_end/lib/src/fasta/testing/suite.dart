@@ -131,10 +131,10 @@ class FeContext extends TestContext {
         throw loader.errors.join("\n");
       }
       Library mainLibrary = program.mainMethod.enclosingLibrary;
-      program.uriToLineStarts.remove(mainLibrary.fileUri);
+      program.uriToSource.remove(mainLibrary.fileUri);
       return new Program(
           program.libraries.where((Library l) => l != mainLibrary).toList(),
-          program.uriToLineStarts);
+          program.uriToSource);
     });
   }
 

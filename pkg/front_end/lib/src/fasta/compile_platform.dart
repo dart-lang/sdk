@@ -98,7 +98,7 @@ main(List<String> arguments) async {
   program = new Program(
       program.libraries.where(
           (Library l) => l.importUri.scheme == "dart").toList(),
-      program.uriToLineStarts);
+      program.uriToSource);
   if (loader.errors.isNotEmpty) {
     inputError(null, null, loader.errors.join("\n"));
   }

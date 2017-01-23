@@ -33,6 +33,7 @@ import 'package:kernel/ast.dart' show
     Program,
     RedirectingInitializer,
     ReturnStatement,
+    Source,
     StaticGet,
     StringLiteral,
     SuperInitializer,
@@ -48,8 +49,7 @@ import 'package:kernel/text/ast_to_text.dart' show
     Printer;
 
 import 'package:kernel/transformations/mixin_full_resolution.dart' show
-    MixinFullResolution,
-    SuperInitializerResolutionTransformer;
+    MixinFullResolution;
 
 import '../source/source_loader.dart' show
     SourceLoader;
@@ -281,7 +281,7 @@ class KernelSourceTarget extends TargetImplementation {
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
   Program link(List<Library> libraries) {
-   Map<String, List<int>> uriToLineStarts = <String, List<int>>{};
+    Map<String, Source> uriToSource = <String, Source>{};
 
     // for (Library library in libraries) {
     //   // TODO(ahe): Compute line starts instead.
@@ -291,14 +291,14 @@ class KernelSourceTarget extends TargetImplementation {
     final Program binary = dillTarget.loader.program;
     if (binary != null) {
       libraries.addAll(binary.libraries);
-      uriToLineStarts.addAll(binary.uriToLineStarts);
+      uriToSource.addAll(binary.uriToSource);
     }
 
     // TODO(ahe): Remove this line. Kernel seems to generate a default line map
     // that used when there's no fileUri on an element. Instead, ensure all
     // elements have a fileUri.
-    uriToLineStarts[""] = <int>[0];
-    Program program = new Program(libraries, uriToLineStarts);
+    uriToSource[""] = new Source(<int>[0], "");
+    Program program = new Program(libraries, uriToSource);
     if (loader.first != null) {
       Builder builder = loader.first.members["main"];
       if (builder is KernelProcedureBuilder) {
