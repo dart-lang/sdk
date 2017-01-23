@@ -8540,6 +8540,7 @@ Language/Expressions/Conditional/type_t04: Skip # Times out. Please triage this 
 Language/Expressions/Identifier_Reference/evaluation_function_t02: Skip # Times out. Please triage this failure
 Language/Functions/Formal_Parameters/scope_t01: Skip # Times out. Please triage this failure
 Language/Statements/Local_Variable_Declaration/syntax_t18: Skip # Times out. Please triage this failure
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Issue 26615
 Language/Types/Function_Types/subtype_no_args_t03: Skip # Times out. Please triage this failure
 Language/Types/Interface_Types/subtype_t37: Skip # Times out. Please triage this failure
@@ -9593,6 +9594,7 @@ LayoutTests/fast/html/details-add-details-child-2_t01: RuntimeError # Please tri
 LayoutTests/fast/html/details-click-controls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/details-mouse-click_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/disable-style-element_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/html/draggable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/figcaption-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/figure-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/footer-element_t01: RuntimeError # Please triage this failure

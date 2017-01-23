@@ -773,7 +773,6 @@ LayoutTests/fast/url/relative-win_t01: RuntimeError # co19-roll r786: Please tri
 LayoutTests/fast/url/segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/segments-from-data-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/standard-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/writing-mode/positionForPoint_t01: Skip # co19 issue 732.
@@ -1215,9 +1214,6 @@ LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeEr
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # Timesout sporadically
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # Timesout sporadically
-
-[ $compiler == none && $runtime == dartium && $checked == false && $system == windows ]
-LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
