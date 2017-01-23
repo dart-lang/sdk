@@ -678,7 +678,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
       return field.StaticValue();
     }
     // An uninitialized field was found.  Check for a getter in the field's
-    // owner classs.
+    // owner class.
     const Class& klass = Class::Handle(field.Owner());
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));

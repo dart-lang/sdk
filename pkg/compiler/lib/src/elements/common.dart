@@ -142,7 +142,7 @@ abstract class ElementCommon implements Element {
   Element get outermostEnclosingMemberOrTopLevel {
     // TODO(lrn): Why is this called "Outermost"?
     // TODO(johnniwinther): Clean up this method: This method does not return
-    // the outermost for elements in closure classses, but some call-sites rely
+    // the outermost for elements in closure classes, but some call-sites rely
     // on that behavior.
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClassMember || e.isTopLevel) {
