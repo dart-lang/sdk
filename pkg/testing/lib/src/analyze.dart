@@ -88,7 +88,8 @@ class AnalyzerDiagnostic {
 
   String toString() {
     return "$uri:$line:$startColumn: "
-        "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n$message";
+        "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n"
+        "[$code] $message";
   }
 }
 
@@ -134,6 +135,9 @@ Future<Null> analyzeUris(
   Set<String> seen = new Set<String>();
   for (AnalyzerDiagnostic diagnostic in diagnostics) {
     String path = diagnostic.uri.path;
+    if (diagnostic.code == "DEPRECATED_MEMBER_USE") continue;
+    if (diagnostic.code == "MISSING_RETURN") continue;
+    if (diagnostic.code == "UNNECESSARY_CAST") continue;
     if (exclude.any((RegExp r) => path.contains(r))) continue;
     String message = "$diagnostic";
     if (seen.add(message)) {
