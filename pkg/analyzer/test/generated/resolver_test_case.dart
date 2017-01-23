@@ -475,8 +475,8 @@ class ResolverTestCase extends EngineTestCase {
   Future<Null> assertPropagatedAssignedType(String code,
       DartType expectedStaticType, DartType expectedPropagatedType) async {
     SimpleIdentifier identifier = await findMarkedIdentifier(code, "v = ");
-    expect(identifier.staticType, same(expectedStaticType));
-    expect(identifier.propagatedType, same(expectedPropagatedType));
+    expect(identifier.staticType, expectedStaticType);
+    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**
@@ -486,8 +486,8 @@ class ResolverTestCase extends EngineTestCase {
   Future<Null> assertPropagatedIterationType(String code,
       DartType expectedStaticType, DartType expectedPropagatedType) async {
     SimpleIdentifier identifier = await findMarkedIdentifier(code, "v in ");
-    expect(identifier.staticType, same(expectedStaticType));
-    expect(identifier.propagatedType, same(expectedPropagatedType));
+    expect(identifier.staticType, expectedStaticType);
+    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**

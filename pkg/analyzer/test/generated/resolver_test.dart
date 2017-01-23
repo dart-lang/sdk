@@ -1244,18 +1244,17 @@ main() {
 }''';
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
-    InterfaceType stringType = typeProvider.stringType;
     // in the declaration
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e in", (node) => node is SimpleIdentifier);
-      expect(identifier.propagatedType, same(stringType));
+      expect(identifier.propagatedType, typeProvider.stringType);
     }
     // in the loop body
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e;", (node) => node is SimpleIdentifier);
-      expect(identifier.propagatedType, same(stringType));
+      expect(identifier.propagatedType, typeProvider.stringType);
     }
   }
 
@@ -1269,18 +1268,17 @@ f(Stream<String> stream) async {
 }''';
     Source source = addSource(code);
     CompilationUnit unit = await _computeResolvedUnit(source);
-    InterfaceType stringType = typeProvider.stringType;
     // in the declaration
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e in", (node) => node is SimpleIdentifier);
-      expect(identifier.propagatedType, same(stringType));
+      expect(identifier.propagatedType, typeProvider.stringType);
     }
     // in the loop body
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e;", (node) => node is SimpleIdentifier);
-      expect(identifier.propagatedType, same(stringType));
+      expect(identifier.propagatedType, typeProvider.stringType);
     }
   }
 
