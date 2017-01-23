@@ -11,14 +11,8 @@ class Foo extends core::Object {
   }
 }
 abstract class ExternalValue extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
 }
 abstract class Bar extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
   abstract method externalInstanceMethod() → self::ExternalValue;
 }
 class Box extends core::Object {

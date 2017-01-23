@@ -7,6 +7,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/insert_covariance_checks.dart';
 import 'package:kernel/transformations/insert_type_checks.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
+import 'package:kernel/transformations/treeshaker.dart';
 import 'package:kernel/type_checker.dart';
 import 'package:path/path.dart' as pathlib;
 
@@ -31,6 +32,8 @@ class StrongModeTest extends TestTarget {
     new TestTypeChecker(
             errors, new CoreTypes(program), new ClassHierarchy(program))
         .checkProgram(program);
+    new TreeShaker(program, strongMode: true).transform(program);
+    program.accept(new TreeShakerCheck());
     return errors;
   }
 }
@@ -59,6 +62,16 @@ class TestTypeChecker extends TypeChecker {
       locationString = '(no location)';
     }
     errors.add('$message $locationString');
+  }
+}
+
+class TreeShakerCheck extends RecursiveVisitor {
+  visitStringLiteral(StringLiteral node) {
+    if (node.value.toLowerCase() == 'unused') {
+      throw 'Code not tree-shaken at ${node.location}.\n'
+          'The string literal $node is used to indicate that the code is '
+          'expected to be removed by strong-mode tree shaking';
+    }
   }
 }
 

@@ -14,13 +14,6 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
-class C extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
-  operator ==(dynamic x) → core::bool
-    return false;
-}
 class X extends core::Object implements self::A, self::B {
   field dynamic field = null;
   constructor •() → void
