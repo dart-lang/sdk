@@ -726,9 +726,8 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
 
   @override
   @failingTest
-  test_instantiateToBounds_boundRefersToLaterTypeArgument() {
-    // TODO(paulberry): this is failing due to dartbug.com/27072.
-    super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
+  test_instantiateToBounds_boundRefersToItself() {
+    super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @override

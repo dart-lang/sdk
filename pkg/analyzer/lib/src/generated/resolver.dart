@@ -8384,7 +8384,12 @@ class TypeNameResolver {
       }
       type = typeSystem.instantiateType(type, typeArguments);
     } else {
-      type = typeSystem.instantiateToBounds(type);
+      List<bool> hasError = [false];
+      type = typeSystem.instantiateToBounds(type, hasError: hasError);
+      if (hasError[0]) {
+        errorListener.onError(new AnalysisError(source, node.offset,
+            node.length, StrongModeCode.NO_DEFAULT_BOUNDS));
+      }
     }
     typeName.staticType = type;
     node.type = type;

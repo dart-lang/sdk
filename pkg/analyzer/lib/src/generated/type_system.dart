@@ -412,42 +412,84 @@ class StrongTypeSystemImpl extends TypeSystem {
   /**
    * Given a [DartType] [type], if [type] is an uninstantiated
    * parameterized type then instantiate the parameters to their
-   * bounds. Specifically, if [type] is of the form
-   * `<T0 extends B0, ... Tn extends Bn>.F` or
-   * `class C<T0 extends B0, ... Tn extends Bn> {...}`
-   * (where Bi is implicitly dynamic if absent),
-   * compute `{I0/T0, ..., In/Tn}F or C<I0, ..., In>` respectively
-   * where I_(i+1) = {I0/T0, ..., Ii/Ti, dynamic/T_(i+1)}B_(i+1).
-   * That is, we instantiate the generic with its bounds, replacing
-   * each Ti in Bi with dynamic to get Ii, and then replacing Ti with
-   * Ii in all of the remaining bounds.
+   * bounds. See the issue for the algorithm description.
+   *
+   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+   *
+   * TODO(scheglov) Move this method to elements for classes, typedefs,
+   * and generic functions; compute lazily and cache.
    */
-  DartType instantiateToBounds(DartType type) {
+  DartType instantiateToBounds(DartType type, {List<bool> hasError}) {
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
     int count = typeFormals.length;
     if (count == 0) {
       return type;
     }
 
-    // We build up a substitution replacing bound parameters with
-    // their instantiated bounds, {substituted/variables}
-    List<DartType> substituted = new List<DartType>();
-    List<DartType> variables = new List<DartType>();
-    for (int i = 0; i < count; i++) {
-      TypeParameterElement param = typeFormals[i];
-      DartType bound = param.bound ?? DynamicTypeImpl.instance;
-      DartType variable = param.type;
-      // For each Ti extends Bi, first compute Ii by replacing
-      // Ti in Bi with dynamic (simultaneously replacing all
-      // of the previous Tj (j < i) with their instantiated bounds.
-      substituted.add(DynamicTypeImpl.instance);
-      variables.add(variable);
-      // Now update the substitution to replace Ti with Ii instead
-      // of dynamic in subsequent rounds.
-      substituted[i] = bound.substitute2(substituted, variables);
+    Set<TypeParameterType> all = new Set<TypeParameterType>();
+    Map<TypeParameterType, DartType> defaults = {}; // all ground
+    Map<TypeParameterType, DartType> partials = {}; // not ground
+
+    for (TypeParameterElement typeParameterElement in typeFormals) {
+      TypeParameterType typeParameter = typeParameterElement.type;
+      all.add(typeParameter);
+      if (typeParameter.bound == null) {
+        defaults[typeParameter] = DynamicTypeImpl.instance;
+      } else {
+        partials[typeParameter] = typeParameter.bound;
+      }
     }
 
-    return instantiateType(type, substituted);
+    List<TypeParameterType> getFreeParameters(DartType type) {
+      List<TypeParameterType> parameters = null;
+
+      void appendParameters(DartType type) {
+        if (type is TypeParameterType && all.contains(type)) {
+          parameters ??= <TypeParameterType>[];
+          parameters.add(type);
+        } else if (type is ParameterizedType) {
+          type.typeArguments.forEach(appendParameters);
+        }
+      }
+
+      appendParameters(type);
+      return parameters;
+    }
+
+    bool hasProgress = true;
+    while (hasProgress) {
+      hasProgress = false;
+      for (TypeParameterType parameter in partials.keys) {
+        DartType value = partials[parameter];
+        List<TypeParameterType> freeParameters = getFreeParameters(value);
+        if (freeParameters == null) {
+          defaults[parameter] = value;
+          partials.remove(parameter);
+          hasProgress = true;
+          break;
+        } else if (freeParameters.every(defaults.containsKey)) {
+          defaults[parameter] = value.substitute2(
+              defaults.values.toList(), defaults.keys.toList());
+          partials.remove(parameter);
+          hasProgress = true;
+          break;
+        }
+      }
+    }
+
+    // If we stopped making progress, and not all types are ground,
+    // then the whole type is malbounded and an error should be reported.
+    if (partials.isNotEmpty) {
+      if (hasError != null) {
+        hasError[0] = true;
+      }
+      return instantiateType(
+          type, new List<DartType>.filled(count, DynamicTypeImpl.instance));
+    }
+
+    List<DartType> orderedArguments =
+        typeFormals.map((p) => defaults[p.type]).toList();
+    return instantiateType(type, orderedArguments);
   }
 
   @override
@@ -1129,7 +1171,7 @@ abstract class TypeSystem {
    * classic Dart `dynamic` will be used for all type arguments, whereas
    * strong mode prefers the actual bound type if it was specified.
    */
-  DartType instantiateToBounds(DartType type);
+  DartType instantiateToBounds(DartType type, {List<bool> hasError});
 
   /**
    * Given a [DartType] [type] and a list of types
@@ -1424,7 +1466,7 @@ class TypeSystemImpl extends TypeSystem {
    * Instantiate a parameterized type using `dynamic` for all generic
    * parameters.  Returns the type unchanged if there are no parameters.
    */
-  DartType instantiateToBounds(DartType type) {
+  DartType instantiateToBounds(DartType type, {List<bool> hasError}) {
     List<DartType> typeFormals = typeFormalsAsTypes(type);
     int count = typeFormals.length;
     if (count > 0) {

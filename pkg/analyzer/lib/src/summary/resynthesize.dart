@@ -1297,7 +1297,7 @@ class _ReferenceInfo {
   /**
    * If this reference refers to a type, build a [DartType].  Otherwise return
    * `null`.  If [numTypeArguments] is the same as the [numTypeParameters],
-   * the type in instantiated with type arguments returned by [getTypeArgument],
+   * the type is instantiated with type arguments returned by [getTypeArgument],
    * otherwise it is instantiated with type parameter bounds (if strong mode),
    * or with `dynamic` type arguments.
    *
@@ -1324,22 +1324,14 @@ class _ReferenceInfo {
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          typeArguments = element.typeParameters
-              .map/*<DartType>*/((_) => DynamicTypeImpl.instance)
-              .toList();
+          typeArguments = new List<DartType>.filled(
+              element.typeParameters.length, DynamicTypeImpl.instance);
           if (libraryResynthesizer.summaryResynthesizer.strongMode &&
               instantiateToBoundsAllowed) {
-            List<DartType> typeParameterTypes;
-            for (int i = 0; i < typeArguments.length; i++) {
-              DartType bound = element.typeParameters[i].bound;
-              if (bound != null) {
-                typeParameterTypes ??= element.typeParameters
-                    .map/*<DartType>*/((TypeParameterElement e) => e.type)
-                    .toList();
-                typeArguments[i] =
-                    bound.substitute2(typeArguments, typeParameterTypes);
-              }
-            }
+            InterfaceType instantiatedToBounds = libraryResynthesizer
+                .summaryResynthesizer.context.typeSystem
+                .instantiateToBounds(element.type) as InterfaceType;
+            return instantiatedToBounds.typeArguments;
           }
         }
         return typeArguments;

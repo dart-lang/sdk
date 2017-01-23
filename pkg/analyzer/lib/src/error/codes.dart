@@ -4898,6 +4898,12 @@ class StrongModeCode extends ErrorCode {
       "Missing type arguments for calling generic function type '{0}'.",
       _implicitDynamicCorrection);
 
+  static const StrongModeCode NO_DEFAULT_BOUNDS = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'NO_DEFAULT_BOUNDS',
+      "Type has no default bounds",
+      "Try adding explicit type arguments to type");
+
   static const StrongModeCode NOT_INSTANTIATED_BOUND = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'NOT_INSTANTIATED_BOUND',

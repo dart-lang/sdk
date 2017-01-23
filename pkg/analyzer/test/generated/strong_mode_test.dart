@@ -1299,6 +1299,11 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  void expectStaticInvokeType(String search, String type) {
+    var invocation = findIdentifier(search).parent as MethodInvocation;
+    expect(invocation.staticInvokeType.toString(), type);
+  }
+
   fail_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
@@ -1957,6 +1962,132 @@ void test() {
     expectIdentifierType('aa', "A<dynamic>");
     expectIdentifierType('bb', "B<num>");
     expectIdentifierType('cc', "C<int, B<int>, B<dynamic>>");
+  }
+
+  test_instantiateToBounds_class_error_recursion() async {
+    String code = r'''
+class C<T0 extends List<T1>, T1 extends List<T0>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic, dynamic>');
+  }
+
+  test_instantiateToBounds_class_error_recursion_self() async {
+    String code = r'''
+class C<T extends C<T>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic>');
+  }
+
+  test_instantiateToBounds_class_error_recursion_self2() async {
+    String code = r'''
+class A<E> {}
+class C<T extends A<T>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_after() async {
+    String code = r'''
+class C<T0 extends T1, T1 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<int, int>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_after2() async {
+    String code = r'''
+class C<T0 extends Map<T1, T1>, T1 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<Map<int, int>, int>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_before() async {
+    String code = r'''
+class C<T0 extends int, T1 extends T0> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<int, int>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_multi() async {
+    String code = r'''
+class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<Map<List<int>, int>, List<int>, int>');
+  }
+
+  test_instantiateToBounds_class_ok_simpleBounds() async {
+    String code = r'''
+class A<T> {}
+class B<T extends num> {}
+class C<T extends List<int>> {}
+
+void main() {
+  A a;
+  B b;
+  C c;
+}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('a;', 'A<dynamic>');
+    expectIdentifierType('b;', 'B<num>');
+    expectIdentifierType('c;', 'C<List<int>>');
+  }
+
+  /**
+   * See https://github.com/dart-lang/sdk/issues/27725
+   *
+   * TypeParameterMember.== is not implemented
+   */
+  @failingTest
+  test_instantiateToBounds_method_ok_referenceOther_before() async {
+    String code = r'''
+class C<T> {
+  void m<S0 extends T, S1 extends List<S0>>(S0 p0, S1 p1) {}
+
+  void main() {
+    m(null, null);
+  }
+}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectStaticInvokeType('m(null', '(T, List<T>) → void');
+  }
+
+  test_instantiateToBounds_method_ok_simpleBounds() async {
+    String code = r'''
+class C<T> {
+  void m<S extends T>(S p0) {}
+
+  void main() {
+    m(null);
+  }
+}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectStaticInvokeType('m(null)', '(T) → void');
   }
 
   test_notInstantiatedBound_direct() async {
