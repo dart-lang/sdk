@@ -57,27 +57,35 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   AsserterBuilder<DartType, DartType> _hasElementOf;
 
   @override
+  Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
+    TestAnalysisResult result = await super.computeAnalysisResult(source);
+    if (_assertions == null) {
+      _assertions = new TypeAssertions(typeProvider);
+      _isType = _assertions.isType;
+      _hasElement = _assertions.hasElement;
+      _isInstantiationOf = _assertions.isInstantiationOf;
+      _isInt = _assertions.isInt;
+      _isNum = _assertions.isNum;
+      _isString = _assertions.isString;
+      _isDynamic = _assertions.isDynamic;
+      _isListOf = _assertions.isListOf;
+      _isMapOf = _assertions.isMapOf;
+      _isFunction2Of = _assertions.isFunction2Of;
+      _hasElementOf = _assertions.hasElementOf;
+      _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
+      _isFutureOfDynamic = _isFutureOf([_isDynamic]);
+      _isFutureOfInt = _isFutureOf([_isInt]);
+      _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
+    }
+    return result;
+  }
+
+  @override
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
     resetWith(options: options);
-    _assertions = new TypeAssertions(typeProvider);
-    _isType = _assertions.isType;
-    _hasElement = _assertions.hasElement;
-    _isInstantiationOf = _assertions.isInstantiationOf;
-    _isInt = _assertions.isInt;
-    _isNum = _assertions.isNum;
-    _isString = _assertions.isString;
-    _isDynamic = _assertions.isDynamic;
-    _isListOf = _assertions.isListOf;
-    _isMapOf = _assertions.isMapOf;
-    _isFunction2Of = _assertions.isFunction2Of;
-    _hasElementOf = _assertions.hasElementOf;
-    _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
-    _isFutureOfDynamic = _isFutureOf([_isDynamic]);
-    _isFutureOfInt = _isFutureOf([_isInt]);
-    _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
   }
 
   test_async_method_propagation() async {
@@ -2353,8 +2361,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_foreachInference_reusedVar_disabled() async {
@@ -2366,8 +2375,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_foreachInference_var() async {
@@ -2378,8 +2388,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_foreachInference_var_iterable() async {
@@ -2390,8 +2401,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_foreachInference_var_stream() async {
@@ -2403,8 +2415,9 @@ main() async {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_bottom_disabled() async {
@@ -2413,8 +2426,9 @@ main() {
   var v = null;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_localVariableInference_constant() async {
@@ -2423,8 +2437,9 @@ main() {
   var v = 3;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_declaredType_disabled() async {
@@ -2433,8 +2448,9 @@ main() {
   dynamic v = 3;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_localVariableInference_noInitializer_disabled() async {
@@ -2444,8 +2460,9 @@ main() {
   v = 3;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
@@ -2460,8 +2477,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
@@ -2476,8 +2494,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_field_lexical() async {
@@ -2492,8 +2511,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_field_reversed() async {
@@ -2508,8 +2528,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_list_local() async {
@@ -2519,8 +2540,9 @@ main() {
   var v = x[0];
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_local() async {
@@ -2530,8 +2552,9 @@ main() {
   var v = x;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_inferred_lexical() async {
@@ -2542,8 +2565,9 @@ main() {
   v; // marker
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
@@ -2554,8 +2578,9 @@ main() {
 }
 final x = 3;
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_lexical() async {
@@ -2566,8 +2591,9 @@ main() {
   v; // marker
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_reversed() async {
@@ -2578,7 +2604,8 @@ main() {
 }
 int x = 3;
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 }

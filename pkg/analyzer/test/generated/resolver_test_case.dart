@@ -350,7 +350,10 @@ class ResolverTestCase extends EngineTestCase {
    */
   TypeProvider get typeProvider {
     if (enableNewAnalysisDriver) {
-      return driver.sourceFactory.dartSdk.context.typeProvider;
+      if (analysisResults.isEmpty) {
+        fail('typeProvider can be called after computing an analysis result.');
+      }
+      return analysisResults.values.first.unit.element.context.typeProvider;
     } else {
       return analysisContext2.typeProvider;
     }
@@ -472,9 +475,9 @@ class ResolverTestCase extends EngineTestCase {
    * @param code the code that assigns the value to the variable "v", no matter how. We check that
    *          "v" has expected static and propagated type.
    */
-  Future<Null> assertPropagatedAssignedType(String code,
-      DartType expectedStaticType, DartType expectedPropagatedType) async {
-    SimpleIdentifier identifier = await findMarkedIdentifier(code, "v = ");
+  void assertPropagatedAssignedType(String code, CompilationUnit unit,
+      DartType expectedStaticType, DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
     expect(identifier.staticType, expectedStaticType);
     expect(identifier.propagatedType, expectedPropagatedType);
   }
@@ -483,9 +486,9 @@ class ResolverTestCase extends EngineTestCase {
    * @param code the code that iterates using variable "v". We check that
    *          "v" has expected static and propagated type.
    */
-  Future<Null> assertPropagatedIterationType(String code,
-      DartType expectedStaticType, DartType expectedPropagatedType) async {
-    SimpleIdentifier identifier = await findMarkedIdentifier(code, "v in ");
+  void assertPropagatedIterationType(String code, CompilationUnit unit,
+      DartType expectedStaticType, DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v in ");
     expect(identifier.staticType, expectedStaticType);
     expect(identifier.propagatedType, expectedPropagatedType);
   }
@@ -498,10 +501,10 @@ class ResolverTestCase extends EngineTestCase {
    * @param expectedPropagatedType if non-null, check actual static type is equal to this.
    * @throws Exception
    */
-  Future<Null> assertTypeOfMarkedExpression(String code,
-      DartType expectedStaticType, DartType expectedPropagatedType) async {
+  void assertTypeOfMarkedExpression(String code, CompilationUnit unit,
+      DartType expectedStaticType, DartType expectedPropagatedType) {
     SimpleIdentifier identifier =
-        await findMarkedIdentifier(code, "; // marker");
+        findMarkedIdentifier(code, unit, "; // marker");
     if (expectedStaticType != null) {
       expect(identifier.staticType, expectedStaticType);
     }
@@ -536,6 +539,14 @@ class ResolverTestCase extends EngineTestCase {
     }
     analysisResults[source] = analysisResult;
     return analysisResult;
+  }
+
+  /**
+   * Compute the analysis result to the given [code] in '/test.dart'.
+   */
+  Future<TestAnalysisResult> computeTestAnalysisResult(String code) async {
+    Source source = addSource(code);
+    return await computeAnalysisResult(source);
   }
 
   /**
@@ -600,32 +611,13 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Return the `SimpleIdentifier` marked by `marker`. The source code must have no
-   * errors and be verifiable.
-   *
-   * @param code source code to analyze.
-   * @param marker marker identifying sought after expression in source code.
-   * @return expression marked by the marker.
-   * @throws Exception
+   * Return the [SimpleIdentifier] from [unit] marked by [marker] in [code].
+   * The source code must have no errors and be verifiable.
    */
-  Future<SimpleIdentifier> findMarkedIdentifier(
-      String code, String marker) async {
-    try {
-      Source source = addSource(code);
-      await computeAnalysisResult(source);
-      assertNoErrors(source);
-      verify([source]);
-      CompilationUnit unit = analysisResults[source].unit;
-      return EngineTestCase.findNode(
-          unit, code, marker, (node) => node is SimpleIdentifier);
-    } catch (exception) {
-      // Is there a better exception to throw here? The point is that an
-      // assertion failure here should be a failure, in both "test_*" and
-      // "fail_*" tests. However, an assertion failure is success for the
-      // purpose of "fail_*" tests, so without catching them here "fail_*" tests
-      // can succeed by failing for the wrong reason.
-      throw new StateError("Unexpected assertion failure: $exception");
-    }
+  SimpleIdentifier findMarkedIdentifier(
+      String code, CompilationUnit unit, String marker) {
+    return EngineTestCase.findNode(
+        unit, code, marker, (node) => node is SimpleIdentifier);
   }
 
   Expression findTopLevelConstantExpression(

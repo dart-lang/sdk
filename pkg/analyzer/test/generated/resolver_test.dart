@@ -946,8 +946,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
 class TypePropagationTest extends ResolverTestCase {
   fail_mergePropagatedTypesAtJoinPoint_1() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f1(x) {
   var y = [];
   if (x) {
@@ -958,15 +957,14 @@ f1(x) {
   // Propagated type is [List] here: incorrect.
   // Best we can do is [Object]?
   return y; // marker
-}''',
-        null,
-        typeProvider.dynamicType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.dynamicType);
   }
 
   fail_mergePropagatedTypesAtJoinPoint_2() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f2(x) {
   var y = [];
   if (x) {
@@ -976,15 +974,14 @@ f2(x) {
   // Propagated type is [List] here: incorrect.
   // Best we can do is [Object]?
   return y; // marker
-}''',
-        null,
-        typeProvider.dynamicType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.dynamicType);
   }
 
   fail_mergePropagatedTypesAtJoinPoint_3() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f4(x) {
   var y = [];
   if (x) {
@@ -996,15 +993,14 @@ f4(x) {
   // A correct answer is the least upper bound of [int] and [double],
   // i.e. [num].
   return y; // marker
-}''',
-        null,
-        typeProvider.numType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.numType);
   }
 
   fail_mergePropagatedTypesAtJoinPoint_5() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f6(x,y) {
   var z = [];
   if (x || (z = y) < 0) {
@@ -1014,9 +1010,9 @@ f6(x,y) {
   // Propagated type is [List] here: incorrect.
   // Best we can do is [Object]?
   return z; // marker
-}''',
-        null,
-        typeProvider.dynamicType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.dynamicType);
   }
 
   fail_mergePropagatedTypesAtJoinPoint_7() async {
@@ -1043,8 +1039,9 @@ f() {
     x; // marker
   }
 }''';
+    CompilationUnit unit = await resolveSource(code);
     DartType t =
-        (await findMarkedIdentifier(code, "; // marker")).propagatedType;
+        findMarkedIdentifier(code, unit, "; // marker").propagatedType;
     expect(typeProvider.intType.isSubtypeOf(t), isTrue);
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
@@ -1076,8 +1073,9 @@ f() {
     }
   }
 }''';
+    CompilationUnit unit = await resolveSource(code);
     DartType t =
-        (await findMarkedIdentifier(code, "; // marker")).propagatedType;
+        findMarkedIdentifier(code, unit, "; // marker").propagatedType;
     expect(typeProvider.intType.isSubtypeOf(t), isTrue);
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
@@ -1088,8 +1086,9 @@ f() {
 main() {
   var v = (() {return 42;})();
 }''';
-    await assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(
+        code, unit, typeProvider.dynamicType, typeProvider.intType);
   }
 
   test_as() async {
@@ -1628,8 +1627,9 @@ import 'helper.dart' as helper;
 main() {
   helper.max(10, 10); // marker
 }''';
+    CompilationUnit unit = await resolveSource(code);
     SimpleIdentifier methodName =
-        await findMarkedIdentifier(code, "(10, 10); // marker");
+        findMarkedIdentifier(code, unit, "(10, 10); // marker");
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodInvoke.methodName.staticElement, isNotNull);
     expect(methodInvoke.methodName.propagatedElement, isNull);
@@ -1966,8 +1966,9 @@ f() {
     return a; // marker
   }
 }''';
-    DartType tB = (await findMarkedIdentifier(code, "; // B")).propagatedType;
-    await assertTypeOfMarkedExpression(code, null, tB);
+    CompilationUnit unit = await resolveSource(code);
+    DartType tB = findMarkedIdentifier(code, unit, "; // B").propagatedType;
+    assertTypeOfMarkedExpression(code, unit, null, tB);
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_6() async {
@@ -1986,8 +1987,9 @@ f() {
     return b; // marker
   }
 }''';
-    DartType tB = (await findMarkedIdentifier(code, "; // B")).propagatedType;
-    await assertTypeOfMarkedExpression(code, null, tB);
+    CompilationUnit unit = await resolveSource(code);
+    DartType tB = findMarkedIdentifier(code, unit, "; // B").propagatedType;
+    assertTypeOfMarkedExpression(code, unit, null, tB);
   }
 
   test_listLiteral_different() async {
@@ -2075,33 +2077,33 @@ main() {
   }
   return v;
 }''';
+    CompilationUnit unit = await resolveSource(code);
     {
-      SimpleIdentifier identifier = await findMarkedIdentifier(code, "v;");
+      SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v;");
       expect(identifier.propagatedType, null);
     }
     {
-      SimpleIdentifier identifier = await findMarkedIdentifier(code, "v = '';");
+      SimpleIdentifier identifier =
+          findMarkedIdentifier(code, unit, "v = '';");
       expect(identifier.propagatedType, typeProvider.stringType);
     }
   }
 
   test_mergePropagatedTypes_afterIfThen_same() async {
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 main() {
   var v = 1;
   if (v != null) {
     v = 2;
   }
   return v; // marker
-}''',
-        null,
-        typeProvider.intType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.intType);
   }
 
   test_mergePropagatedTypes_afterIfThenElse_different() async {
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 main() {
   var v = 1;
   if (v != null) {
@@ -2110,14 +2112,13 @@ main() {
     v = '3';
   }
   return v; // marker
-}''',
-        null,
-        null);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, null);
   }
 
   test_mergePropagatedTypes_afterIfThenElse_same() async {
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 main() {
   var v = 1;
   if (v != null) {
@@ -2126,15 +2127,14 @@ main() {
     v = 3;
   }
   return v; // marker
-}''',
-        null,
-        typeProvider.intType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.intType);
   }
 
   test_mergePropagatedTypesAtJoinPoint_4() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f5(x) {
   var y = [];
   if (x) {
@@ -2144,9 +2144,9 @@ f5(x) {
   }
   // Propagated type is [int] here: correct.
   return y; // marker
-}''',
-        null,
-        typeProvider.intType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.intType);
   }
 
   test_mutatedOutsideScope() async {
@@ -2194,7 +2194,8 @@ main() {
   helper.$name; // marker
 }''';
 
-    SimpleIdentifier id = await findMarkedIdentifier(code, "; // marker");
+    CompilationUnit unit = await resolveSource(code);
+    SimpleIdentifier id = findMarkedIdentifier(code, unit, "; // marker");
     PrefixedIdentifier prefixedId = id.parent;
     expect(id.staticType, typeProvider.dynamicType);
     expect(prefixedId.staticType, typeProvider.dynamicType);
@@ -2208,7 +2209,8 @@ main() {
   $name; // marker
 }''';
 
-    SimpleIdentifier getter = await findMarkedIdentifier(code, "; // marker");
+    CompilationUnit unit = await resolveSource(code);
+    SimpleIdentifier getter = findMarkedIdentifier(code, unit, "; // marker");
     expect(getter.staticType, typeProvider.dynamicType);
   }
 
@@ -2219,8 +2221,9 @@ main() {
   dynamic obj;
   obj..$name..$name; // marker
 }''';
+    CompilationUnit unit = await resolveSource(code);
     PropertyAccess access =
-        (await findMarkedIdentifier(code, "; // marker")).parent;
+        findMarkedIdentifier(code, unit, "; // marker").parent;
     expect(access.staticType, typeProvider.dynamicType);
     expect(access.realTarget.staticType, typeProvider.dynamicType);
   }
@@ -2238,8 +2241,9 @@ import 'helper.dart' as helper;
 main() {
   helper.$name(); // marker
 }''';
+    CompilationUnit unit = await resolveSource(code);
     SimpleIdentifier methodName =
-        await findMarkedIdentifier(code, "(); // marker");
+        findMarkedIdentifier(code, unit, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
@@ -2252,11 +2256,13 @@ main() {
   dynamic $name = () => null;
   $name(); // marker
 }''';
-    SimpleIdentifier identifier = await findMarkedIdentifier(code, "$name = ");
+    CompilationUnit unit = await resolveSource(code);
+
+    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "$name = ");
     expect(identifier.staticType, typeProvider.dynamicType);
 
     SimpleIdentifier methodName =
-        await findMarkedIdentifier(code, "(); // marker");
+        findMarkedIdentifier(code, unit, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
@@ -2269,8 +2275,9 @@ main() {
   dynamic obj;
   obj..$name()..$name(); // marker
 }''';
+    CompilationUnit unit = await resolveSource(code);
     SimpleIdentifier methodName =
-        await findMarkedIdentifier(code, "(); // marker");
+        findMarkedIdentifier(code, unit, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
 
     expect(methodInvoke.staticType, typeProvider.dynamicType);
@@ -2284,50 +2291,46 @@ main() {
     // static type of [bool] for [==] comparison and the implementation
     // was already consistent with the spec there. But, it's another
     // [Object] method, so it's included here.
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f1(x) {
   var v = (x == x);
   return v; // marker
-}''',
-        null,
-        typeProvider.boolType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.boolType);
   }
 
   test_objectMethodOnDynamicExpression_hashCode() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f1(x) {
   var v = x.hashCode;
   return v; // marker
-}''',
-        null,
-        typeProvider.intType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.intType);
   }
 
   test_objectMethodOnDynamicExpression_runtimeType() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f1(x) {
   var v = x.runtimeType;
   return v; // marker
-}''',
-        null,
-        typeProvider.typeType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.typeType);
   }
 
   test_objectMethodOnDynamicExpression_toString() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    await assertTypeOfMarkedExpression(
-        r'''
+    var code = r'''
 f1(x) {
   var v = x.toString();
   return v; // marker
-}''',
-        null,
-        typeProvider.stringType);
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertTypeOfMarkedExpression(code, unit, null, typeProvider.stringType);
   }
 
   test_propagatedReturnType_localFunction() async {
@@ -2336,8 +2339,9 @@ main() {
   f() => 42;
   var v = f();
 }''';
-    await assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(
+        code, unit, typeProvider.dynamicType, typeProvider.intType);
   }
 
   test_query() async {
