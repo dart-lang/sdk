@@ -776,10 +776,14 @@ class Namer {
   /// For example: fixedBackendPath for the static method createMap in the
   /// Map class of the goog.map JavaScript library would have path
   /// "goog.maps.Map".
-  String fixedBackendPath(Element element) {
+  String fixedBackendMethodPath(MethodElement element) {
+    return _fixedBackendPath(element);
+  }
+
+  String _fixedBackendPath(Element element) {
     if (!backend.isJsInterop(element)) return null;
     if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) return fixedBackendPath(element.enclosingClass);
+    if (element.isConstructor) return _fixedBackendPath(element.enclosingClass);
     if (element.isLibrary) return 'self';
     var sb = new StringBuffer();
     sb..write(_jsNameHelper(element.library));

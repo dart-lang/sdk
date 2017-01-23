@@ -787,8 +787,6 @@ class ResolutionFunctionType extends ResolutionDartType
 
   String get name => 'Function';
 
-  int computeArity() => parameterTypes.length;
-
   @override
   ResolutionDartType get dynamifyMethodTypeVariableType {
     if (!containsMethodTypeVariableType) return this;

@@ -4008,7 +4008,7 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  HForeignCode invokeJsInteropFunction(FunctionElement element,
+  HForeignCode invokeJsInteropFunction(MethodElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
@@ -4051,7 +4051,7 @@ class SsaBuilder extends ast.Visitor
         ..sourceInformation = sourceInformation;
     }
     var target = new HForeignCode(
-        js.js.parseForeignJS("${backend.namer.fixedBackendPath(element)}."
+        js.js.parseForeignJS("${backend.namer.fixedBackendMethodPath(element)}."
             "${backend.nativeData.getFixedBackendName(element)}"),
         commonMasks.dynamicType,
         <HInstruction>[]);

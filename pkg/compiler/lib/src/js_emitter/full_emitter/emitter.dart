@@ -2185,8 +2185,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     for (Element element in backend.codegenEnqueuer.newlyEnqueuedElements) {
       if (element.isInstanceMember) {
         cachedClassBuilders.remove(element.enclosingClass);
-
-        nativeEmitter.cachedBuilders.remove(element.enclosingClass);
       }
     }
   }
