@@ -1195,7 +1195,7 @@ void Precompiler::AddField(const Field& field) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
-        ASSERT(Dart::snapshot_kind() != Snapshot::kAppAOT);
+        ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
         const Function& initializer = Function::Handle(
             Z, CompileStaticInitializer(field, /* compute_type = */ true));
         ASSERT(!initializer.IsNull());

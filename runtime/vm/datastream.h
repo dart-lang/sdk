@@ -314,6 +314,12 @@ class WriteStream : public ValueObject {
 
   void set_current(uint8_t* value) { current_ = value; }
 
+  void Align(intptr_t alignment) {
+    intptr_t position = current_ - *buffer_;
+    position = Utils::RoundUp(position, alignment);
+    current_ = *buffer_ + position;
+  }
+
   template <int N, typename T>
   class Raw {};
 

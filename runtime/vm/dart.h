@@ -24,9 +24,8 @@ class Program;
 
 class Dart : public AllStatic {
  public:
-  static char* InitOnce(const uint8_t* vm_isolate_snapshot,
-                        const uint8_t* instructions_snapshot,
-                        const uint8_t* data_snapshot,
+  static char* InitOnce(const uint8_t* vm_snapshot_data,
+                        const uint8_t* vm_snapshot_instructions,
                         Dart_IsolateCreateCallback create,
                         Dart_IsolateShutdownCallback shutdown,
                         Dart_ThreadExitCallback thread_exit,
@@ -45,7 +44,8 @@ class Dart : public AllStatic {
   // from SDK library sources.  If the snapshot_buffer is non-NULL,
   // initialize from a snapshot or a Kernel binary depending on the value of
   // from_kernel.  Otherwise, initialize from sources.
-  static RawError* InitializeIsolate(const uint8_t* snapshot_buffer,
+  static RawError* InitializeIsolate(const uint8_t* snapshot_data,
+                                     const uint8_t* snapshot_instructions,
                                      intptr_t snapshot_length,
                                      kernel::Program* kernel_program,
                                      void* data);
@@ -73,18 +73,7 @@ class Dart : public AllStatic {
   static bool IsReadOnlyHandle(uword address);
 
   static const char* FeaturesString(Snapshot::Kind kind);
-
-  static Snapshot::Kind snapshot_kind() { return snapshot_kind_; }
-  static const uint8_t* instructions_snapshot_buffer() {
-    return instructions_snapshot_buffer_;
-  }
-  static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
-    instructions_snapshot_buffer_ = buffer;
-  }
-  static const uint8_t* data_snapshot_buffer() { return data_snapshot_buffer_; }
-  static void set_data_snapshot_buffer(const uint8_t* buffer) {
-    data_snapshot_buffer_ = buffer;
-  }
+  static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
@@ -131,9 +120,7 @@ class Dart : public AllStatic {
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
-  static Snapshot::Kind snapshot_kind_;
-  static const uint8_t* instructions_snapshot_buffer_;
-  static const uint8_t* data_snapshot_buffer_;
+  static Snapshot::Kind vm_snapshot_kind_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;

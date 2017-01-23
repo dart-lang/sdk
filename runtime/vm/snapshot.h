@@ -190,7 +190,7 @@ class Snapshot {
     return (kind == kAppJIT) || (kind == kAppAOT);
   }
 
-  uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
+  const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   static intptr_t length_offset() {
     return OFFSET_OF(Snapshot, unaligned_length_);
@@ -375,7 +375,7 @@ class InstructionsReader : public ZoneAllocated {
                             OS::PreferredCodeAlignment()));
   }
 
-  uword GetInstructionsAt(int32_t offset);
+  RawInstructions* GetInstructionsAt(int32_t offset);
   RawObject* GetObjectAt(int32_t offset);
 
  private:
@@ -728,24 +728,28 @@ class ForwardList {
 class InstructionsWriter : public ZoneAllocated {
  public:
   InstructionsWriter()
-      : next_offset_(InstructionsSnapshot::kHeaderSize),
-        next_object_offset_(DataSnapshot::kHeaderSize),
-        instructions_(),
-        objects_() {}
+      : next_offset_(0), next_object_offset_(0), instructions_(), objects_() {
+    ResetOffsets();
+  }
   virtual ~InstructionsWriter() {}
 
+  void ResetOffsets() {
+    next_offset_ = InstructionsSnapshot::kHeaderSize;
+    next_object_offset_ = DataSnapshot::kHeaderSize;
+    instructions_.Clear();
+    objects_.Clear();
+  }
   int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
-
   int32_t GetObjectOffsetFor(RawObject* raw_object);
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length) = 0;
+  void Write(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() = 0;
-  virtual intptr_t data_size() = 0;
+  intptr_t data_size() { return next_object_offset_; }
 
  protected:
+  void WriteROData(WriteStream* stream);
+  virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
+
   struct InstructionsData {
     explicit InstructionsData(RawInstructions* insns,
                               RawCode* code,
@@ -789,15 +793,10 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
                              intptr_t initial_size)
       : InstructionsWriter(),
         assembly_stream_(assembly_buffer, alloc, initial_size),
-        text_size_(0),
-        data_size_(0) {}
+        text_size_(0) {}
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length);
+  virtual void WriteText(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() { return text_size_; }
-  virtual intptr_t data_size() { return data_size_; }
 
   intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
 
@@ -812,19 +811,8 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
     text_size_ += sizeof(value);
   }
 
-  void WriteWordLiteralData(uword value) {
-// Padding is helpful for comparing the .S with --disassemble.
-#if defined(ARCH_IS_64_BIT)
-    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
-#else
-    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
-#endif
-    data_size_ += sizeof(value);
-  }
-
   WriteStream assembly_stream_;
   intptr_t text_size_;
-  intptr_t data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyInstructionsWriter);
 };
@@ -833,32 +821,22 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
 class BlobInstructionsWriter : public InstructionsWriter {
  public:
   BlobInstructionsWriter(uint8_t** instructions_blob_buffer,
-                         uint8_t** rodata_blob_buffer,
                          ReAlloc alloc,
                          intptr_t initial_size)
       : InstructionsWriter(),
         instructions_blob_stream_(instructions_blob_buffer,
                                   alloc,
-                                  initial_size),
-        rodata_blob_stream_(rodata_blob_buffer, alloc, initial_size) {}
+                                  initial_size) {}
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length);
+  virtual void WriteText(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() { return InstructionsBlobSize(); }
-  virtual intptr_t data_size() { return RodataBlobSize(); }
 
   intptr_t InstructionsBlobSize() const {
     return instructions_blob_stream_.bytes_written();
   }
-  intptr_t RodataBlobSize() const {
-    return rodata_blob_stream_.bytes_written();
-  }
 
  private:
   WriteStream instructions_blob_stream_;
-  WriteStream rodata_blob_stream_;
 
   DISALLOW_COPY_AND_ASSIGN(BlobInstructionsWriter);
 };

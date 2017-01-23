@@ -48,9 +48,7 @@ int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
-Snapshot::Kind Dart::snapshot_kind_ = Snapshot::kInvalid;
-const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
-const uint8_t* Dart::data_snapshot_buffer_ = NULL;
+Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
 Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
 Dart_FileReadCallback Dart::file_read_callback_ = NULL;
@@ -124,7 +122,6 @@ static void CheckOffsets() {
 
 char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                      const uint8_t* instructions_snapshot,
-                     const uint8_t* data_snapshot,
                      Dart_IsolateCreateCallback create,
                      Dart_IsolateShutdownCallback shutdown,
                      Dart_ThreadExitCallback thread_exit,
@@ -213,10 +210,10 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       if (snapshot == NULL) {
         return strdup("Invalid vm isolate snapshot seen");
       }
-      snapshot_kind_ = snapshot->kind();
+      vm_snapshot_kind_ = snapshot->kind();
 
-      if (Snapshot::IncludesCode(snapshot_kind_)) {
-        if (snapshot_kind_ == Snapshot::kAppAOT) {
+      if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
+        if (vm_snapshot_kind_ == Snapshot::kAppAOT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
           if (!FLAG_precompiled_runtime) {
@@ -229,10 +226,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         if (instructions_snapshot == NULL) {
           return strdup("Missing instructions snapshot");
         }
-        if (data_snapshot == NULL) {
-          return strdup("Missing rodata snapshot");
-        }
-      } else if (Snapshot::IsFull(snapshot_kind_)) {
+      } else if (Snapshot::IsFull(vm_snapshot_kind_)) {
 #if defined(DART_PRECOMPILED_RUNTIME)
         return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
@@ -241,16 +235,8 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       } else {
         return strdup("Invalid vm isolate snapshot seen");
       }
-      if (instructions_snapshot != NULL) {
-        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
-      }
-      if (instructions_snapshot != NULL) {
-        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
-      }
-      VmIsolateSnapshotReader reader(snapshot->kind(), snapshot->content(),
-                                     snapshot->length(), instructions_snapshot,
-                                     data_snapshot, T);
-      const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
+      FullSnapshotReader reader(snapshot, instructions_snapshot, T);
+      const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
         return strdup(error.ToErrorCString());
@@ -281,7 +267,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #elif !defined(DART_NO_SNAPSHOT)
       return strdup("Missing vm isolate snapshot");
 #else
-      snapshot_kind_ = Snapshot::kNone;
+      vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
       Symbols::InitOnce(vm_isolate_);
 #endif
@@ -504,7 +490,17 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 }
 
 
-RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
+static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
+                                 Snapshot::Kind isolate_kind) {
+  if (vm_kind == isolate_kind) return true;
+  if (vm_kind == Snapshot::kCore && isolate_kind == Snapshot::kAppJIT)
+    return true;
+  return Snapshot::IsFull(isolate_kind);
+}
+
+
+RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
+                                  const uint8_t* snapshot_instructions,
                                   intptr_t snapshot_length,
                                   kernel::Program* kernel_program,
                                   void* data) {
@@ -529,33 +525,28 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
   if (!error.IsNull()) {
     return error.raw();
   }
-  if ((snapshot_buffer != NULL) && kernel_program == NULL) {
+  if ((snapshot_data != NULL) && kernel_program == NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                                              "IsolateSnapshotReader"));
     // TODO(turnidge): Remove once length is not part of the snapshot.
-    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
+    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
     if (snapshot == NULL) {
       const String& message = String::Handle(String::New("Invalid snapshot"));
       return ApiError::New(message);
     }
-    if (snapshot->kind() != snapshot_kind_ &&
-        !((snapshot->kind() == Snapshot::kAppJIT) &&
-          (snapshot_kind_ == Snapshot::kCore))) {
-      const String& message = String::Handle(
-          String::NewFormatted("Invalid snapshot kind: got '%s', expected '%s'",
-                               Snapshot::KindToCString(snapshot->kind()),
-                               Snapshot::KindToCString(snapshot_kind_)));
+    if (!IsSnapshotCompatible(vm_snapshot_kind_, snapshot->kind())) {
+      const String& message = String::Handle(String::NewFormatted(
+          "Incompatible snapshot kinds: vm '%s', isolate '%s'",
+          Snapshot::KindToCString(vm_snapshot_kind_),
+          Snapshot::KindToCString(snapshot->kind())));
       return ApiError::New(message);
     }
-    ASSERT(Snapshot::IsFull(snapshot->kind()));
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    IsolateSnapshotReader reader(
-        snapshot->kind(), snapshot->content(), snapshot->length(),
-        Dart::instructions_snapshot_buffer(), Dart::data_snapshot_buffer(), T);
-    const Error& error = Error::Handle(reader.ReadFullSnapshot());
+    FullSnapshotReader reader(snapshot, snapshot_instructions, T);
+    const Error& error = Error::Handle(reader.ReadIsolateSnapshot());
     if (!error.IsNull()) {
       return error.raw();
     }
@@ -572,7 +563,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if ((snapshot_kind_ != Snapshot::kNone) && kernel_program == NULL) {
+    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_program == NULL) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -603,7 +594,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);
 
-  if ((snapshot_buffer == NULL) || (kernel_program != NULL)) {
+  if ((snapshot_data == NULL) || (kernel_program != NULL)) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
     if (!error.IsNull()) {
       return error.raw();

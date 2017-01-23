@@ -123,7 +123,8 @@ class Serializer : public StackResource {
   ~Serializer();
 
   intptr_t WriteVMSnapshot(const Array& symbols, const Array& scripts);
-  void WriteFullSnapshot(intptr_t num_base_objects, ObjectStore* object_store);
+  void WriteIsolateSnapshot(intptr_t num_base_objects,
+                            ObjectStore* object_store);
 
   void AddVMIsolateBaseObjects();
 
@@ -206,6 +207,7 @@ class Serializer : public StackResource {
   void WriteVersionAndFeatures();
 
   void Serialize();
+  WriteStream* stream() { return &stream_; }
   intptr_t bytes_written() { return stream_.bytes_written(); }
 
   // Writes raw data to the stream (basic type).
@@ -294,7 +296,7 @@ class Deserializer : public StackResource {
                const uint8_t* data_buffer);
   ~Deserializer();
 
-  void ReadFullSnapshot(ObjectStore* object_store);
+  void ReadIsolateSnapshot(ObjectStore* object_store);
   void ReadVMSnapshot();
 
   void AddVMIsolateBaseObjects();
@@ -350,7 +352,7 @@ class Deserializer : public StackResource {
     return Read<int32_t>();
   }
 
-  uword GetInstructionsAt(int32_t offset) {
+  RawInstructions* GetInstructionsAt(int32_t offset) {
     return instructions_reader_->GetInstructionsAt(offset);
   }
 
@@ -387,17 +389,18 @@ class FullSnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(Snapshot::Kind kind,
-                     uint8_t** vm_isolate_snapshot_buffer,
-                     uint8_t** isolate_snapshot_buffer,
+                     uint8_t** vm_snapshot_data_buffer,
+                     uint8_t** isolate_snapshot_data_buffer,
                      ReAlloc alloc,
-                     InstructionsWriter* instructions_writer);
+                     InstructionsWriter* vm_instructions_writer,
+                     InstructionsWriter* iso_instructions_writer);
   ~FullSnapshotWriter();
 
-  uint8_t** vm_isolate_snapshot_buffer() const {
-    return vm_isolate_snapshot_buffer_;
-  }
+  uint8_t** vm_snapshot_data_buffer() const { return vm_snapshot_data_buffer_; }
 
-  uint8_t** isolate_snapshot_buffer() const { return isolate_snapshot_buffer_; }
+  uint8_t** isolate_snapshot_data_buffer() const {
+    return isolate_snapshot_data_buffer_;
+  }
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
@@ -412,48 +415,44 @@ class FullSnapshotWriter {
 
  private:
   // Writes a snapshot of the VM Isolate.
-  intptr_t WriteVmIsolateSnapshot();
+  intptr_t WriteVMSnapshot();
 
   // Writes a full snapshot of a regular Dart Isolate.
-  void WriteIsolateFullSnapshot(intptr_t num_base_objects);
+  void WriteIsolateSnapshot(intptr_t num_base_objects);
 
   Thread* thread_;
   Snapshot::Kind kind_;
-  uint8_t** vm_isolate_snapshot_buffer_;
-  uint8_t** isolate_snapshot_buffer_;
+  uint8_t** vm_snapshot_data_buffer_;
+  uint8_t** isolate_snapshot_data_buffer_;
   ReAlloc alloc_;
   intptr_t vm_isolate_snapshot_size_;
   intptr_t isolate_snapshot_size_;
   ForwardList* forward_list_;
-  InstructionsWriter* instructions_writer_;
+  InstructionsWriter* vm_instructions_writer_;
+  InstructionsWriter* isolate_instructions_writer_;
   Array& token_streams_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;
+
+  // Stats for benchmarking.
+  intptr_t clustered_vm_size_;
+  intptr_t clustered_isolate_size_;
+  intptr_t mapped_data_size_;
+  intptr_t mapped_instructions_size_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };
 
 
-class VmIsolateSnapshotReader {
+class FullSnapshotReader {
  public:
-  VmIsolateSnapshotReader(Snapshot::Kind kind,
-                          const uint8_t* buffer,
-                          intptr_t size,
-                          const uint8_t* instructions_buffer,
-                          const uint8_t* data_buffer,
-                          Thread* thread)
-      : kind_(kind),
-        thread_(thread),
-        buffer_(buffer),
-        size_(size),
-        instructions_buffer_(instructions_buffer),
-        data_buffer_(data_buffer) {
-    thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppAOT);
-  }
+  FullSnapshotReader(const Snapshot* snapshot,
+                     const uint8_t* instructions_buffer,
+                     Thread* thread);
+  ~FullSnapshotReader() {}
 
-  ~VmIsolateSnapshotReader() {}
-
-  RawApiError* ReadVmIsolateSnapshot();
+  RawApiError* ReadVMSnapshot();
+  RawApiError* ReadIsolateSnapshot();
 
  private:
   Snapshot::Kind kind_;
@@ -463,40 +462,7 @@ class VmIsolateSnapshotReader {
   const uint8_t* instructions_buffer_;
   const uint8_t* data_buffer_;
 
-  DISALLOW_COPY_AND_ASSIGN(VmIsolateSnapshotReader);
-};
-
-
-class IsolateSnapshotReader {
- public:
-  IsolateSnapshotReader(Snapshot::Kind kind,
-                        const uint8_t* buffer,
-                        intptr_t size,
-                        const uint8_t* instructions_buffer,
-                        const uint8_t* data_buffer,
-                        Thread* thread)
-      : kind_(kind),
-        thread_(thread),
-        buffer_(buffer),
-        size_(size),
-        instructions_buffer_(instructions_buffer),
-        data_buffer_(data_buffer) {
-    thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppAOT);
-  }
-
-  ~IsolateSnapshotReader() {}
-
-  RawApiError* ReadFullSnapshot();
-
- private:
-  Snapshot::Kind kind_;
-  Thread* thread_;
-  const uint8_t* buffer_;
-  intptr_t size_;
-  const uint8_t* instructions_buffer_;
-  const uint8_t* data_buffer_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateSnapshotReader);
+  DISALLOW_COPY_AND_ASSIGN(FullSnapshotReader);
 };
 
 }  // namespace dart

@@ -28,7 +28,7 @@ class ObjectSet;
 // A page containing old generation objects.
 class HeapPage {
  public:
-  enum PageType { kData = 0, kExecutable, kReadOnlyData, kNumPageTypes };
+  enum PageType { kData = 0, kExecutable, kNumPageTypes };
 
   HeapPage* next() const { return next_; }
   void set_next(HeapPage* next) { next_ = next; }
@@ -231,7 +231,8 @@ class PageSpace {
   bool IsValidAddress(uword addr) const { return Contains(addr); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
-  void VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
+  void VisitObjectsNoExternalPages(ObjectVisitor* visitor) const;
+  void VisitObjectsExternalPages(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor,

@@ -229,16 +229,16 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   } else {
     // Should not allocate executable pages when running from a precompiled
     // snapshot.
-    ASSERT(Dart::snapshot_kind() != Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
 
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->embedder_allocated()) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->embedder_allocated()) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -626,9 +626,18 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void PageSpace::VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+void PageSpace::VisitObjectsNoExternalPages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (!it.page()->embedder_allocated()) {
+      it.page()->VisitObjects(visitor);
+    }
+  }
+}
+
+
+void PageSpace::VisitObjectsExternalPages(ObjectVisitor* visitor) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->embedder_allocated()) {
       it.page()->VisitObjects(visitor);
     }
   }
@@ -802,12 +811,15 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      page->WriteProtect(read_only);
+      if (!page->embedder_allocated()) {
+        page->WriteProtect(read_only);
+      }
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable) {
+      if (page->type() == HeapPage::kExecutable &&
+          !page->embedder_allocated()) {
         page->WriteProtect(read_only);
       }
       page = page->next();
@@ -1095,18 +1107,20 @@ void PageSpace::SetupExternalPage(void* pointer,
     first = &exec_pages_;
     tail = &exec_pages_tail_;
   } else {
-    page->type_ = HeapPage::kReadOnlyData;
+    page->type_ = HeapPage::kData;
     first = &pages_;
     tail = &pages_tail_;
   }
   if (*first == NULL) {
     *first = page;
   } else {
-    if (is_executable && FLAG_write_protect_code) {
+    if (is_executable && FLAG_write_protect_code &&
+        !(*tail)->embedder_allocated()) {
       (*tail)->WriteProtect(false);
     }
     (*tail)->set_next(page);
-    if (is_executable && FLAG_write_protect_code) {
+    if (is_executable && FLAG_write_protect_code &&
+        !(*tail)->embedder_allocated()) {
       (*tail)->WriteProtect(true);
     }
   }

@@ -16,6 +16,11 @@
 namespace dart {
 
 bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
+  if (page->embedder_allocated()) {
+    // Don't clear mark bits.
+    return true;
+  }
+
   // Keep track whether this page is still in use.
   bool in_use = false;
 

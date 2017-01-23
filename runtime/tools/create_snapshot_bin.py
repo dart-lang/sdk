@@ -32,10 +32,6 @@ def BuildOptions():
       action="store", type="string",
       help="output file name into which isolate snapshot in binary form " +
            "is generated")
-  result.add_option("--instructions_bin",
-      action="store", type="string",
-      help="output file name into which instructions snapshot in assembly " +
-           "form is generated")
   result.add_option("--embedder_entry_points_manifest",
       action="store", type="string",
       help="input manifest with the vm entry points in a precompiled snapshot")
@@ -120,14 +116,8 @@ def Main():
     script_args.append(''.join([ "--packages=", options.packages]))
 
   # First setup the vm isolate and regular isolate snapshot output filename.
-  script_args.append(''.join([ "--vm_isolate_snapshot=",
-                               options.vm_output_bin ]))
-  script_args.append(''.join([ "--isolate_snapshot=", options.output_bin ]))
-
-  # Setup the instuctions snapshot output filename
-  if options.instructions_bin:
-    script_args.append(''.join([ "--instructions_snapshot=",
-                                 options.instructions_bin ]))
+  script_args.append(''.join([ "--vm_snapshot_data=", options.vm_output_bin ]))
+  script_args.append(''.join([ "--isolate_snapshot_data=", options.output_bin ]))
 
   # Specify the embedder entry points snapshot
   if options.embedder_entry_points_manifest:

@@ -92,7 +92,7 @@ class Heap {
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoExternalPages(ObjectVisitor* visitor) const;
   void IterateObjectPointers(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
@@ -296,6 +296,8 @@ class Heap {
   // Visit all objects, including FreeListElement "objects". Caller must ensure
   // concurrent sweeper is not running, and the visitor must not allocate.
   void VisitObjects(ObjectVisitor* visitor) const;
+  void VisitObjectsNoExternalPages(ObjectVisitor* visitor) const;
+  void VisitObjectsExternalPages(ObjectVisitor* visitor) const;
 
   // Like Verify, but does not wait for concurrent sweeper, so caller must
   // ensure thread-safety.

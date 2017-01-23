@@ -47,7 +47,7 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   char* error = 0;
   Dart_Isolate isolate =
       Dart_CreateIsolate(DART_VM_SERVICE_ISOLATE_NAME, "main", snapshot_buffer,
-                         NULL, isolate_data, &error);
+                         NULL, NULL, isolate_data, &error);
   if (!isolate) {
     fprintf(stderr, "Dart_CreateIsolate failed: %s\n", error);
     return 0;

@@ -1188,12 +1188,11 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::InitOnce(params->vm_isolate_snapshot,
-                        params->instructions_snapshot, params->data_snapshot,
-                        params->create, params->shutdown, params->thread_exit,
-                        params->file_open, params->file_read,
-                        params->file_write, params->file_close,
-                        params->entropy_source, params->get_service_assets);
+  return Dart::InitOnce(
+      params->vm_snapshot_data, params->vm_snapshot_instructions,
+      params->create, params->shutdown, params->thread_exit, params->file_open,
+      params->file_read, params->file_write, params->file_close,
+      params->entropy_source, params->get_service_assets);
 }
 
 
@@ -1256,7 +1255,8 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
 
 static Dart_Isolate CreateIsolate(const char* script_uri,
                                   const char* main,
-                                  const uint8_t* snapshot_buffer,
+                                  const uint8_t* snapshot_data,
+                                  const uint8_t* snapshot_instructions,
                                   intptr_t snapshot_length,
                                   kernel::Program* kernel_program,
                                   Dart_IsolateFlags* flags,
@@ -1285,9 +1285,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     Dart_EnterScope();
-    const Error& error_obj = Error::Handle(
-        Z, Dart::InitializeIsolate(snapshot_buffer, snapshot_length,
-                                   kernel_program, callback_data));
+    const Error& error_obj =
+        Error::Handle(Z, Dart::InitializeIsolate(
+                             snapshot_data, snapshot_instructions,
+                             snapshot_length, kernel_program, callback_data));
     if (error_obj.IsNull()) {
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
       if (FLAG_check_function_fingerprints && kernel_program == NULL) {
@@ -1313,14 +1314,16 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
 }
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
-                                            const char* main,
-                                            const uint8_t* snapshot_buffer,
-                                            Dart_IsolateFlags* flags,
-                                            void* callback_data,
-                                            char** error) {
-  return CreateIsolate(script_uri, main, snapshot_buffer, -1, NULL, flags,
-                       callback_data, error);
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolate(const char* script_uri,
+                   const char* main,
+                   const uint8_t* snapshot_data,
+                   const uint8_t* snapshot_instructions,
+                   Dart_IsolateFlags* flags,
+                   void* callback_data,
+                   char** error) {
+  return CreateIsolate(script_uri, main, snapshot_data, snapshot_instructions,
+                       -1, NULL, flags, callback_data, error);
 }
 
 
@@ -1330,7 +1333,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       Dart_IsolateFlags* flags,
                                                       void* callback_data,
                                                       char** error) {
-  return CreateIsolate(script_uri, main, NULL, -1,
+  return CreateIsolate(script_uri, main, NULL, NULL, -1,
                        reinterpret_cast<kernel::Program*>(kernel_program),
                        flags, callback_data, error);
 }
@@ -1560,10 +1563,10 @@ static uint8_t* ApiReallocate(uint8_t* ptr,
 
 
 DART_EXPORT Dart_Handle
-Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
-                    intptr_t* vm_isolate_snapshot_size,
-                    uint8_t** isolate_snapshot_buffer,
-                    intptr_t* isolate_snapshot_size) {
+Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
+                    intptr_t* vm_snapshot_data_size,
+                    uint8_t** isolate_snapshot_data_buffer,
+                    intptr_t* isolate_snapshot_data_size) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION;
   Isolate* I = T->isolate();
@@ -1571,14 +1574,14 @@ Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
     return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
   }
-  if (vm_isolate_snapshot_buffer != NULL && vm_isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  if (vm_snapshot_data_buffer != NULL && vm_snapshot_data_size == NULL) {
+    RETURN_NULL_ERROR(vm_snapshot_data_size);
   }
-  if (isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  if (isolate_snapshot_data_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
   }
-  if (isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_size);
+  if (isolate_snapshot_data_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_data_size);
   }
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
@@ -1595,28 +1598,30 @@ Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
 
   Symbols::Compact(I);
 
-  FullSnapshotWriter writer(Snapshot::kCore, vm_isolate_snapshot_buffer,
-                            isolate_snapshot_buffer, ApiReallocate,
-                            NULL /* instructions_writer */);
+  FullSnapshotWriter writer(Snapshot::kCore, vm_snapshot_data_buffer,
+                            isolate_snapshot_data_buffer, ApiReallocate,
+                            NULL /* vm_instructions_writer */,
+                            NULL /* isolate_instructions_writer */);
   writer.WriteFullSnapshot();
-  if (vm_isolate_snapshot_buffer != NULL) {
-    *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  if (vm_snapshot_data_buffer != NULL) {
+    *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
   }
-  *isolate_snapshot_size = writer.IsolateSnapshotSize();
+  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   return Api::Success();
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
-                                                  intptr_t* size) {
+DART_EXPORT Dart_Handle
+Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
+                          intptr_t* script_snapshot_size) {
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  if (buffer == NULL) {
-    RETURN_NULL_ERROR(buffer);
+  if (script_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(script_snapshot_buffer);
   }
-  if (size == NULL) {
-    RETURN_NULL_ERROR(size);
+  if (script_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(script_snapshot_size);
   }
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
@@ -1631,9 +1636,9 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   I->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG)
 
-  ScriptSnapshotWriter writer(buffer, ApiReallocate);
+  ScriptSnapshotWriter writer(script_snapshot_buffer, ApiReallocate);
   writer.WriteScriptSnapshot(lib);
-  *size = writer.BytesWritten();
+  *script_snapshot_size = writer.BytesWritten();
   return Api::Success();
 }
 
@@ -3884,7 +3889,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
-    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
+    if (!cls.is_allocated() &&
+        (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3979,7 +3985,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4009,7 +4015,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppAOT)) {
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -6654,11 +6660,11 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                                             "WriteAppAOTSnapshot"));
   AssemblyInstructionsWriter instructions_writer(assembly_buffer, ApiReallocate,
                                                  2 * MB /* initial_size */);
-  uint8_t* vm_isolate_snapshot_buffer = NULL;
-  uint8_t* isolate_snapshot_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kAppAOT, &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer, ApiReallocate,
-                            &instructions_writer);
+  uint8_t* vm_snapshot_data_buffer = NULL;
+  uint8_t* isolate_snapshot_data_buffer = NULL;
+  FullSnapshotWriter writer(Snapshot::kAppAOT, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, ApiReallocate,
+                            &instructions_writer, &instructions_writer);
 
   writer.WriteFullSnapshot();
   *assembly_size = instructions_writer.AssemblySize();
@@ -6669,14 +6675,14 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
 
 
 DART_EXPORT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_isolate_snapshot_buffer,
-                                 intptr_t* vm_isolate_snapshot_size,
-                                 uint8_t** isolate_snapshot_buffer,
-                                 intptr_t* isolate_snapshot_size,
-                                 uint8_t** instructions_blob_buffer,
-                                 intptr_t* instructions_blob_size,
-                                 uint8_t** rodata_blob_buffer,
-                                 intptr_t* rodata_blob_size) {
+Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
+                                 intptr_t* vm_snapshot_data_size,
+                                 uint8_t** vm_snapshot_instructions_buffer,
+                                 intptr_t* vm_snapshot_instructions_size,
+                                 uint8_t** isolate_snapshot_data_buffer,
+                                 intptr_t* isolate_snapshot_data_size,
+                                 uint8_t** isolate_snapshot_instructions_buffer,
+                                 intptr_t* isolate_snapshot_instructions_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6694,45 +6700,50 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_isolate_snapshot_buffer,
         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (vm_isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
+  if (vm_snapshot_data_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_snapshot_data_buffer);
   }
-  if (vm_isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  if (vm_snapshot_data_size == NULL) {
+    RETURN_NULL_ERROR(vm_snapshot_data_size);
   }
-  if (isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  if (vm_snapshot_instructions_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_snapshot_instructions_buffer);
   }
-  if (isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_size);
+  if (vm_snapshot_instructions_size == NULL) {
+    RETURN_NULL_ERROR(vm_snapshot_instructions_size);
   }
-  if (instructions_blob_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_buffer);
+  if (isolate_snapshot_data_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
   }
-  if (instructions_blob_size == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_size);
+  if (isolate_snapshot_data_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_data_size);
   }
-  if (rodata_blob_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_buffer);
+  if (isolate_snapshot_instructions_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_snapshot_blob_buffer);
   }
-  if (rodata_blob_size == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_size);
+  if (isolate_snapshot_instructions_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_snapshot_blob_size);
   }
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
-  BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
-                                             rodata_blob_buffer, ApiReallocate,
-                                             2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppAOT, vm_isolate_snapshot_buffer,
-                            isolate_snapshot_buffer, ApiReallocate,
-                            &instructions_writer);
+  BlobInstructionsWriter vm_instructions_writer(vm_snapshot_instructions_buffer,
+                                                ApiReallocate,
+                                                2 * MB /* initial_size */);
+  BlobInstructionsWriter isolate_instructions_writer(
+      isolate_snapshot_instructions_buffer, ApiReallocate,
+      2 * MB /* initial_size */);
+  FullSnapshotWriter writer(
+      Snapshot::kAppAOT, vm_snapshot_data_buffer, isolate_snapshot_data_buffer,
+      ApiReallocate, &vm_instructions_writer, &isolate_instructions_writer);
 
   writer.WriteFullSnapshot();
-  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
-  *isolate_snapshot_size = writer.IsolateSnapshotSize();
-  *instructions_blob_size = instructions_writer.InstructionsBlobSize();
-  *rodata_blob_size = instructions_writer.RodataBlobSize();
+  *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
+  *vm_snapshot_instructions_size =
+      vm_instructions_writer.InstructionsBlobSize();
+  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+  *isolate_snapshot_instructions_size =
+      isolate_instructions_writer.InstructionsBlobSize();
 
   return Api::Success();
 #endif
@@ -6740,12 +6751,10 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_isolate_snapshot_buffer,
 
 
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_buffer,
-                                 intptr_t* isolate_snapshot_size,
-                                 uint8_t** instructions_blob_buffer,
-                                 intptr_t* instructions_blob_size,
-                                 uint8_t** rodata_blob_buffer,
-                                 intptr_t* rodata_blob_size) {
+Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
+                                 intptr_t* isolate_snapshot_data_size,
+                                 uint8_t** isolate_snapshot_instructions_buffer,
+                                 intptr_t* isolate_snapshot_instructions_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6760,23 +6769,17 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_buffer,
     return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
   }
-  if (isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  if (isolate_snapshot_data_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
   }
-  if (isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_size);
+  if (isolate_snapshot_data_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_data_size);
   }
-  if (instructions_blob_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_buffer);
+  if (isolate_snapshot_instructions_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_snapshot_blob_buffer);
   }
-  if (instructions_blob_size == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_size);
-  }
-  if (rodata_blob_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_buffer);
-  }
-  if (rodata_blob_size == NULL) {
-    RETURN_NULL_ERROR(instructions_blob_size);
+  if (isolate_snapshot_instructions_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_snapshot_blob_size);
   }
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
@@ -6789,15 +6792,17 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_buffer,
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppJITSnapshot"));
-  BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
-                                             rodata_blob_buffer, ApiReallocate,
-                                             2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppJIT, NULL, isolate_snapshot_buffer,
-                            ApiReallocate, &instructions_writer);
+  BlobInstructionsWriter isolate_instructions_writer(
+      isolate_snapshot_instructions_buffer, ApiReallocate,
+      2 * MB /* initial_size */);
+  FullSnapshotWriter writer(Snapshot::kAppJIT, NULL,
+                            isolate_snapshot_data_buffer, ApiReallocate, NULL,
+                            &isolate_instructions_writer);
   writer.WriteFullSnapshot();
-  *isolate_snapshot_size = writer.IsolateSnapshotSize();
-  *instructions_blob_size = instructions_writer.InstructionsBlobSize();
-  *rodata_blob_size = instructions_writer.RodataBlobSize();
+
+  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+  *isolate_snapshot_instructions_size =
+      isolate_instructions_writer.InstructionsBlobSize();
 
   return Api::Success();
 #endif
