@@ -31,7 +31,7 @@ class DietParser extends ClassMemberParser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        listener.reportError(token, ErrorKind.EXPECTED_OPEN_PARENS);
+        listener.reportError(token, ErrorKind.ExpectedOpenParens);
         return token;
       }
       return listener.unexpected(token);

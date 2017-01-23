@@ -2157,7 +2157,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (trailing.contains(token.stringValue) && trailing.contains(string)) {
       // We're just trying to get out an error.
       if (recoverableErrors.isNotEmpty) {
-        reportError(token, ErrorKind.UNSPECIFIED,
+        reportError(token, ErrorKind.Unspecified,
             {"text": "Expected: '$string', but got '${token.value}'"});
       }
       return token;

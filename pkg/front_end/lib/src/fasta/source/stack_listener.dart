@@ -130,7 +130,7 @@ abstract class StackListener extends Listener {
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
-      inputError(uri, recoverableErrors.first.token.charOffset,
+      inputError(uri, recoverableErrors.first.beginOffset,
           recoverableErrors);
     }
   }
