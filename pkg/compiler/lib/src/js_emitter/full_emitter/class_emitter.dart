@@ -9,18 +9,10 @@ import '../../common/names.dart' show Names;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show
-    ClassElement,
-    Element,
-    FieldElement,
-    MemberElement,
-    Name;
+    show ClassElement, Element, FieldElement, MemberElement, Name;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
-import '../../js_backend/js_backend.dart'
-    show
-    CompoundName,
-    Namer;
+import '../../js_backend/js_backend.dart' show CompoundName, Namer;
 import '../../universe/selector.dart' show Selector;
 import '../../util/util.dart' show equalElements;
 import '../../world.dart' show ClosedWorld;

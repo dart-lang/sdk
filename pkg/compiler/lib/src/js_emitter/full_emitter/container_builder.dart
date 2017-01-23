@@ -7,11 +7,11 @@ library dart2js.js_emitter.full_emitter.container_builder;
 import '../../constants/values.dart';
 import '../../elements/elements.dart'
     show
-    Element,
-    Elements,
-    FunctionSignature,
-    MetadataAnnotation,
-    MethodElement;
+        Element,
+        Elements,
+        FunctionSignature,
+        MetadataAnnotation,
+        MethodElement;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;

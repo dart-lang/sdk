@@ -1991,6 +1991,10 @@ class JavaScriptBackend extends Backend {
     return membersNeededForReflection.contains(element);
   }
 
+  bool isMemberAccessibleByReflection(MemberElement element) {
+    return membersNeededForReflection.contains(element);
+  }
+
   /**
    * Returns true if the element has to be resolved due to a mirrorsUsed
    * annotation. If we have insufficient mirrors used annotations, we only

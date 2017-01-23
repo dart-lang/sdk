@@ -4,16 +4,10 @@
 
 library dart2js.js_emitter.full_emitter.nsm_emitter;
 
-import '../../elements/elements.dart'
-    show
-    ClassElement,
-    MemberElement;
+import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
-import '../../js_backend/js_backend.dart'
-    show
-    GetterName,
-    SetterName;
+import '../../js_backend/js_backend.dart' show GetterName, SetterName;
 import '../../universe/selector.dart' show Selector;
 import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
 import '../../world.dart' show ClosedWorld;
@@ -78,7 +72,7 @@ class NsmEmitter extends CodeEmitterHelper {
         if (reflectionName != null) {
           bool accessible = closedWorld.allFunctions
               .filter(selector, null)
-              .any((MemberElement e) => backend.isAccessibleByReflection(e));
+              .any(backend.isMemberAccessibleByReflection);
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }
@@ -179,7 +173,7 @@ class NsmEmitter extends CodeEmitterHelper {
     }
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
-    ClassElement objectClass = compiler.commonElements.objectClass;
+    ClassEntity objectClass = compiler.commonElements.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.helpers.createInvocationMirror);
     if (useDiffEncoding) {

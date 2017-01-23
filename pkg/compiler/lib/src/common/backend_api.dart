@@ -262,6 +262,10 @@ abstract class Backend extends Target {
   /// Returns true if this element needs reflection information at runtime.
   bool isAccessibleByReflection(Element element) => true;
 
+  /// Returns true if this member element needs reflection information at
+  /// runtime.
+  bool isMemberAccessibleByReflection(MemberElement element) => true;
+
   /// Returns true if this element is covered by a mirrorsUsed annotation.
   ///
   /// Note that it might still be ok to tree shake the element away if no

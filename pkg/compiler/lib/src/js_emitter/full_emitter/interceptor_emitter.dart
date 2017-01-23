@@ -5,10 +5,7 @@
 library dart2js.js_emitter.full_emitter.interceptor_emitter;
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
-import '../../elements/elements.dart'
-    show
-    ClassElement,
-    MethodElement;
+import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../world.dart' show ClosedWorld;
@@ -22,14 +19,14 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
   InterceptorEmitter(this.closedWorld);
 
-  void recordMangledNameOfMemberMethod(MethodElement member, jsAst.Name name) {
+  void recordMangledNameOfMemberMethod(MemberEntity member, jsAst.Name name) {
     if (backend.isInterceptedMethod(member)) {
       interceptorInvocationNames.add(name);
     }
   }
 
   jsAst.Expression buildGetInterceptorMethod(
-      jsAst.Name key, Set<ClassElement> classes) {
+      jsAst.Name key, Set<ClassEntity> classes) {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend, closedWorld);
     jsAst.Expression function =
@@ -46,11 +43,11 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     parts.add(js.comment('getInterceptor methods'));
 
-    Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors =
+    Map<jsAst.Name, Set<ClassEntity>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
     List<jsAst.Name> names = specializedGetInterceptors.keys.toList()..sort();
     for (jsAst.Name name in names) {
-      Set<ClassElement> classes = specializedGetInterceptors[name];
+      Set<ClassEntity> classes = specializedGetInterceptors[name];
       parts.add(js.statement('#.# = #', [
         namer.globalObjectFor(backend.helpers.interceptorsLibrary),
         name,
