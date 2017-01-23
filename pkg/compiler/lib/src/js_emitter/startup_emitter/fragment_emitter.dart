@@ -681,8 +681,9 @@ class FragmentEmitter {
         .map((Class cls) {
       var proto = js.js.statement(
           '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
-      compiler.dumpInfoTask.registerElementAst(cls.element, proto);
-      compiler.dumpInfoTask.registerElementAst(cls.element.library, proto);
+      ClassElement element = cls.element;
+      compiler.dumpInfoTask.registerElementAst(element, proto);
+      compiler.dumpInfoTask.registerElementAst(element.library, proto);
       return proto;
     }).toList(growable: false);
 
@@ -964,7 +965,8 @@ class FragmentEmitter {
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
-      isIntercepted = backend.isInterceptedMethod(method.element);
+      MethodElement element = method.element;
+      isIntercepted = backend.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();

@@ -291,7 +291,7 @@ class ProgramBuilder {
       LibrariesMap librariesMap) {
     JavaScriptConstantCompiler handler = backend.constants;
     DeferredLoadTask loadTask = _compiler.deferredLoadTask;
-    Iterable<VariableElement> lazyFields = handler
+    Iterable<FieldElement> lazyFields = handler
         .getLazilyInitializedFieldsForEmission()
         .where((element) =>
             loadTask.outputUnitForElement(element) == librariesMap.outputUnit);
@@ -302,7 +302,7 @@ class ProgramBuilder {
         .toList(growable: false);
   }
 
-  StaticField _buildLazyField(Element element) {
+  StaticField _buildLazyField(FieldElement element) {
     js.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -604,7 +604,7 @@ class ProgramBuilder {
       for (Field field in instanceFields) {
         if (field.needsCheckedSetter) {
           assert(!field.needsUncheckedSetter);
-          Element element = field.element;
+          FieldElement element = field.element;
           js.Expression code = backend.generatedCode[element];
           assert(code != null);
           js.Name name = namer.deriveSetterName(field.accessorName);
@@ -714,6 +714,7 @@ class ProgramBuilder {
   }
 
   DartMethod _buildMethod(MethodElement element) {
+    assert(element.isDeclaration);
     js.Name name = namer.methodPropertyName(element);
     js.Expression code = backend.generatedCode[element];
 
@@ -825,7 +826,8 @@ class ProgramBuilder {
   ///
   /// Stub methods may have an element that can be used for code-size
   /// attribution.
-  Method _buildStubMethod(js.Name name, js.Expression code, {Element element}) {
+  Method _buildStubMethod(js.Name name, js.Expression code,
+      {MemberElement element}) {
     return new StubMethod(name, code, element: element);
   }
 
@@ -923,7 +925,7 @@ class ProgramBuilder {
     });
   }
 
-  StaticDartMethod _buildStaticMethod(FunctionElement element) {
+  StaticDartMethod _buildStaticMethod(MethodElement element) {
     js.Name name = namer.methodPropertyName(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];

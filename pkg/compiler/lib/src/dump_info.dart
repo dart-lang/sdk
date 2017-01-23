@@ -391,8 +391,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // is called.
   final Set<jsAst.Node> _tracking = new Set<jsAst.Node>();
   // A mapping from Dart Elements to Javascript AST Nodes.
-  final Map<Element, List<jsAst.Node>> _elementToNodes =
-      <Element, List<jsAst.Node>>{};
+  final Map<Entity, List<jsAst.Node>> _elementToNodes =
+      <Entity, List<jsAst.Node>>{};
   final Map<ConstantValue, jsAst.Node> _constantToNode =
       <ConstantValue, jsAst.Node>{};
   // A mapping from Javascript AST Nodes to the size of their
@@ -473,7 +473,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   // Registers that a javascript AST node `code` was produced by the
   // dart Element `element`.
-  void registerElementAst(Element element, jsAst.Node code) {
+  void registerElementAst(Entity element, jsAst.Node code) {
     if (compiler.options.dumpInfo) {
       _elementToNodes
           .putIfAbsent(element, () => new List<jsAst.Node>())

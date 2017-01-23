@@ -619,7 +619,7 @@ class Emitter implements js_emitter.Emitter {
     if (staticFunctions == null) return;
 
     for (Method method in staticFunctions) {
-      Element element = method.element;
+      MethodElement element = method.element;
       // We need to filter out null-elements for the interceptors.
       // TODO(floitsch): use the precomputed interceptors here.
       if (element == null) continue;

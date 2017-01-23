@@ -860,7 +860,8 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         data.add(js.quoteName(method.callName, allowNull: true));
 
         if (method.needsTearOff) {
-          bool isIntercepted = backend.isInterceptedMethod(method.element);
+          MethodElement element = method.element;
+          bool isIntercepted = backend.isInterceptedMethod(element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));

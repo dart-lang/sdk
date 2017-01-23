@@ -199,7 +199,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (cls.onlyForRti) return;
 
     for (StubMethod method in cls.checkedSetters) {
-      Element member = method.element;
+      MemberElement member = method.element;
       assert(member != null);
       jsAst.Expression code = method.code;
       jsAst.Name setterName = method.name;
@@ -251,7 +251,6 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     for (Method method in cls.methods) {
-      assert(invariant(classElement, method.element.isDeclaration));
       assert(invariant(classElement, method.element.isInstanceMember));
       emitter.containerBuilder.addMemberMethod(method, builder);
     }

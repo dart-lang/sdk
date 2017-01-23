@@ -175,7 +175,8 @@ class NativeEmitter {
 
     for (Class cls in classes) {
       if (!cls.isNative) continue;
-      if (backend.isJsInterop(cls.element)) continue;
+      ClassElement element = cls.element;
+      if (backend.isJsInterop(element)) continue;
       List<String> nativeTags =
           backend.nativeData.getNativeTagsOfClass(cls.element);
 
