@@ -142,7 +142,7 @@ stringReplaceAllUnchecked(receiver, pattern, replacement) {
   if (pattern is String) {
     if (pattern == "") {
       if (receiver == "") {
-        return replacement;
+        return JS('String', '#', replacement); // help type inference.
       } else {
         StringBuffer result = new StringBuffer('');
         int length = receiver.length;
