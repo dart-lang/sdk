@@ -210,7 +210,8 @@ class DateTime implements Comparable<DateTime> {
    *   then optionally a two digit minutes value,
    *   then optionally a two digit seconds value, and
    *   then optionally a '.' followed by a one-to-six digit second fraction.
-   *   The minuts and seconds may be separated from the previous parts by a ':'.
+   *   The minutes and seconds may be separated from the previous parts by a
+   *   ':'.
    *   Examples: "12", "12:30:24.124", "123010.50".
    * * An optional time-zone offset part,
    *   possibly separated from the previous by a space.
