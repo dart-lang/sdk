@@ -26,9 +26,9 @@ The easiest way to contribute to Dart is to [file issues][dartbug].
 
 You can also contribute patches, as described in [Contributing][contrib].
 
-## License
+## License & patents
 
-See [LICENSE][license].
+See [LICENSE][license] and [PATENTS][patents].
 
 [website]: https://www.dartlang.org
 [license]: https://github.com/dart-lang/sdk/blob/master/LICENSE
@@ -39,3 +39,4 @@ See [LICENSE][license].
 [dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
 [pubsite]: https://pub.dartlang.org
+[patents]: https://github.com/dart-lang/sdk/blob/master/PATENTS
