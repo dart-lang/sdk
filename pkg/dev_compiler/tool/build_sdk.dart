@@ -9,6 +9,8 @@
 /// command line interface. But being able to build from a Dart library means
 /// we can call this during code coverage to get more realistic numbers.
 
+import 'dart:io';
+
 import 'package:dev_compiler/src/compiler/command.dart';
 
 main(List<String> arguments) {
@@ -52,7 +54,6 @@ main(List<String> arguments) {
     'dart:web_sql'
   ]);
 
-  if (compile(args) != 0) {
-    throw 'SDK build failed.';
-  }
+  var result = compile(args);
+  exit(result);
 }

@@ -26,4 +26,5 @@ echo "*** Compiling SDK to JavaScript"
 } || { # Catch
   # Show errors if the sdk didn't compile.
   cat tool/sdk_expected_errors.txt
+  exit 1
 }
