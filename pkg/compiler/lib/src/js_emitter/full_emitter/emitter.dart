@@ -12,7 +12,6 @@ import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 
 import '../../common.dart';
-import '../../common/names.dart' show Names;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../core_types.dart' show CommonElements;
@@ -27,10 +26,7 @@ import '../../elements/elements.dart'
         FunctionElement,
         FunctionSignature,
         LibraryElement,
-        MemberElement,
-        MetadataAnnotation,
         MethodElement,
-        Name,
         TypedefElement,
         VariableElement;
 import '../../hash/sha1.dart' show Hasher;
@@ -43,9 +39,7 @@ import '../../js/js.dart' show js;
 import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
     show
-        CompoundName,
         ConstantEmitter,
-        GetterName,
         JavaScriptBackend,
         JavaScriptConstantCompiler,
         Namer,
@@ -54,9 +48,7 @@ import '../../js_backend/js_backend.dart'
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
 import '../../util/uri_extras.dart' show relativize;
-import '../../util/util.dart' show equalElements;
 import '../../world.dart' show ClosedWorld;
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
@@ -65,14 +57,21 @@ import '../js_emitter.dart' as js_emitter show Emitter, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
 
-part 'class_builder.dart';
-part 'class_emitter.dart';
+import 'class_builder.dart';
+import 'class_emitter.dart';
+import 'container_builder.dart';
+import 'interceptor_emitter.dart';
+import 'nsm_emitter.dart';
+
+export 'class_builder.dart';
+export 'class_emitter.dart';
+export 'container_builder.dart';
+export 'interceptor_emitter.dart';
+export 'nsm_emitter.dart';
+
 part 'code_emitter_helper.dart';
-part 'container_builder.dart';
 part 'declarations.dart';
 part 'deferred_output_unit_hash.dart';
-part 'interceptor_emitter.dart';
-part 'nsm_emitter.dart';
 part 'setup_program_builder.dart';
 
 class EmitterFactory implements js_emitter.EmitterFactory {

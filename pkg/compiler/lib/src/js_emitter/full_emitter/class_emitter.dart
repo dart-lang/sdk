@@ -2,7 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.full_emitter;
+library dart2js.js_emitter.full_emitter.class_emitter;
+
+import '../../common.dart';
+import '../../common/names.dart' show Names;
+import '../../elements/resolution_types.dart' show ResolutionDartType;
+import '../../deferred_load.dart' show OutputUnit;
+import '../../elements/elements.dart'
+    show
+    ClassElement,
+    Element,
+    FieldElement,
+    MemberElement,
+    Name;
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../../js_backend/js_backend.dart'
+    show
+    CompoundName,
+    Namer;
+import '../../universe/selector.dart' show Selector;
+import '../../util/util.dart' show equalElements;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../model.dart';
+import 'emitter.dart';
 
 class ClassEmitter extends CodeEmitterHelper {
   final ClosedWorld closedWorld;

@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.full_emitter;
+library dart2js.js_emitter.full_emitter.interceptor_emitter;
+
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import '../../elements/elements.dart'
+    show
+    ClassElement,
+    MethodElement;
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../model.dart';
+import 'emitter.dart';
 
 class InterceptorEmitter extends CodeEmitterHelper {
   final ClosedWorld closedWorld;
