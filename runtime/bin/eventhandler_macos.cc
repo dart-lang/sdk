@@ -388,6 +388,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events, int size) {
       interrupt_seen = true;
     } else {
       DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(events[i].udata);
+      const intptr_t old_mask = di->Mask();
       intptr_t event_mask = GetEvents(events + i, di);
       if ((event_mask & (1 << kErrorEvent)) != 0) {
         di->NotifyAllDartPorts(event_mask);
@@ -395,7 +396,6 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events, int size) {
       event_mask &= ~(1 << kErrorEvent);
 
       if (event_mask != 0) {
-        intptr_t old_mask = di->Mask();
         Dart_Port port = di->NextNotifyDartPort(event_mask);
         ASSERT(port != 0);
         UpdateKQueueInstance(old_mask, di);

@@ -388,8 +388,8 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
     } else {
       DescriptorInfo* di =
           reinterpret_cast<DescriptorInfo*>(events[i].data.ptr);
+      const intptr_t old_mask = di->Mask();
       intptr_t event_mask = GetPollEvents(events[i].events, di);
-
       if ((event_mask & (1 << kErrorEvent)) != 0) {
         di->NotifyAllDartPorts(event_mask);
       }
@@ -397,7 +397,6 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 
       LOG_INFO("HandleEvents: fd=%ld events=%ld\n", di->fd(), event_mask);
       if (event_mask != 0) {
-        intptr_t old_mask = di->Mask();
         Dart_Port port = di->NextNotifyDartPort(event_mask);
         ASSERT(port != 0);
         UpdateEpollInstance(old_mask, di);
