@@ -492,10 +492,6 @@ accessor_conflict_import_test: StaticWarning # Issue 25624
 for_in3_test: StaticWarning, OK # Test should have warning by design.
 for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does not implement Iterable in for-in.
 
-# Experimental feature: Syntactic support for generic methods.
-generic_methods_type_expression_test: StaticWarning # Issue 25868
-generic_methods_generic_function_parameter_test: StaticWarning # Issue 25868
-
 # Experimental feature: Use initializing formals in initializers and constructor body.
 initializing_formal_type_test: StaticWarning # Issue 26658
 
