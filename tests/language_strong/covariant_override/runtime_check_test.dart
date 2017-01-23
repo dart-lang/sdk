@@ -3,17 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:meta/meta.dart' show checked;
-
-// Test runtime behavior of @checked
 
 class View {
   addChild(View v) {}
   transform(View fn(View v)) {}
 }
 class MyView extends View {
-  addChild(@checked MyView v) {}
-  transform(@checked MyView fn(Object v)) {}
+  addChild(covariant MyView v) {}
+  transform(covariant MyView fn(Object v)) {}
 }
 
 main() {
@@ -25,7 +22,7 @@ main() {
 
   mv.transform((_) => new MyView());
 
-  // TODO(jmesserly): these *should* be a cast failures, but DDC is currently
+  // TODO(jmesserly): these *should* be cast failures, but DDC is currently
   // ignoring function type failures w/ a warning at the console...
 
   // * -> * not a subtype of Object -> MyView

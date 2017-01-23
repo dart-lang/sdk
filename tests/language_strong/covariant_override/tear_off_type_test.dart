@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:meta/meta.dart' show checked;
 
 // If a parameter is directly or indirectly a covariant override, its type in
 // the method tear-off should become Object.
@@ -19,19 +18,19 @@ typedef void TakeNamedInts({int a, int b, int c, int d});
 typedef void TakeNamedObjectsAndInts({Object a, int b, Object c, int d});
 
 class M1 {
-  method(@checked int a, int b) {}
+  method(covariant int a, int b) {}
 }
 
 class M2 {
-  method(int a, @checked int b) {}
+  method(int a, covariant int b) {}
 }
 
 class C extends Object with M1, M2 {}
 
 class Direct {
-  void positional(@checked int a, int b, @checked int c, int d, int e) {}
-  void optional([@checked int a, int b, @checked int c, int d]) {}
-  void named({@checked int a, int b, @checked int c, int d}) {}
+  void positional(covariant int a, int b, covariant int c, int d, int e) {}
+  void optional([covariant int a, int b, covariant int c, int d]) {}
+  void named({covariant int a, int b, covariant int c, int d}) {}
 }
 
 class Inherited extends Direct {}
@@ -39,11 +38,11 @@ class Inherited extends Direct {}
 // ---
 
 class Override1 {
-  void method(@checked int a, int b, int c, int d, int e) {}
+  void method(covariant int a, int b, int c, int d, int e) {}
 }
 
 class Override2 extends Override1 {
-  void method(int a, int b, @checked int c, int d, int e) {}
+  void method(int a, int b, covariant int c, int d, int e) {}
 }
 
 class Override3 extends Override2 {
@@ -53,45 +52,45 @@ class Override3 extends Override2 {
 // ---
 
 abstract class Implement1 {
-  void method(@checked int a, int b, int c, int d, int e) {}
+  void method(covariant int a, int b, int c, int d, int e) {}
 }
 
 class Implement2 {
-  void method(int a, @checked int b, int c, int d, int e) {}
+  void method(int a, covariant int b, int c, int d, int e) {}
 }
 
 class Implement3 {
-  void method(int a, int b, @checked int c, int d, int e) {}
+  void method(int a, int b, covariant int c, int d, int e) {}
 }
 
 class Implement4 implements Implement3 {
-  void method(int a, int b, int c, @checked int d, int e) {}
+  void method(int a, int b, int c, covariant int d, int e) {}
 }
 
 class Implement5 implements Implement1, Implement2, Implement4 {
-  void method(int a, int b, int c, int d, @checked int e) {}
+  void method(int a, int b, int c, int d, covariant int e) {}
 }
 
 // ---
 
 class Interface1 {
-  void method(@checked int a, int b, int c, int d, int e) {}
+  void method(covariant int a, int b, int c, int d, int e) {}
 }
 
 class Interface2 {
-  void method(int a, @checked int b, int c, int d, int e) {}
+  void method(int a, covariant int b, int c, int d, int e) {}
 }
 
 class Mixin1 {
-  void method(int a, int b, @checked int c, int d, int e) {}
+  void method(int a, int b, covariant int c, int d, int e) {}
 }
 
 class Mixin2 {
-  void method(int a, int b, int c, @checked int d, int e) {}
+  void method(int a, int b, int c, covariant int d, int e) {}
 }
 
 class Superclass {
-  void method(int a, int b, int c, int d, @checked int e) {}
+  void method(int a, int b, int c, int d, covariant int e) {}
 }
 
 class Mixed extends Superclass
