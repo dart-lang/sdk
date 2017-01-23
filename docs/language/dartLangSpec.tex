@@ -8,12 +8,59 @@
 \usepackage[T1]{fontenc}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification  \\
-{4th edition draft}\\
+{5th edition draft}\\
 {\large Version 1.15.0}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
 % end of this file.
+
+% CHANGES
+% =======
+% Significant changes to the specification.
+%
+% 1.15
+% - Change how language specification describes control flow.
+% - Object initialization now specifies initialization order correctly.
+% - Specifies that leaving an await-for loop must wait for the subscription
+%   to be canceled.
+% - An await-for loop only pauses the subscription if it does something async.
+% - Assert statements may now also include a "message" operand.
+% - The Null type is now considered a subtype of all types in most cases.
+%
+% 1.14
+% - The call "C()" where "C" is a class name, is a now compile-time error.
+% - Changed description of rewrites that depended on a function literal.
+%   In many cases, the rewrite wasn't safe for asynchronous code.
+% - Removed generalized tear-offs.
+% - Allow "rethrow" to also end a switch case. Allow braces around switch cases.
+% - Allow using '=' as default-value separator for named parameters.
+% - Make it a compile-time error if a library includes the same part twice.
+% - Now more specific about the return types of sync*/async/async* functions
+%   in relation to return statements.
+% - Allow Unicode surrogate values in String literals.
+% - Make an initializing formal's value accessible in the initializer list.
+% - Allow any expression in assert statements (was only conditionalExpression).
+% - Allow trailing commas in argument and parameter lists.
+%
+% 1.11 - ECMA 408 - 4th Edition
+% - Specify that potentially constant expressions must be valid expressions
+%   if the parameters are non-constant.
+% - Make "??" a compile-time constant operator.
+% - Having multiple unnamed libraries no longer causes warnings.
+% - Specify null-aware operators for static methods.
+%
+% 1.10
+% - Allow mixins to have super-classes and super-calls.
+% - Specify static type checking for the implicit for-in iterator variable.
+% - Specify static types for a number of expressions where it was missing.
+% - Make calls on the exact type "Function" not cause warnings.
+% - Specify null-aware behavior of "e?.v++" and similar expressions.
+% - Specify that `package:` URIs are treated in an implementation dependent way.
+% - Require warning if for-in is used on object with no "iterator" member.
+%
+% 1.9 - ECMA-408 - 3rd Edition
+%
 
 \begin{document}
 \maketitle
