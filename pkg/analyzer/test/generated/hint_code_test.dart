@@ -944,65 +944,6 @@ class B extends A {
     verify([source]);
   }
 
-  test_deprecatedFunction_class() async {
-    Source source = addSource(r'''
-class Function {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION]);
-    verify([source]);
-  }
-
-  test_deprecatedFunction_extends() async {
-    Source source = addSource(r'''
-class A extends Function {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      HintCode.DEPRECATED_EXTENDS_FUNCTION,
-      StaticWarningCode.FUNCTION_WITHOUT_CALL
-    ]);
-    verify([source]);
-  }
-
-  test_deprecatedFunction_extends2() async {
-    Source source = addSource(r'''
-class Function {}
-class A extends Function {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION,
-      HintCode.DEPRECATED_EXTENDS_FUNCTION
-    ]);
-    verify([source]);
-  }
-
-  test_deprecatedFunction_mixin() async {
-    Source source = addSource(r'''
-class A extends Object with Function {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      HintCode.DEPRECATED_MIXIN_FUNCTION,
-      StaticWarningCode.FUNCTION_WITHOUT_CALL
-    ]);
-    verify([source]);
-  }
-
-  test_deprecatedFunction_mixin2() async {
-    Source source = addSource(r'''
-class Function {}
-class A extends Object with Function {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION,
-      HintCode.DEPRECATED_MIXIN_FUNCTION
-    ]);
-    verify([source]);
-  }
-
   test_divisionOptimization_double() async {
     Source source = addSource(r'''
 f(double x, double y) {

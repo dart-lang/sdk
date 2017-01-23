@@ -95,30 +95,6 @@ class HintCode extends ErrorCode {
       "Try replacing the use of the deprecated member with the replacement.");
 
   /**
-   * Users should not create a class named `Function` anymore.
-   */
-  static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = const HintCode(
-      'DEPRECATED_FUNCTION_CLASS_DECLARATION',
-      "Declaring a class named 'Function' is deprecated.",
-      "Try renaming the class.");
-
-  /**
-   * `Function` should not be extended anymore.
-   */
-  static const HintCode DEPRECATED_EXTENDS_FUNCTION = const HintCode(
-      'DEPRECATED_EXTENDS_FUNCTION',
-      "Extending 'Function' is deprecated.",
-      "Try removing 'Function' from the 'extends' clause.");
-
-  /**
-   * `Function` should not be mixed in anymore.
-   */
-  static const HintCode DEPRECATED_MIXIN_FUNCTION = const HintCode(
-      'DEPRECATED_MIXIN_FUNCTION',
-      "Mixing in 'Function' is deprecated.",
-      "Try removing 'Function' from the 'with' clause.");
-
-  /**
    * Hint to use the ~/ operator.
    */
   static const HintCode DIVISION_OPTIMIZATION = const HintCode(
