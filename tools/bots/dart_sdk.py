@@ -25,7 +25,7 @@ def BuildSDK():
     if BUILD_OS == 'linux':
       sysroot_env = dict(os.environ)
       sysroot_env['DART_USE_WHEEZY'] = '1'
-      Run([sys.executable, './tools/generate_buildfiles.py', env=sysroot_env)
+      Run([sys.executable, './tools/generate_buildfiles.py'], env=sysroot_env)
     Run([sys.executable, './tools/build.py', '--mode=release',
          '--arch=ia32', 'create_sdk'])
     Run([sys.executable, './tools/build.py', '--mode=release',
