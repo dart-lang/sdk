@@ -137,7 +137,7 @@ class _Proxy {
  * so assigning it to a typed variable may fail in checked mode,
  * and testing it with the `is` operator
  * will only return true for types it actually implements or extends.
- * Accessing a member which isn't implemented by the classs
+ * Accessing a member which isn't implemented by the class
  * will cause the `noSuchMethod` method to be called normally,
  * the `@proxy` annotation merely states the intent to handle (some of) those
  * `noSuchMethod` calls gracefully.

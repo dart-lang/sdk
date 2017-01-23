@@ -4415,7 +4415,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
           String::Handle(Z, Field::GetterName(field_name));
       getter = lib.LookupFunctionAllowPrivate(getter_name);
     } else if (!field.IsNull() && field.IsUninitialized()) {
-      // A field was found.  Check for a getter in the field's owner classs.
+      // A field was found.  Check for a getter in the field's owner class.
       const Class& cls = Class::Handle(Z, field.Owner());
       const String& getter_name =
           String::Handle(Z, Field::GetterName(field_name));

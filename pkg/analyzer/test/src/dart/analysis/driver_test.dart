@@ -639,7 +639,7 @@ part 'foo.dart';
     provider.newFile(a, 'class A {}');
     provider.newFile(b, "import 'a.dart'; A a;");
     provider.newFile(c, "import 'a.dart'; var a = new A();");
-    provider.newFile(d, "classs A{} A a;");
+    provider.newFile(d, "class A{} A a;");
     provider.newFile(e, "import 'a.dart'; main() {}");
 
     driver.addFile(a);
