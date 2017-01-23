@@ -2274,6 +2274,9 @@ class ExprTypeComputer {
 
   void _doExtractProperty() {
     DartType target = stack.removeLast();
+    if (target.isDynamic) {
+      target = typeProvider.objectType;
+    }
     String propertyName = _getNextString();
     stack.add(() {
       if (target is InterfaceType) {
@@ -2336,6 +2339,9 @@ class ExprTypeComputer {
     String methodName = _getNextString();
     List<DartType> typeArguments = _getTypeArguments();
     DartType target = stack.removeLast();
+    if (target.isDynamic) {
+      target = typeProvider.objectType;
+    }
     stack.add(() {
       if (target is InterfaceType) {
         MethodElement method =
@@ -3763,6 +3769,9 @@ class NonstaticMemberElementForLink extends Object
   DartType get asStaticType {
     if (_library._linker.strongMode) {
       DartType targetType = _target.asStaticType;
+      if (targetType.isDynamic) {
+        targetType = _library._linker.typeProvider.objectType;
+      }
       if (targetType is InterfaceType) {
         ExecutableElement element =
             targetType.lookUpInheritedGetterOrMethod(_name, library: _library);

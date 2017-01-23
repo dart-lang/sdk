@@ -1580,6 +1580,34 @@ Iterable<Map<int, int>> bar() sync* {
   ''');
   }
 
+  test_dynamic_has_object_methods_viaNonPrefixedIdentifier() {
+    var mainUnit = checkFile('''
+dynamic f() => null;
+var s = f().toString();
+var h = f().hashCode;
+''');
+    var s = mainUnit.topLevelVariables[0];
+    expect(s.name, 's');
+    expect(s.type.toString(), 'String');
+    var h = mainUnit.topLevelVariables[1];
+    expect(h.name, 'h');
+    expect(h.type.toString(), 'int');
+  }
+
+  test_dynamic_has_object_methods_viaPrefixedIdentifier() {
+    var mainUnit = checkFile('''
+dynamic d;
+var s = d.toString();
+var h = d.hashCode;
+''');
+    var s = mainUnit.topLevelVariables[1];
+    expect(s.name, 's');
+    expect(s.type.toString(), 'String');
+    var h = mainUnit.topLevelVariables[2];
+    expect(h.name, 'h');
+    expect(h.type.toString(), 'int');
+  }
+
   void test_fieldRefersToStaticGetter() {
     var mainUnit = checkFile('''
 class C {
