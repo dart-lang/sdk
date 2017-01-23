@@ -196,7 +196,9 @@ class SyncDirectoryListing : public DirectoryListing {
                        const char* dir_name,
                        bool recursive,
                        bool follow_links)
-      : DirectoryListing(dir_name, recursive, follow_links), results_(results) {
+      : DirectoryListing(dir_name, recursive, follow_links),
+        results_(results),
+        dart_error_(Dart_Null()) {
     add_string_ = DartUtils::NewString("add");
     directory_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "Directory");
     file_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "File");
@@ -208,12 +210,15 @@ class SyncDirectoryListing : public DirectoryListing {
   virtual bool HandleLink(const char* file_name);
   virtual bool HandleError();
 
+  Dart_Handle dart_error() { return dart_error_; }
+
  private:
   Dart_Handle results_;
   Dart_Handle add_string_;
   Dart_Handle directory_type_;
   Dart_Handle file_type_;
   Dart_Handle link_type_;
+  Dart_Handle dart_error_;
 
   DISALLOW_ALLOCATION()
   DISALLOW_IMPLICIT_CONSTRUCTORS(SyncDirectoryListing);
