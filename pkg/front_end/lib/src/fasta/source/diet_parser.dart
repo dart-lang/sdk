@@ -22,11 +22,8 @@ import 'package:front_end/src/fasta/parser/parser.dart' show
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
-  DietParser(Listener listener,
-      {bool asyncAwaitKeywordsEnabled: false,
-       bool enableGenericMethodSyntax: false})
-      : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled,
-          enableGenericMethodSyntax: enableGenericMethodSyntax);
+  DietParser(Listener listener, {bool asyncAwaitKeywordsEnabled: false})
+      : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled);
 
   Token parseFormalParameters(Token token) => skipFormals(token);
 
