@@ -1521,6 +1521,15 @@ class _UnitResynthesizer {
       elementAnnotation.annotationAst = AstTestFactory.annotation2(
           typeName, constructorName, constExpr.argumentList)
         ..element = constExpr.staticElement;
+    } else if (constExpr is PropertyAccess) {
+      var target = constExpr.target as Identifier;
+      var propertyName = constExpr.propertyName;
+      ArgumentList arguments =
+          constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
+      elementAnnotation.element = propertyName.staticElement;
+      elementAnnotation.annotationAst = AstTestFactory.annotation2(
+          target, propertyName, arguments)
+        ..element = propertyName.staticElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');

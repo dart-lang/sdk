@@ -53,19 +53,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   void serializeAnnotation(Annotation annotation) {
-    if (annotation.arguments == null) {
-      assert(annotation.constructorName == null);
-      serialize(annotation.name);
+    Identifier name = annotation.name;
+    EntityRefBuilder constructor;
+    if (name is PrefixedIdentifier && annotation.constructorName == null) {
+      constructor =
+          serializeConstructorRef(null, name.prefix, null, name.identifier);
     } else {
-      Identifier name = annotation.name;
-      EntityRefBuilder constructor;
-      if (name is PrefixedIdentifier && annotation.constructorName == null) {
-        constructor =
-            serializeConstructorRef(null, name.prefix, null, name.identifier);
-      } else {
-        constructor = serializeConstructorRef(
-            null, annotation.name, null, annotation.constructorName);
-      }
+      constructor = serializeConstructorRef(
+          null, annotation.name, null, annotation.constructorName);
+    }
+    if (annotation.arguments == null) {
+      references.add(constructor);
+      operations.add(UnlinkedExprOperation.pushReference);
+    } else {
       serializeInstanceCreation(constructor, annotation.arguments);
     }
   }

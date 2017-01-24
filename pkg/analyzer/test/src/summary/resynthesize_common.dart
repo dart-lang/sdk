@@ -532,18 +532,17 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         Identifier rName = r.name;
         Identifier oName = o.name;
         if (oName is PrefixedIdentifier &&
+            rName is PrefixedIdentifier &&
             o.constructorName != null &&
-            o.element != null) {
-          // E.g. `@prefix.cls.ctor`.  This gets resynthesized as `@cls.ctor`,
-          // with `cls.ctor` represented as a PrefixedIdentifier.
-          expect(rName, new isInstanceOf<PrefixedIdentifier>(), reason: desc);
-          if (rName is PrefixedIdentifier) {
-            compareConstAsts(rName.prefix, oName.identifier, desc);
-            expect(rName.period.lexeme, '.', reason: desc);
-            compareConstAsts(rName.identifier, o.constructorName, desc);
-            expect(r.period, isNull, reason: desc);
-            expect(r.constructorName, isNull, reason: desc);
-          }
+            o.element != null &&
+            r.constructorName == null) {
+          // E.g. `@prefix.cls.ctor`.  This sometimes gets resynthesized as
+          // `@cls.ctor`, with `cls.ctor` represented as a PrefixedIdentifier.
+          compareConstAsts(rName.prefix, oName.identifier, desc);
+          expect(rName.period.lexeme, '.', reason: desc);
+          compareConstAsts(rName.identifier, o.constructorName, desc);
+          expect(r.period, isNull, reason: desc);
+          expect(r.constructorName, isNull, reason: desc);
         } else {
           compareConstAsts(r.name, o.name, desc);
           expect(r.period?.lexeme, o.period?.lexeme, reason: desc);
@@ -3764,6 +3763,36 @@ C c;
     checkLibrary('''
 class C<T extends num> {}
 C c;
+''');
+  }
+
+  test_invalid_annotation_prefixed_constructor() {
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  const C.named();
+}
+''');
+    checkLibrary('''
+import "a.dart" as a;
+@a.C.named
+class D {}
+''');
+  }
+
+  test_invalid_annotation_unprefixed_constructor() {
+    addLibrarySource(
+        '/a.dart',
+        r'''
+class C {
+  const C.named();
+}
+''');
+    checkLibrary('''
+import "a.dart";
+@C.named
+class D {}
 ''');
   }
 

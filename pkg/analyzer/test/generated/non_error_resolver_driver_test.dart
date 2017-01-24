@@ -19,13 +19,6 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTest {
 
   @failingTest
   @override
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() {
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @failingTest
-  @override
   test_nativeConstConstructor() {
     return super.test_nativeConstConstructor();
   }
