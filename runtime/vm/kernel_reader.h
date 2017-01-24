@@ -34,18 +34,18 @@ template <typename KernelType, typename VmType>
 class Mapping {
  public:
   bool Lookup(KernelType* node, VmType** handle) {
-    typename MapType::Pair* pair = map_.LookupPair(node);
-    if (pair != NULL) {
-      *handle = pair->value;
+    typename MapType::iterator value = map_.find(node);
+    if (value != map_.end()) {
+      *handle = value->second;
       return true;
     }
     return false;
   }
 
-  void Insert(KernelType* node, VmType* object) { map_.Insert(node, object); }
+  void Insert(KernelType* node, VmType* object) { map_[node] = object; }
 
  private:
-  typedef Map<KernelType, VmType*> MapType;
+  typedef typename std::map<KernelType*, VmType*> MapType;
   MapType map_;
 };
 
