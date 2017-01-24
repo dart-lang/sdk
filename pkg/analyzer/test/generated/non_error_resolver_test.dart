@@ -1019,10 +1019,10 @@ class C = D with E;
 
 class D {}
 class E {}''');
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     ClassElement classC =
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
     expect(classC.documentationComment, isNotNull);
@@ -1035,10 +1035,10 @@ abstract class A {
   A(int p) {}
 }''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, "p]");
@@ -1056,10 +1056,10 @@ enum Samurai {
   WITHOUT_SWORD
 }''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, 'Samurai]');
@@ -1089,10 +1089,10 @@ enum Samurai {
 foo(int p) {
 }''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
     expect(ref.staticElement, new isInstanceOf<ParameterElement>());
@@ -1103,10 +1103,10 @@ foo(int p) {
 /// [p]
 foo(int p) => null;''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
     expect(ref.staticElement, new isInstanceOf<ParameterElement>());
@@ -1118,10 +1118,10 @@ foo(int p) => null;''';
 typedef Foo(int p);
 ''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
     expect(ref.staticElement, new isInstanceOf<ParameterElement>());
@@ -1134,10 +1134,10 @@ abstract class A {
   get g => null;
 }''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
@@ -1158,10 +1158,10 @@ abstract class A {
   md(int p5, {int p6});
 }''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     assertIsParameter(String search) {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, search);
@@ -1183,10 +1183,10 @@ class A {
   foo() {}
 }''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'foo]');
     expect(ref.staticElement, new isInstanceOf<MethodElement>());
@@ -1205,10 +1205,10 @@ class B extends A {
 }
 ''';
     Source source = addSource(code);
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = await _getResolvedLibraryUnit(source);
+    CompilationUnit unit = analysisResult.unit;
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, "x] in A");

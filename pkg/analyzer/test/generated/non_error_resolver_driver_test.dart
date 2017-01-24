@@ -19,66 +19,6 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTest {
 
   @failingTest
   @override
-  test_class_type_alias_documentationComment() {
-    return super.test_class_type_alias_documentationComment();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeConstructor() {
-    return super.test_commentReference_beforeConstructor();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeEnum() {
-    return super.test_commentReference_beforeEnum();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeFunction_blockBody() {
-    return super.test_commentReference_beforeFunction_blockBody();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeFunction_expressionBody() {
-    return super.test_commentReference_beforeFunction_expressionBody();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeFunctionTypeAlias() {
-    return super.test_commentReference_beforeFunctionTypeAlias();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeGetter() {
-    return super.test_commentReference_beforeGetter();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_beforeMethod() {
-    return super.test_commentReference_beforeMethod();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_class() {
-    return super.test_commentReference_class();
-  }
-
-  @failingTest
-  @override
-  test_commentReference_setter() {
-    return super.test_commentReference_setter();
-  }
-
-  @failingTest
-  @override
   test_invalidAnnotation_constantVariable_field_importWithPrefix() {
     return super
         .test_invalidAnnotation_constantVariable_field_importWithPrefix();
