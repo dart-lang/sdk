@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/error/error.dart';
@@ -119,6 +120,11 @@ class AnalysisDriver {
    * from file paths.
    */
   SourceFactory _sourceFactory;
+
+  /**
+   * The declared environment variables.
+   */
+  final DeclaredVariables declaredVariables = new DeclaredVariables();
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
@@ -759,6 +765,7 @@ class AnalysisDriver {
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.declaredVariables.addAll(declaredVariables);
     analysisContext.sourceFactory = _sourceFactory.clone();
     analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
     analysisContext.resultProvider =

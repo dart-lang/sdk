@@ -19,12 +19,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
 
   @failingTest
   @override
-  test_fromEnvironment_bool_badDefault_whenDefined() {
-    return super.test_fromEnvironment_bool_badDefault_whenDefined();
-  }
-
-  @failingTest
-  @override
   test_typeAliasCannotReferenceItself_typeVariableBounds() {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
   }

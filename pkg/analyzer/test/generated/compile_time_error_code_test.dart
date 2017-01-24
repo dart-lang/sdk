@@ -2426,7 +2426,11 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
   test_fromEnvironment_bool_badDefault_whenDefined() async {
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
-    analysisContext2.declaredVariables.define("x", "true");
+    if (enableNewAnalysisDriver) {
+      driver.declaredVariables.define("x", "true");
+    } else {
+      analysisContext2.declaredVariables.define("x", "true");
+    }
     Source source =
         addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");
     await computeAnalysisResult(source);
