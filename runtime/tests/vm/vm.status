@@ -246,9 +246,6 @@ cc/RegExp_ExternalTwoByteString: Skip
 cc/RegExp_OneByteString: Skip
 cc/RegExp_TwoByteString: Skip
 
-[ $arch == simdbc64 && $mode == release ]
-cc/UseDartApi: Pass,Crash # Issue 28499
-
 # TODO(vegorov) Field guards are disabled for SIMDBC
 cc/GuardFieldConstructor2Test: Skip
 cc/GuardFieldConstructorTest: Skip
@@ -258,6 +255,9 @@ cc/GuardFieldSimpleTest: Skip
 
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
+
+[ $arch == simdbc64 && $mode == release ]
+cc/UseDartApi: Pass,Crash # Issue 28499
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
