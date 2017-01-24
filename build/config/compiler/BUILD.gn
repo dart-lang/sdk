@@ -2,6 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+declare_args() {
+  # The optimization level to use for debug builds.
+  if (is_android) {
+    # On Android we kind of optimize some things that don't affect debugging
+    # much even when optimization is disabled to get the binary size down.
+    debug_optimization_level = "s"
+  } else {
+    debug_optimization_level = "2"
+  }
+}
+
 import("//build/config/android/config.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
@@ -743,21 +754,21 @@ config("no_optimize") {
     # The only difference on windows is that the inlining is less aggressive.
     # (We accept the default level). Otherwise it is very slow.
     cflags = [
-      "/O2",  # Do some optimizations.
+      "/O${debug_optimization_level}",  # Do some optimizations.
       "/Oy-",  # Disable omitting frame pointers, must be after /O2.
     ]
   } else if (is_android) {
     # On Android we kind of optimize some things that don't affect debugging
     # much even when optimization is disabled to get the binary size down.
     cflags = [
-      "-Os",
+      "-O${debug_optimization_level}",
       "-fdata-sections",
       "-ffunction-sections",
     ]
     ldflags = common_optimize_on_ldflags
   } else {
     cflags = [
-      "-O2",
+      "-O${debug_optimization_level}",
       "-fdata-sections",
       "-ffunction-sections",
     ]

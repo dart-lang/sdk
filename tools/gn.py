@@ -205,6 +205,10 @@ def to_gn_args(args, mode, arch, target_os):
     gn_args['use_goma'] = False
     gn_args['goma_dir'] = None
 
+  if args.debug_opt_level:
+    gn_args['dart_debug_optimization_level'] = args.debug_opt_level
+    gn_args['debug_optimization_level'] = args.debug_opt_level
+
   return gn_args
 
 
@@ -313,6 +317,10 @@ def parse_args(args):
       help='Disable Clang',
       dest='clang',
       action='store_false')
+  other_group.add_argument('--debug-opt-level',
+      '-d',
+      help='The optimization level to use for debug builds',
+      type=str)
   other_group.add_argument('--goma',
       help='Use goma',
       default=True,

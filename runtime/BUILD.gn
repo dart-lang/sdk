@@ -28,6 +28,9 @@ declare_args() {
   dart_target_arch = ""
 
   dart_experimental_interpreter = false
+
+  # The optimization level to use for debug builds.
+  dart_debug_optimization_level = "2"
 }
 
 config("dart_public_config") {
@@ -163,7 +166,7 @@ config("dart_config") {
     ]
 
     if (dart_debug) {
-      cflags += [ "-O2" ]
+      cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
       cflags += [ "-O3" ]
     }
