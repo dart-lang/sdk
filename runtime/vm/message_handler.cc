@@ -332,6 +332,8 @@ void MessageHandler::TaskCallback() {
   MessageStatus status = kOK;
   bool run_end_callback = false;
   bool delete_me = false;
+  EndCallback end_callback = NULL;
+  CallbackData callback_data = NULL;
   {
     // We will occasionally release and reacquire this monitor in this
     // function. Whenever we reacquire the monitor we *must* process
@@ -415,6 +417,8 @@ void MessageHandler::TaskCallback() {
       }
       pool_ = NULL;
       // Decide if we have a callback before releasing the monitor.
+      end_callback = end_callback_;
+      callback_data = callback_data_;
       run_end_callback = end_callback_ != NULL;
       delete_me = delete_me_;
     }
@@ -432,7 +436,8 @@ void MessageHandler::TaskCallback() {
   ASSERT(!delete_me || !run_end_callback);
 
   if (run_end_callback) {
-    end_callback_(callback_data_);
+    ASSERT(end_callback != NULL);
+    end_callback(callback_data);
     // The handler may have been deleted after this point.
   }
   if (delete_me) {
