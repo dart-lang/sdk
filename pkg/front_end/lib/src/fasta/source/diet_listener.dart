@@ -71,6 +71,7 @@ class DietListener extends StackListener {
       : library = library,
         memberScope = library.scope;
 
+  @override
   Uri get uri => library.uri;
 
   void discard(int n) {
@@ -79,62 +80,81 @@ class DietListener extends StackListener {
     }
   }
 
+  @override
   void endMetadataStar(int count, bool forParameter) {
     debugEvent("MetadataStar");
   }
 
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     popIfNotNull(periodBeforeName);
     discard(1);
   }
 
+  @override
   void endPartOf(Token partKeyword, Token semicolon) {
     debugEvent("PartOf");
     discard(1);
   }
 
+  @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
   }
 
+  @override
   void handleModifiers(int count) {
     debugEvent("Modifiers");
   }
 
+  @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
   }
 
+  @override
   void handleNoType(Token token) {
     debugEvent("NoType");
   }
 
+  @override
   void endType(Token beginToken, Token endToken) {
     debugEvent("Type");
     discard(1);
   }
 
+  @override
   void endTypeList(int count) {
     debugEvent("TypeList");
   }
 
+  @override
   void endMixinApplication() {
     debugEvent("MixinApplication");
   }
 
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
   }
 
+  @override
   void endFieldInitializer(Token assignmentOperator) {
     debugEvent("FieldInitializer");
   }
 
+  @override
+  void handleNoFieldInitializer(Token token) {
+    debugEvent("NoFieldInitializer");
+  }
+
+  @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
   }
 
+  @override
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     debugEvent("FormalParameters");
     assert(count == 0); // Count is always 0 as the diet parser skips formals.
@@ -145,6 +165,7 @@ class DietListener extends StackListener {
     push(beginToken);
   }
 
+  @override
   void handleNoFormalParameters(Token token) {
     debugEvent("NoFormalParameters");
     if (identical(peek(), "-")) {
@@ -154,12 +175,14 @@ class DietListener extends StackListener {
     push(token);
   }
 
+  @override
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     debugEvent("FunctionTypeAlias");
     discard(2); // Name + endToken.
     checkEmpty();
   }
 
+  @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
@@ -167,10 +190,12 @@ class DietListener extends StackListener {
     buildFields(beginToken, false, builder.isInstanceMember);
   }
 
+  @override
   void handleAsyncModifier(Token asyncToken, Token startToken) {
     debugEvent("AsyncModifier");
   }
 
+  @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("TopLevelMethod");
     Token bodyToken = pop();
@@ -179,28 +204,34 @@ class DietListener extends StackListener {
     buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
   }
 
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
   }
 
+  @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     discard(count);
     buildFields(beginToken, true, false);
   }
 
+  @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
   }
 
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
   }
 
+  @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
   }
 
+  @override
   void handleQualified(Token period) {
     debugEvent("handleQualified");
     // TODO(ahe): Shared with outline_builder.dart.
@@ -209,92 +240,112 @@ class DietListener extends StackListener {
     push("$receiver.$name");
   }
 
+  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     discard(1);
   }
 
+  @override
   void beginLiteralString(Token token) {
     debugEvent("beginLiteralString");
   }
 
+  @override
   void endLiteralString(int interpolationCount) {
     debugEvent("endLiteralString");
     discard(interpolationCount);
   }
 
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
   }
 
+  @override
   void endDottedName(int count, Token firstIdentifier) {
     debugEvent("DottedName");
     discard(count);
   }
 
+  @override
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     debugEvent("ConditionalUri");
   }
 
+  @override
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
   }
 
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
     push(token.stringValue);
   }
 
+  @override
   void endIdentifierList(int count) {
     debugEvent("IdentifierList");
     discard(count);
   }
 
+  @override
   void endShow(Token showKeyword) {
     debugEvent("Show");
   }
 
+  @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
   }
 
+  @override
   void endCombinators(int count) {
     debugEvent("Combinators");
   }
 
+  @override
   void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
       Token semicolon) {
     debugEvent("Import");
     popIfNotNull(asKeyword);
   }
 
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
   }
 
+  @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
   }
 
+  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
     discard(1);
   }
 
+  @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
   }
 
+  @override
   void handleModifier(Token token) {
     debugEvent("Modifier");
   }
 
+  @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");
     popIfNotNull(periodBeforeName);
   }
 
+  @override
   void endFactoryMethod(Token beginToken, Token endToken) {
     debugEvent("FactoryMethod");
     BeginGroupToken bodyToken = pop();
@@ -306,11 +357,13 @@ class DietListener extends StackListener {
     buildFunctionBody(bodyToken, lookupBuilder(beginToken, null, name));
   }
 
+  @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     discard(1); // ConstructorReference.
   }
 
+  @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
     Token bodyToken = pop();
@@ -354,11 +407,13 @@ class DietListener extends StackListener {
         token, isTopLevel);
   }
 
+  @override
   void endMember() {
     debugEvent("Member");
     checkEmpty();
   }
 
+  @override
   void beginClassBody(Token token) {
     debugEvent("beginClassBody");
     String name = pop();
@@ -368,6 +423,7 @@ class DietListener extends StackListener {
     memberScope = currentClass.computeInstanceScope(memberScope);
   }
 
+  @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
     currentClass = null;
@@ -375,12 +431,14 @@ class DietListener extends StackListener {
     memberScope = library.scope;
   }
 
+  @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     debugEvent("ClassDeclaration");
     checkEmpty();
   }
 
+  @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
     discard(count);
@@ -388,6 +446,7 @@ class DietListener extends StackListener {
     checkEmpty();
   }
 
+  @override
   void endNamedMixinApplication(
       Token classKeyword, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
@@ -464,6 +523,7 @@ class DietListener extends StackListener {
     return builder;
   }
 
+  @override
   void debugEvent(String name) {
     // print("  ${stack.join('\n  ')}");
     // print(name);

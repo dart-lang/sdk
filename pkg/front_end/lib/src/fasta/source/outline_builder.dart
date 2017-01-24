@@ -65,8 +65,10 @@ class OutlineBuilder extends UnhandledListener {
 
   OutlineBuilder(this.library);
 
+  @override
   Uri get uri => library.uri;
 
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     List arguments = pop();
@@ -83,23 +85,27 @@ class OutlineBuilder extends UnhandledListener {
     }
   }
 
+  @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
     List<String> names = pop();
     push(new Combinator.hide(names));
   }
 
+  @override
   void endShow(Token showKeyword) {
     debugEvent("Show");
     List<String> names = pop();
     push(new Combinator.show(names));
   }
 
+  @override
   void endCombinators(int count) {
     debugEvent("Combinators");
     push(popList(count) ?? NullValue.Combinators);
   }
 
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
     List<Combinator> combinators = pop();
@@ -110,6 +116,7 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
     debugEvent("endImport");
@@ -123,6 +130,7 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
     String uri = pop();
@@ -131,16 +139,19 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
     push(token.stringValue);
   }
 
+  @override
   void endIdentifierList(int count) {
     debugEvent("endIdentifierList");
     push(popList(count) ?? NullValue.IdentifierList);
   }
 
+  @override
   void handleQualified(Token period) {
     debugEvent("handleQualified");
     String name = pop();
@@ -148,6 +159,7 @@ class OutlineBuilder extends UnhandledListener {
     push("$receiver.$name");
   }
 
+  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     String name = pop();
@@ -156,10 +168,12 @@ class OutlineBuilder extends UnhandledListener {
     library.metadata = metadata;
   }
 
+  @override
   void beginClassDeclaration(Token token) {
     library.beginNestedScope();
   }
 
+  @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     debugEvent("endClassDeclaration");
@@ -181,6 +195,7 @@ class OutlineBuilder extends UnhandledListener {
     return internalError("Unhandled: ${token.value}");
   }
 
+  @override
   ProcedureBuilder endTopLevelMethod(
       Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
@@ -198,16 +213,19 @@ class OutlineBuilder extends UnhandledListener {
         typeVariables, formals, asyncModifier, computeProcedureKind(getOrSet));
   }
 
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
     push(MethodBody.Abstract);
   }
 
+  @override
   void handleFunctionBodySkipped(Token token) {
     debugEvent("handleFunctionBodySkipped");
     push(MethodBody.Regular);
   }
 
+  @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
     MethodBody kind = pop();
@@ -230,6 +248,7 @@ class OutlineBuilder extends UnhandledListener {
         formals, asyncModifier, computeProcedureKind(getOrSet));
   }
 
+  @override
   void endMixinApplication() {
     debugEvent("MixinApplication");
     List<TypeBuilder> mixins = pop();
@@ -237,10 +256,12 @@ class OutlineBuilder extends UnhandledListener {
     push(library.addMixinApplication(supertype, mixins));
   }
 
+  @override
   void beginNamedMixinApplication(Token token) {
     library.beginNestedScope();
   }
 
+  @override
   void endNamedMixinApplication(
       Token classKeyword, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
@@ -255,11 +276,13 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     push(popList(count) ?? NullValue.TypeArguments);
   }
 
+  @override
   void endType(Token beginToken, Token endToken) {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();
@@ -267,21 +290,25 @@ class OutlineBuilder extends UnhandledListener {
     push(library.addInterfaceType(name, arguments));
   }
 
+  @override
   void endTypeList(int count) {
     debugEvent("TypeList");
     push(popList(count) ?? NullValue.TypeList);
   }
 
+  @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     push(popList(count) ?? NullValue.TypeVariables);
   }
 
+  @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     push(library.addVoidType());
   }
 
+  @override
   void endFormalParameter(Token thisKeyword) {
     debugEvent("FormalParameter");
     String name = pop();
@@ -292,11 +319,13 @@ class OutlineBuilder extends UnhandledListener {
              thisKeyword != null));
   }
 
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     debugEvent("ValuedFormalParameter");
     // Ignored for now.
   }
 
+  @override
   void endFunctionTypedFormalParameter(Token token) {
     debugEvent("FunctionTypedFormalParameter");
     pop(); // Function type parameters.
@@ -307,6 +336,7 @@ class OutlineBuilder extends UnhandledListener {
     push(name);
   }
 
+  @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
@@ -319,6 +349,7 @@ class OutlineBuilder extends UnhandledListener {
     push(parameters);
   }
 
+  @override
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     debugEvent("FormalParameters");
     List formals = popList(count);
@@ -346,6 +377,7 @@ class OutlineBuilder extends UnhandledListener {
     push(formals ?? NullValue.FormalParameters);
   }
 
+  @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     List<String> constants = popList(count);
     String name = pop();
@@ -354,10 +386,12 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void beginFunctionTypeAlias(Token token) {
     library.beginNestedScope();
   }
 
+  @override
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     debugEvent("endFunctionTypeAlias");
     List<FormalParameterBuilder> formals = pop();
@@ -370,6 +404,7 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("endTopLevelFields");
     List<String> names = popList(count);
@@ -380,6 +415,7 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
   }
 
+  @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
@@ -389,6 +425,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addFields(metadata, modifiers, type, names);
   }
 
+  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("endTypeVariable");
     TypeBuilder bound = pop();
@@ -396,6 +433,7 @@ class OutlineBuilder extends UnhandledListener {
     push(library.addTypeVariable(name, bound));
   }
 
+  @override
   void endPartOf(Token partKeyword, Token semicolon) {
     debugEvent("endPartOf");
     String name = pop();
@@ -403,6 +441,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addPartOf(metadata, name);
   }
 
+  @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");
@@ -412,6 +451,7 @@ class OutlineBuilder extends UnhandledListener {
     push(library.addConstructorReference(name, typeArguments, suffix));
   }
 
+  @override
   void endFactoryMethod(Token beginToken, Token endToken) {
     debugEvent("FactoryMethod");
     MethodBody kind = pop();
@@ -427,49 +467,64 @@ class OutlineBuilder extends UnhandledListener {
         redirectionTarget);
   }
 
+  @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     push(MethodBody.RedirectingFactoryBody);
   }
 
+  @override
   void endFieldInitializer(Token assignmentOperator) {
     debugEvent("FieldInitializer");
     // Ignoring field initializers for now.
   }
 
+  @override
+  void handleNoFieldInitializer(Token token) {
+    debugEvent("NoFieldInitializer");
+  }
+
+  @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
     // Ignored for now.
   }
 
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
     // This is a constructor initializer and it's ignored for now.
   }
 
+  @override
   void endMember() {
     debugEvent("Member");
   }
 
+  @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
   }
 
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
     push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
+  @override
   void handleModifier(Token token) {
     debugEvent("Modifier");
     push(new Modifier.fromString(token.stringValue));
   }
 
+  @override
   void handleModifiers(int count) {
     debugEvent("Modifiers");
     push(popList(count) ?? NullValue.Modifiers);
   }
 
+  @override
   void debugEvent(String name) {
     // printEvent(name);
   }

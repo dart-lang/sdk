@@ -303,18 +303,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void doFields(int count) {
-    List nodes = popList(count);
-    pop(); // Type.
-    pop(); // Modifiers.
-    for (var node in nodes) {
-      if (node is Identifier) {
-        // Ignore, there's no initializer.
-      } else if (node is VariableDeclaration) {
+    for (int i = 0; i < count; i++) {
+      Expression initializer = pop();
+      Identifier identifier = pop();
+      if (initializer != null) {
+        String name = identifier.name;
         FieldBuilder field;
         if (classBuilder != null) {
-          field = classBuilder.members[node.name];
+          field = classBuilder.members[name];
         } else {
-          field = library.members[node.name];
+          field = library.members[name];
         }
         if (field.next != null) {
           // TODO(ahe): This can happen, for example, if a final field is
@@ -322,11 +320,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           internalError(
               "Unhandled: '${field.name}' has more than one declaration.");
         }
-        field.initializer = node.initializer;
-      } else {
-        internalError("Unhandled: ${node.runtimeType}");
+        field.initializer = initializer;
       }
     }
+    pop(); // Type.
+    pop(); // Modifiers.
   }
 
   @override
@@ -868,6 +866,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression initializer = popForValue();
     Identifier identifier = pop();
     push(new VariableDeclaration(identifier.name, initializer: initializer));
+  }
+
+  @override
+  void endFieldInitializer(Token assignmentOperator) {
+    debugEvent("FieldInitializer");
+    assert(assignmentOperator.stringValue == "=");
+    push(popForValue());
+  }
+
+  @override
+  void handleNoFieldInitializer(Token token) {
+    debugEvent("NoFieldInitializer");
+    push(NullValue.FieldInitializer);
   }
 
   @override

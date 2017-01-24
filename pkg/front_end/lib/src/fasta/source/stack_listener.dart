@@ -33,6 +33,7 @@ enum NullValue {
   Combinators,
   ContinueTarget,
   Expression,
+  FieldInitializer,
   FormalParameters,
   FunctionBody,
   IdentifierList,
