@@ -175,7 +175,7 @@ library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
 malformed_test/none: RuntimeError
 map_literal3_test: RuntimeError
-map_literal4_test: RuntimeError  # Checked Mode Issue
+map_literal4_test: RuntimeError  # VM checked mode Issue 28420
 map_literal6_test: RuntimeError
 method_override_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
@@ -197,9 +197,9 @@ regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
 regress_28278_test: RuntimeError  # Mirrors Issue
 script1_negative_test: Fail
 script2_negative_test: Fail
-setter_no_getter_call_test/none: RuntimeError
-static_setter_get_test/01: RuntimeError
-switch7_negative_test: Fail
+setter_no_getter_call_test/none: RuntimeError  # Dartk Issue 28418
+static_setter_get_test/01: RuntimeError  # Dartk Issue 28417
+switch7_negative_test: Fail  # Dartk Issue 28416
 try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
 try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 type_checks_in_factory_method_test: RuntimeError
@@ -236,12 +236,12 @@ vm/regress_27671_test: RuntimeError
 
 # New failures after respecting VMOptions in test files
 [ $compiler == dartk && $runtime == vm && $mode == debug]
-hello_dart_test: Crash
+hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 
 # New failures after respecting VMOptions in test files
 [ $compiler == dartk && $runtime == vm ]
-hello_dart_test: CompileTimeError
-ct_const2_test: Pass, CompileTimeError  # Multitest via multiple VMOptions!
+hello_dart_test: CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
+ct_const2_test: Pass, CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions!
 
 # Failures during Gardening shift: To be triaged!
@@ -259,3 +259,7 @@ positional_parameters_type_test/02: Crash
 type_checks_in_factory_method_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
+
+# Triaged checked mode failures
+[ ($compiler == dartk || $compiler == dartkp) && $checked ]
+language/regress_22728_test: Fail # Dartk Issue 28498
