@@ -414,7 +414,8 @@ void MessageHandler::TaskCallback() {
         }
       }
       pool_ = NULL;
-      run_end_callback = true;
+      // Decide if we have a callback before releasing the monitor.
+      run_end_callback = end_callback_ != NULL;
       delete_me = delete_me_;
     }
 
@@ -424,10 +425,13 @@ void MessageHandler::TaskCallback() {
     task_ = NULL;
   }
 
-  // Message handlers either use delete_me or end_callback but not both.
-  ASSERT(!delete_me || end_callback_ == NULL);
+  // The handler may have been deleted by another thread here if it is a native
+  // message handler.
 
-  if (run_end_callback && end_callback_ != NULL) {
+  // Message handlers either use delete_me or end_callback but not both.
+  ASSERT(!delete_me || !run_end_callback);
+
+  if (run_end_callback) {
     end_callback_(callback_data_);
     // The handler may have been deleted after this point.
   }

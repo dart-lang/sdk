@@ -89,8 +89,16 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
 
 
 void HeapPage::Deallocate() {
-  // The memory for this object will become unavailable after the delete below.
+  // For a regular heap pages, the memory for this object will become
+  // unavailable after the delete below.
+  bool is_embedder_allocated = embedder_allocated();
   delete memory_;
+
+  // For a heap page from a snapshot, the HeapPage object lives in the malloc
+  // heap rather than the page itself.
+  if (is_embedder_allocated) {
+    free(this);
+  }
 }
 
 
