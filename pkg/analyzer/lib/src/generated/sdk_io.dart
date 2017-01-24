@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -79,10 +79,8 @@ abstract class AbstractDartSdk implements DartSdk {
         bool strongMode = _analysisOptions?.strongMode ?? false;
         PackageBundle sdkBundle = getSummarySdkBundle(strongMode);
         if (sdkBundle != null) {
-          SummaryDataStore dataStore = new SummaryDataStore([]);
-          dataStore.addBundle(null, sdkBundle);
-          _analysisContext.resultProvider =
-              new InputPackagesResultProvider(_analysisContext, dataStore);
+          _analysisContext.resultProvider = new SdkSummaryResultProvider(
+              _analysisContext, sdkBundle, strongMode);
         }
       }
     }

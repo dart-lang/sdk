@@ -819,6 +819,7 @@ abstract class _AstResynthesizeTestMixin
         context.analysisOptions.strongMode);
 
     return new TestSummaryResynthesizer(
+        null,
         context,
         new Map<String, UnlinkedUnit>()
           ..addAll(SerializedMockSdk.instance.uriToUnlinkedUnit)

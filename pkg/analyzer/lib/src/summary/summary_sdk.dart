@@ -7,6 +7,7 @@ library analyzer.src.summary.summary_sdk;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
+import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -17,6 +18,84 @@ import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/model.dart' show ResultDescriptor, TargetedResult;
+
+class SdkSummaryResultProvider extends ResynthesizerResultProvider {
+  final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
+
+  SdkSummaryResultProvider(
+      InternalAnalysisContext context, PackageBundle bundle, bool strongMode)
+      : super(context, new SummaryDataStore(const <String>[])) {
+    addBundle(null, bundle);
+    createResynthesizer(null, typeProvider);
+    _buildCoreLibrary();
+    _buildAsyncLibrary();
+    resynthesizer.finalizeCoreAsyncLibraries();
+    context.typeProvider = typeProvider;
+  }
+
+  @override
+  bool compute(CacheEntry entry, ResultDescriptor result) {
+    if (result == TYPE_PROVIDER) {
+      entry.setValue(result as ResultDescriptor<TypeProvider>, typeProvider,
+          TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    return super.compute(entry, result);
+  }
+
+  @override
+  bool hasResultsForSource(Source source) {
+    return source != null && source.isInSystemLibrary;
+  }
+
+  void _buildAsyncLibrary() {
+    LibraryElement library = resynthesizer.getLibraryElement('dart:async');
+    typeProvider.initializeAsync(library);
+  }
+
+  void _buildCoreLibrary() {
+    LibraryElement library = resynthesizer.getLibraryElement('dart:core');
+    typeProvider.initializeCore(library);
+  }
+}
+
+/**
+ * The implementation of [SummaryResynthesizer] for Dart SDK.
+ */
+class SdkSummaryResynthesizer extends SummaryResynthesizer {
+  final PackageBundle bundle;
+  final Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+  final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
+
+  SdkSummaryResynthesizer(AnalysisContext context, TypeProvider typeProvider,
+      SourceFactory sourceFactory, this.bundle, bool strongMode)
+      : super(null, context, typeProvider, sourceFactory, strongMode) {
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      unlinkedSummaries[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
+    }
+    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+      linkedSummaries[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
+    }
+  }
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return linkedSummaries[uri];
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return unlinkedSummaries[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    return uri.startsWith('dart:');
+  }
+}
 
 /**
  * An implementation of [DartSdk] which provides analysis results for `dart:`
@@ -64,10 +143,8 @@ class SummaryBasedDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory(
           [new DartUriResolver(this)], null, resourceProvider);
       _analysisContext.sourceFactory = factory;
-      SummaryDataStore dataStore = new SummaryDataStore([]);
-      dataStore.addBundle(null, _bundle);
       _analysisContext.resultProvider =
-          new InputPackagesResultProvider(_analysisContext, dataStore);
+          new SdkSummaryResultProvider(_analysisContext, _bundle, strongMode);
     }
     return _analysisContext;
   }

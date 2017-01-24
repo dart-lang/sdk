@@ -757,7 +757,6 @@ class AnalysisDriver {
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = _analysisOptions;
     analysisContext.sourceFactory = _sourceFactory.clone();
     analysisContext.contentCache = new _ContentCacheWrapper(_fsState);

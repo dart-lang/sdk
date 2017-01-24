@@ -204,15 +204,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   List<AnalysisListener> _listeners = new List<AnalysisListener>();
 
-  /**
-   * Determines whether this context should attempt to make use of the global
-   * SDK cache partition. Note that if this context is responsible for
-   * resynthesizing the SDK element model, this flag should be set to `false`,
-   * so that resynthesized elements belonging to this context won't leak into
-   * the global SDK cache partition.
-   */
-  bool useSdkCachePartition = true;
-
   @override
   ResultProvider resultProvider;
 
@@ -746,9 +737,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
     AnalysisCache createCache() {
       if (factory == null) {
-        return new AnalysisCache(<CachePartition>[_privatePartition]);
-      }
-      if (!useSdkCachePartition) {
         return new AnalysisCache(<CachePartition>[_privatePartition]);
       }
       DartSdk sdk = factory.dartSdk;

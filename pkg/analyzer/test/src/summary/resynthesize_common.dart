@@ -146,7 +146,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       TestSummaryResynthesizer resynthesizer, LibraryElement library) {
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
+    expect(resynthesizer.resynthesisCount, 1);
     // Check that the only linked summary consulted was that for [uri].
     expect(resynthesizer.linkedSummariesRequested, hasLength(1));
     expect(resynthesizer.linkedSummariesRequested.first,
@@ -4888,7 +4888,7 @@ var x;''');
     checkMinimalResynthesisWork(resynthesizer, original.library);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
+    expect(resynthesizer.resynthesisCount, 1);
     expect(result.location, location);
     return result;
   }
@@ -4911,14 +4911,10 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
    */
   final Set<String> linkedSummariesRequested = new Set<String>();
 
-  TestSummaryResynthesizer(AnalysisContext context, this.unlinkedSummaries,
-      this.linkedSummaries, this.allowMissingFiles)
-      : super(context, context.sourceFactory,
-            context.analysisOptions.strongMode) {
-    // Clear after resynthesizing TypeProvider in super().
-    unlinkedSummariesRequested.clear();
-    linkedSummariesRequested.clear();
-  }
+  TestSummaryResynthesizer(SummaryResynthesizer parent, AnalysisContext context,
+      this.unlinkedSummaries, this.linkedSummaries, this.allowMissingFiles)
+      : super(parent, context, context.typeProvider, context.sourceFactory,
+            context.analysisOptions.strongMode);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {
