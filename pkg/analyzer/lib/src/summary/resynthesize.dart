@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
@@ -46,10 +47,9 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, Source> _sources = <String, Source>{};
 
   /**
-   * The [TypeProvider] used to obtain core types (such as Object, int, List,
-   * and dynamic) during resynthesis.
+   * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
-  final TypeProvider typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * Indicates whether the summary should be resynthesized assuming strong mode
@@ -80,9 +80,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(this.parent, AnalysisContext context, this.typeProvider,
-      this.sourceFactory, this.strongMode)
-      : super(context);
+  SummaryResynthesizer(
+      this.parent, AnalysisContext context, this.sourceFactory, this.strongMode)
+      : super(context) {
+    _buildTypeProvider();
+  }
 
   /**
    * Number of libraries that have been resynthesized so far.
@@ -90,14 +92,9 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   int get resynthesisCount => _resynthesizedLibraries.length;
 
   /**
-   * Perform delayed finalization of the `dart:core` and `dart:async` libraries.
+   * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
-  void finalizeCoreAsyncLibraries() {
-    (_resynthesizedLibraries['dart:core'] as LibraryElementImpl)
-        .createLoadLibraryFunction(typeProvider);
-    (_resynthesizedLibraries['dart:async'] as LibraryElementImpl)
-        .createLoadLibraryFunction(typeProvider);
-  }
+  TypeProvider get typeProvider => _typeProvider;
 
   @override
   Element getElement(ElementLocation location) {
@@ -266,6 +263,17 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * `parent.hasLibrarySummary(uri)` returns `false`.
    */
   bool hasLibrarySummary(String uri);
+
+  void _buildTypeProvider() {
+    var coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
+    var asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
+    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
+    summaryTypeProvider.initializeCore(coreLibrary);
+    summaryTypeProvider.initializeAsync(asyncLibrary);
+    coreLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    asyncLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    _typeProvider = summaryTypeProvider;
+  }
 
   /**
    * Return the [LinkedLibrary] for the given [uri] or return `null` if it

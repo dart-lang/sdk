@@ -6,7 +6,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -27,8 +27,8 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
   InputPackagesResultProvider(
       InternalAnalysisContext context, SummaryDataStore dataStore)
       : super(context, dataStore) {
-    AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
-    createResynthesizer(sdkContext, sdkContext.typeProvider);
+    createResynthesizer();
+    context.typeProvider = resynthesizer.typeProvider;
   }
 
   @override
@@ -121,7 +121,6 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
   final SummaryDataStore _dataStore;
 
   _FileBasedSummaryResynthesizer _resynthesizer;
-  ResynthesizerResultProvider _sdkProvider;
 
   ResynthesizerResultProvider(this.context, this._dataStore);
 
@@ -136,10 +135,13 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
 
   @override
   bool compute(CacheEntry entry, ResultDescriptor result) {
-    if (_sdkProvider != null && _sdkProvider.compute(entry, result)) {
+    AnalysisTarget target = entry.target;
+
+    if (result == TYPE_PROVIDER) {
+      entry.setValue(result as ResultDescriptor<TypeProvider>,
+          _resynthesizer.typeProvider, TargetedResult.EMPTY_LIST);
       return true;
     }
-    AnalysisTarget target = entry.target;
 
     // LINE_INFO can be provided using just the UnlinkedUnit.
     if (target is Source && result == LINE_INFO) {
@@ -264,19 +266,9 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    *
    * Subclasses must call this method in their constructors.
    */
-  void createResynthesizer(
-      InternalAnalysisContext sdkContext, TypeProvider typeProvider) {
-    // Set the type provider to prevent the context from computing it.
-    context.typeProvider = typeProvider;
-    // Create a chained resynthesizer.
-    _sdkProvider = sdkContext?.resultProvider;
-    _resynthesizer = new _FileBasedSummaryResynthesizer(
-        _sdkProvider?.resynthesizer,
-        context,
-        typeProvider,
-        context.sourceFactory,
-        context.analysisOptions.strongMode,
-        _dataStore);
+  void createResynthesizer() {
+    _resynthesizer = new _FileBasedSummaryResynthesizer(context,
+        context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
   }
 
   /**
@@ -428,14 +420,9 @@ class SummaryDataStore {
 class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
   final SummaryDataStore _dataStore;
 
-  _FileBasedSummaryResynthesizer(
-      SummaryResynthesizer parent,
-      AnalysisContext context,
-      TypeProvider typeProvider,
-      SourceFactory sourceFactory,
-      bool strongMode,
-      this._dataStore)
-      : super(parent, context, typeProvider, sourceFactory, strongMode);
+  _FileBasedSummaryResynthesizer(AnalysisContext context,
+      SourceFactory sourceFactory, bool strongMode, this._dataStore)
+      : super(null, context, sourceFactory, strongMode);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {

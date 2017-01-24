@@ -86,6 +86,7 @@ class ModuleCompiler {
     // Read the summaries.
     var summaryData =
         new SummaryDataStore(options.summaryPaths, recordDependencyInfo: true);
+    summaryData.addBundle(null, sdk.getLinkedBundle());
 
     var srcFactory = createSourceFactory(options,
         sdkResolver: sdkResolver,
@@ -97,7 +98,6 @@ class ModuleCompiler {
         AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
     context.analysisOptions = analysisOptions;
     context.sourceFactory = srcFactory;
-    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
     context.resultProvider =
         new InputPackagesResultProvider(context, summaryData);
     options.declaredVariables.forEach(context.declaredVariables.define);

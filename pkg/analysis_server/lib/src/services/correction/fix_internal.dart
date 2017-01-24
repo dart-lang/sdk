@@ -1011,6 +1011,9 @@ class FixProcessor {
       }
       staticModifier = _inStaticContext();
     }
+    if (targetClassElement.librarySource.isInSystemLibrary) {
+      return;
+    }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
     AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
@@ -1143,6 +1146,9 @@ class FixProcessor {
         return;
       }
       staticModifier = _inStaticContext();
+    }
+    if (targetClassElement.librarySource.isInSystemLibrary) {
+      return;
     }
     utils.targetClassElement = targetClassElement;
     // prepare target ClassDeclaration
@@ -2014,6 +2020,9 @@ class FixProcessor {
           return;
         }
         ClassElement targetClassElement = targetType.element as ClassElement;
+        if (targetClassElement.librarySource.isInSystemLibrary) {
+          return;
+        }
         targetElement = targetClassElement;
         // prepare target ClassDeclaration
         AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
